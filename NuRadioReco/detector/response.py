@@ -31,7 +31,8 @@ class Response:
 
     def __init__(self, frequency, y, y_unit, time_delay=0, weight=1,
                  name="default", station_id=None, channel_id=None,
-                 remove_time_delay=True, debug_plot=False):
+                 remove_time_delay=True, debug_plot=False,
+                 log_level=logging.INFO):
         """
         Parameters
         ----------
@@ -69,7 +70,12 @@ class Response:
 
         debug_plot : bool (Default: False)
             If True, produce a debug plot
+
+        log_level : `logging.LOG_LEVEL` (Default: logging.INFO)
+            Defines verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...
         """
+        self.logger = logging.getLogger("NuRadioReco.Response")
+        self.logger.setLevel(log_level)
 
         self.__names = [name]
         self._station_id = station_id
@@ -78,7 +84,7 @@ class Response:
         self._sanity_check = True # Tmp
 
         if self._station_id is None or self._channel_id is None:
-            logging.error(f"Station and channel id were not defined for response {name}. Please do that.")
+            self.logger.error(f"Station and channel id were not defined for response {name}. Please do that.")
 
         self.__frequency = np.array(frequency) * units.GHz
 
@@ -95,7 +101,7 @@ class Response:
 
         if y_unit[1].lower() == "deg":
             if np.max(np.abs(y_phase)) < 2 * np.pi:
-                logging.warning("Is the phase really in deg? Does not look like it... "
+                self.logger.warning("Is the phase really in deg? Does not look like it... "
                                 f"Do not convert to rad. Phase: {y_phase}")
             else:
                 y_phase = np.deg2rad(y_phase)
@@ -218,7 +224,7 @@ class Response:
         if isinstance(other, Response):
             if self._station_id != other._station_id or \
                 self._channel_id != other._channel_id:
-                logging.error("It looks like you are combining responses from "
+                self.logger.error("It looks like you are combining responses from "
                                   f"two different channels: {self._station_id}.{self._channel_id} "
                                   f" vs {other._station_id}.{other._channel_id} (station_id.channel_id)")
             # Store each response individually: append/concatenate lists of gains and phases.
@@ -236,8 +242,8 @@ class Response:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
                 time_delay = self._get_time_delay()
                 if time_delay > trace_length / 2:
-                    logging.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
-                                    f"{time_delay:.2f} vs {trace_length:.2f}")
+                    self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
+                                        f"{time_delay:.2f} vs {trace_length:.2f}")
 
             spec = other.get_frequency_spectrum()
             freqs = other.get_frequencies()
@@ -339,7 +345,7 @@ class Response:
         time_delay2 = -popt[0] / (2 * np.pi)
 
         if np.abs(time_delay1 - time_delay2) > 0.1:
-            logging.warning("Calculation of time delay. The two methods yield different results: "
-                            f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
+            self.logger.warning("Calculation of time delay. The two methods yield different results: "
+                                f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
 
         return time_delay1
