@@ -41,6 +41,7 @@ from NuRadioReco.framework.parameters import particleParameters as simp
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import datetime
 import logging
+import warnings
 from six import iteritems
 import yaml
 import os
@@ -263,9 +264,12 @@ class simulation:
             logger.status(f"input file {self._inputfilename} is empty")
             return
 
-        ################################
-        # perfom a dummy detector simulation to determine how the signals are filtered
+        # Perfom a dummy detector simulation to determine how the signals are filtered.
+        # This variable stores the integrated channel response for each channel, i.e.
+        # the integral of the squared signal chain response over all frequencies, int S21^2 df.
+        # For a system without amplification, it is equivalent to the bandwidth of the system.
         self._integrated_channel_response = {}
+
         self._integrated_channel_response_normalization = {}
         self._max_amplification_per_channel = {}
         self.__noise_adder_normalization = {}
@@ -1565,3 +1569,23 @@ class simulation:
             msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
             logger.error(msg)
             raise ValueError(msg)
+
+    @property
+    def _bandwidth_per_channel(self):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                      "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        return self._integrated_channel_response
+
+    @_bandwidth_per_channel.setter
+    def _bandwidth_per_channel(self, value):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                        "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        self._integrated_channel_response = value
+
+    @property
+    def integrated_channel_response(self):
+        return self._integrated_channel_response
+
+    @integrated_channel_response.setter
+    def integrated_channel_response(self, value):
+        self._integrated_channel_response = value
