@@ -614,6 +614,7 @@
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">generatorAttributes</span> <span class="k">as</span> <span class="n">genattrs</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">iteritems</span>
 <span class="kn">import</span> <span class="nn">yaml</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -836,9 +837,12 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;input file </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_inputfilename</span><span class="si">}</span><span class="s2"> is empty&quot;</span><span class="p">)</span>
             <span class="k">return</span>
 
-        <span class="c1">################################</span>
-        <span class="c1"># perfom a dummy detector simulation to determine how the signals are filtered</span>
+        <span class="c1"># Perfom a dummy detector simulation to determine how the signals are filtered.</span>
+        <span class="c1"># This variable stores the integrated channel response for each channel, i.e.</span>
+        <span class="c1"># the integral of the squared signal chain response over all frequencies, int S21^2 df.</span>
+        <span class="c1"># For a system without amplification, it is equivalent to the bandwidth of the system.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_integrated_channel_response</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_integrated_channel_response_normalization</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_amplification_per_channel</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_adder_normalization</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2137,7 +2141,27 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> for config.signal.polarization is not a valid option&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;signal&#39;</span><span class="p">][</span><span class="s1">&#39;polarization&#39;</span><span class="p">])</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_bandwidth_per_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This variable `_bandwidth_per_channel` is deprecated. &quot;</span>
+                      <span class="s2">&quot;Please use `integrated_channel_response` instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrated_channel_response</span>
+
+    <span class="nd">@_bandwidth_per_channel</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">_bandwidth_per_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This variable `_bandwidth_per_channel` is deprecated. &quot;</span>
+                        <span class="s2">&quot;Please use `integrated_channel_response` instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_integrated_channel_response</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">integrated_channel_response</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrated_channel_response</span>
+
+    <span class="nd">@integrated_channel_response</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">integrated_channel_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_integrated_channel_response</span> <span class="o">=</span> <span class="n">value</span></div>
 </pre></div>
 
            </div>
