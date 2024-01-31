@@ -102,7 +102,7 @@ class Response:
         if y_unit[1].lower() == "deg":
             if np.max(np.abs(y_phase)) < 2 * np.pi:
                 self.logger.warning("Is the phase really in deg? Does not look like it... "
-                                f"Do not convert to rad. Phase: {y_phase}")
+                                    f"Do not convert to rad. Phase: {y_phase}")
             else:
                 y_phase = np.deg2rad(y_phase)
         elif y_unit[1].lower() == "rad":
@@ -110,13 +110,13 @@ class Response:
         else:
             raise KeyError
 
-
+        # Remove the average group delay from response
         if remove_time_delay:
             y_phase_orig = np.copy(np.unwrap(y_phase))
             _response = gain * np.exp(1j * (y_phase + 2 * np.pi * time_delay * self.__frequency))
             y_phase = np.angle(_response)
         else:
-            time_delay = 0
+            time_delay = 0  # set time_delay to 0 if group delay is not removed
 
         y_phase = np.unwrap(y_phase)
 
@@ -131,7 +131,7 @@ class Response:
 
         if debug_plot:
             from matplotlib import pyplot as plt
-            fig, axs = plt.subplots(3, 1, sharex=True)  #, gridspec_kw=dict(hspace=0.03))
+            fig, axs = plt.subplots(3, 1, sharex=True)
             axs[0].set_title(name)
             frequency_interp = np.linspace(self.__frequency[0], self.__frequency[-1], 10000)
             axs[0].plot(self.__frequency, gain, "C0o", label="data", markersize=2)
@@ -152,7 +152,6 @@ class Response:
             axs[1].set_ylabel("phase / rad")
 
             axs[0].legend(fontsize=5)
-            # axs[1].legend(fontsize=5)
 
             group_delay = -np.diff(y_phase) / np.diff(self.__frequency)[0] / (2 * np.pi)
             axs[2].plot(self.__frequency[:-1], group_delay, "C0o", markersize=2)
@@ -215,10 +214,6 @@ class Response:
         Define multiplication operator for
             - Other objects of the same class
             - Objects of type NuRadioReco.framework.base_trace
-
-        TODO: Multiplication with base_trace will just work when the spectrum is one dimensional. Check if
-        there is a case where the spectrum could be 3 (or more) dimensional and adjust the class
-
         """
 
         if isinstance(other, Response):
@@ -240,7 +235,7 @@ class Response:
 
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
-                time_delay = self._get_time_delay()
+                time_delay = self._calculate_time_delay()
                 if time_delay > trace_length / 2:
                     self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
                                         f"{time_delay:.2f} vs {trace_length:.2f}")
@@ -312,11 +307,11 @@ class Response:
         """ Get time delay from DB """
         return np.sum(self.__time_delays)
 
-    def _get_time_delay(self):
+    def _calculate_time_delay(self):
         """
         Calculate time delay from phase of the stored complex response function.
         This is not the time delay which is stored in the DB and which is used in
-        the `__init__()` to normalize the reponse function. Rather, its the remaining
+        the `__init__()` to normalize the response function. Rather, its the remaining
         group delay.
 
         The time delay is calculated as the mean between 195 and 205 MHz.
@@ -344,7 +339,7 @@ class Response:
         popt = np.polyfit(freqs, np.unwrap(phase), 1)
         time_delay2 = -popt[0] / (2 * np.pi)
 
-        if np.abs(time_delay1 - time_delay2) > 0.1:
+        if np.abs(time_delay1 - time_delay2) > 0.1 * units.ns:
             self.logger.warning("Calculation of time delay. The two methods yield different results: "
                                 f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
 
