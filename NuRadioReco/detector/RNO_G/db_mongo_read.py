@@ -18,9 +18,6 @@ logger.setLevel(logging.INFO)
 
 
 def _convert_astro_time_to_datetime(time_astro):
-    if not isinstance(time_astro, astropy.time.Time):
-        raise ValueError("This function expects only arguments from type `astropy.time.Time`")
-
     return time_astro.to_datetime()
 
 
@@ -146,7 +143,7 @@ class Database(object):
             timestamp for the primary measurement
 
         identification_label: string
-            specify what kind of label is used for the identification ("name" or "id") 
+            specify what kind of label is used for the identification ("name" or "id")
 
         data_dict: dict
             dictionary containing additional information that are used to search the database (e.g., channel_id, S_parameter)
