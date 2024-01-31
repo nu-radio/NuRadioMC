@@ -264,29 +264,34 @@ class Response:
         return "Response of " + ", ".join([f"{name} ({weight})" for name, weight in zip(self.get_names(), self.__weights)]) \
             + f": |R(0.5 GHz)| = {ampl:.2f} dB (amplitude) ({np.sum(self.__time_delays):.2f} ns)"
 
-    def plot(self, show=False, in_dB=True):
+    def plot(self, ax1=None, show=False, in_dB=True, plt_kwargs={}):
         import matplotlib.pyplot as plt
 
         freqs = np.linspace(0, 1.4) * units.GHz
 
-        fig, ax = plt.subplots()
+        if ax1 is None:
+            fig, ax = plt.subplots()
+        else:
+            ax = ax1
+
         for gain, weight, name in zip(self.__gains, self.__weights, self.__names):
             _gain = gain(freqs)
 
+            name = name.replace("_", " ")
             ls = "-" if weight == 1 else "--"
 
             if in_dB:
                 mask = _gain > 0  # to avoid RunTime warning
-                ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), ls=ls, label=name)
+                ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), ls=ls, label=name + f": {weight}", **plt_kwargs)
             else:
-                ax.plot(freqs / units.MHz, _gain, label=name + f": {weight}", ls=ls)
+                ax.plot(freqs / units.MHz, _gain, label=name + f": {weight}", ls=ls, **plt_kwargs)
 
         _gain = np.abs(self(freqs))
         if in_dB:
             mask = _gain > 0  # to avoid RunTime warning
-            ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), color="k", label="total")
+            ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), color="k", label="total", **plt_kwargs)
         else:
-            ax.plot(freqs / units.MHz, _gain, color="k", label="total")
+            ax.plot(freqs / units.MHz, _gain, color="k", label="total", **plt_kwargs)
 
         ax.set_xlabel("frequency / MHz")
         if in_dB:
@@ -300,6 +305,8 @@ class Response:
 
         if show:
             plt.show()
+        elif ax1 is not None:
+            pass
         else:
             return fig, ax
 
