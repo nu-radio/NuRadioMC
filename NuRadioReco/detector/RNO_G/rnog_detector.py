@@ -78,7 +78,7 @@ class Detector():
             Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
             (Default: {}, the acutally default values for the parameters in question are defined below)
 
-        database_time : `datetime.datetime`
+        database_time : `datetime.datetime` or `astropy.time.Time`
             Set database time which is used to select the primary measurement. By default (= None) the database time
             is set to now (time the code is running) to select the measurement which is now primary.
 
@@ -763,7 +763,7 @@ class Detector():
         channel_id: int
             The channel id
 
-        frequencies: np.array(np.complex128)
+        frequencies: array of floats
             Array of frequencies for which the response is returned
 
         Returns

@@ -109,7 +109,7 @@ class BaseTrace:
         ----------
         frequency_spectrum : np.array of floats
             The frequency spectrum
-        sampling_rate : float or str (Default: None)
+        sampling_rate : float or str
             The sampling rate of the trace, i.e., the inverse of the bin width.
             If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
         """
