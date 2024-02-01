@@ -7,6 +7,7 @@ import NuRadioReco.framework.base_trace
 import logging
 logger = logging.getLogger("SignalGen.emitter")
 import os
+import pickle, lzma
 
 buffer_emitter_model = {}
 
@@ -134,20 +135,17 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
 
         if model not in buffer_emitter_model:
             path = os.path.dirname(os.path.dirname(__file__))
-            launch_angles = np.array([0, 15, 30, 45, 60, 75, 90]) * units.deg
-            buffer_emitter_model[model] = {}
-            for launch_angle in launch_angles:
-                buffer_emitter_model[model][launch_angle] = []
-                for i in range(0, 10):
-                    input_file = os.path.join(path,
-                        f'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_{(90*units.deg - launch_angle) / units.deg:.0f}_set_{i}.npy')
-                        #f'SignalProp/examples/birefringence_examples/SPICE_efields/eField_launchAngle_{(90*units.deg - launch_angle) / units.deg:.0f}_set_{i}.npy')
-                    buffer_emitter_model[model][launch_angle].append(np.load(input_file))
+            SPice_pulses = os.path.join(path,"SignalProp/examples/birefringence_examples/extra_files/SPice_pulses.xz")
 
-        launch_angles = np.array(list(buffer_emitter_model[model].keys()))
-        launch_angle = launch_angles[np.argmin(np.abs(launch_angles - launch_zenith))]
-        n_pulses = len(buffer_emitter_model[model][launch_angle])
+            with lzma.open(SPice_pulses, "r") as f:
+                buffer_emitter_model[model] = pickle.load(f)
 
+        launch_keys = np.array(list(buffer_emitter_model[model]['efields'].keys()))
+        launch_angles = launch_keys * units.deg
+        
+        launch_angle = launch_keys[np.argmin(np.abs(launch_angles - launch_zenith))]
+        n_pulses = len(buffer_emitter_model[model]['efields'][launch_angle])
+        
         if "iN" in kwargs:
             iN = kwargs["iN"]
             if iN >= n_pulses:
@@ -155,24 +153,17 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         else:
             iN = np.random.randint(0, n_pulses)
 
-        spice_pulse = buffer_emitter_model[model][launch_angle][iN]
+        spice_pulse = buffer_emitter_model[model]['efields'][launch_angle][iN]
 
-        time_original = spice_pulse[0]
-        voltage_original_theta = spice_pulse[1]
-        voltage_original_phi = spice_pulse[2]
-        sampling_rate_tmp = 1/(time_original[1] - time_original[0])
+        voltage_original_theta = spice_pulse[0]
+        voltage_original_phi = spice_pulse[1]
+        sampling_rate_tmp = buffer_emitter_model[model]['sampling_rate']
 
         btrace = NuRadioReco.framework.electric_field.ElectricField([1], position=None,
                 shower_id=None, ray_tracing_id=None)
 
         btrace.set_trace(np.array([np.zeros_like(voltage_original_theta), voltage_original_theta, voltage_original_phi]), sampling_rate_tmp)
         btrace.resample(1/dt)  # this resamples the trace to have 1/dt sampling rate
-
-        # @Nils: Here you can further optimize the code and do all the following operations directly on the `trace` 2d array
-        # instead of first extracting the individual traces and then putting them back together. This is just a quick
-        # fix to make the code work. I leave it to you to optimize it further.
-        # you can e.g. first create the 2dtrace with the correct dimension (`trace = np.zeros((3, N))`) and then fill it with the data from the
-        # btrace object. This will be much faster than the current implementation.
 
         trace = btrace.get_trace()
 
