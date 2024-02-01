@@ -536,7 +536,7 @@ class readRNOGData:
                 return False
 
         run_type = run_info["run_type"].values[0]
-        if not run_type in self.__run_types:
+        if run_type not in self.__run_types:
             self.logger.info(f"Reject station {station_id} run {run_id} because of run type {run_type}")
             return False
 
