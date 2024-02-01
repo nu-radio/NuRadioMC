@@ -221,6 +221,12 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/detector/antennamodels.html#xfdtd-vpol-crossfeed-150mmhole-n1-78-inffirn">XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco/pages/detector/rnog.html">The RNO-G detector class and database interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/detector/rnog.html#detector-time-and-database-time">Detector time and database time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/detector/rnog.html#database-data-structure">Database data structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/detector/rnog.html#detector-class">Detector class</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioReco/pages/nur_modules.html">Modules</a><ul>
@@ -329,6 +335,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.detector.response.html">NuRadioReco.detector.response module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.detector.sql_to_json.html">NuRadioReco.detector.sql_to_json module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.detector.test_detector_db.html">NuRadioReco.detector.test_detector_db module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.detector.visualize_detector.html">NuRadioReco.detector.visualize_detector module</a></li>
@@ -588,6 +595,7 @@
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
@@ -618,9 +626,19 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_electric_field">(NuRadioReco.framework.station.Station method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_entry_to_database">add_entry_to_database() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_channel_info_to_station">add_general_channel_info_to_station() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_device_info_to_station">add_general_device_info_to_station() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_station_info">add_general_station_info() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.add_generic_station">add_generic_station() (NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html#NuRadioReco.framework.hybrid_information.HybridInformation.add_hybrid_shower">add_hybrid_shower() (NuRadioReco.framework.hybrid_information.HybridInformation method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_measurement_protocol">add_measurement_protocol() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module">add_module() (NuRadioMC.utilities.medium_base.RadioPropaIceWrapper method)</a>
 </li>
@@ -676,6 +694,8 @@
         <li><a href="NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.NuRadioMCLogger.addFilter">(NuRadioMC.simulation.simulation.NuRadioMCLogger method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.addHandler">addHandler() (NuRadioMC.EvtGen.generator.NuRadioMCLogger method)</a>
 
       <ul>
@@ -684,8 +704,6 @@
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html#NuRadioReco.utilities.analytic_pulse.amp_from_energy">amp_from_energy() (in module NuRadioReco.utilities.analytic_pulse)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.analogToDigitalConverter.html#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter">analogToDigitalConverter (class in NuRadioReco.modules.analogToDigitalConverter)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.timing.html#NuRadioReco.utilities.timing.analyze_timing">analyze_timing() (in module NuRadioReco.utilities.timing)</a>
@@ -928,6 +946,18 @@
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.ccnc">ccnc (NuRadioReco.framework.parameters.stationParameters attribute)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_antenna_measurement">change_primary_antenna_measurement() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_cable_measurement">change_primary_cable_measurement() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_downhole_measurement">change_primary_downhole_measurement() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_drab_measurement">change_primary_drab_measurement() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_iglu_measurement">change_primary_iglu_measurement() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_surface_measurement">change_primary_surface_measurement() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel">Channel (class in NuRadioReco.framework.channel)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelAddCableDelay.html#NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay">channelAddCableDelay (class in NuRadioReco.modules.channelAddCableDelay)</a>
@@ -960,15 +990,17 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator">channelTimeOffsetCalculator (class in NuRadioReco.modules.channelTimeOffsetCalculator)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelTimeWindow.html#NuRadioReco.modules.channelTimeWindow.channelTimeWindow">channelTimeWindow (class in NuRadioReco.modules.channelTimeWindow)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.charge_excess_profile_id">charge_excess_profile_id (NuRadioReco.framework.parameters.showerParameters attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.check_vertical_string">check_vertical_string() (NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.chi2_efield_time_direction_fit">chi2_efield_time_direction_fit (NuRadioReco.framework.parameters.stationParameters attribute)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.clone_collection_to_collection">clone_collection_to_collection() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.close_files">close_files() (NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio method)</a>
 </li>
@@ -1024,6 +1056,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.cr_zenith">(NuRadioReco.framework.parameters.stationParameters attribute)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.create_empty_collection">create_empty_collection() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.critical">critical() (NuRadioMC.EvtGen.generator.NuRadioMCLogger method)</a>
 
       <ul>
@@ -1038,6 +1072,12 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database">Database (class in NuRadioReco.detector.RNO_G.db_mongo_read)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database">(class in NuRadioReco.detector.RNO_G.db_mongo_write)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer">DateTimeSerializer (class in NuRadioReco.detector.detector_base)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.deactivate_auto_step_size">deactivate_auto_step_size() (NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
@@ -1049,6 +1089,12 @@
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer.decode">decode() (NuRadioReco.detector.detector_base.DateTimeSerializer method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_channel">decommission_a_channel() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_device">decommission_a_device() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_station">decommission_a_station() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.delay_trace">delay_trace() (in module NuRadioReco.utilities.trace_utilities)</a>
 </li>
@@ -1124,17 +1170,23 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html#NuRadioReco.framework.parameter_serialization.deserialize_covariances">deserialize_covariances() (in module NuRadioReco.framework.parameter_serialization)</a>
 </li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.Detector">Detector (class in NuRadioReco.detector.detector)</a>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector">Detector (class in NuRadioReco.detector.detector_sql)</a>
 
       <ul>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector">(class in NuRadioReco.detector.detector_sql)</a>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector">(class in NuRadioReco.detector.RNO_G.rnog_detector)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.Detector">Detector() (in module NuRadioReco.detector.detector)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase">DetectorBase (class in NuRadioReco.detector.detector_base)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties">DetectorSysUncertainties (class in NuRadioReco.detector.detector_sys_uncertainties)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.determine_solution_type">determine_solution_type() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.dictionarize_nested_lists">dictionarize_nested_lists() (in module NuRadioReco.detector.RNO_G.db_mongo_read)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.dictionarize_nested_lists_as_tuples">dictionarize_nested_lists_as_tuples() (in module NuRadioReco.detector.RNO_G.db_mongo_read)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html#NuRadioReco.utilities.diodeSimulator.diodeSimulator">diodeSimulator (class in NuRadioReco.utilities.diodeSimulator)</a>
 </li>
@@ -1347,6 +1399,12 @@
 </li>
       </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.Veff.html#NuRadioMC.utilities.Veff.export">export() (in module NuRadioMC.utilities.Veff)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export_as_string">export_as_string() (NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1388,11 +1446,21 @@
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.find_maximum_in_plane">find_maximum_in_plane() (NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.find_path">find_path() (in module NuRadioReco.detector.detector)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.find_primary_measurement">find_primary_measurement() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.find_primary_measurement">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_ray_type">find_ray_type() (NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_receiving_zenith">find_receiving_zenith() (NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.find_reference_entry">find_reference_entry() (in module NuRadioReco.detector.detector)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions">find_solutions() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
 
@@ -1465,7 +1533,11 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position">get_absolute_position() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_absolute_position">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_absolute_position">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_absolute_position">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position_site">get_absolute_position_site() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
@@ -1473,7 +1545,15 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_absolute_position_site">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_absolute_position_site">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_absolute_position_site">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_all_available_signal_chain_configs">get_all_available_signal_chain_configs() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_all_available_signal_chain_configs">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.amp.html#NuRadioReco.detector.amp.get_amp_response">get_amp_response() (in module NuRadioReco.detector.amp)</a>
@@ -1481,6 +1561,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_measurement">get_amplifier_measurement() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_amplifier_measurement">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_amplifier_measurement">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
@@ -1489,7 +1571,11 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_response">(NuRadioReco.detector.detector_base.DetectorBase method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_amplifier_response">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_amplifier_response">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_amplifier_type">get_amplifier_type() (in module NuRadioReco.detector.detector_sql)</a>
@@ -1498,6 +1584,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_type">(NuRadioReco.detector.detector_base.DetectorBase method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_amplifier_type">(NuRadioReco.detector.detector_sql.Detector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_amplifier_type">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_amplifier_type">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
@@ -1521,6 +1609,8 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_deployment_time">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_deployment_time">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_antenna_deployment_time">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
@@ -1529,7 +1619,11 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_model">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_model">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_antenna_model">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_model">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_antenna_model_file">get_antenna_model_file() (in module NuRadioReco.detector.detector_sql)</a>
@@ -1542,6 +1636,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_antenna_orientation">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_orientation">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_antenna_positions">get_antenna_positions() (NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator method)</a>
@@ -1561,7 +1657,11 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_type">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_type">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_antenna_type">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_type">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_ARIANNA_parameter">get_ARIANNA_parameter() (NuRadioReco.framework.base_station.BaseStation method)</a>
@@ -1655,7 +1755,11 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_cable_delay">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_cable_delay">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_cable_delay">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_cable_delays">get_cable_delays() (in module NuRadioReco.detector.detector_sql)</a>
@@ -1669,6 +1773,8 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_cable_type_and_length">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_cable_type_and_length">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_cable_type_and_length">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
@@ -1677,7 +1783,11 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_channel">get_channel() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_channel">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_channel">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channel">(NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
@@ -1687,13 +1797,33 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_channel_ids">get_channel_ids() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_channel_ids">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_channel_ids">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_ids">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.get_channel_ids">(NuRadioReco.framework.electric_field.ElectricField method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channel_ids">(NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel_ids">(NuRadioReco.framework.station.Station method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_orientation">get_channel_orientation() (NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_channel_signal_chain">get_channel_signal_chain() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_signal_chain">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_channel_signal_chain_measurement">get_channel_signal_chain_measurement() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain_measurement">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_channel_trace_start_time">get_channel_trace_start_time() (NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator method)</a>
@@ -1706,8 +1836,44 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channels_by_shower_id">get_channels_by_shower_id() (NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_collection_information">get_collection_information() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_collection_information">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_collection_names">get_collection_names() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_collection_names">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.get_compiler">get_compiler() (in module NuRadioMC.EvtGen.proposal_table_manager)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_complete_channel_information">get_complete_channel_information() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_channel_information">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_complete_device_information">get_complete_device_information() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_device_information">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_complete_station_information">get_complete_station_information() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_station_information">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data">get_component_data() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config">get_config() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
 
       <ul>
@@ -1754,6 +1920,12 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_cr_ref_templates">get_cr_ref_templates() (NuRadioReco.utilities.templates.Templates method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_database_time">get_database_time() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_database_time">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays">get_decays() (NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_default_channel">get_default_channel() (NuRadioReco.detector.generic_detector.GenericDetector method)</a>
@@ -1775,21 +1947,35 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_detector_time">get_detector_time() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_detector_time">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_detector_time">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_detector_time">(NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_detector_time">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_detector_time">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_device">get_device() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_device">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_device">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_device_ids">get_device_ids() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_device_ids">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_device_ids">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_devices">get_devices() (NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.analogToDigitalConverter.html#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace">get_digital_trace() (NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor">get_efield_antenna_factor() (in module NuRadioReco.utilities.trace_utilities)</a>
@@ -1932,6 +2118,24 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_gamma">get_gamma() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_general_channel_information">get_general_channel_information() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_channel_information">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_general_device_information">get_general_device_information() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_device_information">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_general_station_information">get_general_station_information() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_station_information">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_generator_info">get_generator_info() (NuRadioReco.framework.event.Event method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_geometry_and_transformation">get_geometry_and_transformation() (in module NuRadioReco.modules.efieldRadioInterferometricReconstruction)</a>
@@ -2052,6 +2256,12 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_id">(NuRadioReco.framework.station.Station method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_identifier">get_identifier() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_identifier">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.Veff.html#NuRadioMC.utilities.Veff.get_index">get_index() (in module NuRadioMC.utilities.Veff)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.get_index_of_refraction">get_index_of_refraction() (NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
@@ -2138,6 +2348,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.get_multiple_high_low_trigger">get_multiple_high_low_trigger() (in module NuRadioReco.modules.trigger.multiHighLowThreshold)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalGen.HCRB2017.html#NuRadioMC.SignalGen.HCRB2017.get_N_AskDepthA">get_N_AskDepthA() (in module NuRadioMC.SignalGen.HCRB2017)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_n_events">get_n_events() (NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio method)</a>
@@ -2164,13 +2376,15 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_name">(NuRadioReco.framework.trigger.Trigger method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.get_names">get_names() (NuRadioReco.detector.response.Response method)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity">get_neutrino_inelasticity() (in module NuRadioMC.utilities.inelasticities)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_noise_RMS">get_noise_RMS() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_noise_RMS">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_noise_RMS">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
@@ -2179,7 +2393,11 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_noise_temperature">get_noise_temperature() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_noise_temperature">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_noise_temperature">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_noise_temperature">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_nu_cross_section">get_nu_cross_section() (in module NuRadioMC.utilities.cross_sections)</a>
@@ -2195,7 +2413,11 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_number_of_channels">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_number_of_channels">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_number_of_channels">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_channels">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_number_of_channels">(NuRadioReco.framework.station.Station method)</a>
 </li>
@@ -2203,6 +2425,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_devices">get_number_of_devices() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_number_of_devices">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_number_of_devices">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
@@ -2225,7 +2449,11 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_number_of_samples">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_number_of_samples">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_number_of_samples">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_samples">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_number_of_samples">(NuRadioReco.framework.base_trace.BaseTrace method)</a>
 </li>
@@ -2252,6 +2480,12 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.version.html#NuRadioReco.utilities.version.get_NuRadioReco_commit_hash">get_NuRadioReco_commit_hash() (in module NuRadioReco.utilities.version)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_object_names">get_object_names() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_object_names">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters">get_output_parameters() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
 
       <ul>
@@ -2269,6 +2503,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_parallel_channels">get_parallel_channels() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_parallel_channels">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_parallel_channels">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
@@ -2362,8 +2598,14 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.get_pickle_antenna_response">get_pickle_antenna_response() (in module NuRadioReco.detector.antennapattern)</a>
 </li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.get_position">get_position() (NuRadioReco.framework.electric_field.ElectricField method)</a>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_position">get_position() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_position">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.get_position">(NuRadioReco.framework.electric_field.ElectricField method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.powerIntegration.html#NuRadioReco.modules.trigger.powerIntegration.get_power_int_triggers">get_power_int_triggers() (in module NuRadioReco.modules.trigger.powerIntegration)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_times">get_pre_trigger_times() (NuRadioReco.framework.trigger.EnvelopePhasedTrigger method)</a>
@@ -2390,6 +2632,12 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation.html#NuRadioMC.SignalProp.propagation.get_propagation_module">get_propagation_module() (in module NuRadioMC.SignalProp.propagation)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_quantity_names">get_quantity_names() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_quantity_names">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_raw_channel">get_raw_channel() (NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_raw_station">get_raw_station() (NuRadioReco.detector.generic_detector.GenericDetector method)</a>
@@ -2469,7 +2717,11 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_relative_position">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
+</li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position_device">get_relative_position_device() (NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_relative_positions">get_relative_positions() (in module NuRadioReco.detector.detector_sql)</a>
 
       <ul>
@@ -2495,7 +2747,11 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_sampling_frequency">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_sampling_frequency">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_sampling_frequency">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.simulation.get_sampling_rate">get_sampling_rate() (NuRadioMC.simulation.simulation.simulation method)</a>
@@ -2538,6 +2794,10 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_signal">get_signal() (in module NuRadioReco.utilities.interferometry)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_components">get_signal_chain_components() (NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_response">get_signal_chain_response() (NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.get_signal_travel_time">get_signal_travel_time() (NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor method)</a>
 
       <ul>
@@ -2559,12 +2819,18 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_site">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_site">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_site">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates">get_site_coordinates() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_site_coordinates">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_site_coordinates">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
@@ -2585,7 +2851,11 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_station">get_station() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_station">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_station">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_station">(NuRadioReco.framework.event.Event method)</a>
 </li>
@@ -2595,7 +2865,15 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_station_ids">get_station_ids() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_station_ids">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_station_ids">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_station_ids">(NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_station_ids">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_station_ids">(NuRadioReco.framework.event.Event method)</a>
 </li>
@@ -2636,9 +2914,13 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.simpleThreshold.html#NuRadioReco.modules.trigger.simpleThreshold.get_threshold_triggers">get_threshold_triggers() (in module NuRadioReco.modules.trigger.simpleThreshold)</a>
 </li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_time_delay">get_time_delay() (NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator method)</a>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.get_time_delay">get_time_delay() (NuRadioReco.detector.response.Response method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_time_delay">(NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_time_delay">(NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator method)</a>
 </li>
       </ul></li>
@@ -2825,6 +3107,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods">get_unique_time_periods() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_unique_time_periods">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_unique_time_periods">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       </ul></li>
@@ -2977,7 +3261,11 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.has_station">has_station() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.has_station">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.has_station">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.has_station_ids">has_station_ids() (NuRadioReco.framework.radio_shower.RadioShower method)</a>
@@ -3088,16 +3376,20 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.interpolate_linear">interpolate_linear() (in module NuRadioReco.detector.antennapattern)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.interpolate_linear_vectorized">interpolate_linear_vectorized() (in module NuRadioReco.detector.antennapattern)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.intersection_box_ray">intersection_box_ray() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless">is_channel_noiseless() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.is_channel_noiseless">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.is_channel_noiseless">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.is_channel_noiseless">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.is_cosmic_ray">is_cosmic_ray() (NuRadioReco.framework.base_station.BaseStation method)</a>
@@ -3168,10 +3460,16 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.ARIANNA.analog_components.html#NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response">load_amplifier_response() (in module NuRadioReco.detector.ARIANNA.analog_components)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.AntennaPatternProvider.load_antenna_pattern">load_antenna_pattern() (NuRadioReco.detector.antennapattern.AntennaPatternProvider method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.load_board_information">load_board_information() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.load_board_information">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.load_input_hdf5">load_input_hdf5() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.ARA.analog_components.html#NuRadioReco.detector.ARA.analog_components.load_system_response">load_system_response() (in module NuRadioReco.detector.ARA.analog_components)</a>
@@ -3346,9 +3644,17 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#module-NuRadioReco.detector.generic_detector">NuRadioReco.detector.generic_detector</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.response.html#module-NuRadioReco.detector.response">NuRadioReco.detector.response</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.html#module-NuRadioReco.detector.RNO_G">NuRadioReco.detector.RNO_G</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.analog_components.html#module-NuRadioReco.detector.RNO_G.analog_components">NuRadioReco.detector.RNO_G.analog_components</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#module-NuRadioReco.detector.RNO_G.db_mongo_read">NuRadioReco.detector.RNO_G.db_mongo_read</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#module-NuRadioReco.detector.RNO_G.db_mongo_write">NuRadioReco.detector.RNO_G.db_mongo_write</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#module-NuRadioReco.detector.RNO_G.rnog_detector">NuRadioReco.detector.RNO_G.rnog_detector</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.sql_to_json.html#module-NuRadioReco.detector.sql_to_json">NuRadioReco.detector.sql_to_json</a>
 </li>
@@ -4081,6 +4387,13 @@
 </li>
       </ul></li>
       <li>
+    NuRadioReco.detector.response
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.response.html#module-NuRadioReco.detector.response">module</a>
+</li>
+      </ul></li>
+      <li>
     NuRadioReco.detector.RNO_G
 
       <ul>
@@ -4092,6 +4405,27 @@
 
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.analog_components.html#module-NuRadioReco.detector.RNO_G.analog_components">module</a>
+</li>
+      </ul></li>
+      <li>
+    NuRadioReco.detector.RNO_G.db_mongo_read
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#module-NuRadioReco.detector.RNO_G.db_mongo_read">module</a>
+</li>
+      </ul></li>
+      <li>
+    NuRadioReco.detector.RNO_G.db_mongo_write
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#module-NuRadioReco.detector.RNO_G.db_mongo_write">module</a>
+</li>
+      </ul></li>
+      <li>
+    NuRadioReco.detector.RNO_G.rnog_detector
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#module-NuRadioReco.detector.RNO_G.rnog_detector">module</a>
 </li>
       </ul></li>
       <li>
@@ -4269,6 +4603,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.ARA.triggerSimulator.html#module-NuRadioReco.modules.ARA.triggerSimulator">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     NuRadioReco.modules.ARIANNA
 
@@ -4283,8 +4619,6 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#module-NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     NuRadioReco.modules.base
 
@@ -5057,6 +5391,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.phimin">phimin (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.plot">plot() (NuRadioReco.detector.response.Response method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.plot_lateral_cross_section">plot_lateral_cross_section() (in module NuRadioReco.modules.efieldRadioInterferometricReconstruction)</a>
@@ -5105,6 +5441,18 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions">ProposalFunctions (class in NuRadioMC.EvtGen.NuRadioProposal)</a>
 </li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.query_modification_timestamps_per_station">query_modification_timestamps_per_station() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.query_modification_timestamps_per_station">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -5219,6 +5567,8 @@
         <li><a href="NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.NuRadioMCLogger.removeHandler">(NuRadioMC.simulation.simulation.NuRadioMCLogger method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.rename_database_collection">rename_database_collection() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module">replace_module() (NuRadioMC.utilities.medium_base.RadioPropaIceWrapper method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.resample">resample() (NuRadioReco.framework.base_trace.BaseTrace method)</a>
@@ -5247,6 +5597,8 @@
         <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.reset_solutions">(NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response">Response (class in NuRadioReco.detector.response)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.rmax">rmax (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.rmin">rmin (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
@@ -5517,6 +5869,18 @@
       </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_cut_viewing_angle">set_cut_viewing_angle() (NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.set_database_time">set_database_time() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.set_database_time">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.set_detector_time">set_detector_time() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.set_detector_time">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_electric_fields">set_electric_fields() (NuRadioReco.framework.base_station.BaseStation method)</a>
 
       <ul>
@@ -5602,6 +5966,8 @@
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_maximum_trajectory_length">set_maximum_trajectory_length() (NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_minimizer_tolerance">set_minimizer_tolerance() (NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.set_not_working">set_not_working() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.set_parameter">set_parameter() (NuRadioReco.framework.base_shower.BaseShower method)</a>
 
@@ -5976,7 +6342,11 @@
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.update">(NuRadioReco.detector.detector_sql.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.update">(NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.update">(NuRadioReco.detector.generic_detector.GenericDetector method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.update">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.update_atmospheric_model_and_refractivity_table">update_atmospheric_model_and_refractivity_table() (NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco method)</a>
@@ -5987,6 +6357,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.update_current_primary">update_current_primary() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.upsampling_fir">upsampling_fir() (in module NuRadioReco.utilities.trace_utilities)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function">use_optional_function() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>

@@ -221,6 +221,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#xfdtd-vpol-crossfeed-150mmhole-n1-78-inffirn">XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector/rnog.html">The RNO-G detector class and database interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/rnog.html#detector-time-and-database-time">Detector time and database time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/rnog.html#database-data-structure">Database data structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/rnog.html#detector-class">Detector class</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
@@ -329,6 +335,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html">NuRadioReco.detector.response module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.sql_to_json.html">NuRadioReco.detector.sql_to_json module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.test_detector_db.html">NuRadioReco.detector.test_detector_db module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.visualize_detector.html">NuRadioReco.detector.visualize_detector module</a></li>
@@ -598,7 +605,6 @@
 <span class="kn">import</span> <span class="nn">NuRadioReco.modules.channelAddCableDelay</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.modules.channelResampler</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector</span> <span class="k">as</span> <span class="nn">detector</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.detector.generic_detector</span> <span class="k">as</span> <span class="nn">gdetector</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.sim_station</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.electric_field</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.particle</span>
@@ -672,7 +678,9 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputfilename</span><span class="p">,</span>
                  <span class="n">outputfilename</span><span class="p">,</span>
-                 <span class="n">detectorfile</span><span class="p">,</span>
+                 <span class="n">detectorfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">det_kwargs</span><span class="o">=</span><span class="p">{},</span>
                  <span class="n">outputfilenameNuRadioReco</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">evt_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
@@ -698,6 +706,10 @@
 <span class="sd">            specify hdf5 output filename.</span>
 <span class="sd">        detectorfile: string</span>
 <span class="sd">            path to the json file containing the detector description</span>
+<span class="sd">        det: detector object</span>
+<span class="sd">            Pass a detector class object</span>
+<span class="sd">        det_kwargs: dict</span>
+<span class="sd">            Pass arguments to the detector (only used when det == None)</span>
 <span class="sd">        station_id: int</span>
 <span class="sd">            the station id for which the simulation is performed. Must match a station</span>
 <span class="sd">            deself._fined in the detector description</span>
@@ -731,8 +743,9 @@
 <span class="sd">            allows to specify a custom ice model. This model is used if the config file specifies the ice model as &quot;custom&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;write_mode&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s1">&#39;write_mode&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Parameter write_mode is deprecated. Define the output format in the config file instead.&#39;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_log_level</span> <span class="o">=</span> <span class="n">log_level</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log_level_ray_propagation</span> <span class="o">=</span> <span class="n">log_level_propagation</span>
         <span class="n">config_file_default</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;config_default.yaml&#39;</span><span class="p">)</span>
@@ -786,19 +799,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_mout_groups</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mout_attrs</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
 
-        <span class="c1"># read in detector positions</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Detectorfile </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detectorfile</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_det</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">default_detector_station</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s1">&#39;Deprecation warning: Passing the default detector station is deprecated. Default stations and default&#39;</span>
-                <span class="s1">&#39;channel should be specified in the detector description directly.&#39;</span>
-            <span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Default detector station provided (station </span><span class="si">{</span><span class="n">default_detector_station</span><span class="si">}</span><span class="s2">) -&gt; Using generic detector&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_det</span> <span class="o">=</span> <span class="n">gdetector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">(</span><span class="n">json_filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_detectorfile</span><span class="p">,</span> <span class="n">default_station</span><span class="o">=</span><span class="n">default_detector_station</span><span class="p">,</span>
-                                                 <span class="n">default_channel</span><span class="o">=</span><span class="n">default_detector_channel</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Initialize detector</span>
+        <span class="k">if</span> <span class="n">det</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Detectorfile </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detectorfile</span><span class="p">)))</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">json_filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_detectorfile</span><span class="p">,</span> <span class="n">default_station</span><span class="o">=</span><span class="n">default_detector_station</span><span class="p">,</span>
+                              <span class="n">default_channel</span><span class="o">=</span><span class="n">default_detector_channel</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">det_kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">json_filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_detectorfile</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_det</span> <span class="o">=</span> <span class="n">det</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">evt_time</span><span class="p">)</span>
 
@@ -1878,11 +1887,19 @@
 <span class="sd">        checks if the same detector was simulated before (then we can save the ray tracing part)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_was_pre_simulated</span> <span class="o">=</span> <span class="kc">False</span>
+
         <span class="k">if</span> <span class="s1">&#39;detector&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detectorfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdet</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">fdet</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="o">.</span><span class="n">export_as_string</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">]:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_was_pre_simulated</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;the simulation was already performed with the same detector&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detectorfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdet</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">fdet</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_was_pre_simulated</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_was_pre_simulated</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;the simulation was already performed with the same detector&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_was_pre_simulated</span>
 
     <span class="k">def</span> <span class="nf">_create_meta_output_datastructures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2068,8 +2085,11 @@
         <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout_attrs</span><span class="p">):</span>
             <span class="n">fout</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detectorfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdet</span><span class="p">:</span>
-            <span class="n">fout</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fdet</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">):</span>
+            <span class="n">fout</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="o">.</span><span class="n">export_as_string</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detectorfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdet</span><span class="p">:</span>
+                <span class="n">fout</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fdet</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">empty</span><span class="p">:</span>
             <span class="c1"># save antenna position separately to hdf5 output</span>

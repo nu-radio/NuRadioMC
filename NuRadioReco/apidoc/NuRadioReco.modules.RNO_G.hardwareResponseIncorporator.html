@@ -224,6 +224,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/detector/antennamodels.html#xfdtd-vpol-crossfeed-150mmhole-n1-78-inffirn">XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/detector/rnog.html">The RNO-G detector class and database interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/detector/rnog.html#detector-time-and-database-time">Detector time and database time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/detector/rnog.html#database-data-structure">Database data structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/detector/rnog.html#detector-class">Detector class</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
@@ -332,6 +338,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.generic_detector.html">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.response.html">NuRadioReco.detector.response module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.sql_to_json.html">NuRadioReco.detector.sql_to_json module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.test_detector_db.html">NuRadioReco.detector.test_detector_db module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.visualize_detector.html">NuRadioReco.detector.visualize_detector module</a></li>
@@ -588,7 +595,7 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter" title="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filter</span></code></a>(frequencies, station_id, ...[, ...])</p></td>
-<td><p>helper function to return the filter that the module applies.</p></td>
+<td><p>Helper function to return the filter that the module applies.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.run" title="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, temp, sim_to_data, ...])</p></td>
 <td><p>Switch sim_to_data to go from simulation to data or otherwise.</p></td>
@@ -619,7 +626,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter">
 <span class="sig-name descname"><span class="pre">get_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">293.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_to_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mingainlin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/hardwareResponseIncorporator.html#hardwareResponseIncorporator.get_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter" title="Permalink to this definition"></a></dt>
-<dd><p>helper function to return the filter that the module applies.</p>
+<dd><p>Helper function to return the filter that the module applies.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -631,11 +638,10 @@
 </dd>
 <dt><strong>det: detector instance</strong></dt><dd><p>the detector</p>
 </dd>
-<dt><strong>temp: temperature in Kelvin, better in the range [223.15 K , 323.15 K]</strong></dt><dd></dd>
-<dt><strong>sim_to_data: bool (default False)</strong></dt><dd><ul class="simple">
-<li><p>if False, deconvolve the hardware response</p></li>
-<li><p>if True, convolve with the hardware response</p></li>
-</ul>
+<dt><strong>temp: float</strong></dt><dd><p>temperature in Kelvin, better in the range [223.15 K , 323.15 K]</p>
+</dd>
+<dt><strong>sim_to_data: bool (default False)</strong></dt><dd><p>If False, deconvolve the hardware response.
+If True, convolve with the hardware response</p>
 </dd>
 <dt><strong>phase_only: bool (default False)</strong></dt><dd><p>if True, only the phases response is applied but not the amplitude response</p>
 </dd>
@@ -675,14 +681,14 @@ The option zero_noise can be used to zero the noise around the pulse. It is uncl
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>evt</strong><span class="classifier">Event</span></dt><dd><p>Event to run the module on</p>
+<dt><strong>evt: Event</strong></dt><dd><p>Event to run the module on</p>
 </dd>
-<dt><strong>station</strong><span class="classifier">Station</span></dt><dd><p>Station to run the module on</p>
+<dt><strong>station: Station</strong></dt><dd><p>Station to run the module on</p>
 </dd>
-<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd><p>The detector description</p>
+<dt><strong>det: Detector</strong></dt><dd><p>The detector description</p>
 </dd>
-<dt><strong>temp</strong><span class="classifier">temperature in Kelvin, better in the range [223.15 K , 323.15 K]</span></dt><dd></dd>
-<dt><strong>sim_to_data</strong><span class="classifier">bool (default False)</span></dt><dd><ul class="simple">
+<dt><strong>temp: temperature in Kelvin, better in the range [223.15 K , 323.15 K]</strong></dt><dd></dd>
+<dt><strong>sim_to_data: bool (default False)</strong></dt><dd><ul class="simple">
 <li><p>if False, deconvolve the hardware response</p></li>
 <li><p>if True, convolve with the hardware response</p></li>
 </ul>
@@ -696,7 +702,7 @@ The option zero_noise can be used to zero the noise around the pulse. It is uncl
 <li><p>‘relative’: gain of amp is divided by maximum of the gain, i.e. at the maximum of the
 filter response is 1 (before applying cable response). This makes it easier
 to compare the filtered to unfiltered signal</p></li>
-<li><p>None : default, gain and phase effects are applied ‘normally’</p></li>
+<li><p>None: default, gain and phase effects are applied ‘normally’</p></li>
 </ul>
 </dd>
 <dt><strong>mingainlin: float</strong></dt><dd><p>In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by

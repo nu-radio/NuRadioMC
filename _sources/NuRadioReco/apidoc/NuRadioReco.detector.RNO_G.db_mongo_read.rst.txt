@@ -1,0 +1,7 @@
+NuRadioReco.detector.RNO\_G.db\_mongo\_read module
+==================================================
+
+.. automodule:: NuRadioReco.detector.RNO_G.db_mongo_read
+   :members:
+   :undoc-members:
+   :show-inheritance:

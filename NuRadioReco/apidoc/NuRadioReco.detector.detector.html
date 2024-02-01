@@ -224,6 +224,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/detector/antennamodels.html#xfdtd-vpol-crossfeed-150mmhole-n1-78-inffirn">XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/detector/rnog.html">The RNO-G detector class and database interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/detector/rnog.html#detector-time-and-database-time">Detector time and database time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/detector/rnog.html#database-data-structure">Database data structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/detector/rnog.html#detector-class">Detector class</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
@@ -332,6 +338,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.generic_detector.html">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.response.html">NuRadioReco.detector.response module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.sql_to_json.html">NuRadioReco.detector.sql_to_json module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.test_detector_db.html">NuRadioReco.detector.test_detector_db module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.visualize_detector.html">NuRadioReco.detector.visualize_detector module</a></li>
@@ -578,38 +585,61 @@
              
   <section id="module-NuRadioReco.detector.detector">
 <span id="nuradioreco-detector-detector-module"></span><h1>NuRadioReco.detector.detector module<a class="headerlink" href="#module-NuRadioReco.detector.detector" title="Permalink to this heading"></a></h1>
-<dl class="py class">
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector.find_path">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector.</span></span><span class="sig-name descname"><span class="pre">find_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector.html#find_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector.find_path" title="Permalink to this definition"></a></dt>
+<dd><p>Checks for file relative to local folder and detector.py</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector.find_reference_entry">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector.</span></span><span class="sig-name descname"><span class="pre">find_reference_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector.html#find_reference_entry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector.find_reference_entry" title="Permalink to this definition"></a></dt>
+<dd><p>Search for the strings “reference_station” or “reference_channel” in the detector description.
+This is used to determine whether to use the detector_base or generic_detector class.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.detector.detector.Detector">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector.</span></span><span class="sig-name descname"><span class="pre">Detector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dictionary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_inf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_by_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector.html#Detector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector.Detector" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Initialize the stations detector properties.
-This method will check if the JSON file containing the detector description is set up to be used by
-the DetectorBase or GenericDetector class and cause the correct class to be created.</p>
-<dl class="field-list simple">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector.</span></span><span class="sig-name descname"><span class="pre">Detector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector.html#Detector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector.Detector" title="Permalink to this definition"></a></dt>
+<dd><p>This function returns a detector class object. It chooses the correct class based on the “source” argument.
+The returned object is of one of these classes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>kwargs[“source’] == “rnog_mongo” -&gt; <a class="reference internal" href="NuRadioReco.detector.RNO_G.rnog_detector.html#module-NuRadioReco.detector.RNO_G.rnog_detector" title="NuRadioReco.detector.RNO_G.rnog_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector</span></code></a></p></li>
+<li><p>kwargs[“source’] == “sql” -&gt; <a class="reference internal" href="NuRadioReco.detector.detector_base.html#module-NuRadioReco.detector.detector_base" title="NuRadioReco.detector.detector_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.detector_base</span></code></a></p></li>
+<li><dl class="simple">
+<dt>kwargs[“source’] == “json” or “dictionary” -&gt; <a class="reference internal" href="NuRadioReco.detector.detector_base.html#module-NuRadioReco.detector.detector_base" title="NuRadioReco.detector.detector_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.detector_base</span></code></a> or</dt><dd><p><a class="reference internal" href="NuRadioReco.detector.generic_detector.html#module-NuRadioReco.detector.generic_detector" title="NuRadioReco.detector.generic_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.generic_detector</span></code></a></p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>For ‘kwargs[“source’] == “json”’, whether to use “detector_base” or “generic_detector”
+depends on whether a reference station / channel is defined in the json file / dictionary
+or not.</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>json_filename</strong><span class="classifier">str</span></dt><dd><p>the path to the json detector description file (if first checks a path relative to this directory, then a
-path relative to the current working directory of the user)
-default value is ‘ARIANNA/arianna_detector_db.json’</p>
+<dd class="field-odd"><dl>
+<dt><strong>args: Positional arguments (arguments without keyword)</strong></dt><dd><p>For backwards compatibility, when source is sql | json | dictionary, args are interpreted as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>json_filename = args[0] only when source == “json”)</p></li>
+<li><p>source = args[1]</p></li>
+<li><p>dictionary = args[2]</p></li>
+<li><p>assume_inf = args[3]</p></li>
+<li><p>antenna_by_depth = args[4]</p></li>
+</ul>
+</div></blockquote>
 </dd>
-<dt><strong>source: str</strong></dt><dd><p>‘json’, ‘dictionary’ or ‘sql
-default value is ‘json’
-If ‘json’ is passed, the JSON dictionary at the location specified
-by json_filename will be used
-If ‘dictionary’ is passed, the dictionary specified by the parameter
-‘dictionary’ will be used
-if ‘sql’ is specified, the file ‘detector_sql_auth.json’ file needs to be present in this folder that
-specifies the sql server credentials (see ‘detector_sql_auth.json.sample’ for an example of the syntax)</p>
+<dt><strong>kwargs: Optional arguments (arguments with keyword)</strong></dt><dd><p>Keyword arguments passed to detector object. The argument “source” is used to select the
+correct class (see description above). If no keyword “source” is passed, the default “json”
+is used.</p>
 </dd>
-<dt><strong>dictionary: dict</strong></dt><dd><p>If ‘dictionary’ is passed to the parameter source, the dictionary
-passed to this parameter will be used for the detector description.</p>
+</dl>
 </dd>
-<dt><strong>assume_inf</strong><span class="classifier">Bool</span></dt><dd><p>Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna
-madel will be determined by the station geometry.</p>
-</dd>
-<dt><strong>antenna_by_depth: bool (default True)</strong></dt><dd><p>if True the antenna model is determined automatically depending on the depth of the antenna.
-This is done by appending e.g. ‘_InfFirn’ to the antenna model name.
-if False, the antenna model as specified in the database is used.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>det: NuRadioReco.detector.* (see options above)</dt><dd><p>Detector class object</p>
 </dd>
 </dl>
 </dd>

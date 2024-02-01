@@ -221,6 +221,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#xfdtd-vpol-crossfeed-150mmhole-n1-78-inffirn">XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector/rnog.html">The RNO-G detector class and database interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/rnog.html#detector-time-and-database-time">Detector time and database time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/rnog.html#database-data-structure">Database data structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/rnog.html#detector-class">Detector class</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
@@ -329,6 +335,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html">NuRadioReco.detector.response module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.sql_to_json.html">NuRadioReco.detector.sql_to_json module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.test_detector_db.html">NuRadioReco.detector.test_detector_db module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.visualize_detector.html">NuRadioReco.detector.visualize_detector module</a></li>
@@ -578,6 +585,7 @@
 <span class="kn">import</span> <span class="nn">decimal</span>
 <span class="kn">import</span> <span class="nn">numbers</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">bandpass_filter</span>
+<span class="kn">import</span> <span class="nn">NuRadioReco.detector.response</span>
 <span class="kn">import</span> <span class="nn">scipy.signal</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="k">try</span><span class="p">:</span>
@@ -644,29 +652,60 @@
 
 <div class="viewcode-block" id="BaseTrace.set_trace"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.set_trace">[docs]</a>    <span class="k">def</span> <span class="nf">set_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        sets the time trace</span>
+<span class="sd">        Sets the time trace</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        trace: np.array of floats</span>
-<span class="sd">            the time series</span>
-<span class="sd">        sampling_rate: float</span>
-<span class="sd">            the sampling rage of the trace, i.e., the inverse of the bin width</span>
+<span class="sd">        trace : np.array of floats</span>
+<span class="sd">            The time series</span>
+<span class="sd">        sampling_rate : float or str</span>
+<span class="sd">            The sampling rate of the trace, i.e., the inverse of the bin width.</span>
+<span class="sd">            If `sampling_rate=&quot;same&quot;`, sampling rate is not changed (requires previous initialisation).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s1">&#39;Attempted to set trace with an uneven number (</span><span class="si">{}</span><span class="s1">) of samples. &#39;</span>
-                                 <span class="s1">&#39;Only traces with an even number of samples are allowed.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Attempted to set trace with an uneven number (</span><span class="si">{</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">) &#39;</span>
+                                 <span class="s1">&#39;of samples. Only traces with an even number of samples are allowed.&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sampling_rate</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;same&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You specified to keep the sampling rate &quot;</span>
+                                 <span class="s2">&quot;but no value have been set previously.&quot;</span><span class="p">)</span>
+                <span class="k">pass</span>  <span class="c1"># keep value of self._sampling_rate</span>
+        <span class="k">elif</span> <span class="n">sampling_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have to specify a sampling rate for `BaseTrace.set_trace(...)`&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseTrace.set_frequency_spectrum"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum">[docs]</a>    <span class="k">def</span> <span class="nf">set_frequency_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency_spectrum</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the frequency spectrum</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        frequency_spectrum : np.array of floats</span>
+<span class="sd">            The frequency spectrum</span>
+<span class="sd">        sampling_rate : float or str</span>
+<span class="sd">            The sampling rate of the trace, i.e., the inverse of the bin width.</span>
+<span class="sd">            If `sampling_rate=&quot;same&quot;`, sampling rate is not changed (requires previous initialisation).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">frequency_spectrum</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sampling_rate</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;same&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You specified to keep the sampling rate &quot;</span>
+                                 <span class="s2">&quot;but no value have been set previously.&quot;</span><span class="p">)</span>
+            <span class="k">pass</span>  <span class="c1"># keep value of self._sampling_rate</span>
+        <span class="k">elif</span> <span class="n">sampling_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseTrace.get_sampling_rate"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate">[docs]</a>    <span class="k">def</span> <span class="nf">get_sampling_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -682,9 +721,11 @@
 <div class="viewcode-block" id="BaseTrace.get_times"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_times">[docs]</a>    <span class="k">def</span> <span class="nf">get_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span>
-            <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">length</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trace_start_time</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">length</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">,</span>
+                              <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trace_start_time</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">!=</span> <span class="n">length</span><span class="p">:</span>
-                <span class="n">err</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;time array does not have the same length as the trace. n_samples = </span><span class="si">{</span><span class="n">length</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, sampling rate = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;time array does not have the same length as the trace. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;n_samples = </span><span class="si">{</span><span class="n">length</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, sampling rate = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
@@ -881,6 +922,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">*=</span> <span class="n">x</span>
                 <span class="k">return</span> <span class="bp">self</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cant multiply baseTrace with number because no value is set for trace.&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">Response</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="bp">self</span>  <span class="c1"># operation defined in detector.response.Response</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Multiplication of baseTrace object with object of type </span><span class="si">{}</span><span class="s1"> is not defined&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
 

@@ -224,6 +224,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/detector/antennamodels.html#xfdtd-vpol-crossfeed-150mmhole-n1-78-inffirn">XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/detector/rnog.html">The RNO-G detector class and database interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/detector/rnog.html#detector-time-and-database-time">Detector time and database time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/detector/rnog.html#database-data-structure">Database data structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/detector/rnog.html#detector-class">Detector class</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
@@ -332,6 +338,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.generic_detector.html">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.response.html">NuRadioReco.detector.response module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.sql_to_json.html">NuRadioReco.detector.sql_to_json module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.test_detector_db.html">NuRadioReco.detector.test_detector_db module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.visualize_detector.html">NuRadioReco.detector.visualize_detector module</a></li>
@@ -600,8 +607,11 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_trace" title="NuRadioReco.framework.channel.Channel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
 <td><p>returns the time trace.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_trace" title="NuRadioReco.framework.channel.Channel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
-<td><p>sets the time trace</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_frequency_spectrum" title="NuRadioReco.framework.channel.Channel.set_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_frequency_spectrum</span></code></a>(frequency_spectrum, ...)</p></td>
+<td><p>Sets the frequency spectrum</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_trace" title="NuRadioReco.framework.channel.Channel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
+<td><p>Sets the time trace</p></td>
 </tr>
 </tbody>
 </table>
@@ -649,13 +659,10 @@
 <tr class="row-even"><td><p><strong>serialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_frequency_spectrum</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>set_trace_start_time</strong></p></td>
+<tr class="row-even"><td><p><strong>set_trace_start_time</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -821,18 +828,31 @@ up to date.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.set_frequency_spectrum">
 <span class="sig-name descname"><span class="pre">set_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency_spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.set_frequency_spectrum" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Sets the frequency spectrum</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>frequency_spectrum</strong><span class="classifier">np.array of floats</span></dt><dd><p>The frequency spectrum</p>
+</dd>
+<dt><strong>sampling_rate</strong><span class="classifier">float or str</span></dt><dd><p>The sampling rate of the trace, i.e., the inverse of the bin width.
+If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is not changed (requires previous initialisation).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.set_trace">
 <span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.set_trace" title="Permalink to this definition"></a></dt>
-<dd><p>sets the time trace</p>
+<dd><p>Sets the time trace</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>trace: np.array of floats</strong></dt><dd><p>the time series</p>
+<dt><strong>trace</strong><span class="classifier">np.array of floats</span></dt><dd><p>The time series</p>
 </dd>
-<dt><strong>sampling_rate: float</strong></dt><dd><p>the sampling rage of the trace, i.e., the inverse of the bin width</p>
+<dt><strong>sampling_rate</strong><span class="classifier">float or str</span></dt><dd><p>The sampling rate of the trace, i.e., the inverse of the bin width.
+If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is not changed (requires previous initialisation).</p>
 </dd>
 </dl>
 </dd>

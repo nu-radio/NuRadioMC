@@ -30,6 +30,7 @@ Submodules
    NuRadioReco.detector.detector_sys_uncertainties
    NuRadioReco.detector.filterresponse
    NuRadioReco.detector.generic_detector
+   NuRadioReco.detector.response
    NuRadioReco.detector.sql_to_json
    NuRadioReco.detector.test_detector_db
    NuRadioReco.detector.visualize_detector
