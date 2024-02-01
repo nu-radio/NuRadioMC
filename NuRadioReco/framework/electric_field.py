@@ -34,13 +34,15 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         ray_tracing_id: int or None
             the id of the corresponding ray tracing solution
         """
-        if position is None:
-            position = [0, 0, 0]
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._channel_ids = channel_ids
         self._parameters = {}
         self._parameter_covariances = {}
+
         self._position = position
+        if position is None:
+            self._position = [0, 0, 0]
+
         self._shower_id = shower_id
         self._ray_tracing_id = ray_tracing_id
 
@@ -126,34 +128,37 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         self._position = position
 
     def serialize(self, save_trace):
-        if(save_trace):
+        if save_trace:
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
         else:
             base_trace_pkl = None
+
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-                'parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
+                'parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(
+                    self._parameter_covariances),
                 'channel_ids': self._channel_ids,
                 '_shower_id': self._shower_id,
                 '_ray_tracing_id': self._ray_tracing_id,
                 'position': self._position,
                 'base_trace': base_trace_pkl}
+
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        if(data['base_trace'] is not None):
+        if data['base_trace'] is not None:
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
+
         if 'position' in data:  # for backward compatibility
             self._position = data['position']
-        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.electricFieldParameters)
+
+        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(
+            data['parameters'], parameters.electricFieldParameters)
+
         if 'parameter_covariances' in data:
-            self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(data['parameter_covariances'], parameters.electricFieldParameters)
+            self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(
+                data['parameter_covariances'], parameters.electricFieldParameters)
+
         self._channel_ids = data['channel_ids']
-        if '_shower_id' in data.keys():
-            self._shower_id = data['_shower_id']
-        else:
-            self._shower_id = None
-        if '_ray_tracing_id' in data.keys():
-            self._ray_tracing_id = data['_ray_tracing_id']
-        else:
-            self._ray_tracing_id = None
+        self._shower_id = data.get('_shower_id', None)
+        self._ray_tracing_id = data.get('_ray_tracing_id', None)
