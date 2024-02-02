@@ -174,7 +174,7 @@ The following snippet shows how the ice properties can be retrieved from NuRadio
         attenuation_length = attenuation.get_attenuation_length(depth, frequency, attenuation_model)
 
 Birefringence Ice Models
--------------------
+----------------------------
 
 Birefringence is an optional propagation setting in NuRadioMC which allows to simulate radio pulses propagating in anisotropic ice. The details about how the calculations in the propagation work can be found here `(Heyer & Glaser, 2023) <https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y>`__. When using birefringence several options exist about what birefringence-ice-model to propagate in and what propagation code should be used for the propagation. 
 
@@ -183,7 +183,7 @@ There are several example scripts available demonstrating all available (``NuRad
 .. warning:: Using this code assumes that the ice flow points in the positive x-direction. Therefore, a rotation of the detector geometry into this coordinate system might be necessary.
 
 Available Birefringence Ice Models
-_______________________
+_____________________________________
 
 The anisotropy of the ice at the South Pole was published here: `(Jordan et al., 2020) <https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39>`__ 
 
@@ -210,7 +210,7 @@ To use these ice models in NuRadioMC the measurement data was interpolated using
 
 
 Available Birefringence Propagation Options 
-_______________________
+______________________________________________
 
 There is an option to use RadioPropa `(birefringence branch) <https://github.com/nu-radio/RadioPropa/tree/birefrigence>`__  to speed up the pulse propagation. If both the ray tracing and the birefringence pulse propagation should be handled by the analytical ray tracer, use ``analytical`` in the config file. If the ray tracing should be handled by the analytical ray tracer but the birefringence pulse propagation by RadioPropa, use ``numerical`` in the config file. There is also the option to handle everything in RadioPropa.
 
