@@ -172,3 +172,57 @@ The following snippet shows how the ice properties can be retrieved from NuRadio
         depth = -100 * units.m
 
         attenuation_length = attenuation.get_attenuation_length(depth, frequency, attenuation_model)
+
+Birefringence Ice Models
+-------------------
+
+Birefringence is an optional propagation setting in NuRadioMC which allows to simulate radio pulses propagating in anisotropic ice. The details about how the calculations in the propagation work can be found here `(Heyer & Glaser, 2023) <https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y>`__. When using birefringence several options exist about what birefringence-ice-model to propagate in and what propagation code should be used for the propagation. 
+
+There are several example scripts available demonstrating all available (``NuRadioMC/SignalProp/examples/birefringence_examples``) functions when dealing with birefringent ice. Check read_me.txt for a more detailed description of the examples and data used.
+
+.. warning:: Using this code assumes that the ice flow points in the positive x-direction. Therefore, a rotation of the detector geometry into this coordinate system might be necessary.
+
+Available Birefringence Ice Models
+_______________________
+
+The anisotropy of the ice at the South Pole was published here: `(Jordan et al., 2020) <https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39>`__ 
+
+The anisotropy of the ice in Greenland was published here: `(RNO-G, 2022) <https://arxiv.org/abs/2212.10285>`__ 
+
+To use these ice models in NuRadioMC the measurement data was interpolated using splines. As the measurements don't extend from the ice surface to bedrock or to account for measurement uncertainties, there is some freedom in how to interpolate the data. Different interpolations are indexed via capital letters, ``A`` always denoting the most reasonable interpolation. The files ``NuRadioMC/utilities/birefringence_models/IceModel_interpolation_southpole.py`` and ``NuRadioMC/utilities/birefringence_models/IceModel_interpolation_greenland.py`` can be used to adjust the interpolation method and come up with new ice models.
+
+    .. csv-table:: South Pole Birefringence Ice Models
+        :header: "Name", "description"
+
+        southpole_A, assumes a constant index of refraction at shallow and deep depths
+        southpole_B, assumes a converging index of refraction at shallow depths
+        southpole_C, no birefringence as nx = ny = nz
+        southpole_D, assumes a constant average over all depths
+        southpole_E, assumes ny and nz to be the same value at the average of the two
+
+
+    .. csv-table:: Greenland Birefringence Ice Models
+        :header: "Name", "description"
+
+        greenland_A, the most reasonable interpolation
+        greenland_B, assumes ny and nx to be the same value at the average of the two
+        greenland_C, assumes ny and nx to diverge more than the data indicates
+
+
+Available Birefringence Propagation Options 
+_______________________
+
+There is an option to use RadioPropa `(birefringence branch) <https://github.com/nu-radio/RadioPropa/tree/birefrigence>`__  to speed up the pulse propagation. If both the ray tracing and the birefringence pulse propagation should be handled by the analytical ray tracer, use ``analytical`` in the config file. If the ray tracing should be handled by the analytical ray tracer but the birefringence pulse propagation by RadioPropa, use ``numerical`` in the config file. There is also the option to handle everything in RadioPropa.
+
+Currently, the RadioPropa implementation of birefringence only supports the birefringence-ice-model ``southpole_A``.
+
+Using specific models 
+_______________________
+Birefringence is an optional setting in a NuRadioMC simulation. To use it in a simulation the following lines should be added to the config file:
+
+    .. code-block:: yaml
+
+        propagation:
+            birefringence: True  
+            birefringence_propagation: 'analytical'  
+            birefringence_model: 'southpole_A'
