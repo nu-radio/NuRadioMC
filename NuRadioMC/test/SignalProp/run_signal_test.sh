@@ -14,6 +14,7 @@ python3 01_simple_propagation.py
 python3 02_path_info.py           
 python3 03_ARA_SPice.py
 python3 04_ARIANNA_SPice.py
+python3 05_RNOG_DISC.py
 cd 06_Veff_comparison  
 python3 06_B_Veff_comparison.py
 cd ../07_SPice_simulation
