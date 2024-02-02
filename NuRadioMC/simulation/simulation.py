@@ -6,8 +6,17 @@ from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 import h5py
 # import detector simulation modules
-import NuRadioReco.detector.detector
-import NuRadioReco.detector.generic_detector
+import NuRadioReco.modules.io.eventWriter
+import NuRadioReco.modules.channelSignalReconstructor
+import NuRadioReco.modules.electricFieldResampler
+import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.efieldToVoltageConverterPerEfield
+import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.channelAddCableDelay
+import NuRadioReco.modules.channelResampler
+import NuRadioReco.detector.detector as detector
+import NuRadioReco.framework.sim_station
+import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 from NuRadioReco.detector import antennapattern
 # parameters describing simulated Monte Carlo particles
@@ -75,7 +84,9 @@ class simulation():
 
     def __init__(self, inputfilename,
                  outputfilename,
-                 detectorfile,
+                 detectorfile=None,
+                 det=None,
+                 det_kwargs={},
                  outputfilenameNuRadioReco=None,
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
@@ -101,6 +112,10 @@ class simulation():
             specify hdf5 output filename.
         detectorfile: string
             path to the json file containing the detector description
+        det: detector object
+            Pass a detector class object
+        det_kwargs: dict
+            Pass arguments to the detector (only used when det == None)
         station_id: int
             the station id for which the simulation is performed. Must match a station
             defined in the detector description
@@ -134,8 +149,9 @@ class simulation():
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
         """
         logger.setLevel(log_level)
-        if 'write_mode' in kwargs.keys():
+        if 'write_mode' in kwargs:
             logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
+
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.status('reading default config from {}'.format(config_file_default))
@@ -169,7 +185,7 @@ class simulation():
         self._write_detector = write_detector
         logger.status("setting event time to {}".format(evt_time))
         self.__event_group_list = event_list
-        
+
         # initialize propagation module
         self.__prop = NuRadioMC.SignalProp.propagation.get_propagation_module(self.__cfg['propagation']['module'])
         self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
@@ -181,24 +197,20 @@ class simulation():
         else:
             self._ice = NuRadioMC.utilities.medium.get_ice_model(self.__cfg['propagation']['ice_model'])
 
-        # read in detector positions
-        logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
-        self._det = None
-        if default_detector_station is not None:
-            logger.warning(
-                'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
-                'channel should be specified in the detector description directly.'
-            )
-            logger.status(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
-            self._det = NuRadioReco.detector.generic_detector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
-                                                 default_channel=default_detector_channel, antenna_by_depth=False)
+        # Initialize detector
+        if det is None:
+            logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
+            kwargs = dict(json_filename=self._detectorfile, default_station=default_detector_station,
+                              default_channel=default_detector_channel, antenna_by_depth=False)
+            kwargs.update(det_kwargs)
+            self._det = detector.Detector(**kwargs)
         else:
-            self._det = NuRadioReco.detector.detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
+            self._det = det
 
         self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
-        
+
         # print noise information
         logger.status("running with noise {}".format(bool(self.__cfg['noise'])))
         logger.status("setting signal to zero {}".format(bool(self.__cfg['signal']['zerosignal'])))
@@ -229,8 +241,6 @@ class simulation():
         if len(self.__fin['xx']) == 0:
             logger.status(f"input file {self._inputfilename} is empty")
             return
-
-
 
         self._distance_cut_polynomial = None
         if self.__cfg['speedup']['distance_cut']:
@@ -466,7 +476,7 @@ class simulation():
         except:
             logger.error("error in calculating effective volume")
 
-        
+
     def _calculate_emitter_output(self):
         pass
 
@@ -482,26 +492,27 @@ class simulation():
         """
         return bool(self.__cfg['noise'])
 
-    def _is_in_fiducial_volume(self):
-        """
-        checks wether a vertex is in the fiducial volume
+    def _is_in_fiducial_volume(self, pos):
+        """ Checks if pos is in fiducial volume """
 
-        if the fiducial volume is not specified in the input file, True is returned (this is required for the simulation
-        of pulser calibration measuremens)
-        """
-        tt = ['fiducial_rmin', 'fiducial_rmax', 'fiducial_zmin', 'fiducial_zmax']
-        has_fiducial = True
-        for t in tt:
-            if not t in self.__fin_attrs:
-                has_fiducial = False
-        if not has_fiducial:
-            return True
-
-        r = (self._shower_vertex[0] ** 2 + self._shower_vertex[1] ** 2) ** 0.5
-        if r >= self.__fin_attrs['fiducial_rmin'] and r <= self.__fin_attrs['fiducial_rmax']:
-            if self._shower_vertex[2] >= self.__fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <= self.__fin_attrs['fiducial_zmax']:
+        for check_attr in ['fiducial_zmin', 'fiducial_zmax']:
+            if check_attr not in self._fin_attrs:
+                logger.warning("Fiducial volume not defined. Return True")
                 return True
-        return False
+
+        pos = np.copy(pos) - np.array([self._fin_attrs.get("x0", 0), self._fin_attrs.get("y0", 0), 0])
+
+        if not (self._fin_attrs["fiducial_zmin"] < pos[2] < self._fin_attrs["fiducial_zmax"]):
+            return False
+
+        if "fiducial_rmax" in self._fin_attrs:
+            radius = np.sqrt(pos[0] ** 2 + pos[1] ** 2)
+            return self._fin_attrs["fiducial_rmin"] < radius < self._fin_attrs["fiducial_rmax"]
+        elif "fiducial_xmax" in self._fin_attrs:
+            return (self._fin_attrs["fiducial_xmin"] < pos[0] < self._fin_attrs["fiducial_xmax"] and
+                    self._fin_attrs["fiducial_ymin"] < pos[1] < self._fin_attrs["fiducial_ymax"])
+        else:
+            raise ValueError("Could not contruct fiducial volume from input file.")
 
 
 
@@ -586,7 +597,7 @@ class simulation():
         Returns True if the station barycenter is within the
         maximum distance (and should therefore be simulated)
         and False otherwise.
-        
+
         Parameters
         ----------
         vertex_positions: array of float
@@ -633,7 +644,7 @@ class simulation():
     def __read_input_particle_properties(self, idx=None):
         if idx is None:
             idx = self.__primary_index
-        
+
         input_particle = NuRadioReco.framework.particle.Particle(0)
         input_particle[simp.flavor] = self.__fin['flavors'][idx]
         input_particle[simp.energy] = self.__fin['energies'][idx]
