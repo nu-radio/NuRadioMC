@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 from NuRadioMC.SignalProp import analyticraytracing
+import pickle, lzma
 
 """
 -----------------------------------------
@@ -100,26 +101,31 @@ waveform = 0
 
 polar = []
 
-pulse = np.load('SPICE_efields/eField_launchAngle_' + str(angle) + '_set_' + str(waveform) + '.npy')
-dt = pulse[0, 1] - pulse[0, 0]
-sr = 1 / dt
+with lzma.open("extra_files/SPice_pulses.xz", "r") as f:
+    emitter_model = pickle.load(f)
+efield = emitter_model['efields'][angle][0]
+sr = emitter_model['sampling_rate']
 
+trace = NuRadioReco.framework.electric_field.ElectricField([1], position=None,
+                shower_id=None, ray_tracing_id=None)
+trace.set_trace(np.array([np.zeros_like(efield[0]), efield[0], efield[1]]), sr)
+        
 #normalizing waveforms
-pulse_fluence = fluence_hil(pulse[0], pulse[1], pulse[2])
+pulse_fluence = fluence_hil(trace.get_times(), efield[0], efield[1])
 norm = pulse_fluence[0] + pulse_fluence[1]
-pulse[1] = pulse[1] / norm
-pulse[2] = pulse[2] / norm
+efield[0] = efield[0] / norm
+efield[1] = efield[1] / norm
 
 fig, axs = plt.subplots(2, 1, figsize=(6, 8))
 
-axs[0].plot(pulse[0], pulse[1], 'b', label='starting pulse, theta')
-axs[0].plot(pulse[0], pulse[2], 'r', label='starting pulse, phi')
+axs[0].plot(trace.get_times(), efield[0], 'b', label='starting pulse, theta')
+axs[0].plot(trace.get_times(), efield[1], 'r', label='starting pulse, phi')
 axs[0].set_ylabel('amplitude [A.U.]')
 axs[0].set_xlabel('time [ns]')
 axs[0].legend()
 
-r_component = np.zeros(len(pulse[1]))
-electric_field = np.stack((r_component, pulse[1], pulse[2]))
+r_component = np.zeros(len(efield[0]))
+electric_field = np.stack((r_component, efield[0], efield[1]))
 
 for depth in range(len(depths)):
     print('depth: ', depths[depth])
