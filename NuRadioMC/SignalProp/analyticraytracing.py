@@ -1330,10 +1330,7 @@ class ray_tracing_2D(ray_tracing_base):
             obj_delta_y_square = self.obj_delta_y_square
             if numba_available:
                 obj_delta_y_square = self.helper.obj_delta_y_square
-            start_time = time.perf_counter()
             result = optimize.root(obj_delta_y_square, x0=logC_0_start, args=(np.array(x1), np.array(x2), reflection, reflection_case), tol=tol)
-            end = time.perf_counter()
-            print("Elapsed = {}s".format((end - start_time)))
             if(plot):
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(1, 1)
