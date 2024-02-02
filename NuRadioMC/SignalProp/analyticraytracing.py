@@ -16,7 +16,6 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import logging
-import time
 
 logging.basicConfig()
 
@@ -1102,8 +1101,14 @@ class ray_tracing_2D(ray_tracing_base):
         function to find solution for C0, returns distance in y between function and x2 position
         result is signed! (important to use a root finder)
         """
-        C_0 = self.get_C0_from_log(logC_0)
-        return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case)
+        if numba_available:
+            C_0 = self.helper.get_C0_from_log(logC_0)
+            if(hasattr(C_0, '__len__')):
+                    C_0 = C_0[0]
+            return self.helper.get_delta_y(C_0, np.array(x1), np.array(x2), None, reflection, reflection_case)
+        else :
+            C_0 = self.get_C0_from_log(logC_0)
+            return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case)
 
     def get_delta_y(self, C_0, x1, x2, C0range=None, reflection=0, reflection_case=2):
         """
