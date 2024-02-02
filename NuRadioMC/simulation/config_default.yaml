@@ -32,7 +32,7 @@ propagation:
   n_reflections: 0  # the maximum number of reflections off a reflective layer at the bottom of the ice layer
   birefringence: False  # if True apply birefringence effects
   birefringence_propagation: 'analytical'  # can also be 'numerical' - Does not have to be set, default value is 'analytical'
-  birefringence_model: 'southpole_A'  # can also be 'southpole_' or 'greenland_': 'A', 'B', 'C', 'D', 'E' - Does not have to be set, default value is 'southpole_A'
+  birefringence_model: 'southpole_A'  # can also be 'southpole_' or 'greenland_': 'A', 'B', 'C', 'D', 'E' - Does not have to be set, default value is 'southpole_A'. See 'https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/Manuals/icemodels.html' for more details.
 
   radiopropa:  #every module can have its own addition settings
     mode: iterative  # can also be "minimizing" but these ray tracing solution are not accurate yet
