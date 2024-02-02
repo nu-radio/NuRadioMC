@@ -16,3 +16,10 @@ southpole E     -   assumes ny and nz to be the same value at the average of the
 
 The models A, B, D, E were presented in the paper: N. Heyer and C. Glaser, First-principle calculation of birefringence effects for in-ice
 radio detection of neutrinos, eprint: 2205.06169.
+
+
+greenland A     -   most reasonable interpolation
+
+greenland B     -   assumes ny and nx to be the same value at the average of the two
+
+greenland C     -   assumes ny and nx to diverge more than the data indicates

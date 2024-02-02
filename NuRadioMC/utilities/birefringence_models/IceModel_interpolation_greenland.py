@@ -160,7 +160,7 @@ if 0:
     np.save('birefringence_greenland_' + model + '.npy', interpolation)
 
 
-# --------------Jordan interpolation
+# --------------RNOG interpolation
 
 if 1:
     n1 = n1[(depth1 < high) & (depth1 > low)]
@@ -188,7 +188,7 @@ if 1:
     plt.grid()
     plt.show()
 
-# -------------Jordan + Greenland
+# -------------RNOG + Greenland
 if 0:
     p = [0, 0, -2500]
 
