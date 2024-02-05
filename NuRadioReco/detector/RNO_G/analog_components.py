@@ -58,7 +58,7 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         correction_function = iglu_correction_func
     elif amp_type == 'phased_array':
         ph = os.path.join(path, 'HardwareResponses/ULP-216+_Plus25DegC.s2p')
-        ff, S11gain, S21deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
+        ff, S11gain, S11deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
         ff *= units.MHz
         amp_gain_discrete = hp.dB_to_linear(S21gain)
         amp_phase_discrete = S21deg * units.deg
@@ -70,15 +70,16 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
     # all requests outside of measurement range are set to 1
 
     def get_amp_gain(freqs, temp=temp):
-        if(correction_function is not None):
+        if correction_function is not None:
             amp_gain = correction_function(temp, freqs) * amp_gain_f(freqs)
         else:
             amp_gain = amp_gain_f(freqs)
+        
         return amp_gain
 
-    # Convert to MHz and broaden range
+    # Convert to MHz and broaden range (all requests outside of measurement range are set to 0)
     amp_phase_f = interp1d(ff, np.unwrap(amp_phase_discrete),
-                           bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
+                           bounds_error=False, fill_value=0)
 
     def get_amp_phase(freqs):
         amp_phase = amp_phase_f(freqs)

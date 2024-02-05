@@ -1,11 +1,9 @@
-import numpy as np
-import copy
-import astropy.time
 import NuRadioReco.framework.station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.event
-from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import \
+    channelParameters as chp, electricFieldParameters as efp
+
 import NuRadioReco.modules.efieldToVoltageConverterPerEfield
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelAddCableDelay
@@ -13,22 +11,30 @@ import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
+
 from NuRadioReco.utilities import units
+
 import scipy
+import numpy as np
+import copy
+import astropy.time
+import logging
+import collections
+import warnings
 
 class hardwareResponseSimulator:
     def __init__(
-            self,
-            detector,
-            config,
-            station_ids,
-            input_data,
-            input_attributes,
-            detector_simulation_trigger,
-            detector_simulation_filter_amp,
-            raytracer,
-            event_time,
-            time_logger
+        self,
+        detector,
+        config,
+        station_ids,
+        input_data,
+        input_attributes,
+        detector_simulation_trigger,
+        detector_simulation_filter_amp,
+        raytracer,
+        event_time,
+        time_logger
     ):
         """
         Initialize class
@@ -43,7 +49,7 @@ class hardwareResponseSimulator:
             An array containing the IDs of the stations to be simulated
         input_data: dict
             The data from the input HDF5 file containing the showers to be simulated
-        input_attributes: dict 
+        input_attributes: dict
             The attributes from the input HDF5 file
         detector_simulation_trigger: method
             A method that simulates the trigger
@@ -51,7 +57,7 @@ class hardwareResponseSimulator:
             A method that simulates the signal chain response
         raytracer: NuRadioMC.SignalProp.analyticraytracing.ray_tracing object or similar
             Object that can perform the propagation fromt the shower to the detector. Has to follow the template
-            specified in NuRadioMC.SignalProp.propagation_base_class. Options are the analytic raytracer, RadioPropa of the 
+            specified in NuRadioMC.SignalProp.propagation_base_class. Options are the analytic raytracer, RadioPropa of the
             direct line raytracer.
         event_time: datetime.datetime object
             The time at which the simulation occurs. This mainly affects the detector description.
@@ -59,6 +65,8 @@ class hardwareResponseSimulator:
             NuRadioMC/simulation.time_logger.timeLogger object
             This class is used to keep track of the simulation progress and print updates in regular intervals.
         """
+        self.logger = logging.getLogger('NuRadioMC.hardwareResponseSimulator')
+
         self.__detector = detector
         self.__station_ids = station_ids
         self.__config = config
@@ -87,15 +95,25 @@ class hardwareResponseSimulator:
         self.__shower_index_array = {}
         for shower_index, shower_id in enumerate(shower_ids):
             self.__shower_index_array[shower_id] = shower_index
-        self.__bandwidth_per_channel = {}
-        self.__amplification_per_channel = {}
+
+
+        # Perfom a dummy detector simulation to determine how the signals are filtered.
+        # This variable stores the integrated channel response for each channel, i.e.
+        # the integral of the squared signal chain response over all frequencies, int S21^2 df.
+        # For a system without amplification, it is equivalent to the bandwidth of the system.
+        self._integrated_channel_response = {}
+
+        self._integrated_channel_response_normalization = {}
         self.__noise_adder_normalization = {}
+        self.__max_amplification_per_channel = {}
+        self.__bandwidth = None
+
         self.__v_rms_per_channel = {}
         self.__noiseless_channels = {}
         self.__noise_temperature = None
         self.__noise_vrms = None
+
         self.__perform_dummy_detector_simulation()
-        self.__bandwidth = next(iter(next(iter(self.__bandwidth_per_channel.values())).values()))
         self.__calculate_noise_rms()
 
     def set_event_group(
@@ -135,7 +153,7 @@ class hardwareResponseSimulator:
         Tupel of 5 lists or arrays
         Entries are as follows:
             0: Dict of NuRadioReco.framework.event.Event objects
-                A dictionary of events containing the simulation results. If the delay in arrival times 
+                A dictionary of events containing the simulation results. If the delay in arrival times
                 between E-field objects (see input) is above a certain value, the E-fields will be split
                 up into multiple events to simulate multiple triggers caused by the same neutrino interaction.
             1: Dict of NuRadioReco.framework.station.Station objects
@@ -223,7 +241,7 @@ class hardwareResponseSimulator:
             event_objects[i_sub_event] = new_event
         self.__time_logger.stop_time('detector simulation')
         return event_objects, station_objects, sub_event_shower_ids, station_has_triggered, output_data
-    
+
     def __simulate_station_detector_response(
             self,
             event,
@@ -259,7 +277,7 @@ class hardwareResponseSimulator:
             max_freq = 0.5 * self.__config['sampling_rate']
             v_rms = {}
             for channel_id in channel_ids:
-                norm = self.__bandwidth_per_channel[station.get_id()][channel_id]
+                norm = self._integrated_channel_response[station.get_id()][channel_id]
                 v_rms[channel_id] = self.__v_rms_per_channel[station.get_id()][channel_id] / (
                             norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
             self.__channel_generic_noise_adder.run(
@@ -277,7 +295,7 @@ class hardwareResponseSimulator:
         self.__detector_simulation_trigger(event, station, self.__detector)
         if station.has_triggered:
             self.__channel_signal_reconstructor.run(event, station, self.__detector)
-    
+
     def __simulate_sim_station_detector_response(
             self,
             station,
@@ -353,7 +371,7 @@ class hardwareResponseSimulator:
         dummy_station: NuRadioReco.framework.station.Station object
             The station object containing the electric fields for this event group.
         channel_indices: numpy.array of integers
-            The indices (i.e. their positions in the channel_identifiers) of the channel identifiers that are 
+            The indices (i.e. their positions in the channel_identifiers) of the channel identifiers that are
             added to the new station object.
         channel_identifiers: list of tupels of integers
             The unique identifiers of all SimChannels in this event for this station.
@@ -403,6 +421,7 @@ class hardwareResponseSimulator:
             for sim_channel in sim_channels:
                 sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
 
+
     def __perform_dummy_detector_simulation(self):
         """
         Performs a detector simulation on a dummy station to estimate the bandwidth used to convert from
@@ -410,17 +429,23 @@ class hardwareResponseSimulator:
         """
 
         # first create dummy event and station with channels
-        v_rms = 1
         for iSt, station_id in enumerate(self.__station_ids):
             channel_ids = self.__detector.get_channel_ids(station_id)
             first_channel_id = channel_ids[0]
+
             dummy_event = NuRadioReco.framework.event.Event(0, 0)
-            dummy_sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
-            sampling_rate_detector = self.__detector.get_sampling_frequency(station_id, first_channel_id)
-            n_samples = self.__detector.get_number_of_samples(station_id, first_channel_id) / sampling_rate_detector * self.__sampling_rate_simulation
+            dummy_sim_station = NuRadioReco.framework.sim_station.SimStation(
+                station_id)
+            sampling_rate_detector = self.__detector.get_sampling_frequency(
+                station_id, first_channel_id)
+
+            n_samples = self.__detector.get_number_of_samples(
+                station_id, first_channel_id) / sampling_rate_detector * self.__sampling_rate_simulation
+
             n_samples = int(np.ceil(n_samples / 2.) * 2)  # round to nearest even integer
             ff = np.fft.rfftfreq(n_samples, 1. / self.__sampling_rate_simulation)
-            tt = np.arange(0, n_samples / self.__sampling_rate_simulation, 1. / self.__sampling_rate_simulation)
+            tt = np.arange(0, n_samples / self.__sampling_rate_simulation,
+                           1. / self.__sampling_rate_simulation)
 
             for channel_id in channel_ids:
                 electric_field = NuRadioReco.framework.electric_field.ElectricField(
@@ -445,9 +470,13 @@ class hardwareResponseSimulator:
             dummy_station.set_station_time(self.__event_time)
             dummy_event.set_station(dummy_station)
 
-            self.__detector_simulation_filter_amp(dummy_event, dummy_station, self.__detector)
-            self.__bandwidth_per_channel[station_id] = {}
-            self.__amplification_per_channel[station_id] = {}
+            # Run dummy detector simulations
+            self.__detector_simulation_filter_amp(
+                dummy_event, dummy_station, self.__detector)
+
+            self._integrated_channel_response[station_id] = {}
+            self.__max_amplification_per_channel[station_id] = {}
+
             for channel_id in self.__detector.get_channel_ids(station_id):
                 ff = np.linspace(0, 0.5 * self.__sampling_rate_simulation, 10000)
                 filt = np.ones_like(ff, dtype=np.complex)
@@ -455,9 +484,21 @@ class hardwareResponseSimulator:
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, station_id, channel_id, self.__detector, **kwargs)
 
-                self.__amplification_per_channel[station_id][channel_id] = np.abs(filt).max()
-                bandwidth = np.trapz(np.abs(filt) ** 2, ff)
-                self.__bandwidth_per_channel[station_id][channel_id] = bandwidth
+                self.__max_amplification_per_channel[station_id][channel_id] = np.abs(filt).max()
+
+                # a factor of 100 corresponds to -40 dB in amplitude
+                mean_integrated_response = np.mean(
+                    np.abs(filt)[np.abs(filt) > np.abs(filt).max() / 100] ** 2)
+                self._integrated_channel_response_normalization[station_id][channel_id] = mean_integrated_response
+
+                integrated_channel_response = np.trapz(np.abs(filt) ** 2, ff)
+                self._integrated_channel_response[station_id][channel_id] = integrated_channel_response
+
+                self.logger.debug(f"Station.channel {station_id}.{channel_id} estimated bandwidth is "
+                             f"{integrated_channel_response / mean_integrated_response / units.MHz:.1f} MHz")
+
+        self.__bandwidth = next(iter(next(iter(self._integrated_channel_response.values())).values()))
+
 
     def __calculate_noise_rms(self):
         """
@@ -465,52 +506,119 @@ class hardwareResponseSimulator:
         """
         noise_temp = self.__config['trigger']['noise_temperature']
         v_rms = self.__config['trigger']['Vrms']
+
         if noise_temp is not None and v_rms is not None:
-            raise AttributeError(f"Specifying noise temperature (set to {noise_temp}) and Vrms (set to {v_rms} is not allowed.")
+            raise AttributeError(f"Specifying noise temperature (set to {noise_temp}) "
+                                 f"and Vrms (set to {v_rms} is not allowed.")
+
+        self.__v_rms_per_channel = collections.defaultdict(dict)
+        self.__v_rms_efield_per_channel = collections.defaultdict(dict)
+
         if noise_temp is not None:
             if noise_temp == "detector":
+                self.logger.status("Use noise temperature from detector description to "
+                                   "determine noise Vrms in each channel.")
                 noise_temp = None  # the noise temperature is defined in the detector description
             else:
                 noise_temp = float(noise_temp)
-            self.__v_rms_per_channel = {}
-            self.__noiseless_channels = {}
-            for station_id in self.__bandwidth_per_channel:
-                self.__v_rms_per_channel[station_id] = {}
-                self.__noiseless_channels[station_id] = []
+                self.logger.status(f"Use a noise temperature of {noise_temp / units.kelvin:.1f} "
+                              "K for each channel to determine noise Vrms.")
+
+            self.__noiseless_channels = collections.defaultdict(list)
+            for station_id in self._integrated_channel_response:
+
                 for channel_id in self.__detector.get_channel_ids(station_id):
-                    if noise_temp is None:
-                        noise_temp_channel = self.__detector.get_noise_temperature(station_id, channel_id)
-                    else:
-                        noise_temp_channel = noise_temp
+                    noise_temp_channel = noise_temp or self.__detector.get_noise_temperature(station_id, channel_id)
+
                     if self.__detector.is_channel_noiseless(station_id, channel_id):
                         self.__noiseless_channels[station_id].append(channel_id)
 
+                    # Calculation of Vrms. For details see from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
+                    # (last two Eqs. in "noise voltage and power" section) or our wiki https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
+
+                    # Bandwidth, i.e., \Delta f in equation
+                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
+                    max_amplification = self.__max_amplification_per_channel[station_id][channel_id]
+
+                    self.__v_rms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * scipy.constants.k * integrated_channel_response / units.Hz) ** 0.5
+                    self.__v_rms_efield_per_channel[station_id][channel_id] = self.__v_rms_per_channel[station_id][channel_id] / max_amplification / units.m  # VEL = 1m
+
+                    # for logging
+                    mean_integrated_response = self._integrated_channel_response_normalization[self._station_id][channel_id]
+
+                    self.logger.status(f'Station.channel {station_id}.{channel_id:02d}: noise temperature = {noise_temp_channel} K, '
+                                  f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
+                                  f'max. filter amplification = {max_amplification:.2e} -> Vrms = '
+                                  f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz -> Vrms = '
+                                  f'{self.__v_rms_per_channel[station_id][channel_id] / units.mV:.2f} mV -> efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
+
+
                     self.__v_rms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * scipy.constants.k *
-                           self.__bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
+                           self._integrated_channel_response[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
             self.__noise_vrms = next(iter(next(iter(self.__v_rms_per_channel.values())).values()))
+
         elif v_rms is not None:
             self.__noise_vrms = float(v_rms) * units.V
+            self.logger.status(f"Use a fix noise Vrms of {self._Vrms / units.mV:.2f} mV in each channel.")
+
+            for station_id in self._integrated_channel_response:
+
+                for channel_id in self._integrated_channel_response[station_id]:
+                    max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+                    self._Vrms_per_channel[station_id][channel_id] = self._Vrms  # to be stored in the hdf5 file
+                    self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms / max_amplification / units.m  # VEL = 1m
+
+                    # for logging
+                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
+                    mean_integrated_response = self._integrated_channel_response_normalization[self._station_id][channel_id]
+
+                    self.logger.status(f'Station.channel {station_id}.{channel_id:02d}: '
+                                  f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
+                                  f'max. filter amplification = {max_amplification:.2e} '
+                                  f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz ->'
+                                  f'efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
+
         else:
-            raise AttributeError(f"noise temperature and Vrms are both set to None")
+            raise AttributeError("noise temperature and Vrms are both set to None")
+
         self.__noise_temperature = noise_temp
-        self.__v_rms_efield_per_channel = {}
-        for station_id in self.__bandwidth_per_channel:
-            self.__v_rms_efield_per_channel[station_id] = {}
-            for channel_id in self.__bandwidth_per_channel[station_id]:
-                self.__v_rms_efield_per_channel[station_id][channel_id] = self.__v_rms_per_channel[station_id][channel_id] / self.__amplification_per_channel[station_id][channel_id] / units.m
         self.__v_rms_efield = next(iter(next(iter(self.__v_rms_efield_per_channel.values())).values()))
+
+        # speed_cut = float(self._cfg['speedup']['min_efield_amplitude'])
+        # logger.status(f"All signals with less then {speed_cut:.1f} x Vrms_efield will be skipped.")
+
 
     def get_noise_temperature(self):
         return self.__noise_temperature
 
     def get_noise_vrms(self):
         return self.__noise_vrms
-    
+
     def get_noise_vrms_per_channel(self):
         return self.__v_rms_per_channel
 
     def get_bandwidth(self):
         return self.__bandwidth
-    
+
     def get_efield_v_rms_per_channel(self):
         return self.__v_rms_efield_per_channel
+
+    @property
+    def _bandwidth_per_channel(self):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                      "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        return self._integrated_channel_response
+
+    @_bandwidth_per_channel.setter
+    def _bandwidth_per_channel(self, value):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                        "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        self._integrated_channel_response = value
+
+    @property
+    def integrated_channel_response(self):
+        return self._integrated_channel_response
+
+    @integrated_channel_response.setter
+    def integrated_channel_response(self, value):
+        self._integrated_channel_response = value

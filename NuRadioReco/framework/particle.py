@@ -11,11 +11,11 @@ logger = logging.getLogger('Particle')
 class Particle:
 
     def __init__(self, particle_index):
-        # "_id" is not the PDG code but a hierarchical index 
+        # "_id" is not the PDG code but a hierarchical index
         # (PDG code is stored in _parameters["flavor"])
         self._id = particle_index
         self._parameters = {}
-    
+
     def __setitem__(self, key, value):
         self.set_parameter(key, value)
 
@@ -25,7 +25,7 @@ class Particle:
     def get_id(self):
         """ Returns hierarchical index """
         return self._id
-    
+
     def __str__(self):
         msg = (
             "Particle ({}): "
@@ -35,7 +35,7 @@ class Particle:
                 math.log10(self.get_parameter(parameters.particleParameters.energy)),
                 math.cos(self.get_parameter(parameters.particleParameters.zenith)))
         )
-        
+
         return msg
 
     def get_parameter(self, key):
@@ -55,7 +55,7 @@ class Particle:
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters")
         return key in self._parameters
-    
+
     def as_hdf5_dict(self):
         hdf5_dict = collections.OrderedDict()
         hdf5_dict['azimuths'] = self.get_parameter(parameters.particleParameters.azimuth)

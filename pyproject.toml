@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "NuRadioMC"
-version = "2.2.0-dev"
+version = "2.3.0-dev"
 authors = ["Christian Glaser et al."]
 homepage = "https://github.com/nu-radio/NuRadioMC"
 documentation = "https://nu-radio.github.io/NuRadioMC/main.html"
@@ -50,6 +50,8 @@ proposal = "7.6.2"
 pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
 pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
+MCEq = "*"
+crflux = "*"
 pandas = "*"
 mattak = {git = "https://github.com/RNO-G/mattak"}
 runtable = {git = "ssh://git@github.com/RNO-G/rnog-runtable.git"}
@@ -59,4 +61,5 @@ documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
 proposal = ["proposal"]
 galacticnoise = ['pygdsm']
 ift_reco = ['nifty5', 'pypocketfft']
+muon_flux_calc = ['MCEq', 'crflux']
 RNO_G_DATA = ["mattak", "runtable", "pandas"]

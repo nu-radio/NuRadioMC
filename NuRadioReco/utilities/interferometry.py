@@ -10,9 +10,9 @@ conversion_factor_integrated_signal = 1 / units.s * \
 
 
 def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
-    """ 
-    Calculates signal quantity from beam-formed waveform 
-    
+    """
+    Calculates signal quantity from beam-formed waveform
+
     Parameters
     ----------
 
@@ -21,13 +21,13 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
 
     tstep : double
         Sampling bin size
-    
+
     window_width : double
-        Time window size to calculate power 
+        Time window size to calculate power
 
     kind : str
         Key-word what to do: "amplitude", "power", or "hilbert_sum"
-    
+
     Returns
     -------
 
@@ -70,11 +70,11 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
 
 
 def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
-    """ 
+    """
     Calculate sum of time shifted waveforms.
 
     Performs a linear interpolation between samples.
-    
+
     Parameters
     ----------
 
@@ -92,7 +92,7 @@ def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
 
     tab : radiotools.atmosphere.refractivity.RefractivityTable
         Tabulated table of the avg. refractive index between two points
-    
+
     Returns
     -------
 
@@ -133,9 +133,9 @@ def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
 
 def get_time_shifts(target_pos, positions, tab):
     """
-    Calculates the time delay of an electromagnetic wave along a straight trajectories between 
+    Calculates the time delay of an electromagnetic wave along a straight trajectories between
     a source/traget location and several observers.
-    
+
     Parameters
     ----------
 
@@ -153,7 +153,7 @@ def get_time_shifts(target_pos, positions, tab):
 
     tshifts : np.array(n,)
         Time delay in sec
-    
+
     """
 
     tshifts = np.zeros(len(positions))
@@ -169,13 +169,13 @@ def get_time_shifts(target_pos, positions, tab):
 
 
 def fit_axis(z, theta, phi, coreX, coreY):
-    """ 
+    """
     Predicts the intersetction of an axis/line with horizontal layers at different heights.
 
     Line is described by an anchor on a horizontal plane (coreX, coreY) and a direction
     in spherical coordinates (theta, phi).
 
-    Returns the position/intersection of the line with flat horizontal layers at 
+    Returns the position/intersection of the line with flat horizontal layers at
     given height(s) z. Resulting array (positions) is flatten.
 
     Parameters
@@ -231,7 +231,7 @@ def get_intersection_between_line_and_plane(plane_normal, plane_anchor, line_dir
         Anchor of this line
 
     epsilon : double
-        Numerical precision 
+        Numerical precision
 
     Returns
     -------

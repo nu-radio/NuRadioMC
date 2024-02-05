@@ -54,7 +54,10 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, station_id, juser_
     if sim_station is None:
         return {}
     fig = plotly.subplots.make_subplots(rows=1, cols=1)
-    for i_electric_field, electric_field in enumerate(sim_station.get_electric_fields()):
+    efields = list(sim_station.get_electric_fields())
+    efield_ids = [efield.get_unique_identifier() for efield in efields]
+    efields_sorted = [k[1] for k in sorted(zip(efield_ids, efields))]
+    for i_electric_field, electric_field in enumerate(efields_sorted):
         if electric_field.get_parameter(efp.ray_path_type) in signal_types:
             for polarization in range(1, 3):
                 fig.append_trace(

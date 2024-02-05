@@ -1395,7 +1395,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
             # Assuming simple cosine, sine falls-off for dummy module
             H_eff_t = np.zeros_like(Gain)
-            fmask = freq >= 0
+            fmask = freq > 0
             H_eff_t[fmask] = Gain[fmask] * max_gain_cross * 1 / freq[fmask]
             H_eff_t *= np.cos(theta) * np.sin(phi)
             H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
