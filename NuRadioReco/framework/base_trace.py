@@ -5,6 +5,7 @@ import fractions
 import decimal
 import numbers
 from NuRadioReco.utilities import fft, bandpass_filter
+import NuRadioReco.detector.response
 import scipy.signal
 import copy
 try:
@@ -71,29 +72,60 @@ class BaseTrace:
 
     def set_trace(self, trace, sampling_rate):
         """
-        sets the time trace
+        Sets the time trace
 
         Parameters
         ----------
-        trace: np.array of floats
-            the time series
-        sampling_rate: float
-            the sampling rage of the trace, i.e., the inverse of the bin width
+        trace : np.array of floats
+            The time series
+        sampling_rate : float or str
+            The sampling rate of the trace, i.e., the inverse of the bin width.
+            If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
         """
         if np.any(trace!=None):
             if trace.shape[trace.ndim - 1] % 2 != 0:
-                raise ValueError(('Attempted to set trace with an uneven number ({}) of samples. '
-                                 'Only traces with an even number of samples are allowed.').format(trace.shape[trace.ndim - 1]))
+                raise ValueError(f'Attempted to set trace with an uneven number ({trace.shape[trace.ndim - 1]}) '
+                                 'of samples. Only traces with an even number of samples are allowed.')
         self.__time_domain_up_to_date = True
         self._time_trace = np.copy(trace)
-        self._sampling_rate = sampling_rate
+
         self._frequency_spectrum = None
 
+        if isinstance(sampling_rate, str) and sampling_rate.lower() == "same":
+            if self._sampling_rate is None:
+                raise ValueError("You specified to keep the sampling rate "
+                                 "but no value have been set previously.")
+                pass  # keep value of self._sampling_rate
+        elif sampling_rate is not None:
+            self._sampling_rate = sampling_rate
+        else:
+            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_trace(...)`")
+
     def set_frequency_spectrum(self, frequency_spectrum, sampling_rate):
+        """
+        Sets the frequency spectrum
+
+        Parameters
+        ----------
+        frequency_spectrum : np.array of floats
+            The frequency spectrum
+        sampling_rate : float or str
+            The sampling rate of the trace, i.e., the inverse of the bin width.
+            If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
+        """
         self.__time_domain_up_to_date = False
         self._frequency_spectrum = np.copy(frequency_spectrum)
-        self._sampling_rate = sampling_rate
         self._time_trace = None
+
+        if isinstance(sampling_rate, str) and sampling_rate.lower() == "same":
+            if self._sampling_rate is None:
+                raise ValueError("You specified to keep the sampling rate "
+                                 "but no value have been set previously.")
+            pass  # keep value of self._sampling_rate
+        elif sampling_rate is not None:
+            self._sampling_rate = sampling_rate
+        else:
+            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`")
 
     def get_sampling_rate(self):
         """
@@ -109,9 +141,11 @@ class BaseTrace:
     def get_times(self):
         try:
             length = self.get_number_of_samples()
-            times = np.arange(0, length / self._sampling_rate - 0.1 / self._sampling_rate, 1. / self._sampling_rate) + self._trace_start_time
+            times = np.arange(0, length / self._sampling_rate - 0.1 / self._sampling_rate,
+                              1. / self._sampling_rate) + self._trace_start_time
             if len(times) != length:
-                err = f"time array does not have the same length as the trace. n_samples = {length:d}, sampling rate = {self._sampling_rate:.5g}"
+                err = ("time array does not have the same length as the trace. "
+                    f"n_samples = {length:d}, sampling rate = {self._sampling_rate:.5g}")
                 logger.error(err)
                 raise ValueError(err)
         except (ValueError, AttributeError):
@@ -308,6 +342,8 @@ class BaseTrace:
                 self._frequency_spectrum *= x
                 return self
             raise ValueError('Cant multiply baseTrace with number because no value is set for trace.')
+        elif isinstance(x, NuRadioReco.detector.response.Response):
+            return x * self  # operation defined in detector.response.Response
         else:
             raise TypeError('Multiplication of baseTrace object with object of type {} is not defined'.format(type(x)))
 
