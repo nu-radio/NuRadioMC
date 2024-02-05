@@ -48,6 +48,7 @@ try:
     from NuRadioMC.SignalProp.ray_tracing_helper import ray_tracing_helper_class
     numba_available = True
     cpp_available = False
+    print("Numba version of raytracer is available, using numba python version")
 except:
     print("Numba is not available")
     numba_available = False
