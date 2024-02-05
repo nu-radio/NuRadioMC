@@ -16,7 +16,6 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import logging
-
 logging.basicConfig()
 
 # check if CPP implementation is available
@@ -52,8 +51,6 @@ try:
 except:
     print("Numba is not available")
     numba_available = False
-
-
 
 """
 analytic ray tracing solution
@@ -161,8 +158,7 @@ class ray_tracing_2D(ray_tracing_base):
                 reflection = self.medium.reflection
             else :
                 reflection = 0
-            self.helper = ray_tracing_helper_class(medium.n_ice, reflection, medium.z_0, medium.delta_n)            
-
+            self.helper = ray_tracing_helper_class(medium.n_ice, reflection, medium.z_0, medium.delta_n)
 
     def n(self, z):
         """
@@ -1337,6 +1333,7 @@ class ray_tracing_2D(ray_tracing_base):
             if numba_available:
                 obj_delta_y_square = self.helper.obj_delta_y_square
             result = optimize.root(obj_delta_y_square, x0=logC_0_start, args=(np.array(x1), np.array(x2), reflection, reflection_case), tol=tol)
+
             if(plot):
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(1, 1)
