@@ -46,26 +46,29 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None):
     else:
         scipy_args = [passband, 'bandpass']
 
-    filt = np.zeros_like(frequencies, dtype=complex)
-    mask = frequencies > 0
-
     if filter_type == 'butter':
+        f = np.zeros_like(frequencies, dtype=complex)
+        mask = frequencies > 0
         b, a = scipy.signal.butter(order, *scipy_args, analog=True)
         w, h = scipy.signal.freqs(b, a, frequencies[mask])
-        filt[mask] = h
-        return filt
+        f[mask] = h
+        return f
 
     elif filter_type == 'butterabs':
+        f = np.zeros_like(frequencies, dtype=complex)
+        mask = frequencies > 0
         b, a = scipy.signal.butter(order, *scipy_args, analog=True)
         w, h = scipy.signal.freqs(b, a, frequencies[mask])
-        filt[mask] = h
-        return np.abs(filt)
+        f[mask] = h
+        return np.abs(f)
 
     elif filter_type == 'cheby1':
+        f = np.zeros_like(frequencies, dtype=complex)
+        mask = frequencies > 0
         b, a = scipy.signal.cheby1(order, rp, *scipy_args, analog=True)
         w, h = scipy.signal.freqs(b, a, frequencies[mask])
-        filt[mask] = h
-        return filt
+        f[mask] = h
+        return f
 
     elif filter_type.find('FIR') >= 0:
         raise NotImplementedError("FIR filter not yet implemented")
