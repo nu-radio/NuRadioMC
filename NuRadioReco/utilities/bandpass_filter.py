@@ -36,7 +36,8 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None):
     """
 
     if filter_type == 'rectangular':
-        return np.where(passband[0] <= frequencies <= passband[1], 1, 0)
+        mask = np.all([passband[0] <= frequencies, frequencies <= passband[1]], axis=0)
+        return np.where(mask, 1, 0)
 
     # we need to specify if we have a lowpass filter
     # otherwise scipy>=1.8.0 raises an error
