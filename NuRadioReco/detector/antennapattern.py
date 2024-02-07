@@ -966,7 +966,7 @@ def preprocess_XFDTD(path):
                 fout, protocol=4)
 
 
-def parse_LOFAR_txt_file(path_theta, path_phi):
+def parse_LOFAR_txt_file(path_theta, path_phi, ):
     freq, theta, phi, real_theta, imaginary_theta = np.genfromtxt(path_theta, skip_header=1).T
     freq2, theta2, phi2, real_phi, imaginary_phi = np.genfromtxt(path_phi, skip_header=1).T
 
@@ -985,11 +985,30 @@ def parse_LOFAR_txt_file(path_theta, path_phi):
     return freq, theta, phi, real_theta, imaginary_theta, real_phi, imaginary_phi
 
 
-def preprocess_LOFAR_txt(directory, ant='LBA'):
+def preprocess_LOFAR_txt(directory, ant='LBA', orientation=None):
+    """
+    Function to process the TXT files from the old LOFAR antenna model (only tested for LBA). The paths to these
+    files is currently hardcoded. Because of a weird issue which requires minus signs to be added for the X and Y
+    dipoles separately, the orientation can be specified to create separate antenna models for each. If the
+    orientation is not set, the values for the Y dipole are returned.
+
+    Parameters
+    ----------
+    directory : str
+        Path to where the text files are stored
+    ant : str, default='LBA'
+        The antenna type, either LBA or HBA (not tested)
+    orientation : str, default=None
+        If set, must be either X or Y.
+    """
     path_theta = os.path.join(directory, f'{ant}_Vout_theta.txt')
     path_phi = os.path.join(directory, f'{ant}_Vout_phi.txt')
 
     frequencies, thetas, phis, theta_real, theta_imag, phi_real, phi_imag = parse_LOFAR_txt_file(path_theta, path_phi)
+
+    if orientation == 'X':
+        for ar in [theta_real, theta_imag, phi_real, phi_imag]:
+            ar *= -1
 
     VEL_thetas = theta_real + 1j * theta_imag
     VEL_phis = phi_real + 1j * phi_imag
@@ -1011,7 +1030,10 @@ def preprocess_LOFAR_txt(directory, ant='LBA'):
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = \
         90 * units.deg, 0 * units.deg, 0 * units.deg, 0 * units.deg
 
-    fname = f'LOFAR_{ant}'
+    if orientation is not None:
+        fname = f'LOFAR_{ant}_{orientation}'
+    else:
+        fname = f'LOFAR_{ant}'
     output_filename = '{}.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
 
     directory = os.path.dirname(output_filename)
