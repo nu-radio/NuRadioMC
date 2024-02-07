@@ -36,19 +36,19 @@ class Emitter:
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.emitterParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.emitterParameters")
+            logger.error(f"parameter key needs to be of type NuRadioReco.framework.parameters.emitterParameters but is {type(key)}")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.emitterParameters")
         return self._parameters[key]
 
     def set_parameter(self, key, value):
         if not isinstance(key, parameters.emitterParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.emitterParameters")
+            logger.error(f"parameter key needs to be of type NuRadioReco.framework.parameters.emitterParameters but is {type(key)}")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.emitterParameters")
         self._parameters[key] = value
 
     def has_parameter(self, key):
         if not isinstance(key, parameters.emitterParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.emitterParameters")
+            logger.error(f"parameter key needs to be of type NuRadioReco.framework.parameters.emitterParameters but is {type(key)}")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.emitterParameters")
         return key in self._parameters
 
