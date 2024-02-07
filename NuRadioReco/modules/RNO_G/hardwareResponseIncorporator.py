@@ -82,15 +82,15 @@ class hardwareResponseIncorporator:
             the complex filter amplitudes
         """
 
-        if isinstance(det, detector.generic_detector.GenericDetector):
+        if isinstance(det, detector.rnog_detector.Detector):
+            amp_response = det.get_signal_chain_response(
+                station_id, channel_id)(frequencies)
+        elif isinstance(det, detector.detector_base.DetectorBase):
             amp_type = det.get_amplifier_type(station_id, channel_id)
             # it reads the log file. change this to load_amp_measurement if you want the RI file
             amp_response = analog_components.load_amp_response(amp_type)
             amp_response = amp_response['gain'](
                 frequencies, temp) * amp_response['phase'](frequencies)
-        elif isinstance(det, detector.rnog_detector.Detector):
-            amp_response = det.get_signal_chain_response(
-                station_id, channel_id)(frequencies)
         else:
             raise NotImplementedError("Detector type not implemented")
 
