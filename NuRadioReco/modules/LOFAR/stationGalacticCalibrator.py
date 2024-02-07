@@ -167,7 +167,8 @@ class stationGalacticCalibrator:
         """
 
         # Get channel parameters -> group_id = a(even_id), odd_id = even_id + 1
-        channel_polarisation = channel.get_id() - int(channel.get_group_id()[1:])  # TODO: need clear function?
+        # TODO: function to translate channel polarisation to X/Y -> make coefficients take that as input
+        channel_polarisation = channel.get_id() - int(channel.get_group_id()[1:])
         channel_bandwidth = channel.get_sampling_rate() / channel.get_number_of_samples()
         channel_power = np.sum(np.abs(channel.get_frequency_spectrum()) ** 2) * channel_bandwidth
 
