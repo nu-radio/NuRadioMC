@@ -665,13 +665,10 @@ class simulation:
                         emitter_obj[ep.position] = np.array([self._fin['xx'][self._primary_index], self._fin['yy'][self._primary_index], self._fin['zz'][self._primary_index]])
                         emitter_obj[ep.model] = self._fin['emitter_model'][self._primary_index]
                         emitter_obj[ep.amplitude] = self._fin['emitter_amplitudes'][self._primary_index]
-                        emitter_obj[ep.frequency] = self._fin['emitter_frequency'][self._primary_index]
-                        emitter_obj[ep.polarization] = self._fin['emitter_polarization'][self._primary_index]
-                        emitter_obj[ep.half_width] = self._fin['emitter_half_width'][self._primary_index]
-                        emitter_obj[ep.orientation_phi] = self._fin['emitter_orientation_phi'][self._primary_index]
-                        emitter_obj[ep.orientation_theta] = self._fin['emitter_orientation_theta'][self._primary_index]
-                        emitter_obj[ep.rotation_phi] = self._fin['emitter_rotation_phi'][self._primary_index]
-                        emitter_obj[ep.rotation_theta] = self._fin['emitter_rotation_theta'][self._primary_index]
+                        for key in ep:
+                            if not emitter_obj.has_parameter(key):
+                                if 'emitter_' + key.name in self._fin:
+                                    emitter_obj[key] = self._fin['emitter_' + key.name][self._primary_index]
                         self._evt_tmp.add_sim_emitter(emitter_obj)
 
                     # generate unique and increasing event id per station
