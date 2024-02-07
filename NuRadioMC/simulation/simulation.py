@@ -30,6 +30,7 @@ import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
+import NuRadioReco.framework.emitter
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -37,6 +38,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 # parameters describing simulated Monte Carlo particles
 from NuRadioReco.framework.parameters import particleParameters as simp
+from NuRadioReco.framework.parameters import emitterParameters as ep
 # parameters set in the event generator
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import datetime
@@ -658,6 +660,19 @@ class simulation:
                     if particle_mode:
                         self._create_sim_shower()  # create sim shower
                         self._evt_tmp.add_sim_shower(self._sim_shower)
+                    else:
+                        emitter_obj = NuRadioReco.framework.emitter.Emitter(self._shower_index)  # shower_id is equivalent to emitter_id in this case
+                        emitter_obj[ep.position] = np.array([self._fin['xx'][self._primary_index], self._fin['yy'][self._primary_index], self._fin['zz'][self._primary_index]])
+                        emitter_obj[ep.model] = self._fin['emitter_model'][self._primary_index]
+                        emitter_obj[ep.amplitude] = self._fin['emitter_amplitudes'][self._primary_index]
+                        emitter_obj[ep.frequency] = self._fin['emitter_frequency'][self._primary_index]
+                        emitter_obj[ep.polarization] = self._fin['emitter_polarization'][self._primary_index]
+                        emitter_obj[ep.half_width] = self._fin['emitter_half_width'][self._primary_index]
+                        emitter_obj[ep.orientation_phi] = self._fin['emitter_orientation_phi'][self._primary_index]
+                        emitter_obj[ep.orientation_theta] = self._fin['emitter_orientation_theta'][self._primary_index]
+                        emitter_obj[ep.rotation_phi] = self._fin['emitter_rotation_phi'][self._primary_index]
+                        emitter_obj[ep.rotation_theta] = self._fin['emitter_rotation_theta'][self._primary_index]
+                        self._evt_tmp.add_sim_emitter(emitter_obj)
 
                     # generate unique and increasing event id per station
                     self._event_ids_counter[self._station_id] += 1
@@ -829,13 +844,13 @@ class simulation:
                                     eR, eTheta, ePhi = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs)
                                 else:
                                     # the emitter fuction returns the voltage output of the pulser. We need to convole with the antenna response of the emitting antenna
-                                    # to obtain the emitted electric field. 
+                                    # to obtain the emitted electric field.
                                     # get emitting antenna properties
                                     antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
                                     antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
                                     ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
                                            self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
-    
+
                                     # source voltage given to the emitter
                                     voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
                                                                                               emitter_model, **emitter_kwargs)
@@ -994,6 +1009,9 @@ class simulation:
                         # add showers that contribute to this (sub) event to event structure
                         for shower_id in self._shower_ids_of_sub_event:
                             self._evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
+                    else:
+                        for shower_id in self._shower_ids_of_sub_event:
+                            self._evt.add_sim_emitter(self._evt_tmp.get_sim_emitter(shower_id))
                     self._station.set_sim_station(sim_station)
                     self._station.set_station_time(self._evt_time)
                     self._evt.set_station(self._station)
