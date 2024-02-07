@@ -662,15 +662,15 @@
 <span class="sd">            the complex filter amplitudes</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">generic_detector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">):</span>
+            <span class="n">amp_response</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span>
+                <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)(</span><span class="n">frequencies</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">detector_base</span><span class="o">.</span><span class="n">DetectorBase</span><span class="p">):</span>
             <span class="n">amp_type</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_amplifier_type</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
             <span class="c1"># it reads the log file. change this to load_amp_measurement if you want the RI file</span>
             <span class="n">amp_response</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">load_amp_response</span><span class="p">(</span><span class="n">amp_type</span><span class="p">)</span>
             <span class="n">amp_response</span> <span class="o">=</span> <span class="n">amp_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">](</span>
                 <span class="n">frequencies</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span> <span class="o">*</span> <span class="n">amp_response</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">](</span><span class="n">frequencies</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">):</span>
-            <span class="n">amp_response</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span>
-                <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)(</span><span class="n">frequencies</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Detector type not implemented&quot;</span><span class="p">)</span>
 
