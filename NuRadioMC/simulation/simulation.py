@@ -25,7 +25,6 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
-import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
@@ -41,6 +40,7 @@ from NuRadioReco.framework.parameters import particleParameters as simp
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import datetime
 import logging
+import warnings
 from six import iteritems
 import yaml
 import os
@@ -98,7 +98,9 @@ class simulation:
 
     def __init__(self, inputfilename,
                  outputfilename,
-                 detectorfile,
+                 detectorfile=None,
+                 det=None,
+                 det_kwargs={},
                  outputfilenameNuRadioReco=None,
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
@@ -124,6 +126,10 @@ class simulation:
             specify hdf5 output filename.
         detectorfile: string
             path to the json file containing the detector description
+        det: detector object
+            Pass a detector class object
+        det_kwargs: dict
+            Pass arguments to the detector (only used when det == None)
         station_id: int
             the station id for which the simulation is performed. Must match a station
             deself._fined in the detector description
@@ -157,8 +163,9 @@ class simulation:
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
         """
         logger.setLevel(log_level)
-        if 'write_mode' in kwargs.keys():
+        if 'write_mode' in kwargs:
             logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
+
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
@@ -212,19 +219,15 @@ class simulation:
         self._mout_groups = collections.OrderedDict()
         self._mout_attrs = collections.OrderedDict()
 
-        # read in detector positions
-        logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
-        self._det = None
-        if default_detector_station is not None:
-            logger.warning(
-                'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
-                'channel should be specified in the detector description directly.'
-            )
-            logger.status(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
-            self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
-                                                 default_channel=default_detector_channel, antenna_by_depth=False)
+        # Initialize detector
+        if det is None:
+            logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
+            kwargs = dict(json_filename=self._detectorfile, default_station=default_detector_station,
+                              default_channel=default_detector_channel, antenna_by_depth=False)
+            kwargs.update(det_kwargs)
+            self._det = detector.Detector(**kwargs)
         else:
-            self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
+            self._det = det
 
         self._det.update(evt_time)
 
@@ -263,9 +266,12 @@ class simulation:
             logger.status(f"input file {self._inputfilename} is empty")
             return
 
-        ################################
-        # perfom a dummy detector simulation to determine how the signals are filtered
+        # Perfom a dummy detector simulation to determine how the signals are filtered.
+        # This variable stores the integrated channel response for each channel, i.e.
+        # the integral of the squared signal chain response over all frequencies, int S21^2 df.
+        # For a system without amplification, it is equivalent to the bandwidth of the system.
         self._integrated_channel_response = {}
+
         self._integrated_channel_response_normalization = {}
         self._max_amplification_per_channel = {}
         self.__noise_adder_normalization = {}
@@ -1312,11 +1318,19 @@ class simulation:
         checks if the same detector was simulated before (then we can save the ray tracing part)
         """
         self._was_pre_simulated = False
+
         if 'detector' in self._fin_attrs:
-            with open(self._detectorfile, 'r') as fdet:
-                if fdet.read() == self._fin_attrs['detector']:
+            if isinstance(self._det, detector.rnog_detector.Detector):
+                if self._det.export_as_string() == self._fin_attrs['detector']:
                     self._was_pre_simulated = True
-                    logger.status("the simulation was already performed with the same detector")
+            else:
+                with open(self._detectorfile, 'r') as fdet:
+                    if fdet.read() == self._fin_attrs['detector']:
+                        self._was_pre_simulated = True
+
+        if self._was_pre_simulated:
+            logger.status("the simulation was already performed with the same detector")
+
         return self._was_pre_simulated
 
     def _create_meta_output_datastructures(self):
@@ -1502,8 +1516,11 @@ class simulation:
         for (key, value) in iteritems(self._mout_attrs):
             fout.attrs[key] = value
 
-        with open(self._detectorfile, 'r') as fdet:
-            fout.attrs['detector'] = fdet.read()
+        if isinstance(self._det, detector.rnog_detector.Detector):
+            fout.attrs['detector'] = self._det.export_as_string()
+        else:
+            with open(self._detectorfile, 'r') as fdet:
+                fout.attrs['detector'] = fdet.read()
 
         if not empty:
             # save antenna position separately to hdf5 output
@@ -1576,3 +1593,23 @@ class simulation:
             msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
             logger.error(msg)
             raise ValueError(msg)
+
+    @property
+    def _bandwidth_per_channel(self):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                      "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        return self._integrated_channel_response
+
+    @_bandwidth_per_channel.setter
+    def _bandwidth_per_channel(self, value):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                        "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        self._integrated_channel_response = value
+
+    @property
+    def integrated_channel_response(self):
+        return self._integrated_channel_response
+
+    @integrated_channel_response.setter
+    def integrated_channel_response(self, value):
+        self._integrated_channel_response = value
