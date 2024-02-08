@@ -77,6 +77,7 @@ config['propagation']['focusing'] = False
 config['propagation']['birefringence'] = True
 config['propagation']['birefringence_model'] = 'southpole_A'
 config['propagation']['birefringence_propagation'] = 'analytical'
+config['propagation']['angle_to_iceflow'] = -131
 
 birefringence_propagation(config, 'analytical', ray_tracing_solution, 0, x_limits, 'analyticraytracing.py', 'analyticraytracing.py', 'southpole_A')
 
@@ -88,6 +89,7 @@ birefringence_propagation(config, 'analytical', ray_tracing_solution, 0, x_limit
 config['propagation']['birefringence'] = True
 config['propagation']['birefringence_model'] = 'southpole_B'
 config['propagation']['birefringence_propagation'] = 'analytical'
+config['propagation']['angle_to_iceflow'] = -131
 
 birefringence_propagation(config, 'analytical', ray_tracing_solution, 1, x_limits, 'analyticraytracing.py', 'analyticraytracing.py', 'southpole_B')
 
@@ -99,6 +101,7 @@ if propa:
     config['propagation']['birefringence'] = True
     config['propagation']['birefringence_model'] = 'southpole_A'
     config['propagation']['birefringence_propagation'] = 'numerical'
+    config['propagation']['angle_to_iceflow'] = -131
 
     birefringence_propagation(config, 'analytical', ray_tracing_solution, 2, x_limits, 'analyticraytracing.py', 'radioproparaytracing.py', 'southpole_A')
 

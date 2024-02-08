@@ -22,7 +22,7 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 from NuRadioReco.framework import base_trace
-
+import matplotlib.pyplot as plt
 
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
@@ -2240,6 +2240,11 @@ class ray_tracing(ray_tracing_base):
         acc = int(self.get_path_length(i_solution) / units.m)
         path = self.get_path(i_solution, n_points=acc)
 
+        if 'angle_to_iceflow' in self._config['propagation']:
+            rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
+            rot = np.matrix([[np.cos(rotation_angle), -np.sin(rotation_angle)], [np.sin(rotation_angle), np.cos(rotation_angle)]])
+            path[:, :2] = np.swapaxes(np.matmul(rot, np.swapaxes(path[:, :2],0,1)),0,1)
+
         for i in range(acc - 1):
 
             refractive_index = ice_n.get_index_of_refraction(path[i])
@@ -2316,6 +2321,11 @@ class ray_tracing(ray_tracing_base):
 
         acc = int(self.get_path_length(i_solution) / units.m)
         path = self.get_path(i_solution, n_points=acc)
+        
+        if 'angle_to_iceflow' in self._config['propagation']:
+            rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
+            rot = np.matrix([[np.cos(rotation_angle), -np.sin(rotation_angle)], [np.sin(rotation_angle), np.cos(rotation_angle)]])
+            path[:, :2] = np.swapaxes(np.matmul(rot, np.swapaxes(path[:, :2],0,1)),0,1)
 
         n_nominal = np.zeros(acc - 1)
 

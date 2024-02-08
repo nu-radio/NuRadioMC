@@ -180,7 +180,7 @@ Birefringence is an optional propagation setting in NuRadioMC which allows to si
 
 There are several example scripts available demonstrating all available (``NuRadioMC/SignalProp/examples/birefringence_examples``) functions when dealing with birefringent ice. Check read_me.txt for a more detailed description of the examples and data used.
 
-.. warning:: Using this code assumes that the ice flow points in the positive x-direction. Therefore, a rotation of the detector geometry into this coordinate system might be necessary.
+.. warning:: Using this code assumes that the ice flow points in the positive x-direction. Therefore, a rotation of the detector geometry into this coordinate system might be necessary. This rotation can be done by either changing the source/antenna positions or by using the 'angle_to_iceflow' parameter in the config file.
 
 Available Birefringence Ice Models
 _____________________________________
@@ -208,6 +208,12 @@ To use these ice models in NuRadioMC the measurement data was interpolated using
         greenland_B, assumes ny and nx to be the same value at the average of the two
         greenland_C, assumes ny and nx to diverge more than the data indicates
 
+Ice-Flow Direction 
+____________________
+
+As birefringence acts in a very specific coordinate system defined by the flow of the ice, one has to be careful when defining source and antenna locations. The standard code assumes an ice flow in the x-direction. In NuRadioMC this corresponds to the east-direction. When defining a detector geometry in terms of northing and easting the angle between the ice-flow direction and the easting direction can be passed by using the ``angle_to_iceflow`` parameter in the config file. The angle is passed in degrees. 
+
+For the South Pole this angle is measured to be -131 degrees with an uncertainty of 2 degrees `(Jordan et al., 2020) <https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39>`__. For Greenland this angle is measured to be roughly 180 degrees `(Hawley et al., 2020) <https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2020GL088864>`__.
 
 Available Birefringence Propagation Options 
 ______________________________________________
@@ -226,3 +232,4 @@ Birefringence is an optional setting in a NuRadioMC simulation. To use it in a s
             birefringence: True  
             birefringence_propagation: 'analytical'  
             birefringence_model: 'southpole_A'
+            angle_to_iceflow: -131
