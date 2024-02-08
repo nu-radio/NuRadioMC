@@ -1,0 +1,2 @@
+# Name, Bx [milliT], By [milliT], Bz[milliT], latitude [degrees, N], longitude [degrees, E], freq_min [MHz], freq_max [MHz]
+LOFAR_LBA, 0, 18.6, -45.6, 52.914921, 6.869837540, 30, 80
