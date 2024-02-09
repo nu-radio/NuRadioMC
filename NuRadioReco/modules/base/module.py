@@ -64,9 +64,19 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
     setattr(logging, methodName, logToRoot)
 
 
-def setup_logger(name="NuRadioReco", level=logging.WARNING):
+def setup_logger(name="NuRadioReco", level=None):
+    """
+    Set up the parent logger which all module logger should refer to. By default, an extra logging level
+    STATUS is added with level=25. Then STATUS is also set as the default logging level.
+
+    Parameters
+    ----------
+    name : str, default="NuRadioReco"
+        The name of the base logger
+    level : int, default=25
+        The logging level to use for the base logger
+    """
     logger = logging.getLogger(name)
-    logger.setLevel(level=level)
     logger.propagate = False
     if not logger.hasHandlers():
         handler = logging.StreamHandler()
@@ -76,6 +86,12 @@ def setup_logger(name="NuRadioReco", level=logging.WARNING):
 
     # Add the STATUS log level
     addLoggingLevel('STATUS', 25)
+
+    # Set logging level
+    if level is not None:
+        logger.setLevel(level=level)
+    else:
+        logger.setLevel(logging.STATUS)
 
     return logger
 
