@@ -12,7 +12,7 @@ from radiotools import plthelpers as php
 
 
 if __name__ == "__main__":
-    i = 2
+    i = 3
 
     results = io_utilities.read_pickle("sim_results_{:02d}.pkl".format(i), encoding='latin1')
     d = results['depth']

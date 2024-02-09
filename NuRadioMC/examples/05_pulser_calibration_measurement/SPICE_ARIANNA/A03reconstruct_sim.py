@@ -248,5 +248,5 @@ if __name__ == "__main__":
                 break # there should be only one efield for the 4 channels, but better be safe than sorry
 
 
-    with open("sim_results_02.pkl", 'wb') as fout:
+    with open("sim_results_03.pkl", 'wb') as fout:
         pickle.dump(results, fout, protocol=2)

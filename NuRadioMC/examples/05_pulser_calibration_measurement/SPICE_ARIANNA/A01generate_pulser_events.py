@@ -47,7 +47,7 @@ def generate_my_events(filename, n_events):
     data_sets["emitter_polarization"]= 0.0 * np.ones(n_events) # this will be the polarization of the signal (for delta_pulse model, 0=eTheta)
     data_sets["emitter_half_width"]= 1.0 * np.ones(n_events) *units.ns        # this will be the width of square and tone_burst signal  
     data_sets["emitter_frequency"] = 0.3 * np.ones(n_events)  *units.GHz       # this will be frequency of a signal ( for cw and tone_burst model)
-    data_sets["emitter_polarization"] = 0 * np.ones(n_events)  # this will be the polarization of the signal (for delta_pulse model, 0=eTheta)
+    data_sets["emitter_polarization"] = 0.1 * np.ones(n_events)  # this will be the polarization of the signal (for delta_pulse model, 0=eTheta)
 
 
     #the position of the emitter
@@ -68,5 +68,5 @@ def generate_my_events(filename, n_events):
     write_events_to_hdf5(filename, data_sets, attributes)
 
 if __name__ == "__main__":
-    generate_my_events("SPICE_drop_event_list.hdf5", 100)
+    generate_my_events("SPICE_drop_event_list.hdf5", 10)
 
