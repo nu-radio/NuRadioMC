@@ -35,6 +35,11 @@ function can be skipped for some modules.
 
 Logging
 --------------
+**Please note that this section is specific to NuRadioReco.**
+**For NuRadioMC applications one should replace NuRadioReco with NuRadioMC in the following.**
+**Then, the** ``module.setup_logger()`` **function should be called with** ``name="NuRadioMC"``
+**as a parameter.**
+
 Logging in NuRadioReco is handled using the standard Python logging interface.
 It uses the fact that loggers can inherit handlers from logger created in parent
 modules. To achieve this behaviour, every module file MODULE.py should initialise
@@ -55,14 +60,15 @@ Then any script using NuRadioReco modules should initialize a general logger wit
 
     import logging
     from NuRadioReco.modules.base import module
-    logger = module.setup_logger(level=logging.WARNING)
+    logger = module.setup_logger()
 
 
 This initializes a parent logger, which determines the overall logging level that is
-inherited by all modules. This allows to turn DEBUG on for all, for example. It is
-still possible to change the logging level for individual modules as an overwrite.
-For example, the ``begin()`` function of the class MODULE could take parameter
-setting the logging level:
+inherited by all modules. By default the level is set to STATUS (see below), but this
+can easily be changed by using the ``level`` keyword in the ``setup_logger()`` function.
+This allows to turn DEBUG on for all, for example. It is still possible to change the
+logging level for individual modules as an overwrite. For example, the ``begin()`` function
+of the class MODULE could take parameter setting the logging level:
 
   .. code-block:: Python
 
