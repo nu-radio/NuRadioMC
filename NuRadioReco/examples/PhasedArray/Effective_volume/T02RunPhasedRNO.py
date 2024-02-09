@@ -42,7 +42,7 @@ from NuRadioReco.modules.base import module
 # 10 Hz -> 69.06
 # 1 Hz -> 75.75
 
-logger = module.setup_logger(level=logging.WARNING)
+logger = module.setup_logger(name="NuRadioMC")
 
 triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
