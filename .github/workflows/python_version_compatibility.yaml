@@ -10,12 +10,14 @@ on:
 jobs:
   pythonversionsmatrix:
     strategy:
+      fail-fast: false # continue even if one of the versions fails
       matrix:
-        python_version: [3.8, 3.9, 3.10, 3.11, 3.12, 3.x]
+        python_version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.x"]
         os: [ubuntu-latest]
         include:
-          - os: ubuntu-20.04
-            python_version: 3.6
+          - python_version: "3.6"
+            os: ubuntu-20.04 # python 3.6 is not available with 22.04 on github actions
     uses: ./.github/workflows/run_tests.yaml
     with:
       python_version: ${{ matrix.python_version }}
+      os: ${{ matrix.os }}
