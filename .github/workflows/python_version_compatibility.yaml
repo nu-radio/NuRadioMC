@@ -1,4 +1,4 @@
-name: Check python version compatibility
+name: Check compatibility
 
 on:
   push:
@@ -8,11 +8,11 @@ on:
 
 
 jobs:
-  pythonversionsmatrix:
+  version:
     strategy:
       fail-fast: false # continue even if one of the versions fails
       matrix:
-        python_version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.x"]
+        python_version: ["3.8", "3.9", "3.10", "3.11", "3.x"] # 3.x = latest available
         os: [ubuntu-latest]
         include:
           - python_version: "3.6"
