@@ -57,7 +57,7 @@ args = parser.parse_args()
 
 n_channels = args.nchannels
 
-logger = module.setup_logger(level=logging.WARNING)
+logger = module.setup_logger(name="", level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()

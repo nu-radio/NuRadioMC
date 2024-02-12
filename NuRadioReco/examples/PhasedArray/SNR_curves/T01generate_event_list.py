@@ -18,7 +18,7 @@ import numpy as np
 import os
 
 
-logger = module.setup_logger(name="NuRadioMC")
+logger = module.setup_logger(name="")
 
 
 z12 = -100 * units.m

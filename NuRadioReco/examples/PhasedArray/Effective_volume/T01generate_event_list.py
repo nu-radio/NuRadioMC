@@ -20,7 +20,7 @@ import os
 import sys
 
 
-logger = module.setup_logger(name="NuRadioMC")
+logger = module.setup_logger(name="")
 
 
 if (len(sys.argv) < 2):
