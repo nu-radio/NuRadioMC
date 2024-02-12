@@ -66,8 +66,10 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
 
 def setup_logger(name="NuRadioReco", level=None):
     """
-    Set up the parent logger which all module logger should refer to. By default, an extra logging level
-    STATUS is added with level=25. Then STATUS is also set as the default logging level.
+    Set up the parent logger which all module loggers should pass their logs on to. Any handler which was
+    previously added to the logger is cleared, and a single new `logging.StreamHandler()` with a custom
+    formatter is added. Next to this, an extra logging level STATUS is added with level=25. Then STATUS is
+    also set as the default logging level.
 
     Parameters
     ----------
@@ -78,11 +80,15 @@ def setup_logger(name="NuRadioReco", level=None):
     """
     logger = logging.getLogger(name)
     logger.propagate = False
-    if not logger.hasHandlers():
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+
+    # First clear all the handlers
+    logger.handlers = []
+
+    # Then add our custom handler to the logger
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
     # Add the STATUS log level
     addLoggingLevel('STATUS', 25)
