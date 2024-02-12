@@ -40,12 +40,14 @@ from NuRadioReco.framework.parameters import particleParameters as simp
 # parameters set in the event generator
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import datetime
-import logging
 from six import iteritems
 import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
+# logging imports
+import logging
+from NuRadioReco.modules.base.module import LOGGING_STATUS
 
 
 logger = logging.getLogger("NuRadioMC.simulation")
@@ -90,7 +92,7 @@ class simulation:
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
-                 log_level=logging.STATUS,
+                 log_level=LOGGING_STATUS,
                  default_detector_station=None,
                  default_detector_channel=None,
                  file_overwrite=False,
