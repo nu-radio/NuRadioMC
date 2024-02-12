@@ -6,7 +6,10 @@ import numpy as np
 from numpy import testing
 import argparse
 from NuRadioReco.utilities import units
-import logging
+
+# Setup logging
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(name="")
 
 file1 = sys.argv[1]
 file2 = sys.argv[2]

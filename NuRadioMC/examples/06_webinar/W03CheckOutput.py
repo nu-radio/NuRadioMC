@@ -7,6 +7,10 @@ import h5py
 import time
 import os
 
+# Setup logging
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(name="")
+
 """
 This file teaches how to read the output from NuRadioMC simulations. To run it
 with the default results/NuMC_output.hdf5 file, just run:
