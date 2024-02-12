@@ -2,6 +2,10 @@ from __future__ import absolute_import, division, print_function
 from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 
+# Setup logging
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(name="")
+
 # define simulation volume
 volume = {
 'fiducial_zmin':-2.7 * units.km,  # the ice sheet at South Pole is 2.7km deep

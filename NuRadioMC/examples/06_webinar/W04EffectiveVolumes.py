@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
+# Setup logging
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(name="")
+
 """
 This file explains how to use the utilities.Veff module to calculate and plot
 the effective volumes of a set of NuRadioMC simulations. To run it with the
