@@ -8,6 +8,9 @@ import inspect
 import pickle
 
 
+LOGGING_STATUS = 25
+
+
 def addLoggingLevel(levelName, levelNum, methodName=None):
     """
     Comprehensively adds a new logging level to the `logging` module and the
@@ -68,8 +71,9 @@ def setup_logger(name="NuRadioReco", level=None):
     """
     Set up the parent logger which all module loggers should pass their logs on to. Any handler which was
     previously added to the logger is cleared, and a single new `logging.StreamHandler()` with a custom
-    formatter is added. Next to this, an extra logging level STATUS is added with level=25. Then STATUS is
-    also set as the default logging level.
+    formatter is added. Next to this, an extra logging level STATUS is added with level=`LOGGING_STATUS`,
+    which is defined in `module.py` (as of February 2024, its value is 25). Then STATUS is also set as
+    the default logging level.
 
     Parameters
     ----------
@@ -91,7 +95,7 @@ def setup_logger(name="NuRadioReco", level=None):
     logger.addHandler(handler)
 
     # Add the STATUS log level
-    addLoggingLevel('STATUS', 25)
+    addLoggingLevel('STATUS', LOGGING_STATUS)
 
     # Set logging level
     if level is not None:
