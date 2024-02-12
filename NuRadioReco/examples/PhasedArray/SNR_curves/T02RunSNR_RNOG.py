@@ -38,7 +38,7 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioReco.modules.base import module
 
-logger = module.setup_logger(level=logging.WARNING)
+logger = module.setup_logger(name="", level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
