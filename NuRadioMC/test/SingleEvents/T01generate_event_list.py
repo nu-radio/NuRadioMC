@@ -3,6 +3,10 @@ from __future__ import absolute_import, division, print_function
 from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 
+# Setup logging
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(name="")
+
 # define simulation volume
 volume = {
 'fiducial_rmin':0 * units.km,
