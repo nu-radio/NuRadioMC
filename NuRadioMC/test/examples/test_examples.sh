@@ -25,7 +25,19 @@ rm output.nur
 rm -r plots
 rm sim_results_02.pkl
 
-cd ../06_webinar
+cd SPICE_ARIANNA
+python3 A01generate_pulser_events.py
+python3 A02RunSimulation.py
+python3 A03reconstruct_sim.py output_reco.nur
+python3 A04plot_results.py
+rm SPICE_drop_event_list.hdf5
+rm output_reco.nur
+rm output_MC.hdf5
+rm -r plots
+rm sim_results_03.pkl
+
+
+cd ../../06_webinar
 python3 W01_create_input.py
 python3 W01_create_input_extended.py
 python3 W02RunSimulation.py
