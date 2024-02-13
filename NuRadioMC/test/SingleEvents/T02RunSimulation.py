@@ -10,9 +10,10 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.triggerTimeAdjuster
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
-import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+
+# Setup logging
+from NuRadioReco.modules.base import module
+logger = module.setup_logger(name="")
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
