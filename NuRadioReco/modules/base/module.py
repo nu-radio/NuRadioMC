@@ -150,9 +150,9 @@ def register_run(level=None):
                 # station should be second argument
                 elif isinstance(value, NuRadioReco.framework.base_station.BaseStation) and idx == 1:
                     station = value
-                elif isinstance(value, NuRadioReco.detector.detector_base.DetectorBase):
-                    pass  # we don't try to store detectors
-                else:  # we try to store other arguments IF they are pickleable
+                elif isinstance(value, (NuRadioReco.detector.detector_base.DetectorBase, NuRadioReco.detector.RNO_G.rnog_detector.Detector)):
+                    pass # we don't try to store detectors
+                else: # we try to store other arguments IF they are pickleable
                     try:
                         pickle.dumps(value, protocol=4)
                         store_kwargs[key] = value
