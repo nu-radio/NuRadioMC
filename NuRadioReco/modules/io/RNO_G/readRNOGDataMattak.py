@@ -600,7 +600,7 @@ class readRNOGData:
             for selector in self._selectors:
                 if not selector(evtinfo):
                     self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
-                                      f"event number {evtinfo.eventNumber}) is skipped.")
+                                      f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
                     self.__skipped += 1
                     return True
 
@@ -897,14 +897,16 @@ class readRNOGData:
     def end(self):
         if self.__counter:
             self.logger.info(
-                f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)"
+                f"\n\tRead {self.__counter} events ({self.__skipped} events are skipped (filtered), {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s"
                 f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
                 f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
         else:
-            self.logger.info(
-                f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)")
+            self.logger.warning(
+                f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
+                f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
+                f"\n\tTime to read all events       : {self._time_run:.2f}s")
 
         # Clean up links and temporary directories.
         for d in self.__temporary_dirs:
