@@ -22,8 +22,11 @@ Example scripts for simulations including birefringence.
 06_Veff_comparison.py:
     This example runs a full NuRadioMC simulation and calculates the effective volume for a non-birefringent and a birefringent medium.
 
-07_SPIice_simulation.py:
-    This example runs a full NuRadioMC simulation for an arbitrary detector geometry using the implementation in emitter.py.
+07_SPIice_simulation_ARIANNA.py:
+    This example runs a full NuRadioMC simulation for the ARIANNA-51 detector geometry using the implementation in emitter.py.
+
+08_SPIice_simulation_ARA.py:
+    This example runs a full NuRadioMC simulation for the ARA-A5 detector geometry using the implementation in emitter.py.
 
 
 extra_files:
