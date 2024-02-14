@@ -40,6 +40,17 @@ except:
         print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
 
+numba_available = False
+
+try:
+    from numba import jit, njit
+    from NuRadioMC.SignalProp.ray_tracing_helper import ray_tracing_helper_class
+    numba_available = True
+    cpp_available = False
+    print("Numba version of raytracer is available, using numba python version")
+except:
+    print("Numba is not available")
+    numba_available = False
 
 """
 analytic ray tracing solution
@@ -142,6 +153,12 @@ class ray_tracing_2D(ray_tracing_base):
         if overwrite_speedup is not None:
             self._use_optimized_calculation = overwrite_speedup
         self.use_cpp = use_cpp
+        if numba_available :
+            if self.medium.reflection is not None :
+                reflection = self.medium.reflection
+            else :
+                reflection = 0
+            self.helper = ray_tracing_helper_class(medium.n_ice, reflection, medium.z_0, medium.delta_n)
 
     def n(self, z):
         """
@@ -1081,8 +1098,14 @@ class ray_tracing_2D(ray_tracing_base):
         function to find solution for C0, returns distance in y between function and x2 position
         result is signed! (important to use a root finder)
         """
-        C_0 = self.get_C0_from_log(logC_0)
-        return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case)
+        if numba_available:
+            C_0 = self.helper.get_C0_from_log(logC_0)
+            if(hasattr(C_0, '__len__')):
+                    C_0 = C_0[0]
+            return self.helper.get_delta_y(C_0, np.array(x1), np.array(x2), None, reflection, reflection_case)
+        else :
+            C_0 = self.get_C0_from_log(logC_0)
+            return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case)
 
     def get_delta_y(self, C_0, x1, x2, C0range=None, reflection=0, reflection_case=2):
         """
@@ -1306,8 +1329,10 @@ class ray_tracing_2D(ray_tracing_base):
                     'starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(logC_0_start, C_0_start))
             else:
                 logC_0_start = -1
-
-            result = optimize.root(self.obj_delta_y_square, x0=logC_0_start, args=(x1, x2, reflection, reflection_case), tol=tol)
+            obj_delta_y_square = self.obj_delta_y_square
+            if numba_available:
+                obj_delta_y_square = self.helper.obj_delta_y_square
+            result = optimize.root(obj_delta_y_square, x0=logC_0_start, args=(np.array(x1), np.array(x2), reflection, reflection_case), tol=tol)
 
             if(plot):
                 import matplotlib.pyplot as plt
