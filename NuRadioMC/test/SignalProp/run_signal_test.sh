@@ -33,17 +33,3 @@ rm 1e19_n1e3.hdf5
 rm 06_Veff_comp_plot.png
 rm Veff_19_birefringence.hdf5
 rm Veff_19_no_birefringence.hdf5
-
-cd ../07_SPice_simulation_ARIANNA
-python3 A01generate_pulser_events.py
-python3 A02RunSimulation.py
-rm input_spice.hdf5  
-rm output_MC.hdf5    
-rm output_reco.nur 
-
-cd ../08_SPice_simulation_ARA  
-python3 A01generate_pulser_events.py
-python3 A02RunSimulation.py
-rm input_spice.hdf5  
-rm output_MC.hdf5    
-rm output_reco.nur 

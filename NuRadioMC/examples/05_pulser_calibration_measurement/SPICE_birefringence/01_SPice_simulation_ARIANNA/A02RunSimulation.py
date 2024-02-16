@@ -11,8 +11,7 @@ import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
-#logging.basicConfig(level=logging.WARNING)
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
 
 # initialize detector sim modules
@@ -23,9 +22,7 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
-#triggerSimulator.begin(log_level=logging.WARNING)
-triggerSimulator.begin(log_level=logging.ERROR)
-
+triggerSimulator.begin(log_level=logging.WARNING)
 
 class mySimulation(simulation.simulation):
 
@@ -42,25 +39,10 @@ class mySimulation(simulation.simulation):
                            triggered_channels=range(8))
         triggerTimeAdjuster.run(evt, station, det)
 
-"""
-parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
-parser.add_argument('inputfilename', type=str,
-                    help='path to NuRadioMC input event list')
-parser.add_argument('detectordescription', type=str,
-                    help='path to file containing the detector description')
-parser.add_argument('config', type=str,
-                    help='NuRadioMC yaml config file')
-parser.add_argument('outputfilename', type=str,
-                    help='hdf5 output filename')
-parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
-                    help='outputfilename of NuRadioReco detector sim file')
-args = parser.parse_args()
-"""
-
 if __name__ == "__main__":
     sim = mySimulation(inputfilename='input_spice.hdf5',
                                 outputfilename='output_MC.hdf5',
-                                detectorfile='detector_db.json',
+                                detectorfile='arianna_SP_station51.json',
                                 outputfilenameNuRadioReco='output_reco.nur',
                                 config_file='config_spice.yaml',
                                 #log_level=logging.WARNING,
