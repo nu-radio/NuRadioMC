@@ -33,58 +33,26 @@ def generate_my_events(filename, n_events):
     n_events = int(n_events)
     attributes['n_events'] = n_events
     attributes['start_event_id'] = 0
-
     attributes['simulation_mode'] = 'emitter'
-
-#     attributes['fiducial_rmin'] = 0
-#     attributes['fiducial_rmax'] = 1 * units.km
-#     attributes['fiducial_zmin'] = 0 * units.m
-#     attributes['fiducial_zmax'] = -2 * units.km
-#     attributes['rmin'] = 0
-#     attributes['rmax'] = 1 * units.km
-#     attributes['zmin'] = 0 * units.m
-#     attributes['zmax'] = -2 * units.km
-#     attributes['Emin'] = 1 * units.EeV
-#     attributes['Emax'] = 1 * units.EeV
 
     # now generate the events and fill all required data sets
     # here we fill all data sets with dummy values
     data_sets = {}
-    # the 'neutrino direction' needs to be set but are irrelevant for the simulation, because we simulate a
-    # uniform emitter
-    #data_sets["azimuths"] = np.ones(n_events)
-    #data_sets["zeniths"] = np.ones(n_events)
-
-    # define the emitter positions. X/Y are the easting/northing coordinates of the SPICE core (https://www.cambridge.org/core/journals/annals-of-glaciology/article/1500-m-south-pole-ice-core-recovering-a-40-ka-environmental-record/A6BB334D1F8AF08D412B9283C2C24F66)
-    #data_sets["xx"] = np.ones(n_events) * 42600 * units.feet
-    #data_sets["yy"] = np.ones(n_events) * 48800 * units.feet
 
     # define the emitter positions. X/Y are the easting/northing coordinates of the SPICE core (https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.123012)
     data_sets["xx"] = np.ones(n_events) * 12911 * units.m
     data_sets["yy"] = np.ones(n_events) * 14927.3 * units.m
-
-    # simualte different depth
     data_sets["zz"] = -np.linspace(0, 2000, n_events) * units.m
+
     data_sets["event_group_ids"] = np.arange(n_events)
     data_sets["shower_ids"] = np.arange(n_events)
-    data_sets["n_interaction"] = np.ones(n_events, dtype=int)
-    data_sets["interaction_type"] = np.array(['had'] * n_events)
-
-    # again these parameters are irrelevant for our simulation but still need to be set
-    data_sets["flavors"] = np.array([12 for i in range(n_events)])
-    data_sets["energies"] = np.ones(n_events) * 1 * units.eV
-    data_sets["inelasticity"] = np.ones(n_events) * 0.5
-    data_sets["shower_energies"] = data_sets["inelasticity"] * data_sets["energies"]
-    data_sets["shower_type"] = np.array(['had'] * n_events)
-
 
     data_sets['emitter_model'] = np.array(['efield_idl1_spice'] * n_events)
-    data_sets['emitter_amplitudes'] = np.array([0] * n_events)
+    data_sets['emitter_amplitudes'] = np.array([0] * n_events) # not used
     data_sets['emitter_frequency'] = np.array([1] * n_events) # not used
     data_sets['emitter_half_width'] = np.array([1] * n_events) # not used
-    # write events to file
-    write_events_to_hdf5(filename, data_sets, attributes)
 
+    write_events_to_hdf5(filename, data_sets, attributes)
 
 if __name__ == "__main__":
     generate_my_events("input_spice.hdf5", 10)

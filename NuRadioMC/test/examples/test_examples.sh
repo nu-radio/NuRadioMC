@@ -36,8 +36,21 @@ rm output_MC.hdf5
 rm -r plots
 rm sim_results_03.pkl
 
+cd ../SPICE_birefringence/01_SPice_simulation_ARIANNA
+python3 A01generate_pulser_events.py
+python3 A02RunSimulation.py
+rm input_spice.hdf5   
+rm output_MC.hdf5
+rm output_reco.nur
 
-cd ../../06_webinar
+cd ../02_SPice_simulation_ARA
+python3 A01generate_pulser_events.py
+python3 A02RunSimulation.py
+rm input_spice.hdf5   
+rm output_MC.hdf5
+rm output_reco.nur
+
+cd ../../../06_webinar
 python3 W01_create_input.py
 python3 W01_create_input_extended.py
 python3 W02RunSimulation.py
@@ -49,10 +62,3 @@ rm input_3.2e+19_1.0e+20.hdf5
 rm input_3.2e+18_1.0e+19.hdf5.part000?
 rm tables/**/*.dat
 
-cd ../08_SPice_drop
-python3 A01generate_pulser_events.py
-python3 A02RunSimulation.py
-
-rm input_spice.hdf5   
-rm output_MC.hdf5
-rm output_reco.nur
