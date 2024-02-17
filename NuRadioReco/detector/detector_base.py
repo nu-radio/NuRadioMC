@@ -607,42 +607,48 @@ class DetectorBase(object):
             channel_ids.append(channel['channel_id'])
         return sorted(channel_ids)
 
-    def get_parallel_channels(self, station_id):
-        """
-        get a list of parallel antennas
+    def get_parallel_channels(self, station_id, tol=1*units.deg):
+            """
+            get a list of parallel antennas
 
-        Parameters
-        ----------
-        station_id: int
-            the station id
-
-        Returns list of list of ints
-        """
-        res = self.__get_channels(station_id)
-        orientations = np.zeros((len(res), 4))
-        antenna_types = []
-        channel_ids = []
-        for iCh, ch in enumerate(res.values()):
-            channel_id = ch['channel_id']
-            channel_ids.append(channel_id)
-            antenna_types.append(self.get_antenna_type(station_id, channel_id))
-            orientations[iCh] = self.get_antenna_orientation(station_id, channel_id)
-            orientations[iCh][3] = hp.get_normalized_angle(orientations[iCh][3], interval=np.deg2rad([0, 180]))
-        channel_ids = np.array(channel_ids)
-        antenna_types = np.array(antenna_types)
-        orientations = np.round(np.rad2deg(orientations))  # round to one degree to overcome rounding errors
-        parallel_antennas = []
-        for antenna_type in np.unique(antenna_types):
-            for u_zen_ori in np.unique(orientations[:, 0]):
-                for u_az_ori in np.unique(orientations[:, 1]):
-                    for u_zen_rot in np.unique(orientations[:, 2]):
-                        for u_az_rot in np.unique(orientations[:, 3]):
-                            mask = (antenna_types == antenna_type) \
-                                & (orientations[:, 0] == u_zen_ori) & (orientations[:, 1] == u_az_ori) \
-                                & (orientations[:, 2] == u_zen_rot) & (orientations[:, 3] == u_az_rot)
-                            if np.sum(mask):
-                                parallel_antennas.append(channel_ids[mask])
-        return np.array(parallel_antennas)
+            Parameters
+            ----------
+            station_id: int
+                the station id
+            tol:        float
+                tolerance to difference in angles between parallel channels
+                
+            Returns list of list of ints
+            """
+            res = self.__get_channels(station_id)
+            orientations = np.zeros((len(res), 4))
+            antenna_types = []
+            channel_ids = []
+            for iCh, ch in enumerate(res.values()):
+                channel_id = ch['channel_id']
+                channel_ids.append(channel_id)
+                antenna_types.append(self.get_antenna_type(station_id, channel_id))
+                orientations[iCh] = self.get_antenna_orientation(station_id, channel_id)
+                orientations[iCh][3] = hp.get_normalized_angle(orientations[iCh][3], interval=np.deg2rad([0, 180]))
+            channel_ids = np.array(channel_ids)
+            antenna_types = np.array(antenna_types)
+            parallel_antennas = []
+            for antenna_type in np.unique(antenna_types):
+                for u_zen_ori in np.unique(orientations[:, 0]):
+                    for u_az_ori in np.unique(orientations[:, 1]):
+                        for u_zen_rot in np.unique(orientations[:, 2]):
+                            for u_az_rot in np.unique(orientations[:, 3]):
+                                mask = (antenna_types == antenna_type) \
+                                    & (np.abs(orientations[:, 0] - u_zen_ori) < tol) & (np.abs(orientations[:, 1] - u_az_ori) < tol) \
+                                    & (np.abs(orientations[:, 2] - u_zen_rot) < tol) & (np.abs(orientations[:, 3] - u_az_rot) < tol)
+                                if np.sum(mask):
+                                    match = False
+                                    for pair in parallel_antennas:
+                                        if np.array_equal(pair, channel_ids[mask]):
+                                            match = True
+                                    if not match:
+                                        parallel_antennas.append(channel_ids[mask])
+            return parallel_antennas
 
 
 
