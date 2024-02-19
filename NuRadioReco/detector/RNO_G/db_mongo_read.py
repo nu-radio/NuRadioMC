@@ -62,7 +62,7 @@ class Database(object):
             Select the database by name. If None (default) is passed, set to `"RNOG_live"`
 
         mongo_kwargs : dict (Default: `{}`)
-            Additional arguments to pass to `MongoClient`.
+            Additional arguments to pass to MongoClient.
         """
 
         if database_connection == "env_pw_user":
