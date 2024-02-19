@@ -16,7 +16,7 @@ from pygdsm import (
     HaslamSkyModel,
 )
 
-from pylfmap import LFmap #Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
+from pylfmap import LFmap #Documentation: https://github.com/F-Tomas/pylfmap 
 import healpy
 import astropy.coordinates
 import astropy.units
