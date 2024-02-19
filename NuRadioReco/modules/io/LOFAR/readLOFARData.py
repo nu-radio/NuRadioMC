@@ -143,6 +143,58 @@ def tbb_filetag_from_utc(timestamp):
 
     return radio_file_tag
 
+def tbbID_to_nrrID(id, mode):
+    """
+    Returns the NRR channel ID given an antenna mode. This simply adds a "9" as the fourth element of the channelID, if the antenna mode is "LBA_inner"
+    
+    Parameters
+    ------------
+    id: str/int
+        Channel ID
+    mode: str
+        "LBA_inner" or "LBA_outer"
+
+    Returns
+    ------------
+    NRR channel ID: str
+        The NuRadioReco channelID corresponding to the TBB channelID depending on whether the antenna mode is "inner" or "outer"
+    """
+
+    if type(id) == int: #if the channelID happens to be integer, convert to string and ensure the string is filled with zeroes at the beginning to get a string length of 9
+        id = str(id).zfill(9)
+
+    if mode == "LBA_outer": #for LBA outer, keep the zero on 4th position of string. For safety, the string is overwritten here. But it should not be necessary
+        channelid=id[:3] + '0' + id[4:]   
+    elif mode == "LBA_inner": #for LBA_inner, replace the fourth digit (zero) in the string with a 9.
+        channelid=id[:3] + '9' + id[4:]   
+    else:
+        logger.warning("%s is not a valid antenna mode - valid modes are LBA_inner and LBA_outer" % mode)
+        channelid=id    #return the input channel ID if mode is invalid. 
+    
+    return channelid
+
+def nrrID_to_tbbID(id):
+    """
+    Returns the TBB channel ID given a NRR channel ID this simply replaces the fourth element of the channelID with a "0".
+    
+    Parameters
+    ------------
+    id: str/int
+        Channel ID
+
+    Returns
+    ------------
+    TBB channel ID: str
+        The TBB channelID corresponding to the NuRadioReco channelID
+    """
+
+    if type(id) == int: #if the channelID happens to be integer, convert to string and ensure the string is filled with zeroes at the beginning to get a string length of 9
+        id = str(id).zfill(9)
+
+    channelid=id[:3] + '0' + id[4:]   #replace fourth element with a 0
+    
+    return channelid
+
 
 class getLOFARtraces:
     def __init__(
