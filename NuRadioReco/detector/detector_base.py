@@ -936,9 +936,9 @@ class DetectorBase(object):
         else:
             return res['channel_group_id']
         
-    def get_ant_mode(self, station_id, channel_id):
+    def get_antenna_mode(self, station_id, channel_id):
         """
-        returns the group ID of a channel
+        returns the antenna mode of a given channel - this is specific to LOFAR antennae, as they operate in either inner or outer mode.
 
         Parameters
         ----------
@@ -952,12 +952,13 @@ class DetectorBase(object):
         ant_mode : str
             the antenna mode (LBA inner/outer)
         """
+
         res = self.__get_channel(station_id, channel_id)
         if 'ant_mode' not in res.keys():
             logger.warning(
-                'Antenna mode not set for channel {} in station {}, returning LBA_unknown'.format(
+                'Antenna mode not set for channel {} in station {}, returning None'.format(
                     channel_id, station_id))
-            return "LBA_unknown"
+            return None
         else:
             return res['ant_mode']
 
