@@ -644,6 +644,94 @@ class ray_tracing_2D(ray_tracing_base):
                         tmp += None
         return tmp
 
+    def get_focusing_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
+        """
+        Analytic solution to calculate the focusing factor
+
+        """
+
+        s = self.get_path_length_analytic(x1, x2, C_0, reflection, reflection_case)
+        # if x1, x2 are swapped, launch_angle and receive_angle might also be swapped
+        # Fortunately, the focusing factor is symmetric, so this does not matter
+        launch_angle = self.get_launch_angle(x1, C_0, reflection, reflection_case)
+        receive_angle = self.get_receive_angle(x1, x2, C_0, reflection, reflection_case)
+
+        w_phi = 0
+        w_theta = 0
+
+        n1 = self.n(x1[1])
+        n2 = self.n(x2[1])
+        n_ice = self.medium.n_ice
+        z_0 = self.medium.z_0
+        beta = n1 * np.sin(launch_angle)
+        alpha = n_ice**2 - beta**2
+
+        def gamma(z):
+            return self.n(z)**2 - beta**2
+
+        def phi_focusing_width(z):
+            w_phi = 1/np.sqrt(alpha) * (
+                z - z_0 * np.log(
+                    np.sqrt(alpha * gamma(z)) + n_ice*self.n(z) - beta**2
+                )
+            )
+            return w_phi
+
+        def theta_focusing_width(z):
+            w_theta = (
+                n_ice**2 * z / alpha**(3/2)
+                + z_0 * (n_ice * self.n(z) + beta**2) / (alpha * np.sqrt(gamma(z)))
+                - n_ice**2 * z_0 / alpha**(3/2) * np.log(
+                    np.sqrt(alpha * gamma(z)) + n_ice*self.n(z) - beta**2
+                )
+            )
+            return w_theta
+
+        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
+            if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
+                x11, x1, x22, x2, C_0, C_1 = segment
+                x1t = copy.copy(x11)
+                x2t = copy.copy(x2)
+                x1t[1] = x2[1]
+                x2t[1] = x11[1]
+                x2 = x2t
+                x1 = x1t
+            else:
+                x11, x1, x22, x2, C_0, C_1 = segment
+
+            z1 = x1[1]
+            z2 = x2[1]
+            solution_type = self.determine_solution_type(x1, x2, C_0)
+
+
+            if(x2[1] > 0): # ice-to-air case
+                w_theta += theta_focusing_width(0) - theta_focusing_width(z1)
+                w_phi += phi_focusing_width(0) - phi_focusing_width(z1)
+
+                w_theta += z2 / (np.cos(receive_angle)**3)
+                w_phi += z2 / np.cos(receive_angle)
+
+            else:
+                if(solution_type == 1):
+                    w_theta += theta_focusing_width(z2) - theta_focusing_width(z1)
+                    w_phi += phi_focusing_width(z2) - phi_focusing_width(z1)
+                else:
+                    if(solution_type == 3):
+                        z_turn = 0
+                    else:
+                        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+        #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+
+                    w_theta += 2 * theta_focusing_width(z_turn) - theta_focusing_width(z1) - theta_focusing_width(z2)
+                    w_phi += 2 * phi_focusing_width(z_turn) - phi_focusing_width(z1) - phi_focusing_width(z2)
+
+
+        f_inverse_squared = n1 * n2 * np.abs(np.cos(launch_angle) * np.cos(receive_angle)) * (
+            w_theta * w_phi / s**2
+        )
+
+        return np.sqrt(1/f_inverse_squared)
+
     def __get_frequencies_for_attenuation(self, frequency, max_detector_freq):
             mask = frequency > 0
             nfreqs = min(self.__n_frequencies_integration, np.sum(mask))
@@ -2183,7 +2271,7 @@ class ray_tracing(ray_tracing_base):
                                                      reflection=result['reflection'],
                                                      reflection_case=result['reflection_case'])
 
-    def get_focusing(self, iS, dz=-1. * units.cm, limit=2.):
+    def get_focusing(self, iS, dz=-1. * units.cm, limit=2., analytic=True):
         """
         calculate the focusing effect in the medium
 
@@ -2202,6 +2290,14 @@ class ray_tracing(ray_tracing_base):
         focusing: float
             gain of the signal at the receiver due to the focusing effect
         """
+        if analytic:
+            res = self.get_results()[iS]
+            f = self._r2d.get_focusing_analytic(
+                self._x1, self._x2, res['C0'], 
+                res['reflection'], res['reflection_case']
+            )
+            return f
+
         recVec = self.get_receive_vector(iS)
         recVec = -1.0 * recVec
         recAng = np.arccos(recVec[2] / np.sqrt(recVec[0] ** 2 + recVec[1] ** 2 + recVec[2] ** 2))
@@ -2233,6 +2329,14 @@ class ray_tracing(ray_tracing_base):
                 )
             )
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
+
+            # also take into account focussing in the phi-direction
+            radius = np.linalg.norm(recPos - vetPos)
+            sinTheta = np.linalg.norm((recPos-vetPos)[:-1]) / radius
+            dphi_flat = distance * np.sin(lauAng)
+            dphi_curved = radius * sinTheta
+            focusing *= np.sqrt(dphi_flat / dphi_curved)
+
             if (self.get_results()[iS]['reflection'] != self._r1.get_results()[iS]['reflection']
                     or self.get_results()[iS]['reflection_case'] != self._r1.get_results()[iS]['reflection_case']):
                 self.__logger.error("Number or type of reflections are different between solutions - focusing correction may not be reliable.")
