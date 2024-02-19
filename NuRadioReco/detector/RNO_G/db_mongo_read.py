@@ -37,7 +37,7 @@ class Database(object):
 
     def __init__(self, database_connection="RNOG_public", database_name=None, mongo_kwargs={}):
         """
-        Interface to the RNO-G hardware database. This class uses the python API `pymongo` for the
+        Interface to the RNO-G hardware database. This class uses the python API pymongo for the
         RNO-G MongoDB.
 
         This classes allows you to connect to preconfigured mongo clients or select your mongo client freely.
