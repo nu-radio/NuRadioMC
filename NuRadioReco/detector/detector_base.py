@@ -83,9 +83,11 @@ def buffer_db(in_memory, filename=None):
     for channel in results:
         table_channels.insert({'station_id': channel['st.station_id'],
                                'channel_id': channel['ch.channel_id'],
+                               #'channel_group_id': channel['ch.channel_group_id'],
                                'commission_time': channel['ch.commission_time'],
                                'decommission_time': channel['ch.decommission_time'],
                                'ant_type': channel['ant.antenna_type'],
+                               #'ant_mode': channel['ant.antenna_mode'],
                                'ant_orientation_phi': channel['ant.orientation_phi'],
                                'ant_orientation_theta': channel['ant.orientation_theta'],
                                'ant_rotation_phi': channel['ant.rotation_phi'],
@@ -933,6 +935,31 @@ class DetectorBase(object):
             return -1
         else:
             return res['channel_group_id']
+        
+    def get_ant_mode(self, station_id, channel_id):
+        """
+        returns the group ID of a channel
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns
+        -------
+        ant_mode : str
+            the antenna mode (LBA inner/outer)
+        """
+        res = self.__get_channel(station_id, channel_id)
+        if 'ant_mode' not in res.keys():
+            logger.warning(
+                'Antenna mode not set for channel {} in station {}, returning LBA_unknown'.format(
+                    channel_id, station_id))
+            return "LBA_unknown"
+        else:
+            return res['ant_mode']
 
     def get_noise_RMS(self, station_id, channel_id, stage='amp'):
         """
