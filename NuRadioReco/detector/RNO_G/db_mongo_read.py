@@ -50,13 +50,13 @@ class Database(object):
             Specify mongo client. You have 5 options:
 
                 * `"env_pw_user"`: Connect to a server with the environmental variables
-                `mongo_server`, `mongo_user`, and `mongo_password`
+                  `mongo_server`, `mongo_user`, and `mongo_password`
                 * `"RNOG_public"`: Preconfigured connection to read-only RNO-G Hardware DB
                 * `"RNOG_test_public"`: Preconfigured connection to read-only RNO-G Test Hardware DB
                 * `"connection_string"`: Use environmental variable `db_mongo_connection_string` to
-                connect to mongo server
+                  connect to mongo server
                 * `"mongodb*": Every string which starts with `"mongodb"` will be used to connect to
-                a mongo server
+                  a mongo server
 
         database_name : str (Default: None -> `"RNOG_live"`)
             Select the database by name. If None (default) is passed, set to `"RNOG_live"`
