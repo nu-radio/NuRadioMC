@@ -13,8 +13,8 @@ rnog_reader = readRNOGDataMattak.readRNOGData(log_level=logging.DEBUG)
 writer = eventWriter.eventWriter()
 
 """
-With a selector you can select or reject events based on information in the 
-Mattak class EventInfo. See https://github.com/RNO-G/mattak/blob/main/py/mattak/Dataset.py 
+With a selector you can select or reject events based on information in the
+Mattak class EventInfo. See https://github.com/RNO-G/mattak/blob/main/py/mattak/Dataset.py
 
 class EventInfo:
     eventNumber: int
@@ -34,8 +34,8 @@ class EventInfo:
 selectors = [lambda einfo: einfo.triggerType == "FORCE"]
 
 rnog_reader.begin(
-    list_of_root_files, 
-    selectors=selectors, 
+    list_of_root_files,
+    selectors=selectors,
     # Currently false because Mattak does not contain calibrated data yet
 	read_calibrated_data=False,
  	# Only used when read_calibrated_data==False, performs a simple baseline subtraction each 128 bins
@@ -53,10 +53,8 @@ rnog_reader.begin(
 
 writer.begin(filename=output_filename)
 
-for i_event, event in enumerate(rnog_reader.run()):   
+for i_event, event in enumerate(rnog_reader.run()):
     writer.run(event)
 
 rnog_reader.end()
 writer.end()
-
-                    
