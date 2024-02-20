@@ -179,3 +179,9 @@ jobs:
       run: |
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/detector/test/tests.sh
+    - name: "RNO-G data reader"
+      if: always()
+      run: |
+        pip install git+https://github.com/RNO-G/mattak.git
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        NuRadioReco/test/RNO_G/test_read_rnog_data.sh

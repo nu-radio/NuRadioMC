@@ -413,28 +413,9 @@ class readRNOGData:
                 if not _all_files_in_directory(dir_file):
                     self.logger.error(f"Incomplete directory: {dir_file}. Skip ...")
                     continue
-            else:
-                # Providing direct paths to a Mattak combined.root file is not supported by the mattak library yet.
-                # It only accepts directry paths in which it will look for a file called `combined.root` (or waveforms.root if
-                # it is not a combined file). To work around this: Create a tmp directory under `/tmp/`, link the file you want to
-                # read into this directory with the the name `combined.root`, use this path to read the run.
-
-                path = _create_random_directory_path()
-                self.logger.debug(f"Create temporary directory: {path}")
-                if os.path.exists(path):
-                    raise ValueError(f"Temporary directory {path} already exists.")
-
-                os.mkdir(path)
-                self.__temporary_dirs.append(path)  # for housekeeping
-
-                self.logger.debug(f"Create symlink for {dir_file}")
-                os.symlink(os.path.abspath(dir_file), os.path.join(path, "combined.root"))
-
-                dir_file = path  # set path to e.g. /tmp/NuRadioReco_XXXXXXX/combined.root
-
 
             try:
-                dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
+                dataset = mattak.Dataset.Dataset(station=0, run=0, data_path=dir_file, verbose=verbose, **mattak_kwargs)
             except (ReferenceError, KeyError) as e:
                 self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
                 continue
