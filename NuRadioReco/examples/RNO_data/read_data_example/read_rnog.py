@@ -39,7 +39,7 @@ rnog_reader.begin(
     # Currently false because Mattak does not contain calibrated data yet
 	read_calibrated_data=False,
  	# Only used when read_calibrated_data==False, performs a simple baseline subtraction each 128 bins
-	apply_baseline_correction=True,
+	apply_baseline_correction="approximate",
  	# Only used when read_calibrated_data==False, performs a linear voltage calibration with hardcoded values
 	convert_to_voltage=True,
 	# Can be used instead of defining a selector (only for triggers)
@@ -49,7 +49,8 @@ rnog_reader.begin(
 	# Only use runs of a certain run type
 	run_types=["physics"],
 	# Only use runs with a maximum trigger rate of 1 Hz
-	max_trigger_rate=1 * units.Hz)
+	max_trigger_rate=1 * units.Hz,
+    overwrite_sampling_rate=3.2)
 
 writer.begin(filename=output_filename)
 
