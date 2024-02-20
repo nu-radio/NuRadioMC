@@ -30,7 +30,7 @@ import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
-import NuRadioReco.framework.emitter
+import NuRadioReco.framework.sim_emitter
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -661,7 +661,7 @@ class simulation:
                         self._create_sim_shower()  # create sim shower
                         self._evt_tmp.add_sim_shower(self._sim_shower)
                     else:
-                        emitter_obj = NuRadioReco.framework.emitter.Emitter(self._shower_index)  # shower_id is equivalent to emitter_id in this case
+                        emitter_obj = NuRadioReco.framework.sim_emitter.SimEmitter(self._shower_index)  # shower_id is equivalent to emitter_id in this case
                         emitter_obj[ep.position] = np.array([self._fin['xx'][self._primary_index], self._fin['yy'][self._primary_index], self._fin['zz'][self._primary_index]])
                         emitter_obj[ep.model] = self._fin['emitter_model'][self._primary_index]
                         emitter_obj[ep.amplitude] = self._fin['emitter_amplitudes'][self._primary_index]
