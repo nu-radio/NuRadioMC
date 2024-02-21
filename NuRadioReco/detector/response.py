@@ -6,6 +6,7 @@ from scipy import interpolate
 import numpy as np
 import logging
 import datetime
+import copy
 
 
 class Response:
@@ -240,6 +241,7 @@ class Response:
             return self
 
         elif isinstance(other, NuRadioReco.framework.base_trace.BaseTrace):
+            other = copy.deepcopy(other)
 
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
@@ -253,6 +255,7 @@ class Response:
             spec *= self(freqs)  # __call__
             other.add_trace_start_time(np.sum(self.__time_delays))
             other.set_frequency_spectrum(spec, sampling_rate="same")
+
             return other
 
         elif isinstance(other, np.ndarray):
