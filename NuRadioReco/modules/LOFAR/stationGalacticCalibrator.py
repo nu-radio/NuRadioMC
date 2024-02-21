@@ -139,7 +139,7 @@ class stationGalacticCalibrator:
         # Apply the interpolation to the sampled frequencies and return
         return f(frequencies)
 
-    def _get_relative_calibration(self, local_sidereal_time, channel):
+    def _get_relative_calibration(self, detector, station, local_sidereal_time, channel):
         """
         Calculate the relative calibration correction factor for a channel, given the Fourier coefficients for the curve
         of the galactic noise power they observe as a function of the local sidereal time. This makes sure
@@ -148,6 +148,10 @@ class stationGalacticCalibrator:
 
         Parameters
         ----------
+        detector: Detector object
+            The detector description to be used.
+        station: station object
+            The station in which the channel is located.
         local_sidereal_time : float
             The local sidereal time of the observation.
         channel : Channel object
@@ -168,7 +172,17 @@ class stationGalacticCalibrator:
 
         # Get channel parameters -> group_id = a(even_id), odd_id = even_id + 1
         # TODO: function to translate channel polarisation to X/Y -> make coefficients take that as input
-        channel_polarisation = channel.get_id() - int(channel.get_group_id()[1:])
+
+        orientation_rad = detector.get_antenna_orientation(station.get_id(),channel.get_id)[1] #takes the phi orientation in rad of the specific channel
+        orientation = np.rad2deg(orientation_rad)    # convert to deg
+        if orientation == 225:
+            channel_polarisation = 1 #for X dipoles, channel_polarisation is set to 1
+        elif orientation == 135:
+            channel_polarisation = 0 #for Y dipoles, channel_polarisation is set to 0
+        else:
+            self.logger.error(f"Antenna orientation of {orientation} does not correspond to either X or Y dipole.")  
+
+        #channel_polarisation = channel.get_id() - int(channel.get_group_id()[1:])
         channel_bandwidth = channel.get_sampling_rate() / channel.get_number_of_samples()
         channel_power = np.sum(np.abs(channel.get_frequency_spectrum()) ** 2) * channel_bandwidth
 
@@ -190,6 +204,7 @@ class stationGalacticCalibrator:
         if scale == np.inf:
             scale = 0.0  # A channel without a signal will have 0 channel power, and result in np.inf
         return np.sqrt(scale)  # Correction is applied in time domain
+
 
     def _calibrate_channel(self, channel, timestamp):
         """
