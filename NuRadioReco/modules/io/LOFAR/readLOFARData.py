@@ -7,6 +7,7 @@ import logging
 import numpy as np
 
 from datetime import datetime
+from astropy.time import Time
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 
