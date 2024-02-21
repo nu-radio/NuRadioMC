@@ -20,7 +20,6 @@ from NuRadioReco.framework.parameters import stationParameters, showerParameters
 import NuRadioReco.modules.io.LOFAR.rawTBBio as rawTBBio
 import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as rawTBBio_metadata
 
-
 logger = logging.getLogger('NuRadioReco.readLOFARData')
 
 
@@ -68,13 +67,13 @@ def get_metadata(filenames, metadata_dir):
 
 
 def lora_timestamp_to_blocknumber(
-    lora_seconds,
-    lora_nanoseconds,
-    start_time,
-    sample_number,
-    clock_offset=1e4 * units.ns,
-    block_size=2**16,
-    sampling_frequency=200 * units.MHz,
+        lora_seconds,
+        lora_nanoseconds,
+        start_time,
+        sample_number,
+        clock_offset=1e4 * units.ns,
+        block_size=2 ** 16,
+        sampling_frequency=200 * units.MHz,
 ):
     """
     Calculates block number corresponding to LORA timestamp and the sample number within that block
@@ -143,62 +142,88 @@ def tbb_filetag_from_utc(timestamp):
 
     return radio_file_tag
 
-def tbbID_to_nrrID(id, mode):
+
+def tbbID_to_nrrID(channel_id, mode):
     """
-    Returns the NRR channel ID given an antenna mode. This simply adds a "9" as the fourth element of the channelID, if the antenna mode is "LBA_inner"
+    Converts a TBB channel ID to the corresponding NRR channel ID given the antenna mode. This simply adds a "9" as
+    the fourth element of the channelID, if the antenna mode is "LBA_inner". The function :func:`nrrID_to_tbbID`
+    can be used to do the opposite.
+
+    As of February 2024, this function only supports "LBA_INNER" and "LBA_OUTER" as possible antenna modes.
+    Note that the antenna mode is always converted to lowercase, so the comparison is case-insensitive (i.e.
+    "LBA_inner" and "LBA_INNER" are both recognised as the same antenna set).
     
     Parameters
-    ------------
-    id: str/int
-        Channel ID
-    mode: str
-        "LBA_inner" or "LBA_outer"
+    ----------
+    channel_id: str or int
+        TBB channel ID
+    mode: {"LBA_inner", "LBA_outer"}
+        The antenna set for which to convert (case-insensitive).
 
     Returns
-    ------------
-    NRR channel ID: str
-        The NuRadioReco channelID corresponding to the TBB channelID depending on whether the antenna mode is "inner" or "outer"
+    -------
+    nrr_channel_id: str
+        The NuRadioReco channelID corresponding to the TBB channelID depending on whether the antenna mode
+        is "lba_inner" or "lba_outer"
+
+    Notes
+    -----
+    This function encodes the convention used in the `LOFAR.json` detector description. For the inner LBA antennas,
+    a "9" was added as the fourth element of the channelID. However, the TBB files always use the same set of
+    channel IDs (i.e. the same channel ID refers to different physical antennas depending on the antenna set).
+    Given a channel ID from the TBB file and the antenna set, this function returns the channel ID of the
+    corresponding channel in the NRR Detector description.
     """
 
-    if type(id) == int: #if the channelID happens to be integer, convert to string and ensure the string is filled with zeroes at the beginning to get a string length of 9
-        id = str(id).zfill(9)
+    # if channelID is integer, convert to string and fill it with zeroes at the beginning to get a string length of 9
+    if type(channel_id) == int:
+        channel_id = str(channel_id).zfill(9)
 
-    if mode == "LBA_outer": #for LBA outer, keep the zero on 4th position of string. For safety, the string is overwritten here. But it should not be necessary
-        channelid=id[:3] + '0' + id[4:]   
-    elif mode == "LBA_inner": #for LBA_inner, replace the fourth digit (zero) in the string with a 9.
-        channelid=id[:3] + '9' + id[4:]   
+    if mode.lower() == "lba_outer":  # for LBA_outer, keep the zero on 4th position of string
+        # For safety, the string is overwritten here. But it should not be necessary
+        nrr_channel_id = channel_id[:3] + '0' + channel_id[4:]
+    elif mode.lower() == "lba_inner":  # for LBA_inner, replace the fourth digit (zero) in the string with a 9
+        nrr_channel_id = channel_id[:3] + '9' + channel_id[4:]
     else:
         logger.warning("%s is not a valid antenna mode - valid modes are LBA_inner and LBA_outer" % mode)
-        channelid=id    #return the input channel ID if mode is invalid. 
-    
-    return channelid
+        nrr_channel_id = channel_id  # return the input channel ID if mode is invalid.
 
-def nrrID_to_tbbID(id):
+    return nrr_channel_id
+
+
+def nrrID_to_tbbID(channel_id):
     """
-    Returns the TBB channel ID given a NRR channel ID this simply replaces the fourth element of the channelID with a "0".
+    This function does the opposite of :func:`tbbID_to_nrrID` . It returns the TBB channel ID given a NRR channel ID.
+    Following the convention used in the LOFAR detector description as of February 2024, this simply replaces the
+    fourth element of the channelID with a "0".
     
     Parameters
     ------------
-    id: str/int
+    channel_id: str or int
         Channel ID
 
     Returns
-    ------------
-    TBB channel ID: str
+    -------
+    tbb_channel_id: str
         The TBB channelID corresponding to the NuRadioReco channelID
+
+    See Also
+    --------
+    tbbID_to_nrrID : convert TBB channel ID to NRR channel ID
     """
 
-    if type(id) == int: #if the channelID happens to be integer, convert to string and ensure the string is filled with zeroes at the beginning to get a string length of 9
-        id = str(id).zfill(9)
+    # if channelID is integer, convert to string and fill it with zeroes at the beginning to get a string length of 9
+    if type(channel_id) == int:
+        channel_id = str(channel_id).zfill(9)
 
-    channelid=id[:3] + '0' + id[4:]   #replace fourth element with a 0
-    
-    return channelid
+    tbb_channel_id = channel_id[:3] + '0' + channel_id[4:]  # replace fourth element with a 0
+
+    return tbb_channel_id
 
 
 class getLOFARtraces:
     def __init__(
-        self, tbb_h5_filename, metadata_dir, time_s, time_ns, trace_length_nbins
+            self, tbb_h5_filename, metadata_dir, time_s, time_ns, trace_length_nbins
     ):
         """
         A Class to facilitate getting traces from LOFAR TBB HDF5 Files
@@ -247,7 +272,7 @@ class getLOFARtraces:
         self.block_number, self.sample_number_in_block = packet
 
         self.alignment_shift = -(
-            self.trace_length_nbins // 2 - self.sample_number_in_block
+                self.trace_length_nbins // 2 - self.sample_number_in_block
         )  # minus sign, apparently...
 
         logger.info(
@@ -339,6 +364,7 @@ class readLOFARData:
     metadata_directory: Path-like str, default="/vol/astro7/lofar/vhecr/kratos/data/"
         The path to the directory containing the LOFAR metadata (antenna positions and timing calibrations).
     """
+
     def __init__(self, restricted_station_set=None, tbb_directory=None, json_directory=None, metadata_directory=None):
         self.logger = logging.getLogger('NuRadioReco.readLOFARData')
 
@@ -474,7 +500,7 @@ class readLOFARData:
         for tbb_filename in all_tbb_files:
             station_name = re.findall(r"CS\d\d\d", tbb_filename)[0]
             if (self.__restricted_station_set is not None) and (station_name not in self.__restricted_station_set):
-                continue # only process stations in the given set
+                continue  # only process stations in the given set
             self.logger.info(f'Found file {tbb_filename} for station {station_name}...')
             self.__stations[station_name]['files'].append(tbb_filename)
 
@@ -537,20 +563,20 @@ class readLOFARData:
             flagged_channel_ids = channels_deviating.union(channels_missing_counterpart)
             for channel_id in detector.get_channel_ids(station_id):
                 if channel_id in flagged_channel_ids:
-                    continue                 
+                    continue
 
-                # read in trace, see if that works. Needed or overly careful?
+                    # read in trace, see if that works. Needed or overly careful?
                 try:
                     this_trace = lofar_trace_access.get_trace(str(channel_id).zfill(9))  # channel ID is 9 digits
                 except:  # FIXME: Too general except statement
-                    flagged_channel_ids.add(channel_id)                    
+                    flagged_channel_ids.add(channel_id)
                     logger.warning("Could not read data for channel id %s" % channel_id)
                     continue
 
                 # The channel_group_id should be interpreted as an antenna index
                 # dipoles '001000000' and '001000001' -> 'a1000000'
                 channel_group = 'a' + str(detector.get_channel_group_id(station_id, channel_id))
-                
+
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
                 station.add_channel(channel)
