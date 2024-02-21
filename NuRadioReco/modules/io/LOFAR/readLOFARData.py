@@ -512,9 +512,9 @@ class readLOFARData:
     def run(self, detector, trace_length=65536):
         """
         Runs the reader with the provided detector. For every station that has files associated with it, a Station
-        object is created together with its channels (pulled from the detector description). Every channel also gets
-        a group ID which corresponds to the polarisation (i.e. 0 for even and 1 for odd), as to be able to retrieve
-        all channels per polarisation during processing.
+        object is created together with its channels (pulled from the detector description, depending on the antenna 
+        set (LBA_OUTER/INNER)). Every channel also gets a group ID which corresponds to the polarisation (i.e. 0 
+        for even and 1 for odd), as to be able to retrieve all channels per polarisation during processing.
 
         Parameters
         ----------
@@ -534,10 +534,16 @@ class readLOFARData:
         # Add HybridShower to HybridInformation
         evt.get_hybrid_information().add_hybrid_shower(self.__hybrid_shower)
 
+        # update the detector to the event time 
+        time = Time(self.__lora_timestamp, format='unix')
+        detector.update(time) 
+
         # Add all Detector stations to Event
         for station_name, station_dict in self.__stations.items():
             station_id = int(station_name[2:])
             station_files = station_dict['files']
+            antenna_set = self.__stations['CS002']['metadata'][1]
+
 
             if len(station_files) == 0:
                 continue
@@ -561,28 +567,49 @@ class readLOFARData:
 
             # done here as it needs median timing values over all traces in the station
             flagged_channel_ids = channels_deviating.union(channels_missing_counterpart)
-            for channel_id in detector.get_channel_ids(station_id):
-                if channel_id in flagged_channel_ids:
-                    continue
 
-                    # read in trace, see if that works. Needed or overly careful?
+            #empty set to add the NRR flagged chnnel IDs to
+            flagged_nrr_channel_ids = set()
+
+            if antenna_set == "LBA_OUTER":
+                #for LBA_OUTER, the antennae are every even element in the detector channels
+                channel_set_ids = detector.get_channel_ids(station_id)[0::2]
+            elif antenna_set == "LBA_INNER":
+                #for LBA_OUTER, the antennae are every odd element in the detector channels
+                channel_set_ids = detector.get_channel_ids(station_id)[1::2]
+            else:
+                #other modes are currently not supported TODO: add them
+                logger.warning(f"Station {station_id} has unknown antenna set: {antenna_set}")
+                continue
+
+            for channel_id in channel_set_ids:
+                #convert channel ID to TBB ID to be able to access trace
+                TBB_channel_id = int(nrrID_to_tbbID(channel_id))
+
+                if TBB_channel_id in flagged_channel_ids:
+                    flagged_nrr_channel_ids.add(channel_id)
+                    continue                 
+
+                # read in trace, see if that works. Needed or overly careful?
                 try:
-                    this_trace = lofar_trace_access.get_trace(str(channel_id).zfill(9))  # channel ID is 9 digits
+                    #TODO here convert the NRR channel ID to a TBB ID to load trace
+                    this_trace = lofar_trace_access.get_trace(str(TBB_channel_id).zfill(9))  # channel ID is 9 digits
                 except:  # FIXME: Too general except statement
-                    flagged_channel_ids.add(channel_id)
+                    flagged_channel_ids.add(TBB_channel_id)       
+                    flagged_nrr_channel_ids.add(channel_id)             
                     logger.warning("Could not read data for channel id %s" % channel_id)
                     continue
 
                 # The channel_group_id should be interpreted as an antenna index
                 # dipoles '001000000' and '001000001' -> 'a1000000'
                 channel_group = 'a' + str(detector.get_channel_group_id(station_id, channel_id))
-
+                
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
                 station.add_channel(channel)
 
-            # store set of flagged channel ids as station parameter
-            station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
+            # store set of flagged nrr channel ids as station parameter
+            station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
 
             # Add station to Event, together with RadioShower to store reconstruction values later on
             evt.set_station(station)
