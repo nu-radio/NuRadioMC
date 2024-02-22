@@ -543,12 +543,11 @@ class readLOFARData:
         for station_name, station_dict in self.__stations.items():
             station_id = int(station_name[2:])
             station_files = station_dict['files']
-            antenna_set = self.__stations['CS002']['metadata'][1]
-
 
             if len(station_files) == 0:
                 continue
-
+            antenna_set = self.__stations[station_name]['metadata'][1]
+            
             station = NuRadioReco.framework.station.Station(station_id)
             radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
                                                                           station_ids=[station_id])
