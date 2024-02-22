@@ -393,6 +393,11 @@ def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=
     if time_delay is None:
         raise ValueError("You have to specify a time delay")
 
+    if np.any(np.abs(2 * time_delay * np.diff(frequencies)) > 1):
+        raise ValueError("The frequency binning (resolution) of the response "
+                         "is to large/corse to correctly remove the time delay. "
+                         "You need to upsample the response function.")
+
     resp = gain * np.exp(1j * (phase + 2 * np.pi * time_delay * frequencies))
 
     return resp
