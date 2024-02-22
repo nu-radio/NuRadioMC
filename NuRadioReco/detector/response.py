@@ -114,7 +114,7 @@ class Response:
         # Remove the average group delay from response
         if remove_time_delay:
             y_phase_orig = np.copy(np.unwrap(y_phase))
-            _response = gain * np.exp(1j * (y_phase + 2 * np.pi * time_delay * self.__frequency))
+            _response = subtract_time_delay_from_response(self.__frequency, gain, y_phase, time_delay)
             y_phase = np.angle(_response)
         else:
             time_delay = 0  # set time_delay to 0 if group delay is not removed
@@ -352,3 +352,47 @@ class Response:
                                 f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
 
         return time_delay1
+
+
+def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=None):
+    """
+    Remove a constant time delay from a complex response function
+
+    Parameters
+    ----------
+
+    frequencies : array of floats
+        Corresponding frequencies
+
+    resp : array of (complex) floats
+        Complex response function (if `phase is None`), Real gain of a complex response
+        function (if `phase is not None`).
+
+    phase : array of floats
+        Phase of the complex response function (optional). (Default: None)
+
+    time_delay : float
+        Time delay to be removed
+
+    Returns
+    -------
+
+    resp: array of complex floats
+        Corrected response function
+    """
+    resp = np.copy(resp)
+
+    if phase is not None:
+        phase = np.copy(phase)
+        gain = resp
+        phase = np.unwrap(phase)  # double helps more
+    else:
+        gain = np.abs(resp)
+        phase = np.unwrap(np.angle(resp))
+
+    if time_delay is None:
+        raise ValueError("You have to specify a time delay")
+
+    resp = gain * np.exp(1j * (phase + 2 * np.pi * time_delay * frequencies))
+
+    return resp
