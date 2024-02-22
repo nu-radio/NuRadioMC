@@ -290,7 +290,7 @@ class readLOFARData:
     def __init__(self, restricted_station_set=None, tbb_directory=None, json_directory=None, metadata_directory=None):
         self.logger = logging.getLogger('NuRadioReco.readLOFARData')
 
-        self.tbb_dir = '/vol/astro3/lofar/vhecr/lora_triggered/data/' if tbb_directory is None else tbb_directory
+        self.tbb_dir = '/vol/astro5/lofar/astro3/vhecr/lora_triggered/data/' if tbb_directory is None else tbb_directory
         self.json_dir = '/vol/astro7/lofar/kratos_files/json' if json_directory is None else json_directory
         self.meta_dir = '/vol/astro7/lofar/vhecr/kratos/data/' if metadata_directory is None else metadata_directory
 
