@@ -615,7 +615,35 @@
 <div class="viewcode-block" id="Database"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">metaclasses</span><span class="o">.</span><span class="n">Singleton</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Database</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s2">&quot;env_pw_user&quot;</span><span class="p">,</span> <span class="n">database_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s2">&quot;RNOG_public&quot;</span><span class="p">,</span> <span class="n">database_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mongo_kwargs</span><span class="o">=</span><span class="p">{}):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interface to the RNO-G hardware database. This class uses the python API pymongo for the</span>
+<span class="sd">        RNO-G MongoDB.</span>
+
+<span class="sd">        This classes allows you to connect to preconfigured mongo clients or select your mongo client freely.</span>
+<span class="sd">        The database is accesible with the `self.db` variable.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        database_connection : str (Default: `&quot;RNOG_public&quot;`)</span>
+<span class="sd">            Specify mongo client. You have 5 options:</span>
+
+<span class="sd">                * `&quot;env_pw_user&quot;`: Connect to a server with the environmental variables</span>
+<span class="sd">                  `mongo_server`, `mongo_user`, and `mongo_password`</span>
+<span class="sd">                * `&quot;RNOG_public&quot;`: Preconfigured connection to read-only RNO-G Hardware DB</span>
+<span class="sd">                * `&quot;RNOG_test_public&quot;`: Preconfigured connection to read-only RNO-G Test Hardware DB</span>
+<span class="sd">                * `&quot;connection_string&quot;`: Use environmental variable `db_mongo_connection_string` to</span>
+<span class="sd">                  connect to mongo server</span>
+<span class="sd">                * `&quot;mongodb*&quot;: Every string which starts with `&quot;mongodb&quot;` will be used to connect to</span>
+<span class="sd">                  a mongo server</span>
+
+<span class="sd">        database_name : str (Default: None -&gt; `&quot;RNOG_live&quot;`)</span>
+<span class="sd">            Select the database by name. If None (default) is passed, set to `&quot;RNOG_live&quot;`</span>
+
+<span class="sd">        mongo_kwargs : dict (Default: `{}`)</span>
+<span class="sd">            Additional arguments to pass to MongoClient.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">database_connection</span> <span class="o">==</span> <span class="s2">&quot;env_pw_user&quot;</span><span class="p">:</span>
             <span class="c1"># use db connection from environment, pw and user need to be percent escaped</span>
@@ -629,28 +657,41 @@
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;&quot;mongo_user&quot; or &quot;mongo_password&quot; not set&#39;</span><span class="p">)</span>
 
             <span class="c1"># start client</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span><span class="s2">&quot;mongodb://</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">@</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mongo_user</span><span class="p">,</span> <span class="n">mongo_password</span><span class="p">,</span> <span class="n">mongo_server</span><span class="p">),</span> <span class="n">tls</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span><span class="o">.</span><span class="n">RNOG_live</span>
+            <span class="n">connection_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;mongodb://</span><span class="si">{</span><span class="n">mongo_user</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">mongo_password</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">mongo_server</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">mongo_kwargs</span><span class="p">[</span><span class="s2">&quot;tls&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">elif</span> <span class="n">database_connection</span> <span class="o">==</span> <span class="s2">&quot;RNOG_public&quot;</span><span class="p">:</span>
             <span class="c1"># use read-only access to the RNO-G database</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span><span class="s2">&quot;mongodb://read:EseNbGVaCV4pBBrt@radio.zeuthen.desy.de:27017/admin?authSource=admin&amp;readPreference=primary&amp;appname=MongoDB%20Compass&amp;directConnection=true&amp;ssl=true&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span><span class="o">.</span><span class="n">RNOG_live</span>
+            <span class="n">connection_string</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;mongodb://read:EseNbGVaCV4pBBrt@radio.zeuthen.desy.de:27017/admin?authSource=admin&amp;&quot;</span>
+                <span class="s2">&quot;readPreference=primary&amp;appname=MongoDB%20Compass&amp;directConnection=true&amp;ssl=true&quot;</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="n">database_connection</span> <span class="o">==</span> <span class="s2">&quot;RNOG_test_public&quot;</span><span class="p">:</span>
             <span class="c1"># use readonly access to the RNO-G test database</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span>
-                <span class="s2">&quot;mongodb://RNOG_test_public:jrE5xO38D7wQweVR5doa@radio-test.zeuthen.desy.de:27017/admin?authSource=admin&amp;readPreference=primary&amp;appname=MongoDB%20Compass&amp;directConnection=true&amp;ssl=true&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span><span class="o">.</span><span class="n">RNOG_live</span>
+            <span class="n">connection_string</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;mongodb://RNOG_test_public:jrE5xO38D7wQweVR5doa@radio-test.zeuthen.desy.de:27017/admin?authSource=admin&amp;&quot;</span>
+                <span class="s2">&quot;readPreference=primary&amp;appname=MongoDB%20Compass&amp;directConnection=true&amp;ssl=true&quot;</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="n">database_connection</span> <span class="o">==</span> <span class="s2">&quot;connection_string&quot;</span><span class="p">:</span>
             <span class="c1"># use a connection string from the environment</span>
             <span class="n">connection_string</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;db_mongo_connection_string&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span><span class="n">connection_string</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span><span class="o">.</span><span class="n">RNOG_test</span>
+        <span class="k">elif</span> <span class="n">database_connection</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mongodb&quot;</span><span class="p">):</span>
+            <span class="n">connection_string</span> <span class="o">=</span> <span class="n">database_connection</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;specify a defined database connection [&quot;env_pw_user&quot;, &quot;connection_string&quot;, &quot;RNOG_public&quot;, &quot;RNOG_test_public&quot;]&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;specify a defined database connection &#39;</span>
+                         <span class="s1">&#39;[&quot;env_pw_user&quot;, &quot;connection_string&quot;, &quot;RNOG_public&quot;, &quot;RNOG_test_public&quot;, &quot;mongodb...&quot;]&#39;</span><span class="p">)</span>
 
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span><span class="n">connection_string</span><span class="p">,</span> <span class="o">**</span><span class="n">mongo_kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">database_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">database_name</span> <span class="o">=</span> <span class="s2">&quot;RNOG_live&quot;</span>
+
+        <span class="k">if</span> <span class="n">database_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span><span class="o">.</span><span class="n">list_database_names</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Could not find database &quot;</span><span class="si">{</span><span class="n">database_name</span><span class="si">}</span><span class="s1">&quot; in mongo client.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span><span class="p">[</span><span class="n">database_name</span><span class="p">]</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;database connection to </span><span class="si">{}</span><span class="s2"> established&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
 
         <span class="c1"># Set timestamp of database. This is used to determine which primary measurement is used</span>

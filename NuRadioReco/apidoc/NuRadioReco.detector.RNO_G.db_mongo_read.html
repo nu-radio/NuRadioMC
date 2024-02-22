@@ -590,6 +590,34 @@
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_read.Database">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.RNO_G.db_mongo_read.</span></span><span class="sig-name descname"><span class="pre">Database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_read.Database" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Interface to the RNO-G hardware database. This class uses the python API pymongo for the
+RNO-G MongoDB.</p>
+<p>This classes allows you to connect to preconfigured mongo clients or select your mongo client freely.
+The database is accesible with the <em class="xref py py-obj">self.db</em> variable.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>database_connection</strong><span class="classifier">str (Default: <em class="xref py py-obj">“RNOG_public”</em>)</span></dt><dd><p>Specify mongo client. You have 5 options:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><em class="xref py py-obj">“env_pw_user”</em>: Connect to a server with the environmental variables
+<em class="xref py py-obj">mongo_server</em>, <em class="xref py py-obj">mongo_user</em>, and <em class="xref py py-obj">mongo_password</em></p></li>
+<li><p><em class="xref py py-obj">“RNOG_public”</em>: Preconfigured connection to read-only RNO-G Hardware DB</p></li>
+<li><p><em class="xref py py-obj">“RNOG_test_public”</em>: Preconfigured connection to read-only RNO-G Test Hardware DB</p></li>
+<li><p><em class="xref py py-obj">“connection_string”</em>: Use environmental variable <em class="xref py py-obj">db_mongo_connection_string</em> to
+connect to mongo server</p></li>
+<li><p><em class="xref py py-obj">“mongodb*”: Every string which starts with `”mongodb”</em> will be used to connect to
+a mongo server</p></li>
+</ul>
+</div></blockquote>
+</dd>
+<dt><strong>database_name</strong><span class="classifier">str (Default: None -&gt; <em class="xref py py-obj">“RNOG_live”</em>)</span></dt><dd><p>Select the database by name. If None (default) is passed, set to <em class="xref py py-obj">“RNOG_live”</em></p>
+</dd>
+<dt><strong>mongo_kwargs</strong><span class="classifier">dict (Default: <em class="xref py py-obj">{}</em>)</span></dt><dd><p>Additional arguments to pass to MongoClient.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
