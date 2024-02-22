@@ -261,15 +261,24 @@ class ray_tracing_2D(ray_tracing_base):
         else: # we are above the ice surface, where the below expression does not apply
             z = 0
             correct_for_air = True
-        c = self.medium.n_ice ** 2 - C_0 ** -2
-        B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
-                                          2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c)
-        D = self.medium.n_ice ** 2 * C_0 ** 2 - 1
-        E1 = -self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0)
-        E2 = self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0)
-        E = (E1 + E2 + c)
-        res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z /
-                                                                                                                                                     self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
+
+        # There are two expressions for dy/dz in the NuRadioMC paper: C.12 and C.38
+        # For some reason, C.38 was used initially, and is still included below in
+        # case someone wants to verify they're equivalent. C.12 is much simpler and therefore used currently.
+        #
+        # c = self.medium.n_ice ** 2 - C_0 ** -2
+        # B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
+        #                                   2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c)
+        # D = self.medium.n_ice ** 2 * C_0 ** 2 - 1
+        # E1 = -self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0)
+        # E2 = self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0)
+        # E = (E1 + E2 + c)
+        # res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z /
+        #                                                                                                                                              self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
+
+        n_z = self.n(z)
+        res = 1 / np.sqrt(C_0**2 * n_z**2 - 1)
+
         if correct_for_air:
             n_surface = self.n(0)
             theta_ice = np.arctan(res)
