@@ -6,7 +6,7 @@ import math
 import logging
 import numpy as np
 
-from datetime import datetime
+# from datetime import datetime
 from astropy.time import Time
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
@@ -114,23 +114,43 @@ def lora_timestamp_to_blocknumber(
     return int(value / block_size), int(value % block_size)
 
 
-def tbb_filetag_from_utc(timestamp):
+def LOFAR_event_id_to_unix(event_id):
+    # 1262304000 = Unix timestamp on Jan 1, 2010 (date -u --date "Jan 1, 2010 00:00:00" +"%s")
+    return event_id + 1262304000
+
+
+def tbb_filetag_from_unix(timestamp):
     """
-    Returns TBB filename based on UTC timestamp of an event.
+    Returns TBB filename based on UNIX timestamp of an event.
 
     Parameters
     ----------
     timestamp: int
-        UTC timestamp from GPS
+        UNIX timestamp from GPS
 
     Returns
     -------
     filename: str
         The tag in the TBB filename identifying the files of the event.
-    """
-    # utc_timestamp_base = 1262304000  # Unix timestamp on Jan 1, 2010 (date -u --date "Jan 1, 2010 00:00:00" +"%s")
 
-    dt_object = datetime.utcfromtimestamp(timestamp)
+    Notes
+    -----
+    Technically speaking there is no such thing as an "UTC timestamp". The Coordinated Universal Time (UTC)
+    is a time standard , which defines a reference for current time. It uses hours, minutes and seconds to
+    divide a day. Crucially, it allows for the introduction of leap seconds.
+
+    The UNIX timestamp on the other hand is defined as the number of **non-leap** seconds passed since
+    00:00:00 UTC on 1 January 1970. However, when a leap second occurs the UNIX timestamp is actually reset
+    (i.e. that same timestamp refers to two moments in time). As such, the UNIX timestamp remains
+    synchronised with the UTC time (except for the one second that is a leap second).
+
+    Note that astropy has support for leap seconds. During the day a leap seconds occurs, UNIX timestamps
+    are reported as floating point values (instead of the usual integers). Conversely, converting a UNIX
+    timestamp to a datetime will give a millisecond contribution. Though the seconds are still accounted
+    for as one would expect.
+    """
+
+    dt_object = Time(timestamp, format='unix').to_datetime()
     year = dt_object.year
     month = dt_object.month
     day = dt_object.day
@@ -475,6 +495,9 @@ class readLOFARData:
         self.__lora_timestamp = lora_dict["LORA"]["utc_time_stamp"]
         self.__lora_timestamp_ns = lora_dict["LORA"]["time_stamp_ns"]
 
+        if self.__lora_timestamp != LOFAR_event_id_to_unix(self.__event_id):
+            self.logger.error(f"LORA timestamp {self.__lora_timestamp} does not match event ID {self.__event_id}")
+
         # Read in data from LORA file and save it in a HybridShower
         self.__hybrid_shower = NuRadioReco.framework.hybrid_shower.HybridShower("LORA")
 
@@ -489,7 +512,7 @@ class readLOFARData:
         self.__hybrid_shower.set_parameter(showerParameters.azimuth, azimuth * units.radian)
 
         # Go through TBB directory and identify all files for this event
-        tbb_filename_pattern = tbb_filetag_from_utc(self.__event_id + 1262304000)  # event id is based on timestamp
+        tbb_filename_pattern = tbb_filetag_from_unix(self.__lora_timestamp)
 
         tbb_filename_pattern = self.tbb_dir + "/*" + tbb_filename_pattern + "*.h5"
         self.logger.debug(f'Looking for files with {tbb_filename_pattern}...')
@@ -506,6 +529,7 @@ class readLOFARData:
             self.__stations[station_name]['files'].append(tbb_filename)
 
             # Save the metadata only once (in case there are multiple files for a station)
+            # TODO: make metadata a dictionary
             if 'metadata' not in self.__stations[station_name]:
                 self.__stations[station_name]['metadata'] = get_metadata([tbb_filename], self.meta_dir)
 
@@ -537,16 +561,16 @@ class readLOFARData:
 
         # update the detector to the event time 
         time = Time(self.__lora_timestamp, format='unix')
-        detector.update(time) 
+        detector.update(time)
 
         # Add all Detector stations to Event
         for station_name, station_dict in self.__stations.items():
             station_id = int(station_name[2:])
             station_files = station_dict['files']
+            antenna_set = station_dict['metadata'][1]
 
             if len(station_files) == 0:
                 continue
-            antenna_set = self.__stations[station_name]['metadata'][1]
             
             station = NuRadioReco.framework.station.Station(station_id)
             radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
@@ -568,42 +592,43 @@ class readLOFARData:
             # done here as it needs median timing values over all traces in the station
             flagged_channel_ids = channels_deviating.union(channels_missing_counterpart)
 
-            #empty set to add the NRR flagged chnnel IDs to
+            # empty set to add the NRR flagged channel IDs to
             flagged_nrr_channel_ids = set()
 
             if antenna_set == "LBA_OUTER":
-                #for LBA_OUTER, the antennae are every even element in the detector channels
+                # for LBA_OUTER, the antennae are every even element in the detector channels
                 channel_set_ids = detector.get_channel_ids(station_id)[0::2]
             elif antenna_set == "LBA_INNER":
-                #for LBA_OUTER, the antennae are every odd element in the detector channels
+                # for LBA_INNER, the antennae are every odd element in the detector channels
                 channel_set_ids = detector.get_channel_ids(station_id)[1::2]
             else:
-                #other modes are currently not supported TODO: add them
-                logger.warning(f"Station {station_id} has unknown antenna set: {antenna_set}")
+                # other modes are currently not supported
+                # TODO: add them
+                self.logger.warning(f"Station {station_id} has unknown antenna set: {antenna_set}")
                 continue
 
             for channel_id in channel_set_ids:
-                #convert channel ID to TBB ID to be able to access trace
-                TBB_channel_id = int(nrrID_to_tbbID(channel_id))
+                # convert channel ID to TBB ID to be able to access trace
+                TBB_channel_id = nrrID_to_tbbID(channel_id)
 
-                if TBB_channel_id in flagged_channel_ids:
+                if int(TBB_channel_id) in flagged_channel_ids:
                     flagged_nrr_channel_ids.add(channel_id)
-                    continue                 
+                    continue
 
                 # read in trace, see if that works. Needed or overly careful?
                 try:
-                    #TODO here convert the NRR channel ID to a TBB ID to load trace
-                    this_trace = lofar_trace_access.get_trace(str(TBB_channel_id).zfill(9))  # channel ID is 9 digits
+                    # TODO here convert the NRR channel ID to a TBB ID to load trace
+                    this_trace = lofar_trace_access.get_trace(TBB_channel_id)  # channel ID is 9 digits
                 except:  # FIXME: Too general except statement
-                    flagged_channel_ids.add(TBB_channel_id)       
-                    flagged_nrr_channel_ids.add(channel_id)             
+                    flagged_channel_ids.add(int(TBB_channel_id))
+                    flagged_nrr_channel_ids.add(channel_id)
                     logger.warning("Could not read data for channel id %s" % channel_id)
                     continue
 
                 # The channel_group_id should be interpreted as an antenna index
                 # dipoles '001000000' and '001000001' -> 'a1000000'
                 channel_group = 'a' + str(detector.get_channel_group_id(station_id, channel_id))
-                
+
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
                 station.add_channel(channel)
