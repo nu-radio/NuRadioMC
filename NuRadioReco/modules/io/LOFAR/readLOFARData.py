@@ -567,10 +567,12 @@ class readLOFARData:
         for station_name, station_dict in self.__stations.items():
             station_id = int(station_name[2:])
             station_files = station_dict['files']
-            antenna_set = station_dict['metadata'][1]
 
             if len(station_files) == 0:
                 continue
+
+            # The metadata is only defined if there are files in the station
+            antenna_set = station_dict['metadata'][1]
             
             station = NuRadioReco.framework.station.Station(station_id)
             radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
