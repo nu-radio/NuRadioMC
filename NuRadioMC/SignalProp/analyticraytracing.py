@@ -667,7 +667,7 @@ class ray_tracing_2D(ray_tracing_base):
         alpha = n_ice**2 - beta**2
 
         def gamma(z):
-            return self.n(z)**2 - beta**2
+            return np.max([0, self.n(z)**2 - beta**2])
 
         def phi_focusing_width(z):
             w_phi = 1/np.sqrt(alpha) * (
@@ -721,6 +721,8 @@ class ray_tracing_2D(ray_tracing_base):
                     else:
                         gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
         #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+                        self.__logger.info("Analytic focusing factor not valid for refracted trajectories, use numerical one instead...")
+                        return np.nan
 
                     w_theta += 2 * theta_focusing_width(z_turn) - theta_focusing_width(z1) - theta_focusing_width(z2)
                     w_phi += 2 * phi_focusing_width(z_turn) - phi_focusing_width(z1) - phi_focusing_width(z2)
@@ -2271,7 +2273,7 @@ class ray_tracing(ray_tracing_base):
                                                      reflection=result['reflection'],
                                                      reflection_case=result['reflection_case'])
 
-    def get_focusing(self, iS, dz=-1. * units.cm, limit=2., analytic=True):
+    def get_focusing(self, iS, dz=-1. * units.cm, limit=2., analytic=False):
         """
         calculate the focusing effect in the medium
 
@@ -2282,14 +2284,17 @@ class ray_tracing(ray_tracing_base):
             starts at zero
         dz: float
             the infinitesimal change of the depth of the receiver, 1cm by default
-            Only used if ``analytic=False`
+            Only used if ``analytic=False``
         limit: float, default: 2
             The maximum signal focusing.
-        analytic : bool, default: True
-            If True, use the analytic solution for the focusing factor.
-
+        analytic : bool, default: False
             If False, solve the ray tracing equation again for a slightly
             displaced receiver and obtain the ray convergence that way.
+
+            If True, use the analytic solution for the focusing factor. Note
+            that the analytic solution is not valid for horizontal rays (e.g.
+            refracted rays); in that case, the numeric solution is automatically
+            used instead.
 
         Returns
         -------
@@ -2302,26 +2307,28 @@ class ray_tracing(ray_tracing_base):
         recAng = np.arccos(recVec[2] / np.sqrt(recVec[0] ** 2 + recVec[1] ** 2 + recVec[2] ** 2))
         lauVec = self.get_launch_vector(iS)
         lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0] ** 2 + lauVec[1] ** 2 + lauVec[2] ** 2))
+        # we need to be careful here. If X1 (the emitter) is above the X2 (the receiver) the positions are swapped
+        # do to technical reasons. Here, we want to change the receiver position slightly, so we need to check
+        # is X1 and X2 was swapped and use the receiver value!
+        if self._swap:
+            vetPos = copy.copy(self._X2)
+            recPos = copy.copy(self._X1)
+            recPos1 = np.array([self._X1[0], self._X1[1], self._X1[2] + dz])
+        else:
+            vetPos = copy.copy(self._X1)
+            recPos = copy.copy(self._X2)
+            recPos1 = np.array([self._X2[0], self._X2[1], self._X2[2] + dz])
 
+        f = np.nan
         if analytic:
             res = self.get_results()[iS]
             f = self._r2d.get_focusing_analytic(
-                self._x1, self._x2, res['C0'], 
+                self._x1, self._x2, res['C0'],
                 res['reflection'], res['reflection_case']
             )
-        else:
+
+        if np.isnan(analytic): # either the analytic calculation failed, or we asked for the numerical solution
             distance = self.get_path_length(iS)
-            # we need to be careful here. If X1 (the emitter) is above the X2 (the receiver) the positions are swapped
-            # do to technical reasons. Here, we want to change the receiver position slightly, so we need to check
-            # is X1 and X2 was swapped and use the receiver value!
-            if self._swap:
-                vetPos = copy.copy(self._X2)
-                recPos = copy.copy(self._X1)
-                recPos1 = np.array([self._X1[0], self._X1[1], self._X1[2] + dz])
-            else:
-                vetPos = copy.copy(self._X1)
-                recPos = copy.copy(self._X2)
-                recPos1 = np.array([self._X2[0], self._X2[1], self._X2[2] + dz])
             if not hasattr(self, "_r1"):
                 self._r1 = ray_tracing(self._medium, self._attenuation_model, logging.WARNING,
                                 self._n_frequencies_integration, self._n_reflections, use_cpp=self.use_cpp)
