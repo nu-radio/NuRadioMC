@@ -694,7 +694,7 @@
         <span class="c1"># Remove the average group delay from response</span>
         <span class="k">if</span> <span class="n">remove_time_delay</span><span class="p">:</span>
             <span class="n">y_phase_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">y_phase</span><span class="p">))</span>
-            <span class="n">_response</span> <span class="o">=</span> <span class="n">gain</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="p">(</span><span class="n">y_phase</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">time_delay</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">))</span>
+            <span class="n">_response</span> <span class="o">=</span> <span class="n">subtract_time_delay_from_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="n">y_phase</span><span class="p">,</span> <span class="n">time_delay</span><span class="p">)</span>
             <span class="n">y_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">_response</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">time_delay</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># set time_delay to 0 if group delay is not removed</span>
@@ -932,6 +932,50 @@
                                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time_delay1</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ns / </span><span class="si">{</span><span class="n">time_delay2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ns for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">()</span><span class="si">}</span><span class="s2">. Return the former...&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">time_delay1</span></div>
+
+
+<div class="viewcode-block" id="subtract_time_delay_from_response"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.subtract_time_delay_from_response">[docs]</a><span class="k">def</span> <span class="nf">subtract_time_delay_from_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">resp</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_delay</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove a constant time delay from a complex response function</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    frequencies : array of floats</span>
+<span class="sd">        Corresponding frequencies</span>
+
+<span class="sd">    resp : array of (complex) floats</span>
+<span class="sd">        Complex response function (if `phase is None`), Real gain of a complex response</span>
+<span class="sd">        function (if `phase is not None`).</span>
+
+<span class="sd">    phase : array of floats</span>
+<span class="sd">        Phase of the complex response function (optional). (Default: None)</span>
+
+<span class="sd">    time_delay : float</span>
+<span class="sd">        Time delay to be removed</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    resp: array of complex floats</span>
+<span class="sd">        Corrected response function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">phase</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">resp</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>  <span class="c1"># double helps more</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">resp</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">time_delay</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have to specify a time delay&quot;</span><span class="p">)</span>
+
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">gain</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="p">(</span><span class="n">phase</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">time_delay</span> <span class="o">*</span> <span class="n">frequencies</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">resp</span></div>
 </pre></div>
 
            </div>

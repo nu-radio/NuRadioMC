@@ -696,6 +696,33 @@ reponse while a value of -1 means to divide by this reponse.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.response.subtract_time_delay_from_response">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.response.</span></span><span class="sig-name descname"><span class="pre">subtract_time_delay_from_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#subtract_time_delay_from_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.subtract_time_delay_from_response" title="Permalink to this definition"></a></dt>
+<dd><p>Remove a constant time delay from a complex response function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>frequencies</strong><span class="classifier">array of floats</span></dt><dd><p>Corresponding frequencies</p>
+</dd>
+<dt><strong>resp</strong><span class="classifier">array of (complex) floats</span></dt><dd><p>Complex response function (if <em class="xref py py-obj">phase is None</em>), Real gain of a complex response
+function (if <em class="xref py py-obj">phase is not None</em>).</p>
+</dd>
+<dt><strong>phase</strong><span class="classifier">array of floats</span></dt><dd><p>Phase of the complex response function (optional). (Default: None)</p>
+</dd>
+<dt><strong>time_delay</strong><span class="classifier">float</span></dt><dd><p>Time delay to be removed</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>resp: array of complex floats</dt><dd><p>Corrected response function</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
