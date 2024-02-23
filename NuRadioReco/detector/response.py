@@ -224,6 +224,7 @@ class Response:
             - Other objects of the same class
             - Objects of type NuRadioReco.framework.base_trace
         """
+        other = copy.deepcopy(other)  # otherwise `other` will change as well
 
         if isinstance(other, Response):
             if self._station_id != other._station_id or \
@@ -241,7 +242,6 @@ class Response:
             return self
 
         elif isinstance(other, NuRadioReco.framework.base_trace.BaseTrace):
-            other = copy.deepcopy(other)
 
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
