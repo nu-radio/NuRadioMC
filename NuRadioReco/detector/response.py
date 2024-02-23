@@ -111,9 +111,22 @@ class Response:
         else:
             raise KeyError
 
-        # Remove the average group delay from response
+        y_phase_orig = np.copy(y_phase)
+
         if remove_time_delay:
-            y_phase_orig = np.copy(np.unwrap(y_phase))
+            if np.any(np.abs(2 * time_delay * np.diff(self.__frequency)) > 1):
+                df_max = 1 / np.abs(2 * time_delay) * 0.8  # the factor of 0.8 is to be lower
+                self.logger.warning(
+                    f"The frequency binning (resolution) of {np.diff(self.__frequency)[0] * 1e3:.2f} MHz "
+                    f"of the response function is to large/corse to correctly remove the time delay of {time_delay} ns. "
+                    f"The response function is now upsampled to {df_max * 1e3:.2f} MHz.")
+                new_frequencies = np.arange(self.__frequency[0], self.__frequency[-1], df_max)
+                gain = np.interp(new_frequencies, self.__frequency, gain)
+                y_phase = np.interp(new_frequencies, self.__frequency, y_phase)
+                self.__frequency = new_frequencies
+
+        # Remove the average group delay from response
+        if remove_time_delay and time_delay:
             _response = subtract_time_delay_from_response(self.__frequency, gain, y_phase, time_delay)
             y_phase = np.angle(_response)
         else:
@@ -394,8 +407,8 @@ def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=
         raise ValueError("You have to specify a time delay")
 
     if np.any(np.abs(2 * time_delay * np.diff(frequencies)) > 1):
-        raise ValueError("The frequency binning (resolution) of the response "
-                         "is to large/corse to correctly remove the time delay. "
+        raise ValueError("The frequency binning (resolution) of the response function "
+                         f"is to large/corse to correctly remove the time delay of {time_delay} ns. "
                          "You need to upsample the response function.")
 
     resp = gain * np.exp(1j * (phase + 2 * np.pi * time_delay * frequencies))
