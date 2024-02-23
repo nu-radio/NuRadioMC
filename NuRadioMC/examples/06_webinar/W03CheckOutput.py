@@ -8,8 +8,8 @@ import time
 import os
 
 # Setup logging
-from NuRadioReco.modules.base import module
-logger = module.setup_logger(name="")
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
 
 """
 This file teaches how to read the output from NuRadioMC simulations. To run it

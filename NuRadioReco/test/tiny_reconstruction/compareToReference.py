@@ -9,8 +9,8 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 # Logging level
 import logging
-from NuRadioReco.modules.base import module
-logger = module.setup_logger(name='NuRadioReco', level=logging.WARNING)
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name='NuRadioReco', level=logging.WARNING)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('filename', help='name of the file that should be compared to reference')

@@ -12,8 +12,8 @@ from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 
 # Setup logging
-from NuRadioReco.modules.base import module
-logger = module.setup_logger(name="")
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()

@@ -27,7 +27,7 @@ from NuRadioReco.utilities import units
 Every script which uses NuRadioReco or NuRadioMC modules should also initialise
 a logger. This ensures the output of all module logging is consistent, and also
 adds the STATUS logging level to the logging module (which is used in several
-NuRadioMC modules). The `module.setup_logger()` function takes a `name` and a 
+NuRadioMC modules). The `setup_logger()` function takes a `name` and a 
 `level`, the latter can be used to adjust the logging of all modules at once. 
 If a script only uses NuRadioReco modules, the `name` can be left to the default,
 which is "NuRadioReco". If on the other hand also NuRadioMC modules are used, it
@@ -35,8 +35,8 @@ is best to set the name to an empty string. This will configure the root logger,
 to which all modules can then refer to. 
 """
 # Setup logging
-from NuRadioReco.modules.base import module
-logger = module.setup_logger(name="")
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
 """
 We are going to import the function generate_eventlist_cylinder, which creates
 (forced) neutrino events from an isotropic flux in a cylinder. This setup is

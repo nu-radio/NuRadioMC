@@ -3,11 +3,11 @@ import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.eventTypeIdentifier
 from NuRadioReco.detector import generic_detector as detector
-from NuRadioReco.modules.base import module
+from NuRadioReco.utilities.logging import setup_logger
 import argparse
 
 
-logger = module.setup_logger()
+logger = setup_logger()
 
 
 # Parse eventfile as argument

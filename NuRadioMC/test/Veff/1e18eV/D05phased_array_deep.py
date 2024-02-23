@@ -13,8 +13,8 @@ import copy
 import yaml
 
 # Setup logging
-from NuRadioReco.modules.base import module
-logger = module.setup_logger(name="")
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
 
 # 4 channel, 2x sampling, fft upsampling, 16 ns window
 # 100 Hz -> 30.85
