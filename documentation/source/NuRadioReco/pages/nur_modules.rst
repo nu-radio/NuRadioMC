@@ -38,7 +38,7 @@ Logging
 **Please note that this section is specific to NuRadioReco.**
 **For NuRadioMC applications one should replace NuRadioReco with NuRadioMC in the following.**
 **Then, the** ``module.setup_logger()`` **function should be called with** ``name="NuRadioMC"``
-**as a parameter.**
+**as a parameter, or** ``name=" "`` **when both NuRadioReco and NuRadioMC modules are used.**
 
 Logging in NuRadioReco is handled using the standard Python logging interface.
 It uses the fact that loggers can inherit handlers from logger created in parent
@@ -59,8 +59,8 @@ Then any script using NuRadioReco modules should initialize a general logger wit
   .. code-block:: Python
 
     import logging
-    from NuRadioReco.modules.base import module
-    logger = module.setup_logger()
+    from NuRadioReco.utilities.logging import setup_logger
+    logger = setup_logger()
 
 
 This initializes a parent logger, which determines the overall logging level that is
