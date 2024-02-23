@@ -48,7 +48,7 @@ import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 # logging imports
 import logging
-from NuRadioReco.modules.base.module import LOGGING_STATUS
+from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 
 logger = logging.getLogger("NuRadioMC.simulation")
