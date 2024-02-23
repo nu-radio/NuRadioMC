@@ -12,8 +12,8 @@ from NuRadioReco.utilities import units
 import datetime
 
 # Setup logging
-from NuRadioReco.modules.base import module
-logger = module.setup_logger()
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger()
 
 det = NuRadioReco.detector.detector.Detector(json_filename='NuRadioReco/test/trigger_tests/trigger_test_detector.json',
                                              antenna_by_depth=False)

@@ -7,10 +7,10 @@ import pickle
 import datetime
 import numpy
 
-from NuRadioReco.modules.base import module
+from NuRadioReco.utilities.logging import setup_logger
 
 
-logger = module.setup_logger()
+logger = setup_logger()
 
 
 """
