@@ -18,35 +18,6 @@ import NuRadioReco.framework.parameters
 from NuRadioReco.utilities import units
 import mattak.Dataset
 
-import string
-import random
-
-
-def _create_random_directory_path(prefix="/tmp/", n=7):
-    """
-    Produces a path for a temporary directory with a n letter random suffix
-
-    Parameters
-    ----------
-
-    prefix: str
-        Path prefix, i.e., root directory. (Defaut: /tmp/)
-
-    n: int
-        Number of letters for the random suffix. (Default: 7)
-
-    Returns
-    -------
-
-    path: str
-        Return path (e.g, /tmp/readRNOGData_XXXXXXX)
-    """
-    # generating random strings
-    res = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
-    path = os.path.join(prefix, "readRNOGData_" + res)
-
-    return path
-
 
 def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     """
@@ -86,6 +57,7 @@ def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     warnings.warn(
         'baseline_correction is deprecated, use NuRadioReco.modules.RNO_G.channelBlockOffsetFitter instead',
         DeprecationWarning)
+
     # Example: Get baselines in chunks of 128 bins
     # wfs in (n_events, n_channels, 2048)
     # np.split -> (16, n_events, n_channels, 128) each waveform split in 16 chuncks
@@ -180,6 +152,11 @@ def _all_files_in_directory(mattak_dir):
             return False
 
     return True
+
+
+def _convert_to_astropy_time(t):
+    """ Convert to astropy.time.Time """
+    return None if t is None else astropy.time.Time(t)
 
 
 class readRNOGData:
@@ -363,9 +340,8 @@ class readRNOGData:
         self.__run_types = run_types
 
         if run_time_range is not None:
-            convert_time = lambda t: None if t is None else astropy.time.Time(t)
-            self._time_low = convert_time(run_time_range[0])
-            self._time_high = convert_time(run_time_range[1])
+            self._time_low = _convert_to_astropy_time(run_time_range[0])
+            self._time_high = _convert_to_astropy_time(run_time_range[1])
         else:
             self._time_low = None
             self._time_high = None
