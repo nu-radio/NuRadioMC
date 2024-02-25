@@ -113,6 +113,7 @@ class Response:
 
         # Remove the average group delay from response
         if remove_time_delay:
+            self.logger.debug(f"Remove a time delay of {time_delay:.2f} ns from {name}")
             y_phase_orig = np.copy(np.unwrap(y_phase))
             _response = subtract_time_delay_from_response(self.__frequency, gain, y_phase, time_delay)
             y_phase = np.angle(_response)
@@ -127,9 +128,15 @@ class Response:
         self.__phases = [interpolate.interp1d(
             self.__frequency, y_phase, kind="linear", bounds_error=False, fill_value=0)]
 
+        if weight not in [-1, 1]:
+            err = f"Only a response weight of [-1, 1] is allowed (value is {weight})."
+            self.logger.error(err)
+            raise ValueError(err)
+
         self.__weights = [weight]
         self.__time_delays = [weight * time_delay]
 
+        # Debug plotting
         if debug_plot:
             from matplotlib import pyplot as plt
             fig, axs = plt.subplots(3, 1, sharex=True)
