@@ -651,7 +651,8 @@
 <span class="sd">            Allows to specify database connection. Passed to mongo-db interface.</span>
 
 <span class="sd">        log_level : `logging.LOG_LEVEL` (Default: logging.INFO)</span>
-<span class="sd">            Defines verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...</span>
+<span class="sd">            Defines verbosity level of logger. Propagates through to Response class logger.</span>
+<span class="sd">            Other options are: `logging.WARNING`, `logging.DEBUG`, ...</span>
 
 <span class="sd">        over_write_handset_values : dict (Default: {})</span>
 <span class="sd">            Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.</span>
@@ -674,7 +675,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.RNOGdetector&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span> <span class="o">=</span> <span class="n">log_level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span><span class="p">)</span>
 
         <span class="c1"># Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span> <span class="o">=</span> <span class="p">{</span>
@@ -1420,7 +1422,8 @@
                 <span class="n">ydata</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]]</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;frequencies&quot;</span><span class="p">],</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;y-axis_units&quot;</span><span class="p">],</span>
                                     <span class="n">time_delay</span><span class="o">=</span><span class="n">time_delay</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
-                                    <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+                                    <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
+                                    <span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span><span class="p">)</span>
 
 
                 <span class="n">responses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
@@ -1770,7 +1773,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">ydata</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]]</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;frequencies&quot;</span><span class="p">],</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;y-axis_units&quot;</span><span class="p">],</span>
-                                    <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+                                    <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
+                                    <span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span><span class="p">)</span>
 
                 <span class="n">time_delay</span> <span class="o">+=</span> <span class="n">response</span><span class="o">.</span><span class="n">_get_time_delay</span><span class="p">()</span>
 

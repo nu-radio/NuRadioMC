@@ -595,7 +595,8 @@
 <dd class="field-odd"><dl>
 <dt><strong>database_connection</strong><span class="classifier">str (Default: ‘RNOG_test_public’)</span></dt><dd><p>Allows to specify database connection. Passed to mongo-db interface.</p>
 </dd>
-<dt><strong>log_level</strong><span class="classifier"><em class="xref py py-obj">logging.LOG_LEVEL</em> (Default: logging.INFO)</span></dt><dd><p>Defines verbosity level of logger. Other options are: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.WARNING" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.WARNING</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.DEBUG" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.DEBUG</span></code></a>, …</p>
+<dt><strong>log_level</strong><span class="classifier"><em class="xref py py-obj">logging.LOG_LEVEL</em> (Default: logging.INFO)</span></dt><dd><p>Defines verbosity level of logger. Propagates through to Response class logger.
+Other options are: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.WARNING" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.WARNING</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.DEBUG" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.DEBUG</span></code></a>, …</p>
 </dd>
 <dt><strong>over_write_handset_values</strong><span class="classifier">dict (Default: {})</span></dt><dd><p>Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
 (Default: {}, the acutally default values for the parameters in question are defined below)</p>
