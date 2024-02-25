@@ -224,9 +224,9 @@ class Response:
             - Other objects of the same class
             - Objects of type NuRadioReco.framework.base_trace
         """
-        other = copy.deepcopy(other)  # otherwise `other` will change as well
 
         if isinstance(other, Response):
+            self = copy.deepcopy(self)
             if self._station_id != other._station_id or \
                 self._channel_id != other._channel_id:
                 self.logger.error("It looks like you are combining responses from "
@@ -242,7 +242,7 @@ class Response:
             return self
 
         elif isinstance(other, NuRadioReco.framework.base_trace.BaseTrace):
-
+            other = copy.copy(other)
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
                 time_delay = self._calculate_time_delay()
