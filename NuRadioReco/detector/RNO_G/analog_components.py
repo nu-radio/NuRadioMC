@@ -70,15 +70,16 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
     # all requests outside of measurement range are set to 1
 
     def get_amp_gain(freqs, temp=temp):
-        if(correction_function is not None):
+        if correction_function is not None:
             amp_gain = correction_function(temp, freqs) * amp_gain_f(freqs)
         else:
             amp_gain = amp_gain_f(freqs)
+        
         return amp_gain
 
-    # Convert to MHz and broaden range
+    # Convert to MHz and broaden range (all requests outside of measurement range are set to 0)
     amp_phase_f = interp1d(ff, np.unwrap(amp_phase_discrete),
-                           bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
+                           bounds_error=False, fill_value=0)
 
     def get_amp_phase(freqs):
         amp_phase = amp_phase_f(freqs)
