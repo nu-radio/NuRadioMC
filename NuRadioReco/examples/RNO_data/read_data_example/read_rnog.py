@@ -5,11 +5,20 @@ from NuRadioReco.utilities import units
 import sys
 import logging
 
-""" read in data """
+""" Usage: Reading mattak rootified data
+
+`python read_rnog.py [INPUTFILES ...] [OUTPUTFILE]`
+"""
+
+if len(sys.argv) < 3:
+    sys.exit("Error: You have to specify at least 2 arguments: One input path "
+             "(to a mattak run directory or combined root file), and one "
+             "output path (to the nur file which is created)")
+
 list_of_root_files = sys.argv[1:-1]
 output_filename = sys.argv[-1]
 
-rnog_reader = readRNOGDataMattak.readRNOGData(log_level=logging.DEBUG)
+rnog_reader = readRNOGDataMattak.readRNOGData(log_level=logging.INFO)
 writer = eventWriter.eventWriter()
 
 """
@@ -50,7 +59,9 @@ rnog_reader.begin(
 	run_types=["physics"],
 	# Only use runs with a maximum trigger rate of 1 Hz
 	max_trigger_rate=1 * units.Hz,
-    overwrite_sampling_rate=3.2)
+    # This might be necessary to read older files which have an invalid value stored as sampling rate
+    overwrite_sampling_rate=3.2
+)
 
 writer.begin(filename=output_filename)
 
