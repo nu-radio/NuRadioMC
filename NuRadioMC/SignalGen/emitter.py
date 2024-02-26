@@ -54,6 +54,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
           set to preserve the total power of the delta pulse, i.e. A_theta = sqrt(1-polarization)
           and A_phi = sqrt(polarization).
           Use kwarg `iN` to select a specific pulse from the 10 available pulses. The default is a random selection.
+          the `amplitude` is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an 
+          amplitude of 10 will return 10 times the measured efield amplitude, etc. 
     full_output: bool (default False)
         if True, can return additional output
 
@@ -202,8 +204,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         final_phi = np.roll(final_phi, int(N / 2) - peak_amplitude_index_phi_new)
 
         trace = np.zeros((3,N))
-        trace[1,:] = final_theta
-        trace[2,:] = final_phi
+        trace[1,:] = final_theta * amplitude
+        trace[2,:] = final_phi * amplitude
 
     else:
         raise NotImplementedError("model {} unknown".format(model))
