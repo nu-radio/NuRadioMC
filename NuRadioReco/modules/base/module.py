@@ -26,7 +26,8 @@ def setup_logger(name="NuRadioReco", level=None):
     level : int, default=25
         The logging level to use for the base logger
     """
-    raise DeprecationWarning("The logging module has moved to NuRadioReco.utilities.logging, please update import")
+    raise DeprecationWarning("Please update import, the logging module has moved to NuRadioReco.utilities.logging ."
+                             "This function will be removed in v2.4.0 .")
 
 
 def register_run(level=None):
