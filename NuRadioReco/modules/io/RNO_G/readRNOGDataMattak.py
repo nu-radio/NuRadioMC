@@ -713,7 +713,8 @@ class readRNOGData:
         """
 
         trigger_time = event_info.triggerTime
-        if self._overwrite_sampling_rate is not None:
+        # only overwrite sampling rate if the stored value is invalid
+        if self._overwrite_sampling_rate is not None and event_info.sampleRate not in [0, None]:
             sampling_rate = self._overwrite_sampling_rate
         else:
             sampling_rate = event_info.sampleRate
