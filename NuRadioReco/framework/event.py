@@ -41,7 +41,7 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-                
+
         self.__modules_event.append([name, instance, kwargs])
 
     def register_module_station(self, station_id, instance, name, kwargs):
@@ -61,7 +61,7 @@ class Event:
         """
         if station_id not in self.__modules_station:
             self.__modules_station[station_id] = []
-            
+
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
@@ -164,7 +164,7 @@ class Event:
 
     def set_station(self, station):
         self.__stations[station.get_id()] = station
-        
+
     def has_triggered(self, trigger_name=None):
         """
         Returns true if any station has been triggered.
@@ -175,16 +175,16 @@ class Event:
             * if None: The function returns False if not trigger was set. If one or multiple triggers were set,
                        it returns True if any of those triggers triggered
             * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
-            
+
         Returns
         -------
-        
+
         has_triggered : bool
         """
         for station in self.get_stations():
             if station.has_triggered(trigger_name):
                 return True
-        
+
         # if it reaches this point, no station has a trigger
         return False
 
@@ -200,11 +200,11 @@ class Event:
         if not isinstance(particle, NuRadioReco.framework.particle.Particle):
             logger.error("Requested to add non-Particle item to the list of particles. {particle} needs to be an instance of Particle.")
             raise TypeError("Requested to add non-Particle item to the list of particles. {particle}   needs to be an instance of Particle.")
-        
+
         if particle.get_id() in self.__particles:
             logger.error("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
             raise AttributeError("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
-        
+
         self.__particles[particle.get_id()] = particle
 
     def get_particles(self):
@@ -254,13 +254,13 @@ class Event:
         """
         if particle_id is None:
             return len(self.__particles) > 0
-        
+
         return particle_id in self.__particles.keys()
 
     def get_interaction_products(self, parent_particle, showers=True, particles=True):
         """
         Return all the daughter particles and showers generated in the interaction of the <parent_particle>
-  
+
         Parameters
         ----------
         showers: bool
@@ -437,9 +437,9 @@ class Event:
         showers_pkl = [shower.serialize() for shower in self.get_showers()]
         sim_showers_pkl = [shower.serialize() for shower in self.get_sim_showers()]
         particles_pkl = [particle.serialize() for particle in self.get_particles()]
-        
+
         hybrid_info = self.__hybrid_information.serialize()
-        
+
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
             modules_out_event.append([value[0], None, value[2]])
@@ -493,11 +493,11 @@ class Event:
                 particle = NuRadioReco.framework.particle.Particle(None)
                 particle.deserialize(particle_pkl)
                 self.add_particle(particle)
-        
+
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
-        
+
         self._parameters = data['_parameters']
         self.__run_number = data['__run_number']
         self._id = data['_id']

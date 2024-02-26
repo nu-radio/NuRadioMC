@@ -1,38 +1,47 @@
 name: Unit tests
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      python_version:
+        description: Specify Python version to run tests on
+        type: string
+        required: true
+        default: '3.7'
+      os:
+        description: OS to run tests on
+        type: string
+        default: ubuntu-latest
+  workflow_call:
+    inputs:
+      python_version:
+        description: Specify Python version to run tests on
+        type: string
+        required: true
+        default: '3.7'
+      os:
+        description: OS to run tests on
+        type: string
+        default: ubuntu-latest
+
+env: # set the python_version to 3.7 if the workflow is not triggered by workflow_call or workflow_dispatch
+  PYTHON_VERSION: ${{ inputs.python_version || '3.7' }}
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      runtests: ${{ steps.check.outputs.runtests }}
-    steps:
-    - id: check
-      run: |
-        output='false'
-        if [[ "${{ github.event_name }}" != pull_request ]]
-        then
-          runtests='true'
-        elif [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.event.pull_request.base.repo.full_name }}" ]]
-        then
-          runtests='true'
-        fi
-        echo "runtests=${runtests}" >> $GITHUB_OUTPUT
-
   build:
-    needs: [prepare]
-    if: needs.prepare.outputs.runtests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: ${{ env.PYTHON_VERSION }}
     - name: Cache pip
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         # This path is specific to Ubuntu
         path: ~/.cache/pip
@@ -165,3 +174,8 @@ jobs:
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/test_examples.sh
+    - name: "Detector"
+      if: always()
+      run: |
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        NuRadioReco/detector/test/tests.sh

@@ -63,7 +63,7 @@ def register_run(level=None):
                     evt = value
                 elif isinstance(value, NuRadioReco.framework.base_station.BaseStation) and idx == 1: # station should be second argument
                     station = value
-                elif isinstance(value, NuRadioReco.detector.detector_base.DetectorBase):
+                elif isinstance(value, (NuRadioReco.detector.detector_base.DetectorBase, NuRadioReco.detector.RNO_G.rnog_detector.Detector)):
                     pass # we don't try to store detectors
                 else: # we try to store other arguments IF they are pickleable
                     try:

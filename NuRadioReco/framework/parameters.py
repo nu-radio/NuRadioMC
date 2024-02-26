@@ -1,7 +1,7 @@
 """
 Provides an interface to store simulated and reconstructed quantities
 
-The parameters module provides access to store and read simulated or 
+The parameters module provides access to store and read simulated or
 reconstructed quantities in the different custom classes used in NuRadioMC.
 
 """
