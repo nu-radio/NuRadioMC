@@ -836,12 +836,11 @@ class simulation:
                                 amplitude = self._fin['emitter_amplitudes'][self._shower_index]
                                 emitter_model = self._fin['emitter_model'][self._shower_index]
                                 emitter_kwargs = {}
+                                emitter_kwargs["launch_vector"] = self._launch_vector
                                 for key in self._fin.keys():
                                     if key not in ['emitter_amplitudes', 'emitter_model']:
                                         if key.startswith("emitter_"):
                                             emitter_kwargs[key[8:]] = self._fin[key][self._shower_index]
-                                            emitter_kwargs["launch_vector"] = self._launch_vector
-                                            #emitter_kwargs["iN"] = 2
 
                                 if emitter_model.startswith("efield_"):
                                     eR, eTheta, ePhi = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs)
