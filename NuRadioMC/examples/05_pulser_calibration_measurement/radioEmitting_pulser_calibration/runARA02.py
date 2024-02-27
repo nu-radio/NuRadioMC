@@ -12,9 +12,12 @@ import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
 import NuRadioReco.modules.ARA.hardwareResponseIncorporator
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation as simulation
+
+# Setup logging
 import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runARA02")
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
+
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin()
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
