@@ -79,7 +79,6 @@ def buffer_db(in_memory, filename=None):
     table_channels = db.table('channels')
     table_channels.truncate()
     results = sqldet.get_everything_channels()
-    # TODO: add channel_group_id feature
     for channel in results:
         table_channels.insert({'station_id': channel['st.station_id'],
                                'channel_id': channel['ch.channel_id'],
