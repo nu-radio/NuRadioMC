@@ -2267,7 +2267,7 @@ class ray_tracing(ray_tracing_base):
                 res['reflection'], res['reflection_case']
             )
 
-        if np.isnan(analytic): # either the analytic calculation failed, or we asked for the numerical solution
+        if np.isnan(f): # either the analytic calculation failed, or we asked for the numerical solution
             distance = self.get_path_length(iS)
             if not hasattr(self, "_r1"):
                 self._r1 = ray_tracing(self._medium, self._attenuation_model, logging.WARNING,
