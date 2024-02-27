@@ -1,0 +1,7 @@
+NuRadioReco.utilities.logging module
+====================================
+
+.. automodule:: NuRadioReco.utilities.logging
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -357,6 +357,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.logging.html">NuRadioReco.utilities.logging module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
@@ -588,8 +589,27 @@
 <span id="nuradioreco-modules-base-module-module"></span><h1>NuRadioReco.modules.base.module module<a class="headerlink" href="#module-NuRadioReco.modules.base.module" title="Permalink to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.base.module.setup_logger">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.base.module.</span></span><span class="sig-name descname"><span class="pre">setup_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NuRadioReco'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/base/module.html#setup_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.base.module.setup_logger" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.base.module.</span></span><span class="sig-name descname"><span class="pre">setup_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NuRadioReco'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/base/module.html#setup_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.base.module.setup_logger" title="Permalink to this definition"></a></dt>
+<dd><p>Set up the parent logger which all module loggers should pass their logs on to. Any handler which was
+previously added to the logger is cleared, and a single new <em class="xref py py-obj">logging.StreamHandler()</em> with a custom
+formatter is added. Next to this, an extra logging level STATUS is added with level=`LOGGING_STATUS`,
+which is defined in <em class="xref py py-obj">module.py</em> (as of February 2024, its value is 25). Then STATUS is also set as
+the default logging level.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.3.0: </span><em class="xref py py-obj">module.setup_logger()</em> will be removed in v2.4.0 and replaced by
+<em class="xref py py-obj">logging.setup_logger()</em> from the NuRadioReco utilities folder.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name</strong><span class="classifier">str, default=”NuRadioReco”</span></dt><dd><p>The name of the base logger</p>
+</dd>
+<dt><strong>level</strong><span class="classifier">int, default=25</span></dt><dd><p>The logging level to use for the base logger</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.base.module.register_run">

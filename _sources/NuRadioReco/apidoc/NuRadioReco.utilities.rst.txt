@@ -21,6 +21,7 @@ Submodules
    NuRadioReco.utilities.ice
    NuRadioReco.utilities.interferometry
    NuRadioReco.utilities.io_utilities
+   NuRadioReco.utilities.logging
    NuRadioReco.utilities.metaclasses
    NuRadioReco.utilities.noise
    NuRadioReco.utilities.particle_names

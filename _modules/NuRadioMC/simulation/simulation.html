@@ -354,6 +354,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.logging.html">NuRadioReco.utilities.logging module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
@@ -626,23 +627,13 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">from</span> <span class="nn">NuRadioMC.utilities.Veff</span> <span class="kn">import</span> <span class="n">remove_duplicate_triggers</span>
-
-<span class="n">STATUS</span> <span class="o">=</span> <span class="mi">31</span>
-
-<span class="c1"># logging.basicConfig(format=&#39;%(asctime)s %(levelname)s:%(name)s:%(message)s&#39;)</span>
-
-
-<div class="viewcode-block" id="NuRadioMCLogger"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.NuRadioMCLogger">[docs]</a><span class="k">class</span> <span class="nc">NuRadioMCLogger</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">):</span>
-
-<div class="viewcode-block" id="NuRadioMCLogger.status"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.NuRadioMCLogger.status">[docs]</a>    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEnabledFor</span><span class="p">(</span><span class="n">STATUS</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="n">STATUS</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+<span class="c1"># logging imports</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities.logging</span> <span class="kn">import</span> <span class="n">LOGGING_STATUS</span>
 
 
-<span class="n">logging</span><span class="o">.</span><span class="n">setLoggerClass</span><span class="p">(</span><span class="n">NuRadioMCLogger</span><span class="p">)</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">addLevelName</span><span class="p">(</span><span class="n">STATUS</span><span class="p">,</span> <span class="s1">&#39;STATUS&#39;</span><span class="p">)</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">NuRadioMCLogger</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.simulation&quot;</span><span class="p">)</span>
+
 <span class="c1"># formatter = logging.Formatter(&#39;%(asctime)s %(levelname)s:%(name)s:%(message)s&#39;)</span>
 <span class="c1"># ch = logging.StreamHandler()</span>
 <span class="c1"># ch.setFormatter(formatter)</span>
@@ -685,7 +676,7 @@
                  <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">evt_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                  <span class="n">config_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+                 <span class="n">log_level</span><span class="o">=</span><span class="n">LOGGING_STATUS</span><span class="p">,</span>
                  <span class="n">default_detector_station</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">default_detector_channel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">file_overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>

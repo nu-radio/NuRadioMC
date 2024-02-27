@@ -354,6 +354,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.logging.html">NuRadioReco.utilities.logging module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
@@ -583,20 +584,31 @@
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.event</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.base_station</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector_base</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 
-<div class="viewcode-block" id="setup_logger"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.base.module.html#NuRadioReco.modules.base.module.setup_logger">[docs]</a><span class="k">def</span> <span class="nf">setup_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;NuRadioReco&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
 
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
-    <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
-    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[93m</span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[0m</span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+<div class="viewcode-block" id="setup_logger"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.base.module.html#NuRadioReco.modules.base.module.setup_logger">[docs]</a><span class="k">def</span> <span class="nf">setup_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;NuRadioReco&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set up the parent logger which all module loggers should pass their logs on to. Any handler which was</span>
+<span class="sd">    previously added to the logger is cleared, and a single new `logging.StreamHandler()` with a custom</span>
+<span class="sd">    formatter is added. Next to this, an extra logging level STATUS is added with level=`LOGGING_STATUS`,</span>
+<span class="sd">    which is defined in `module.py` (as of February 2024, its value is 25). Then STATUS is also set as</span>
+<span class="sd">    the default logging level.</span>
 
-    <span class="k">return</span> <span class="n">logger</span></div>
+<span class="sd">    .. deprecated:: 2.3.0</span>
+<span class="sd">                `module.setup_logger()` will be removed in v2.4.0 and replaced by</span>
+<span class="sd">                `logging.setup_logger()` from the NuRadioReco utilities folder.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str, default=&quot;NuRadioReco&quot;</span>
+<span class="sd">        The name of the base logger</span>
+<span class="sd">    level : int, default=25</span>
+<span class="sd">        The logging level to use for the base logger</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">DeprecationWarning</span><span class="p">(</span><span class="s2">&quot;Please update import, the logging module has moved to NuRadioReco.utilities.logging .&quot;</span>
+                             <span class="s2">&quot;This function will be removed in v2.4.0 .&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="register_run"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.base.module.html#NuRadioReco.modules.base.module.register_run">[docs]</a><span class="k">def</span> <span class="nf">register_run</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -611,7 +623,7 @@
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">register_run_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
-            <span class="c1"># the following if/else part finds out if this is a module that operates on full events or a specific station</span>
+            <span class="c1"># the following if/else part finds out if this module operates on full events or on a specific station</span>
             <span class="c1"># In principle, different modules can be executed on different stations, so we keep it general and save the</span>
             <span class="c1"># modules station specific.</span>
             <span class="c1"># The logic is: If the first two arguments are event and station -&gt; station module</span>
@@ -626,8 +638,8 @@
             <span class="n">parameters</span> <span class="o">=</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span>
             <span class="c1"># convert args to kwargs to facilitate easier bookkeeping</span>
             <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;self&#39;</span><span class="p">]</span>
-            <span class="n">all_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span><span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">args</span><span class="p">)}</span>
-            <span class="n">all_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="c1"># this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later</span>
+            <span class="n">all_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">args</span><span class="p">)}</span>
+            <span class="n">all_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later</span>
 
             <span class="c1"># include parameters with default values</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -636,10 +648,12 @@
                         <span class="n">all_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">default</span>
 
             <span class="n">store_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">)</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># event should be the first argument</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="c1"># event should be the first argument</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">)</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">evt</span> <span class="o">=</span> <span class="n">value</span>
-                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="p">)</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># station should be second argument</span>
+                <span class="c1"># station should be second argument</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="p">)</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">station</span> <span class="o">=</span> <span class="n">value</span>
                 <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">detector_base</span><span class="o">.</span><span class="n">DetectorBase</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">RNO_G</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">)):</span>
                     <span class="k">pass</span> <span class="c1"># we don&#39;t try to store detectors</span>
@@ -647,7 +661,7 @@
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
                         <span class="n">store_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-                    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span> <span class="c1"># object couldn&#39;t be pickled - we store the error instead</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>  <span class="c1"># object couldn&#39;t be pickled - we store the error instead</span>
                         <span class="n">store_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> could not be serialized&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">station</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">module_level</span> <span class="o">=</span> <span class="s2">&quot;station&quot;</span>
@@ -670,7 +684,8 @@
 
             <span class="n">end</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="bp">self</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>  <span class="c1"># keep track of timing of modules. We use the module instance as key to time different module instances separately.</span>
+            <span class="k">if</span> <span class="bp">self</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="c1"># keep track of timing of modules. We use the module instance as key to time different module instances separately.</span>
                 <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="bp">self</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="bp">self</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
 
