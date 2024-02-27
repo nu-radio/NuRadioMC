@@ -71,7 +71,8 @@ class Detector():
             Allows to specify database connection. Passed to mongo-db interface.
 
         log_level : `logging.LOG_LEVEL` (Default: logging.INFO)
-            Defines verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...
+            Defines verbosity level of logger. Propagates through to Response class logger.
+            Other options are: `logging.WARNING`, `logging.DEBUG`, ...
 
         over_write_handset_values : dict (Default: {})
             Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
@@ -94,7 +95,8 @@ class Detector():
         """
 
         self.logger = logging.getLogger("NuRadioReco.RNOGdetector")
-        self.logger.setLevel(log_level)
+        self.__log_level = log_level
+        self.logger.setLevel(self.__log_level)
 
         # Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.
         self.__default_values = {
@@ -840,7 +842,8 @@ class Detector():
                 ydata = [value["mag"], value["phase"]]
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
                                     time_delay=time_delay, weight=weight, name=key,
-                                    station_id=station_id, channel_id=channel_id)
+                                    station_id=station_id, channel_id=channel_id,
+                                    log_level=self.__log_level)
 
 
                 responses.append(response)
@@ -1190,7 +1193,8 @@ class Detector():
             else:
                 ydata = [value["mag"], value["phase"]]
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
-                                    name=key, station_id=station_id, channel_id=channel_id)
+                                    name=key, station_id=station_id, channel_id=channel_id,
+                                    log_level=self.__log_level)
 
                 time_delay += response._get_time_delay()
 
