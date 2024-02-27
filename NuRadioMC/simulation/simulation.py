@@ -1101,7 +1101,7 @@ class simulation:
             self._eventWriter.end()
             logger.debug("closing nur file")
 
-        self._fin_attrs['simulation_mode'] != "emitter": # only calcualte Veff for neutrino simulations
+        if self._fin_attrs['simulation_mode'] != "emitter": # only calcualte Veff for neutrino simulations
             try:
                 self.calculate_Veff()
             except:
