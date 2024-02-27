@@ -1101,10 +1101,11 @@ class simulation:
             self._eventWriter.end()
             logger.debug("closing nur file")
 
-        try:
-            self.calculate_Veff()
-        except:
-            logger.error("error in calculating effective volume")
+        self._fin_attrs['simulation_mode'] != "emitter": # only calcualte Veff for neutrino simulations
+            try:
+                self.calculate_Veff()
+            except:
+                logger.error("error in calculating effective volume")
 
         t_total = time.time() - t_start
         outputTime = time.time() - t5
