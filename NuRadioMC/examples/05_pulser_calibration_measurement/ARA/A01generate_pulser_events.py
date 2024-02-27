@@ -33,7 +33,7 @@ def generate_my_events(filename, n_events):
     data_sets = {}
     data_sets["emitter_antenna_type"] = ["bicone_v8_inf_n1.78"] * n_events
     data_sets["emitter_model"] = ["square"] * n_events
-    data_sets["emitter_amplitudes"] = np.ones(n_events) * 1 * units.V
+    data_sets["emitter_amplitudes"] = np.ones(n_events)
 
     # we also have choice for the half width and frequency
     data_sets["emitter_half_width"]= 1.0 * np.ones(n_events) *units.ns        # this will be the width of square and tone_burst signal  

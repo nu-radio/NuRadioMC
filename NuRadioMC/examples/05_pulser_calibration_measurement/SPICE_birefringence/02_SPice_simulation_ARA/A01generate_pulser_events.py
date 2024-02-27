@@ -48,9 +48,7 @@ def generate_my_events(filename, n_events):
     data_sets["shower_ids"] = np.arange(n_events)
 
     data_sets['emitter_model'] = np.array(['efield_idl1_spice'] * n_events)
-    data_sets['emitter_amplitudes'] = np.array([0] * n_events) # not used
-    data_sets['emitter_frequency'] = np.array([1] * n_events) # not used
-    data_sets['emitter_half_width'] = np.array([1] * n_events) # not used
+    data_sets['emitter_amplitudes'] = np.ones(n_events) # for the efield_idl1_spice model, this quantity is the relative rescaling of the measured amplitudes
 
     write_events_to_hdf5(filename, data_sets, attributes)
 
