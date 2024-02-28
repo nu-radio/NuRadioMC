@@ -1,4 +1,5 @@
 from NuRadioReco.detector import detector
+from NuRadioReco.framework import electric_field
 import logging
 import datetime
 import numpy as np
@@ -16,8 +17,6 @@ def test_detector():
 
     response = det.get_signal_chain_response(24, 0)
 
-
-    from NuRadioReco.framework import electric_field
     ef = electric_field.ElectricField(channel_ids=[0])
     ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
 
