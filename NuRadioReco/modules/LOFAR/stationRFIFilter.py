@@ -92,7 +92,7 @@ def FindRFI_LOFAR(
         Size of total block of trace to be evaluated for finding dirty rfi channels.
     rfi_cleaning_trace_length : int
         Size of one chunk of trace to be evaluated at a time for calculating spectrum from.
-    flagged_antenna_ids : list, default=[]
+    flagged_antenna_ids : list or set, default=[]
         List of antennas which are already flagged. These will not be considered for the RFI detection process.
     num_dbl_z : int, default=100
         The number of double zeros allowed in a block, if there are too many, then there could be data loss.
@@ -164,7 +164,7 @@ def FindRFI_LOFAR(
     num_antennas = len(antenna_ids)
 
     # step one: find which blocks are good, and find average power
-    oneAnt_data = np.zeros(rfi_cleaning_trace_length, dtype=np.double) # initialize at zero
+    oneAnt_data = np.zeros(rfi_cleaning_trace_length, dtype=np.double)  # initialize at zero
 
     logger.info("finding good blocks")
     blocks_good = np.zeros((num_antennas, max_blocks), dtype=bool)
@@ -178,12 +178,12 @@ def FindRFI_LOFAR(
                 oneAnt_data[:] = tbb_file.get_data(
                     rfi_cleaning_trace_length * block, rfi_cleaning_trace_length, antenna_ID=antenna_ids[ant_i]
                 )
-            except: # TODO: more specific exception
+            except:  # TODO: more specific exception
                 logger.warning('Could not read data for antenna %s block %d' % (antenna_ids[ant_i], block_i))
                 # proceed with zeros in the block
-            #oneAnt_data[:] = tbb_file.get_data(
+            # oneAnt_data[:] = tbb_file.get_data(
             #    rfi_cleaning_trace_length * block, rfi_cleaning_trace_length, antenna_index=ant_i
-            #)
+            # )
             if (
                     num_double_zeros(oneAnt_data) < num_dbl_z
             ):  # this antenna on this block is good
@@ -413,6 +413,7 @@ class stationRFIFilter:
     other antenna in the station. If the phase is stable, this indicates a constant source contaminating the data.
     More information can be found in Section 3.2.2 of `this paper <https://arxiv.org/pdf/1311.1399.pdf>`_ .
     """
+
     def __init__(self):
         self.logger = logger  # logging.getLogger('NuRadioReco.channelRFIFilter')
 
@@ -461,7 +462,6 @@ class stationRFIFilter:
             self.station_list = reader.get_stations()
             self.metadata_dir = reader.meta_dir
 
-
         self.logger.setLevel(logger_level)
 
     @register_run()
@@ -481,7 +481,7 @@ class stationRFIFilter:
             station_name = f'CS{station.get_id():03}'
             station_files = stations_dict[station_name]['files']
             antenna_set = stations_dict[station_name]['metadata'][1]
-            flagged_channel_ids = station.get_parameter(stationParameters.flagged_channels)
+            flagged_channel_ids = station.get_parameter(stationParameters.flagged_channels)  # this is a set
 
             # Find the length of a trace in the station (assume all channels have been loaded with same length)
             station_trace_length = station.get_channel(station.get_channel_ids()[0]).get_number_of_samples()
@@ -496,12 +496,9 @@ class stationRFIFilter:
                                   f'length ({self.__rfi_trace_length}) as well as a multiple of it.')
                 raise ValueError
 
-            # TODO: replace this with FindRFI() as to allow other experiments to use the same code
-
             flagged_tbb_channel_ids = set()
-            
-            for ids in flagged_channel_ids:
-                flagged_tbb_channel_ids.add(int(nrrID_to_tbbID(ids)))
+            for ind in flagged_channel_ids:
+                flagged_tbb_channel_ids.add(int(nrrID_to_tbbID(ind)))
 
             packet = FindRFI_LOFAR(station_files,
                                    self.metadata_dir,
@@ -520,17 +517,23 @@ class stationRFIFilter:
             median_dipole_power = np.median(cleaned_power)
             bad_dipole_indices = np.where(
                 np.logical_or(
-                    cleaned_power < 0.5 * median_dipole_power, cleaned_power > 2.0 * median_dipole_power))[0]
+                    cleaned_power < 0.5 * median_dipole_power, cleaned_power > 2.0 * median_dipole_power
+                )
+            )[0]
             # which dipole ids are these
-            print('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices])) # remove
-            self.logger.info('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices]))
+            self.logger.info(
+                f'There are {len(bad_dipole_indices)} outliers in cleaned power \n'
+                f'Dipole ids: {antenna_ids[bad_dipole_indices]}'
+            )
             # remove from station, add to flagged list
-            for id in antenna_ids[bad_dipole_indices]:
-                # convert TBB IDs to nrr IDs and remove bad antennas from station
-                nrr_id = tbbID_to_nrrID(id,antenna_set)
-                    station.remove_channel_id(int(nrr_id)) 
+            for ind in antenna_ids[bad_dipole_indices]:
+                # convert TBB IDs to nrr IDs and remove bad antennas from station, if it exists
+                nrr_id = tbbID_to_nrrID(ind, antenna_set)
+                station.remove_channel_id(int(nrr_id))
 
-            flagged_channel_ids.update([tbbID_to_nrrID(id,antenna_set) for id in antenna_ids[bad_dipole_indices]]) # is set, not list
+            flagged_channel_ids.update(
+                [tbbID_to_nrrID(ind, antenna_set) for ind in antenna_ids[bad_dipole_indices]]
+            )  # is set, not list
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
 
             # Set spectral amplitude to zero for channels with RFI
