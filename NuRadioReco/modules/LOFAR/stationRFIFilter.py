@@ -5,6 +5,7 @@ import numpy as np
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.signal_processing import half_hann_window
 from NuRadioReco.modules.io.LOFAR.rawTBBio import MultiFile_Dal1
+from NuRadioReco.modules.io.LOFAR.readLOFARData import tbbID_to_nrrID, nrrID_to_tbbID
 
 from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.utilities import units
@@ -460,6 +461,7 @@ class stationRFIFilter:
             self.station_list = reader.get_stations()
             self.metadata_dir = reader.meta_dir
 
+
         self.logger.setLevel(logger_level)
 
     @register_run()
@@ -495,11 +497,17 @@ class stationRFIFilter:
                 raise ValueError
 
             # TODO: replace this with FindRFI() as to allow other experiments to use the same code
+
+            flagged_tbb_channel_ids = set()
+            
+            for ids in flagged_channel_ids:
+                flagged_tbb_channel_ids.add(int(nrrID_to_tbbID(flagged_channel_ids[ids])))
+
             packet = FindRFI_LOFAR(station_files,
                                    self.metadata_dir,
                                    station_trace_length,
                                    self.__rfi_trace_length,
-                                   flagged_antenna_ids=flagged_channel_ids
+                                   flagged_antenna_ids=flagged_tbb_channel_ids
                                    )
 
             # Extract the necessary information from FindRFI
@@ -514,11 +522,8 @@ class stationRFIFilter:
                 np.logical_or(
                     cleaned_power < 0.5 * median_dipole_power, cleaned_power > 2.0 * median_dipole_power))[0]
             # which dipole ids are these
-            self.logger.info(
-                f'There are {len(bad_dipole_indices)} outliers in cleaned power (dipole ids): '
-                f'{antenna_ids[bad_dipole_indices]}'
-            )
-            
+            print('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices])) # remove
+            self.logger.info('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices]))
             # remove from station, add to flagged list
             for id in antenna_ids[bad_dipole_indices]:
                 # convert TBB IDs to nrr IDs and remove bad antennas from station, if it exists
