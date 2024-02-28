@@ -601,17 +601,17 @@ class readLOFARData:
 
             channels = detector.get_channel_ids(station_id)
             if antenna_set == "LBA_OUTER":
-                #for LBA_OUTER, the antennas have a "0" as fourth element in 9 element string
+                # for LBA_OUTER, the antennas have a "0" as fourth element in 9 element string
                 for c in channels:
-                    cstr = str(c).zfill(9)
-                    if cstr[3] == "0":
+                    c_str = str(c).zfill(9)
+                    if c_str[3] == "0":
                         channel_set_ids.add(c)
 
             elif antenna_set == "LBA_INNER":
-                #for LBA_OUTER, the antennas have a "9" as fourth element in 9 element string
+                # for LBA_OUTER, the antennas have a "9" as fourth element in 9 element string
                 for c in channels:
-                    cstr = str(c).zfill(9)
-                    if cstr[3] == "9":
+                    c_str = str(c).zfill(9)
+                    if c_str[3] == "9":
                         channel_set_ids.add(c)
             else:
                 # other modes are currently not supported
@@ -629,7 +629,6 @@ class readLOFARData:
 
                 # read in trace, see if that works. Needed or overly careful?
                 try:
-                    # TODO here convert the NRR channel ID to a TBB ID to load trace
                     this_trace = lofar_trace_access.get_trace(TBB_channel_id)  # channel ID is 9 digits
                 except:  # FIXME: Too general except statement
                     flagged_channel_ids.add(int(TBB_channel_id))
