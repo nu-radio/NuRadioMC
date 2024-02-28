@@ -478,6 +478,7 @@ class stationRFIFilter:
         for station in event.get_stations():
             station_name = f'CS{station.get_id():03}'
             station_files = stations_dict[station_name]['files']
+            antenna_set = stations_dict[station_name]['metadata'][1]
             flagged_channel_ids = station.get_parameter(stationParameters.flagged_channels)
 
             # Find the length of a trace in the station (assume all channels have been loaded with same length)
@@ -517,11 +518,18 @@ class stationRFIFilter:
                 f'There are {len(bad_dipole_indices)} outliers in cleaned power (dipole ids): '
                 f'{antenna_ids[bad_dipole_indices]}'
             )
+            
             # remove from station, add to flagged list
-            for ant_id in antenna_ids[bad_dipole_indices]:
-                station.remove_channel_id(int(ant_id))  # are channel ids integers?
+            for id in antenna_ids[bad_dipole_indices]:
+                # convert TBB IDs to nrr IDs and remove bad antennas from station, if it exists
+                nrr_id = tbbID_to_nrrID(id,antenna_set)
+                try:
+                    station.remove_channel_id(int(nrr_id)) 
+                except:  
+                    self.logger.info(f'Channel {int(nrr_id)} was already removed or does not exist')
+                    continue
 
-            flagged_channel_ids.update([ant_id for ant_id in antenna_ids[bad_dipole_indices]])  # is set, not list
+            flagged_channel_ids.update([tbbID_to_nrrID(id,antenna_set) for id in antenna_ids[bad_dipole_indices]]) # is set, not list
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
 
             # Set spectral amplitude to zero for channels with RFI
