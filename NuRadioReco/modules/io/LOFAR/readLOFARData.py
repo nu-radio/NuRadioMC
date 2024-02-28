@@ -575,6 +575,7 @@ class readLOFARData:
             antenna_set = station_dict['metadata'][1]
             
             station = NuRadioReco.framework.station.Station(station_id)
+            station.set_station_time(time)
             radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
                                                                           station_ids=[station_id])
 
@@ -596,13 +597,22 @@ class readLOFARData:
 
             # empty set to add the NRR flagged channel IDs to
             flagged_nrr_channel_ids = set()
+            channel_set_ids = set()
 
+            channels = detector.get_channel_ids(station_id)
             if antenna_set == "LBA_OUTER":
-                # for LBA_OUTER, the antennae are every even element in the detector channels
-                channel_set_ids = detector.get_channel_ids(station_id)[0::2]
+                #for LBA_OUTER, the antennas have a "0" as fourth element in 9 element string
+                for c in channels:
+                    cstr = str(c).zfill(9)
+                    if cstr[3] == "0":
+                        channel_set_ids.add(c)
+
             elif antenna_set == "LBA_INNER":
-                # for LBA_INNER, the antennae are every odd element in the detector channels
-                channel_set_ids = detector.get_channel_ids(station_id)[1::2]
+                #for LBA_OUTER, the antennas have a "9" as fourth element in 9 element string
+                for c in channels:
+                    cstr = str(c).zfill(9)
+                    if cstr[3] == "9":
+                        channel_set_ids.add(c)
             else:
                 # other modes are currently not supported
                 # TODO: add them
