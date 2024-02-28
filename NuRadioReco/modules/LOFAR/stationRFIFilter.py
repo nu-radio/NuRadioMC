@@ -501,7 +501,7 @@ class stationRFIFilter:
             flagged_tbb_channel_ids = set()
             
             for ids in flagged_channel_ids:
-                flagged_tbb_channel_ids.add(int(nrrID_to_tbbID(flagged_channel_ids[ids])))
+                flagged_tbb_channel_ids.add(int(nrrID_to_tbbID(ids)))
 
             packet = FindRFI_LOFAR(station_files,
                                    self.metadata_dir,
@@ -526,13 +526,9 @@ class stationRFIFilter:
             self.logger.info('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices]))
             # remove from station, add to flagged list
             for id in antenna_ids[bad_dipole_indices]:
-                # convert TBB IDs to nrr IDs and remove bad antennas from station, if it exists
+                # convert TBB IDs to nrr IDs and remove bad antennas from station
                 nrr_id = tbbID_to_nrrID(id,antenna_set)
-                try:
                     station.remove_channel_id(int(nrr_id)) 
-                except:  
-                    self.logger.info(f'Channel {int(nrr_id)} was already removed or does not exist')
-                    continue
 
             flagged_channel_ids.update([tbbID_to_nrrID(id,antenna_set) for id in antenna_ids[bad_dipole_indices]]) # is set, not list
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
