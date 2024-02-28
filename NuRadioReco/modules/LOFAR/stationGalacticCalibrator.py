@@ -240,7 +240,7 @@ class stationGalacticCalibrator:
             The channel polarisation key
         """
         orientation_rad = detector.get_antenna_orientation(
-            station.get_id(), channel.get_id
+            station.get_id(), channel.get_id()
         )[1]  # takes the phi orientation in rad of the specific channel
         orientation = orientation_rad / units.deg  # get value in degrees
         if orientation == 225.0:
