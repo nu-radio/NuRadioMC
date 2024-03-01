@@ -843,7 +843,20 @@ class simulation:
                                             emitter_kwargs[key[8:]] = self._fin[key][self._shower_index]
 
                                 if emitter_model.startswith("efield_"):
-                                    eR, eTheta, ePhi = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs)
+                                    if emitter_model == "efield_idl1_spice":
+                                        if "emitter_realization" in self._fin:
+                                            emitter_kwargs['iN'] = self._fin['emitter_realization'][self._shower_index]
+                                        elif emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_kwargs['iN'] = emitter_obj.get_parameter(ep.realization_id)
+
+                                    (eR, eTheta, ePhi), additional_output = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs, full_output=True)
+                                    if emitter_model == "efield_idl1_spice":
+                                        if 'emitter_realization' not in self._mout:
+                                            self._mout['emitter_realization'] = np.zeros(self._n_showers)
+                                        if not emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_obj.set_parameter(ep.realization_id, additional_output['iN'])
+                                            self._mout['emitter_realization'][self._shower_index] = additional_output['iN']
+                                            logger.debug(f"setting emitter realization to i = {additional_output['iN']}")
                                 else:
                                     # the emitter fuction returns the voltage output of the pulser. We need to convole with the antenna response of the emitting antenna
                                     # to obtain the emitted electric field.
