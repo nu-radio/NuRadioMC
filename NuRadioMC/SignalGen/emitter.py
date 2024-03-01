@@ -145,16 +145,18 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
 
         launch_keys = np.array(list(buffer_emitter_model[model]['efields'].keys()))
         launch_angles = launch_keys * units.deg
-        
+
         launch_angle = launch_keys[np.argmin(np.abs(launch_angles - launch_zenith))]
         n_pulses = len(buffer_emitter_model[model]['efields'][launch_angle])
-        
+
         if "iN" in kwargs:
             iN = kwargs["iN"]
             if iN >= n_pulses:
                 raise ValueError(f"the selected pulse iN {iN} is out of range. Only {n_pulses} different pulses are available")
         else:
             iN = np.random.randint(0, n_pulses)
+
+        additional_output['iN'] = iN
 
         spice_pulse = buffer_emitter_model[model]['efields'][launch_angle][iN]
 
