@@ -154,7 +154,11 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             if iN >= n_pulses:
                 raise ValueError(f"the selected pulse iN {iN} is out of range. Only {n_pulses} different pulses are available")
         else:
-            iN = np.random.randint(0, n_pulses)
+            if "rnd" in kwargs:
+                iN = kwargs["rnd"].randint(0, n_pulses)
+            else:
+                iN = np.random.randint(0, n_pulses)
+                logger.warning(f"no random number generator provided, using np.random.randint to select pulse {iN} from {n_pulses} available pulses. This might not be reproducible.")
 
         additional_output['iN'] = iN
 

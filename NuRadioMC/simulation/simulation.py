@@ -48,6 +48,7 @@ import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
+from numpy.random import Generator, Philox
 
 STATUS = 31
 
@@ -186,6 +187,8 @@ class simulation:
             # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
+
+        self._rnd = Generator(Philox(self._cfg['seed']))
 
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
@@ -848,6 +851,8 @@ class simulation:
                                             emitter_kwargs['iN'] = self._fin['emitter_realization'][self._shower_index]
                                         elif emitter_obj.has_parameter(ep.realization_id):
                                             emitter_kwargs['iN'] = emitter_obj.get_parameter(ep.realization_id)
+                                        else:
+                                            emitter_kwargs['rnd'] = self._rnd
 
                                     (eR, eTheta, ePhi), additional_output = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs, full_output=True)
                                     if emitter_model == "efield_idl1_spice":
