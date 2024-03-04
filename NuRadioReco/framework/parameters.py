@@ -136,6 +136,7 @@ class emitterParameters(Enum):
     orientation_theta = 8  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
     rotation_phi = 9  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
     rotation_theta = 10  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
+    realization_id = 11  #: the id of the measurement of the emitted electric field
 
 
 class particleParameters(Enum):

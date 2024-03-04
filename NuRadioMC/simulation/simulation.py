@@ -29,7 +29,7 @@ import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
-import NuRadioReco.framework.emitter
+import NuRadioReco.framework.sim_emitter
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -48,13 +48,24 @@ import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
-# logging imports
-import logging
-from NuRadioReco.utilities.logging import LOGGING_STATUS
+from numpy.random import Generator, Philox
+
+STATUS = 31
+
+# logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 
 
-logger = logging.getLogger("NuRadioMC.simulation")
+class NuRadioMCLogger(logging.Logger):
 
+    def status(self, msg, *args, **kwargs):
+        if self.isEnabledFor(STATUS):
+            self._log(STATUS, msg, args, **kwargs)
+
+
+logging.setLoggerClass(NuRadioMCLogger)
+logging.addLevelName(STATUS, 'STATUS')
+logger = logging.getLogger("NuRadioMC")
+assert isinstance(logger, NuRadioMCLogger)
 # formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
 # ch = logging.StreamHandler()
 # ch.setFormatter(formatter)
@@ -176,6 +187,8 @@ class simulation:
             # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
+
+        self._rnd = Generator(Philox(self._cfg['seed']))
 
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
@@ -657,7 +670,7 @@ class simulation:
                         self._create_sim_shower()  # create sim shower
                         self._evt_tmp.add_sim_shower(self._sim_shower)
                     else:
-                        emitter_obj = NuRadioReco.framework.emitter.Emitter(self._shower_index)  # shower_id is equivalent to emitter_id in this case
+                        emitter_obj = NuRadioReco.framework.sim_emitter.SimEmitter(self._shower_index)  # shower_id is equivalent to emitter_id in this case
                         emitter_obj[ep.position] = np.array([self._fin['xx'][self._primary_index], self._fin['yy'][self._primary_index], self._fin['zz'][self._primary_index]])
                         emitter_obj[ep.model] = self._fin['emitter_model'][self._primary_index]
                         emitter_obj[ep.amplitude] = self._fin['emitter_amplitudes'][self._primary_index]
@@ -826,15 +839,29 @@ class simulation:
                                 amplitude = self._fin['emitter_amplitudes'][self._shower_index]
                                 emitter_model = self._fin['emitter_model'][self._shower_index]
                                 emitter_kwargs = {}
+                                emitter_kwargs["launch_vector"] = self._launch_vector
                                 for key in self._fin.keys():
                                     if key not in ['emitter_amplitudes', 'emitter_model']:
                                         if key.startswith("emitter_"):
                                             emitter_kwargs[key[8:]] = self._fin[key][self._shower_index]
-                                            emitter_kwargs["launch_vector"] = self._launch_vector
-                                            #emitter_kwargs["iN"] = 2
 
                                 if emitter_model.startswith("efield_"):
-                                    eR, eTheta, ePhi = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs)
+                                    if emitter_model == "efield_idl1_spice":
+                                        if "emitter_realization" in self._fin:
+                                            emitter_kwargs['iN'] = self._fin['emitter_realization'][self._shower_index]
+                                        elif emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_kwargs['iN'] = emitter_obj.get_parameter(ep.realization_id)
+                                        else:
+                                            emitter_kwargs['rnd'] = self._rnd
+
+                                    (eR, eTheta, ePhi), additional_output = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs, full_output=True)
+                                    if emitter_model == "efield_idl1_spice":
+                                        if 'emitter_realization' not in self._mout:
+                                            self._mout['emitter_realization'] = np.zeros(self._n_showers)
+                                        if not emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_obj.set_parameter(ep.realization_id, additional_output['iN'])
+                                            self._mout['emitter_realization'][self._shower_index] = additional_output['iN']
+                                            logger.debug(f"setting emitter realization to i = {additional_output['iN']}")
                                 else:
                                     # the emitter fuction returns the voltage output of the pulser. We need to convole with the antenna response of the emitting antenna
                                     # to obtain the emitted electric field.
@@ -1091,10 +1118,11 @@ class simulation:
             self._eventWriter.end()
             logger.debug("closing nur file")
 
-        try:
-            self.calculate_Veff()
-        except:
-            logger.error("error in calculating effective volume")
+        if "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] == "neutrino": # only calcualte Veff for neutrino simulations
+            try:
+                self.calculate_Veff()
+            except:
+                logger.error("error in calculating effective volume")
 
         t_total = time.time() - t_start
         outputTime = time.time() - t5

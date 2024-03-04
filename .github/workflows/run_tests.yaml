@@ -136,7 +136,7 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
-        NuRadioMC/test/examples/test_emitter_example.sh
+        NuRadioMC/test/examples/test_cal_pulser_example.sh
     - name: "Test radio emitter pulser example"
       if: always()
       run: |

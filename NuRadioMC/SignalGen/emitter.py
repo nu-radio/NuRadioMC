@@ -45,15 +45,18 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
         * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
         * efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE
-          calibration campaigns from 2018 and 2019. 
+          calibration campaigns from 2018 and 2019.
           The `launch_vector` needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
           doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.
+          the `amplitude` is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an 
+          amplitude of 10 will return 10 times the measured efield amplitude, etc.
+          Use kwarg `iN` to select a specific pulse from the 10 available pulses. The default is a random selection.
         * efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg `polarization` needs
           to be specified to select the polarization of the efield, defined as float between 0 and 1 with
           0 = eTheta polarized and 1 = ePhi polarized. The default is 0.5, i.e. unpolarized. The amplitudes are
           set to preserve the total power of the delta pulse, i.e. A_theta = sqrt(1-polarization)
           and A_phi = sqrt(polarization).
-          Use kwarg `iN` to select a specific pulse from the 10 available pulses. The default is a random selection.
+
     full_output: bool (default False)
         if True, can return additional output
 
@@ -142,16 +145,22 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
 
         launch_keys = np.array(list(buffer_emitter_model[model]['efields'].keys()))
         launch_angles = launch_keys * units.deg
-        
+
         launch_angle = launch_keys[np.argmin(np.abs(launch_angles - launch_zenith))]
         n_pulses = len(buffer_emitter_model[model]['efields'][launch_angle])
-        
+
         if "iN" in kwargs:
             iN = kwargs["iN"]
             if iN >= n_pulses:
                 raise ValueError(f"the selected pulse iN {iN} is out of range. Only {n_pulses} different pulses are available")
         else:
-            iN = np.random.randint(0, n_pulses)
+            if "rnd" in kwargs:
+                iN = kwargs["rnd"].integers(0, n_pulses)
+            else:
+                iN = np.random.randint(0, n_pulses)
+                logger.warning(f"no random number generator provided, using np.random.randint to select pulse {iN} from {n_pulses} available pulses. This might not be reproducible.")
+
+        additional_output['iN'] = iN
 
         spice_pulse = buffer_emitter_model[model]['efields'][launch_angle][iN]
 
@@ -202,8 +211,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         final_phi = np.roll(final_phi, int(N / 2) - peak_amplitude_index_phi_new)
 
         trace = np.zeros((3,N))
-        trace[1,:] = final_theta
-        trace[2,:] = final_phi
+        trace[1,:] = final_theta * amplitude
+        trace[2,:] = final_phi * amplitude
 
     else:
         raise NotImplementedError("model {} unknown".format(model))

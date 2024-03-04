@@ -3,6 +3,7 @@ import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.emitter
+import NuRadioReco.framework.sim_emitter
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.parameters as parameters
@@ -418,21 +419,21 @@ class Event:
         else:
             return len(self.__sim_showers) > 0
 
-    def add_sim_emitter(self, emitter):
+    def add_sim_emitter(self, sim_emitter):
         """
         Add a simulated emitter to the event
 
         Parameters
         ----------
-        emitter: Emitter object
+        sim_emitter: SimEmitter object
             The emitter to be added to the event
         """
-        if not isinstance(emitter, NuRadioReco.framework.emitter.Emitter):
-            raise AttributeError("emitter needs to be of type NuRadioReco.framework.emitter.Emitter")
-        if(emitter.get_id() in self.__sim_emitters):
-            logger.error(f"emitter with id {emitter.get_id()} already exists. Emitter id needs to be unique per event")
-            raise AttributeError(f"emitter with id {emitter.get_id()} already exists. Emitter id needs to be unique per event")
-        self.__sim_emitters[emitter.get_id()] = emitter
+        if not isinstance(sim_emitter, NuRadioReco.framework.sim_emitter.SimEmitter):
+            raise AttributeError(f"emitter needs to be of type NuRadioReco.framework.sim_emitter.SimEmitter but is of type {type(sim_emitter)}")
+        if(sim_emitter.get_id() in self.__sim_emitters):
+            logger.error(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
+            raise AttributeError(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
+        self.__sim_emitters[sim_emitter.get_id()] = sim_emitter
 
     def get_sim_emitters(self):
         """
@@ -557,7 +558,7 @@ class Event:
                 self.add_sim_shower(shower)
         if 'sim_emitters' in data.keys():
             for emmitter_pkl in data['sim_emitters']:
-                emitter = NuRadioReco.framework.emitter.Emitter(None)
+                emitter = NuRadioReco.framework.sim_emitter.SimEmitter(None)
                 emitter.deserialize(emmitter_pkl)
                 self.add_sim_emitter(emitter)
         if 'particles' in data.keys():
