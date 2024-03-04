@@ -172,7 +172,7 @@ It can be accessed by the ``get_sim_showers`` method of the :class:`Event<NuRadi
 
 SimEmitter
 ____________
-A SimEmitter is used to hold parameters of simulated emitters via the parameter storage.
+The :class:`SimEmitter<NuRadioReco.framework.emitter.SimEmitter>` class is used to hold parameters of simulated emitters via the parameter storage.
 The concept is similar to the SimShower, but is used when NuRadioMC is used to simulate emitters (and)
 not particle showers.
 

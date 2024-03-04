@@ -49,7 +49,6 @@ import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
-# logging imports
 import logging
 from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
 

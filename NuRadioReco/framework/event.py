@@ -457,7 +457,7 @@ class Event:
 
         Parameters
         ----------
-        ids: list of integers
+        station_ids: list of integers
             A list of station IDs. The first emitter that is associated with
             all stations in the list is returned
         """
