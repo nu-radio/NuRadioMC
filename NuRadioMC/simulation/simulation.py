@@ -48,6 +48,9 @@ import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
+import logging
+from NuRadioReco.utilities.logging import LOGGING_STATUS
+
 from numpy.random import Generator, Philox
 
 STATUS = 31

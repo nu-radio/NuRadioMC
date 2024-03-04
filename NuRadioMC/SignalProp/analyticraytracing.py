@@ -5,7 +5,7 @@ from scipy import optimize, integrate, interpolate, signal
 import scipy.constants
 from operator import itemgetter
 import NuRadioReco.utilities.geometryUtilities
-#from torch.fx.experimental.fx2trt.converters.acc_ops_converters import acc_ops_dequantize
+
 try:
     from functools import lru_cache
 except ImportError:
@@ -1841,11 +1841,6 @@ class ray_tracing(ray_tracing_base):
         self.__logger = logging.getLogger('ray_tracing_analytic')
         self.__logger.setLevel(log_level)
 
-        
-        self.__medium = medium
-        
-
-
         from NuRadioMC.utilities.medium_base import IceModelSimple
         if not isinstance(medium, IceModelSimple):
             self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
@@ -2006,13 +2001,13 @@ class ray_tracing(ray_tracing_base):
         Parameters
         ----------
         direction: numpy.array
-        propagation direction of the wave
+            propagation direction of the wave
         nx: float
-        the index of refraction in the x-direction
+            the index of refraction in the x-direction
         ny: float
-        the index of refraction in the y-direction
+            the index of refraction in the y-direction
         nz: float
-        the index of refraction in the z-direction
+            the index of refraction in the z-direction
 
         Returns
         -------
@@ -2066,8 +2061,8 @@ class ray_tracing(ray_tracing_base):
 
         Returns
         -------
-        output format: numpy.array: np.array([px, py, pz])
-        meaning:       normalized e-field vector in cartesian coordinates
+        efield : np.ndarray of shape (3,)
+            normalized e-field vector in cartesian coordinates
         """
 
         polarization = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
@@ -2099,8 +2094,8 @@ class ray_tracing(ray_tracing_base):
 
         Returns
         -------
-        output format: numpy.array: np.array([[p_radial_1, p_theta_1, p_phi_1], [p_radial_2, p_theta_2, p_phi_2]])
-        meaning:       normalized e-field vector in spherical coordinates for both birefringence solutions
+        efield : np.ndarray of shape (2, 3)
+            normalized e-field vector in spherical coordinates for both birefringence solutions
         """
         
         narrow_check = 1e-9
@@ -2191,9 +2186,7 @@ class ray_tracing(ray_tracing_base):
 
         Returns
         -------
-        output format: numpy.array
-            np.array([p_radial_1, p_theta_1, p_phi_1])
-        meaning       
+        efield : np.ndarray of shape (3,)
             normalized e-field vector in spherical coordinates
         """
 
@@ -2232,7 +2225,7 @@ class ray_tracing(ray_tracing_base):
 
         t_fast = base_trace.BaseTrace()
 
-        ice_n = self.__medium
+        ice_n = self._medium
         ice_birefringence = medium.get_ice_model('birefringence_medium')
         ice_birefringence.__init__(bire_model)
 
@@ -2291,30 +2284,32 @@ class ray_tracing(ray_tracing_base):
         ----------
 
         i_solution: int
-        choose which ray-tracing solution should be propagated
+            choose which ray-tracing solution should be propagated
         bire_model: string
-        choose the interpolation to fit the measured refractive index data
-        options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+            choose the interpolation to fit the measured refractive index data
+            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
 
         Returns
         -------
 
-        path_properties: directory
-            ['path']:                       np.array(3d) - propagation path in x, y, z with the same granularity as the nirefringent propagation
-            ['nominal_refractive_index']:   np.array - nominal refractive index if only density effects were taken into account
-            ['refractive_index_x']:         np.array - refractive index for the x-direction
-            ['refractive_index_y']:         np.array - refractive index for the y-direction
-            ['refractive_index_z']:         np.array - refractive index for the z-direction
-            ['first_refractive_index']:     np.array - effective refractive index of the first birefringent state along the full path
-            ['second_refractive_index']:    np.array - effective refractive index of the second birefringent state along the full path
-            ['first_polarization_vector']:  np.array - polarization vector of the first birefringent state in spherical coordinates along the full path
-            ['second_polarization_vector']: np.array - polarization vector of the second birefringent state in spherical coordinates along the full path
-            ['first_time_delay']:           np.array - incremental time delays of the first birefringent state along the full path
-            ['second_time_delay']:          np.array - incremental time delays of the second birefringent state along the full path
+        path_properties: dict
+            a dictionary containing the following keys:
+            
+            * 'path': np.ndarray - propagation path in x, y, z with the same granularity as the nirefringent propagation
+            * 'nominal_refractive_index': np.ndarray - nominal refractive index if only density effects were taken into account
+            * 'refractive_index_x': np.ndarray - refractive index for the x-direction
+            * 'refractive_index_y': np.ndarray - refractive index for the y-direction
+            * 'refractive_index_z': np.ndarray - refractive index for the z-direction
+            * 'first_refractive_index': np.ndarray - effective refractive index of the first birefringent state along the full path
+            * 'second_refractive_index': np.ndarray - effective refractive index of the second birefringent state along the full path
+            * 'first_polarization_vector': np.ndarray - polarization vector of the first birefringent state in spherical coordinates along the full path
+            * 'second_polarization_vector': np.ndarray - polarization vector of the second birefringent state in spherical coordinates along the full path
+            * 'first_time_delay': np.ndarray - incremental time delays of the first birefringent state along the full path
+            * 'second_time_delay': np.ndarray - incremental time delays of the second birefringent state along the full path
 
         """
 
-        ice_n = self.__medium
+        ice_n = self._medium
         ice_birefringence = medium.get_ice_model('birefringence_medium')
         ice_birefringence.__init__(bire_model)
 

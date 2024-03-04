@@ -60,6 +60,16 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     full_output: bool (default False)
         if True, can return additional output
 
+    kwargs: dict
+        specifies needed parameters for certain emitters.
+
+        * emitter_frequency: Frequency of the emitted pulse.
+        * half_width: Half width of the emitted pulse.
+        * launch_vector: Launch vector of the emitted pulse.
+        * polarization: Polarization of the emitted pulse.
+        * iN: Index of the measured pulse used for the propagation
+        * rnd: Random number generator used to select a pulse form.
+
     Returns
     -------
     time trace: 1d or 2d array, shape (N) or (3, N) for efield
@@ -79,9 +89,13 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace = np.zeros(N)
         trace[N // 2] = amplitude
     elif(model == 'cw'):  # generates a sine wave of given frequency
+        if 'emitter_frequency' not in kwargs.keys():
+            raise KeyError("emitter_frequency has to be passed as a parameter")
         time = np.linspace(-(N / 2) * dt, ((N - 1) - N / 2) * dt, N)
         trace = amplitude * np.sin(2 * np.pi * kwargs["emitter_frequency"] * time)
     elif(model == 'square' or model == 'tone_burst'):  # generates a rectangular or tone_burst signal of given width and frequency
+        if 'half_width' not in kwargs.keys():
+            raise KeyError("half_width has to be passed as a parameter")
         half_width = kwargs.get("half_width")
         if(half_width > int(N / 2)):
             raise NotImplementedError(" half_width {} should be < half of the number of samples N " . format(half_width))
@@ -93,8 +107,12 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         if(model == 'square'):
             trace = voltage
         else:
+            if 'emitter_frequency' not in kwargs.keys():
+                raise KeyError("emitter_frequency has to be passed as a parameter")
             trace = voltage * np.sin(2 * np.pi * kwargs["emitter_frequency"] * time)
     elif(model == 'gaussian'):  # generates gaussian pulse where half_width represents the half width at half maximum
+        if 'half_width' not in kwargs.keys():
+            raise KeyError("half_width has to be passed as a parameter")
         time = np.linspace(-(N / 2) * dt, ((N - 1) - N / 2) * dt, N)
         sigma = kwargs["half_width"] / (np.sqrt(2 * np.log(2)))
         trace = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-1 / 2 * ((time - 500) / sigma) ** 2)
@@ -130,10 +148,14 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         peak_amplitude_index_new = np.where(np.abs(trace) == np.max(np.abs(trace)))[0][0]
         trace = np.roll(trace, int(N / 2) - peak_amplitude_index_new)  # this rolls the array(trace) to keep peak amplitude at center
     elif(model == 'efield_delta_pulse'):  # this takes delta signal as input voltage
+        if 'polarization' not in kwargs.keys():
+            raise KeyError("polarization has to be passed as a parameter")
         trace = np.zeros((3, N))
         trace[1, N // 2] = (1.0 - kwargs.get("polarization", 0.5)) ** 0.5 * amplitude
         trace[2, N // 2] = kwargs.get("polarization", 0.5) ** 0.5 * amplitude
     elif(model == "efield_idl1_spice"):
+        if 'launch_vector' not in kwargs.keys():
+            raise KeyError("launch_vector has to be passed as a parameter")
         launch_zenith, _ = hp.cartesian_to_spherical(*kwargs["launch_vector"])
 
         if model not in buffer_emitter_model:
@@ -250,6 +272,16 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
     full_output: bool (default False)
         if True, can return additional output
+
+    kwargs: dict
+        specifies needed parameters for certain emitters.
+
+        * emitter_frequency: Frequency of the emitted pulse.
+        * half_width: Half width of the emitted pulse.
+        * launch_vector: Launch vector of the emitted pulse.
+        * polarization: Polarization of the emitted pulse.
+        * iN: Index of the measured pulse used for the propagation
+        * rnd: Random number generator used to select a pulse form.
 
     Returns
     -------
