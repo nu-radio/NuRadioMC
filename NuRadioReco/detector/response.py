@@ -6,6 +6,7 @@ from scipy import interpolate
 import numpy as np
 import logging
 import datetime
+import copy
 
 
 class Response:
@@ -225,6 +226,7 @@ class Response:
         """
 
         if isinstance(other, Response):
+            self = copy.deepcopy(self)
             if self._station_id != other._station_id or \
                 self._channel_id != other._channel_id:
                 self.logger.error("It looks like you are combining responses from "
@@ -240,7 +242,7 @@ class Response:
             return self
 
         elif isinstance(other, NuRadioReco.framework.base_trace.BaseTrace):
-
+            other = copy.copy(other)
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
                 time_delay = self._calculate_time_delay()
@@ -253,6 +255,7 @@ class Response:
             spec *= self(freqs)  # __call__
             other.add_trace_start_time(np.sum(self.__time_delays))
             other.set_frequency_spectrum(spec, sampling_rate="same")
+
             return other
 
         elif isinstance(other, np.ndarray):
