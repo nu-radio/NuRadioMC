@@ -70,6 +70,17 @@ jobs:
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
+    - name: "Detector"
+      if: always()
+      run: |
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        NuRadioReco/detector/test/tests.sh
+    - name: "RNO-G data reader"
+      if: always()
+      run: |
+        pip install git+https://github.com/RNO-G/mattak.git
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        NuRadioReco/test/RNO_G/test_read_rnog_data.sh
     - name: "Single event test (South Pole)"
       if: always()
       run: |
@@ -174,8 +185,3 @@ jobs:
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/test_examples.sh
-    - name: "Detector"
-      if: always()
-      run: |
-        export PYTHONPATH=$(pwd):$PYTHONPATH
-        NuRadioReco/detector/test/tests.sh
