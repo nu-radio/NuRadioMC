@@ -736,7 +736,8 @@ If 0, no cut is applied. (Default: 1 Hz)</p>
 Example: Select a mattak “backend”. Options are “auto”, “pyroot”, “uproot”. If “auto” is selected,
 pyroot is used if available otherwise a “fallback” to uproot is used. (Default: “auto”)</p>
 </dd>
-<dt><strong>overwrite_sampling_rate: float</strong></dt><dd><p>Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo (i.e., stored in the mattak files).
+<dt><strong>overwrite_sampling_rate: float</strong></dt><dd><p>Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo
+(i.e., stored in the mattak files) only when the stored sampling rate is invalid (i.e. 0 or None).
 If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
 NOTE: This option might be necessary when old mattak files are read which have this not set.</p>
 </dd>
