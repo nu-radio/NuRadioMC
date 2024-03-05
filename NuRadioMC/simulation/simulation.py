@@ -51,10 +51,9 @@ import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 # logging imports
 import logging
-from NuRadioReco.utilities.logging import LOGGING_STATUS
+from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
 
-
-logger = logging.getLogger("NuRadioMC.simulation")
+logger = setup_logger("NuRadioMC.simulation")
 
 
 def pretty_time_delta(seconds):

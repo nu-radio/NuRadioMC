@@ -26,8 +26,9 @@ from NuRadioReco.framework import base_trace
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 
-import logging
-logging.basicConfig()
+from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
+
+logger = setup_logger("NuRadioMC.analytic_ray_tracing")
 
 # check if CPP implementation is available
 cpp_available = False
@@ -144,8 +145,7 @@ class ray_tracing_2D(ray_tracing_base):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
         self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
-        self.__logger = logging.getLogger('ray_tracing_2D')
-        self.__logger.setLevel(log_level)
+        self.__logger = setup_logger('NuRadioMC.ray_tracing_2D', log_level)
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
 
@@ -1838,8 +1838,7 @@ class ray_tracing(ray_tracing_base):
             default: True if CPP version is available
             
         """
-        self.__logger = logging.getLogger('ray_tracing_analytic')
-        self.__logger.setLevel(log_level)
+        self.__logger = setup_logger('NuRadioMC.ray_tracing_analytic', log_level)
 
         
         self.__medium = medium
