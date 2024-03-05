@@ -9,6 +9,7 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
+from numpy.random import Generator, Philox
 import h5py
 import time
 import six
@@ -54,11 +55,6 @@ from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 
 logger = logging.getLogger("NuRadioMC.simulation")
-
-# formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
-# ch = logging.StreamHandler()
-# ch.setFormatter(formatter)
-# logger.addHandler(ch)
 
 
 def pretty_time_delta(seconds):
