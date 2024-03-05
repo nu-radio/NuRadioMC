@@ -48,8 +48,6 @@ import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
-import logging
-from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 from numpy.random import Generator, Philox
 
@@ -111,7 +109,7 @@ class simulation:
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
-                 log_level=LOGGING_STATUS,
+                 log_level=logging.WARNING,
                  default_detector_station=None,
                  default_detector_channel=None,
                  file_overwrite=False,
