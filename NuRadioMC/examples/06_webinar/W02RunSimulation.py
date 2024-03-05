@@ -11,6 +11,10 @@ from NuRadioMC.simulation import simulation
 import matplotlib.pyplot as plt
 import os
 
+# Setup logging
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
+
 if __name__ == "__main__":
     results_folder = 'results'
     if not os.path.exists(results_folder):

@@ -35,7 +35,35 @@ def _check_database_time(method):
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Database(object):
 
-    def __init__(self, database_connection="env_pw_user", database_name=None):
+    def __init__(self, database_connection="RNOG_public", database_name=None, mongo_kwargs={}):
+        """
+        Interface to the RNO-G hardware database. This class uses the python API pymongo for the
+        RNO-G MongoDB.
+
+        This classes allows you to connect to preconfigured mongo clients or select your mongo client freely.
+        The database is accesible with the `self.db` variable.
+
+        Parameters
+        ----------
+
+        database_connection : str (Default: `"RNOG_public"`)
+            Specify mongo client. You have 5 options:
+
+                * `"env_pw_user"`: Connect to a server with the environmental variables
+                  `mongo_server`, `mongo_user`, and `mongo_password`
+                * `"RNOG_public"`: Preconfigured connection to read-only RNO-G Hardware DB
+                * `"RNOG_test_public"`: Preconfigured connection to read-only RNO-G Test Hardware DB
+                * `"connection_string"`: Use environmental variable `db_mongo_connection_string` to
+                  connect to mongo server
+                * `"mongodb*": Every string which starts with `"mongodb"` will be used to connect to
+                  a mongo server
+
+        database_name : str (Default: None -> `"RNOG_live"`)
+            Select the database by name. If None (default) is passed, set to `"RNOG_live"`
+
+        mongo_kwargs : dict (Default: `{}`)
+            Additional arguments to pass to MongoClient.
+        """
 
         if database_connection == "env_pw_user":
             # use db connection from environment, pw and user need to be percent escaped
@@ -49,28 +77,41 @@ class Database(object):
                 logger.warning('"mongo_user" or "mongo_password" not set')
 
             # start client
-            self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
-            self.db = self.__mongo_client.RNOG_live
+            connection_string = f"mongodb://{mongo_user}:{mongo_password}@{mongo_server}"
+            mongo_kwargs["tls"] = True
 
         elif database_connection == "RNOG_public":
             # use read-only access to the RNO-G database
-            self.__mongo_client = MongoClient("mongodb://read:EseNbGVaCV4pBBrt@radio.zeuthen.desy.de:27017/admin?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=true")
-            self.db = self.__mongo_client.RNOG_live
+            connection_string = (
+                "mongodb://read:EseNbGVaCV4pBBrt@radio.zeuthen.desy.de:27017/admin?authSource=admin&"
+                "readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=true")
 
         elif database_connection == "RNOG_test_public":
             # use readonly access to the RNO-G test database
-            self.__mongo_client = MongoClient(
-                "mongodb://RNOG_test_public:jrE5xO38D7wQweVR5doa@radio-test.zeuthen.desy.de:27017/admin?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=true")
-            self.db = self.__mongo_client.RNOG_live
+            connection_string = (
+                "mongodb://RNOG_test_public:jrE5xO38D7wQweVR5doa@radio-test.zeuthen.desy.de:27017/admin?authSource=admin&"
+                "readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=true")
 
         elif database_connection == "connection_string":
             # use a connection string from the environment
             connection_string = os.environ.get('db_mongo_connection_string')
-            self.__mongo_client = MongoClient(connection_string)
-            self.db = self.__mongo_client.RNOG_test
+        elif database_connection.startswith("mongodb"):
+            connection_string = database_connection
         else:
-            logger.error('specify a defined database connection ["env_pw_user", "connection_string", "RNOG_public", "RNOG_test_public"]')
+            logger.error('specify a defined database connection '
+                         '["env_pw_user", "connection_string", "RNOG_public", "RNOG_test_public", "mongodb..."]')
 
+
+        self.__mongo_client = MongoClient(connection_string, **mongo_kwargs)
+
+        if database_name is None:
+            database_name = "RNOG_live"
+
+        if database_name not in self.__mongo_client.list_database_names():
+            logger.error(f'Could not find database "{database_name}" in mongo client.')
+            raise KeyError
+
+        self.db = self.__mongo_client[database_name]
         logger.info("database connection to {} established".format(self.db.name))
 
         # Set timestamp of database. This is used to determine which primary measurement is used

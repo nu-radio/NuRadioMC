@@ -48,24 +48,13 @@ import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
-from numpy.random import Generator, Philox
-
-STATUS = 31
-
-# logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
+# logging imports
+import logging
+from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 
-class NuRadioMCLogger(logging.Logger):
+logger = logging.getLogger("NuRadioMC.simulation")
 
-    def status(self, msg, *args, **kwargs):
-        if self.isEnabledFor(STATUS):
-            self._log(STATUS, msg, args, **kwargs)
-
-
-logging.setLoggerClass(NuRadioMCLogger)
-logging.addLevelName(STATUS, 'STATUS')
-logger = logging.getLogger("NuRadioMC")
-assert isinstance(logger, NuRadioMCLogger)
 # formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
 # ch = logging.StreamHandler()
 # ch.setFormatter(formatter)
@@ -108,7 +97,7 @@ class simulation:
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
-                 log_level=logging.WARNING,
+                 log_level=LOGGING_STATUS,
                  default_detector_station=None,
                  default_detector_channel=None,
                  file_overwrite=False,
