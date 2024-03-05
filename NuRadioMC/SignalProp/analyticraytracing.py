@@ -27,7 +27,7 @@ from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 
 from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
-
+import logging
 logger = setup_logger("NuRadioMC.analytic_ray_tracing")
 
 # check if CPP implementation is available
