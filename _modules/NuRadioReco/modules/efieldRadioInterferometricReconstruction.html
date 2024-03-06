@@ -1035,7 +1035,7 @@
             <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span>
             <span class="n">shower_axis_inital</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span>
             <span class="n">shower_axis_mc</span><span class="p">,</span> <span class="n">core_mc</span><span class="p">,</span>
-            <span class="n">relative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial_grid_spacing</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">centered_around_truth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">relative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial_grid_spacing</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">centered_around_truth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">cross_section_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">deg_resolution</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mf">0.005</span><span class="p">)):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sampling the &quot;cross section&quot;, i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere.</span>
@@ -1070,20 +1070,28 @@
 
 <span class="sd">        core_mc : np.array(3,)</span>
 
-<span class="sd">        relative : bool</span>
-<span class="sd">            False</span>
+<span class="sd">        relative : bool (Default: False)</span>
+<span class="sd">            If True, the size of the search grid is relative to the distance between the MC axis and the inital guess axis.</span>
+<span class="sd">            The search grid will by a 20 x 20 and just include the MC axis. It is made sure that the MC axis is not at a</span>
+<span class="sd">            grid point. If False, see `centered_around_truth`.</span>
 
-<span class="sd">        initial_grid_spacing : int</span>
-<span class="sd">            100</span>
+<span class="sd">        initial_grid_spacing : double</span>
+<span class="sd">            Initial spacing of your grid points in meters. (Default: 60m)</span>
 
-<span class="sd">        centered_around_truth : bool</span>
-<span class="sd">            True</span>
+<span class="sd">        centered_around_truth : bool (Default: True)</span>
+<span class="sd">            Only used when `relative == False`. If True, the search grid will be constructed around the MC axis. The size</span>
+<span class="sd">            and spacing between grid points is determined by `cross_section_size` and `initial_grid_spacing`. If False,</span>
+<span class="sd">            the search grid is constructed around the inital guess axis. It ensured that the MC-axis is within the search grid.</span>
+<span class="sd">            that means the grid size might be abitrary large (which makes the reconstruction very slow) if the inital axis is far off</span>
+<span class="sd">            the MC axis.</span>
 
-<span class="sd">        cross_section_size : int</span>
-<span class="sd">            1000</span>
+<span class="sd">        cross_section_size : float</span>
+<span class="sd">            (Only used when `centered_around_truth == True`.) Side length on the 2-d planes (slice) along which the maximum around</span>
+<span class="sd">            the initial axis is sampled in meters. (Default: 1000m)</span>
 
 <span class="sd">        deg_resolution : float</span>
-<span class="sd">            np.deg2rad(0.005))</span>
+<span class="sd">            Target spacing for the grid spacing in terms of opening angle. Unit is radiants.</span>
+<span class="sd">            Defines the stopping condition for the iterations. (Default: np.deg2rad(0.005))</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1111,10 +1119,9 @@
         <span class="n">dr_ref_target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">deg_resolution</span><span class="p">)</span> <span class="o">*</span> <span class="n">dist</span>
         <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
             <span class="c1"># ensure that true xmax is within the search grid but not on a grid point</span>
-            <span class="n">xlims</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">.1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mc_vB</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">ylims</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">.1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mc_vB</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">xlims</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">.1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mc_vB</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ylims</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">.1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mc_vB</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
             <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">xlims</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
             <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">ylims</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
 
