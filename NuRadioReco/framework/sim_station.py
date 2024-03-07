@@ -129,3 +129,24 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
                 channel = NuRadioReco.framework.sim_channel.SimChannel(0, 0, 0)
                 channel.deserialize(channel_pkl)
                 self.add_channel(channel)
+
+    def __add__(self, x):
+        """
+        adds a SimStation object to another SimStation object
+        WARNING: Only channel and efield objects are added but no other meta information
+        """
+        if not isinstance(x, SimStation):
+            raise AttributeError("Can only add SimStation to SimStation")
+        if self.get_id() != x.get_id():
+            raise AttributeError("Can only add SimStations with the same ID")
+        channel_ids = self.get_channel_ids()
+        for channel in x.iter_channels():
+            if channel.get_unique_identifier() in channel_ids:
+                raise AttributeError(f"Channel with ID {channel.get_unique_identifier()} already present in SimStation")
+            self.add_channel(channel)
+        efield_ids = self.get_electric_field_ids()
+        for efield in x.iter_efields():
+            if efield.get_unique_identifier() in efield_ids:
+                raise AttributeError(f"Electric field with unique identifier {efield.get_unique_identifier()} already present in SimStation")
+            self.add_efield(efield)
+        return self
