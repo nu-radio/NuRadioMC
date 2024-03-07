@@ -47,10 +47,10 @@ shower[shp.azimuth] = 180 * units.deg # propagation into the positive x directio
 shower[shp.energy] = 1e17 * units.eV
 shower[shp.vertex] = np.array([-500*units.m, 0, -1*units.km])
 shower[shp.type] = 'had'
-
 showers.append(shower)
 
-efields = sim.calculate_sim_efield(showers, sid, cid,
+# calculate the electric fields at the observer positions from the showers
+sim_station = sim.calculate_sim_efield(showers, sid, cid,
                          det, propagator, ice, cfg)
 
 
@@ -62,7 +62,7 @@ efields = sim.calculate_sim_efield(showers, sid, cid,
 import matplotlib.pyplot as plt
 fig, (ax, ax2) = plt.subplots(1,2)
 
-for i, efield in enumerate(efields):
+for i, efield in enumerate(sim_station.get_electric_fields()):
     trace = efield.get_trace()
     ax.plot(efield.get_times(), trace[1]/units.V*units.m, f"-C{i}", label=f'efield id {efield.get_unique_identifier()}')
     ax.plot(efield.get_times(), trace[2]/units.V*units.m, f"--C{i}")
