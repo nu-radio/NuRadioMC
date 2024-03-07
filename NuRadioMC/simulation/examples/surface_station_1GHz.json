@@ -3,7 +3,7 @@
     "channels": {
         "1": {
             "adc_id": null,
-            "adc_n_samples": 256,
+            "adc_n_samples": 1024,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
@@ -30,7 +30,7 @@
         },
         "2": {
             "adc_id": null,
-            "adc_n_samples": 256,
+            "adc_n_samples": 1024,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
@@ -57,7 +57,7 @@
         },
         "3": {
             "adc_id": null,
-            "adc_n_samples": 256,
+            "adc_n_samples": 1024,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
@@ -84,7 +84,7 @@
         },
         "4": {
             "adc_id": null,
-            "adc_n_samples": 256,
+            "adc_n_samples": 1024,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
@@ -111,7 +111,7 @@
         },
         "5": {
             "adc_id": null,
-            "adc_n_samples": 256,
+            "adc_n_samples": 1024,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
@@ -138,7 +138,7 @@
         },
         "6": {
             "adc_id": null,
-            "adc_n_samples": 256,
+            "adc_n_samples": 1024,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
@@ -165,7 +165,7 @@
         },
         "7": {
             "adc_id": null,
-            "adc_n_samples": 256,
+            "adc_n_samples": 1024,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
@@ -192,7 +192,7 @@
         },
         "8": {
             "adc_id": null,
-            "adc_n_samples": 256,
+            "adc_n_samples": 1024,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
