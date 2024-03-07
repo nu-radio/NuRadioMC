@@ -114,7 +114,7 @@ def calculate_sim_efield(showers, sid, cid,
     """
     p = propagator # shorthand for more compact coding
 
-    efields = []
+    sim_station = NuRadioReco.framework.sim_station.SimStation(sid)
 
     x2 = det.get_relative_position(sid, cid) + det.get_absolute_position(sid)
     n_samples = det.get_number_of_samples(sid, cid)
@@ -218,7 +218,7 @@ def calculate_sim_efield(showers, sid, cid,
             electric_field[efp.polarization_angle] = np.arctan2(*polarization_direction_onsky[1:][::-1]) #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
 
-            efields.append(electric_field)
+            sim_station.add_electric_field(electric_field)
 
             # TODO: Implement this speedup cut
             # apply a simple threshold cut to speed up the simulation,
@@ -226,7 +226,7 @@ def calculate_sim_efield(showers, sid, cid,
             # signal amplitude
             # if np.max(np.abs(electric_field.get_trace())) > float(config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
             #     candidate_station = True
-    return efields
+    return sim_station
 
 def calculate_sim_efield_for_emitter(emitters, sid, cid,
                          det, propagator, config,
@@ -264,7 +264,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
     """
     p = propagator # shorthand for more compact coding
 
-    efields = []
+    sim_station = NuRadioReco.framework.sim_station.SimStation(sid)
 
     x2 = det.get_relative_position(sid, cid) + det.get_absolute_position(sid)
     n_samples = det.get_number_of_samples(sid, cid)
@@ -367,7 +367,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             electric_field[efp.nu_vertex_distance] = R
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
 
-            efields.append(electric_field)
+            sim_station.add_electric_field(electric_field)
 
             # TODO: Implement this speedup cut
             # apply a simple threshold cut to speed up the simulation,
@@ -375,7 +375,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             # signal amplitude
             # if np.max(np.abs(electric_field.get_trace())) > float(config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
             #     candidate_station = True
-    return efields
+    return sim_station
 
 def apply_det_response(sim_efields, det, config,
                        time_logger=None):
@@ -400,6 +400,25 @@ def apply_det_response(sim_efields, det, config,
         A list of SimEfield objects, one for each shower and propagation solution, with the detector response applied
 
     """
+    stn = NuRadioReco.framework.station.Station(sid)
+    stn.set_sim_station(self._sim_station)
+    stn.get_sim_station().set_station_time(self._evt_time)
+
+    # convert efields to voltages at digitizer
+    if hasattr(self, '_detector_simulation_part1'):
+        # we give the user the opportunity to define a custom detector simulation
+        self._detector_simulation_part1()
+    else:
+        efieldToVoltageConverterPerEfield.run(self._evt, stn, self._det)  # convolve efield with antenna pattern
+        self._detector_simulation_filter_amp(self._evt, stn.get_sim_station(), self._det)
+        channelAddCableDelay.run(self._evt, self._sim_station, self._det)
+
+    if self._cfg['speedup']['amp_per_ray_solution']:
+        self._channelSignalReconstructor.run(self._evt, stn.get_sim_station(), self._det)
+        for channel in stn.get_sim_station().iter_channels():
+            tmp_index = np.argwhere(event_indices == self._get_shower_index(channel.get_shower_id()))[0]
+            sg['max_amp_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+            sg['time_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
 
 def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
         """
