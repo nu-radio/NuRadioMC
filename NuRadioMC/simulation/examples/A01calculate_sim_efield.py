@@ -6,6 +6,7 @@ from NuRadioReco.detector import detector
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.utilities import medium
 import NuRadioReco.framework.radio_shower
+import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import units
 from datetime import datetime
@@ -27,7 +28,7 @@ propagator = propagation.get_propagation_module("analytic")(ice)
 
 # set the station id and channel id
 sid = 101
-cid = 0
+cid = 1
 
 # get the general config settings
 cfg = sim.get_config("config.yaml")
@@ -42,10 +43,10 @@ showers = []
 shower = NuRadioReco.framework.radio_shower.RadioShower(0)
 # according to our convention, the shower direction is the direction of
 # where the shower is coming from.
-shower[shp.zenith] = 70 * units.deg # propagation downwards
+shower[shp.zenith] = 89 * units.deg # propagation downwards
 shower[shp.azimuth] = 180 * units.deg # propagation into the positive x direction
 shower[shp.energy] = 1e17 * units.eV
-shower[shp.vertex] = np.array([-500*units.m, 0, -1*units.km])
+shower[shp.vertex] = np.array([-700*units.m, 0, -1*units.km])
 shower[shp.type] = 'had'
 showers.append(shower)
 
@@ -74,6 +75,37 @@ for i, efield in enumerate(sim_station.get_electric_fields()):
              f"--C{i}")
     ax2.set_xlabel('Frequency (MHz)')
     ax2.set_ylabel('Electric Field (V/m/MHz)')
+ax.legend()
+ax2.legend()
+fig.tight_layout()
+# plt.show()
+
+
+# now let's apply the detector response (antennas and signal chain)
+
+# first we define the analog signal chain
+channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+def detector_simulation_filter_amp(evt, station, det):
+    channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
+                                filter_type='butter', order=2)
+    channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
+                                filter_type='butter', order=10)
+
+# applies the detector response to the electric fields (the antennas are defined
+# in the json detector description file)
+sim.apply_det_response(sim_station, det, cfg, detector_simulation_filter_amp)
+
+# let's plot the results
+fig, (ax, ax2) = plt.subplots(1,2)
+for i, channel in enumerate(sim_station.iter_channels()):
+    trace = channel.get_trace()
+    ax.plot(channel.get_times(), trace/units.V, f"-C{i}", label=f'channel id {channel.get_unique_identifier()}')
+    ax.set_xlabel('Time (ns)')
+    ax.set_ylabel('Voltage (V)')
+    ax2.plot(channel.get_frequencies()/units.MHz, np.abs(channel.get_frequency_spectrum()/units.V*units.MHz),
+             f"-C{i}",label=f'channel id {efield.get_unique_identifier()}')
+    ax2.set_xlabel('Frequency (MHz)')
+    ax2.set_ylabel('Voltage (V/MHz)')
 ax.legend()
 ax2.legend()
 fig.tight_layout()

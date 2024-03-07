@@ -57,6 +57,11 @@ import NuRadioMC.simulation.time_logger
 logger = setup_logger("NuRadioMC.simulation")
 logger.setLevel(logging.DEBUG)
 
+# initialize a few NuRadioReco modules
+# TODO: Is this the best way to do it? Better to initialize them on demand
+channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
+efieldToVoltageConverterPerEfield = NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
+channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
 
 def pretty_time_delta(seconds):
     seconds = int(seconds)
@@ -115,10 +120,13 @@ def calculate_sim_efield(showers, sid, cid,
     p = propagator # shorthand for more compact coding
 
     sim_station = NuRadioReco.framework.sim_station.SimStation(sid)
+    sim_station.set_is_neutrino()  # nameing not ideal, but this function defines in-ice emission (compared to in-air emission from air showers)
 
     x2 = det.get_relative_position(sid, cid) + det.get_absolute_position(sid)
-    n_samples = det.get_number_of_samples(sid, cid)
     dt = 1. / config['sampling_rate']
+    # rescale the number of samples to the internal (higher) sampling rate used in the simulation
+    n_samples = det.get_number_of_samples(sid, cid) / det.get_sampling_frequency(sid, cid) / dt
+    n_samples = int(np.ceil(n_samples / 2.) * 2)  # round to nearest even integer
 
     for shower in showers:
         shower_axis = -1 * shower.get_axis() # We need the propagation direction here, so we multiply the shower axis with '-1'
@@ -143,6 +151,7 @@ def calculate_sim_efield(showers, sid, cid,
         for iS in range(p.get_number_of_solutions()):
             viewing_angles[iS] = hp.get_angle(shower_axis, p.get_launch_vector(iS))
             delta_Cs[iS] = viewing_angles[iS] - cherenkov_angle
+            logger.debug(f"viewing angle = {delta_Cs[iS]/units.deg:.1f}deg")
         # discard event if delta_C (angle off cherenkov cone) is too large
         if min(np.abs(delta_Cs)) > config['speedup']['delta_C_cut']:
             logger.debug(f'delta_C too large, event unlikely to be observed, (min(Delta_C) = {min(np.abs(delta_Cs))/units.deg:.1f}deg), skipping event')
@@ -265,6 +274,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
     p = propagator # shorthand for more compact coding
 
     sim_station = NuRadioReco.framework.sim_station.SimStation(sid)
+    sim_station.set_is_neutrino()  # nameing not ideal, but this function defines in-ice emission (compared to in-air emission from air showers)
 
     x2 = det.get_relative_position(sid, cid) + det.get_absolute_position(sid)
     n_samples = det.get_number_of_samples(sid, cid)
@@ -377,48 +387,62 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             #     candidate_station = True
     return sim_station
 
-def apply_det_response(sim_efields, det, config,
+def apply_det_response(sim_station, det, config,
+                       detector_simulation_filter_amp=None,
+                       evt=None,
+                       event_time=None,
+                       detector_simulation_part1=None,
                        time_logger=None):
     """
     Apply the detector response to the simulated electric field, i.e., the voltage traces
     seen by the readout system. This includes the effect of the antenna response, the
-    analog signal chain. The result is a list of SimChannel objects.
+    analog signal chain. The result is a list of SimChannel objects which are added to the 
+    SimStation object.
 
 
     Parameters
     ----------
-    sim_efield : list of SimEfield objects
+    sim_station : sim_station object that contains the electric fields at the observer positions
         A list of SimEfield objects, one for each shower and propagation solution
     det : Detector object
         the detector description defining all channels.
     config : dict
         the NuRadioMC configuration dictionary (from the yaml file)
+    detector_simulation_filter_amp: function (optional)
+        a function that applies the filter and amplifier response to the electric field
+        the arguments to the function are (event, station, detector)
+        if not provided, the function `detector_simulation_part1` needs to be provided.
+    evt : NuRadioReco event object (optional)
+        all NuRadioReco modules that get executed will be registered to the event.
+        If no event is provided, a dummy event is created so that the function runs, but
+        then this information is not available to the user. 
+    event_time: time object (optional)
+        the time of the event to be simulated
+    detector_simulation_part1: function (optional)
+        this function gives the user the full flexibility to implement all processing
+        arguments to the function are (event, station, detector)
 
-    Returns
-    -------
-    list of SimChannel objects
-        A list of SimEfield objects, one for each shower and propagation solution, with the detector response applied
-
+    Returns nothing. The SimChannels are added to the SimStation object.
     """
-    stn = NuRadioReco.framework.station.Station(sid)
-    stn.set_sim_station(self._sim_station)
-    stn.get_sim_station().set_station_time(self._evt_time)
+    if evt is None:
+        evt = NuRadioReco.framework.event.Event(0, 0)
+    if event_time is not None:
+        sim_station.set_station_time(event_time)
+
+    if detector_simulation_filter_amp is None and detector_simulation_part1 is None:
+        logger.error("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part1")
+        raise ValueError("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part1")
 
     # convert efields to voltages at digitizer
-    if hasattr(self, '_detector_simulation_part1'):
-        # we give the user the opportunity to define a custom detector simulation
-        self._detector_simulation_part1()
+    if detector_simulation_part1 is not None:
+        detector_simulation_part1(sim_station, det)
     else:
-        efieldToVoltageConverterPerEfield.run(self._evt, stn, self._det)  # convolve efield with antenna pattern
-        self._detector_simulation_filter_amp(self._evt, stn.get_sim_station(), self._det)
-        channelAddCableDelay.run(self._evt, self._sim_station, self._det)
+        efieldToVoltageConverterPerEfield.run(evt, sim_station, det)  # convolve efield with antenna pattern
+        detector_simulation_filter_amp(evt, sim_station, det)
+        channelAddCableDelay.run(evt, sim_station, det)
 
-    if self._cfg['speedup']['amp_per_ray_solution']:
-        self._channelSignalReconstructor.run(self._evt, stn.get_sim_station(), self._det)
-        for channel in stn.get_sim_station().iter_channels():
-            tmp_index = np.argwhere(event_indices == self._get_shower_index(channel.get_shower_id()))[0]
-            sg['max_amp_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
-            sg['time_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
+    if config['speedup']['amp_per_ray_solution']:
+        channelSignalReconstructor.run(evt, sim_station, det)
 
 def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
         """
