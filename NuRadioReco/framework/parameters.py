@@ -77,6 +77,7 @@ class electricFieldParameters(Enum):
     reflection_coefficient_phi = 15  #: for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
     cr_spectrum_quadratic_term = 16  #: result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
     energy_fluence_ratios = 17   #: Ratios of the energy fluences in different passbands
+    raytracing_solution = 18  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
 
 
 class ARIANNAParameters(Enum):  #: this class stores parameters specific to the ARIANNA data taking
@@ -137,6 +138,8 @@ class emitterParameters(Enum):
     rotation_phi = 9  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
     rotation_theta = 10  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
     realization_id = 11  #: the id of the measurement of the emitted electric field
+    antenna_type =  12  #: the type of the antenna used to simulate the emission
+    time = 13  #: the time when the signal was emitted
 
 
 class particleParameters(Enum):
