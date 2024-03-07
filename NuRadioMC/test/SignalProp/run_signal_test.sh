@@ -17,7 +17,7 @@ rm emitter_sim_test/test_input.hdf5
 rm emitter_sim_test/test_output.hdf5
 rm emitter_sim_test/test_output.nur
 
-cd ../../../SignalProp/examples
+cd ../../SignalProp/examples
 python3 example_3d.py
 python3 A01IceCubePulserToARA.py
 cd birefringence_examples
