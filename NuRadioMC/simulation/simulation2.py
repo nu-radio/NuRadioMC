@@ -55,6 +55,7 @@ import NuRadioMC.simulation.output_writer_nur
 import NuRadioMC.simulation.time_logger
 
 logger = setup_logger("NuRadioMC.simulation")
+logger.setLevel(logging.DEBUG)
 
 
 def pretty_time_delta(seconds):
@@ -125,9 +126,6 @@ def calculate_sim_efield(showers, sid, cid,
         n_index = medium.get_index_of_refraction(x1)
         cherenkov_angle = np.arccos(1. / n_index)
 
-        print(x1)
-        print(x2)
-        print(type(p))
         p.set_start_and_end_point(x1, x2)
         p.use_optional_function('set_shower_axis', shower_axis)
         if config['speedup']['redo_raytracing']:  # check if raytracing was already performed
@@ -147,7 +145,7 @@ def calculate_sim_efield(showers, sid, cid,
             delta_Cs[iS] = viewing_angles[iS] - cherenkov_angle
         # discard event if delta_C (angle off cherenkov cone) is too large
         if min(np.abs(delta_Cs)) > config['speedup']['delta_C_cut']:
-            logger.debug('delta_C too large, event unlikely to be observed, skipping event')
+            logger.debug(f'delta_C too large, event unlikely to be observed, (min(Delta_C) = {min(np.abs(delta_Cs))/units.deg:.1f}deg), skipping event')
             continue
         for iS in range(n): # loop through all ray tracing solution
             # skip individual channels where the viewing angle difference is too large
@@ -217,7 +215,7 @@ def calculate_sim_efield(showers, sid, cid,
             electric_field[efp.ray_path_type] = propagation.solution_types[p.get_solution_type(iS)]
             electric_field[efp.nu_vertex_distance] = R
             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
-            electric_field[efp.polarization_angle] = np.atan2(*polarization_direction_onsky[1:][::-1]) #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
+            electric_field[efp.polarization_angle] = np.arctan2(*polarization_direction_onsky[1:][::-1]) #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
 
             efields.append(electric_field)
@@ -228,6 +226,7 @@ def calculate_sim_efield(showers, sid, cid,
             # signal amplitude
             # if np.max(np.abs(electric_field.get_trace())) > float(config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
             #     candidate_station = True
+    return efields
 
 def calculate_sim_efield_for_emitter(emitters, sid, cid,
                          det, propagator, config,
@@ -376,6 +375,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             # signal amplitude
             # if np.max(np.abs(electric_field.get_trace())) > float(config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
             #     candidate_station = True
+    return efields
 
 def apply_det_response(sim_efields, det, config,
                        time_logger=None):
@@ -488,6 +488,36 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
                             emitter_obj[key] = fin['emitter_' + key.name][idx]
                 event_group.add_sim_emitter(emitter_obj)
         return event_group
+
+def get_config(config_file):
+    """
+    Read the configuration file and return the configuration dictionary.
+
+    The configuration dictionary is a combination of the default configuration
+    and the local configuration file. The local configuration file can override
+    the default configuration.
+
+    Parameters
+    ----------
+    config_file : string
+        the path to the configuration file
+
+    Returns
+    -------
+    dict
+        the configuration dictionary
+    """
+    config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
+    logger.status('reading default config from {}'.format(config_file_default))
+    with open(config_file_default, 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+    if config_file is not None:
+        logger.status('reading local config overrides from {}'.format(config_file))
+        with open(config_file, 'r') as ymlfile:
+            local_config = yaml.load(ymlfile, Loader=yaml.FullLoader)
+            new_cfg = merge_config(local_config, cfg)
+            cfg = new_cfg
+    return cfg
 
 def calculate_polarization_vector(shower_axis, launch_vector, config):
         """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)
