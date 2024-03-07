@@ -40,8 +40,10 @@ det.update(datetime.now())
 # define the showers that should be simulated
 showers = []
 shower = NuRadioReco.framework.radio_shower.RadioShower(0)
-shower[shp.zenith] = 70 * units.deg
-shower[shp.azimuth] = 180 * units.deg
+# according to our convention, the shower direction is the direction of
+# where the shower is coming from.
+shower[shp.zenith] = 70 * units.deg # propagation downwards
+shower[shp.azimuth] = 180 * units.deg # propagation into the positive x direction
 shower[shp.energy] = 1e17 * units.eV
 shower[shp.vertex] = np.array([-500*units.m, 0, -1*units.km])
 shower[shp.type] = 'had'
