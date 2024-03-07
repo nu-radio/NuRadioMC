@@ -1,0 +1,25 @@
+The Ice data stored in eps.csv was taken from: Voigt, D. E. (2017) "c-Axis Fabric of the South Pole Ice Core, SPC14" U.S. Antarctic Program (USAP) Data Center. doi: https://doi.org/10.15784/601057. The calculation of how to convert the data into refractive indices was taken from: Jordan, T., Besson, D., Kravchenko, I., Latif, U., Madison, B., Nokikov, A., & Shultz, A. (2020). Modeling ice birefringence and oblique radio wave propagation for neutrino detection at the South Pole. Annals of Glaciology, 61(81), 84-91. doi:10.1017/aog.2020.18.
+
+In order to use the data, spline interpolated functions were fitted to the data points. As the data only cover a certain depth range there is room for interpretation on how to extrapolate the data to more shallow and deeper depth regions. The file IceModel_interpolation.py can be used to adjust the interpolation method and come up with new ice models. As the data was taken at the South Pole, the models created with this data set should be called "birefringence_southpole_X.npy", where the X marks the model identifier.
+
+The previously used models are presented here:
+
+southpole A     -   assumes a constant index of refraction at shallow and deep depths
+
+southpole B     -   assumes a converging index of refraction at shallow depths
+
+southpole C     -   no birefringence as nx = ny = nz
+
+southpole D     -   assumes a constant average over all depths
+
+southpole E     -   assumes ny and nz to be the same value at the average of the two
+
+The models A, B, D, E were presented in the paper: N. Heyer and C. Glaser, First-principle calculation of birefringence effects for in-ice
+radio detection of neutrinos, eprint: 2205.06169.
+
+
+greenland A     -   most reasonable interpolation
+
+greenland B     -   assumes ny and nx to be the same value at the average of the two
+
+greenland C     -   assumes ny and nx to diverge more than the data indicates

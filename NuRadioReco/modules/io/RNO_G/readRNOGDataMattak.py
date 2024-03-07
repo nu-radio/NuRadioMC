@@ -311,8 +311,7 @@ class readRNOGData:
             pyroot is used if available otherwise a "fallback" to uproot is used. (Default: "auto")
 
         overwrite_sampling_rate: float
-            Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo
-            (i.e., stored in the mattak files) only when the stored sampling rate is invalid (i.e. 0 or None).
+            Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo (i.e., stored in the mattak files).
             If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
             NOTE: This option might be necessary when old mattak files are read which have this not set.
         """
@@ -672,7 +671,7 @@ class readRNOGData:
 
         trigger_time = event_info.triggerTime
         # only overwrite sampling rate if the stored value is invalid
-        if self._overwrite_sampling_rate is not None and event_info.sampleRate in [0, None]:
+        if self._overwrite_sampling_rate is not None and event_info.sampleRate not in [0, None]:
             sampling_rate = self._overwrite_sampling_rate
         else:
             sampling_rate = event_info.sampleRate

@@ -1,0 +1,16 @@
+noise: False  # specify if simulation should be run with or without noise
+sampling_rate: 5.  # sampling rate in GHz used internally in the simulation.
+speedup:
+  minimum_weight_cut: 1.e-5
+  delta_C_cut: 0.698  # 40 degree
+propagation:
+  ice_model: southpole_2015
+signal:
+  model: Alvarez2009
+trigger:
+  noise_temperature: 300  # in Kelvin
+weights:
+  weight_mode: core_mantle_crust # core_mantle_crust: use the three
+  #layer earth model, which considers the different densities of the
+  #core, mantle and crust. simple: use the simple earth model, which
+  #apply a constant earth density

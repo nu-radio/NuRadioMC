@@ -13,7 +13,11 @@ propagation:
   attenuation_model: SP1
   attenuate_ice: True # if True apply the frequency dependent attenuation due to propagating through ice. (Note: The 1/R amplitude scaling will be applied in either case.)
   n_freq: 25  # the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complet frequency range. 
-  
+  birefringence: True
+  birefringence_propagation: 'analytical'
+  birefringence_model: 'southpole_A'
+  angle_to_iceflow: -131
+
 signal:
   model: spherical
   zerosignal: False  # if True, the signal is set to zero. This is useful to study 'noise' only simulations

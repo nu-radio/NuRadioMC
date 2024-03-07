@@ -8,11 +8,11 @@ import argparse
 from datetime import datetime
 from NuRadioReco.utilities import units, io_utilities
 from radiotools import plthelpers as php
-plt.switch_backend('agg')
+# plt.switch_backend('agg')
 
 
 if __name__ == "__main__":
-    i = 2
+    i = 3
 
     results = io_utilities.read_pickle("sim_results_{:02d}.pkl".format(i), encoding='latin1')
     d = results['depth']
@@ -42,6 +42,16 @@ if __name__ == "__main__":
     ax2.set_ylabel("azimuth (reco - exp) [deg]")
     ax2.set_xlabel("depth [m]")
     fig.tight_layout()
+    fig.savefig("plots/results_{:02d}_zen_az.png".format(i))
+
+    fig, ax = plt.subplots(1, 1)
+    ax.scatter(d, np.array(results['pol_angle']) / units.deg,
+                 s=20, marker='o', alpha=0.5)
+    ax.set_ylabel("polarization angle [deg]")
+    ax.set_xlabel("depth [m]")
+    fig.savefig("plots/results_{:02d}_pol_angle.png".format(i))
+    fig.tight_layout()
+
 
 
 

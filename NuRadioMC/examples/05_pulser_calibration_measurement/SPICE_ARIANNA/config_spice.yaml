@@ -1,0 +1,16 @@
+noise: False  # specify if simulation should be run with or without noise
+sampling_rate: 5.  # sampling rate in GHz used internally in the simulation. At the end the waveforms will be downsampled to the sampling rate specified in the detector description
+
+speedup:
+  minimum_weight_cut: 0 # disable neutrino weight cut -> we're not simulating neutrinos here
+  delta_C_cut: 10  # more than 360deg, disable cone angle cut
+  min_efield_amplitude: 0
+  distance_cut: False
+
+propagation:
+  module: analytic
+  ice_model: southpole_2015
+  attenuation_model: SP1
+  attenuate_ice: True # if True apply the frequency dependent attenuation due to propagating through ice. (Note: The 1/R amplitude scaling will be applied in either case.)
+  n_freq: 25  # the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complet frequency range. 
+  #birefringence: Trues

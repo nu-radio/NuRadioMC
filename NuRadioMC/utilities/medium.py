@@ -1,6 +1,9 @@
 from NuRadioMC.utilities import medium_base
+import itertools
 import numpy as np
+import os
 from NuRadioReco.utilities import units
+from scipy import interpolate
 import logging
 logging.basicConfig()
 
@@ -32,7 +35,7 @@ radiopropa ice model, so it can be used in NuRadioMC. For example
 3) You can also choose to only implement the new ice model in radiopropa if
 radiopropa is always necessary and make the new model in this script access
 the c++ implemented model (e.g. green_firn model)
-        
+
 
 4) If you want to adjust (add, replace, remove) predefined modules 
 in the a RadioPropaIceWrapper object, you can do this by redefining the 
@@ -45,6 +48,7 @@ in the a RadioPropaIceWrapper object, you can do this by redefining the
             ice.add_module(extra_discontinuity)
             return ice
 """
+
 
 class southpole_simple(medium_base.IceModelSimple):
     def __init__(self):
@@ -78,6 +82,26 @@ class ARAsim_southpole(medium_base.IceModelSimple):
             z_0 = 75.75757575757576*units.meter, 
             delta_n = 0.43,
             )
+
+
+
+class ARA_2022(medium_base.IceModelSimple):
+    def __init__(self):
+        # define model parameters (ARA/southpole) -> https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006
+        super().__init__(
+            z_bottom = -2820*units.meter, 
+            n_ice = 1.78, 
+            z_0 = 49.5049505*units.meter, 
+            delta_n = 0.454,
+            )
+
+
+class birefringence_medium(medium_base.IceModelBirefringence):
+
+    def __init__(self, bir_model='southpole_A'):
+        # from https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+        filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/birefringence_' + bir_model + '.npy'
+        super().__init__(bir_model=np.load(filepath, allow_pickle=True))
 
 
 class mooresbay_simple(medium_base.IceModelSimple):
@@ -174,7 +198,7 @@ class greenland_firn(medium_base.IceModel):
 
         super().__init__(z_bottom = -3000*units.meter)
         self.z_firn = -14.9*units.meter
-        
+
         self._scalarfield = RP.IceModel_Firn(
             z_surface = self.z_air_boundary*RP.meter/units.meter,
             z_firn = self.z_firn*RP.meter/units.meter, 

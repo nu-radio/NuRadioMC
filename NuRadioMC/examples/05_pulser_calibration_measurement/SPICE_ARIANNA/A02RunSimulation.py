@@ -11,7 +11,8 @@ import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
-logging.basicConfig(level=logging.WARNING)
+#logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger("runstrawman")
 
 # initialize detector sim modules
@@ -22,7 +23,8 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
-triggerSimulator.begin(log_level=logging.WARNING)
+#triggerSimulator.begin(log_level=logging.WARNING)
+triggerSimulator.begin(log_level=logging.ERROR)
 
 
 class mySimulation(simulation.simulation):
@@ -37,10 +39,10 @@ class mySimulation(simulation.simulation):
                            high_low_window=5 * units.ns,
                            coinc_window=30 * units.ns,
                            number_concidences=2,
-                           triggered_channels=range(8))
+                           triggered_channels=range(4))
         triggerTimeAdjuster.run(evt, station, det)
 
-
+"""
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC input event list')
@@ -53,15 +55,17 @@ parser.add_argument('outputfilename', type=str,
 parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
+"""
 
 if __name__ == "__main__":
-    sim = mySimulation(inputfilename=args.inputfilename,
-                                outputfilename=args.outputfilename,
-                                detectorfile=args.detectordescription,
-                                outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                                config_file=args.config,
-                                log_level=logging.WARNING,
-                                evt_time=datetime.datetime(2018, 12, 30),
+    sim = mySimulation(inputfilename='SPICE_drop_event_list.hdf5',
+                                outputfilename='output_MC.hdf5',
+                                detectorfile='detector_db.json',
+                                outputfilenameNuRadioReco='output_reco.nur',
+                                config_file='config_spice.yaml',
+                                #log_level=logging.WARNING,
+                                log_level=logging.INFO,
+                                evt_time=datetime.datetime(2019, 12, 30),
                                 file_overwrite=True)
     sim.run()
 

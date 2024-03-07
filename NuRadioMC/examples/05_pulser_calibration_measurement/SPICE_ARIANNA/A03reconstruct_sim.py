@@ -14,6 +14,7 @@ import NuRadioReco.detector.detector as detector
 import NuRadioReco.modules.io.eventReader
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.framework.parameters import emitterParameters as ep
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import NuRadioReco.modules.channelBandPassFilter
@@ -21,15 +22,17 @@ import NuRadioReco.modules.correlationDirectionFitter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.voltageToEfieldConverterPerChannel
+import NuRadioReco.modules.voltageToEfieldConverter
 import NuRadioReco.modules.electricFieldSignalReconstructor
 import NuRadioReco.modules.efieldTimeDirectionFitter
 import NuRadioReco.modules.channelTimeWindow
 import NuRadioReco.modules.channelSignalReconstructor
+import NuRadioReco.modules.eventTypeIdentifier
 
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from radiotools import helper as hp
-plt.switch_backend('agg')
+# plt.switch_backend('agg')
 
 if __name__ == "__main__":
     plot = 1
@@ -39,10 +42,12 @@ if __name__ == "__main__":
     channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
     hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
     voltageToEfieldConverterPerChannel = NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel()
+    voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter()
     electricFieldSignalReconstructor = NuRadioReco.modules.electricFieldSignalReconstructor.electricFieldSignalReconstructor()
     efieldTimeDirectionFitter = NuRadioReco.modules.efieldTimeDirectionFitter.efieldTimeDirectionFitter()
     channelTimeWindow = NuRadioReco.modules.channelTimeWindow.channelTimeWindow()
     channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
+    eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier()
 
     efieldTimeDirectionFitter.begin(debug=plot)
     channelTimeWindow.begin(debug=False)
@@ -58,13 +63,14 @@ if __name__ == "__main__":
     #                     help='path to detectordescription')
     args = parser.parse_args()
 
-    pos_SP1 = np.array([41153.2175 * units.feet, 50381.75 * units.feet, -1.5 * units.m])
+    det = detector.Detector("detector_db.json", source='json',antenna_by_depth=False)
+    det.update(datetime(2018, 12, 30, 22, 30, 22))
+    pos_SP1 = det.get_absolute_position(51)
+
+    pos_SP1_2 = np.array([41153.2175 * units.feet, 50381.75 * units.feet, -1.5 * units.m])
     pos_spice = np.array([42600, 48800, 0]) * units.feet
 
     print('distance = {:.2f}'.format(np.linalg.norm(pos_SP1 - pos_spice)))
-
-    # read in detector positions (this is a dummy detector)
-    det = detector.Detector()
 
     t1 = datetime(2018, 12, 30, 22, 30, 22)
     t2 = datetime(2018, 12, 31, 2, 3, 11)
@@ -79,21 +85,16 @@ if __name__ == "__main__":
             'time_LPDA': [],
             'time_dipole': [],
             'chi2_time_dipole': [],
-            'chi2_time_LPDA': []}
+            'chi2_time_LPDA': [],
+            'pol_angle': []}
 
-    dds = -1 * np.arange(500, 1800, 100)
     for evt in eventReader.run():
         for station in evt.get_stations():
             station_id = station.get_id()
             t = station.get_station_time()
+            print("event {}, station {}, time {}".format(evt.get_id(), station_id, t))
             det.update(t)
-            d = evt.get_first_sim_shower().get_parameter(shp.vertex)[2]
-            if(np.any(np.isclose(d, dds, atol=5))):
-                dds = np.delete(dds, np.argwhere(np.isclose(d, dds, atol=5)))
-            else:
-                continue
-    #         if(d > -800):
-    #             continue
+            d = evt.get_first_sim_emitter()[ep.position][2]
 
             # calcualte expected angles
             r = ray.ray_tracing(medium.southpole_simple(), log_level=logging.WARNING)
@@ -107,8 +108,11 @@ if __name__ == "__main__":
             zen, az = hp.cartesian_to_spherical(*rvec)
             az = hp.get_normalized_angle(az)
             results['exp'].append((zen, az))
+            station.get_sim_station().set_parameter(stnp.zenith, zen)
+            station.get_sim_station().set_parameter(stnp.azimuth, az)
             print("{} depth = {:.1f}m -> {:.2f} {:.2f} (solution type {})".format(t, d, zen / units.deg, az / units.deg, r.get_solution_type(0)))
 
+            eventTypeIdentifier.run(evt, station, mode='forced', forced_event_type='neutrino')
             channelResampler.run(evt, station, det, 50 * units.GHz)
             channelBandPassFilter.run(evt, station, det, passband=[120 * units.MHz, 300 * units.MHz], filter_type='butterabs', order=10)
             channelBandPassFilter.run(evt, station, det, passband=[10 * units.MHz, 1000 * units.MHz], filter_type='rectangular')
@@ -210,5 +214,39 @@ if __name__ == "__main__":
                 plt.close("all")
     #             a = 1/0
 
-    with open("sim_results_02.pkl", 'wb') as fout:
+            voltageToEfieldConverter.run(evt, station, det, use_channels=[0,1,2,3], use_MC_direction=True)
+            for efield in station.get_electric_fields_for_channels([0,1,2,3]):
+                etrace = efield.get_trace()
+                ehilbert_theta = np.abs(signal.hilbert(etrace[1]))
+                imax = np.argmax(ehilbert_theta)
+                nbins_20ns = int(20 * units.ns / (efield.get_times()[1] - efield.get_times()[0]))
+                pol_angle = np.arctan2(np.sum(etrace[2][imax - nbins_20ns:imax + nbins_20ns]**2),np.sum(etrace[1][imax - nbins_20ns:imax + nbins_20ns]**2))
+                print("pol angle = {:.2f}deg".format(pol_angle / units.deg))
+                results['pol_angle'].append(pol_angle)
+                if plot:
+                    fig, ax = plt.subplots(1, 1)
+                    ax.plot(efield.get_times() / units.ns, efield.get_trace()[1] / units.mV, "-C0", lw=1, label='theta')
+                    ax.plot(efield.get_times() / units.ns, np.abs(signal.hilbert(efield.get_trace()[1])) / units.mV, 'C0--', lw=1)
+                    ax.plot(efield.get_times() / units.ns, efield.get_trace()[2] / units.mV, "-C1", lw=1, label='phi')
+                    ax.plot(efield.get_times() / units.ns, np.abs(signal.hilbert(efield.get_trace()[2])) / units.mV, 'C1--', lw=1)
+
+                    # plotting the simulated efield does not make much sense as it has a much higher frequency content than what can be reconstructed
+                    # for sefield in station.get_sim_station().get_electric_fields_for_channels([0]):
+                    #     if(sefield[efp.ray_path_type] == 'direct'):
+                    #         ax.plot(sefield.get_times() / units.ns, sefield.get_trace()[1] / units.mV, "--C0", lw=1, label='sim direct')
+                    #         ax.plot(sefield.get_times() / units.ns, sefield.get_trace()[2] / units.mV, "--C1", lw=1)
+                    #     elif(sefield[efp.ray_path_type] == 'reflected'):
+                    #         ax.plot(sefield.get_times() / units.ns, sefield.get_trace()[1] / units.mV, ":C0", lw=1, label='sim reflected')
+                    #         ax.plot(sefield.get_times() / units.ns, sefield.get_trace()[2] / units.mV, ":C1", lw=1)
+                    #         ax.set_title("r = {:.2f} {:.2f}".format(np.abs(sefield[efp.reflection_coefficient_theta]), np.abs(sefield[efp.reflection_coefficient_phi])), fontsize='xx-small')
+                    ax.legend()
+                    fig.tight_layout()
+                    # plt.show()
+                    # a = 1/0
+                    fig.savefig("plots/efields/3D_d_{:04.0f}m.png".format(d))
+                    plt.close(fig)
+                break # there should be only one efield for the 4 channels, but better be safe than sorry
+
+
+    with open("sim_results_03.pkl", 'wb') as fout:
         pickle.dump(results, fout, protocol=2)
