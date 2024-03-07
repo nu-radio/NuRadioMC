@@ -160,7 +160,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
 
         if model not in buffer_emitter_model:
             path = os.path.dirname(os.path.dirname(__file__))
-            SPice_pulses = os.path.join(path,"SignalProp/examples/birefringence_examples/extra_files/SPice_pulses.xz")
+            SPice_pulses = os.path.join(path,"SignalProp/examples/birefringence_examples/extra_files/SPice_pulses_normed.xz")
 
             with lzma.open(SPice_pulses, "r") as f:
                 buffer_emitter_model[model] = pickle.load(f)

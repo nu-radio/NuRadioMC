@@ -1,4 +1,4 @@
-Signal Generation (electric field)
+Signal Generation (from in-ice showers)
 ====================================
 One of the NuRadioMC pillars is the signal generation procedure. All the relevant modules for signal generation can be found in the SignalGen folder. NuRadioMC has two methods for generating the electric field. The first one is through the use of frequency-domain parameterisations, and the second one is the use of the semianalytical ARZ model. An more in-depth explanation of the models can be found in the `NuRadioMC paper <https://link.springer.com/article/10.1140%2Fepjc%2Fs10052-020-7612-8>`__.
 
