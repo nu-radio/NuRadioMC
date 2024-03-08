@@ -93,7 +93,7 @@ def detector_simulation_filter_amp(evt, station, det):
 
 # applies the detector response to the electric fields (the antennas are defined
 # in the json detector description file)
-sim.apply_det_response(sim_station, det, cfg, detector_simulation_filter_amp)
+sim.apply_det_response_sim(sim_station, det, cfg, detector_simulation_filter_amp)
 
 # let's plot the results
 fig, (ax, ax2) = plt.subplots(1,2)

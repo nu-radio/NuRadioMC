@@ -145,8 +145,8 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
                 raise AttributeError(f"Channel with ID {channel.get_unique_identifier()} already present in SimStation")
             self.add_channel(channel)
         efield_ids = self.get_electric_field_ids()
-        for efield in x.iter_efields():
+        for efield in x.get_electric_fields():
             if efield.get_unique_identifier() in efield_ids:
                 raise AttributeError(f"Electric field with unique identifier {efield.get_unique_identifier()} already present in SimStation")
-            self.add_efield(efield)
+            self.add_electric_field(efield)
         return self
