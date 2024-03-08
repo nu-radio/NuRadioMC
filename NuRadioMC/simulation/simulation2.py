@@ -1336,14 +1336,14 @@ class simulation:
                                            event_time=self._evt_time)
 
                     station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
-                # end channel loop
+                # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
                 if len(sim_station.get_electric_fields()) == 0:
                     logger.debug(f"Station {sid} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
                     continue
 
+                # group events into events based on signal arrival times
                 events = group_into_events(station, event_group, event_group_id, particle_mode)
 
-                event_group_has_triggered = False
                 for evt in events:
                     station = evt.get_station()
                     apply_det_response(evt, self._det, self._config, self._detector_simulation_filter_amp,
@@ -1356,7 +1356,6 @@ class simulation:
 
                     if not evt.get_station().has_triggered():
                         continue
-                    event_group_has_triggered = True
                     channelSignalReconstructor.run(evt, station, self._det)
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
@@ -1373,11 +1372,6 @@ class simulation:
                             eventWriter.run(evt, self._det, mode=output_mode)
                         else:
                             eventWriter.run(evt, mode=output_mode)
-
-                # add additional channels on-the-fly (loop over channels)
-
-                # loop over events and additional channels
-
 
 
         if self._outputfilenameNuRadioReco is not None:
@@ -1416,8 +1410,6 @@ class simulation:
         else:
             raise ValueError("Could not contruct fiducial volume from input file.")
 
-
-    
 
     def _check_vertex_times(self):
 
