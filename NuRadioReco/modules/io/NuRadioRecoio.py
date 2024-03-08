@@ -8,6 +8,7 @@ import numpy as np
 import astropy.time
 
 import logging
+from NuRadioReco.utilities.logging import setup_logger
 
 import time
 import os
@@ -49,7 +50,7 @@ class NuRadioRecoio(object):
             filenames = [filenames]
 
         self.__file_scanned = False
-        self.logger = logging.getLogger('NuRadioReco.NuRadioRecoio')
+        self.logger = setup_logger('NuRadioReco.NuRadioRecoio')
         self.logger.info("initializing NuRadioRecoio with file {}".format(filenames))
         t = time.time()
         if log_level is not None:
@@ -202,8 +203,11 @@ class NuRadioRecoio(object):
                                 err = f"Station time not stored as dict or astropy.time.Time: ({type(value)})"
                                 self.logger.error(err)
                                 raise ValueError(err)
-
-                            station_time.format = 'isot'
+                            try:
+                                station_time.format = 'isot'
+                            except AttributeError:
+                                self.logger.warning(f"setting format to 'isot' resulted in error.")
+                                pass
 
                         self.__event_headers[station_id][key].append(station_time)
                     else:
