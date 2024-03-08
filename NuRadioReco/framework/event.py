@@ -158,6 +158,12 @@ class Event:
 
         return self.__stations[station_id]
 
+    def set_event_time(self, event_time):
+        self.__event_time = event_time
+
+    def get_event_time(self):
+        return self.__event_time
+
     def get_stations(self):
         for station in itervalues(self.__stations):
             yield station

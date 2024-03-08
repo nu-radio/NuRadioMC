@@ -5,7 +5,8 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation
+from NuRadioMC.simulation import simulation2 as simulation
+import logging
 
 # Setup logging
 from NuRadioReco.utilities.logging import setup_logger
@@ -71,6 +72,7 @@ if __name__ == "__main__":
                                 detectorfile=args.detectordescription,
                                 outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                                 config_file=args.config,
-                                file_overwrite=True)
+                                file_overwrite=True,
+                                log_level=logging.DEBUG)
     sim.run()
 
