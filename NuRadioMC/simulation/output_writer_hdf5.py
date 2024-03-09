@@ -18,25 +18,80 @@ class outputWriterHDF5:
             output_filename,
             config,
             detector,
-            station_id,
+            station_ids,
             fin, 
             fin_attrs
     ):
-        self._mout = {}
-        self._mout_attrs = {}
-        self._mout_groups = {}
+        self._station_ids = station_ids
         self._fin = fin
         self._fin_attrs = fin_attrs
+        self._n_showers = len(self._fin['shower_id'])
 
-    
+        """
+        creates the data structures of the parameters that will be saved into the hdf5 output file
+        """
+        self._mout = {}
+        self._mout_groups = {}
+        self._mout_attributes = {}
+        self._mout['weights'] = np.zeros(self._n_showers)
+        self._mout['triggered'] = np.zeros(self._n_showers, dtype=bool)
+#         self._mout['multiple_triggers'] = np.zeros((self._n_showers, self._number_of_triggers), dtype=bool)
+        self._mout_attributes['trigger_names'] = None
+        self._amplitudes = {}
+        self._amplitudes_envelope = {}
+        self._output_triggered_station = {}
+        self._output_event_group_ids = {}
+        self._output_sub_event_ids = {}
+        self._output_multiple_triggers_station = {}
+        self._output_trigger_times_station = {}
+        self._output_maximum_amplitudes = {}
+        self._output_maximum_amplitudes_envelope = {}
+
+        for station_id in self._station_ids:
+            self._mout_groups[station_id] = {}
+            sg = self._mout_groups[station_id]
+            self._output_event_group_ids[station_id] = []
+            self._output_sub_event_ids[station_id] = []
+            self._output_triggered_station[station_id] = []
+            self._output_multiple_triggers_station[station_id] = []
+            self._output_trigger_times_station[station_id] = []
+            self._output_maximum_amplitudes[station_id] = []
+            self._output_maximum_amplitudes_envelope[station_id] = []
+
     def add_event_group(event_buffer):
         """
         Add an event group to the output file
         """
-        
+        for sid in event_buffer:
+            for eid in event_buffer[sid]:
+                evt = event_buffer[sid][eid]
+
         pass
 
 
+
+    def _create_station_output_structure(self, n_showers, n_antennas):
+        nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
+        sg = {}
+        sg['triggered'] = np.zeros(n_showers, dtype=bool)
+        # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
+        sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1
+        sg['event_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
+        sg['event_group_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
+        sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
+        sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
+        sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
+        sg['travel_times'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+        sg['travel_distances'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+        if config['speedup']['amp_per_ray_solution']:
+            sg['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
+            sg['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
+        for parameter_entry in self._raytracer.get_output_parameters():
+            if parameter_entry['ndim'] == 1:
+                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+            else:
+                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS, parameter_entry['ndim'])) * np.nan
+        return sg
 
     def write_output_file(self, empty=False):
         folder = os.path.dirname(self._outputfilename)
