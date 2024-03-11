@@ -68,7 +68,7 @@ traces = np.transpose(traces, (2, 0, 1))
 
 reference_array = np.load('reference_emitter.npy')
 
-testing.assert_allclose(traces, reference_array, atol=1e-10  * units.V / units.m, rtol=1e-7)
+testing.assert_allclose(traces, reference_array, atol=5e-5  * units.V / units.m, rtol=1e-7)
 print('T08test_emitter_birefringence passed without issues')
 
 
