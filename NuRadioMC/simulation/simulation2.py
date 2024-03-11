@@ -495,7 +495,7 @@ def apply_det_response(evt, det, config,
         this function gives the user the full flexibility to implement all processing
         arguments to the function are (event, station, detector)
 
-    Returns nothing. The SimChannels are added to the SimStation object.
+    Returns nothing. The Channels are added to the Station object.
     """
     if detector_simulation_filter_amp is None and detector_simulation_part2 is None:
         logger.error("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part1")

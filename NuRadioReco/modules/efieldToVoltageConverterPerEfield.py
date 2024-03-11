@@ -8,6 +8,7 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import units, ice, geometryUtilities
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.utilities.logging import setup_logger
 
 
 class efieldToVoltageConverterPerEfield():
@@ -18,7 +19,7 @@ class efieldToVoltageConverterPerEfield():
 
     def __init__(self, log_level=None):
         self.__t = 0
-        self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverterPerEfield')
+        self.logger = setup_logger('NuRadioReco.efieldToVoltageConverterPerEfield')
         if(log_level):
             self.logger.setLevel(log_level)
         self.antenna_provider = antennapattern.AntennaPatternProvider()

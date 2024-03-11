@@ -103,7 +103,7 @@ for i, channel in enumerate(sim_station.iter_channels()):
     ax.set_xlabel('Time (ns)')
     ax.set_ylabel('Voltage (V)')
     ax2.plot(channel.get_frequencies()/units.MHz, np.abs(channel.get_frequency_spectrum()/units.V*units.MHz),
-             f"-C{i}",label=f'channel id {efield.get_unique_identifier()}')
+             f"-C{i}",label=f'channel id {channel.get_unique_identifier()}')
     ax2.set_xlabel('Frequency (MHz)')
     ax2.set_ylabel('Voltage (V/MHz)')
 ax.legend()
