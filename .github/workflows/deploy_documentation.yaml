@@ -60,7 +60,7 @@ jobs:
         run: |
           export PYTHONPATH=$(pwd):$PYTHONPATH
           cd documentation/
-          python make_docs.py
+          python make_docs.py --debug
 
       - name: No Jekyll
         if: ${{ github.ref == 'refs/heads/develop'}}
