@@ -6,11 +6,11 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
-import logging
 import os
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
 
+# Setup logging
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
 # initialize detector sim modules
 triggerSimulatorHighLow = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
