@@ -122,6 +122,7 @@ class showerParameters(Enum):
     interaction_type = 109  #: the interaction type, e.g. cc or nc
     k_L = 110  #: the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
     flavor = 111  #: the flavor of the particle initiating the shower
+    n_interaction = 112 #: Hierarchical counter for the number of showers per event group (also accounts for showers which did not trigger and might not be saved)
 
     interferometric_shower_maximum = 120  #: depth of the maximum of the longitudinal profile of the beam-formed signal
     interferometric_shower_axis = 121  #: shower axis (direction) derived from beam-formed signal
@@ -156,6 +157,7 @@ class particleParameters(Enum):
     inelasticity = 11  #: inelasticity ot neutrino interaction
     interaction_type = 12  #: interaction type, e.g., cc, nc
     n_interaction = 13 #: number of interaction
+    shower_id = 14 #: the shower id associated with this particle. This is needed to generate HDF5 files that contain the primary particle
 
     cr_energy = 101  #: the cosmic-ray energy
     cr_zenith = 102  #: zenith angle of the cosmic-ray incoming direction

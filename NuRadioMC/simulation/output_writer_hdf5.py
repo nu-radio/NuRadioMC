@@ -3,6 +3,7 @@ import h5py
 import yaml
 import os
 import collections
+from NuRadioReco.detector import detector
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 from NuRadioReco.framework.parameters import showerParameters as shp
@@ -25,7 +26,8 @@ class outputWriterHDF5:
             config,
             detector,
             station_ids,
-            number_of_ray_tracing_solutions
+            number_of_ray_tracing_solutions,
+            particle_mode=True
     ):
         self._station_ids = station_ids
         self._nS = number_of_ray_tracing_solutions
@@ -42,11 +44,13 @@ class outputWriterHDF5:
         """
         creates the data structures of the parameters that will be saved into the hdf5 output file
         """
-        self._mout = {}
-        self._mout_groups = {}
-        self._mout_attributes = {}
+        self._mout = collections.OrderedDict()
+        self._mout_groups = collections.OrderedDict()
+        self._mout_attributes = collections.OrderedDict()
 
         self.__first_event = True
+        self._output_filename = output_filename
+        self._det = detector
 
         #### write attributes
         self._mout_attributes['config'] = config
@@ -61,7 +65,7 @@ class outputWriterHDF5:
         self._mout_attributes['trigger_names'] = None
 
         for station_id in self._station_ids:
-            self._mout_groups[station_id] = {}
+            self._mout_groups[station_id] = collections.OrderedDict()
 
 
     def __add_parameter(self, dict, key, value, first_event=None):
@@ -108,6 +112,7 @@ class outputWriterHDF5:
                     for trigger in stn.get_triggers().values():
                         if trigger.get_name() not in trigger_names:
                             trigger_names.append(trigger.get_name())
+                            logger.status(f"extending data structure by trigger {trigger.get_name()} to output file")
                             extent_array_by += 1
         # the available triggers are not available from the start because a certain trigger
         # might only trigger a later event. Therefore we need to extend the array
@@ -118,6 +123,8 @@ class outputWriterHDF5:
             if keys[0] in self._mout:
                 for key in keys:
                     for i in range(len(self._mout[key])):
+                        logger.warning(f"extending data structure by {extent_array_by} to output file for key {key}")
+                        print(self._mout[key][i])
                         self._mout[key][i] = self._mout[key][i] + [False] * extent_array_by
             for station_id in self._station_ids:
                 sg = self._mout_groups[station_id]
@@ -135,8 +142,8 @@ class outputWriterHDF5:
                 logger.status(f"adding event {eid} to output file")
                 evt = event_buffer[sid][eid]
                 for shower in evt.get_sim_showers():
-                    logger.status(f"adding shower {shower.get_id()} to output file")
                     if not shower.get_id() in shower_ids:
+                        logger.status(f"adding shower {shower.get_id()} to output file")
                         # shower ids might not be in increasing order. We need to sort the hdf5 output later
                         shower_ids.append(shower.get_id())
                         particle = evt.get_parent(shower)
@@ -152,43 +159,28 @@ class outputWriterHDF5:
                         self.__add_parameter(self._mout, 'shower_type', shower[shp.type], self.__first_event)
                         if(shower.has_parameter(shp.charge_excess_profile_id)):
                             self.__add_parameter(self._mout, 'shower_realization_ARZ', shower[shp.charge_excess_profile_id], self.__first_event)
+                        if(shower.has_parameter(shp.k_L)):
+                            self.__add_parameter(self._mout, 'shower_realization_Alvarez2009', shower[shp.k_L], self.__first_event)
 
                         self.__add_parameter(self._mout, 'energies', particle[pap.energy], self.__first_event)
-                        self.__add_parameter(self._mout, 'flavors', particle[pap.flavor], self.__first_event)
-                        self.__add_parameter(self._mout, 'n_interaction', particle[pap.n_interaction], self.__first_event)
-                        self.__add_parameter(self._mout, 'interaction_type', particle[pap.interaction_type], self.__first_event)
-                        assert(particle[pap.interaction_type]==shower[shp.interaction_type])
+                        self.__add_parameter(self._mout, 'flavors', shower[shp.flavor], self.__first_event)
+                        self.__add_parameter(self._mout, 'n_interaction', shower[shp.n_interaction], self.__first_event)
+                        self.__add_parameter(self._mout, 'interaction_type', shower[shp.interaction_type], self.__first_event)
                         self.__add_parameter(self._mout, 'inelasticity', particle[pap.inelasticity], self.__first_event)
                         self.__add_parameter(self._mout, 'weights', particle[pap.weight], self.__first_event)
-
-                        self.__add_parameter(self._mout, 'triggered', evt.has_triggered(), self.__first_event)
-                        multiple_triggers = []
-                        trigger_times = []
-                        # set the trigger time to the earliest trigger time of all stations
-                        for iT, tname in enumerate(self._mout_attributes['trigger_names']):
-                            if evt.has_triggered(tname):
-                                multiple_triggers.append(True)
-                                tmp_time = None
-                                for stn in evt.get_stations():
-                                    if stn.has_triggered(tname):
-                                        if(tmp_time is None):
-                                            tmp_time = stn.get_trigger(tname).get_trigger_time()
-                                        else:
-                                            tmp_time = min(tmp_time, stn.get_trigger(tname).get_trigger_time())
-                                trigger_times.append(tmp_time)
-                            else:
-                                multiple_triggers.append(False)
-                                trigger_times.append(np.nan)
-                        self.__add_parameter(self._mout, 'multiple_triggers', multiple_triggers, self.__first_event)
-                        self.__add_parameter(self._mout, 'trigger_times', trigger_times, self.__first_event)
                         self.__first_event = False
                 # now save station data
                 stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash. 
                 sg = self._mout_groups[sid]
                 self.__add_parameter(sg, 'event_group_ids', evt.get_run_number())
                 self.__add_parameter(sg, 'event_ids', evt.get_id())
-                # self.__add_parameter(sg, 'maximum_amplitudes', )
-                # self.__add_parameter(sg, 'maximum_amplitudes_envelope', )
+                maximum_amplitudes = []
+                maximum_amplitudes_envelope = []
+                for channel in stn.iter_channels():
+                    maximum_amplitudes.append(channel[chp.maximum_amplitude])
+                    maximum_amplitudes_envelope.append(channel[chp.maximum_amplitude_envelope])
+                self.__add_parameter(sg, 'maximum_amplitudes', maximum_amplitudes)
+                self.__add_parameter(sg, 'maximum_amplitudes_envelope', maximum_amplitudes_envelope)
 
                 multiple_triggers = []
                 trigger_times = []
@@ -200,7 +192,7 @@ class outputWriterHDF5:
                         multiple_triggers.append(False)
                         trigger_times.append(np.nan)
                 self.__add_parameter(sg, 'multiple_triggers_per_event', multiple_triggers)
-                self.__add_parameter(sg, 'trigger_times_per_event', trigger_times)
+                self.__add_parameter(sg, 'trigger_times_per_event', np.array(trigger_times, dtype=float))
                 self.__add_parameter(sg, 'triggered_per_event', np.any(multiple_triggers))
 
                 self.__add_parameter(sg, 'triggered', stn.has_triggered())
@@ -271,117 +263,156 @@ class outputWriterHDF5:
 
                         for key, value in channel_rt_data.items():
                             self.__add_parameter(sg, key, value)
+            # end event loop
+            # now determine triggers per shower. This is a bit tricky, we need to consider all events
+            # and count a shower if it contributed to any of the events. The trigger_times field contains
+            # the earliest trigger time of all stations and triggers
+            shower_id_to_index = {shower_id: i for i, shower_id in enumerate(shower_ids_stn)}
+            triggered = np.zeros(len(shower_ids_stn), dtype=bool)
+            multiple_triggers = np.zeros((len(shower_ids_stn), len(self._mout_attributes['trigger_names'])), dtype=bool)
+            trigger_times = np.ones((len(shower_ids_stn), len(self._mout_attributes['trigger_names'])), dtype=float) * np.nan
+            for eid in event_buffer[sid]:
+                evt = event_buffer[sid][eid]
+                stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash. 
+                for shower in evt.get_sim_showers():
+                    if stn.has_triggered():
+                        triggered[shower_id_to_index[shower.get_id()]] = True
+                        for iT, tname in enumerate(self._mout_attributes['trigger_names']):
+                            if stn.has_triggered(tname):
+                                multiple_triggers[shower_id_to_index[shower.get_id()], iT] = True
+                                if np.isnan(trigger_times[shower_id_to_index[shower.get_id()], iT]):
+                                    trigger_times[shower_id_to_index[shower.get_id()], iT] = stn.get_trigger(tname).get_trigger_time()
+                                else:
+                                    trigger_times[shower_id_to_index[shower.get_id()], iT] = min(trigger_times[shower_id_to_index[shower.get_id()], iT], stn.get_trigger(tname).get_trigger_time())
+            # fill to output structure
+            for shower_id in shower_ids_stn:
+                i = shower_id_to_index[shower_id]
+                self.__add_parameter(sg, 'triggered', triggered[i])
+                self.__add_parameter(sg, 'multiple_triggers', multiple_triggers[i])
+                self.__add_parameter(sg, 'trigger_times', trigger_times[i])
+        # end station loop
+
+        # save trigger information on first level
+        shower_id_to_index = {shower_id: i for i, shower_id in enumerate(shower_ids)}
+        triggered = np.zeros(len(shower_ids_stn), dtype=bool)
+        multiple_triggers = np.zeros((len(shower_ids), len(self._mout_attributes['trigger_names'])), dtype=bool)
+        trigger_times = np.ones((len(shower_ids), len(self._mout_attributes['trigger_names'])), dtype=float) * np.nan
+        for shower_id in shower_ids:
+            iSh = shower_id_to_index[shower_id]
+            for stn_id in self._station_ids:
+                sg = self._mout_groups[stn_id]
+                shower_ids_stn = sg['shower_id']
+                iSh_stn = np.where(shower_ids_stn == shower_id)[0]
+                if len(iSh_stn) == 0:
+                    continue
+                iSh_stn = iSh_stn[0]
+                triggered[iSh] = triggered[iSh] or sg['triggered'][iSh_stn]
+                if 'multiple_triggers' in sg:
+                    multiple_triggers[iSh] = multiple_triggers[iSh] | sg['multiple_triggers'][iSh_stn]
+                if 'trigger_times' in sg:
+                    for iT, tname in enumerate(self._mout_attributes['trigger_names']):
+                        if not np.isnan(sg['trigger_times'][iSh_stn][iT]):
+                            if np.isnan(trigger_times[iSh, iT]):
+                                trigger_times[iSh, iT] = sg['trigger_times'][iSh_stn][iT]
+                            else:
+                                trigger_times[iSh, iT] = min(trigger_times[iSh, iT], sg['trigger_times'][iSh_stn][iT])
+        # fill to output structure
+        for shower_id in shower_ids:
+            i = shower_id_to_index[shower_id]
+            self.__add_parameter(self._mout, 'triggered', triggered[i])
+            self.__add_parameter(self._mout, 'multiple_triggers', multiple_triggers[i])
+            self.__add_parameter(self._mout, 'trigger_times', trigger_times[i])
+
+        # we also want to save the first interaction even if it didn't contribute to any trigger
+        # this is important to know the initial neutrino properties (only relevant for the simulation of 
+        # secondary interactions)
+        stn_buffer = event_buffer[self._station_ids[0]]
+        evt = stn_buffer[list(stn_buffer.keys())[0]]
+        particle = evt.get_primary()
+        if(particle[pap.shower_id] not in shower_ids):
+            keys_to_populate = list(self._mout.keys())
+            logger.info(f"adding primary shower {particle[pap.shower_id]} to output file")
+            self.__add_parameter(self._mout, 'shower_ids', particle[pap.shower_id])
+            self.__add_parameter(self._mout, 'event_group_ids', evt.get_run_number())
+            self.__add_parameter(self._mout, 'xx', particle[pap.vertex][0])
+            self.__add_parameter(self._mout, 'yy', particle[pap.vertex][1])
+            self.__add_parameter(self._mout, 'zz', particle[pap.vertex][2])
+            self.__add_parameter(self._mout, 'vertex_times', particle[pap.vertex_time])
+            self.__add_parameter(self._mout, 'azimuths', particle[pap.azimuth])
+            self.__add_parameter(self._mout, 'zeniths', particle[pap.zenith])
+            self.__add_parameter(self._mout, 'shower_energies', np.nan)
+            self.__add_parameter(self._mout, 'shower_type', "")
+            self.__add_parameter(self._mout, 'energies', particle[pap.energy])
+            self.__add_parameter(self._mout, 'flavors', particle[pap.flavor])
+            self.__add_parameter(self._mout, 'n_interaction', particle[pap.n_interaction])
+            self.__add_parameter(self._mout, 'interaction_type', particle[pap.interaction_type])
+            self.__add_parameter(self._mout, 'inelasticity', particle[pap.inelasticity])
+            self.__add_parameter(self._mout, 'weights', particle[pap.weight])
+            self.__add_parameter(self._mout, 'triggered', False)
+            multiple_triggers = np.zeros(len(self._mout_attributes['trigger_names']), dtype=bool)
+            self.__add_parameter(self._mout, 'multiple_triggers', multiple_triggers)
+            self.__add_parameter(self._mout, 'trigger_times', np.ones(len(self._mout_attributes['trigger_names']), dtype=float) * np.nan)
+
+            keys_populated = ['shower_ids', 'event_group_ids', 'xx', 'yy', 'zz', 'vertex_times', 'azimuths', 'zeniths',
+                              'shower_energies', 'shower_type', 'energies', 'flavors', 'n_interaction', 'interaction_type',
+                              'inelasticity', 'weights', 'triggered', 'multiple_triggers', 'trigger_times']
+            for key in keys_to_populate:
+                if key not in keys_populated:
+                    logger.warning(f"key {key} not populated for primary shower, adding nan")
+                    self.__add_parameter(self._mout, key, np.nan)
+                    print(self._mout[key][-1])
 
 
 
-                            
-
-
-
-                            
-
-        pass
 
     def end(self):
-        import json
-        print(self._mout_attributes)
-        for key in self._mout_attributes:
-            print(key, self._mout_attributes[key])
-        # print(json.dumps(self._mout_attributes, sort_keys=True, indent=4))
-            
-        print(self._mout['shower_ids'])
-    def _create_station_output_structure(self, n_showers, n_antennas):
-        nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
-        sg = {}
-        sg['triggered'] = np.zeros(n_showers, dtype=bool)
-        # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
-        sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1
-        sg['event_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
-        sg['event_group_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
-        sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['travel_times'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        sg['travel_distances'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        if config['speedup']['amp_per_ray_solution']:
-            sg['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
-            sg['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
-        for parameter_entry in self._raytracer.get_output_parameters():
-            if parameter_entry['ndim'] == 1:
-                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-            else:
-                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS, parameter_entry['ndim'])) * np.nan
-        return sg
+        self.write_output_file()
+
 
     def write_output_file(self, empty=False):
-        folder = os.path.dirname(self._outputfilename)
+        folder = os.path.dirname(self._output_filename)
         if not os.path.exists(folder) and folder != '':
             logger.warning(f"output folder {folder} does not exist, creating folder...")
             os.makedirs(folder)
-        fout = h5py.File(self._outputfilename, 'w')
+        fout = h5py.File(self._output_filename, 'w')
 
         if not empty:
-            # here we add the first interaction to the saved events
-            # if any of its children triggered
-
-            # Careful! saved should be a copy of the triggered array, and not
-            # a reference! saved indicates the interactions to be saved, while
-            # triggered should indicate if an interaction has produced a trigger
-            saved = np.copy(self._mout['triggered'])
-            if 'n_interaction' in self._fin:  # if n_interactions is not specified, there are not parents
-                parent_mask = self._fin['n_interaction'] == 1
-                for event_id in np.unique(self._fin['event_group_ids']):
-                    event_mask = self._fin['event_group_ids'] == event_id
-                    if True in self._mout['triggered'][event_mask]:
-                        saved[parent_mask & event_mask] = True
-
             logger.status("start saving events")
             # save data sets
+            # all arrays need to be sorted by shower id
+            sort = np.argsort(np.array(self._mout['shower_ids']))
             for (key, value) in self._mout.items():
-                fout[key] = value[saved]
+                logger.warning(f"saving {key} {value} {type(value)}")
+                if np.array(value).dtype.char == 'U':
+                    fout[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))[sort]
+                # elif(key == "trigger_times"):
+                #     tmp = np.array(value, dtype=float)
+                #     print(tmp.shape)
+                #     print(tmp)
+                #     print(tmp.dtype)
+                #     fout[key] = tmp
+                else:
+                    fout[key] = np.array(value)[sort]
 
             # save all data sets of the station groups
+            keys_per_event = ['event_group_ids', 'event_ids', 'multiple_triggers_per_event', 'trigger_times_per_event',
+                              'maximum_amplitudes', 'maximum_amplitudes_envelope', 'triggered_per_event']
             for (key, value) in self._mout_groups.items():
+                sort = np.argsort(np.array(value['shower_id']))
                 sg = fout.create_group("station_{:d}".format(key))
                 for (key2, value2) in value.items():
-                    sg[key2] = np.array(value2)[np.array(value['triggered'])]
+                    # a few arrays are counting values for different events, so we need to sort them
+                    if(key2 not in keys_per_event):
+                        sg[key2] = np.array(value2)[sort]
+                    else:
+                        sg[key2] = np.array(value2)
 
-            # save "per event" quantities
-            if 'trigger_names' in self._mout_attrs:
-                n_triggers = len(self._mout_attrs['trigger_names'])
-                for station_id in self._mout_groups:
-                    n_events_for_station = len(self._output_triggered_station[station_id])
-                    if n_events_for_station > 0:
-                        n_channels = self._det.get_number_of_channels(station_id)
-                        sg = fout["station_{:d}".format(station_id)]
-                        sg['event_group_ids'] = np.array(self._output_event_group_ids[station_id])
-                        sg['event_ids'] = np.array(self._output_sub_event_ids[station_id])
-                        sg['maximum_amplitudes'] = np.array(self._output_maximum_amplitudes[station_id])
-                        sg['maximum_amplitudes_envelope'] = np.array(self._output_maximum_amplitudes_envelope[station_id])
-                        sg['triggered_per_event'] = np.array(self._output_triggered_station[station_id])
-
-                        # the multiple triggeres 2d array might have different number of entries per event
-                        # because the number of different triggers can increase dynamically
-                        # therefore we first create an array with the right size and then fill it
-                        tmp = np.zeros((n_events_for_station, n_triggers), dtype=bool)
-                        for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
-                            tmp[iE] = values
-                        sg['multiple_triggers_per_event'] = tmp
-                        tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
-                        for iE, values in enumerate(self._output_trigger_times_station[station_id]):
-                            tmp_t[iE] = values
-                        sg['trigger_times_per_event'] = tmp_t
-
-
-        # save meta arguments
-        for (key, value) in self._mout_attrs.items():
-            fout.attrs[key] = value
-
-        if isinstance(self._det, detector.rnog_detector.Detector):
-            fout.attrs['detector'] = self._det.export_as_string()
-        else:
-            with open(self._detectorfile, 'r') as fdet:
-                fout.attrs['detector'] = fdet.read()
+        # TODO save detector
+        # if isinstance(self._det, detector.rnog_detector.Detector):
+        #     fout.attrs['detector'] = self._det.export_as_string()
+        # else:
+        #     with open(self._detectorfile, 'r') as fdet:
+        #         fout.attrs['detector'] = fdet.read()
 
         if not empty:
             # save antenna position separately to hdf5 output
@@ -391,15 +422,17 @@ class outputWriterHDF5:
                 for channel_id in range(n_channels):
                     positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
                 fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
-                fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
-                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._integrated_channel_response[station_id].values())
 
-            fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
-            fout.attrs.create("Vrms", self._Vrms, dtype=float)
-            fout.attrs.create("dt", self._dt, dtype=float)
-            fout.attrs.create("bandwidth", self._bandwidth, dtype=float)
-            fout.attrs['n_samples'] = self._n_samples
-        fout.attrs['config'] = yaml.dump(config)
+# TODO: Save these attributes
+            #     fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
+            #     fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._integrated_channel_response[station_id].values())
+
+            # fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
+            # fout.attrs.create("Vrms", self._Vrms, dtype=float)
+            # fout.attrs.create("dt", self._dt, dtype=float)
+            # fout.attrs.create("bandwidth", self._bandwidth, dtype=float)
+            # fout.attrs['n_samples'] = self._n_samples
+        fout.attrs['config'] = yaml.dump(self._mout_attributes['config'])
 
         # save NuRadioMC and NuRadioReco versions
         from NuRadioReco.utilities import version
@@ -407,20 +440,7 @@ class outputWriterHDF5:
         fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
 
-        if not empty:
-            # now we also save all input parameters back into the out file
-            for key in self._fin.keys():
-                if key.startswith("station_"):
-                    continue
-                if not key in fout.keys():  # only save data sets that havn't been recomputed and saved already
-                    if np.array(self._fin[key]).dtype.char == 'U':
-                        fout[key] = np.array(self._fin[key], dtype=h5py.string_dtype(encoding='utf-8'))[saved]
-
-                    else:
-                        fout[key] = np.array(self._fin[key])[saved]
-
-        for key in self._fin_attrs.keys():
-            if not key in fout.attrs.keys():  # only save atrributes sets that havn't been recomputed and saved already
-                if key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector", "config"]:  # don't write trigger names from input to output file, this will lead to problems with incompatible trigger names when merging output files
-                    fout.attrs[key] = self._fin_attrs[key]
+        for key in self._mout_attributes:
+            if key not in fout.attrs:
+                fout.attrs[key] = self._mout_attributes[key]
         fout.close()

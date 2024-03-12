@@ -617,6 +617,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
             input_particle[simp.azimuth] = fin['azimuths'][parent_id]
             input_particle[simp.inelasticity] = fin['inelasticity'][parent_id]
             input_particle[simp.n_interaction] = fin['n_interaction'][parent_id]
+            input_particle[simp.shower_id] = fin['shower_ids'][parent_id]
             if fin['n_interaction'][parent_id] <= 1:
                 # parents before the neutrino and outgoing daughters without shower are currently not
                 # simulated. The parent_id is therefore at the moment only rudimentarily populated.
@@ -642,6 +643,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
                 sim_shower[shp.energy] = fin['shower_energies'][idx]
                 sim_shower[shp.flavor] = fin['flavors'][idx]
                 sim_shower[shp.interaction_type] = fin['interaction_type'][idx]
+                sim_shower[shp.n_interaction] = fin['n_interaction'][idx]
                 sim_shower[shp.vertex] = np.array([fin['xx'][idx], fin['yy'][idx], fin['zz'][idx]])
                 sim_shower[shp.vertex_time] = vertex_time
                 sim_shower[shp.type] = fin['shower_type'][idx]
@@ -833,7 +835,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     iSplit = np.atleast_1d(np.squeeze(np.argwhere(delta_start_times > split_event_time_diff)))
     n_sub_events = len(iSplit) + 1
     if n_sub_events > 1:
-        logger.info(f"splitting event group id {event_group_id} into {n_sub_events} sub events")
+        logger.info(f"splitting event group id {event_group_id} into {n_sub_events} sub events because time separation larger than {split_event_time_diff/units.ns}ns")
 
     tmp_station = copy.deepcopy(station)
     event_group_has_triggered = False
@@ -1371,7 +1373,7 @@ class simulation:
                     continue
 
                 # group events into events based on signal arrival times
-                events = group_into_events(station, event_group, event_group_id, particle_mode)
+                events = group_into_events(station, event_group, particle_mode, self._config['split_event_time_diff'])
 
                 evt_group_triggered = False
                 for evt in events:
