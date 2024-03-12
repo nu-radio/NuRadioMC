@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import astropy
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
-from NuRadioReco.modules.base import module
+from NuRadioReco.utilities.logging import setup_logger
 import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.coreas.simulationSelector
 import NuRadioReco.modules.efieldToVoltageConverter
@@ -25,7 +25,7 @@ import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.io.eventWriter
 # Logging level
 import logging
-logger = module.setup_logger(name='NuRadioReco', level=logging.WARNING)
+logger = setup_logger(name='NuRadioReco', level=logging.WARNING)
 
 plt.switch_backend('agg')
 
