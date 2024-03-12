@@ -54,7 +54,7 @@ import NuRadioMC.simulation.time_logger
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
 
 logger = setup_logger("NuRadioMC.simulation")
-logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 
 # initialize a few NuRadioReco modules
 # TODO: Is this the best way to do it? Better to initialize them on demand
@@ -199,8 +199,6 @@ def calculate_sim_efield(showers, sid, cid,
 
             polarization_direction_onsky = calculate_polarization_vector(shower_axis, p.get_launch_vector(iS), config)
             receive_vector = p.get_receive_vector(iS)
-            cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
-            polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
             eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
 
 
@@ -229,9 +227,11 @@ def calculate_sim_efield(showers, sid, cid,
             electric_field[efp.zenith] = zenith
             electric_field[efp.ray_path_type] = propagation.solution_types[p.get_solution_type(iS)]
             electric_field[efp.nu_vertex_distance] = R
+            electric_field[efp.nu_vertex_travel_time] = T
             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
             electric_field[efp.polarization_angle] = np.arctan2(*polarization_direction_onsky[1:][::-1]) #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
+            electric_field[efp.launch_vector] = p.get_launch_vector(iS)
 
             sim_station.add_electric_field(electric_field)
             logger.debug(f"Added electric field to SimStation for shower {shower.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
@@ -605,7 +605,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
         particle_mode = "simulation_mode" not in fin_attrs or fin_attrs['simulation_mode'] != "emitter"
         if particle_mode:  # first case: simulation of a particle interaction which produces showers
             # there is only one primary particle per event group
-            input_particle = NuRadioReco.framework.particle.Particle(0)
+            input_particle = NuRadioReco.framework.particle.Particle(event_group_id)
             input_particle[simp.flavor] = fin['flavors'][parent_id]
             input_particle[simp.energy] = fin['energies'][parent_id]
             input_particle[simp.interaction_type] = fin['interaction_type'][parent_id]
@@ -647,7 +647,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
                 sim_shower[shp.type] = fin['shower_type'][idx]
                 # TODO direct parent does not necessarily need to be the primary in general, but full
                 # interaction chain is currently not populated in the input files.
-                sim_shower[shp.parent_id] = parent_id
+                sim_shower[shp.parent_id] = event_group_id
                 logger.debug(f"Adding shower {sim_shower.get_id()} to event group {event_group.get_id()}")
                 event_group.add_sim_shower(sim_shower)
 
@@ -1057,8 +1057,6 @@ class simulation:
 
         self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
 
-        # initialize propagation module
-        self._prop = propagation.get_propagation_module(self._config['propagation']['module'])
 
         if self._config['propagation']['ice_model'] == "custom":
             if ice_model is None:
@@ -1079,6 +1077,17 @@ class simulation:
             self._det = det
 
         self._det.update(self._evt_time)
+
+        # initialize propagation module
+        prop = propagation.get_propagation_module(self._config['propagation']['module'])
+        self._propagator = prop(
+            self._ice, self._config['propagation']['attenuation_model'],
+            log_level=self._log_level_ray_propagation,
+            n_frequencies_integration=int(self._config['propagation']['n_freq']),
+            n_reflections=int(self._config['propagation']['n_reflections']),
+            config=self._config,
+            detector=self._det
+        )
 
         self._station_ids = self._det.get_station_ids()
         self._event_ids_counter = {}
@@ -1113,8 +1122,8 @@ class simulation:
             return
         ### END input HDF5 block
 
-        self._output_writer_hdf5 = outputWriterHDF5(self._outputfilename, self._config, self._det, self._station_ids,
-                                                    self._fin, self._fin_attrs)
+        self._output_writer_hdf5 = outputWriterHDF5(self._outputfilename, self._config, self._det, self._station_ids, 
+                                                    self._propagator.get_number_of_raytracing_solutions())
 
         # Perfom a dummy detector simulation to determine how the signals are filtered.
         # This variable stores the integrated channel response for each channel, i.e.
@@ -1273,14 +1282,6 @@ class simulation:
         self._shower_ids = np.array(self._fin['shower_ids'])
         self._shower_index_array = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
 
-        propagator = self._prop(
-            self._ice, self._config['propagation']['attenuation_model'],
-            log_level=self._log_level_ray_propagation,
-            n_frequencies_integration=int(self._config['propagation']['n_freq']),
-            n_reflections=int(self._config['propagation']['n_reflections']),
-            config=self._config,
-            detector=self._det
-        )
         input_time = 0.0
         askaryan_time = 0.0
         rayTracingTime = 0.0
@@ -1344,13 +1345,13 @@ class simulation:
                     if particle_mode:
                         sim_station = calculate_sim_efield(showers=event_group.get_sim_showers(),
                                                         sid=sid, cid=channel_id,
-                                                        det=self._det, propagator=propagator, medium=self._ice,
+                                                        det=self._det, propagator=self._propagator, medium=self._ice,
                                                         config=self._config,
                                                         time_logger=None)
                     else:
                         sim_station = calculate_sim_efield_for_emitter(emitters=event_group.get_sim_emitters(),
                                             sid=sid, cid=channel_id,
-                                            det=self._det, propagator=propagator, config=self._config,
+                                            det=self._det, propagator=self._propagator, config=self._config,
                                             rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
                                             time_logger=None)
                     # skip to next channel if the efield is below the speed cut
@@ -1372,6 +1373,7 @@ class simulation:
                 # group events into events based on signal arrival times
                 events = group_into_events(station, event_group, event_group_id, particle_mode)
 
+                evt_group_triggered = False
                 for evt in events:
                     station = evt.get_station()
                     apply_det_response(evt, self._det, self._config, self._detector_simulation_filter_amp,
@@ -1384,6 +1386,7 @@ class simulation:
 
                     if not evt.get_station().has_triggered():
                         continue
+                    evt_group_triggered = True
                     channelSignalReconstructor.run(evt, station, self._det)
 
                     if self._outputfilenameNuRadioReco is not None:
@@ -1403,14 +1406,15 @@ class simulation:
                             eventWriter.run(evt, mode=output_mode)
                     remove_all_traces(evt)  # remove all traces to save memory
                     output_buffer[sid][evt.get_id()] = evt
-            # TODO: Write hdf5 output per event group
-            self._output_writer_hdf5.add_event_group(output_buffer)
+                if(evt_group_triggered):
+                    # TODO: Write hdf5 output per event group
+                    self._output_writer_hdf5.add_event_group(output_buffer)
 
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.end()
             logger.debug("closing nur file")
 
-
+        self._output_writer_hdf5.end()
 
 
     def _get_shower_index(self, shower_id):

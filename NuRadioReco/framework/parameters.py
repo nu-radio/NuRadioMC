@@ -78,6 +78,8 @@ class electricFieldParameters(Enum):
     cr_spectrum_quadratic_term = 16  #: result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
     energy_fluence_ratios = 17   #: Ratios of the energy fluences in different passbands
     raytracing_solution = 18  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
+    launch_vector = 19  #: the launch vector of the ray from which this efield originates (only available for in-ice simulations)
+    nu_vertex_travel_time = 20  #: the time it took the ray to travel from the vertex to the channel
 
 
 class ARIANNAParameters(Enum):  #: this class stores parameters specific to the ARIANNA data taking
