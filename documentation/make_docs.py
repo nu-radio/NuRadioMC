@@ -6,7 +6,7 @@ import logging
 import re
 
 logging.basicConfig()
-logger = logging.getLogger(name="Make_docs")
+logger = logging.getLogger(name="documentation.make_docs")
 logger.setLevel(logging.INFO)
 
 # we do some error classification, because we don't want to fail on all errors
