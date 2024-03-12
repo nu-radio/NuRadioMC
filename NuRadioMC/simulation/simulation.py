@@ -1070,7 +1070,6 @@ class simulation:
                             self._eventWriter.run(self._evt, self._det, mode=output_mode)
                         else:
                             self._eventWriter.run(self._evt, mode=output_mode)
-                        logger.debug("WRITING EVENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 # end sub events loop
 
                 # add local sg array to output data structure if any
