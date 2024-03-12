@@ -447,6 +447,7 @@ class ray_tracing_2D(ray_tracing_base):
         Analytic solution for the path length
 
         """
+        s = 0
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
             if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
                 x11, x1, x22, x2, C_0, C_1 = segment
@@ -463,12 +464,9 @@ class ray_tracing_2D(ray_tracing_base):
             z2 = x2[1]
             solution_type = self.determine_solution_type(x1, x2, C_0)
 
-
             # if x1, x2 are swapped, launch_angle and receive_angle might also be swapped
             # Fortunately, the path length is symmetric, so this does not matter
             launch_angle = self.get_launch_angle(x1, C_0, reflection, reflection_case)
-
-            s = 0
 
             # define some constants and helper functions
             n1 = self.n(x1[1])
@@ -517,6 +515,7 @@ class ray_tracing_2D(ray_tracing_base):
         Analytic solution for the path length
 
         """
+        ct = 0
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
             if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
                 x11, x1, x22, x2, C_0, C_1 = segment
@@ -535,8 +534,6 @@ class ray_tracing_2D(ray_tracing_base):
             # if x1, x2 are swapped, launch_angle and receive_angle might also be swapped
             # Fortunately, the path length is symmetric, so this does not matter
             launch_angle = self.get_launch_angle(x1, C_0, reflection, reflection_case)
-
-            ct = 0
 
             # define some constants and helper functions
             n1 = self.n(x1[1])
