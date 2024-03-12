@@ -238,7 +238,7 @@ class Event:
         if len(self.__particles) == 0:
             return None
 
-        return self.get_particle(0)
+        return next(iter(self.__particles.values()))
 
     def get_parent(self, particle_or_shower):
         """
