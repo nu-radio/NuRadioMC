@@ -349,6 +349,40 @@ class NoiseModel:
 
         self._set_covariance_matrices(covariance_matrices)
     
+    def resample_covariance_matrices(self, new_sampling_rate):
+        """
+        Resample the covariance matrices to new sampling rate
+
+        Parameters
+        ----------
+        new_sample_rate : float
+            New sampling rate in GHz
+        """
+
+        # Get new number of samples:
+        n_samples_new = int(self.n_samples * new_sampling_rate/self.sampling_rate)
+        self.n_samples = n_samples_new
+        self.sampling_rate = new_sampling_rate
+        self.frequencies = np.fft.rfftfreq(n_samples_new, 1.0/new_sampling_rate)
+        self.n_frequencies = len(self.frequencies)
+        
+        covariance_matrices = np.zeros([self.n_antennas, n_samples_new, n_samples_new])
+
+        for i in range(self.n_antennas):
+            cov_one_row = self.cov[i,0,:]
+            
+            # Resample:
+            cov_one_row, t_array = scp.signal.resample(cov_one_row, n_samples_new, t=self.t_array)
+
+            # Construct covariances matrix:
+            covariance_matrix = np.zeros([n_samples_new, n_samples_new])
+            for j in range(n_samples_new):
+                covariance_matrix[:,j] = np.roll(cov_one_row, j)
+
+            covariance_matrices[i,:,:] = covariance_matrix
+
+        self._set_covariance_matrices(covariance_matrices)
+
     def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx):
         """
         Calculate Fisher information matrix for a set of parameter values (paramters_x0) which generates a signal using the covariance matrices of the noise. 
@@ -394,7 +428,7 @@ class NoiseModel:
 
         Parameters
         ----------
-            data : numpy.array
+            data : numpy.ndarray
                 Array containing data with dimensions [n_samples]
             plot_range : float
                 Range along x-axis (self.t_array) to plot in units of nanoseconds
@@ -427,7 +461,7 @@ class NoiseModel:
 
         Parameters
         ----------
-            cov : numpy.array
+            cov : numpy.ndarray
                 Covariance matrix of dimensions [n_samples,n_samples]
             plot_range : float
                 Range along x- and y-axes (self.t_array) to plot in units of nanoseconds
@@ -468,7 +502,7 @@ class NoiseModel:
 
         Parameters
         ----------
-            cov : numpy.array
+            cov : numpy.ndarray
                 Covariance matrix of dimensions [n_samples,n_samples]
             plot_range : float
                 Range along x-axis (self.t_array) to plot in units of nanoseconds
@@ -503,7 +537,7 @@ class NoiseModel:
 
         Parameters
         ----------
-            data : numpy.array
+            data : numpy.ndarray
                 Array containing data with dimensions [n_samples]
             n_dof : int, optional
                 Number of degrees of freedom for the chi2 distribution. If not provided, it is set equal to
