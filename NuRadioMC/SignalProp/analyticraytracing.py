@@ -1856,9 +1856,9 @@ class ray_tracing(ray_tracing_base):
         
         self.use_cpp = use_cpp
         if use_cpp:
-            self.__logger.debug(f"using CPP version of ray tracer")
+            self.__logger.status(f"using CPP version of ray tracer")
         else:
-            self.__logger.debug(f"using python version of ray tracer")
+            self.__logger.status(f"using python version of ray tracer")
 
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration,
