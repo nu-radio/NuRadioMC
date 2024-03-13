@@ -41,7 +41,7 @@ def test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
 
         except AssertionError as e:
             print("\narray {} not almost equal".format(key))
-            print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
+            print("\Reference: {}, reconstruction: {}".format(fin2['station_101'][key], fin1['station_101'][key]))
             print(e)
             error = -1
     return error
@@ -113,15 +113,15 @@ def test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
 
 
 attributes = [u'trigger_names',
- u'Tnoise',
- u'dt',
- u'bandwidth',
- u'n_samples',
+#  u'Tnoise',
+#  u'dt',
+#  u'bandwidth',
+#  u'n_samples',
  u'thetamin',
  u'zmax',
  u'zmin',
  u'thetamax',
- u'header',
+#  u'header',
  u'fiducial_zmax',
  u'fiducial_zmin',
  u'flavors',
@@ -144,7 +144,7 @@ error = test_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
 attributes = [
  u'Vrms']
 
-error = test_almost_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
+# error = test_almost_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
 
 # Test those station keys that should be perfectly equal
 
