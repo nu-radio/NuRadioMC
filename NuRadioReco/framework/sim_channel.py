@@ -18,7 +18,7 @@ class SimChannel(NuRadioReco.framework.channel.Channel):
     a shower and ray tracing solution id
     """
 
-    def __init__(self, channel_id, shower_id, ray_tracing_id, channel_group_id):
+    def __init__(self, channel_id, shower_id, ray_tracing_id, channel_group_id=None):
         """
         Initializes SimChannel object
 
@@ -30,7 +30,7 @@ class SimChannel(NuRadioReco.framework.channel.Channel):
             the id of the corresponding shower object
         ray_tracing_id: int or None
             the id of the corresponding ray tracing solution
-        channel_group_id: int
+        channel_group_id: int (default: None)
             group_id of channel
         """
         NuRadioReco.framework.channel.Channel.__init__(self, channel_id, channel_group_id=channel_group_id)
