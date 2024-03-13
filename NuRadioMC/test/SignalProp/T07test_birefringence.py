@@ -79,13 +79,17 @@ for iX, x in enumerate(points):
             delta_efield = np.vstack((zeros, filter, filter))
             delta_pulse_ana.set_trace(delta_efield, sr)
             
-            final_pulse = r.apply_propagation_effects(delta_pulse_ana, 0)
+            final_pulse = r.apply_propagation_effects(delta_pulse_ana, iS)
 
             results_theta = np.vstack((results_theta, final_pulse.get_trace()[1]))
             results_phi = np.vstack((results_phi, final_pulse.get_trace()[2]))
 
 compare_array = np.vstack((results_theta, results_phi))
 reference_array = np.load('reference_BF.npy')
+
+# The tolerance was chosen to be 0.0002V/m. The amplitudes of the pulses are above 0.1V/m.
+# This tolerance is necessary as there are small numerical instabilities in the polarization calculation of the birefringence functions. 
+# Over the propagation these differences can add up but seem to remain below 1% of the original pulse amplitude.
 
 testing.assert_allclose(compare_array, reference_array, atol=2e-4  * units.V / units.m, rtol=1e-7)
 print('T07test_birefringence passed without issues')
