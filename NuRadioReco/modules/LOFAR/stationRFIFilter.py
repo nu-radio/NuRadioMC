@@ -525,14 +525,28 @@ class stationRFIFilter:
                 f'There are {len(bad_dipole_indices)} outliers in cleaned power \n'
                 f'Dipole ids: {antenna_ids[bad_dipole_indices]}'
             )
-            # remove from station, add to flagged list
+
+            # Construct flagged set of NRR channel IDs
+            channel_ids_to_remove = set()
             for ind in antenna_ids[bad_dipole_indices]:
-                # convert TBB IDs to nrr IDs and remove bad antennas from station, if it exists
+                # convert TBB IDs to nrr IDs
                 nrr_id = tbbID_to_nrrID(ind, antenna_set)
-                station.remove_channel_id(int(nrr_id))
+
+                # Ensure both channels from same antenna are removed
+                group_id_to_remove = station.get_channel(int(nrr_id)).get_group_id()
+                for channel_id in station.iter_channel_group(group_id_to_remove):
+                    channel_ids_to_remove.add(channel_id.get_id())
+            self.logger.info(
+                f'Removing the following channels from station {station_name}: \n'
+                f'{channel_ids_to_remove}'
+            )
+
+            # Remove bad antennas (= both channels!) from station, if it exists
+            for nrr_id in channel_ids_to_remove:
+                station.remove_channel_id(nrr_id)
 
             flagged_channel_ids.update(
-                [tbbID_to_nrrID(ind, antenna_set) for ind in antenna_ids[bad_dipole_indices]]
+                channel_ids_to_remove
             )  # is set, not list
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
 
