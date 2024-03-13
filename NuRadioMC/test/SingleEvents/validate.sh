@@ -5,4 +5,4 @@ python3 T02RunSimulation.py 1e18_output_reference.hdf5 surface_station_1GHz.json
 python3 T03validate.py 1e18_output.hdf5 1e18_output_reference.hdf5
 
 # cleanup 
-rm -v NuRadioMC/test/SingleEvents/1e18_output.hdf5
+rm -v 1e18_output.hdf5
