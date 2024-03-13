@@ -11,6 +11,7 @@ It comes with a class to handle responses of the different signal chain componen
 added new STATUS logging level by default, added logging documentation and moved logging
 module to NuRadioReco/utilities folder. Logging functionality from NuRadioReco/modules/base
 is now deprecated.
+- SimChannel can now take a group id
 
 bugfixes:
 
