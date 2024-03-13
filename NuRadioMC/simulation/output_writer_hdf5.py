@@ -91,7 +91,7 @@ class outputWriterHDF5:
         """
         Add an event group to the output file
         """
-        logger.status("adding event group to output file")
+        logger.debug("adding event group to output file")
 
 
 
@@ -112,7 +112,7 @@ class outputWriterHDF5:
                     for trigger in stn.get_triggers().values():
                         if trigger.get_name() not in trigger_names:
                             trigger_names.append(trigger.get_name())
-                            logger.status(f"extending data structure by trigger {trigger.get_name()} to output file")
+                            logger.debug(f"extending data structure by trigger {trigger.get_name()} to output file")
                             extent_array_by += 1
         # the available triggers are not available from the start because a certain trigger
         # might only trigger a later event. Therefore we need to extend the array
@@ -123,8 +123,7 @@ class outputWriterHDF5:
             if keys[0] in self._mout:
                 for key in keys:
                     for i in range(len(self._mout[key])):
-                        logger.warning(f"extending data structure by {extent_array_by} to output file for key {key}")
-                        print(self._mout[key][i])
+                        logger.debug(f"extending data structure by {extent_array_by} to output file for key {key}")
                         self._mout[key][i] = self._mout[key][i] + [False] * extent_array_by
             for station_id in self._station_ids:
                 sg = self._mout_groups[station_id]
@@ -137,13 +136,13 @@ class outputWriterHDF5:
         shower_ids = []
         for sid in event_buffer:  # loop over all stations (every station is treated independently)
             shower_ids_stn = []
-            logger.status(f"adding station {sid} to output file")
+            logger.debug(f"adding station {sid} to output file")
             for eid in event_buffer[sid]:
-                logger.status(f"adding event {eid} to output file")
+                logger.debug(f"adding event {eid} to output file")
                 evt = event_buffer[sid][eid]
                 for shower in evt.get_sim_showers():
                     if not shower.get_id() in shower_ids:
-                        logger.status(f"adding shower {shower.get_id()} to output file")
+                        logger.debug(f"adding shower {shower.get_id()} to output file")
                         # shower ids might not be in increasing order. We need to sort the hdf5 output later
                         shower_ids.append(shower.get_id())
                         particle = evt.get_parent(shower)
@@ -244,12 +243,7 @@ class outputWriterHDF5:
                                     # calculate the vector it to the ground frame in cartesian coordinates.
                                     cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
                                     polarization_angle = efield[ep.polarization_angle]
-                                    if(np.abs(polarization_angle - 90 * units.deg) < 0.0001):
-                                        polarization_direction_onsky = np.array([0, 0, 1])
-                                    else:
-                                        p_phi = np.tan(polarization_angle)**2/(1+np.tan(polarization_angle)**2)
-                                        p_theta =  (1 - p_phi**2)**0.5
-                                        polarization_direction_onsky = np.array([0, p_theta, p_phi])
+                                    polarization_direction_onsky = np.array([0, np.cos(polarization_angle), np.sin(polarization_angle)])
                                     polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
                                     channel_rt_data['polarization'][iCh, iS] = polarization_direction_at_antenna
 
@@ -301,6 +295,8 @@ class outputWriterHDF5:
             iSh = shower_id_to_index[shower_id]
             for stn_id in self._station_ids:
                 sg = self._mout_groups[stn_id]
+                if 'shower_id' not in sg:
+                    continue
                 shower_ids_stn = sg['shower_id']
                 iSh_stn = np.where(shower_ids_stn == shower_id)[0]
                 if len(iSh_stn) == 0:
@@ -358,9 +354,8 @@ class outputWriterHDF5:
                               'inelasticity', 'weights', 'triggered', 'multiple_triggers', 'trigger_times']
             for key in keys_to_populate:
                 if key not in keys_populated:
-                    logger.warning(f"key {key} not populated for primary shower, adding nan")
+                    logger.debug(f"key {key} not populated for primary shower, adding nan")
                     self.__add_parameter(self._mout, key, np.nan)
-                    print(self._mout[key][-1])
 
 
 
@@ -382,15 +377,9 @@ class outputWriterHDF5:
             # all arrays need to be sorted by shower id
             sort = np.argsort(np.array(self._mout['shower_ids']))
             for (key, value) in self._mout.items():
-                logger.warning(f"saving {key} {value} {type(value)}")
+                logger.debug(f"saving {key} {value} {type(value)}")
                 if np.array(value).dtype.char == 'U':
                     fout[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))[sort]
-                # elif(key == "trigger_times"):
-                #     tmp = np.array(value, dtype=float)
-                #     print(tmp.shape)
-                #     print(tmp)
-                #     print(tmp.dtype)
-                #     fout[key] = tmp
                 else:
                     fout[key] = np.array(value)[sort]
 
@@ -398,8 +387,10 @@ class outputWriterHDF5:
             keys_per_event = ['event_group_ids', 'event_ids', 'multiple_triggers_per_event', 'trigger_times_per_event',
                               'maximum_amplitudes', 'maximum_amplitudes_envelope', 'triggered_per_event']
             for (key, value) in self._mout_groups.items():
-                sort = np.argsort(np.array(value['shower_id']))
                 sg = fout.create_group("station_{:d}".format(key))
+                if 'shower_id' not in value:
+                    continue
+                sort = np.argsort(np.array(value['shower_id']))
                 for (key2, value2) in value.items():
                     # a few arrays are counting values for different events, so we need to sort them
                     if(key2 not in keys_per_event):
