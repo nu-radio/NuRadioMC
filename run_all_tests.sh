@@ -12,3 +12,4 @@ NuRadioMC/test/examples/test_examples.sh
 NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
 NuRadioReco/test/trigger_tests/run_trigger_test.sh
 NuRadioReco/test/test_examples.sh
+NuRadioReco/test/RNO_G/test_read_rnog_data.sh
