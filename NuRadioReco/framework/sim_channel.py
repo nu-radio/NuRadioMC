@@ -31,7 +31,8 @@ class SimChannel(NuRadioReco.framework.channel.Channel):
         ray_tracing_id: int or None
             the id of the corresponding ray tracing solution
         channel_group_id: int (default: None)
-            group_id of channel
+            optionally, several channels can belong to a "channel group". Use case is to identify
+            the channels of a single dual or triple polarized antenna as common in air shower arrays. 
         """
         NuRadioReco.framework.channel.Channel.__init__(self, channel_id, channel_group_id=channel_group_id)
         self._shower_id = shower_id
