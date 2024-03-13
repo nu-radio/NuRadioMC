@@ -54,7 +54,6 @@ import NuRadioMC.simulation.time_logger
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
 
 logger = setup_logger("NuRadioMC.simulation")
-# logger.setLevel(logging.DEBUG)
 
 # initialize a few NuRadioReco modules
 # TODO: Is this the best way to do it? Better to initialize them on demand
@@ -152,6 +151,7 @@ def calculate_sim_efield(showers, sid, cid,
             continue
 
         n = p.get_number_of_solutions()
+        logger.status(f"found {n} solutions for shower {shower.get_id()} and station {sid}, channel {cid} from {x1} to {x2}")
         delta_Cs = np.zeros(n)
         viewing_angles = np.zeros(n)
         # loop through all ray tracing solution
@@ -878,6 +878,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             for efield in tmp_sim_station.get_electric_fields():
                 if efield.get_unique_identifier() == efield_uid:
                     sim_station.add_electric_field(efield)
+                    logger.debug(f"adding sim efield {efield_uid} to sim station")
 
         if particle_mode:
             # add showers that contribute to this (sub) event to event structure
@@ -1358,18 +1359,19 @@ class simulation:
                                             time_logger=None)
                     # skip to next channel if the efield is below the speed cut
                     if len(sim_station.get_electric_fields()) == 0:
-                        logger.debug(f"Station {sid} channel {channel_id:02d} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
+                        logger.status(f"Eventgroup {event_group.get_run_number()} Station {sid} channel {channel_id:02d} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
                         continue
 
                     # applies the detector response to the electric fields (the antennas are defined
                     # in the json detector description file)
                     apply_det_response_sim(sim_station, self._det, self._config, self._detector_simulation_filter_amp,
                                            event_time=self._evt_time)
-
+                    logger.debug(f"adding sim_station to station {sid} for event group {event_group.get_run_number()}, channel {channel_id}")
                     station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
                 # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
+                sim_station = station.get_sim_station()  # needed to get sim_station object containing all channels and not just the last one.
                 if len(sim_station.get_electric_fields()) == 0:
-                    logger.debug(f"Station {sid} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
+                    logger.status(f"Eventgroup {event_group.get_run_number()} Station {sid} has {len(sim_station.get_electric_fields())} efields, skipping to next station")
                     continue
 
                 # group events into events based on signal arrival times
@@ -1385,6 +1387,7 @@ class simulation:
 
                     # calculate trigger
                     self._detector_simulation_trigger(evt, station, self._det)
+                    logger.debug(f"event {evt.get_run_number()},{evt.get_id()} tiggered: {evt.get_station().has_triggered()}")
 
                     if not evt.get_station().has_triggered():
                         continue
@@ -1418,12 +1421,6 @@ class simulation:
 
         self._output_writer_hdf5.end()
 
-
-    def _get_shower_index(self, shower_id):
-        if hasattr(shower_id, "__len__"):
-            return np.array([self._shower_index_array[x] for x in shower_id])
-        else:
-            return self._shower_index_array[shower_id]
 
 
     def _is_in_fiducial_volume(self, pos):
@@ -1459,104 +1456,6 @@ class simulation:
             logger.warning(warn_msg)
             return False
 
-    def _calculate_signal_properties(self):
-        if self._station.has_triggered():
-            self._channelSignalReconstructor.run(self._evt, self._station, self._det)
-            amplitudes = np.zeros(self._station.get_number_of_channels())
-            amplitudes_envelope = np.zeros(self._station.get_number_of_channels())
-            for channel in self._station.iter_channels():
-                amplitudes[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
-                amplitudes_envelope[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
-            self._output_maximum_amplitudes[self._station.get_id()].append(amplitudes)
-            self._output_maximum_amplitudes_envelope[self._station.get_id()].append(amplitudes_envelope)
-
-    def _create_empty_multiple_triggers(self):
-        if 'trigger_names' not in self._mout_attrs:
-            self._mout_attrs['trigger_names'] = np.array([])
-            self._mout['multiple_triggers'] = np.zeros((self._n_showers, 1), dtype=bool)
-            for station_id in self._station_ids:
-                sg = self._mout_groups[station_id]
-                n_showers = sg['launch_vectors'].shape[0]
-                sg['multiple_triggers'] = np.zeros((n_showers, 1), dtype=bool)
-                sg['triggered'] = np.zeros(n_showers, dtype=bool)
-
-    def _create_trigger_structures(self):
-
-        if 'trigger_names' not in self._mout_attrs:
-            self._mout_attrs['trigger_names'] = []
-        extend_array = False
-        for trigger in six.itervalues(self._station.get_triggers()):
-            if trigger.get_name() not in self._mout_attrs['trigger_names']:
-                self._mout_attrs['trigger_names'].append((trigger.get_name()))
-                extend_array = True
-        # the 'multiple_triggers' output array is not initialized in the constructor because the number of
-        # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
-        # we first create this data structure
-        if 'multiple_triggers' not in self._mout:
-            self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
-            self._mout['trigger_times'] = np.nan * np.zeros_like(self._mout['multiple_triggers'], dtype=float)
-#             for station_id in self._station_ids:
-#                 sg = self._mout_groups[station_id]
-#                 sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
-        elif extend_array:
-            tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
-            nx, ny = self._mout['multiple_triggers'].shape
-            tmp[:, 0:ny] = self._mout['multiple_triggers']
-            self._mout['multiple_triggers'] = tmp
-            # repeat for trigger times
-            tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
-            tmp_t[:, 0:ny] = self._mout['trigger_times']
-            self._mout['trigger_times'] = tmp_t
-#             for station_id in self._station_ids:
-#                 sg = self._mout_groups[station_id]
-#                 tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
-#                 nx, ny = sg['multiple_triggers'].shape
-#                 tmp[:, 0:ny] = sg['multiple_triggers']
-#                 sg['multiple_triggers'] = tmp
-        return extend_array
-
-    def _save_triggers_to_hdf5(self, sg, local_shower_index, global_shower_index):
-
-        extend_array = self._create_trigger_structures()
-        # now we also need to create the trigger structure also in the sg (station group) dictionary that contains
-        # the information fo the current station and event group
-        n_showers = sg['launch_vectors'].shape[0]
-        if 'multiple_triggers' not in sg:
-            sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
-            sg['trigger_times'] = np.nan * np.zeros_like(sg['multiple_triggers'], dtype=float)
-        elif extend_array:
-            tmp = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
-            nx, ny = sg['multiple_triggers'].shape
-            tmp[:, 0:ny] = sg['multiple_triggers']
-            sg['multiple_triggers'] = tmp
-            # repeat for trigger times
-            tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
-            tmp_t[:, :ny] = sg['trigger_times']
-            sg['trigger_times'] = tmp_t
-
-        self._output_event_group_ids[self._station_id].append(self._evt.get_run_number())
-        self._output_sub_event_ids[self._station_id].append(self._evt.get_id())
-        multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=bool)
-        trigger_times = np.nan*np.zeros_like(multiple_triggers)
-        for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
-            if self._station.has_trigger(trigger_name):
-                multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
-                trigger_times[iT] = self._station.get_trigger(trigger_name).get_trigger_time()
-                for iSh in local_shower_index:  # now save trigger information per shower of the current station
-                    sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
-                    sg['trigger_times'][iSh][iT] = trigger_times[iT]
-        for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
-            sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
-            self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
-            self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
-            self._mout['trigger_times'][iSh2] = np.fmin(
-                self._mout['trigger_times'][iSh2], sg['trigger_times'][iSh])
-        sg['event_id_per_shower'][local_shower_index] = self._evt.get_id()
-        sg['event_group_id_per_shower'][local_shower_index] = self._evt.get_run_number()
-        self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
-        self._output_trigger_times_station[self._station_id].append(trigger_times)
-        self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
-
     def get_Vrms(self):
         return self._Vrms
 
@@ -1586,63 +1485,7 @@ class simulation:
 
         return self._was_pre_simulated
 
-    def _create_meta_output_datastructures(self):
-        """
-        creates the data structures of the parameters that will be saved into the hdf5 output file
-        """
-        self._mout = {}
-        self._mout_attributes = {}
-        self._mout['weights'] = np.zeros(self._n_showers)
-        self._mout['triggered'] = np.zeros(self._n_showers, dtype=bool)
-#         self._mout['multiple_triggers'] = np.zeros((self._n_showers, self._number_of_triggers), dtype=bool)
-        self._mout_attributes['trigger_names'] = None
-        self._amplitudes = {}
-        self._amplitudes_envelope = {}
-        self._output_triggered_station = {}
-        self._output_event_group_ids = {}
-        self._output_sub_event_ids = {}
-        self._output_multiple_triggers_station = {}
-        self._output_trigger_times_station = {}
-        self._output_maximum_amplitudes = {}
-        self._output_maximum_amplitudes_envelope = {}
-
-        for station_id in self._station_ids:
-            self._mout_groups[station_id] = {}
-            sg = self._mout_groups[station_id]
-            self._output_event_group_ids[station_id] = []
-            self._output_sub_event_ids[station_id] = []
-            self._output_triggered_station[station_id] = []
-            self._output_multiple_triggers_station[station_id] = []
-            self._output_trigger_times_station[station_id] = []
-            self._output_maximum_amplitudes[station_id] = []
-            self._output_maximum_amplitudes_envelope[station_id] = []
-
-    def _create_station_output_structure(self, n_showers, n_antennas):
-        nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
-        sg = {}
-        sg['triggered'] = np.zeros(n_showers, dtype=bool)
-        # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
-        sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1
-        sg['event_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
-        sg['event_group_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
-        sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['travel_times'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        sg['travel_distances'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        if config['speedup']['amp_per_ray_solution']:
-            sg['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
-            sg['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
-        for parameter_entry in self._raytracer.get_output_parameters():
-            if parameter_entry['ndim'] == 1:
-                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-            else:
-                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS, parameter_entry['ndim'])) * np.nan
-        return sg
-
-    
-
-    
+ 
 
     def calculate_Veff(self):
         # calculate effective
