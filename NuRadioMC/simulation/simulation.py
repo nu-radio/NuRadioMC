@@ -1,22 +1,28 @@
+import os
+import collections
+import datetime
+import logging
+import warnings
+import time
+import copy
+import yaml
 import numpy as np
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrans
-from NuRadioMC.SignalGen import askaryan
-from NuRadioMC.SignalGen import emitter as emitter_signalgen
-from NuRadioReco.utilities import units
-from NuRadioMC.utilities import medium
-from NuRadioReco.utilities import fft
-from NuRadioMC.utilities.earth_attenuation import get_weight
-from NuRadioMC.SignalProp import propagation
 from numpy.random import Generator, Philox
 import h5py
-import time
-import six
-import copy
-import json
 from scipy import constants
 # import detector simulation modules
+from NuRadioMC.SignalGen import askaryan
+from NuRadioMC.SignalGen import emitter as emitter_signalgen
+import NuRadioMC.utilities.medium
+from NuRadioMC.utilities.earth_attenuation import get_weight
+from NuRadioMC.SignalProp import propagation
+from NuRadioMC.utilities.Veff import remove_duplicate_triggers
+from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
+from NuRadioReco.utilities import units
 import NuRadioReco.modules.io.eventWriter
+from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -24,15 +30,13 @@ import NuRadioReco.modules.efieldToVoltageConverterPerEfield
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
-import NuRadioReco.detector.detector as detector
+from NuRadioReco.detector import detector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
 import NuRadioReco.framework.sim_emitter
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 # parameters describing simulated Monte Carlo particles
@@ -40,18 +44,7 @@ from NuRadioReco.framework.parameters import particleParameters as simp
 from NuRadioReco.framework.parameters import emitterParameters as ep
 # parameters set in the event generator
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
-import datetime
-import logging
-import warnings
-from six import iteritems
-import yaml
-import os
-import collections
-from NuRadioMC.utilities.Veff import remove_duplicate_triggers
-import logging
-from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
-import NuRadioMC.simulation.time_logger
-from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
+# import NuRadioMC.simulation.time_logger
 
 logger = setup_logger("NuRadioMC.simulation")
 
@@ -84,7 +77,7 @@ def pretty_time_delta(seconds):
 
 def merge_config(user, default):
     if isinstance(user, dict) and isinstance(default, dict):
-        for k, v in iteritems(default):
+        for k, v in default.items():
             if k not in user:
                 user[k] = v
             else:
@@ -121,7 +114,7 @@ def calculate_sim_efield(showers, sid, cid,
         A list of SimEfield objects, one for each shower and propagation solution
 
     """
-    logger.debug(f"Calculating electric field for station {sid}, channel {cid} from list of showers")
+    logger.debug("Calculating electric field for station %d , channel %d from list of showers", sid, cid)
     p = propagator # shorthand for more compact coding
 
     sim_station = NuRadioReco.framework.sim_station.SimStation(sid)
@@ -245,7 +238,7 @@ def calculate_sim_efield(showers, sid, cid,
     return sim_station
 
 def calculate_sim_efield_for_emitter(emitters, sid, cid,
-                         det, propagator, config,
+                         det, propagator, medium, config,
                          rnd, antenna_pattern_provider,
                          time_logger=None):
     """
@@ -291,7 +284,6 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
     for emitter in emitters:
         x1 = emitter.get_parameter(shp.position)
         n_index = medium.get_index_of_refraction(x1)
-        cherenkov_angle = np.arccos(1. / n_index)
 
         p.set_start_and_end_point(x1, x2)
         if config['speedup']['redo_raytracing']:  # check if raytracing was already performed
@@ -308,9 +300,8 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             R = p.get_path_length(iS)  # calculate path length
             T = p.get_travel_time(iS)  # calculate travel time
             if R is None or T is None:
-                logger.warning(f'travel distance or travel time could not be calculated, skipping ray tracing solution. Shower ID: {shower.get_id()} Station ID: {sid} Channel ID: {cid}')
+                logger.warning(f'travel distance or travel time could not be calculated, skipping ray tracing solution. Emitter ID: {emitter.get_id()} Station ID: {sid} Channel ID: {cid}')
                 continue
-            kwargs = {}
             # if the input file specifies a specific shower realization, or
             # if the shower was already simulated (e.g. for a different channel or ray tracing solution)
             # use that realization
@@ -552,7 +543,7 @@ def build_dummy_event(sid, det, config):
     n_samples = det.get_number_of_samples(sid, 0) / det.get_sampling_frequency(sid, 0) / dt
     n_samples = int(np.ceil(n_samples / 2.) * 2)  # round to nearest even integer
 
-    for iCh, channel_id in enumerate(det.get_channel_ids(sid)):
+    for channel_id in det.get_channel_ids(sid):
         electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
                                     det.get_relative_position(sim_station.get_id(), channel_id))
         trace = np.zeros(n_samples)
@@ -572,99 +563,96 @@ def build_dummy_event(sid, det, config):
 
 
 def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
-        """
-        Build NuRadioReco event structures from the input file
+    """
+    Build NuRadioReco event structures from the input file
 
-        The function automatically determines if a particle or an emitter is simulated and builds the
-        corresponding event structure.
+    The function automatically determines if a particle or an emitter is simulated and builds the
+    corresponding event structure.
 
-        Parameters
-        ----------
-        fin : dict
-            the input file data dictionary
-        fin_attrs : dict
-            the input file attributes dictionary
-        idxs : list of ints
-            the indices of the events that should be built
+    Parameters
+    ----------
+    fin : dict
+        the input file data dictionary
+    fin_attrs : dict
+        the input file attributes dictionary
+    idxs : list of ints
+        the indices of the events that should be built
 
-        Returns
-        -------
-            an event group object containing the showers and particles or emitters
-            the output should contain all relevant information from the hdf5 file (except the attributes)
-            to perform a NuRadioMC simulation
-        """
-        parent_id = idxs[0]
-        event_group_id = fin['event_group_ids'][parent_id]
-        event_group = NuRadioReco.framework.event.Event(event_group_id, parent_id)
-        # add event generator info event
-        generator_info = {}
-        for enum_entry in genattrs:
-            if enum_entry.name in fin_attrs:
-                event_group.set_generator_info(enum_entry, fin_attrs[enum_entry.name])
+    Returns
+    -------
+        an event group object containing the showers and particles or emitters
+        the output should contain all relevant information from the hdf5 file (except the attributes)
+        to perform a NuRadioMC simulation
+    """
+    parent_id = idxs[0]
+    event_group_id = fin['event_group_ids'][parent_id]
+    event_group = NuRadioReco.framework.event.Event(event_group_id, parent_id)
+    # add event generator info event
+    for enum_entry in genattrs:
+        if enum_entry.name in fin_attrs:
+            event_group.set_generator_info(enum_entry, fin_attrs[enum_entry.name])
 
-        particle_mode = "simulation_mode" not in fin_attrs or fin_attrs['simulation_mode'] != "emitter"
-        if particle_mode:  # first case: simulation of a particle interaction which produces showers
-            # there is only one primary particle per event group
-            input_particle = NuRadioReco.framework.particle.Particle(event_group_id)
-            input_particle[simp.flavor] = fin['flavors'][parent_id]
-            input_particle[simp.energy] = fin['energies'][parent_id]
-            input_particle[simp.interaction_type] = fin['interaction_type'][parent_id]
-            input_particle[simp.inelasticity] = fin['inelasticity'][parent_id]
-            input_particle[simp.vertex] = np.array([fin['xx'][parent_id],
-                                                    fin['yy'][parent_id],
-                                                    fin['zz'][parent_id]])
-            input_particle[simp.zenith] = fin['zeniths'][parent_id]
-            input_particle[simp.azimuth] = fin['azimuths'][parent_id]
-            input_particle[simp.inelasticity] = fin['inelasticity'][parent_id]
-            input_particle[simp.n_interaction] = fin['n_interaction'][parent_id]
-            input_particle[simp.shower_id] = fin['shower_ids'][parent_id]
-            if fin['n_interaction'][parent_id] <= 1:
-                # parents before the neutrino and outgoing daughters without shower are currently not
-                # simulated. The parent_id is therefore at the moment only rudimentarily populated.
-                input_particle[simp.parent_id] = None  # primary does not have a parent
-            input_particle[simp.vertex_time] = 0
+    particle_mode = "simulation_mode" not in fin_attrs or fin_attrs['simulation_mode'] != "emitter"
+    if particle_mode:  # first case: simulation of a particle interaction which produces showers
+        # there is only one primary particle per event group
+        input_particle = NuRadioReco.framework.particle.Particle(event_group_id)
+        input_particle[simp.flavor] = fin['flavors'][parent_id]
+        input_particle[simp.energy] = fin['energies'][parent_id]
+        input_particle[simp.interaction_type] = fin['interaction_type'][parent_id]
+        input_particle[simp.inelasticity] = fin['inelasticity'][parent_id]
+        input_particle[simp.vertex] = np.array([fin['xx'][parent_id],
+                                                fin['yy'][parent_id],
+                                                fin['zz'][parent_id]])
+        input_particle[simp.zenith] = fin['zeniths'][parent_id]
+        input_particle[simp.azimuth] = fin['azimuths'][parent_id]
+        input_particle[simp.inelasticity] = fin['inelasticity'][parent_id]
+        input_particle[simp.n_interaction] = fin['n_interaction'][parent_id]
+        input_particle[simp.shower_id] = fin['shower_ids'][parent_id]
+        if fin['n_interaction'][parent_id] <= 1:
+            # parents before the neutrino and outgoing daughters without shower are currently not
+            # simulated. The parent_id is therefore at the moment only rudimentarily populated.
+            input_particle[simp.parent_id] = None  # primary does not have a parent
+        input_particle[simp.vertex_time] = 0
+        if 'vertex_times' in fin:
+            input_particle[simp.vertex_time] = fin['vertex_times'][parent_id]
+        event_group.add_particle(input_particle)
+
+        # now loop over all showers and add them to the event group
+        for idx in idxs:
+            vertex_time = 0
             if 'vertex_times' in fin:
-                input_particle[simp.vertex_time] = fin['vertex_times'][parent_id]
-            event_group.add_particle(input_particle)
+                vertex_time = fin['vertex_times'][idx]
 
-            # now loop over all showers and add them to the event group
-            for idx in idxs:
-                shower_vertex = np.array([fin['xx'][idx], fin['yy'][idx], fin['zz'][idx]])
+            # create NuRadioReco event structure
+            sim_shower = NuRadioReco.framework.radio_shower.RadioShower(fin['shower_ids'][idx])
+            # save relevant neutrino properties
+            sim_shower[shp.zenith] = fin['zeniths'][idx]
+            sim_shower[shp.azimuth] = fin['azimuths'][idx]
+            sim_shower[shp.energy] = fin['shower_energies'][idx]
+            sim_shower[shp.flavor] = fin['flavors'][idx]
+            sim_shower[shp.interaction_type] = fin['interaction_type'][idx]
+            sim_shower[shp.n_interaction] = fin['n_interaction'][idx]
+            sim_shower[shp.vertex] = np.array([fin['xx'][idx], fin['yy'][idx], fin['zz'][idx]])
+            sim_shower[shp.vertex_time] = vertex_time
+            sim_shower[shp.type] = fin['shower_type'][idx]
+            # TODO direct parent does not necessarily need to be the primary in general, but full
+            # interaction chain is currently not populated in the input files.
+            sim_shower[shp.parent_id] = event_group_id
+            logger.debug(f"Adding shower {sim_shower.get_id()} to event group {event_group.get_id()}")
+            event_group.add_sim_shower(sim_shower)
 
-                vertex_time = 0
-                if 'vertex_times' in fin:
-                    vertex_time = fin['vertex_times'][idx]
-
-                # create NuRadioReco event structure
-                sim_shower = NuRadioReco.framework.radio_shower.RadioShower(fin['shower_ids'][idx])
-                # save relevant neutrino properties
-                sim_shower[shp.zenith] = fin['zeniths'][idx]
-                sim_shower[shp.azimuth] = fin['azimuths'][idx]
-                sim_shower[shp.energy] = fin['shower_energies'][idx]
-                sim_shower[shp.flavor] = fin['flavors'][idx]
-                sim_shower[shp.interaction_type] = fin['interaction_type'][idx]
-                sim_shower[shp.n_interaction] = fin['n_interaction'][idx]
-                sim_shower[shp.vertex] = np.array([fin['xx'][idx], fin['yy'][idx], fin['zz'][idx]])
-                sim_shower[shp.vertex_time] = vertex_time
-                sim_shower[shp.type] = fin['shower_type'][idx]
-                # TODO direct parent does not necessarily need to be the primary in general, but full
-                # interaction chain is currently not populated in the input files.
-                sim_shower[shp.parent_id] = event_group_id
-                logger.debug(f"Adding shower {sim_shower.get_id()} to event group {event_group.get_id()}")
-                event_group.add_sim_shower(sim_shower)
-
-        else:  # emitter mode: simulation of one or several artificial emitters
-            for idx in idxs:
-                emitter_obj = NuRadioReco.framework.sim_emitter.SimEmitter(fin['shower_ids'][idx])  # shower_id is equivalent to emitter_id in this case
-                emitter_obj[ep.position] = np.array([fin['xx'][idx], fin['yy'][idx], fin['zz'][idx]])
-                emitter_obj[ep.model] = fin['emitter_model'][idx]
-                emitter_obj[ep.amplitude] = fin['emitter_amplitudes'][idx]
-                for key in ep:
-                    if not emitter_obj.has_parameter(key):
-                        if 'emitter_' + key.name in fin:
-                            emitter_obj[key] = fin['emitter_' + key.name][idx]
-                event_group.add_sim_emitter(emitter_obj)
-        return event_group
+    else:  # emitter mode: simulation of one or several artificial emitters
+        for idx in idxs:
+            emitter_obj = NuRadioReco.framework.sim_emitter.SimEmitter(fin['shower_ids'][idx])  # shower_id is equivalent to emitter_id in this case
+            emitter_obj[ep.position] = np.array([fin['xx'][idx], fin['yy'][idx], fin['zz'][idx]])
+            emitter_obj[ep.model] = fin['emitter_model'][idx]
+            emitter_obj[ep.amplitude] = fin['emitter_amplitudes'][idx]
+            for key in ep:
+                if not emitter_obj.has_parameter(key):
+                    if 'emitter_' + key.name in fin:
+                        emitter_obj[key] = fin['emitter_' + key.name][idx]
+            event_group.add_sim_emitter(emitter_obj)
+    return event_group
 
 def get_config(config_file):
     """
@@ -685,48 +673,50 @@ def get_config(config_file):
         the configuration dictionary
     """
     config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
-    logger.status('reading default config from {}'.format(config_file_default))
-    with open(config_file_default, 'r') as ymlfile:
+    logger.status('reading default config from %s', config_file_default)
+    with open(config_file_default, 'r', encoding="utf-8") as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
     if config_file is not None:
-        logger.status('reading local config overrides from {}'.format(config_file))
-        with open(config_file, 'r') as ymlfile:
+        logger.status('reading local config overrides from %s', config_file)
+        with open(config_file, 'r', encoding="utf-8") as ymlfile:
             local_config = yaml.load(ymlfile, Loader=yaml.FullLoader)
             new_cfg = merge_config(local_config, cfg)
             cfg = new_cfg
     return cfg
 
 def calculate_polarization_vector(shower_axis, launch_vector, config):
-        """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)
+    """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)
 
-        Parameters
-        ----------
-        shower_axis: array-like
-            shower axis in cartesian coordinates
-        launch_vector: array-like
-            launch vector in cartesian coordinates
-        config: dict
-            configuration dictionary
+    Parameters
+    ----------
+    shower_axis: array-like
+        shower axis in cartesian coordinates
+    launch_vector: array-like
+        launch vector in cartesian coordinates
+    config: dict
+        configuration dictionary
 
-        Returns
-        -------
-        array-like
-            polarization vector in spherical coordinates (eR, eTheta, ePhi)
-        """
-        if config['signal']['polarization'] == 'auto':
-            polarization_direction = np.cross(launch_vector, np.cross(shower_axis, launch_vector))
-            polarization_direction /= np.linalg.norm(polarization_direction)
-            cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*launch_vector))
-            return cs.transform_from_ground_to_onsky(polarization_direction)
-        elif config['signal']['polarization'] == 'custom':
-            ePhi = float(config['signal']['ePhi'])
-            eTheta = (1 - ePhi ** 2) ** 0.5
-            v = np.array([0, eTheta, ePhi])
-            return v / np.linalg.norm(v)
-        else:
-            msg = "{} for config.signal.polarization is not a valid option".format(config['signal']['polarization'])
-            logger.error(msg)
-            raise ValueError(msg)
+    Returns
+    -------
+    array-like
+        polarization vector in spherical coordinates (eR, eTheta, ePhi)
+    """
+    if config['signal']['polarization'] == 'auto':
+        polarization_direction = np.cross(launch_vector, np.cross(shower_axis, launch_vector))
+        polarization_direction /= np.linalg.norm(polarization_direction)
+        cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*launch_vector))
+        return cs.transform_from_ground_to_onsky(polarization_direction)
+
+    if config['signal']['polarization'] == 'custom':
+        ePhi = float(config['signal']['ePhi'])
+        eTheta = (1 - ePhi ** 2) ** 0.5
+        v = np.array([0, eTheta, ePhi])
+        return v / np.linalg.norm(v)
+
+    msg = f"{config['signal']['polarization']} for config.signal.polarization is not a valid option"
+    logger.error(msg)
+    raise ValueError(msg)
+
 def increase_signal(station, channel_id, factor):
     """
     increase the signal of a simulated station by a factor of x
@@ -919,17 +909,17 @@ def read_input_hdf5(filename):
     fin = {}
     fin_stations = {}
     fin_attrs = {}
-    for key, value in iteritems(fin_hdf5):
+    for key, value in fin_hdf5.items():
         if isinstance(value, h5py._hl.group.Group):
             fin_stations[key] = {}
-            for key2, value2 in iteritems(value):
+            for key2, value2 in value.items():
                 fin_stations[key][key2] = np.array(value2)
         else:
             if len(value) and type(value[0]) == bytes:
                 fin[key] = np.array(value).astype('U')
             else:
                 fin[key] = np.array(value)
-    for key, value in iteritems(fin_hdf5.attrs):
+    for key, value in fin_hdf5.attrs.items():
         fin_attrs[key] = value
 
     fin_hdf5.close()
@@ -1045,11 +1035,10 @@ class simulation:
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
             msg = f"hdf5 output file {self._outputfilename} already exists"
-            if file_overwrite == False:
+            if file_overwrite is False:
                 logger.error(msg)
                 raise FileExistsError(msg)
-            else:
-                logger.warning(msg)
+            logger.warning(msg)
 
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug  # TODO remove
@@ -1067,7 +1056,7 @@ class simulation:
                 raise AttributeError("ice model is set to 'custom' in config file but no custom ice model is provided.")
             self._ice = ice_model
         else:
-            self._ice = medium.get_ice_model(self._config['propagation']['ice_model'])
+            self._ice = NuRadioMC.utilities.medium.get_ice_model(self._config['propagation']['ice_model'])
 
         # Initialize detector
         if det is None:
@@ -1125,7 +1114,7 @@ class simulation:
             return
         ### END input HDF5 block
 
-        self._output_writer_hdf5 = outputWriterHDF5(self._outputfilename, self._config, self._det, self._station_ids, 
+        self._output_writer_hdf5 = outputWriterHDF5(self._outputfilename, self._config, self._det, self._station_ids,
                                                     self._propagator.get_number_of_raytracing_solutions())
 
         # Perfom a dummy detector simulation to determine how the signals are filtered.
@@ -1139,10 +1128,9 @@ class simulation:
 
         # first create dummy event and station with channels, run the signal chain, 
         # and determine the integrated channel response (to be able to normalize the noise level)
-        for iSt, sid in enumerate(self._station_ids):
+        for sid in self._station_ids:
 
             evt = build_dummy_event(sid, self._det, self._config)
-            station = evt.get_station(sid)
             # TODO: It seems to be sufficient to just apply the `_detector_simulation_filter_amp` function to a dummy event
             apply_det_response(evt, self._det, self._config, self._detector_simulation_filter_amp,
                                add_noise=False)
@@ -1244,7 +1232,7 @@ class simulation:
                                   f'efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
 
         else:
-            raise AttributeError(f"noise temperature and Vrms are both set to None")
+            raise AttributeError("noise temperature and Vrms are both set to None")
 
         self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
         speed_cut = float(self._config['speedup']['min_efield_amplitude'])
@@ -1354,7 +1342,7 @@ class simulation:
                     else:
                         sim_station = calculate_sim_efield_for_emitter(emitters=event_group.get_sim_emitters(),
                                             sid=sid, cid=channel_id,
-                                            det=self._det, propagator=self._propagator, config=self._config,
+                                            det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
                                             rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
                                             time_logger=None)
                     # skip to next channel if the efield is below the speed cut
