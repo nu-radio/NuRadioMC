@@ -12,6 +12,9 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 import logging
+import h5py
+import pickle
+import os
 logger = logging.getLogger('coreas')
 
 warning_printed_coreas_py = False
@@ -29,7 +32,6 @@ def get_angles(corsika):
     the particle is described in the direction where it is going to. The azimuthal angle is described between the positive X-axis and the horizontal component of the particle momentum vector (i.e. with respect to North) 
     proceeding counterclockwise. NuRadio describes the particle zenith and azimuthal angle in the direction where the particle is coming from. Therefore 
     the zenith angle is the same, but the azimuthal angle has to be shifted by 180 + 90 degrees. The north has to be shifted by 90 degrees plus difference in geomagetic and magnetic north.
-
     """
     zenith = np.deg2rad(corsika['inputs'].attrs["THETAP"][0])
     azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]))
@@ -41,6 +43,103 @@ def get_angles(corsika):
     magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, 0 + np.pi * 0.5)
     return zenith, azimuth, magnetic_field_vector
 
+def get_coreas_quantities(hdf5_filelist, outfile='coreas_quantities.pickle', save_dict=False):
+    """
+    Reads shower data from COREAS HDF5 files and converts it into a dictionary with NuRadio units.
+
+    Parameters
+    ----------
+    hdf5_filelist: list
+        List of HDF5 file names containing COREAS shower data.
+    outfile: str
+        Output file name for saving the resulting dictionary. Default is 'coreas_quantities.pickle'.
+    save_dict: bool
+        Whether to save the resulting dictionary to the specified output file. Default is False.
+
+    Returns
+    -------
+    dict: dictionary
+        A dictionary with the following keys:
+            * 'energies': Array of energies of the showers, shape: (n_showers,)
+            * 'zeniths': Array of zenith angles of the showers, shape: (n_showers,)
+            * 'azimuths': Array of azimuth angles of the showers, shape: (n_showers,)
+            * 'obs_positions': Array of observer positions in geographic coordinates for each shower, shape: (n_showers, n_observers, 3)
+            * 'obs_positions_vBvvB': Array of observer positions in shower plane coordinates for each shower, shape: (n_showers, n_observers, 3)
+            * 'efield': Array of electric field traces for each observer of each shower, shape: (n_showers, n_observers, n_samples, 4) (time, eR, eTheta, ePhi)
+            * 'sampling_rates': Array of sampling rates for each shower and observer, shape: (n_showers, n_observers)
+            * 'file_list': List of HDF5 file names, shape: (n_showers,)
+
+    """
+
+
+    corsika = h5py.File(hdf5_filelist[0], "r")
+    n_observer = len(corsika["CoREAS"]['observers'].items())
+    group = (corsika["CoREAS"]['observers'])
+    keys = list(group.keys())
+    n_trace_samples = len(corsika["CoREAS"]['observers'][keys[0]][:,0])
+
+    zeniths = np.zeros((len(hdf5_filelist)))
+    azimuths = np.zeros_like(zeniths)
+    energies = np.zeros_like(zeniths)
+    sampling_rates = np.zeros_like(zeniths)
+    obs_positions_geo = np.zeros((len(hdf5_filelist), n_observer, 3))
+    obs_positions_vBvvB = np.zeros((len(hdf5_filelist), n_observer, 3))
+    electric_field = np.zeros((len(hdf5_filelist), n_observer, n_trace_samples, 4))
+
+    for i, input_file in enumerate(hdf5_filelist):
+        filesize = os.path.getsize(input_file)
+        if(filesize < 18456 * 2):  # based on the observation that a file with such a small filesize is corrupt
+            logger.warning(f"file {input_file} seems to be corrupt, skipping to next file")
+        else:
+            logger.info(f'Reading {input_file}')
+
+            corsika = h5py.File(input_file, "r")
+            zeniths[i], azimuths[i], magnetic_field_vector = get_angles(corsika)
+            cs = coordinatesystems.cstrafo(zeniths[i], azimuths[i], magnetic_field_vector)
+            energies[i] = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
+            sampling_rates[i] = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
+            obs_positions = []
+            electric_field_on_sky = []
+            for j_obs, observer in enumerate(corsika['CoREAS']['observers'].values()):
+                #account for different coordinate systems (see get_angles function)
+                obs_positions.append(np.array([-observer.attrs['position'][1], observer.attrs['position'][0], 0]) * units.cm)
+
+                efield = np.array([observer[()][:,0]*units.second,
+                                   -observer[()][:,2]*conversion_fieldstrength_cgs_to_SI,
+                                   observer[()][:,1]*conversion_fieldstrength_cgs_to_SI,
+                                   observer[()][:,3]*conversion_fieldstrength_cgs_to_SI])
+
+                efield_geo = cs.transform_from_magnetic_to_geographic(efield[1:,:])
+                # convert coreas efield to NuRadio spherical coordinated eR, eTheta, ePhi (on sky)
+                efield_on_sky = cs.transform_from_ground_to_onsky(efield_geo)
+                # insert time column before efield values
+                electric_field_on_sky.append(np.insert(efield_on_sky.T, 0, efield[0,:], axis = 1))
+            # shape: (n_observers, n_samples, (time, eR, eTheta, ePhi))
+            electric_field[i,:,:,:] = np.array(electric_field_on_sky)
+
+            obs_positions = np.array(obs_positions)
+            # second to last dimension has to be 3 for the transformation
+            obs_pos_geo = cs.transform_from_magnetic_to_geographic(obs_positions.T)
+            # transforms the coreas observer positions into the vxB, vxvxB shower plane
+            obs_pos_vBvvB = cs.transform_to_vxB_vxvxB(obs_pos_geo).T
+
+            obs_positions_geo[i,:,:] = obs_pos_geo.T
+            obs_positions_vBvvB[i,:,:] = obs_pos_vBvvB
+
+    dic = {}
+    dic['energies'] = energies
+    dic['zeniths'] = zeniths
+    dic['azimuths'] = azimuths
+    dic['obs_positions_geo'] = obs_positions_geo
+    dic['obs_positions_vBvvB'] = obs_positions_vBvvB
+    dic['efield'] = electric_field
+    dic['sampling_rates'] = sampling_rates
+    dic['file_list'] = hdf5_filelist
+
+    if save_dict:
+        with open(outfile, 'wb') as pickle_out:
+            pickle.dump(dic, pickle_out)
+    return dic
 
 def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debug=False):
     """Calculate weights according to the area that one simulated position represents.
@@ -127,8 +226,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
 
     return weights
 
-
-def make_sim_station(station_id, corsika, observer, channel_ids, weight=None,  interpFlag = False):
+def make_sim_station(station_id, corsika, observer, channel_ids, weight=None, interpFlag=False):
     """
     creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file
 
@@ -154,8 +252,11 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None,  i
     if(observer is None):
         observer = np.zeros((512, 4))
         observer[:, 0] = np.arange(0, 512) * units.ns / units.second
-        efield = observer
+        efield = observer[:, 1:]
+        efield_times = observer[:, 0]
+
     elif interpFlag == False and observer is not None:
+        # assume coreas observers as input
         data = np.copy(observer)
         data[:, 1], data[:, 2] = -observer[:, 2], observer[:, 1]
 
@@ -168,22 +269,28 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None,  i
         cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector=magnetic_field_vector)
         efield = cs.transform_from_magnetic_to_geographic(data[:, 1:].T)
         efield = cs.transform_from_ground_to_onsky(efield)
+        efield_times = data[:, 0]
 
     elif interpFlag == True and observer is not None:
-        efield = observer
+        # convertion is handles in readCoREASDetector
+        efield = observer[1:, :]
+        efield_times = observer[0, :]
 
-    # prepend trace with zeros to not have the pulse directly at the start
-    n_samples_prepend = efield.shape[1]
-    efield2 = np.zeros((3, n_samples_prepend + efield.shape[1]))
-    efield2[0] = np.append(np.zeros(n_samples_prepend), efield[0])
-    efield2[1] = np.append(np.zeros(n_samples_prepend), efield[1])
-    efield2[2] = np.append(np.zeros(n_samples_prepend), efield[2])
+    if interpFlag:
+        efield2 = efield
+    else:
+        # prepend trace with zeros to not have the pulse directly at the start
+        n_samples_prepend = efield.shape[1]
+        efield2 = np.zeros((3, n_samples_prepend + efield.shape[1]))
+        efield2[0] = np.append(np.zeros(n_samples_prepend), efield[0])
+        efield2[1] = np.append(np.zeros(n_samples_prepend), efield[1])
+        efield2[2] = np.append(np.zeros(n_samples_prepend), efield[2])
 
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
     electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids)
     electric_field.set_trace(efield2, sampling_rate)
-    electric_field.set_trace_start_time(observer[0, 0])
+    electric_field.set_trace_start_time(efield_times[0])
     electric_field.set_parameter(efp.ray_path_type, 'direct')
     electric_field.set_parameter(efp.zenith, zenith)
     electric_field.set_parameter(efp.azimuth, azimuth)
@@ -205,10 +312,10 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None,  i
     sim_station.set_simulation_weight(weight)
     return sim_station
 
-
 def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
     """
-    creates an NuRadioReco sim shower from the coreas hdf5 file
+    creates an NuRadioReco sim shower from the coreas hdf5 file, the core positions are set such that the detector station is on top of
+    each coreas observer position
 
     Parameters
     ----------
