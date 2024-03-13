@@ -8,4 +8,4 @@ python3 T05validate_nur_file.py 1e18_output.nur 1e18_output_reference.nur
 
 # cleanup 
 rm -v 1e18_output.hdf5
-rm -v 1e18_output_reference.hdf5
+rm -v 1e18_output.nur
