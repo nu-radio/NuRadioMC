@@ -385,7 +385,7 @@ class NuRadioRecoio(object):
                     return self.__detectors[self._current_file_id]
 
             # Detector is a normal detector
-            self.__detectors[self._current_file_id] = NuRadioReco.detector.detector_base.Detector(
+            self.__detectors[self._current_file_id] = NuRadioReco.detector.detector_base.DetectorBase(
                 source='dictionary', json_filename='', dictionary=self._detector_dicts[self._current_file_id],
                 create_new=True
                 )
