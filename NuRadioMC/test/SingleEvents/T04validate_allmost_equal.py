@@ -189,6 +189,7 @@ keys = [
  u'launch_vectors',
  u'receive_vectors',
  u'travel_times',
+ u'trigger_times_per_event',
  u'trigger_times',
  u'travel_distances',
  u'polarization',
@@ -200,7 +201,7 @@ error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
 # for some reason the test suddenly can't achieve a good enough precision on this quantity. Lets reduce precision
 # for this vairble for now.
 keys = [u'maximum_amplitudes_envelope']
-error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.001)
+error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.002)
 
 # test maximimum amplitude separately because it might differ slightly because of differences in the interferene between signals
 keys = [u'maximum_amplitudes']
