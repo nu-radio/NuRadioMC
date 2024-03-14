@@ -282,7 +282,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
     dt = 1. / config['sampling_rate']
 
     for emitter in emitters:
-        x1 = emitter.get_parameter(shp.position)
+        x1 = emitter.get_parameter(ep.position)
         n_index = medium.get_index_of_refraction(x1)
 
         p.set_start_and_end_point(x1, x2)
@@ -309,7 +309,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             emitter_model = emitter[ep.model]
             emitter_kwargs = {}
             emitter_kwargs["launch_vector"] = p.get_launch_vector(iS)
-            for key in ep.keys():
+            for key in ep:
                 if key.name not in ['amplitude', 'model', 'position']:
                     if emitter.has_parameter(key):
                         emitter_kwargs[key.name] = emitter[key]
@@ -333,9 +333,9 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
                 antenna_model = emitter[ep.antenna_type]
                 antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_model)
                 ori = [emitter[ep.orientation_theta], emitter[ep.orientation_phi],
-                       emitter[ep.emitter_rotation_theta], emitter[ep.emitter_rotation_phi]]
+                       emitter[ep.rotation_theta], emitter[ep.rotation_phi]]
                 # source voltage given to the emitter
-                voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, n_samples, dt,
+                voltage_spectrum_emitter = emitter_signalgen.get_frequency_spectrum(amplitude, n_samples, dt,
                                                                             emitter_model, **emitter_kwargs)
                 # convolve voltage output with antenna response to obtain emitted electric field
                 frequencies = np.fft.rfftfreq(n_samples, d=dt)
@@ -349,12 +349,14 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             eTheta *= 1 / R
             ePhi *= 1 / R
 
+
             # this is common stuff which is the same between emitters and showers. Make sure to do any changes to this code in both places
             electric_field = NuRadioReco.framework.electric_field.ElectricField([cid],
                                     position=det.get_relative_position(sid, cid),
                                     shower_id=emitter.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
             electric_field = p.apply_propagation_effects(electric_field, iS)
+            print(f"channel {cid} emitter {sid}, iS: {iS}: number of nan bins: {np.sum(np.isnan(electric_field.get_trace()))}")
             # Trace start time is equal to the emitter time in case one was defined
             # (relevant for multiple emitters per event group)
             if emitter.has_parameter(ep.time):
@@ -374,7 +376,9 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             electric_field[efp.zenith] = zenith
             electric_field[efp.ray_path_type] = propagation.solution_types[p.get_solution_type(iS)]
             electric_field[efp.nu_vertex_distance] = R
+            electric_field[efp.nu_vertex_travel_time] = T
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
+            electric_field[efp.launch_vector] = p.get_launch_vector(iS)
 
             sim_station.add_electric_field(electric_field)
 
@@ -1250,9 +1254,11 @@ class simulation:
                 return max(100 * units.m, 10 ** self.__distance_cut_polynomial(np.log10(shower_energy)))
 
             self._get_distance_cut = get_distance_cut
-
+        
+        particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         self._output_writer_hdf5 = outputWriterHDF5(self._outputfilename, self._config, self._det, self._station_ids,
-                                                    self._propagator.get_number_of_raytracing_solutions())
+                                                    self._propagator.get_number_of_raytracing_solutions(),
+                                                    particle_mode=particle_mode)
 
 
     def run(self):
