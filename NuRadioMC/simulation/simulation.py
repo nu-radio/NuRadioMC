@@ -634,6 +634,10 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
             sim_shower[shp.vertex] = np.array([fin['xx'][idx], fin['yy'][idx], fin['zz'][idx]])
             sim_shower[shp.vertex_time] = vertex_time
             sim_shower[shp.type] = fin['shower_type'][idx]
+            if('shower_realization_ARZ' in fin):
+                sim_shower[shp.charge_excess_profile_id] = fin['shower_realization_ARZ'][idx]
+            if('shower_realization_Alvarez2009' in fin):
+                sim_shower[shp.k_L] = fin['shower_realization_Alvarez2009'][idx]
             # TODO direct parent does not necessarily need to be the primary in general, but full
             # interaction chain is currently not populated in the input files.
             sim_shower[shp.parent_id] = event_group_id
