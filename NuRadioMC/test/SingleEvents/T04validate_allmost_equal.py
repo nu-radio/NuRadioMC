@@ -89,10 +89,16 @@ def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accu
                 print(arr2[i])
                 error = -1
             # now test zero entries for equality
-            if not np.all(arr1[i][zero_mask] == arr2[i][zero_mask]):
+            tmp = arr1[i][zero_mask]
+            if(key == 'max_amp_shower_and_ray'):
+                tmp = np.nan_to_num(arr1[i][zero_mask])  # the previous implementation initialized the array with zeros, the new one with nans
+
+            if not np.all(tmp == arr2[i][zero_mask]):
                 max_diff = np.max(np.abs(arr1[i][zero_mask] - arr2[i][zero_mask]))
                 print('Reconstruction of {} of event {} does not agree with reference (absolute error: {})'.format(key, i, max_diff))
                 print("\n attribute {} not almost equal".format(key))
+                print(arr1[i])
+                print(arr2[i])
                 error = -1
     return error
 
