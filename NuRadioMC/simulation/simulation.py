@@ -38,6 +38,7 @@ import NuRadioReco.framework.sim_emitter
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.framework.parameters import channelParameters as chp
 # parameters describing simulated Monte Carlo particles
 from NuRadioReco.framework.parameters import particleParameters as simp
 from NuRadioReco.framework.parameters import emitterParameters as ep
@@ -831,7 +832,6 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
         logger.info(f"splitting event group id {event_group_id} into {n_sub_events} sub events because time separation larger than {split_event_time_diff/units.ns}ns")
 
     tmp_station = copy.deepcopy(station)
-    event_group_has_triggered = False
     events = []
     for iEvent in range(n_sub_events):
         iStart = 0
@@ -1117,9 +1117,6 @@ class simulation:
             return
         ### END input HDF5 block
 
-        self._output_writer_hdf5 = outputWriterHDF5(self._outputfilename, self._config, self._det, self._station_ids,
-                                                    self._propagator.get_number_of_raytracing_solutions())
-
         # Perfom a dummy detector simulation to determine how the signals are filtered.
         # This variable stores the integrated channel response for each channel, i.e.
         # the integral of the squared signal chain response over all frequencies, int S21^2 df.
@@ -1142,8 +1139,8 @@ class simulation:
             self._integrated_channel_response_normalization[sid] = {}
             self._max_amplification_per_channel[sid] = {}
 
-            for channel_id in range(self._det.get_number_of_channels(sid)):
-                ff = np.linspace(0, 0.5 / self._dt, 10000)
+            for channel_id in self._det.get_channel_ids(sid):
+                ff = np.linspace(0, 0.5 * self._config['sampling_rate'], 10000)
                 filt = np.ones_like(ff, dtype=complex)
                 for i, (name, instance, kwargs) in enumerate(evt.iter_modules(sid)):
                     if hasattr(instance, "get_filter"):
@@ -1253,6 +1250,10 @@ class simulation:
                 return max(100 * units.m, 10 ** self.__distance_cut_polynomial(np.log10(shower_energy)))
 
             self._get_distance_cut = get_distance_cut
+
+        self._output_writer_hdf5 = outputWriterHDF5(self._outputfilename, self._config, self._det, self._station_ids,
+                                                    self._propagator.get_number_of_raytracing_solutions())
+
 
     def run(self):
         """
@@ -1384,6 +1385,14 @@ class simulation:
                         continue
                     evt_group_triggered = True
                     channelSignalReconstructor.run(evt, station, self._det)
+                    # save RMS and bandwidth to channel object
+                    evt.set_generator_info(genattrs.Vrms, self._Vrms)
+                    evt.set_generator_info(genattrs.dt, 1. / self._config['sampling_rate'])
+                    evt.set_generator_info(genattrs.Tnoise, self._noise_temp)
+                    evt.set_generator_info(genattrs.bandwidth, next(iter(next(iter(self._integrated_channel_response.values())).values())))
+                    for channel in station.iter_channels():
+                        channel[chp.Vrms_NuRadioMC_simulation] = self._Vrms_per_channel[sid][channel.get_id()]
+                        channel[chp.bandwidth_NuRadioMC_simulation] = self._integrated_channel_response[sid][channel.get_id()]
 
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size

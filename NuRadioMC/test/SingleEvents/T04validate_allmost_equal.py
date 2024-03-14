@@ -119,9 +119,8 @@ def test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
 
 
 attributes = [u'trigger_names',
-#  u'Tnoise',
-#  u'dt',
-#  u'bandwidth',
+ u'Tnoise',
+ u'dt',
 #  u'n_samples',
  u'thetamin',
  u'zmax',
@@ -148,9 +147,10 @@ error = test_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
 # Test those attributes that should be numerically equal
 
 attributes = [
+ u'bandwidth',
  u'Vrms']
 
-# error = test_almost_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
+error = test_almost_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
 
 # Test those station keys that should be perfectly equal
 
