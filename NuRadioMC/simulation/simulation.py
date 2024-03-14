@@ -356,7 +356,6 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
                                     shower_id=emitter.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
             electric_field = p.apply_propagation_effects(electric_field, iS)
-            print(f"channel {cid} emitter {sid}, iS: {iS}: number of nan bins: {np.sum(np.isnan(electric_field.get_trace()))}")
             # Trace start time is equal to the emitter time in case one was defined
             # (relevant for multiple emitters per event group)
             if emitter.has_parameter(ep.time):

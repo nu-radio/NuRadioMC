@@ -84,6 +84,6 @@ sim = mySimulation(inputfilename=args.inputfilename,
                    outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                    config_file=args.config,
                    file_overwrite=True,
-                   log_level=logging.DEBUG)
+                   log_level=logging.INFO)
 
 sim.run()
