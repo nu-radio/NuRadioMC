@@ -277,7 +277,7 @@ class readCoREASDetector:
             )
             self.__t_per_event += time.time() - t_per_event
             self.__t += time.time() - t
-            efield_times = self.get_efield_times(electric_field_r_theta_phi[0,:,:], coreas_sampling_rate)
+            efield_times = get_efield_times(electric_field_r_theta_phi[0,:,:], coreas_sampling_rate)
 
             if len(self.__core_position_list) > 0:
                 cores = self.__core_position_list
@@ -309,10 +309,10 @@ class readCoREASDetector:
                             antenna_position_rel = detector.get_relative_position(station_id, channel_id)
                             antenna_position = det_station_position + antenna_position_rel
                             res_efield = self.get_interpolated_efield(antenna_position, core)
-                            smooth_res_efield = self.apply_hanning(res_efield)
-                            interp_observer = self.get_4d_observer(smooth_res_efield, efield_times)
-                            interp_efield, interp_times = coreas.observer_to_NuRadio(interp_observer)
-                            coreas.add_sim_channel(sim_station, channel_id, interp_efield, interp_times)
+                            smooth_res_efield = apply_hanning(res_efield)
+                            interp_observer = get_4d_observer(smooth_res_efield, efield_times)
+                            interp_efield, interp_times = coreas.observer_to_nuradio(corsika, interp_observer, interpFlag=True)
+                            coreas.add_sim_channel(sim_station, channel_id, interp_efield, interp_times, corsika)
                     station.set_sim_station(sim_station)
                     evt.set_station(station)
                     t_event_structure = time.time()

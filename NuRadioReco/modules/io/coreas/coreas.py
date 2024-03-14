@@ -378,7 +378,7 @@ def make_empty_sim_station(station_id, corsika, weight=None):
     sim_station.set_simulation_weight(weight)
     return sim_station
 
-def add_sim_channel(sim_station, corsika, efield, efield_times, channel_id):
+def add_sim_channel(sim_station, channel_id, efield, efield_times, corsika):
     """
     adds an electric field trace to an existing sim station
 
@@ -397,7 +397,7 @@ def add_sim_channel(sim_station, corsika, efield, efield_times, channel_id):
     """
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
-    electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_id)
+    electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id])
     electric_field.set_trace(efield, sampling_rate)
     electric_field.set_trace_start_time(efield_times[0])
     electric_field.set_parameter(efp.ray_path_type, 'direct')
