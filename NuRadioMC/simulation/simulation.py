@@ -18,7 +18,6 @@ from NuRadioMC.SignalGen import emitter as emitter_signalgen
 import NuRadioMC.utilities.medium
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
-from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
 from NuRadioReco.utilities import units
 import NuRadioReco.modules.io.eventWriter
@@ -1407,6 +1406,7 @@ class simulation:
             eventWriter.end()
             logger.debug("closing nur file")
 
+        self._output_writer_hdf5.calculate_Veff()
         self._output_writer_hdf5.end()
 
 
@@ -1472,22 +1472,6 @@ class simulation:
             logger.status("the simulation was already performed with the same detector")
 
         return self._was_pre_simulated
-
- 
-
-    def calculate_Veff(self):
-        # calculate effective
-        triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
-        n_triggered = np.sum(triggered)
-        n_triggered_weighted = np.sum(self._mout['weights'][triggered])
-        n_events = self._fin_attrs['n_events']
-        logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
-
-        V = self._fin_attrs['volume']
-        Veff = V * n_triggered_weighted / n_events
-        logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
-
-    
 
     @property
     def _bandwidth_per_channel(self):

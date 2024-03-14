@@ -1,16 +1,16 @@
+import os
+import collections
 import numpy as np
 import h5py
 import yaml
-import os
-import collections
-from NuRadioReco.detector import detector
+from radiotools import helper as hp
+from radiotools import coordinatesystems as cstrans
+from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import electricFieldParameters as ep
 from NuRadioReco.framework.parameters import particleParameters as pap
-from radiotools import helper as hp
-from radiotools import coordinatesystems as cstrans
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.logging import setup_logger
 
@@ -249,11 +249,9 @@ class outputWriterHDF5:
 
                                     if self._mout_attributes['config']['speedup']['amp_per_ray_solution']:
                                         sim_station = stn.get_sim_station()
-                                        uid = (shower.get_id(), channel.get_id(), iS)
-                                        if uid in sim_station.get_channel_ids():
-                                            sim_channel = sim_station.get_channel((shower.get_id(), channel.get_id(), iS))
-                                            channel_rt_data['max_amp_shower_and_ray'][iCh, iS] = sim_channel[chp.maximum_amplitude_envelope]
-                                            channel_rt_data['time_shower_and_ray'][iCh, iS] = sim_channel[chp.signal_time]
+                                        sim_channel = sim_station.get_channel((channel.get_id(), shower.get_id(), iS))
+                                        channel_rt_data['max_amp_shower_and_ray'][iCh, iS] = sim_channel[chp.maximum_amplitude_envelope]
+                                        channel_rt_data['time_shower_and_ray'][iCh, iS] = sim_channel[chp.signal_time]
 
                         for key, value in channel_rt_data.items():
                             self.__add_parameter(sg, key, value)
@@ -435,3 +433,25 @@ class outputWriterHDF5:
             if key not in fout.attrs:
                 fout.attrs[key] = self._mout_attributes[key]
         fout.close()
+
+    def calculate_Veff(self):
+        """
+        Calculate the effective volume (Veff)
+
+        Returns:
+            float: The calculated effective volume (Veff)
+        """
+        # calculate effective
+        try: # sometimes not all relevant attributes are set, e.g. for emitter simulations. 
+            triggered = remove_duplicate_triggers(self._mout['triggered'], self._mout['event_group_ids'])
+            n_triggered = np.sum(triggered)
+            n_triggered_weighted = np.sum(np.array(self._mout['weights'])[triggered])
+            n_events = self._mout_attributes['n_events']
+            logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} (sum of weights = {n_triggered_weighted:.2f})')
+
+            V = self._mout_attributes['volume']
+            Veff = V * n_triggered_weighted / n_events
+            logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
+            return Veff
+        except:
+            return None
