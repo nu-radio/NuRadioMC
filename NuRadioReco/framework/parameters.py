@@ -58,6 +58,8 @@ class channelParameters(Enum):
     signal_ray_type = 16        #: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuth = 17   #: the azimuth angle of direction at which the radio signal arrived at the antenna
     block_offsets = 18 #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+    Vrms_NuRadioMC_simulation = 19  #: the noise rms used in the MC simulation
+    bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
 
 
 class electricFieldParameters(Enum):
@@ -203,6 +205,9 @@ class generatorAttributes(Enum):
 
     flavors = 26 #: list of simulated event flavours
     dt = 27 #: inverse of sampling rate used in the simulation
+    Tnoise = 28 #: noise temperature used in the simulation
+    Vrms = 29 #: noise rms used in the simulation,
+    bandwidth = 30 #: integrated channel response used in the simulation
 
     # simulated statistics
     n_events = 100

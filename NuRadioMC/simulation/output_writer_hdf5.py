@@ -47,6 +47,9 @@ class outputWriterHDF5:
         self._mout = collections.OrderedDict()
         self._mout_groups = collections.OrderedDict()
         self._mout_attributes = collections.OrderedDict()
+        self._mout_groups_attributes = collections.OrderedDict()
+
+
 
         self.__first_event = True
         self._output_filename = output_filename
@@ -57,34 +60,33 @@ class outputWriterHDF5:
         # self._mout_attributes['detector'] = detector.export_as_string()  # TODO: cherrypick this function from Christophs refactor
 
 
-        self._mout['weights'] = []
-        self._mout['triggered'] = []
-        # self._mout['weights'] = np.zeros(self._n_showers)
-        # self._mout['triggered'] = np.zeros(self._n_showers, dtype=bool)
-#         self._mout['multiple_triggers'] = np.zeros((self._n_showers, self._number_of_triggers), dtype=bool)
-        self._mout_attributes['trigger_names'] = None
+        # self._mout['weights'] = []
+        # self._mout['triggered'] = []
+        # self._mout_attributes['trigger_names'] = None
 
         for station_id in self._station_ids:
             self._mout_groups[station_id] = collections.OrderedDict()
+            self._mout_groups_attributes[station_id] = collections.OrderedDict()
 
 
-    def __add_parameter(self, dict, key, value, first_event=None):
+
+    def __add_parameter(self, dict_to_fill, key, value, first_event=None):
         """
         Add a parameter to the output file
         """
         if first_event is None:
-            if key not in dict:
-                dict[key] = [value]
+            if key not in dict_to_fill:
+                dict_to_fill[key] = [value]
             else:
-                dict[key].append(value)
+                dict_to_fill[key].append(value)
         else:
             if first_event:
-                dict[key] = [value]
+                dict_to_fill[key] = [value]
             else:
-                if key not in dict:
+                if key not in dict_to_fill:
                     logger.error(f"key {key} not in dict but not first event")
                     raise KeyError(f"key {key} not in dict but not first event")
-                dict[key].append(value)
+                dict_to_fill[key].append(value)
 
 
     def add_event_group(self, event_buffer):
@@ -106,9 +108,18 @@ class outputWriterHDF5:
                     if(evt.has_generator_info(enum_entry)):
                         if enum_entry.name not in self._mout_attributes:
                             self._mout_attributes[enum_entry.name] = evt.get_generator_info(enum_entry)
-                        else:
+                        else:  # if the attribute is already present, we need to check if it is the same for all events
                             assert all(np.atleast_1d(self._mout_attributes[enum_entry.name] == evt.get_generator_info(enum_entry)))
                 for stn in evt.get_stations():
+                    # save station attributes
+                    for channel in stn.iter_channels():
+                        tmp_keys = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"]]
+                        for (key_cp, key_hdf5) in tmp_keys:
+                            if channel.has_parameter(key_cp):
+                                if key_hdf5 not in self._mout_groups_attributes[sid]:
+                                    self._mout_groups_attributes[sid][key_hdf5] = channel[key_cp]
+                                else:
+                                    assert all(np.atleast_1d(self._mout_groups_attributes[sid][key_hdf5] == channel[key_cp]))
                     for trigger in stn.get_triggers().values():
                         if trigger.get_name() not in trigger_names:
                             trigger_names.append(trigger.get_name())
@@ -131,7 +142,6 @@ class outputWriterHDF5:
                     for key in keys:
                         for i in range(len(sg[key])):
                             sg[key][i] = sg[key][i] + [False] * extent_array_by
-        # TODO: missing attributes: n_samples, dt, Tnoise, triggers
 
         shower_ids = []
         for sid in event_buffer:  # loop over all stations (every station is treated independently)
