@@ -72,7 +72,6 @@ if __name__ == "__main__":
                                 detectorfile=args.detectordescription,
                                 outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                                 config_file=args.config,
-                                file_overwrite=True,
-                                log_level=logging.INFO)
+                                file_overwrite=True)
     sim.run()
 
