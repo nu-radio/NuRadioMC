@@ -5,7 +5,7 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.utilities import units
-from NuRadioMC.simulation import simulation2 as simulation
+from NuRadioMC.simulation import simulation
 import logging
 
 # Setup logging
