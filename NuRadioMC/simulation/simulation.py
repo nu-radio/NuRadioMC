@@ -144,7 +144,7 @@ def calculate_sim_efield(showers, sid, cid,
             continue
 
         n = p.get_number_of_solutions()
-        logger.status(f"found {n} solutions for shower {shower.get_id()} and station {sid}, channel {cid} from {x1} to {x2}")
+        logger.debug(f"found {n} solutions for shower {shower.get_id()} and station {sid}, channel {cid} from {x1} to {x2}")
         delta_Cs = np.zeros(n)
         viewing_angles = np.zeros(n)
         # loop through all ray tracing solution
@@ -883,7 +883,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
         if bool(zerosignal):
             increase_signal(station, None, 0)
         events.append(evt)
-    logger.status(f"created {len(events)} events from event group {event_group_id}")
+    logger.info(f"created {len(events)} events from event group {event_group_id}")
     return events
 
 def read_input_hdf5(filename):
@@ -1347,7 +1347,7 @@ class simulation:
                                             time_logger=None)
                     # skip to next channel if the efield is below the speed cut
                     if len(sim_station.get_electric_fields()) == 0:
-                        logger.status(f"Eventgroup {event_group.get_run_number()} Station {sid} channel {channel_id:02d} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
+                        logger.info(f"Eventgroup {event_group.get_run_number()} Station {sid} channel {channel_id:02d} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
                         continue
 
                     # applies the detector response to the electric fields (the antennas are defined
@@ -1359,7 +1359,7 @@ class simulation:
                 # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
                 sim_station = station.get_sim_station()  # needed to get sim_station object containing all channels and not just the last one.
                 if len(sim_station.get_electric_fields()) == 0:
-                    logger.status(f"Eventgroup {event_group.get_run_number()} Station {sid} has {len(sim_station.get_electric_fields())} efields, skipping to next station")
+                    logger.info(f"Eventgroup {event_group.get_run_number()} Station {sid} has {len(sim_station.get_electric_fields())} efields, skipping to next station")
                     continue
 
                 # group events into events based on signal arrival times
