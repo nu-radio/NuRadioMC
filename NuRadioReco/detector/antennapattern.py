@@ -555,7 +555,7 @@ def get_pickle_antenna_response(path):
 
     # check if gziped pickle file already exists
     if not os.path.exists(path):
-        logger.warning("antenna pattern {} does not exist, file will be downloaded".format(path))
+        logger.status("antenna pattern {} does not exist, file will be downloaded".format(path))
         download_file = True
 
     if os.path.exists(path):
@@ -575,11 +575,11 @@ def get_pickle_antenna_response(path):
             antenna_hashs = json.load(fin)
             if os.path.basename(path) in antenna_hashs.keys():
                 if sha1.hexdigest() != antenna_hashs[os.path.basename(path)]:
-                    logger.warning("antenna model {} has changed on the server. downloading newest version...".format(
+                    logger.status("antenna model {} has changed on the server. downloading newest version...".format(
                         os.path.basename(path)))
                     download_file = True
             else:
-                logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
+                logger.status("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
 
     if download_file:
         # does not exist yet -> download file
@@ -599,7 +599,7 @@ def get_pickle_antenna_response(path):
             raise IOError
         with open(path, "wb") as code:
             code.write(r.content)
-        logger.warning("...download finished.")
+        logger.status("...download finished.")
 
     #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
     #         preprocess_WIPLD(path)
@@ -1167,7 +1167,7 @@ class AntennaPattern(AntennaPatternBase):
                             freq, ff[index]))
                         raise Exception("frequency has changed")
 
-        logger.warning('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
+        logger.status('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
 
     def _get_index(self, iFreq, iTheta, iPhi):
         """
@@ -1456,7 +1456,7 @@ class AntennaPatternProvider(object):
         """
         if name in self._antenna_model_replacements.keys():
             if self._antenna_model_replacements[name] not in self._open_antenna_patterns.keys():
-                logger.warning("local replacement of antenna model requsted: replacing {} with {}".format(name,
+                logger.status("local replacement of antenna model requsted: replacing {} with {}".format(name,
                                                                                                           self._antenna_model_replacements[
                                                                                                               name]))
             name = self._antenna_model_replacements[name]
