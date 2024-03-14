@@ -226,27 +226,24 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
 
     return weights
 
-def make_sim_station(station_id, corsika, observer, channel_ids, weight=None, interpFlag=False):
+def observer_to_nuradio(corsika, observer, interpFlag=False):
     """
-    creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file
+    creates an electric field trace for NuRadio from the coreas observer
 
     Parameters
     ----------
-    station_id : station id
-        the id of the station to create
     corsika : hdf5 file object
         the open hdf5 file object of the corsika hdf5 file
     observer : hdf5 observer object
-    channel_ids :
-    weight : weight of individual station
-        weight corresponds to area covered by station
+    interpFlag : bool
+        if true, the efield is interpolated as in e.g. readCoreasDetector
 
     Returns
     -------
-    sim_station: sim station
-        simulated station object
+    efield: np.array (3, n_samples)
+        efield with three polarizations (r, theta, phi)
+    efield_times: np.array (n_samples)
     """
-
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
 
     if(observer is None):
@@ -286,6 +283,36 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None, in
         efield2[1] = np.append(np.zeros(n_samples_prepend), efield[1])
         efield2[2] = np.append(np.zeros(n_samples_prepend), efield[2])
 
+    return efield2, efield_times
+
+
+def make_sim_station(station_id, corsika, observer, channel_ids, weight=None, interpFlag=False):
+    """
+    creates an NuRadioReco sim station with the same (interpolated) observer object of the coreas hdf5 file
+    for all channel ids.
+
+    Parameters
+    ----------
+    station_id : station id
+        the id of the station to create
+    corsika : hdf5 file object
+        the open hdf5 file object of the corsika hdf5 file
+    observer : hdf5 observer object
+    channel_ids : list
+        channel ids for which the observer is to be used
+    weight : weight of individual station
+        weight corresponds to area covered by station
+
+    Returns
+    -------
+    sim_station: sim station
+        simulated station object
+    """
+
+    zenith, azimuth, magnetic_field_vector = get_angles(corsika)
+
+    efield2, efield_times = observer_to_nuradio(corsika, observer, interpFlag)
+
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
     electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids)
@@ -311,6 +338,72 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None, in
     sim_station.set_is_cosmic_ray()
     sim_station.set_simulation_weight(weight)
     return sim_station
+
+def make_empty_sim_station(station_id, corsika, weight=None):
+    """
+    creates an NuRadioReco sim station without electric field. This can be added with add_sim_channel().
+
+    Parameters
+    ----------
+    station_id : station id
+        the id of the station to create
+    corsika : hdf5 file object
+        the open hdf5 file object of the corsika hdf5 file
+    observer : hdf5 observer object
+    weight : weight of individual station
+        weight corresponds to area covered by station
+
+    Returns
+    -------
+    sim_station: sim station
+        simulated station object
+    """
+    zenith, azimuth, magnetic_field_vector = get_angles(corsika)
+
+    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+    sim_station.set_parameter(stnp.azimuth, azimuth)
+    sim_station.set_parameter(stnp.zenith, zenith)
+    energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
+    sim_station.set_parameter(stnp.cr_energy, energy)
+    sim_station.set_magnetic_field_vector(magnetic_field_vector)
+    sim_station.set_parameter(stnp.cr_xmax, corsika['CoREAS'].attrs['DepthOfShowerMaximum'])
+    try:
+        sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
+    except:
+        global warning_printed_coreas_py
+        if(not warning_printed_coreas_py):
+            logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
+            warning_printed_coreas_py = True
+    sim_station.set_is_cosmic_ray()
+    sim_station.set_simulation_weight(weight)
+    return sim_station
+
+def add_sim_channel(sim_station, corsika, efield, efield_times, channel_id):
+    """
+    adds an electric field trace to an existing sim station
+
+    Parameters
+    ----------
+    sim_station : sim station object
+         simulated station object, e.g. from make_empty_sim_station()
+    corsika : hdf5 file object
+        the open hdf5 file object of the corsika hdf5 file
+    efield : 3d array (3, n_samples)
+        efield with three polarizations (r, theta, phi) for channel
+    efield_times : 1d array (n_samples)
+        time array for efield
+    channel_id : int
+        channel id for which the efield is to be used
+    """
+    zenith, azimuth, magnetic_field_vector = get_angles(corsika)
+    sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
+    electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_id)
+    electric_field.set_trace(efield, sampling_rate)
+    electric_field.set_trace_start_time(efield_times[0])
+    electric_field.set_parameter(efp.ray_path_type, 'direct')
+    electric_field.set_parameter(efp.zenith, zenith)
+    electric_field.set_parameter(efp.azimuth, azimuth)
+    sim_station.add_electric_field(electric_field)
 
 def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
     """
