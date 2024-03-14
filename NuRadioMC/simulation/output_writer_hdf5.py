@@ -114,14 +114,15 @@ class outputWriterHDF5:
                             assert all(np.atleast_1d(self._mout_attributes[enum_entry.name] == evt.get_generator_info(enum_entry)))
                 for stn in evt.get_stations():
                     # save station attributes
-                    for channel in stn.iter_channels():
-                        tmp_keys = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"]]
-                        for (key_cp, key_hdf5) in tmp_keys:
-                            if channel.has_parameter(key_cp):
-                                if key_hdf5 not in self._mout_groups_attributes[sid]:
-                                    self._mout_groups_attributes[sid][key_hdf5] = channel[key_cp]
-                                else:
-                                    assert all(np.atleast_1d(self._mout_groups_attributes[sid][key_hdf5] == channel[key_cp]))
+                    tmp_keys = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"]]
+                    for (key_cp, key_hdf5) in tmp_keys:
+                        channel_values = []
+                        for channel in stn.iter_channels():
+                            channel_values.append(channel[key_cp])
+                        if key_hdf5 not in self._mout_groups_attributes[sid]:
+                            self._mout_groups_attributes[sid][key_hdf5] = np.array(channel_values)
+                        else:
+                            assert all(np.atleast_1d(self._mout_groups_attributes[sid][key_hdf5] == np.array(channel_values))), f"station {sid} key {key_hdf5} is {self._mout_groups_attributes[sid][key_hdf5]}, but current channel is {np.array(channel_values)}"
                     for trigger in stn.get_triggers().values():
                         if trigger.get_name() not in trigger_names:
                             trigger_names.append(trigger.get_name())
