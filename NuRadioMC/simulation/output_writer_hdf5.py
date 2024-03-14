@@ -9,7 +9,8 @@ from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.framework.parameters import electricFieldParameters as ep
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import emitterParameters as ep
 from NuRadioReco.framework.parameters import particleParameters as pap
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.logging import setup_logger
@@ -31,6 +32,7 @@ class outputWriterHDF5:
     ):
         self._station_ids = station_ids
         self._nS = number_of_ray_tracing_solutions
+        self._particle_mode = particle_mode
         # self._fin = fin
         # self._fin_attrs = fin_attrs
         # self._n_showers = len(self._fin['shower_ids'])
@@ -150,34 +152,56 @@ class outputWriterHDF5:
             for eid in event_buffer[sid]:
                 logger.debug(f"adding event {eid} to output file")
                 evt = event_buffer[sid][eid]
-                for shower in evt.get_sim_showers():
-                    if not shower.get_id() in shower_ids:
-                        logger.debug(f"adding shower {shower.get_id()} to output file")
-                        # shower ids might not be in increasing order. We need to sort the hdf5 output later
-                        shower_ids.append(shower.get_id())
-                        particle = evt.get_parent(shower)
-                        self.__add_parameter(self._mout, 'shower_ids', shower.get_id(), self.__first_event)
-                        self.__add_parameter(self._mout, 'event_group_ids', evt.get_run_number(), self.__first_event)
-                        self.__add_parameter(self._mout, 'xx', shower[shp.vertex][0], self.__first_event)
-                        self.__add_parameter(self._mout, 'yy', shower[shp.vertex][1], self.__first_event)
-                        self.__add_parameter(self._mout, 'zz', shower[shp.vertex][2], self.__first_event)
-                        self.__add_parameter(self._mout, 'vertex_times', shower[shp.vertex_time], self.__first_event)
-                        self.__add_parameter(self._mout, 'azimuths', shower[shp.azimuth], self.__first_event)
-                        self.__add_parameter(self._mout, 'zeniths', shower[shp.zenith], self.__first_event)
-                        self.__add_parameter(self._mout, 'shower_energies', shower[shp.energy], self.__first_event)
-                        self.__add_parameter(self._mout, 'shower_type', shower[shp.type], self.__first_event)
-                        if(shower.has_parameter(shp.charge_excess_profile_id)):
-                            self.__add_parameter(self._mout, 'shower_realization_ARZ', shower[shp.charge_excess_profile_id], self.__first_event)
-                        if(shower.has_parameter(shp.k_L)):
-                            self.__add_parameter(self._mout, 'shower_realization_Alvarez2009', shower[shp.k_L], self.__first_event)
+                if self._particle_mode:
+                    for shower in evt.get_sim_showers():
+                        if not shower.get_id() in shower_ids:
+                            logger.debug(f"adding shower {shower.get_id()} to output file")
+                            # shower ids might not be in increasing order. We need to sort the hdf5 output later
+                            shower_ids.append(shower.get_id())
+                            particle = evt.get_parent(shower)
+                            self.__add_parameter(self._mout, 'shower_ids', shower.get_id(), self.__first_event)
+                            self.__add_parameter(self._mout, 'event_group_ids', evt.get_run_number(), self.__first_event)
+                            self.__add_parameter(self._mout, 'xx', shower[shp.vertex][0], self.__first_event)
+                            self.__add_parameter(self._mout, 'yy', shower[shp.vertex][1], self.__first_event)
+                            self.__add_parameter(self._mout, 'zz', shower[shp.vertex][2], self.__first_event)
+                            self.__add_parameter(self._mout, 'vertex_times', shower[shp.vertex_time], self.__first_event)
+                            self.__add_parameter(self._mout, 'azimuths', shower[shp.azimuth], self.__first_event)
+                            self.__add_parameter(self._mout, 'zeniths', shower[shp.zenith], self.__first_event)
+                            self.__add_parameter(self._mout, 'shower_energies', shower[shp.energy], self.__first_event)
+                            self.__add_parameter(self._mout, 'shower_type', shower[shp.type], self.__first_event)
+                            if(shower.has_parameter(shp.charge_excess_profile_id)):
+                                self.__add_parameter(self._mout, 'shower_realization_ARZ', shower[shp.charge_excess_profile_id], self.__first_event)
+                            if(shower.has_parameter(shp.k_L)):
+                                self.__add_parameter(self._mout, 'shower_realization_Alvarez2009', shower[shp.k_L], self.__first_event)
 
-                        self.__add_parameter(self._mout, 'energies', particle[pap.energy], self.__first_event)
-                        self.__add_parameter(self._mout, 'flavors', shower[shp.flavor], self.__first_event)
-                        self.__add_parameter(self._mout, 'n_interaction', shower[shp.n_interaction], self.__first_event)
-                        self.__add_parameter(self._mout, 'interaction_type', shower[shp.interaction_type], self.__first_event)
-                        self.__add_parameter(self._mout, 'inelasticity', particle[pap.inelasticity], self.__first_event)
-                        self.__add_parameter(self._mout, 'weights', particle[pap.weight], self.__first_event)
-                        self.__first_event = False
+                            self.__add_parameter(self._mout, 'energies', particle[pap.energy], self.__first_event)
+                            self.__add_parameter(self._mout, 'flavors', shower[shp.flavor], self.__first_event)
+                            self.__add_parameter(self._mout, 'n_interaction', shower[shp.n_interaction], self.__first_event)
+                            self.__add_parameter(self._mout, 'interaction_type', shower[shp.interaction_type], self.__first_event)
+                            self.__add_parameter(self._mout, 'inelasticity', particle[pap.inelasticity], self.__first_event)
+                            self.__add_parameter(self._mout, 'weights', particle[pap.weight], self.__first_event)
+                            self.__first_event = False
+                else:  # emitters have different properties, so we need to treat them differently than showers
+                    for emitter in evt.get_sim_emitters():
+                        if not emitter.get_id() in shower_ids:  # the key "shower_ids" is also used for emitters and identifies the emitter id. This is done because it is the only way to have the same input files for both shower/particle and emitter simulations. 
+                            logger.debug(f"adding shower {emitter.get_id()} to output file")
+                            # shower ids might not be in increasing order. We need to sort the hdf5 output later
+                            shower_ids.append(emitter.get_id())
+                            self.__add_parameter(self._mout, 'shower_ids', emitter.get_id(), self.__first_event)
+                            self.__add_parameter(self._mout, 'event_group_ids', evt.get_run_number(), self.__first_event)
+                            self.__add_parameter(self._mout, 'xx', emitter[ep.position][0], self.__first_event)
+                            self.__add_parameter(self._mout, 'yy', emitter[ep.position][1], self.__first_event)
+                            self.__add_parameter(self._mout, 'zz', emitter[ep.position][2], self.__first_event)
+                            self.__add_parameter(self._mout, 'emitter_amplitudes', emitter[ep.amplitude], self.__first_event)
+
+                            for key in ep:
+                                if key.name not in ['position', 'amplitude']:
+                                    if emitter.has_parameter(key):
+                                        if key not in self._mout:
+                                            keyname = 'emitter_' + key.name
+                                            self.__add_parameter(self._mout, keyname, emitter[key], self.__first_event)
+
+                            self.__first_event = False
                 # now save station data
                 stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash. 
                 sg = self._mout_groups[sid]
@@ -206,7 +230,15 @@ class outputWriterHDF5:
 
                 self.__add_parameter(sg, 'triggered', stn.has_triggered())
 
-                for shower in evt.get_sim_showers():
+                # depending on the simulation mode we have either showers or emitters but we can 
+                # treat them the same way as long as we only call common member functions such as 
+                # `get_id()`
+                iterable = None
+                if self._particle_mode:
+                    iterable = evt.get_sim_showers()
+                else:
+                    iterable = evt.get_sim_emitters()
+                for shower in iterable:
                     if not shower.get_id() in shower_ids_stn:
                         shower_ids_stn.append(shower.get_id())
                         self.__add_parameter(sg, 'shower_id', shower.get_id())
@@ -239,23 +271,24 @@ class outputWriterHDF5:
                             for efield in stn.get_sim_station().get_electric_fields_for_channels([channel.get_id()]):
                                 if efield.get_shower_id() == shower.get_id():
                                     iS = efield.get_ray_tracing_solution_id()
-                                    for key, value in efield[ep.raytracing_solution].items():
+                                    for key, value in efield[efp.raytracing_solution].items():
                                         if key not in channel_rt_data:
                                             channel_rt_data[key] = np.zeros((nCh, self._nS)) * np.nan
                                         channel_rt_data[key][iCh, iS] = value
-                                    channel_rt_data['launch_vectors'][iCh, iS] = efield[ep.launch_vector]
-                                    receive_vector = hp.spherical_to_cartesian(efield[ep.zenith], efield[ep.azimuth])
+                                    channel_rt_data['launch_vectors'][iCh, iS] = efield[efp.launch_vector]
+                                    receive_vector = hp.spherical_to_cartesian(efield[efp.zenith], efield[efp.azimuth])
                                     channel_rt_data['receive_vectors'][iCh, iS] = receive_vector
-                                    channel_rt_data['travel_times'][iCh, iS] = efield[ep.nu_vertex_travel_time]
-                                    channel_rt_data['travel_distances'][iCh, iS] = efield[ep.nu_vertex_distance]
+                                    channel_rt_data['travel_times'][iCh, iS] = efield[efp.nu_vertex_travel_time]
+                                    channel_rt_data['travel_distances'][iCh, iS] = efield[efp.nu_vertex_distance]
 
-                                    # only the polarization angle is saved in the electric field object, so we need to
-                                    # calculate the vector it to the ground frame in cartesian coordinates.
-                                    cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
-                                    polarization_angle = efield[ep.polarization_angle]
-                                    polarization_direction_onsky = np.array([0, np.cos(polarization_angle), np.sin(polarization_angle)])
-                                    polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
-                                    channel_rt_data['polarization'][iCh, iS] = polarization_direction_at_antenna
+                                    if self._particle_mode:
+                                        # only the polarization angle is saved in the electric field object, so we need to
+                                        # calculate the vector it to the ground frame in cartesian coordinates.
+                                        cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
+                                        polarization_angle = efield[efp.polarization_angle]
+                                        polarization_direction_onsky = np.array([0, np.cos(polarization_angle), np.sin(polarization_angle)])
+                                        polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
+                                        channel_rt_data['polarization'][iCh, iS] = polarization_direction_at_antenna
 
                                     if self._mout_attributes['config']['speedup']['amp_per_ray_solution']:
                                         sim_station = stn.get_sim_station()
@@ -276,7 +309,15 @@ class outputWriterHDF5:
             for eid in event_buffer[sid]:
                 evt = event_buffer[sid][eid]
                 stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash. 
-                for shower in evt.get_sim_showers():
+                # depending on the simulation mode we have either showers or emitters but we can 
+                # treat them the same way as long as we only call common member functions such as 
+                # `get_id()`
+                iterable = None
+                if self._particle_mode:
+                    iterable = evt.get_sim_showers()
+                else:
+                    iterable = evt.get_sim_emitters()
+                for shower in iterable:
                     if stn.has_triggered():
                         triggered[shower_id_to_index[shower.get_id()]] = True
                         for iT, tname in enumerate(self._mout_attributes['trigger_names']):
@@ -327,43 +368,44 @@ class outputWriterHDF5:
             self.__add_parameter(self._mout, 'multiple_triggers', multiple_triggers[i])
             self.__add_parameter(self._mout, 'trigger_times', trigger_times[i])
 
-        # we also want to save the first interaction even if it didn't contribute to any trigger
-        # this is important to know the initial neutrino properties (only relevant for the simulation of 
-        # secondary interactions)
-        stn_buffer = event_buffer[self._station_ids[0]]
-        evt = stn_buffer[list(stn_buffer.keys())[0]]
-        particle = evt.get_primary()
-        if(particle[pap.shower_id] not in shower_ids):
-            keys_to_populate = list(self._mout.keys())
-            logger.info(f"adding primary shower {particle[pap.shower_id]} to output file")
-            self.__add_parameter(self._mout, 'shower_ids', particle[pap.shower_id])
-            self.__add_parameter(self._mout, 'event_group_ids', evt.get_run_number())
-            self.__add_parameter(self._mout, 'xx', particle[pap.vertex][0])
-            self.__add_parameter(self._mout, 'yy', particle[pap.vertex][1])
-            self.__add_parameter(self._mout, 'zz', particle[pap.vertex][2])
-            self.__add_parameter(self._mout, 'vertex_times', particle[pap.vertex_time])
-            self.__add_parameter(self._mout, 'azimuths', particle[pap.azimuth])
-            self.__add_parameter(self._mout, 'zeniths', particle[pap.zenith])
-            self.__add_parameter(self._mout, 'shower_energies', np.nan)
-            self.__add_parameter(self._mout, 'shower_type', "")
-            self.__add_parameter(self._mout, 'energies', particle[pap.energy])
-            self.__add_parameter(self._mout, 'flavors', particle[pap.flavor])
-            self.__add_parameter(self._mout, 'n_interaction', particle[pap.n_interaction])
-            self.__add_parameter(self._mout, 'interaction_type', particle[pap.interaction_type])
-            self.__add_parameter(self._mout, 'inelasticity', particle[pap.inelasticity])
-            self.__add_parameter(self._mout, 'weights', particle[pap.weight])
-            self.__add_parameter(self._mout, 'triggered', False)
-            multiple_triggers = np.zeros(len(self._mout_attributes['trigger_names']), dtype=bool)
-            self.__add_parameter(self._mout, 'multiple_triggers', multiple_triggers)
-            self.__add_parameter(self._mout, 'trigger_times', np.ones(len(self._mout_attributes['trigger_names']), dtype=float) * np.nan)
+        if self._particle_mode:
+            # we also want to save the first interaction even if it didn't contribute to any trigger
+            # this is important to know the initial neutrino properties (only relevant for the simulation of 
+            # secondary interactions)
+            stn_buffer = event_buffer[self._station_ids[0]]
+            evt = stn_buffer[list(stn_buffer.keys())[0]]
+            particle = evt.get_primary()
+            if(particle[pap.shower_id] not in shower_ids):
+                keys_to_populate = list(self._mout.keys())
+                logger.info(f"adding primary shower {particle[pap.shower_id]} to output file")
+                self.__add_parameter(self._mout, 'shower_ids', particle[pap.shower_id])
+                self.__add_parameter(self._mout, 'event_group_ids', evt.get_run_number())
+                self.__add_parameter(self._mout, 'xx', particle[pap.vertex][0])
+                self.__add_parameter(self._mout, 'yy', particle[pap.vertex][1])
+                self.__add_parameter(self._mout, 'zz', particle[pap.vertex][2])
+                self.__add_parameter(self._mout, 'vertex_times', particle[pap.vertex_time])
+                self.__add_parameter(self._mout, 'azimuths', particle[pap.azimuth])
+                self.__add_parameter(self._mout, 'zeniths', particle[pap.zenith])
+                self.__add_parameter(self._mout, 'shower_energies', np.nan)
+                self.__add_parameter(self._mout, 'shower_type', "")
+                self.__add_parameter(self._mout, 'energies', particle[pap.energy])
+                self.__add_parameter(self._mout, 'flavors', particle[pap.flavor])
+                self.__add_parameter(self._mout, 'n_interaction', particle[pap.n_interaction])
+                self.__add_parameter(self._mout, 'interaction_type', particle[pap.interaction_type])
+                self.__add_parameter(self._mout, 'inelasticity', particle[pap.inelasticity])
+                self.__add_parameter(self._mout, 'weights', particle[pap.weight])
+                self.__add_parameter(self._mout, 'triggered', False)
+                multiple_triggers = np.zeros(len(self._mout_attributes['trigger_names']), dtype=bool)
+                self.__add_parameter(self._mout, 'multiple_triggers', multiple_triggers)
+                self.__add_parameter(self._mout, 'trigger_times', np.ones(len(self._mout_attributes['trigger_names']), dtype=float) * np.nan)
 
-            keys_populated = ['shower_ids', 'event_group_ids', 'xx', 'yy', 'zz', 'vertex_times', 'azimuths', 'zeniths',
-                              'shower_energies', 'shower_type', 'energies', 'flavors', 'n_interaction', 'interaction_type',
-                              'inelasticity', 'weights', 'triggered', 'multiple_triggers', 'trigger_times']
-            for key in keys_to_populate:
-                if key not in keys_populated:
-                    logger.debug(f"key {key} not populated for primary shower, adding nan")
-                    self.__add_parameter(self._mout, key, np.nan)
+                keys_populated = ['shower_ids', 'event_group_ids', 'xx', 'yy', 'zz', 'vertex_times', 'azimuths', 'zeniths',
+                                'shower_energies', 'shower_type', 'energies', 'flavors', 'n_interaction', 'interaction_type',
+                                'inelasticity', 'weights', 'triggered', 'multiple_triggers', 'trigger_times']
+                for key in keys_to_populate:
+                    if key not in keys_populated:
+                        logger.debug(f"key {key} not populated for primary shower, adding nan")
+                        self.__add_parameter(self._mout, key, np.nan)
 
 
 
