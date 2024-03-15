@@ -60,22 +60,23 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 
-def pretty_time_delta(seconds):
-    seconds = int(seconds)
-    days, seconds = divmod(seconds, 86400)
-    hours, seconds = divmod(seconds, 3600)
-    minutes, seconds = divmod(seconds, 60)
-    if days > 0:
-        return '%dd%dh%dm%ds' % (days, hours, minutes, seconds)
-    elif hours > 0:
-        return '%dh%dm%ds' % (hours, minutes, seconds)
-    elif minutes > 0:
-        return '%dm%ds' % (minutes, seconds)
-    else:
-        return '%ds' % (seconds,)
-
-
 def merge_config(user, default):
+    """
+    Merge the user configuration dictionary with the default configuration dictionary recursively.
+
+    Parameters
+    ----------
+    user : dict
+        The user configuration dictionary.
+    default : dict
+        The default configuration dictionary.
+
+    Returns
+    -------
+    dict
+        The merged configuration dictionary.
+
+    """
     if isinstance(user, dict) and isinstance(default, dict):
         for k, v in default.items():
             if k not in user:
@@ -640,6 +641,8 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
         input_particle[simp.vertex_time] = 0
         if 'vertex_times' in fin:
             input_particle[simp.vertex_time] = fin['vertex_times'][parent_id]
+        else:
+            logger.warning("The input file does not include vertex times, setting vertex time to zero. Vertices from the same event will not be time-ordered.")
         event_group.add_particle(input_particle)
 
         # now loop over all showers and add them to the event group
@@ -1436,8 +1439,9 @@ class simulation:
             logger.debug("closing nur file")
 
         self._output_writer_hdf5.calculate_Veff()
-        self._output_writer_hdf5.end()
-
+        if not self._output_writer_hdf5.write_output_file():
+            logger.warning("No events were triggered. Writing empty HDF5 output file.")
+            self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
 
     def _is_in_fiducial_volume(self, pos):
