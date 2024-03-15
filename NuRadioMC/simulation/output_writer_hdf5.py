@@ -484,7 +484,10 @@ class outputWriterHDF5:
 
         for key in self._mout_attributes:
             if key not in fout.attrs:
-                fout.attrs[key] = self._mout_attributes[key]
+                if self._mout_attributes[key] is not None:
+                    fout.attrs[key] = self._mout_attributes[key]
+                else:
+                    logger.warning(f"attribute {key} is None, not saving it")
         fout.close()
 
     def calculate_Veff(self):

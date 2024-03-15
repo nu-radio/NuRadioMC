@@ -705,6 +705,10 @@ class ray_tracing_2D(ray_tracing_base):
                     tmp[i] = wrapper.get_attenuation_along_path(
                         x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n,
                         self.medium.z_0, self.attenuation_model_int)
+                if(np.sum(np.isnan(tmp)) > 0):
+                    self.__logger.warning(f"attenuation calculation failed for {np.sum(np.isnan(tmp))}/{len(tmp)} frequencies," + \
+                                            "setting attenuation to 0, i.e., no attenuation in these bins")
+                    tmp[np.isnan(tmp)] = 1
 
                 self.__logger.debug(tmp)
                 tmp_attenuation = np.ones_like(frequency)
@@ -2756,7 +2760,6 @@ class ray_tracing(ray_tracing_base):
                     zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                 efield[efp.reflection_coefficient_theta] = r_theta
                 efield[efp.reflection_coefficient_phi] = r_phi
-    
                 spec[1] *= r_theta
                 spec[2] *= r_phi
                 self.__logger.info(
