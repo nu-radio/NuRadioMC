@@ -6,6 +6,17 @@ python3 T04MooresBay.py
 python3 T05unit_test_C0_SP.py
 python3 T06unit_test_C0_mooresbay.py
 python3 T07test_birefringence.py
+
+cd emitter_sim_test
+python3 T01_sim_events.py
+python3 T02_run_simulation.py
+
+cd ..
+python3 T08test_emitter_birefringence.py
+rm emitter_sim_test/test_input.hdf5
+rm emitter_sim_test/test_output.hdf5
+rm emitter_sim_test/test_output.nur
+
 cd ../../SignalProp/examples
 python3 example_3d.py
 python3 A01IceCubePulserToARA.py
