@@ -88,7 +88,8 @@ def merge_config(user, default):
 
 def calculate_sim_efield(showers, sid, cid,
                          det, propagator, medium, config,
-                         time_logger=None):
+                         time_logger=None,
+                         min_efield_amplitude=None):
     """
     Calculate the simulated electric field for a given shower and channel.
 
@@ -108,6 +109,10 @@ def calculate_sim_efield(showers, sid, cid,
         the medium in which the electric field is propagating, typically ice
     config : dict
         the NuRadioMC configuration dictionary (from the yaml file)
+    time_logger: time_logger object
+        the time logger to be used for the simulation
+    min_efield_amplitude: float
+        speedup cut: the minimum electric field amplitude, all efields with smaller amplitudes will be ignored
 
     Returns
     -------
@@ -234,21 +239,19 @@ def calculate_sim_efield(showers, sid, cid,
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
             electric_field[efp.launch_vector] = p.get_launch_vector(iS)
 
+            if min_efield_amplitude is not None:
+                if np.max(np.abs(electric_field.get_trace())) < min_efield_amplitude:
+                    logger.debug(f"Amplitude to low: electric field NOT added to SimStation for shower {shower.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
+                    continue
             sim_station.add_electric_field(electric_field)
             logger.debug(f"Added electric field to SimStation for shower {shower.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
-
-            # TODO: Implement this speedup cut
-            # apply a simple threshold cut to speed up the simulation,
-            # application of antenna response will just decrease the
-            # signal amplitude
-            # if np.max(np.abs(electric_field.get_trace())) > float(config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
-            #     candidate_station = True
     return sim_station
 
 def calculate_sim_efield_for_emitter(emitters, sid, cid,
                          det, propagator, medium, config,
                          rnd, antenna_pattern_provider,
-                         time_logger=None):
+                         time_logger=None,
+                         min_efield_amplitude=None):
     """
     Calculate the simulated electric field for a given shower and channel.
 
@@ -272,6 +275,10 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
         the random number generator to be used for the simulation
     antenna_pattern_provider: antenna pattern provider object
         the antenna pattern provider object to be used for the simulation
+    time_logger: time_logger object
+        the time logger to be used for the simulation
+    min_efield_amplitude: float
+        speedup cut: the minimum electric field amplitude, all efields with smaller amplitudes will be ignored
 
     Returns
     -------
@@ -396,14 +403,11 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
             electric_field[efp.launch_vector] = p.get_launch_vector(iS)
 
+            if min_efield_amplitude is not None:
+                if np.max(np.abs(electric_field.get_trace())) < min_efield_amplitude:
+                    logger.debug(f"Amplitude to low: electric field NOT added to SimStation for shower {shower.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
+                    continue
             sim_station.add_electric_field(electric_field)
-
-            # TODO: Implement this speedup cut
-            # apply a simple threshold cut to speed up the simulation,
-            # application of antenna response will just decrease the
-            # signal amplitude
-            # if np.max(np.abs(electric_field.get_trace())) > float(config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
-            #     candidate_station = True
     return sim_station
 
 def apply_det_response_sim(sim_station, det, config,
@@ -1359,13 +1363,15 @@ class simulation:
                                                         sid=sid, cid=channel_id,
                                                         det=self._det, propagator=self._propagator, medium=self._ice,
                                                         config=self._config,
-                                                        time_logger=self.__time_logger)
+                                                        time_logger=self.__time_logger,
+                                                        min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id])
                     else:
                         sim_station = calculate_sim_efield_for_emitter(emitters=event_group.get_sim_emitters(),
                                             sid=sid, cid=channel_id,
                                             det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
                                             rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
-                                            time_logger=self.__time_logger)
+                                            time_logger=self.__time_logger,
+                                            min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id])
                     # skip to next channel if the efield is below the speed cut
                     if len(sim_station.get_electric_fields()) == 0:
                         logger.info(f"Eventgroup {event_group.get_run_number()} Station {sid} channel {channel_id:02d} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
