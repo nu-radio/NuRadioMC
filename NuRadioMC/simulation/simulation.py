@@ -285,8 +285,10 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
     sim_station.set_is_neutrino()  # naming not ideal, but this function defines in-ice emission (compared to in-air emission from air showers)
 
     x2 = det.get_relative_position(sid, cid) + det.get_absolute_position(sid)
-    n_samples = det.get_number_of_samples(sid, cid)
     dt = 1. / config['sampling_rate']
+    # rescale the number of samples to the internal (higher) sampling rate used in the simulation
+    n_samples = det.get_number_of_samples(sid, cid) / det.get_sampling_frequency(sid, cid) / dt
+    n_samples = int(np.ceil(n_samples / 2.) * 2)  # round to nearest even integer
 
     for emitter in emitters:
         time_logger.start_time('ray tracing')
