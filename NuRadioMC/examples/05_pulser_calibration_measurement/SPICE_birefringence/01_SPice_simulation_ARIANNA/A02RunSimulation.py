@@ -31,8 +31,8 @@ class mySimulation(simulation.simulation):
 
     def _detector_simulation_trigger(self, evt, station, det):
         triggerSimulator.run(evt, station, det,
-                           threshold_high=0.5 * units.mV,
-                           threshold_low=-0.5 * units.mV,
+                           threshold_high=0.03 * units.V,
+                           threshold_low=-0.03 * units.V,
                            high_low_window=5 * units.ns,
                            coinc_window=30 * units.ns,
                            number_concidences=2,
