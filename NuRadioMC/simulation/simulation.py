@@ -113,7 +113,8 @@ def calculate_sim_efield(showers, sid, cid,
     time_logger: time_logger object
         the time logger to be used for the simulation
     min_efield_amplitude: float
-        speedup cut: the minimum electric field amplitude, all efields with smaller amplitudes will be ignored
+        speedup cut: the minimum electric field amplitude, if all efields from all showers are belwo this threshold value
+        the station will not be set as candidate station.
 
     Returns
     -------
@@ -134,6 +135,7 @@ def calculate_sim_efield(showers, sid, cid,
     p = propagator # shorthand for more compact coding
 
     sim_station = NuRadioReco.framework.sim_station.SimStation(sid)
+    sim_station.set_candidate(False)
     sim_station.set_is_neutrino()  # naming not ideal, but this function defines in-ice emission (compared to in-air emission from air showers)
 
     x2 = det.get_relative_position(sid, cid) + det.get_absolute_position(sid)
@@ -259,9 +261,11 @@ def calculate_sim_efield(showers, sid, cid,
             electric_field[efp.launch_vector] = p.get_launch_vector(iS)
 
             if min_efield_amplitude is not None:
-                if np.max(np.abs(electric_field.get_trace())) < min_efield_amplitude:
-                    logger.debug(f"Amplitude to low: electric field NOT added to SimStation for shower {shower.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
-                    continue
+                if np.max(np.abs(electric_field.get_trace())) > min_efield_amplitude:
+                    sim_station.set_candidate(True)
+                # if np.max(np.abs(electric_field.get_trace())) < min_efield_amplitude:
+                #     logger.debug(f"Amplitude to low: electric field NOT added to SimStation for shower {shower.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
+                #     continue
             sim_station.add_electric_field(electric_field)
             logger.debug(f"Added electric field to SimStation for shower {shower.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
     return sim_station
@@ -269,8 +273,7 @@ def calculate_sim_efield(showers, sid, cid,
 def calculate_sim_efield_for_emitter(emitters, sid, cid,
                          det, propagator, medium, config,
                          rnd, antenna_pattern_provider,
-                         time_logger=None,
-                         min_efield_amplitude=None):
+                         time_logger=None):
     """
     Calculate the simulated electric field for a given shower and channel.
 
@@ -422,10 +425,6 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
             electric_field[efp.launch_vector] = p.get_launch_vector(iS)
 
-            if min_efield_amplitude is not None:
-                if np.max(np.abs(electric_field.get_trace())) < min_efield_amplitude:
-                    logger.debug(f"Amplitude to low: electric field NOT added to SimStation for emitter {emitter.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS}")
-                    continue
             sim_station.add_electric_field(electric_field)
     return sim_station
 
@@ -1287,7 +1286,7 @@ class simulation:
 
         self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
         speed_cut = float(self._config['speedup']['min_efield_amplitude'])
-        logger.status(f"All signals with less then {speed_cut:.1f} x Vrms_efield will be skipped.")
+        logger.status(f"All stations where all efields from all showers have amplitudes of less then {speed_cut:.1f} x Vrms_efield will be skipped.")
 
         # define function for distance speedup cut
         self._distance_cut_polynomial = None
@@ -1388,6 +1387,7 @@ class simulation:
                 event_group.set_station(station)
 
                 # loop over all trigger channels
+                candidate_station = False
                 for iCh, channel_id in enumerate(self._det.get_channel_ids(sid)):
                     if particle_mode:
                         sim_station = calculate_sim_efield(showers=event_group.get_sim_showers(),
@@ -1396,13 +1396,14 @@ class simulation:
                                                         config=self._config,
                                                         time_logger=self.__time_logger,
                                                         min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id])
+                        if sim_station.is_candidate():
+                            candidate_station = True
                     else:
                         sim_station = calculate_sim_efield_for_emitter(emitters=event_group.get_sim_emitters(),
                                             sid=sid, cid=channel_id,
                                             det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
                                             rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
-                                            time_logger=self.__time_logger,
-                                            min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id])
+                                            time_logger=self.__time_logger)
                     # skip to next channel if the efield is below the speed cut
                     if len(sim_station.get_electric_fields()) == 0:
                         logger.info(f"Eventgroup {event_group.get_run_number()} Station {sid} channel {channel_id:02d} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
@@ -1418,6 +1419,9 @@ class simulation:
                 sim_station = station.get_sim_station()  # needed to get sim_station object containing all channels and not just the last one.
                 if len(sim_station.get_electric_fields()) == 0:
                     logger.info(f"Eventgroup {event_group.get_run_number()} Station {sid} has {len(sim_station.get_electric_fields())} efields, skipping to next station")
+                    continue
+                if candidate_station is False:
+                    logger.info(f"skipping station {sid} because all electric fields are below threshold value")
                     continue
 
                 # group events into events based on signal arrival times

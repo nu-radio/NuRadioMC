@@ -18,6 +18,37 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         self.__magnetic_field_vector = None
         self.__simulation_weight = None
         self.__channels = collections.OrderedDict()
+        self.__candidate = None
+
+    def set_candidate(self, candidate_status):
+            """
+            Set the candidate for the simulation station. True means the station is a candidate for producing a trigger.
+
+            Parameters
+            ----------
+            candidate_status : bool
+                If the station is a candidate for producing a trigger.
+
+            Returns
+            -------
+            None
+            """
+            if not isinstance(candidate_status, (bool, None)):
+                raise ValueError("The candidate_status must be a bool or None.")
+            self.__candidate = candidate_status
+
+    def is_candidate(self):
+        """
+        Returns whether the station is a candidate for producing a trigger.
+
+        Returns
+        -------
+        bool
+            True if the station is a candidate for producing a trigger, False otherwise.
+        """
+        if self.__candidate is None:
+            raise ValueError("The candidate status has not been set.")
+        return self.__candidate
 
     def get_magnetic_field_vector(self):
         return self.__magnetic_field_vector
