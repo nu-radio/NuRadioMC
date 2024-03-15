@@ -5,7 +5,9 @@ import h5py
 import yaml
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrans
+import NuRadioMC
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
+from NuRadioReco.utilities import version
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 from NuRadioReco.framework.parameters import showerParameters as shp
@@ -13,9 +15,8 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import emitterParameters as ep
 from NuRadioReco.framework.parameters import particleParameters as pap
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.logging import setup_logger
-
-logger = setup_logger("NuRadioMC.HDF5OutputWriter")
+import logging
+logger = logging.getLogger("NuRadioMC.HDF5OutputWriter")
 
 class outputWriterHDF5:
     """
@@ -409,45 +410,71 @@ class outputWriterHDF5:
                         self.__add_parameter(self._mout, key, np.nan)
 
 
+    def write_empty_output_file(self, fin_attrs):
+        """
+        Write an empty output file with the given file attributes.
+
+        Parameters:
+            fin_attrs (callable): A function that returns a dictionary of file attributes.
+
+        Returns:
+            None
+        """
+        folder = os.path.dirname(self._output_filename)
+        if not os.path.exists(folder) and folder != '':
+            logger.warning(f"output folder {folder} does not exist, creating folder...")
+            os.makedirs(folder)
+        fout = h5py.File(self._output_filename, 'w')
+        # save meta arguments
+        for (key, value) in fin_attrs():
+            fout.attrs[key] = value
+        # save NuRadioMC and NuRadioReco versions
+        fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
+        fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
+        fout.close()
 
 
-    def end(self):
-        self.write_output_file()
+    def write_output_file(self):
+        """
+        Write the output file in HDF5 format.
 
-
-    def write_output_file(self, empty=False):
+        Returns:
+            bool: False if there are no events to save, True otherwise.
+        """
+        if len(self._mout['shower_ids']) == 0:
+            logger.warning("no events to save, not writing output file")
+            return False
         folder = os.path.dirname(self._output_filename)
         if not os.path.exists(folder) and folder != '':
             logger.warning(f"output folder {folder} does not exist, creating folder...")
             os.makedirs(folder)
         fout = h5py.File(self._output_filename, 'w')
 
-        if not empty:
-            logger.status("start saving events")
-            # save data sets
-            # all arrays need to be sorted by shower id
-            sort = np.argsort(np.array(self._mout['shower_ids']))
-            for (key, value) in self._mout.items():
-                logger.debug(f"saving {key} {value} {type(value)}")
-                if np.array(value).dtype.char == 'U':
-                    fout[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))[sort]
-                else:
-                    fout[key] = np.array(value)[sort]
+        logger.status("start saving events")
+        # save data sets
+        # all arrays need to be sorted by shower id
+        sort = np.argsort(np.array(self._mout['shower_ids']))
+        for (key, value) in self._mout.items():
+            logger.debug(f"saving {key} {value} {type(value)}")
+            if np.array(value).dtype.char == 'U':
+                fout[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))[sort]
+            else:
+                fout[key] = np.array(value)[sort]
 
-            # save all data sets of the station groups
-            keys_per_event = ['event_group_ids', 'event_ids', 'multiple_triggers_per_event', 'trigger_times_per_event',
-                              'maximum_amplitudes', 'maximum_amplitudes_envelope', 'triggered_per_event']
-            for (key, value) in self._mout_groups.items():
-                sg = fout.create_group("station_{:d}".format(key))
-                if 'shower_id' not in value:
-                    continue
-                sort = np.argsort(np.array(value['shower_id']))
-                for (key2, value2) in value.items():
-                    # a few arrays are counting values for different events, so we need to sort them
-                    if(key2 not in keys_per_event):
-                        sg[key2] = np.array(value2)[sort]
-                    else:
-                        sg[key2] = np.array(value2)
+        # save all data sets of the station groups
+        keys_per_event = ['event_group_ids', 'event_ids', 'multiple_triggers_per_event', 'trigger_times_per_event',
+                            'maximum_amplitudes', 'maximum_amplitudes_envelope', 'triggered_per_event']
+        for (key, value) in self._mout_groups.items():
+            sg = fout.create_group("station_{:d}".format(key))
+            if 'shower_id' not in value:
+                continue
+            sort = np.argsort(np.array(value['shower_id']))
+            for (key2, value2) in value.items():
+                # a few arrays are counting values for different events, so we need to sort them
+                if(key2 not in keys_per_event):
+                    sg[key2] = np.array(value2)[sort]
+                else:
+                    sg[key2] = np.array(value2)
 
         # TODO save detector
         # if isinstance(self._det, detector.rnog_detector.Detector):
@@ -456,29 +483,16 @@ class outputWriterHDF5:
         #     with open(self._detectorfile, 'r') as fdet:
         #         fout.attrs['detector'] = fdet.read()
 
-        if not empty:
-            # save antenna position separately to hdf5 output
-            for station_id in self._mout_groups:
-                n_channels = self._det.get_number_of_channels(station_id)
-                positions = np.zeros((n_channels, 3))
-                for channel_id in range(n_channels):
-                    positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
-                fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
-
-# TODO: Save these attributes
-            #     fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
-            #     fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._integrated_channel_response[station_id].values())
-
-            # fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
-            # fout.attrs.create("Vrms", self._Vrms, dtype=float)
-            # fout.attrs.create("dt", self._dt, dtype=float)
-            # fout.attrs.create("bandwidth", self._bandwidth, dtype=float)
-            # fout.attrs['n_samples'] = self._n_samples
+        # save antenna position separately to hdf5 output
+        for station_id in self._mout_groups:
+            n_channels = self._det.get_number_of_channels(station_id)
+            positions = np.zeros((n_channels, 3))
+            for channel_id in range(n_channels):
+                positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
+            fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
         fout.attrs['config'] = yaml.dump(self._mout_attributes['config'])
 
         # save NuRadioMC and NuRadioReco versions
-        from NuRadioReco.utilities import version
-        import NuRadioMC
         fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
 
@@ -489,6 +503,7 @@ class outputWriterHDF5:
                 else:
                     logger.warning(f"attribute {key} is None, not saving it")
         fout.close()
+        return True
 
     def calculate_Veff(self):
         """
