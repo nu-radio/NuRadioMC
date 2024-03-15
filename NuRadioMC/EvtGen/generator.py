@@ -11,7 +11,7 @@ import time
 import NuRadioMC
 from NuRadioReco.utilities import units, version, particle_names
 from NuRadioMC.utilities import inelasticities
-from NuRadioMC.simulation.simulation import pretty_time_delta
+from NuRadioMC.simulation.time_logger import pretty_time_delta
 
 
 logger = logging.getLogger("NuRadioMC.EvtGen")
