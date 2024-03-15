@@ -1,5 +1,46 @@
 import astropy.time
 
+def pretty_time_delta(seconds):
+    """
+    Convert a time duration in seconds to a human-readable format.
+
+    Parameters
+    ----------
+    seconds : int
+        The time duration in seconds.
+
+    Returns
+    -------
+    str
+        The human-readable time duration in the format 'XdXhXmXs', where X represents the number of days, hours, minutes, and seconds.
+
+    Examples
+    --------
+    >>> logger = TimeLogger()
+    >>> logger.__pretty_time_delta(3665)
+    '0d1h1m5s'
+    >>> logger.__pretty_time_delta(7200)
+    '0d2h0m0s'
+    >>> logger.__pretty_time_delta(120)
+    '0d0h2m0s'
+    >>> logger.__pretty_time_delta(30)
+    '0d0h0m30s'
+    """
+
+    seconds = int(seconds)
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days > 0:
+        return '%dd%dh%dm%ds' % (days, hours, minutes, seconds)
+    elif hours > 0:
+        return '%dh%dm%ds' % (hours, minutes, seconds)
+    elif minutes > 0:
+        return '%dm%ds' % (minutes, seconds)
+    else:
+        return '%ds' % (seconds,)
+
+
 class timeLogger:
     """
     A class for logging and tracking time durations for different categories.
@@ -128,47 +169,6 @@ class timeLogger:
         self.__times[category] += (astropy.time.Time.now() - self.__start_times[category]).sec
         self.__start_times[category] = None
 
-    @staticmethod
-    def pretty_time_delta(seconds):
-        """
-        Convert a time duration in seconds to a human-readable format.
-
-        Parameters
-        ----------
-        seconds : int
-            The time duration in seconds.
-
-        Returns
-        -------
-        str
-            The human-readable time duration in the format 'XdXhXmXs', where X represents the number of days, hours, minutes, and seconds.
-
-        Examples
-        --------
-        >>> logger = TimeLogger()
-        >>> logger.__pretty_time_delta(3665)
-        '0d1h1m5s'
-        >>> logger.__pretty_time_delta(7200)
-        '0d2h0m0s'
-        >>> logger.__pretty_time_delta(120)
-        '0d0h2m0s'
-        >>> logger.__pretty_time_delta(30)
-        '0d0h0m30s'
-        """
-
-        seconds = int(seconds)
-        days, seconds = divmod(seconds, 86400)
-        hours, seconds = divmod(seconds, 3600)
-        minutes, seconds = divmod(seconds, 60)
-        if days > 0:
-            return '%dd%dh%dm%ds' % (days, hours, minutes, seconds)
-        elif hours > 0:
-            return '%dh%dm%ds' % (hours, minutes, seconds)
-        elif minutes > 0:
-            return '%dm%ds' % (minutes, seconds)
-        else:
-            return '%ds' % (seconds,)
-
     def show_time(self, n_event_groups, i_event_group):
         """
         Display the progress information of a simulation run. 
@@ -197,7 +197,7 @@ class timeLogger:
                 'processing event group {}/{}. ETA: {}, time consumption: {}'.format(
                     i_event_group,
                     n_event_groups,
-                    self.pretty_time_delta(projected_time.sec),
+                    pretty_time_delta(projected_time.sec),
                     time_account_string
                 )
             )

@@ -89,7 +89,8 @@ def merge_config(user, default):
 def calculate_sim_efield(showers, sid, cid,
                          det, propagator, medium, config,
                          time_logger=None,
-                         min_efield_amplitude=None):
+                         min_efield_amplitude=None,
+                         distance_cut=None):
     """
     Calculate the simulated electric field for a given shower and channel.
 
@@ -120,6 +121,15 @@ def calculate_sim_efield(showers, sid, cid,
         A list of SimEfield objects, one for each shower and propagation solution
 
     """
+    if distance_cut is not None:
+        time_logger.start_time('distance cut')
+        vertex_positions = np.zeros(len(showers), 3)
+        shower_energies = np.zeros(len(showers))
+        for i, shower in enumerate(showers):
+            vertex_positions[i] = shower.get_parameter(shp.vertex)
+            shower_energies[i] = shower.get_parameter(shp.energy)
+        vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
+        time_logger.stop_time('distance cut')
     logger.debug("Calculating electric field for station %d , channel %d from list of showers", sid, cid)
     p = propagator # shorthand for more compact coding
 
@@ -132,11 +142,20 @@ def calculate_sim_efield(showers, sid, cid,
     n_samples = det.get_number_of_samples(sid, cid) / det.get_sampling_frequency(sid, cid) / dt
     n_samples = int(np.ceil(n_samples / 2.) * 2)  # round to nearest even integer
 
-    for shower in showers:
+    for iSh, shower in enumerate(showers):
+        x1 = shower.get_parameter(shp.vertex)
+        if distance_cut is not None:
+            time_logger.start_time('distance cut')
+            mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < config['speedup']['distance_cut_sum_length']
+            shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
+            if np.linalg.norm(x1 - x2) > distance_cut(shower_energy_sum):
+                logger.debug(f"shower {shower.get_id()} is too far away from station {sid} channel {cid}, skipping shower")
+                time_logger.stop_time('distance cut')
+                continue
+            time_logger.stop_time('distance cut')
         time_logger.start_time('ray tracing')
         logger.debug(f"Calculating electric field for shower {shower.get_id()} and station {sid}, channel {cid}")
         shower_axis = -1 * shower.get_axis() # We need the propagation direction here, so we multiply the shower axis with '-1'
-        x1 = shower.get_parameter(shp.vertex)
         n_index = medium.get_index_of_refraction(x1)
         cherenkov_angle = np.arccos(1. / n_index)
 
@@ -405,7 +424,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
 
             if min_efield_amplitude is not None:
                 if np.max(np.abs(electric_field.get_trace())) < min_efield_amplitude:
-                    logger.debug(f"Amplitude to low: electric field NOT added to SimStation for shower {shower.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
+                    logger.debug(f"Amplitude to low: electric field NOT added to SimStation for emitter {emitter.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS}")
                     continue
             sim_station.add_electric_field(electric_field)
     return sim_station
@@ -1081,8 +1100,7 @@ class simulation:
             logger.warning(msg)
 
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
-        self._debug = debug  # TODO remove
-        self._evt_time = evt_time  # TODO: fill event time properly to station and event objects
+        self._evt_time = evt_time
         self.__write_detector = write_detector
         logger.status("setting event time to {}".format(evt_time))
         self._event_group_list = event_list
@@ -1131,10 +1149,6 @@ class simulation:
         logger.status("setting signal to zero {}".format(bool(self._config['signal']['zerosignal'])))
         if bool(self._config['propagation']['focusing']):
             logger.status("simulating signal amplification due to focusing of ray paths in the firn.")
-
-        # read sampling rate from config (this sampling rate will be used internally)
-        self._dt = 1. / (self._config['sampling_rate'] * units.GHz)  # TODO: Maybe remove
-
 
         #### Input HDF5 block   TODO: Add option to start from nur files
         if isinstance(inputfilename, str):
@@ -1299,8 +1313,8 @@ class simulation:
         run the NuRadioMC simulation
         """
         if len(self._fin['xx']) == 0:
-            logger.status("writing empty hdf5 output file")
-            self._write_output_file(empty=True)  # TODO: write empty file
+            logger.status("The input file does not contain any showers or emitters. Writing empty hdf5 output file.")
+            self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
             logger.status("terminating simulation")
             return 0
         logger.status("Starting NuRadioMC simulation")
@@ -1313,12 +1327,12 @@ class simulation:
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
 
         # calculate bary centers of station
-        self._station_barycenter = np.zeros((len(self._station_ids), 3))
+        station_barycenter = np.zeros((len(self._station_ids), 3))
         for iSt, station_id in enumerate(self._station_ids):
             pos = []
             for channel_id in range(self._det.get_number_of_channels(station_id)):
                 pos.append(self._det.get_relative_position(station_id, channel_id))
-            self._station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
+            station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
 
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
@@ -1346,9 +1360,26 @@ class simulation:
                 logger.debug("neutrino weight is smaller than %f, skipping event", self._config['speedup']['minimum_weight_cut'])
                 continue
 
+            # these quantities get computed to apply the distance cut as a function of shower energies
+            # the shower energies of closeby showers will be added as they can constructively interfere
+            # TODO: Needs to be refactored to get this information from the event group object so that
+            # nur files can easily be a source as well. 
+            if self._config['speedup']['distance_cut']:
+                shower_energies = np.array(self._fin['shower_energies'])[event_indices]
+                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
+                                             np.array(self._fin['yy'])[event_indices],
+                                             np.array(self._fin['zz'])[event_indices]]).T
+
             output_buffer = {}
             # loop over all stations (each station is treated independently)
             for iSt, sid in enumerate(self._station_ids):
+                if self._config['speedup']['distance_cut']:
+                    # perform a quick cut to reject event group completely if no shower is close enough to the station
+                    vertex_distances_to_station = np.linalg.norm(vertex_positions - station_barycenter[iSt], axis=1)
+                    distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+                    if vertex_distances_to_station.min() > distance_cut:
+                        logger.debug(f"skipping station {sid} because minimal distance {vertex_distances_to_station.min()/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {station_barycenter[iSt]}")
+                        continue
                 output_buffer[sid] = {}
                 station = NuRadioReco.framework.station.Station(sid)
                 sim_station = NuRadioReco.framework.sim_station.SimStation(sid)
@@ -1437,7 +1468,6 @@ class simulation:
                     remove_all_traces(evt)  # remove all traces to save memory
                     output_buffer[sid][evt.get_id()] = evt
                 if(evt_group_triggered):
-                    # TODO: Write hdf5 output per event group
                     self._output_writer_hdf5.add_event_group(output_buffer)
 
         if self._outputfilenameNuRadioReco is not None:
@@ -1487,7 +1517,7 @@ class simulation:
         return self._Vrms
 
     def get_sampling_rate(self):
-        return 1. / self._dt
+        return 1. / self._config['sampling_rate']
 
     def get_bandwidth(self):
         return self._bandwidth
