@@ -8,7 +8,6 @@ import numpy as np
 import astropy.time
 
 import logging
-from NuRadioReco.utilities.logging import setup_logger
 
 import time
 import os
@@ -50,7 +49,7 @@ class NuRadioRecoio(object):
             filenames = [filenames]
 
         self.__file_scanned = False
-        self.logger = setup_logger('NuRadioReco.NuRadioRecoio')
+        self.logger = logging.getLogger('NuRadioReco.NuRadioRecoio')
         self.logger.info("initializing NuRadioRecoio with file {}".format(filenames))
         t = time.time()
         if log_level is not None:
@@ -206,8 +205,12 @@ class NuRadioRecoio(object):
                             try:
                                 station_time.format = 'isot'
                             except AttributeError:
-                                self.logger.warning(f"setting format to 'isot' resulted in error.")
-                                pass
+                                try:
+                                    station_time.precision = station_time._time.__dict__["precision"]
+                                    station_time.format = 'isot'
+                                except AttributeError:
+                                    self.logger.warning("setting format to 'isot' resulted in error.")
+                                    pass
 
                         self.__event_headers[station_id][key].append(station_time)
                     else:
