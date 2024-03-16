@@ -33,7 +33,7 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
             -------
             None
             """
-            if not isinstance(candidate_status, (bool, None)):
+            if not isinstance(candidate_status, bool) and candidate_status is not None:
                 raise ValueError("The candidate_status must be a bool or None.")
             self.__candidate = candidate_status
 
