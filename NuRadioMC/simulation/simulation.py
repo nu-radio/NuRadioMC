@@ -1395,7 +1395,8 @@ class simulation:
                                                         det=self._det, propagator=self._propagator, medium=self._ice,
                                                         config=self._config,
                                                         time_logger=self.__time_logger,
-                                                        min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id])
+                                                        min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id],
+                                                        distance_cut=self._get_distance_cut)
                         if sim_station.is_candidate():
                             candidate_station = True
                     else:
