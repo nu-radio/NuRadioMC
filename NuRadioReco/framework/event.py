@@ -382,8 +382,9 @@ class Event:
         """
         Get an iterator over all simulated showers in the event
         """
-        for shower in self.__sim_showers.values():
-            yield shower
+        return self.__sim_showers.values()
+        # for shower in self.__sim_showers.values():
+        #     yield shower
 
     def get_sim_shower(self, shower_id):
         """
