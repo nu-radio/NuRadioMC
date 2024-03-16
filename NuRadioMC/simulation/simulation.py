@@ -153,9 +153,10 @@ def calculate_sim_efield(showers, sid, cid,
             mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < config['speedup']['distance_cut_sum_length']
             shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
             if np.linalg.norm(x1 - x2) > distance_cut(shower_energy_sum):
-                logger.debug(f"shower {shower.get_id()} is too far away from station {sid} channel {cid}, skipping shower")
+                # logger.warning(f"shower {shower.get_id()} is too far away ({np.linalg.norm(x1 - x2)/units.km:.2f} > {distance_cut(shower_energy_sum)/units.km:.2f}) from station {sid} channel {cid}, skipping shower")
                 time_logger.stop_time('distance cut')
                 continue
+            # logger.warning(f"shower {shower.get_id()} is close enough ({np.linalg.norm(x1 - x2)/units.km:.2f} < {distance_cut(shower_energy_sum)/units.km:.2f}) to station {sid} channel {cid}, continuing with shower")
             time_logger.stop_time('distance cut')
         time_logger.start_time('ray tracing')
         logger.debug(f"Calculating electric field for shower {shower.get_id()} and station {sid}, channel {cid}")
@@ -1291,15 +1292,15 @@ class simulation:
         logger.status(f"All stations where all efields from all showers have amplitudes of less then {speed_cut:.1f} x Vrms_efield will be skipped.")
 
         # define function for distance speedup cut
-        self._distance_cut_polynomial = None
+        self._get_distance_cut = None
         if self._config['speedup']['distance_cut']:
             coef = self._config['speedup']['distance_cut_coefficients']
-            self.__distance_cut_polynomial = np.polynomial.polynomial.Polynomial(coef)
+            distance_cut_polynomial = np.polynomial.polynomial.Polynomial(coef)
 
             def get_distance_cut(shower_energy):
                 if shower_energy <= 0:
                     return 100 * units.m
-                return max(100 * units.m, 10 ** self.__distance_cut_polynomial(np.log10(shower_energy)))
+                return max(100 * units.m, 10 ** distance_cut_polynomial(np.log10(shower_energy)))
 
             self._get_distance_cut = get_distance_cut
 
@@ -1379,8 +1380,8 @@ class simulation:
                     vertex_distances_to_station = np.linalg.norm(vertex_positions - station_barycenter[iSt], axis=1)
                     distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
                     if vertex_distances_to_station.min() > distance_cut:
-                        logger.debug(f"skipping station {sid} because minimal distance {vertex_distances_to_station.min()/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {station_barycenter[iSt]}")
-                        continue
+                        logger.debug(f"event group {event_group.get_run_number()} is too far away from station {sid}, skipping to next station")
+                        # continue
                 output_buffer[sid] = {}
                 station = NuRadioReco.framework.station.Station(sid)
                 sim_station = NuRadioReco.framework.sim_station.SimStation(sid)

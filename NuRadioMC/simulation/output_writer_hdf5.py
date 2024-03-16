@@ -426,7 +426,7 @@ class outputWriterHDF5:
             os.makedirs(folder)
         fout = h5py.File(self._output_filename, 'w')
         # save meta arguments
-        for (key, value) in fin_attrs():
+        for (key, value) in fin_attrs.items():
             fout.attrs[key] = value
         # save NuRadioMC and NuRadioReco versions
         fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
@@ -441,7 +441,7 @@ class outputWriterHDF5:
         Returns:
             bool: False if there are no events to save, True otherwise.
         """
-        if len(self._mout['shower_ids']) == 0:
+        if 'shower_ids' not in self._mout or len(self._mout['shower_ids']) == 0:
             logger.warning("no events to save, not writing output file")
             return False
         folder = os.path.dirname(self._output_filename)
