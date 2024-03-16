@@ -259,9 +259,9 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
     model: string
         specifies the signal model
         If the model string starts with "efield_", the function provides the three dimensional electric field emitted
-        by the pulser/antena combination normalized to a distance of 1m. 
+        by the pulser/antena combination normalized to a distance of 1m.
         If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain
-        the emitted electric field. This is automatically done in a NuRadioMC simulation).  
+        the emitted electric field. This is automatically done in a NuRadioMC simulation).
 
         * delta_pulse: a simple signal model of a delta pulse emitter
         * cw : a sinusoidal wave of given frequency
@@ -270,6 +270,19 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         * idl1 & hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
         * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
+        * efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE
+          calibration campaigns from 2018 and 2019.
+          The `launch_vector` needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
+          doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.
+          the `amplitude` is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an 
+          amplitude of 10 will return 10 times the measured efield amplitude, etc.
+          Use kwarg `iN` to select a specific pulse from the 10 available pulses. The default is a random selection.
+        * efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg `polarization` needs
+          to be specified to select the polarization of the efield, defined as float between 0 and 1 with
+          0 = eTheta polarized and 1 = ePhi polarized. The default is 0.5, i.e. unpolarized. The amplitudes are
+          set to preserve the total power of the delta pulse, i.e. A_theta = sqrt(1-polarization)
+          and A_phi = sqrt(polarization).
+
     full_output: bool (default False)
         if True, can return additional output
 
@@ -285,7 +298,7 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
 
     Returns
     -------
-    time trace: 1d or 2d array, shape (N) or (3, N) for efield
+    frequency spectrum: 1d or 2d array, shape (N/2+1) or (3, N/2+1) for efield
         the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.
     additional information: dict
         only available if `full_output` enabled
