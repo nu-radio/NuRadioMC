@@ -124,11 +124,13 @@ def calculate_sim_efield(showers, sid, cid,
     """
     if distance_cut is not None:
         time_logger.start_time('distance cut')
-        vertex_positions = np.zeros(len(showers), 3)
-        shower_energies = np.zeros(len(showers))
+        vertex_positions = []
+        shower_energies = []
         for i, shower in enumerate(showers):
-            vertex_positions[i] = shower.get_parameter(shp.vertex)
-            shower_energies[i] = shower.get_parameter(shp.energy)
+            vertex_positions.append(shower.get_parameter(shp.vertex))
+            shower_energies.append(shower.get_parameter(shp.energy))
+        vertex_positions = np.array(vertex_positions)
+        shower_energies = np.array(shower_energies)
         vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
         time_logger.stop_time('distance cut')
     logger.debug("Calculating electric field for station %d , channel %d from list of showers", sid, cid)
