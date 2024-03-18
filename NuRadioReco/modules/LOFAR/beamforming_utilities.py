@@ -13,6 +13,9 @@ lightspeed = constants.c * units.m / units.s
 def mini_beamformer(fft_data, frequencies, positions, direction):
     """
     Adapted from PyCrTools hBeamformBlock
+
+    Beamform the spectra given the arrival direction. Based on the arrival direction,
+    the geometric delays are calculated.
     """
     n_antennas = len(positions)
 
@@ -33,6 +36,9 @@ def mini_beamformer(fft_data, frequencies, positions, direction):
 
 
 def beamformer(fft_data, frequencies, delay):
+    """
+    Beamform the spectra according to the given delays.
+    """
     n_antennas = len(delay)
     output = np.zeros([len(frequencies)], dtype=complex)
 
@@ -47,6 +53,9 @@ def beamformer(fft_data, frequencies, delay):
 
 
 def geometric_delays(ant_pos, sky):
+    """
+    Calculate the geometric delays of given antenna position, given an arrival direction in the sky.
+    """
     distance = np.sqrt(sky[0] ** 2 + sky[1] ** 2 + sky[2] ** 2)
     delays = (np.sqrt(
         (sky[0] - ant_pos[0]) ** 2 + (sky[1] - ant_pos[1]) ** 2 + (sky[2] - ant_pos[2]) ** 2) - distance) / lightspeed

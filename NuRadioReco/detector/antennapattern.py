@@ -967,6 +967,17 @@ def preprocess_XFDTD(path):
 
 
 def parse_LOFAR_txt_file(path_theta, path_phi):
+    """
+    Extract the values from a simulation file for the LOFAR LBA antenna model.
+
+    Parameters
+    ----------
+    path_theta : str
+        Path to the file containing the values for the theta component
+    path_phi : str
+        Path to the file containing the values for the phi component
+
+    """
     freq, theta, phi, real_theta, imaginary_theta = np.genfromtxt(path_theta, skip_header=1).T
     freq2, theta2, phi2, real_phi, imaginary_phi = np.genfromtxt(path_phi, skip_header=1).T
 
@@ -986,6 +997,18 @@ def parse_LOFAR_txt_file(path_theta, path_phi):
 
 
 def preprocess_LOFAR_txt(directory, ant='LBA'):
+    """
+    Function to parse the LOFAR antenna model simulation files in TXT format. It extracts the
+    vector effective length for all simulated frequencies, azimuth and zenith angles and dumps
+    them into a pickle file according to the NRR specification.
+
+    Parameters
+    ----------
+    directory : str
+        The path to the directory where the TXT files are stored
+    ant : str, default='LBA'
+        The antenna type
+    """
     path_theta = os.path.join(directory, f'{ant}_Vout_theta.txt')
     path_phi = os.path.join(directory, f'{ant}_Vout_phi.txt')
 
@@ -1020,6 +1043,7 @@ def preprocess_LOFAR_txt(directory, ant='LBA'):
 
     with open(output_filename, 'wb') as fout:
         logger.info('saving output to {}'.format(output_filename))
+        # Notice the ordering!
         pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi,
                      frequencies, theta, phi, H_phi, H_theta],
                     fout, protocol=4)
