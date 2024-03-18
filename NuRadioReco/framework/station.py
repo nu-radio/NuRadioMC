@@ -36,7 +36,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
-    
+
     def iter_channel_group(self, channel_group_id):
         found_channel_group = False
         for channel_id, channel in iteritems(self.__channels):
@@ -46,7 +46,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         if found_channel_group == False:
             msg = f"channel group id {channel_group_id} is not present"
             raise ValueError(msg)
-            
+
     def get_number_of_channels(self):
         return len(self.__channels)
 
@@ -56,8 +56,20 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def add_channel(self, channel):
         self.__channels[channel.get_id()] = channel
 
-    def remove_channel_id(self, channel_id):
-        del self.__channels[channel_id]  # deletes element from dict
+    def remove_channel(self, channel_id):
+        """
+        Removes a channel from the station by deleting is from the channels dictionary. The `channel_id`
+        should be the id of the Channel, but supplying the Channel object itself is also supported.
+
+        Parameters
+        ----------
+        channel_id : int or NuRadioReco.framework.channel.Channel
+            The Channel (id) to remove from the Station.
+        """
+        if isinstance(channel_id, NuRadioReco.framework.channel.Channel):
+            del self.__channels[channel_id.get_id()]
+        else:
+            del self.__channels[channel_id]
 
     def set_reference_reconstruction(self, reference):
         if reference not in ['RD', 'MC']:

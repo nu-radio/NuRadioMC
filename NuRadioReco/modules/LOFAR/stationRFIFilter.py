@@ -519,7 +519,7 @@ class stationRFIFilter:
             )
             # remove from station, add to flagged list
             for ant_id in antenna_ids[bad_dipole_indices]:
-                station.remove_channel_id(int(ant_id))  # are channel ids integers?
+                station.remove_channel(int(ant_id))  # are channel ids integers?
 
             flagged_channel_ids.update([ant_id for ant_id in antenna_ids[bad_dipole_indices]])  # is set, not list
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)

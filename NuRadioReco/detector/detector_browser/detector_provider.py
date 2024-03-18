@@ -29,8 +29,8 @@ class DetectorProvider(object):
         filename: string
             Path to the .json file containing the detector description
         """
-        self.__detector = NuRadioReco.detector.detector.Detector.__new__(
-            NuRadioReco.detector.detector.Detector, source='json', json_filename=filename, assume_inf=assume_inf, 
+        self.__detector = NuRadioReco.detector.detector.Detector(
+            source='json', json_filename=filename, assume_inf=assume_inf,
             antenna_by_depth=antenna_by_depth)
 
     def set_generic_detector(self, filename, default_station, default_channel, assume_inf, antenna_by_depth):
