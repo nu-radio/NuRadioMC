@@ -513,11 +513,12 @@ class stationRFIFilter:
                 np.logical_or(
                     cleaned_power < 0.5 * median_dipole_power, cleaned_power > 2.0 * median_dipole_power))[0]
             # which dipole ids are these
-            print('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices])) # remove
-            self.logger.info('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices]))
+            self.logger.info(
+                'There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices])
+            )
             # remove from station, add to flagged list
             for id in antenna_ids[bad_dipole_indices]:
-                station.remove_channel_id(int(id))  # are channel ids integers?
+                station.remove_channel(int(id))  # are channel ids integers?
 
             flagged_channel_ids.update([id for id in antenna_ids[bad_dipole_indices]]) # is set, not list
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
