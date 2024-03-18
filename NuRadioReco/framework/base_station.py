@@ -76,18 +76,18 @@ class BaseStation():
         self._parameters.pop(key, None)
 
     def set_station_time(self, time, format=None):
-        """ 
+        """
         Set the (absolute) time for the station (stored as astropy.time.Time).
         Not related to the event._event_time.
-        
+
         Parameters
         ----------
-        
+
         time: astropy.time.Time or datetime.datetime or float
-            If "time" is a float, you have to specify its format. 
-            
+            If "time" is a float, you have to specify its format.
+
         format: str
-            Only used when "time" is a float. Format to interpret "time". (Default: None) 
+            Only used when "time" is a float. Format to interpret "time". (Default: None)
         """
 
         if isinstance(time, datetime.datetime):
@@ -100,26 +100,26 @@ class BaseStation():
             self._station_time = astropy.time.Time(time, format=format)
 
     def get_station_time(self, format='isot'):
-        """ 
-        Returns a astropy.time.Time object 
-        
+        """
+        Returns a astropy.time.Time object
+
         Parameters
         ----------
-        
+
         format: str
             Format in which the time object is displayed. (Default: isot)
-            
+
         Returns
         -------
-        
+
         _station_time: astropy.time.Time
         """
         if self._station_time is None:
             return None
-        
+
         self._station_time.format = format
         return self._station_time
-    
+
     def get_station_time_dict(self):
         """ Return the station time as dict {value, format}. Used for reading and writing """
         if self._station_time is None:
@@ -198,6 +198,16 @@ class BaseStation():
     def get_electric_fields(self):
         return self._electric_fields
 
+    def get_electric_field_ids(self):
+        """
+        returns a list with the electric field IDs of all simElectricFields of the simStation
+        """
+        efield_ids = []
+        for efield in self._electric_fields:
+            efield_ids.append(efield.get_unique_identifier())
+        efield_ids.sort()
+        return efield_ids
+
     def add_electric_field(self, electric_field):
         self._electric_fields.append(electric_field)
 
@@ -270,13 +280,13 @@ class BaseStation():
         trigger_pkls = []
         for trigger in self._triggers.values():
             trigger_pkls.append(trigger.serialize())
-        
+
         efield_pkls = []
         for efield in self.get_electric_fields():
             efield_pkls.append(efield.serialize(save_trace=save_efield_traces))
 
         station_time_dict = self.get_station_time_dict()
-            
+
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 '_parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
@@ -286,7 +296,7 @@ class BaseStation():
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
                 'electric_fields': efield_pkls}
-        
+
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
@@ -308,7 +318,7 @@ class BaseStation():
 
         self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(
             data['_parameter_covariances'], parameters.stationParameters)
-        
+
         if '_ARIANNA_parameters' in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
 
@@ -322,3 +332,19 @@ class BaseStation():
                 self.set_station_time(data['_station_time'])
 
         self._particle_type = data['_particle_type']
+
+
+    def __add__(self, x):
+        if not isinstance(x, BaseStation):
+            raise AttributeError("Can only add BaseStation to BaseStation")
+        if self.get_id() != x.get_id():
+            raise AttributeError("Can only add BaseStations with the same ID")
+        for trigger in x.get_triggers().values():
+            self.set_trigger(trigger)
+        for efield in x.get_electric_fields():
+            self.add_electric_field(efield)
+        for key, value in x.get_parameters().items():
+            self.set_parameter(key, value)
+        for key, value in x.get_ARIANNA_parameters().items():
+            self.set_ARIANNA_parameter(key, value)
+        return self

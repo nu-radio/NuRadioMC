@@ -8,6 +8,7 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import units, ice, geometryUtilities
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.utilities.logging import setup_logger
 
 
 class efieldToVoltageConverterPerEfield():
@@ -18,21 +19,46 @@ class efieldToVoltageConverterPerEfield():
 
     def __init__(self, log_level=None):
         self.__t = 0
-        self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverterPerEfield')
+        self.logger = setup_logger('NuRadioReco.efieldToVoltageConverterPerEfield')
         if(log_level):
             self.logger.setLevel(log_level)
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
     @register_run()
     def run(self, evt, station, det):
+        """
+        Converts simulated electric fields to voltage traces for each channel in a sim station.
+
+        Parameters
+        ----------
+        evt : Event
+            The event object.
+        station : SimStation (or Station)
+            The SimStation object. If a Station object is provided, it is detected and the 
+            SimStation is automatically retrived from the Station object
+        det : Detector
+            The detector object.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        LookupError
+            If the station has no electric fields.
+        """
         t = time.time()
 
         # access simulated efield and high level parameters
-        sim_station = station.get_sim_station()
+        if isinstance(station, NuRadioReco.framework.station.Station):
+            sim_station = station.get_sim_station()
+        else:
+            sim_station = station
         if(len(sim_station.get_electric_fields()) == 0):
             raise LookupError(f"station {station.get_id()} has no efields")
 
-        for channel_id in det.get_channel_ids(station.get_id()):
+        for channel_id in det.get_channel_ids(sim_station.get_id()):
             # one channel might contain multiple channels to store the signals from multiple ray paths and showers,
             # so we loop over all simulated channels with the same id,
             self.logger.debug('channel id {}'.format(channel_id))
@@ -60,8 +86,8 @@ class efieldToVoltageConverterPerEfield():
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
                 if sim_station.is_cosmic_ray():
-                    site = det.get_site(station.get_id())
-                    antenna_position = det.get_relative_position(station.get_id(),
+                    site = det.get_site(sim_station.get_id())
+                    antenna_position = det.get_relative_position(sim_station.get_id(),
                                                                  channel_id) - electric_field.get_position()
                     if zenith > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
                         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)

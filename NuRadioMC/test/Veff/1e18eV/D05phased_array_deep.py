@@ -9,12 +9,12 @@ import numpy as np
 import scipy
 from scipy import constants
 import matplotlib.pyplot as plt
-import logging
 import copy
 import yaml
 
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runMB")
+# Setup logging
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
 
 # 4 channel, 2x sampling, fft upsampling, 16 ns window
 # 100 Hz -> 30.85
@@ -64,8 +64,10 @@ class mySimulation(simulation.simulation):
 
         # run the 4 phased trigger
         # x2 for upsampling
-        window_4ant = int(16 * units.ns * self._sampling_rate_detector * 2.0)
-        step_4ant = int(8 * units.ns * self._sampling_rate_detector * 2.0)
+        cid = det.get_channel_ids(station.get_id())[0]
+        sampling_rate = det.get_sampling_frequency(station.get_id(), cid)
+        window_4ant = int(16 * units.ns * sampling_rate * 2.0)
+        step_4ant = int(8 * units.ns * sampling_rate * 2.0)
 
         phasedArrayTrigger.run(evt, station, det,
                                Vrms=Vrms,
@@ -100,5 +102,6 @@ sim = mySimulation(inputfilename=args.inputfilename,
                             detectorfile=args.detectordescription,
                             outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                             config_file=args.config,
-                            default_detector_station=1)
+                            default_detector_station=1,
+                            file_overwrite=True)
 sim.run()

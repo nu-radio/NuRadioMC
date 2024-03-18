@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from scipy import integrate, linalg
 from NuRadioReco.utilities import units
+from scipy import interpolate
+import os
 import logging
 logging.basicConfig()
 
@@ -207,7 +209,8 @@ class IceModelSimple(IceModel):
                  z_0,
                  z_shift=0*units.meter,
                  z_air_boundary=0*units.meter,
-                 z_bottom=None):
+                 z_bottom=None
+                 ):
 
         """
         initiaion of a simple exponential ice model
@@ -372,8 +375,51 @@ class IceModelSimple(IceModel):
                                         z_0=self.z_0*RP.meter/units.meter,
                                         z_shift=self.z_shift*RP.meter/units.meter)
         return RadioPropaIceWrapper(self, scalar_field)
-            
+    
 
+class IceModelBirefringence(IceModelSimple):
+    """
+    predefined birefringence ice model (to inherit from) including different indieces of refraction for differnt directions
+    """
+    def __init__(self, bir_model):
+
+        """
+        initiaion of a birefringent ice model with an interpolation of the data as described in:
+        https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        bire_model: string
+            choose the interpolation to fit the measured refractive index data
+            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+
+        """
+
+        self.f1 = interpolate.UnivariateSpline._from_tck(bir_model[0])
+        self.f2 = interpolate.UnivariateSpline._from_tck(bir_model[1])
+        self.f3 = interpolate.UnivariateSpline._from_tck(bir_model[2])
+    
+    def get_birefringence_index_of_refraction(self, position):
+
+        """
+        returns the birefringent index of refraction at any position, no density effects are included at this point.
+
+        Parameters
+        ----------
+        position:  3dim np.array [x, y, z]
+            position at which the ice model should be evaluated
+
+        Returns
+        -------
+        n:  list [nx, ny, nz]
+            index of refraction for every direction
+        """
+
+        nx = self.f1( - position[2])
+        ny = self.f2( - position[2])
+        nz = self.f3( - position[2])
+
+        return nx, ny, nz
 
 
 if radiopropa_is_imported:

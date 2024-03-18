@@ -20,6 +20,9 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def set_sim_station(self, sim_station):
         self.__sim_station = sim_station
 
+    def add_sim_station(self, sim_station):
+        self.__sim_station = self.__sim_station + sim_station
+
     def get_sim_station(self):
         return self.__sim_station
 

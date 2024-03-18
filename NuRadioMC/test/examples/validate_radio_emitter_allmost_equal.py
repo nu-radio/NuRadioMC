@@ -6,7 +6,10 @@ import numpy as np
 from numpy import testing
 import argparse
 from NuRadioReco.utilities import units
-import logging
+
+# Setup logging
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
 
 file1 = sys.argv[1]
 file2 = sys.argv[2]
@@ -28,7 +31,7 @@ def test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
             print("\narray {} not almost equal".format(key))
             print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
             print(e)
-            error = -1
+            error += 1
     return error
 
 
@@ -40,7 +43,7 @@ def test_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
             print("\narray {} not almost equal".format(key))
             print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
             print(e)
-            error = -1
+            error += 1
     return error
 
 
@@ -60,13 +63,13 @@ def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accu
                 print(np.abs((arr1[i] - arr2[i]) / arr2[i]))
                 print(arr1[i])
                 print(arr2[i])
-                error = -1
+                error += 1
             # now test zero entries for equality
             if not np.all(arr1[i][zero_mask] == arr2[i][zero_mask]):
                 max_diff = np.max(np.abs(arr1[i][zero_mask] - arr2[i][zero_mask]))
                 print('Reconstruction of {} of event {} does not agree with reference (absolute error: {})'.format(key, i, max_diff))
-                print("\n attribute {} not almost equal".format(key))
-                error = -1
+                print("attribute {} not almost equal".format(key))
+                error += 1
     return error
 
 
@@ -78,8 +81,10 @@ def test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
             max_diff = np.max(np.abs((arr1[i] - arr2[i]) / arr2[i]))
             if max_diff > accuracy:
                 print('Reconstruction of {} of event {} does not agree with reference (error: {})'.format(key, i, max_diff))
-                print("\n attribute {} not almost equal".format(key))
-                error = -1
+                print(arr1[i])
+                print(arr2[i])
+                print("attribute {} not almost equal".format(key))
+                error += 1
     return error
 
 # Test those station keys that should be perfectly equal
@@ -111,8 +116,7 @@ u'ray_tracing_solution_type'
 error = test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 keys = [
- u'trigger_times',
- u'weights']
+ u'trigger_times']
 
 error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
@@ -125,6 +129,7 @@ keys = [
  u'travel_times',
  u'travel_distances',
  u'trigger_times',
+ u'max_amp_shower_and_ray',
  u'ray_tracing_C1']
 
 
@@ -137,8 +142,13 @@ keys = [u'maximum_amplitudes_envelope']
 error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.001)
 
 # test maximimum amplitude separately because it might differ slightly because of differences in the interferene between signals
-keys = [u'maximum_amplitudes']
+keys = [u'maximum_amplitudes',
+ u'time_shower_and_ray']
 error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.01)
 
-print("The two files {} and {} are (almost) identical.".format(file1, file2))
+if error == 0:
+    print("The two files {} and {} are (almost) identical.".format(file1, file2))
+else:
+    print("The two files {} and {} are not (almost) identical. Found {} errors.".format(file1, file2, error))
+    sys.exit(error)
 
