@@ -970,7 +970,7 @@ class ray_tracing_2D(ray_tracing_base):
         if(reflection_case == 2):
             # the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray
             # that will produce a downward going ray through x1
-            y_turn = get_y_turn(C_0, x1)
+            y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
             dy = y_turn - x1[0]
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
@@ -1061,7 +1061,7 @@ class ray_tracing_2D(ray_tracing_base):
             x11, x1, x22, x2, C_0, C_1 = segment
             gamma_turn, z_turn = get_turning_point(c,self.__b, self.medium.z_0, self.medium.delta_n)
             z_turn = z_turn[0]
-            y_turn = get_y_turn(C_0, x1)
+            y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
             if((z_turn >= 0) and (y_turn > x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point), and for the last track segment we need to check that the turning point is left of the stop position.
                 r = self.get_angle(np.array([y_turn, 0]), x1, C_0)
                 self.__logger.debug(
@@ -1096,8 +1096,7 @@ class ray_tracing_2D(ray_tracing_base):
             the z coordinates of the ray tracing path
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
-        C_1 = C_1[0]
+        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
         gamma_turn, z_turn = get_turning_point(c, self.__b, self.medium.z_0, self.medium.delta_n)
         gamma_turn = gamma_turn[0]
         z_turn = z_turn[0]
@@ -1164,7 +1163,7 @@ class ray_tracing_2D(ray_tracing_base):
         if(reflection and reflection_case == 2):
             # the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray
             # that will produce a downward going ray through x1
-            y_turn = get_y_turn(C_0, x1)
+            y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
             dy = y_turn - x1[0]
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
@@ -1175,7 +1174,7 @@ class ray_tracing_2D(ray_tracing_base):
         x22 = copy.copy(x2)
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
-            C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0,self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
+            C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0,self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
             x2 = get_reflection_point(C_0, C_1)
             if(x2[0] > x22[0]):
                 x2 = x22
@@ -1287,7 +1286,7 @@ class ray_tracing_2D(ray_tracing_base):
                     return results
                 result = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
-                C_0 = get_C0_from_log(result)
+                C_0 = get_C0_from_log(result, self.medium.n_ice)
                 C0s.append(C_0)
                 solution_type = self.determine_solution_type(x1, x2, C_0)
                 self.__logger.info("found {} solution C0 = {:.2f} (internal logC = {:.2f})".format(solution_types[solution_type], C_0, result))
@@ -1978,10 +1977,8 @@ class ray_tracing(ray_tracing_base):
         xx, zz = self._r2d.get_path_reflections(self._x1, self._x2, result['C0'], n_points=n_points,
                                                  reflection=result['reflection'],
                                                  reflection_case=result['reflection_case'])
-        #print(zz)
         path_2d = np.array([xx, np.zeros_like(xx), zz]).T
         dP = path_2d - np.array([self._X1[0], 0, self._X1[2]])
-        #print("R.T", self._R.T, "\ndP.T", dP.T)
         MM = np.matmul(self._R.T, dP.T)
         path = MM.T + self._X1
         return path
