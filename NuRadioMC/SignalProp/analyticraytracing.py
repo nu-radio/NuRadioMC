@@ -16,7 +16,6 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import logging
-
 logging.basicConfig()
 
 # check if CPP implementation is available
@@ -42,18 +41,14 @@ except:
         cpp_available = False
 
 numba_available = False
-numba_used = False
 
 try:
     from numba import jit, njit
-    from NuRadioMC.SignalProp.ray_tracing_helper import ray_tracing_helper_class
     numba_available = True
     print("Numba version of raytracer is available")
 except:
     print("Numba is not available")
     numba_available = False
-
-
 
 """
 analytic ray tracing solution
@@ -314,9 +309,6 @@ def get_reflection_point(C_0, C_1, n_ice, reflection, b, z_0, delta_n):
     x2 = np.array([0, reflection],dtype = np.float64)
     x2[0] ,  = get_y_with_z_mirror(-x2[1] + 2 * z_turn, C_0, n_ice, b, delta_n, z_0, C_1)
     return x2
-    
-
-#### Start of ray_tracing class #####
 
 class ray_tracing_2D(ray_tracing_base):
 
@@ -512,6 +504,7 @@ class ray_tracing_2D(ray_tracing_base):
             else:
                 x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
                 gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
+                z_turn = z_turn[0]
                 if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
                     points = [z_turn]
                 z_int = x2_mirrored[1]
@@ -617,6 +610,7 @@ class ray_tracing_2D(ray_tracing_base):
                         z_turn = 0
                     else:
                         gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
+                        z_turn = z_turn[0]
         #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
                     try:
                         tmp += get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
@@ -653,6 +647,7 @@ class ray_tracing_2D(ray_tracing_base):
                 self.__logger.info(f"adding additional propagation path through air of {T_air/units.ns:.1f}ns")
             else:
                 gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
+                z_turn = z_turn[0]
                 if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
                     points = [z_turn]
                 z_int = x2_mirrored[1]
@@ -766,6 +761,7 @@ class ray_tracing_2D(ray_tracing_base):
                         z_turn = 0
                     else:
                         gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
+                        z_turn = z_turn[0]
         #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
                     try:
                         ttmp = get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
@@ -844,6 +840,7 @@ class ray_tracing_2D(ray_tracing_base):
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
+                z_turn = z_turn[0]
                 self.__logger.info(f"_use_optimized_calculation {self._use_optimized_calculation}")
 
                 if self._use_optimized_calculation:
@@ -1063,6 +1060,7 @@ class ray_tracing_2D(ray_tracing_base):
         for segment in self.get_path_segments(x1, x2, C_0, reflection, reflection_case):
             x11, x1, x22, x2, C_0, C_1 = segment
             gamma_turn, z_turn = get_turning_point(c,self.__b, self.medium.z_0, self.medium.delta_n)
+            z_turn = z_turn[0]
             y_turn = get_y_turn(C_0, x1)
             if((z_turn >= 0) and (y_turn > x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point), and for the last track segment we need to check that the turning point is left of the stop position.
                 r = self.get_angle(np.array([y_turn, 0]), x1, C_0)
@@ -1197,15 +1195,8 @@ class ray_tracing_2D(ray_tracing_base):
         function to find solution for C0, returns distance in y between function and x2 position
         result is signed! (important to use a root finder)
         """
-        if numba_available:
-            C_0 = get_C0_from_log(logC_0,self.medium.n_ice)
-            if(hasattr(C_0, '__len__')):
-                    C_0 = C_0[0]
-            return get_delta_y(C_0, np.array(x1), np.array(x2),self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, None, reflection, reflection_case)
-        else :
-            C_0 = get_C0_from_log(logC_0, self.medium.n_ice)
-            return get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case)
-
+        C_0 = get_C0_from_log(logC_0,self.medium.n_ice)
+        return get_delta_y(C_0, np.array(x1), np.array(x2),self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, None, reflection, reflection_case)
 
     def determine_solution_type(self, x1, x2, C_0):
         """ returns the type of the solution
@@ -1231,6 +1222,8 @@ class ray_tracing_2D(ray_tracing_base):
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
         gamma_turn, z_turn = get_turning_point(c, self.__b, self.medium.z_0, self.medium.delta_n)
+        gamma_turn = gamma_turn[0]
+        z_turn = z_turn[0]
         y_turn = get_y(gamma_turn, C_0, C_1, self.medium.n_ice, self.__b, self.medium.z_0)
         if(x2[0] < y_turn):
             return solution_types_revert['direct']
@@ -1322,8 +1315,6 @@ class ray_tracing_2D(ray_tracing_base):
             else:
                 logC_0_start = -1
             obj_delta_y_sqr = obj_delta_y_square
-            #if numba_available:
-            #    obj_delta_y_sqr = obj_delta_y_square
             result = optimize.root(obj_delta_y_sqr, x0=logC_0_start, args=(np.array(x1), np.array(x2),self.medium.n_ice,self.__b, self.medium.delta_n, self.medium.z_0, reflection, reflection_case), tol=tol)
             if(plot):
                 import matplotlib.pyplot as plt
