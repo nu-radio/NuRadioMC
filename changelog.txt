@@ -2,7 +2,33 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
-version 2.2.0-dev
+version 2.3.0-dev
+new features:
+- Added new detector class for RNO-G (+db interface) which uses a mongo-db as source.
+The new class allows import/export via compressed json files and has a buffer machinary.
+It comes with a class to handle responses of the different signal chain components easily.
+- Improved logging module: streamlined logging for NuRadioReco and NuRadioMC modules,
+added new STATUS logging level by default, added logging documentation and moved logging
+module to NuRadioReco/utilities folder. Logging functionality from NuRadioReco/modules/base
+is now deprecated.
+- Added StationParameters to store channel IDs of flagged (i.e.) bad channels, the polarisation
+which contains the strongest CR pulse and the list of frequency bands which are flagged for RFI.
+- Added interface to give (Sim)Channel a group ID . This is implemented as a keyword in the
+Detector description, such that it can be added to the Detector description JSON file. The
+(Sim)Channel objects can now optionally take a channel_group_id parameter. In a Station, one
+can then iterate over a channel group, which yields all channels for a given group ID.
+- Added Gaussian tapered and Hann tapered bandpass filters
+- Added LOFAR modules for reading data, removing RFI, beamforming and fitting the arrival direction
+- Added functionality to remove Channel from Station
+- Added LOFAR antenna pattern and function to parse TXT simulation file
+
+bugfixes:
+
+version 2.2.1
+bugfixes:
+- readRNOGDataMattak: fix bug where .root files would not be found if they are passed as relative paths (instead of absolute paths or folder)
+
+version 2.2.0
 new features:
 - expand values stored in SimplePhasedTrigger
 - added getting to query ARZ charge-excess profiles
@@ -14,17 +40,21 @@ new features:
 - added ability to generate high-low-triggered noise on a narrow band but return full-band waveforms
 - phased array noise generation utility class: calculate trigger time and cut trace accordingly
 - use Philox noise generator in noise adder module (this changes the default random sequence)
+- allow raytracing from air to ice and vice versa. Only supported by the Python implementation. (Note that the calculation of the focussing factor was not thoroughly tested.)
 - added 'block offset' removal/simulation module for RNO-G
-- added LOFAR modules for reading data, removing RFI, beamforming and fitting the arrival direction
-- added functionality to remove Channel from Station
-- added LOFAR antenna pattern
+- triggerTimeAdjuster now works more reliably and supports different readout windows per channel.
+  The readout time adjustment now is stored in the trigger object and needs to be accounted for in analysis
+  by running the triggerTimeAdjuster, analogously to the channelAddCableDelay module.
+
+
 
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
 - fixed wrong number in Feldman-Cousins upper limit
+- updated reference channel check in GenericDetector to look into the reference station when the channel
+is not found in the current station
 - in antennapattern.py, fixed line 1398; was masking frequencies >= 0 instead of frequencies > 0, causing NaN errors
 - Fixed issue where saving empty traces (channels or Efields) created unreadable .nur files
-
 
 version 2.1.8
 bugfixes:
