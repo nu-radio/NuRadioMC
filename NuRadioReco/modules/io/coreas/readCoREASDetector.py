@@ -39,34 +39,9 @@ def get_efield_times(efield, sampling_rate):
     efield_times = np.arange(0, len(efield[:,0])) / sampling_rate
     return efield_times
 
-def half_hann_window(length, half_percent=None, hann_window_length=None):
-    """
-    Produce a half-Hann window. This is the Hann window from SciPY with ones inserted in the middle to make the window
-    `length` long. Note that this is different from a Hamming window.
-    Parameters
-    ----------
-    length : int
-        The desired total length of the window
-    half_percent : float, default=None
-        The percentage of `length` at the beginning **and** end that should correspond to half of the Hann window
-    hann_window_length : int, default=None
-        The length of the half the Hann window. If `half_percent` is set, this value will be overwritten by it.
-    """
-    if half_percent is not None:
-        hann_window_length = int(length * half_percent)
-    elif hann_window_length is None:
-        raise ValueError("Either half_percent or half_window_length should be set!")
-    hann_window = hann(2 * hann_window_length)
-
-    half_hann_widow = np.ones(length, dtype=np.double)
-    half_hann_widow[:hann_window_length] = hann_window[:hann_window_length]
-    half_hann_widow[-hann_window_length:] = hann_window[hann_window_length:]
-
-    return half_hann_widow
-
 def apply_hanning(efields):
     """
-    Apply a hann window to the electric field in the time domain
+    Apply a half hann window to the electric field in the time domain
 
     Parameters
     ----------
@@ -76,11 +51,36 @@ def apply_hanning(efields):
     ----------
     smoothed_efield: array (n_samples, n_polarizations)
     """
+
+    def _half_hann_window(length, half_percent=None, hann_window_length=None):
+        """
+        Produce a half-Hann window. This is the Hann window from SciPY with ones inserted in the middle to make the window
+        `length` long. Note that this is different from a Hamming window.
+        Parameters
+        ----------
+        length : int
+            The desired total length of the window
+        half_percent : float, default=None
+            The percentage of `length` at the beginning **and** end that should correspond to half of the Hann window
+        hann_window_length : int, default=None
+            The length of the half the Hann window. If `half_percent` is set, this value will be overwritten by it.
+        """
+        if half_percent is not None:
+            hann_window_length = int(length * half_percent)
+        elif hann_window_length is None:
+            raise ValueError("Either half_percent or half_window_length should be set!")
+        hann_window = hann(2 * hann_window_length)
+
+        half_hann_widow = np.ones(length, dtype=np.double)
+        half_hann_widow[:hann_window_length] = hann_window[:hann_window_length]
+        half_hann_widow[-hann_window_length:] = hann_window[hann_window_length:]
+        return half_hann_widow
+
     if efields is None:
         return None
     else:
         smoothed_trace = np.zeros_like(efields)
-        half_hann_window = half_hann_window(efields.shape[0], half_percent=0.1)
+        half_hann_window = _half_hann_window(efields.shape[0], half_percent=0.1)
         for pol in range(efields.shape[1]):
             smoothed_trace[:,pol] = efields[:,pol] * half_hann_window
         return smoothed_trace
@@ -177,6 +177,9 @@ class readCoREASDetector:
         # transforms the coreas observer positions into the vxB, vxvxB shower plane
         obs_positions_vBvvB = self.cs.transform_to_vxB_vxvxB(obs_positions_geo).T
 
+        self.star_radius = np.max(np.linalg.norm(obs_positions_vBvvB[:, :-1], axis=-1))
+
+
         if self.debug:
             max_efield = []
             for i in range(len(electric_field_on_sky[:,0,1])):
@@ -205,20 +208,27 @@ class readCoREASDetector:
             verbose=False
         )
 
+        self.empty_efield = np.zeros_like(electric_field_r_theta_phi[0,:,:])
+
     def get_interpolated_efield(self, position, core):
         """
         Accesses the interpolated electric field at the position of the detector on ground. Set pulse_centered to True to
         shift all pulses to the center of the trace and account for the physical time delay of the signal.
         """
         antenna_position = position
-        antenna_position[2] = 0
+        z_plane = core[2]
+        #core and antenna need to be in the same z plane
+        antenna_position[2] = z_plane
+
         # transform antenna position into shower plane with respect to core position, core position is set to 0,0 in shower plane
         antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(antenna_position, core=core)
-        # calculate distance between core position (0,0) and antenna positions in shower plane
-        dcore_vBvvB = np.linalg.norm(antenna_pos_vBvvB) 
+
+        # calculate distance between core position at(0,0) and antenna positions in shower plane
+        dcore_vBvvB = np.linalg.norm(antenna_pos_vBvvB[:1])
         # interpolate electric field at antenna position in shower plane which are inside star pattern
-        if dcore_vBvvB > self.ddmax:
-            efield_interp = None
+        if dcore_vBvvB > self.star_radius:
+            efield_interp = self.empty_efield
+            logging.info(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f}, set efield to zero')
         else:
             efield_interp = self.efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1],
                                                 lowfreq=self.__interp_lowfreq/units.MHz,
@@ -279,22 +289,20 @@ class readCoREASDetector:
                         selected_channel_ids = channel_ids_in_station
 
                     channel_ids_dict = select_channels_per_station(detector, station_id, selected_channel_ids)
-                    print(channel_ids_dict)
-                    for ch_g_ids in channel_group_ids:
+                    for ch_g_ids in channel_ids_dict.keys():
                         antenna_position_rel = detector.get_relative_position(station_id, ch_g_ids)
                         antenna_position = det_station_position + antenna_position_rel
                         res_efield = self.get_interpolated_efield(antenna_position, core)
                         smooth_res_efield = apply_hanning(res_efield)
                         efield_times = get_efield_times(smooth_res_efield, self.__sampling_rate)
                         channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
-                        coreas.add_electric_field(sim_station, channel_ids_for_group_id, smooth_res_efield, efield_times, self.__corsika)
+                        coreas.add_electric_field(sim_station, channel_ids_for_group_id, smooth_res_efield.T, efield_times, self.__corsika)
                     station.set_sim_station(sim_station)
                     evt.set_station(station)
                     t_event_structure = time.time()
 
                 self.__t += time.time() - t
                 yield evt
-            self.__input_file += 1
 
     def end(self):
         self.logger.setLevel(logging.INFO)
