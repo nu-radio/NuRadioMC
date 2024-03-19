@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.LOFAR.rawTBBio\_metadata module
+======================================================
+
+.. automodule:: NuRadioReco.modules.io.LOFAR.rawTBBio_metadata
+   :members:
+   :undoc-members:
+   :show-inheritance:

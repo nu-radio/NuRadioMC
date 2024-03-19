@@ -1,0 +1,7 @@
+NuRadioReco.utilities.signal\_processing module
+===============================================
+
+.. automodule:: NuRadioReco.utilities.signal_processing
+   :members:
+   :undoc-members:
+   :show-inheritance:

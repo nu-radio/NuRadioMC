@@ -1,0 +1,7 @@
+NuRadioReco.modules.LOFAR.beamformingDirectionFitter\_LOFAR module
+==================================================================
+
+.. automodule:: NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR
+   :members:
+   :undoc-members:
+   :show-inheritance:

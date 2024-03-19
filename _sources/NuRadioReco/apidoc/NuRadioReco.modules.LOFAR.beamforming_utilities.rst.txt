@@ -1,0 +1,7 @@
+NuRadioReco.modules.LOFAR.beamforming\_utilities module
+=======================================================
+
+.. automodule:: NuRadioReco.modules.LOFAR.beamforming_utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -274,6 +274,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -361,6 +363,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -969,6 +972,40 @@ the output is saved to the NuRadioReco pickle format.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>path: string</strong></dt><dd><p>the path to the file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_LOFAR_txt_file">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_LOFAR_txt_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_phi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_LOFAR_txt_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_LOFAR_txt_file" title="Permalink to this definition"></a></dt>
+<dd><p>Extract the values from a simulation file for the LOFAR LBA antenna model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path_theta</strong><span class="classifier">str</span></dt><dd><p>Path to the file containing the values for the theta component</p>
+</dd>
+<dt><strong>path_phi</strong><span class="classifier">str</span></dt><dd><p>Path to the file containing the values for the phi component</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_LOFAR_txt">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_LOFAR_txt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LBA'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_LOFAR_txt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_LOFAR_txt" title="Permalink to this definition"></a></dt>
+<dd><p>Function to parse the LOFAR antenna model simulation files in TXT format. It extracts the
+vector effective length for all simulated frequencies, azimuth and zenith angles and dumps
+them into a pickle file according to the NRR specification.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>directory</strong><span class="classifier">str</span></dt><dd><p>The path to the directory where the TXT files are stored</p>
+</dd>
+<dt><strong>ant</strong><span class="classifier">str, default=’LBA’</span></dt><dd><p>The antenna type</p>
 </dd>
 </dl>
 </dd>

@@ -274,6 +274,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -361,6 +363,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -588,8 +591,19 @@
 <span id="nuradioreco-framework-channel-module"></span><h1>NuRadioReco.framework.channel module<a class="headerlink" href="#module-NuRadioReco.framework.channel" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.channel.</span></span><span class="sig-name descname"><span class="pre">Channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.channel.</span></span><span class="sig-name descname"><span class="pre">Channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_group_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace" title="NuRadioReco.framework.base_trace.BaseTrace"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrace</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>channel_id: int</strong></dt><dd><p>the id of the channel</p>
+</dd>
+<dt><strong>channel_group_id: int (default None)</strong></dt><dd><p>optionally, several channels can belong to a “channel group”. Use case is to identify
+the channels of a single dual or triple polarized antenna as common in air shower arrays.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -599,19 +613,22 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_filtered_trace" title="NuRadioReco.framework.channel.Channel.get_filtered_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filtered_trace</span></code></a>(passband[, filter_type, ...])</p></td>
 <td><p>Returns the trace after applying a filter to it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_number_of_samples" title="NuRadioReco.framework.channel.Channel.get_number_of_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_group_id" title="NuRadioReco.framework.channel.Channel.get_group_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_group_id</span></code></a>()</p></td>
+<td><p>channel group id If no group id is specified, the channel id is returned.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_number_of_samples" title="NuRadioReco.framework.channel.Channel.get_number_of_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code></a>()</p></td>
 <td><p>returns the number of samples in the time domain</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_sampling_rate" title="NuRadioReco.framework.channel.Channel.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_sampling_rate" title="NuRadioReco.framework.channel.Channel.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
 <td><p>returns the sampling rate of the trace</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_trace" title="NuRadioReco.framework.channel.Channel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_trace" title="NuRadioReco.framework.channel.Channel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
 <td><p>returns the time trace.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_frequency_spectrum" title="NuRadioReco.framework.channel.Channel.set_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_frequency_spectrum</span></code></a>(frequency_spectrum, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_frequency_spectrum" title="NuRadioReco.framework.channel.Channel.set_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_frequency_spectrum</span></code></a>(frequency_spectrum, ...)</p></td>
 <td><p>Sets the frequency spectrum</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_trace" title="NuRadioReco.framework.channel.Channel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_trace" title="NuRadioReco.framework.channel.Channel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
 <td><p>Sets the time trace</p></td>
 </tr>
 </tbody>
@@ -692,6 +709,14 @@
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_id">
 <span class="sig-name descname"><span class="pre">get_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel.get_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_id" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_group_id">
+<span class="sig-name descname"><span class="pre">get_group_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel.get_group_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_group_id" title="Permalink to this definition"></a></dt>
+<dd><p>channel group id
+If no group id is specified, the channel id is returned. This allows using modules that use the <em class="xref py py-obj">group_id</em>
+feature also on detector setups that don’t use this feature.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.serialize">

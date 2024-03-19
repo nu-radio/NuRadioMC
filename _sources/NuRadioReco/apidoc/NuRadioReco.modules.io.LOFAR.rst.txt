@@ -1,0 +1,18 @@
+NuRadioReco.modules.io.LOFAR package
+====================================
+
+.. automodule:: NuRadioReco.modules.io.LOFAR
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.io.LOFAR.rawTBBio
+   NuRadioReco.modules.io.LOFAR.rawTBBio_metadata
+   NuRadioReco.modules.io.LOFAR.rawTBBio_utilities
+   NuRadioReco.modules.io.LOFAR.readLOFARData

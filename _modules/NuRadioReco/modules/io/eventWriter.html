@@ -271,6 +271,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -323,6 +324,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -358,6 +360,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -593,14 +596,12 @@
     <span class="n">header</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;stations&#39;</span><span class="p">:</span> <span class="p">{}}</span>
     <span class="k">for</span> <span class="n">iS</span><span class="p">,</span> <span class="n">station</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">evt</span><span class="o">.</span><span class="n">get_stations</span><span class="p">()):</span>
         <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(</span>
-        <span class="p">)][</span><span class="n">stnp</span><span class="o">.</span><span class="n">station_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_station_time_dict</span><span class="p">()</span>
+        <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="n">stnp</span><span class="o">.</span><span class="n">station_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_station_time_dict</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">has_sim_station</span><span class="p">():</span>
             <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="s1">&#39;sim_station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="s1">&#39;sim_station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">(</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
+            <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="s1">&#39;sim_station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    
     <span class="n">header</span><span class="p">[</span><span class="s1">&#39;event_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">header</span></div>
 
@@ -609,7 +610,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    save events to file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># initialize attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span> <span class="o">=</span> <span class="kc">None</span>
@@ -628,8 +628,7 @@
 
     <span class="k">def</span> <span class="nf">__write_fout_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__number_of_files</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__fout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_part</span><span class="si">{:02d}</span><span class="s2">.nur&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__number_of_files</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__fout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_part</span><span class="si">{:02d}</span><span class="s2">.nur&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__number_of_files</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__fout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.nur&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
         <span class="n">b</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
@@ -638,7 +637,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__header_written</span> <span class="o">=</span> <span class="kc">True</span>
 
-<div class="viewcode-block" id="eventWriter.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.eventWriter.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">max_file_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">check_for_duplicates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">events_per_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
+<div class="viewcode-block" id="eventWriter.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.eventWriter.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">max_file_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">check_for_duplicates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">events_per_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        begin method</span>
 
@@ -649,23 +649,24 @@
 <span class="sd">        max_file_size: maximum file size in Mbytes</span>
 <span class="sd">                    (if the file exceeds the maximum file the output will be split into another file)</span>
 <span class="sd">        check_for_duplicates: bool (default False)</span>
-<span class="sd">            if True, the event writer raises an exception when an event with a (run,eventid) pair is written that is already</span>
-<span class="sd">            present in the data file</span>
+<span class="sd">            if True, the event writer raises an exception when an event with a (run,eventid) pair is written that is</span>
+<span class="sd">            already present in the data file</span>
 <span class="sd">        events_per_file: int</span>
 <span class="sd">            Maximum number of events to be written into the same file. After more than events_per_file have been written</span>
 <span class="sd">            into the same file, the output will be split into another file. If max_file_size and events_per_file are</span>
 <span class="sd">            both set, the file will be split whenever any of the two conditions is fullfilled.</span>
+<span class="sd">        log_level: int</span>
+<span class="sd">            The logging level to use.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nur&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span> <span class="o">=</span> <span class="n">filename</span>
-
+        
         <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.ari&#39;</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s1">&#39;The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.&#39;</span><span class="p">)</span>
-
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.&#39;</span><span class="p">)</span>
+        
         <span class="bp">self</span><span class="o">.</span><span class="n">__check_for_duplicates</span> <span class="o">=</span> <span class="n">check_for_duplicates</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__number_of_events</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__current_file_size</span> <span class="o">=</span> <span class="mi">0</span>
@@ -673,10 +674,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_file_size</span> <span class="o">=</span> <span class="n">max_file_size</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># in bytes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__stored_stations</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__stored_channels</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># Remember which event IDs are already in file to catch duplicates</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__event_ids_and_runs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># Remember if we still have to write the current file header</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__header_written</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_ids_and_runs</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Remember which event IDs are already in file to catch duplicates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__header_written</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Remember if we still have to write the current file header</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__events_per_file</span> <span class="o">=</span> <span class="n">events_per_file</span></div>
 
 <div class="viewcode-block" id="eventWriter.run"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.eventWriter.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
@@ -691,7 +690,7 @@
 <span class="sd">            If a detector object is passed, the detector description for the</span>
 <span class="sd">            events is written in the file as well</span>
 <span class="sd">        mode: dictionary, optional </span>
-<span class="sd">            Specifies what will saved into the `*.nur` output file.</span>
+<span class="sd">            Specifies what will be saved into the `*.nur` output file.</span>
 <span class="sd">            Can contain the following keys:</span>
 
 <span class="sd">            * &#39;Channels&#39;: if True channel traces of Stations will be saved</span>
@@ -715,23 +714,20 @@
 
         <span class="n">event_bytearray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_event_bytearray</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
         <span class="n">n_bytes_written</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">event_bytearray</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_bytes_written</span><span class="si">}</span><span class="s2"> bytes written to diks&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_bytes_written</span><span class="si">}</span><span class="s2"> bytes written to disk&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__current_file_size</span> <span class="o">+=</span> <span class="n">event_bytearray</span><span class="o">.</span><span class="n">__sizeof__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__number_of_events</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__event_ids_and_runs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">()])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__events_in_current_file</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">det</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># returns None if detector is already saved</span>
-            <span class="n">detector_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_detector_dict</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">)</span>
+            <span class="n">detector_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_detector_dict</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">)</span>  <span class="c1"># returns None if detector is already saved</span>
             <span class="k">if</span> <span class="n">detector_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">detector_bytearray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_detector_bytearray</span><span class="p">(</span>
-                    <span class="n">detector_dict</span><span class="p">)</span>
+                <span class="n">detector_bytearray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_detector_bytearray</span><span class="p">(</span><span class="n">detector_dict</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">detector_bytearray</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__current_file_size</span> <span class="o">+=</span> <span class="n">detector_bytearray</span><span class="o">.</span><span class="n">__sizeof__</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">generic_detector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">):</span>
-                <span class="n">changes_bytearray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_detector_changes_byte_array</span><span class="p">(</span>
-                    <span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">)</span>
+                <span class="n">changes_bytearray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_detector_changes_byte_array</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">changes_bytearray</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">__fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">changes_bytearray</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">__current_file_size</span> <span class="o">+=</span> <span class="n">changes_bytearray</span><span class="o">.</span><span class="n">__sizeof__</span><span class="p">()</span>
@@ -740,8 +736,7 @@
                      <span class="bp">self</span><span class="o">.</span><span class="n">__number_of_events</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_file_size</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__max_file_size</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">__events_in_current_file</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__events_per_file</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s2">&quot;current output file exceeds max file size -&gt; closing current output file and opening new one&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;current output file exceeds max file size -&gt; closing current output file and opening new one&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__current_file_size</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__fout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__number_of_files</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -752,7 +747,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__header_written</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__events_in_current_file</span> <span class="o">=</span> <span class="mi">0</span></div>
 
-    <span class="k">def</span> <span class="nf">__get_event_bytearray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__get_event_bytearray</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
         <span class="n">evt_header_str</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">get_header</span><span class="p">(</span><span class="n">event</span><span class="p">),</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
         <span class="n">b</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
         <span class="n">b</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">evt_header_str</span><span class="p">)</span>
@@ -797,10 +793,13 @@
                 <span class="n">det_dict</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">i_station</span><span class="p">)]</span> <span class="o">=</span> <span class="n">station_description</span>
                 <span class="n">i_station</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_channel_already_in_file</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">station</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_channel_already_in_file</span><span class="p">(</span>
+                        <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span>
+                        <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span>
+                        <span class="n">station</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">()</span>
+                <span class="p">):</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_generic_detector</span><span class="p">:</span>
-                        <span class="n">channel_description</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span>
-                            <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+                        <span class="n">channel_description</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__stored_channels</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                             <span class="s1">&#39;station_id&#39;</span><span class="p">:</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span>
                             <span class="s1">&#39;channel_id&#39;</span><span class="p">:</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span>
@@ -808,11 +807,10 @@
                             <span class="s1">&#39;decommission_time&#39;</span><span class="p">:</span> <span class="n">channel_description</span><span class="p">[</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">]</span>
                         <span class="p">})</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">channel_description</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_raw_channel</span><span class="p">(</span>
-                            <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+                        <span class="n">channel_description</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_raw_channel</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__stored_channels</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                            <span class="s1">&#39;station_id&#39;</span><span class="p">:</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span>
-                            <span class="s1">&#39;channel_id&#39;</span><span class="p">:</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+                          <span class="s1">&#39;station_id&#39;</span><span class="p">:</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span>
+                          <span class="s1">&#39;channel_id&#39;</span><span class="p">:</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
                         <span class="p">})</span>
                     <span class="n">det_dict</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">i_channel</span><span class="p">)]</span> <span class="o">=</span> <span class="n">channel_description</span>
                     <span class="n">i_channel</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -821,20 +819,16 @@
             <span class="k">if</span> <span class="n">is_generic_detector</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">reference_station_id</span> <span class="ow">in</span> <span class="n">det</span><span class="o">.</span><span class="n">get_reference_station_ids</span><span class="p">():</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_station_already_in_file</span><span class="p">(</span><span class="n">reference_station_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-                        <span class="n">station_description</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_raw_station</span><span class="p">(</span>
-                            <span class="n">reference_station_id</span><span class="p">)</span>
+                        <span class="n">station_description</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_raw_station</span><span class="p">(</span><span class="n">reference_station_id</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__stored_stations</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                             <span class="s1">&#39;station_id&#39;</span><span class="p">:</span> <span class="n">reference_station_id</span>
                         <span class="p">})</span>
-                        <span class="n">det_dict</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span>
-                            <span class="n">i_station</span><span class="p">)]</span> <span class="o">=</span> <span class="n">station_description</span>
+                        <span class="n">det_dict</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">i_station</span><span class="p">)]</span> <span class="o">=</span> <span class="n">station_description</span>
                         <span class="n">i_station</span> <span class="o">+=</span> <span class="mi">1</span>
                         <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">reference_station_id</span><span class="p">):</span>
                             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_channel_already_in_file</span><span class="p">(</span><span class="n">reference_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-                                <span class="n">channel_description</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_raw_channel</span><span class="p">(</span>
-                                    <span class="n">reference_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
-                                <span class="n">det_dict</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span>
-                                    <span class="n">i_channel</span><span class="p">)]</span> <span class="o">=</span> <span class="n">channel_description</span>
+                                <span class="n">channel_description</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_raw_channel</span><span class="p">(</span><span class="n">reference_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+                                <span class="n">det_dict</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">i_channel</span><span class="p">)]</span> <span class="o">=</span> <span class="n">channel_description</span>
                                 <span class="bp">self</span><span class="o">.</span><span class="n">__stored_channels</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                                     <span class="s1">&#39;station_id&#39;</span><span class="p">:</span> <span class="n">reference_station_id</span><span class="p">,</span>
                                     <span class="s1">&#39;channel_id&#39;</span><span class="p">:</span> <span class="n">channel_id</span>
@@ -845,7 +839,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">det_dict</span>
 
-    <span class="k">def</span> <span class="nf">__get_detector_bytearray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_dict</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__get_detector_bytearray</span><span class="p">(</span><span class="n">detector_dict</span><span class="p">):</span>
         <span class="n">detector_string</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">detector_dict</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
         <span class="n">b</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
         <span class="n">b</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">detector_string</span><span class="p">)</span>
@@ -861,7 +856,8 @@
         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stored_stations</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">station_id</span><span class="p">:</span>
                 <span class="c1"># if there is no commission and decommission time it is a generic detector and we don&#39;t have to check</span>
-                <span class="k">if</span> <span class="s1">&#39;commission_time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">or</span> <span class="s1">&#39;decommission_time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">or</span> <span class="n">station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;commission_time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">or</span> <span class="s1">&#39;decommission_time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                        <span class="ow">or</span> <span class="n">station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
                     <span class="k">return</span> <span class="kc">True</span>
                 <span class="c1"># it&#39;s a normal detector and we have to check commission/decommission times</span>
                 <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;commission_time&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">station_time</span> <span class="o">&lt;</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">]:</span>
@@ -871,16 +867,20 @@
     <span class="k">def</span> <span class="nf">__is_channel_already_in_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">station_time</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stored_channels</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">station_id</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;channel_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">channel_id</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s1">&#39;commission_time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">or</span> <span class="s1">&#39;decommission_time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">or</span> <span class="n">station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;commission_time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">or</span> <span class="s1">&#39;decommission_time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                        <span class="ow">or</span> <span class="n">station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
                     <span class="k">return</span> <span class="kc">True</span>
                 <span class="c1"># it&#39;s a normal detector and we have to check commission/decommission times</span>
                 <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;commission_time&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">station_time</span> <span class="o">&lt;</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">]:</span>
                     <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">__get_detector_changes_byte_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
-        <span class="n">changes</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_station_properties_for_event</span><span class="p">(</span>
-            <span class="n">event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+    <span class="c1"># The staticmethod decorator allows to add a member function which does not need any reference arguments. This</span>
+    <span class="c1"># means that `self` is not passed as the first argument. It also allows for the function to be called without</span>
+    <span class="c1"># instantiating the class first, next to the usual calling procedure through an instance.</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__get_detector_changes_byte_array</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
+        <span class="n">changes</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_station_properties_for_event</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">changes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="n">changes_string</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">changes</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
@@ -895,16 +895,15 @@
         <span class="k">return</span> <span class="n">changes_bytearray</span>
 
     <span class="k">def</span> <span class="nf">__check_for_duplicate_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">event_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if an event with the same ID and run number has already been written to the file</span>
 <span class="sd">        and throws an error if that is the case.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__check_for_duplicates</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">[</span><span class="n">run_number</span><span class="p">,</span> <span class="n">event_id</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_ids_and_runs</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;An event with ID </span><span class="si">{}</span><span class="s2"> and run number </span><span class="si">{}</span><span class="s2"> already exists in the &quot;</span>
-                                 <span class="s2">&quot;file</span><span class="se">\n</span><span class="s2">if you don&#39;t want unique event ids enforced you can &quot;</span>
-                                 <span class="s2">&quot;turn it of by passing `check_for_duplicates=True` to the &quot;</span>
-                                 <span class="s2">&quot;begin method.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event_id</span><span class="p">,</span> <span class="n">run_number</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;An event with ID </span><span class="si">{}</span><span class="s2"> and run number </span><span class="si">{}</span><span class="s2"> already exists in the file</span><span class="se">\n</span><span class="s2">&quot;</span>
+                                 <span class="s2">&quot;if you don&#39;t want unique event ids enforced you can turn it of by passing &quot;</span>
+                                 <span class="s2">&quot;`check_for_duplicates=True` to the begin method.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event_id</span><span class="p">,</span> <span class="n">run_number</span><span class="p">))</span>
         <span class="k">return</span>
 
 <div class="viewcode-block" id="eventWriter.end"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.eventWriter.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -912,8 +911,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__fout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;closing file </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;file </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="si">}</span><span class="s2"> does not exist and won&#39;t be closed.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;file </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__filename</span><span class="si">}</span><span class="s2"> does not exist and won&#39;t be closed.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__number_of_events</span></div></div>
 </pre></div>
 

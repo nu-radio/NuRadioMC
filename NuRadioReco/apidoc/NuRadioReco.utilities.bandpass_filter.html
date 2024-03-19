@@ -274,6 +274,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -361,6 +363,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -588,7 +591,7 @@
 <span id="nuradioreco-utilities-bandpass-filter-module"></span><h1>NuRadioReco.utilities.bandpass_filter module<a class="headerlink" href="#module-NuRadioReco.utilities.bandpass_filter" title="Permalink to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.bandpass_filter.get_filter_response">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.bandpass_filter.</span></span><span class="sig-name descname"><span class="pre">get_filter_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/bandpass_filter.html#get_filter_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.bandpass_filter.get_filter_response" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.bandpass_filter.</span></span><span class="sig-name descname"><span class="pre">get_filter_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roll_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/bandpass_filter.html#get_filter_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.bandpass_filter.get_filter_response" title="Permalink to this definition"></a></dt>
 <dd><p>Convenience function to obtain a bandpass filter response</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -601,6 +604,7 @@
 <li><p>‘rectangular’: perfect straight line filter</p></li>
 <li><p>‘butter’: butterworth filter from scipy</p></li>
 <li><p>‘butterabs’: absolute of butterworth filter from scipy</p></li>
+<li><p>‘gaussian_tapered’ : a rectangular bandpass filter convolved with a Gaussian</p></li>
 </ul>
 <p>or any filter that is implemented in <a class="reference internal" href="NuRadioReco.detector.filterresponse.html#module-NuRadioReco.detector.filterresponse" title="NuRadioReco.detector.filterresponse"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.detector.filterresponse</span></code></a>.
 In this case the passband parameter is ignored</p>
@@ -610,6 +614,9 @@ In this case the passband parameter is ignored</p>
 <dt><strong>rp: float</strong></dt><dd><p>The maximum ripple allowed below unity gain in the passband.
 Specified in decibels, as a positive number.
 (Relevant for chebyshev filter)</p>
+</dd>
+<dt><strong>roll_width</strong><span class="classifier">float, default=None</span></dt><dd><p>Determines the sigma of the Gaussian to be used in the convolution of the rectangular filter.
+(Relevant for the Gaussian tapered filter)</p>
 </dd>
 </dl>
 </dd>

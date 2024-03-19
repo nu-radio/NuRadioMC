@@ -1,0 +1,7 @@
+NuRadioReco.modules.LOFAR.stationGalacticCalibrator module
+==========================================================
+
+.. automodule:: NuRadioReco.modules.LOFAR.stationGalacticCalibrator
+   :members:
+   :undoc-members:
+   :show-inheritance:

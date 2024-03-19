@@ -274,6 +274,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -361,6 +363,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -588,9 +591,43 @@
 <span id="nuradioreco-modules-channelbandpassfilter-module"></span><h1>NuRadioReco.modules.channelBandPassFilter module<a class="headerlink" href="#module-NuRadioReco.modules.channelBandPassFilter" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelBandPassFilter.</span></span><span class="sig-name descname"><span class="pre">channelBandPassFilter</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#channelBandPassFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelBandPassFilter.</span></span><span class="sig-name descname"><span class="pre">channelBandPassFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">caching</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#channelBandPassFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Band pass filters the channels using different band-pass filters.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter" title="NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filter</span></code></a>(frequencies, station_id, ...[, ...])</p></td>
+<td><p>helper function to return the filter that the module applies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.run" title="NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, passband, ...])</p></td>
+<td><p>Run the filter</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>begin</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>end</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_filter_arguments</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>caching: bool, default True</strong></dt><dd><p>If True (default), internally caches the filter. This speeds up
+the (common) case where the same filter is applied to multiple
+channels.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -622,27 +659,32 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter_arguments">
-<span class="sig-name descname"><span class="pre">get_filter_arguments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#channelBandPassFilter.get_filter_arguments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter_arguments" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_filter_arguments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roll_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">half_hann_percent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#channelBandPassFilter.get_filter_arguments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter_arguments" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rectangular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#channelBandPassFilter.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.run" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rectangular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roll_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0025</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">half_hann_percent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#channelBandPassFilter.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.run" title="Permalink to this definition"></a></dt>
 <dd><p>Run the filter</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>evt, station, det</strong></dt><dd><p>Event, Station, Detector</p>
 </dd>
-<dt><strong>passband: list or dict of lists, (default: [55 * units.MHz, 1000 * units.MHz])</strong></dt><dd><p>passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
-a dict can be used to specify a different bandwidth per channel, the key is the channel_id</p>
+<dt><strong>passband: list or dict of lists, (default: [55 * units.MHz, 1000 * units.MHz])</strong></dt><dd><p>passband[0]: lower boundary of filter, passband[1]: upper boundary of filter</p>
+<p>a dict can be used to specify a different bandwidth per channel, the key is the channel_id</p>
 </dd>
-<dt><strong>filter_type: string or dict</strong></dt><dd><p>‘rectangular’: perfect straight line filter
-‘butter’: butterworth filter from scipy
-‘butterabs’: absolute of butterworth filter from scipy
-or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
-passband parameter is ignored
-or ‘FIR &lt;type&gt; &lt;parameter&gt;’ - see below for FIR filter options</p>
+<dt><strong>filter_type: string or dict</strong></dt><dd><ul class="simple">
+<li><p>‘rectangular’: perfect straight line filter</p></li>
+<li><p>‘butter’: butterworth filter from scipy</p></li>
+<li><p>‘butterabs’: absolute of butterworth filter from scipy</p></li>
+<li><p>‘gaussian_tapered’ : a rectangular bandpass filter convolved with a Gaussian</p></li>
+<li><p>‘hann_tapered’ : a rectangular bandpass filter with the ends replaced by a half-Hann window to applied
+in the time domain. In this case the passband parameter is ignored</p></li>
+<li><p>‘FIR &lt;type&gt; &lt;parameter&gt;’ - see below for FIR filter options</p></li>
+</ul>
+<p>or any filter that is implemented in <a class="reference internal" href="NuRadioReco.detector.filterresponse.html#module-NuRadioReco.detector.filterresponse" title="NuRadioReco.detector.filterresponse"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.detector.filterresponse</span></code></a>. In this case the
+passband parameter is ignored</p>
 <p>a dict can be used to specify a different bandwidth per channel, the key is the channel_id</p>
 </dd>
 <dt><strong>order: int (optional, default 2) or dict</strong></dt><dd><p>for a butterworth filter: specifies the order of the filter</p>
@@ -651,33 +693,47 @@ or ‘FIR &lt;type&gt; &lt;parameter&gt;’ - see below for FIR filter options</
 (for chebyshev filter)</p>
 <p>a dict can be used to specify a different bandwidth per channel, the key is the channel_id</p>
 </dd>
-<dt><strong>Added Jan-07-2018 by robert.lahmann&#64;fau.de:</strong></dt><dd></dd>
-<dt><strong>FIR filter:</strong></dt><dd></dd>
-<dt><strong>see https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html</strong></dt><dd></dd>
-<dt><strong>for window types; some windows need additional parameters; Default window is hamming</strong></dt><dd></dd>
-<dt><strong>(does not need parameters). Examples:</strong></dt><dd></dd>
-<dt><strong>filter_type=’FIR’</strong><span class="classifier">use hamming window</span></dt><dd></dd>
-<dt><strong>filter_type=’FIR hamming’: same as above</strong></dt><dd></dd>
-<dt><strong>filter_type=’FIR kaiser 10’</strong><span class="classifier">Use Kaiser window with beta parameter 10</span></dt><dd></dd>
-<dt><strong>filter_type=’FIR kaiser’</strong><span class="classifier">Use Kaiser window with default beta parameter 6</span></dt><dd></dd>
-<dt><strong>In principal, window names are just passed on to signal.firwin(), but if parameters</strong></dt><dd></dd>
-<dt><strong>are required, then these cases must be explicitly implemented in the code below.</strong></dt><dd></dd>
-<dt><strong>The four main filter types can be implemented:</strong></dt><dd></dd>
-<dt><strong>LP: passband[0]=None, passband[1]  = f_cut</strong></dt><dd></dd>
-<dt><strong>HP: passband[0]=f_cut, passband[1] = None</strong></dt><dd></dd>
-<dt><strong>BP: passband[0]=f_cut_low, passband[1] = f_cut_high</strong></dt><dd></dd>
-<dt><strong>BS: passband[0]=f_cut_high, passband[1] = f_cut_low (i.e. passband[0] &gt; passband[1])</strong></dt><dd></dd>
+<dt><strong>roll_width</strong><span class="classifier">float, default=2.5MHz</span></dt><dd><p>Determines the sigma of the Gaussian to be used in the convolution of the rectangular filter.
+(Relevant for the Gaussian tapered filter)</p>
+</dd>
+<dt><strong>half_hann_percent</strong><span class="classifier">float, default=0.1</span></dt><dd><p>The size of the half-Hann window expressed as a percentage of the length of the trace.
+(Relevant for the Hann tapered filter)</p>
+</dd>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Added Jan-07-2018 by <a class="reference external" href="mailto:robert&#46;lahmann&#37;&#52;&#48;fau&#46;de">robert<span>&#46;</span>lahmann<span>&#64;</span>fau<span>&#46;</span>de</a>:
+FIR filter:
+see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html</a>
+for window types; some windows need additional parameters; Default window is hamming
+(does not need parameters). Examples:</p>
+<ul class="simple">
+<li><p>filter_type=’FIR’ : use hamming window</p></li>
+<li><p>filter_type=’FIR hamming’: same as above</p></li>
+<li><p>filter_type=’FIR kaiser 10’ : Use Kaiser window with beta parameter 10</p></li>
+<li><p>filter_type=’FIR kaiser’ : Use Kaiser window with default beta parameter 6</p></li>
+</ul>
+<p>In principle, window names are just passed on to signal.firwin(), but if parameters
+are required, then these cases must be explicitly implemented in the code below.</p>
+<p>The four main filter types can be implemented:</p>
+<ul class="simple">
+<li><p>LP: passband[0]=None, passband[1]  = f_cut</p></li>
+<li><p>HP: passband[0]=f_cut, passband[1] = None</p></li>
+<li><p>BP: passband[0]=f_cut_low, passband[1] = f_cut_high</p></li>
+<li><p>BS: passband[0]=f_cut_high, passband[1] = f_cut_low (i.e. passband[0] &gt; passband[1])</p></li>
+</ul>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter">
-<span class="sig-name descname"><span class="pre">get_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#channelBandPassFilter.get_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roll_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0025</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">half_hann_percent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#channelBandPassFilter.get_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter" title="Permalink to this definition"></a></dt>
 <dd><p>helper function to return the filter that the module applies.</p>
 <p>The unused parameters station_id, channel_id, det are needed to have the same signature as the
-<a class="reference internal" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter" title="NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filter</span></code></a> functions of other modules, e.g. the hardwareResponseIncorporator.</p>
+<code class="docutils literal notranslate"><span class="pre">get_filter</span></code> functions of other modules, e.g. the hardwareResponseIncorporator.</p>
+<p>Note that this function returns the filter response in the <strong>frequency domain</strong>. Filters
+which are applied in the time domain (e.g. ‘FIR’, ‘hann_tapered’) will raise a
+<code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code></p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -692,12 +748,14 @@ or ‘FIR &lt;type&gt; &lt;parameter&gt;’ - see below for FIR filter options</
 <dt><strong>passband: list or dict of lists, (default: [55 * units.MHz, 1000 * units.MHz])</strong></dt><dd><p>passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
 a dict can be used to specify a different bandwidth per channel, the key is the channel_id</p>
 </dd>
-<dt><strong>filter_type: string or dict</strong></dt><dd><p>‘rectangular’: perfect straight line filter
-‘butter’: butterworth filter from scipy
-‘butterabs’: absolute of butterworth filter from scipy
-or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
-passband parameter is ignored
-or ‘FIR &lt;type&gt; &lt;parameter&gt;’ - see below for FIR filter options</p>
+<dt><strong>filter_type: string or dict</strong></dt><dd><ul class="simple">
+<li><p>‘rectangular’: perfect straight line filter</p></li>
+<li><p>‘butter’: butterworth filter from scipy</p></li>
+<li><p>‘butterabs’: absolute of butterworth filter from scipy</p></li>
+<li><p>‘gaussian_tapered’ : Gaussian tapered version of the rectangular filter</p></li>
+</ul>
+<p>or any filter that is implemented in <a class="reference internal" href="NuRadioReco.detector.filterresponse.html#module-NuRadioReco.detector.filterresponse" title="NuRadioReco.detector.filterresponse"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.detector.filterresponse</span></code></a>. In this case the
+passband parameter is ignored</p>
 <p>a dict can be used to specify a different bandwidth per channel, the key is the channel_id</p>
 </dd>
 <dt><strong>order: int (optional, default 2) or dict</strong></dt><dd><p>for a butterworth filter: specifies the order of the filter</p>
@@ -706,11 +764,21 @@ or ‘FIR &lt;type&gt; &lt;parameter&gt;’ - see below for FIR filter options</
 (for chebyshev filter)</p>
 <p>a dict can be used to specify a different bandwidth per channel, the key is the channel_id</p>
 </dd>
+<dt><strong>roll_width</strong><span class="classifier">float, default=2.5MHz</span></dt><dd><p>Determines the sigma of the Gaussian to be used in the convolution of the rectangular filter.
+(Relevant for the Gaussian tapered filter)</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>array of complex floats</dt><dd><p>the complex filter amplitudes</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>half_hann_percent: None</strong></dt><dd><p>This parameter is included to have the same signature as the <a class="reference internal" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.run" title="NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></a> method.
+As it is only relevant for the hann_tapered filter it is not actually used here.</p>
 </dd>
 </dl>
 </dd>
@@ -722,6 +790,28 @@ or ‘FIR &lt;type&gt; &lt;parameter&gt;’ - see below for FIR filter options</
 <span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#channelBandPassFilter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.end" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelBandPassFilter.test_equality">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelBandPassFilter.</span></span><span class="sig-name descname"><span class="pre">test_equality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelBandPassFilter.html#test_equality"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelBandPassFilter.test_equality" title="Permalink to this definition"></a></dt>
+<dd><p>Test if two things are equal.</p>
+<p>Generalizes a==b to support lists, lists of lists and arrays etc.
+Will return True if and only if a and b are equal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>a: object | list | array</strong></dt><dd></dd>
+<dt><strong>b: object | list | array</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>is_equal: bool</dt><dd><p>True if and only if a == b</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

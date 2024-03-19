@@ -14,6 +14,7 @@ Subpackages
 
    NuRadioReco.modules.ARA
    NuRadioReco.modules.ARIANNA
+   NuRadioReco.modules.LOFAR
    NuRadioReco.modules.RNO_G
    NuRadioReco.modules.base
    NuRadioReco.modules.custom

@@ -274,6 +274,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -361,6 +363,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -611,16 +614,19 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.has_triggered" title="NuRadioReco.framework.station.Station.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
 <td><p>convenience function.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_is_cosmic_ray" title="NuRadioReco.framework.station.Station.set_is_cosmic_ray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.remove_channel" title="NuRadioReco.framework.station.Station.remove_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_channel</span></code></a>(channel_id)</p></td>
+<td><p>Removes a channel from the station by deleting is from the channels dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_is_cosmic_ray" title="NuRadioReco.framework.station.Station.set_is_cosmic_ray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code></a>()</p></td>
 <td><p>set station type to cosmic rays (relevant e.g.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_is_neutrino" title="NuRadioReco.framework.station.Station.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_is_neutrino" title="NuRadioReco.framework.station.Station.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
 <td><p>set station type to neutrino</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_station_time" title="NuRadioReco.framework.station.Station.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_station_time" title="NuRadioReco.framework.station.Station.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
 <td><p>Set the (absolute) time for the station (stored as astropy.time.Time).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_triggered" title="NuRadioReco.framework.station.Station.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_triggered" title="NuRadioReco.framework.station.Station.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>convenience function to set a simple trigger.</p></td>
 </tr>
 </tbody>
@@ -696,37 +702,40 @@
 <tr class="row-odd"><td><p><strong>is_neutrino</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>iter_channels</strong></p></td>
+<tr class="row-even"><td><p><strong>iter_channel_group</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>remove_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>iter_channels</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>remove_triggers</strong></p></td>
+<tr class="row-even"><td><p><strong>remove_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
+<tr class="row-odd"><td><p><strong>remove_triggers</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_ARIANNA_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>serialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_electric_fields</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_ARIANNA_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>set_electric_fields</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_parameter_error</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_reference_reconstruction</strong></p></td>
+<tr class="row-even"><td><p><strong>set_parameter_error</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_sim_station</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_reference_reconstruction</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_trigger</strong></p></td>
+<tr class="row-even"><td><p><strong>set_sim_station</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_trigger</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -757,6 +766,11 @@
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.iter_channel_group">
+<span class="sig-name descname"><span class="pre">iter_channel_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_group_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/station.html#Station.iter_channel_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.station.Station.iter_channel_group" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.get_number_of_channels">
 <span class="sig-name descname"><span class="pre">get_number_of_channels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/station.html#Station.get_number_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.station.Station.get_number_of_channels" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -770,6 +784,21 @@
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.add_channel">
 <span class="sig-name descname"><span class="pre">add_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/station.html#Station.add_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.station.Station.add_channel" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.remove_channel">
+<span class="sig-name descname"><span class="pre">remove_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/station.html#Station.remove_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.station.Station.remove_channel" title="Permalink to this definition"></a></dt>
+<dd><p>Removes a channel from the station by deleting is from the channels dictionary. The <em class="xref py py-obj">channel_id</em>
+should be the id of the Channel, but supplying the Channel object itself is also supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>channel_id</strong><span class="classifier">int or NuRadioReco.framework.channel.Channel</span></dt><dd><p>The Channel (id) to remove from the Station.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.set_reference_reconstruction">

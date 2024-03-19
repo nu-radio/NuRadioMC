@@ -274,6 +274,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -361,6 +363,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -672,6 +675,7 @@
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.set_parameter"><code class="docutils literal notranslate"><span class="pre">Channel.set_parameter()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.has_parameter"><code class="docutils literal notranslate"><span class="pre">Channel.has_parameter()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.get_id"><code class="docutils literal notranslate"><span class="pre">Channel.get_id()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.get_group_id"><code class="docutils literal notranslate"><span class="pre">Channel.get_group_id()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.serialize"><code class="docutils literal notranslate"><span class="pre">Channel.serialize()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.deserialize"><code class="docutils literal notranslate"><span class="pre">Channel.deserialize()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.add_trace_start_time"><code class="docutils literal notranslate"><span class="pre">Channel.add_trace_start_time()</span></code></a></li>
@@ -841,6 +845,9 @@
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.distance_correlations"><code class="docutils literal notranslate"><span class="pre">stationParameters.distance_correlations</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.shower_energy"><code class="docutils literal notranslate"><span class="pre">stationParameters.shower_energy</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.viewing_angles"><code class="docutils literal notranslate"><span class="pre">stationParameters.viewing_angles</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.flagged_channels"><code class="docutils literal notranslate"><span class="pre">stationParameters.flagged_channels</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.cr_dominant_polarisation"><code class="docutils literal notranslate"><span class="pre">stationParameters.cr_dominant_polarisation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.dirty_fft_channels"><code class="docutils literal notranslate"><span class="pre">stationParameters.dirty_fft_channels</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParameters"><code class="docutils literal notranslate"><span class="pre">channelParameters</span></code></a><ul>
@@ -1028,6 +1035,7 @@
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace"><code class="docutils literal notranslate"><span class="pre">SimChannel.get_filtered_trace()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_frequencies"><code class="docutils literal notranslate"><span class="pre">SimChannel.get_frequencies()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_frequency_spectrum"><code class="docutils literal notranslate"><span class="pre">SimChannel.get_frequency_spectrum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_group_id"><code class="docutils literal notranslate"><span class="pre">SimChannel.get_group_id()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope"><code class="docutils literal notranslate"><span class="pre">SimChannel.get_hilbert_envelope()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope_mag"><code class="docutils literal notranslate"><span class="pre">SimChannel.get_hilbert_envelope_mag()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_id"><code class="docutils literal notranslate"><span class="pre">SimChannel.get_id()</span></code></a></li>
@@ -1106,9 +1114,11 @@
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.has_sim_station"><code class="docutils literal notranslate"><span class="pre">Station.has_sim_station()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_channels"><code class="docutils literal notranslate"><span class="pre">Station.iter_channels()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel"><code class="docutils literal notranslate"><span class="pre">Station.get_channel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_channel_group"><code class="docutils literal notranslate"><span class="pre">Station.iter_channel_group()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_number_of_channels"><code class="docutils literal notranslate"><span class="pre">Station.get_number_of_channels()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel_ids"><code class="docutils literal notranslate"><span class="pre">Station.get_channel_ids()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_channel"><code class="docutils literal notranslate"><span class="pre">Station.add_channel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.remove_channel"><code class="docutils literal notranslate"><span class="pre">Station.remove_channel()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.set_reference_reconstruction"><code class="docutils literal notranslate"><span class="pre">Station.set_reference_reconstruction()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_reference_reconstruction"><code class="docutils literal notranslate"><span class="pre">Station.get_reference_reconstruction()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_reference_direction"><code class="docutils literal notranslate"><span class="pre">Station.get_reference_direction()</span></code></a></li>

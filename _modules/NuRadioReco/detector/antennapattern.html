@@ -271,6 +271,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -323,6 +324,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -358,6 +360,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -1545,6 +1548,89 @@
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span>
                 <span class="p">[</span><span class="n">orientation_theta</span><span class="p">,</span> <span class="n">orientation_phi</span><span class="p">,</span> <span class="n">rotation_theta</span><span class="p">,</span> <span class="n">rotation_phi</span><span class="p">,</span> <span class="n">ff</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">H_phi</span><span class="p">,</span> <span class="n">H_theta</span><span class="p">],</span>
                 <span class="n">fout</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parse_LOFAR_txt_file"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.parse_LOFAR_txt_file">[docs]</a><span class="k">def</span> <span class="nf">parse_LOFAR_txt_file</span><span class="p">(</span><span class="n">path_theta</span><span class="p">,</span> <span class="n">path_phi</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the values from a simulation file for the LOFAR LBA antenna model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path_theta : str</span>
+<span class="sd">        Path to the file containing the values for the theta component</span>
+<span class="sd">    path_phi : str</span>
+<span class="sd">        Path to the file containing the values for the phi component</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">freq</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">real_theta</span><span class="p">,</span> <span class="n">imaginary_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">path_theta</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">freq2</span><span class="p">,</span> <span class="n">theta2</span><span class="p">,</span> <span class="n">phi2</span><span class="p">,</span> <span class="n">real_phi</span><span class="p">,</span> <span class="n">imaginary_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">path_phi</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">freq</span> <span class="o">==</span> <span class="n">freq2</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">theta</span> <span class="o">==</span> <span class="n">theta2</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">phi</span> <span class="o">==</span> <span class="n">phi2</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Values in theta and phi files do not match&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Convert units to NRR system</span>
+    <span class="n">freq</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
+    <span class="n">theta</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+    <span class="n">phi</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+
+    <span class="c1"># Add the weird -1 to the theta component</span>
+    <span class="n">real_theta</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">imaginary_theta</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">freq</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">real_theta</span><span class="p">,</span> <span class="n">imaginary_theta</span><span class="p">,</span> <span class="n">real_phi</span><span class="p">,</span> <span class="n">imaginary_phi</span></div>
+
+
+<div class="viewcode-block" id="preprocess_LOFAR_txt"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.preprocess_LOFAR_txt">[docs]</a><span class="k">def</span> <span class="nf">preprocess_LOFAR_txt</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">ant</span><span class="o">=</span><span class="s1">&#39;LBA&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to parse the LOFAR antenna model simulation files in TXT format. It extracts the</span>
+<span class="sd">    vector effective length for all simulated frequencies, azimuth and zenith angles and dumps</span>
+<span class="sd">    them into a pickle file according to the NRR specification.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory : str</span>
+<span class="sd">        The path to the directory where the TXT files are stored</span>
+<span class="sd">    ant : str, default=&#39;LBA&#39;</span>
+<span class="sd">        The antenna type</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path_theta</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ant</span><span class="si">}</span><span class="s1">_Vout_theta.txt&#39;</span><span class="p">)</span>
+    <span class="n">path_phi</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ant</span><span class="si">}</span><span class="s1">_Vout_phi.txt&#39;</span><span class="p">)</span>
+
+    <span class="n">frequencies</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span><span class="p">,</span> <span class="n">theta_real</span><span class="p">,</span> <span class="n">theta_imag</span><span class="p">,</span> <span class="n">phi_real</span><span class="p">,</span> <span class="n">phi_imag</span> <span class="o">=</span> <span class="n">parse_LOFAR_txt_file</span><span class="p">(</span><span class="n">path_theta</span><span class="p">,</span> <span class="n">path_phi</span><span class="p">)</span>
+
+    <span class="n">VEL_thetas</span> <span class="o">=</span> <span class="n">theta_real</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">theta_imag</span>
+    <span class="n">VEL_phis</span> <span class="o">=</span> <span class="n">phi_real</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phi_imag</span>
+
+    <span class="c1"># sort with increasing frequency, increasing phi, and increasing theta</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">))</span>
+    <span class="n">VEL_thetas</span> <span class="o">=</span> <span class="n">VEL_thetas</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">VEL_phis</span> <span class="o">=</span> <span class="n">VEL_phis</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="c1"># (angle) -&gt; (freq * angle)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">thetas</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">phis</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="c1"># TODO: is the correct calculation of VEL? Felix wrote that for AERA, |H| &lt; 0.1 should not happen...</span>
+    <span class="n">H_phi</span> <span class="o">=</span> <span class="n">VEL_phis</span>
+    <span class="n">H_theta</span> <span class="o">=</span> <span class="n">VEL_thetas</span>
+
+    <span class="c1"># values for an upright LBA antenna aligned along E-W</span>
+    <span class="n">orientation_theta</span><span class="p">,</span> <span class="n">orientation_phi</span><span class="p">,</span> <span class="n">rotation_theta</span><span class="p">,</span> <span class="n">rotation_phi</span> <span class="o">=</span> \
+        <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+
+    <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;LOFAR_</span><span class="si">{</span><span class="n">ant</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">output_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.pkl&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_to_antennamodels</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output_filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_filename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;saving output to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output_filename</span><span class="p">))</span>
+        <span class="c1"># Notice the ordering!</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">([</span><span class="n">orientation_theta</span><span class="p">,</span> <span class="n">orientation_phi</span><span class="p">,</span> <span class="n">rotation_theta</span><span class="p">,</span> <span class="n">rotation_phi</span><span class="p">,</span>
+                     <span class="n">frequencies</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">H_phi</span><span class="p">,</span> <span class="n">H_theta</span><span class="p">],</span>
+                    <span class="n">fout</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="AntennaPatternBase"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.AntennaPatternBase">[docs]</a><span class="k">class</span> <span class="nc">AntennaPatternBase</span><span class="p">:</span>

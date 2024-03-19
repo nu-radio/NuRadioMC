@@ -274,6 +274,7 @@
 <li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -361,6 +363,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -626,12 +629,14 @@
 </dd>
 <dt><strong>max_file_size: maximum file size in Mbytes</strong></dt><dd><p>(if the file exceeds the maximum file the output will be split into another file)</p>
 </dd>
-<dt><strong>check_for_duplicates: bool (default False)</strong></dt><dd><p>if True, the event writer raises an exception when an event with a (run,eventid) pair is written that is already
-present in the data file</p>
+<dt><strong>check_for_duplicates: bool (default False)</strong></dt><dd><p>if True, the event writer raises an exception when an event with a (run,eventid) pair is written that is
+already present in the data file</p>
 </dd>
 <dt><strong>events_per_file: int</strong></dt><dd><p>Maximum number of events to be written into the same file. After more than events_per_file have been written
 into the same file, the output will be split into another file. If max_file_size and events_per_file are
 both set, the file will be split whenever any of the two conditions is fullfilled.</p>
+</dd>
+<dt><strong>log_level: int</strong></dt><dd><p>The logging level to use.</p>
 </dd>
 </dl>
 </dd>
@@ -649,7 +654,7 @@ both set, the file will be split whenever any of the two conditions is fullfille
 <dt><strong>det: detector object</strong></dt><dd><p>If a detector object is passed, the detector description for the
 events is written in the file as well</p>
 </dd>
-<dt><strong>mode: dictionary, optional</strong></dt><dd><p>Specifies what will saved into the <em class="xref py py-obj">*.nur</em> output file.
+<dt><strong>mode: dictionary, optional</strong></dt><dd><p>Specifies what will be saved into the <em class="xref py py-obj">*.nur</em> output file.
 Can contain the following keys:</p>
 <ul class="simple">
 <li><p>‘Channels’: if True channel traces of Stations will be saved</p></li>

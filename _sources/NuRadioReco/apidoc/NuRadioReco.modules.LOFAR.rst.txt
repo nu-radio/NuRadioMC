@@ -1,0 +1,19 @@
+NuRadioReco.modules.LOFAR package
+=================================
+
+.. automodule:: NuRadioReco.modules.LOFAR
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR
+   NuRadioReco.modules.LOFAR.beamforming_utilities
+   NuRadioReco.modules.LOFAR.stationGalacticCalibrator
+   NuRadioReco.modules.LOFAR.stationPulseFinder
+   NuRadioReco.modules.LOFAR.stationRFIFilter

@@ -271,6 +271,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -323,6 +324,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -358,6 +360,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -584,7 +587,7 @@
 <span class="kn">from</span> <span class="nn">NuRadioReco.detector</span> <span class="kn">import</span> <span class="n">filterresponse</span>
 
 
-<div class="viewcode-block" id="get_filter_response"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.bandpass_filter.html#NuRadioReco.utilities.bandpass_filter.get_filter_response">[docs]</a><span class="k">def</span> <span class="nf">get_filter_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_filter_response"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.bandpass_filter.html#NuRadioReco.utilities.bandpass_filter.get_filter_response">[docs]</a><span class="k">def</span> <span class="nf">get_filter_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">roll_width</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience function to obtain a bandpass filter response</span>
 
@@ -599,6 +602,7 @@
 <span class="sd">        * &#39;rectangular&#39;: perfect straight line filter</span>
 <span class="sd">        * &#39;butter&#39;: butterworth filter from scipy</span>
 <span class="sd">        * &#39;butterabs&#39;: absolute of butterworth filter from scipy</span>
+<span class="sd">        * &#39;gaussian_tapered&#39; : a rectangular bandpass filter convolved with a Gaussian</span>
 
 <span class="sd">        or any filter that is implemented in :mod:`NuRadioReco.detector.filterresponse`.</span>
 <span class="sd">        In this case the passband parameter is ignored</span>
@@ -608,6 +612,9 @@
 <span class="sd">        The maximum ripple allowed below unity gain in the passband.</span>
 <span class="sd">        Specified in decibels, as a positive number.</span>
 <span class="sd">        (Relevant for chebyshev filter)</span>
+<span class="sd">    roll_width : float, default=None</span>
+<span class="sd">        Determines the sigma of the Gaussian to be used in the convolution of the rectangular filter.</span>
+<span class="sd">        (Relevant for the Gaussian tapered filter)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -651,8 +658,27 @@
         <span class="n">f</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
         <span class="k">return</span> <span class="n">f</span>
 
+    <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;gaussian_tapered&#39;</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+        <span class="n">f</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">frequencies</span> <span class="o">&lt;</span> <span class="n">passband</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">f</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">frequencies</span> <span class="o">&gt;</span> <span class="n">passband</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="mf">0.</span>
+
+        <span class="n">gaussian_weights</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">roll_width</span> <span class="o">/</span> <span class="p">(</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">frequencies</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+        <span class="p">)</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">gaussian_weights</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>  <span class="c1"># convolution changes peak value</span>
+        <span class="k">return</span> <span class="n">f</span>
+
     <span class="k">elif</span> <span class="n">filter_type</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;FIR&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;FIR filter not yet implemented&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;hann_tapered&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;&#39;hann_tapered&#39; is a time-domain filter, cannot return frequency response&quot;</span>
+        <span class="p">)</span>
+
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">filterresponse</span><span class="o">.</span><span class="n">get_filter_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">)</span></div>
 </pre></div>

@@ -12,6 +12,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   NuRadioReco.modules.io.LOFAR
    NuRadioReco.modules.io.RNO_G
    NuRadioReco.modules.io.araroot
    NuRadioReco.modules.io.coreas

@@ -1,0 +1,7 @@
+NuRadioReco.modules.LOFAR.stationPulseFinder module
+===================================================
+
+.. automodule:: NuRadioReco.modules.LOFAR.stationPulseFinder
+   :members:
+   :undoc-members:
+   :show-inheritance:

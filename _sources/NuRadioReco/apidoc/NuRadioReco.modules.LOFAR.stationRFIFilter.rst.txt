@@ -1,0 +1,7 @@
+NuRadioReco.modules.LOFAR.stationRFIFilter module
+=================================================
+
+.. automodule:: NuRadioReco.modules.LOFAR.stationRFIFilter
+   :members:
+   :undoc-members:
+   :show-inheritance:

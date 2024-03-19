@@ -274,6 +274,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.LOFAR.html">NuRadioReco.detector.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
@@ -361,6 +363,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -756,6 +759,24 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.parameters.stationParameters.viewing_angles">
 <span class="sig-name descname"><span class="pre">viewing_angles</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.stationParameters.viewing_angles" title="Permalink to this definition"></a></dt>
 <dd><p>reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.stationParameters.flagged_channels">
+<span class="sig-name descname"><span class="pre">flagged_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">60</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.stationParameters.flagged_channels" title="Permalink to this definition"></a></dt>
+<dd><p>a set of flagged channel ids (calculated by readLOFARData and adjusted by stationRFIFilter)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.stationParameters.cr_dominant_polarisation">
+<span class="sig-name descname"><span class="pre">cr_dominant_polarisation</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">61</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.stationParameters.cr_dominant_polarisation" title="Permalink to this definition"></a></dt>
+<dd><p>the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.stationParameters.dirty_fft_channels">
+<span class="sig-name descname"><span class="pre">dirty_fft_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">62</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.stationParameters.dirty_fft_channels" title="Permalink to this definition"></a></dt>
+<dd><p>a list of FFT channels flagged as RFI (calculated by stationRFIFilter)</p>
 </dd></dl>
 
 </dd></dl>

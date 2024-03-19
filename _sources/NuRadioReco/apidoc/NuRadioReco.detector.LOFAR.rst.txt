@@ -1,0 +1,7 @@
+NuRadioReco.detector.LOFAR package
+==================================
+
+.. automodule:: NuRadioReco.detector.LOFAR
+   :members:
+   :undoc-members:
+   :show-inheritance:
