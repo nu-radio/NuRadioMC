@@ -805,7 +805,7 @@ def increase_signal(station, channel_id, factor):
         for sim_channel in sim_channels:
             sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
 
-def calculate_particle_weight(event_group, idx, cfg, fin):
+def calculate_particle_weight(event_group, idx, cfg, fin=None):
     """
     Calculate the (survival) propability of a neutrino reaching the simulation volume.
 
@@ -839,7 +839,7 @@ def calculate_particle_weight(event_group, idx, cfg, fin):
     """
     primary = event_group.get_primary()
     if cfg['weights']['weight_mode'] == "existing":
-        if "weights" in fin:
+        if fin is not None and "weights" in fin:
             primary[simp.weight] = fin["weights"][idx]
         else:
             logger.error(
@@ -1337,7 +1337,10 @@ class simulation:
         channelGenericNoiseAdder.begin(seed=self._config['seed'])
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
-        unique_event_group_ids = np.unique(self._fin['event_group_ids'])
+        
+        particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
+        event_group_ids = np.array(self._fin['event_group_ids'])
+        unique_event_group_ids = np.unique(event_group_ids)
 
         # calculate bary centers of station
         station_barycenter = np.zeros((len(self._station_ids), 3))
@@ -1353,7 +1356,7 @@ class simulation:
             if self._event_group_list is not None and event_group_id not in self._event_group_list:
                 logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
                 continue
-            event_indices = np.atleast_1d(np.squeeze(np.argwhere(self._fin['event_group_ids'] == event_group_id)))
+            event_indices = np.atleast_1d(np.squeeze(np.argwhere(event_group_ids == event_group_id)))
 
             self.__time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
 
@@ -1362,7 +1365,6 @@ class simulation:
 
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
             self.__time_logger.start_time("weight calc.")
-            particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
             weight = 1
             if particle_mode:
                 weight = calculate_particle_weight(event_group, event_indices[0], self._config, self._fin)
@@ -1375,13 +1377,16 @@ class simulation:
 
             # these quantities get computed to apply the distance cut as a function of shower energies
             # the shower energies of closeby showers will be added as they can constructively interfere
-            # TODO: Needs to be refactored to get this information from the event group object so that
-            # nur files can easily be a source as well. 
             if self._config['speedup']['distance_cut']:
-                shower_energies = np.array(self._fin['shower_energies'])[event_indices]
-                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
-                                             np.array(self._fin['yy'])[event_indices],
-                                             np.array(self._fin['zz'])[event_indices]]).T
+                self.__time_logger.start_time("distance cut")
+                shower_energies = []
+                vertex_positions = []
+                for shower in event_group.get_sim_showers():
+                    shower_energies.append([shower.get_energy()])
+                    vertex_positions.append([shower.get_vertex()])
+                shower_energies = np.array(shower_energies)
+                vertex_positions = np.array(vertex_positions)
+                self.__time_logger.stop_time("distance cut")
 
             output_buffer = {}
             # loop over all stations (each station is treated independently)
