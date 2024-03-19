@@ -601,7 +601,8 @@ def build_dummy_event(sid, det, config):
 
     dt = 1. / config['sampling_rate']
     # rescale the number of samples to the internal (higher) sampling rate used in the simulation
-    n_samples = det.get_number_of_samples(sid, 0) / det.get_sampling_frequency(sid, 0) / dt
+    cid = det.get_channel_ids(sid)[0]
+    n_samples = det.get_number_of_samples(sid, cid) / det.get_sampling_frequency(sid, cid) / dt
     n_samples = int(np.ceil(n_samples / 2.) * 2)  # round to nearest even integer
 
     for channel_id in det.get_channel_ids(sid):
@@ -1038,6 +1039,7 @@ class simulation:
                  event_list=None,
                  log_level_propagation=logging.WARNING,
                  ice_model=None,
+                 trigger_channels = None,
                  **kwargs):
         """
         initialize the NuRadioMC end-to-end simulation
@@ -1086,11 +1088,14 @@ class simulation:
             the log level of the propagation module
         ice_model: medium object (default None)
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
+        trigger_channels: list of ints or dict of list of ints
+            list of channel ids that are used for the trigger (per station_id). If None, all channels are used.
         """
         logger.setLevel(log_level)
         if 'write_mode' in kwargs:
             logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
 
+        self.__trigger_channels = trigger_channels
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
@@ -1346,7 +1351,7 @@ class simulation:
         station_barycenter = np.zeros((len(self._station_ids), 3))
         for iSt, station_id in enumerate(self._station_ids):
             pos = []
-            for channel_id in range(self._det.get_number_of_channels(station_id)):
+            for channel_id in self._det.get_channel_ids(station_id):
                 pos.append(self._det.get_relative_position(station_id, channel_id))
             station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
 
@@ -1405,9 +1410,18 @@ class simulation:
                 station.set_sim_station(sim_station)
                 event_group.set_station(station)
 
+                # we allow to first only simualte trigger channels. As the trigger channels might be different per station, 
+                # we need to determine the channels to simulate first per station
+                channel_ids = self._det.get_channel_ids(sid)
+                if self.__trigger_channels is not None:
+                    if isinstance(self.__trigger_channels, dict):
+                        channel_ids = self.__trigger_channels[sid]
+                    else:
+                        channel_ids = self.__trigger_channels
+
                 # loop over all trigger channels
                 candidate_station = False
-                for iCh, channel_id in enumerate(self._det.get_channel_ids(sid)):
+                for iCh, channel_id in enumerate(channel_ids):
                     if particle_mode:
                         sim_station = calculate_sim_efield(showers=event_group.get_sim_showers(),
                                                         sid=sid, cid=channel_id,
