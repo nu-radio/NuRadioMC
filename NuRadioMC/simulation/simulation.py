@@ -1337,7 +1337,7 @@ class simulation:
         channelGenericNoiseAdder.begin(seed=self._config['seed'])
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
-        
+
         particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         event_group_ids = np.array(self._fin['event_group_ids'])
         unique_event_group_ids = np.unique(event_group_ids)
@@ -1382,8 +1382,8 @@ class simulation:
                 shower_energies = []
                 vertex_positions = []
                 for shower in event_group.get_sim_showers():
-                    shower_energies.append([shower.get_energy()])
-                    vertex_positions.append([shower.get_vertex()])
+                    shower_energies.append([shower[shp.energy]])
+                    vertex_positions.append([shower[shp.vertex]])
                 shower_energies = np.array(shower_energies)
                 vertex_positions = np.array(vertex_positions)
                 self.__time_logger.stop_time("distance cut")
