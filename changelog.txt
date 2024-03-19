@@ -11,6 +11,16 @@ It comes with a class to handle responses of the different signal chain componen
 added new STATUS logging level by default, added logging documentation and moved logging
 module to NuRadioReco/utilities folder. Logging functionality from NuRadioReco/modules/base
 is now deprecated.
+- Added StationParameters to store channel IDs of flagged (i.e.) bad channels, the polarisation
+which contains the strongest CR pulse and the list of frequency bands which are flagged for RFI.
+- Added interface to give (Sim)Channel a group ID . This is implemented as a keyword in the
+Detector description, such that it can be added to the Detector description JSON file. The
+(Sim)Channel objects can now optionally take a channel_group_id parameter. In a Station, one
+can then iterate over a channel group, which yields all channels for a given group ID.
+- Added Gaussian tapered and Hann tapered bandpass filters
+- Added LOFAR modules for reading data, removing RFI, beamforming and fitting the arrival direction
+- Added functionality to remove Channel from Station
+- Added LOFAR antenna pattern and function to parse TXT simulation file
 
 bugfixes:
 
