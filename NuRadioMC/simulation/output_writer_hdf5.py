@@ -487,9 +487,9 @@ class outputWriterHDF5:
         for station_id in self._mout_groups:
             n_channels = self._det.get_number_of_channels(station_id)
             positions = np.zeros((n_channels, 3))
-            for channel_id in range(n_channels):
-                positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
-            fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
+            for iCh, channel_id in enumerate(self._det.get_channel_ids(station_id)):
+                positions[iCh] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
+            fout[f"station_{station_id:d}"].attrs['antenna_positions'] = positions
         fout.attrs['config'] = yaml.dump(self._mout_attributes['config'])
 
         # save NuRadioMC and NuRadioReco versions
