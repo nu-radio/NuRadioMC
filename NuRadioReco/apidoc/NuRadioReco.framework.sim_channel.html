@@ -591,10 +591,10 @@
 <span id="nuradioreco-framework-sim-channel-module"></span><h1>NuRadioReco.framework.sim_channel module<a class="headerlink" href="#module-NuRadioReco.framework.sim_channel" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.sim_channel.</span></span><span class="sig-name descname"><span class="pre">SimChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_tracing_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.sim_channel.</span></span><span class="sig-name descname"><span class="pre">SimChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_tracing_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_group_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel" title="NuRadioReco.framework.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a></p>
 <p>Object to store simulated channels.</p>
-<p>This class is the same as the regular channel trace but has apart from the channel id also
+<p>This class is the same as the regular channel trace but has apart from the channel id (and possible group id) also
 a shower and ray tracing solution id</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
@@ -695,6 +695,9 @@ a shower and ray tracing solution id</p>
 <dt><strong>shower_id: int or None</strong></dt><dd><p>the id of the corresponding shower object</p>
 </dd>
 <dt><strong>ray_tracing_id: int or None</strong></dt><dd><p>the id of the corresponding ray tracing solution</p>
+</dd>
+<dt><strong>channel_group_id: int (default: None)</strong></dt><dd><p>optionally, several channels can belong to a “channel group”. Use case is to identify
+the channels of a single dual or triple polarized antenna as common in air shower arrays.</p>
 </dd>
 </dl>
 </dd>

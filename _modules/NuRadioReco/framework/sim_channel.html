@@ -598,11 +598,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Object to store simulated channels.</span>
 
-<span class="sd">    This class is the same as the regular channel trace but has apart from the channel id also</span>
+<span class="sd">    This class is the same as the regular channel trace but has apart from the channel id (and possible group id) also</span>
 <span class="sd">    a shower and ray tracing solution id</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">shower_id</span><span class="p">,</span> <span class="n">ray_tracing_id</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">shower_id</span><span class="p">,</span> <span class="n">ray_tracing_id</span><span class="p">,</span> <span class="n">channel_group_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes SimChannel object</span>
 
@@ -614,8 +614,11 @@
 <span class="sd">            the id of the corresponding shower object</span>
 <span class="sd">        ray_tracing_id: int or None</span>
 <span class="sd">            the id of the corresponding ray tracing solution</span>
+<span class="sd">        channel_group_id: int (default: None)</span>
+<span class="sd">            optionally, several channels can belong to a &quot;channel group&quot;. Use case is to identify</span>
+<span class="sd">            the channels of a single dual or triple polarized antenna as common in air shower arrays. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+        <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">channel_group_id</span><span class="o">=</span><span class="n">channel_group_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_shower_id</span> <span class="o">=</span> <span class="n">shower_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ray_tracing_id</span> <span class="o">=</span> <span class="n">ray_tracing_id</span>
 
