@@ -50,10 +50,9 @@ print("CPP time = {:.1f} seconds = {:.2f}ms/event".format(t_cpp, 1000. * t_cpp /
 
 results_C0s_python = np.zeros((n_events, 2))
 results_A_python = np.zeros((n_events, 2, n_freqs))
-ray.cpp_available = False
 t_start = time.time()
 for iX, x in enumerate(points):
-    r = ray.ray_tracing(ice)
+    r = ray.ray_tracing(ice, use_cpp=False)
     r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
     if(r.has_solution()):

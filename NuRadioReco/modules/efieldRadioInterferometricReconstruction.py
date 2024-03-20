@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, interferometry
-from NuRadioReco.framework.parameters import stationParameters as stnp
+
 from NuRadioReco.framework.parameters import showerParameters as shp
 
 from radiotools import helper as hp, coordinatesystems
@@ -16,12 +16,12 @@ from scipy.optimize import curve_fit
 import logging
 logger = logging.getLogger('efieldRadioInterferometricReconstruction')
 
-""" 
+"""
 This module hosts to classes
     - efieldInterferometricDepthReco
     - efieldInterferometricAxisReco (TODO: Not yet implemented)
 
-The radio-interferometric reconstruction (RIT) was proposed in [1]. 
+The radio-interferometric reconstruction (RIT) was proposed in [1].
 The implementation here is based on work published in [2].
 
 [1]: H. Schoorlemmer, W. R. Carvalho Jr., arXiv:2006.10348
@@ -31,12 +31,12 @@ The implementation here is based on work published in [2].
 
 class efieldInterferometricDepthReco:
     """
-    This class reconstructs the depth of the maximum of the longitudinal profile of the 
-    beam-formed radio emission: X_RIT along a given axis. X_RIT is found to correlate with X_max. 
+    This class reconstructs the depth of the maximum of the longitudinal profile of the
+    beam-formed radio emission: X_RIT along a given axis. X_RIT is found to correlate with X_max.
     This correlation may depend on the zenith angle, the frequency band, and detector layout
     (if the detector is very irregular).
 
-    For the reconstruction, a shower axis is needed. The radio emission in the vxB polarisation is used 
+    For the reconstruction, a shower axis is needed. The radio emission in the vxB polarisation is used
     (and thus the arrival direction is needed).
 
     """
@@ -62,7 +62,7 @@ class efieldInterferometricDepthReco:
 
         signal_kind : str
             Define which signal "metric" is used on the beamformed traces. Default "power" : sum over the squared amplitudes in a 100 ns window around the peak.
-            Other options are "amplitude" or "hilbert_sum" 
+            Other options are "amplitude" or "hilbert_sum"
 
         debug : bool
             If true, show some debug plots (Default: False).
@@ -79,7 +79,7 @@ class efieldInterferometricDepthReco:
             self, traces, times, station_positions,
             shower_axis, core, depths=None, distances=None):
         """
-        Returns the longitudinal profile of the interferometic signal sampled along the shower axis. 
+        Returns the longitudinal profile of the interferometic signal sampled along the shower axis.
 
         Parameters
         ----------
@@ -100,7 +100,7 @@ class efieldInterferometricDepthReco:
             Shower core. Keep in mind that the altitudes (z-coordinate) matters.
 
         depths : array (optinal)
-            Define the positions (slant depth along the axis) at which the interferometric signal is sampled. 
+            Define the positions (slant depth along the axis) at which the interferometric signal is sampled.
             Instead of "depths" you can provide "distances".
 
         distances : array (optinal)
@@ -109,7 +109,7 @@ class efieldInterferometricDepthReco:
 
         Returns
         -------
- 
+
         signals : array
             Interferometric singals sampled along the given axis
         """
@@ -165,9 +165,9 @@ class efieldInterferometricDepthReco:
             self, traces, times, station_positions, shower_axis, core,
             lower_depth=400, upper_depth=800, bin_size=100, return_profile=False):
         """
-        Returns Gauss-parameters fitted to the "peak" of the interferometic 
+        Returns Gauss-parameters fitted to the "peak" of the interferometic
         longitudinal profile along the shower axis.
-        
+
         A initial samping range and size in defined by "lower_depth", "upper_depth", "bin_size".
         However if the "peak", i.e., maximum signal is found at an edge the sampling range in
         continually increased (with a min/max depth of 0/2000 g/cm^2). The Gauss is fitted around the
@@ -201,26 +201,26 @@ class efieldInterferometricDepthReco:
             Define the step size pf the inital sampling (default: 100 g/cm2).
             The refined sampling around the peak region is / 10 this value.
 
-        return_profile : bool 
+        return_profile : bool
             If true return the sampled profile in addition to the Gauss parameter (default: False).
 
         Returns
         -------
-        
+
         If return_profile is True
-            
+
             depths_corse : np.array
                 Depths along shower axis coarsely sampled
-            
+
             depths_fine : np.array
                 Depths along shower axis finely sampled (used in fitting)
-            
+
             signals_corese : np.array
                 Beamformed signals along shower axis coarsely sampled
-            
+
             signals_fine : np.array
                 Beamformed signals along shower axis finely sampled (used in fitting)
-                    
+
             popt : list
                 List of fitted Gauss parameters (amplitude, position, width)
 
@@ -228,7 +228,7 @@ class efieldInterferometricDepthReco:
 
             popt : list
                 List of fitted Gauss parameters (amplitude, position, width)
-        
+
         """
 
         depths = np.arange(lower_depth, upper_depth, bin_size)
@@ -280,7 +280,7 @@ class efieldInterferometricDepthReco:
 
 
     def update_atmospheric_model_and_refractivity_table(self, shower):
-        """ 
+        """
         Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.
 
         Parameters
@@ -298,18 +298,18 @@ class efieldInterferometricDepthReco:
             self._at = models.Atmosphere(shower[shp.atmospheric_model])
             self._tab = refractivity.RefractivityTable(
                 self._at.model, refractivity_at_sea_level=shower[shp.refractive_index_at_ground] - 1, curved=True)
-        
+
         elif self._tab._refractivity_at_sea_level != shower[shp.refractive_index_at_ground] - 1:
             self._tab = refractivity.RefractivityTable(
                 self._at.model, refractivity_at_sea_level=shower[shp.refractive_index_at_ground] - 1, curved=True)
-        
+
         else:
             pass
 
 
     @register_run()
     def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True):
-        """ 
+        """
         Run interferometric reconstruction of depth of coherent signal.
 
         Parameters
@@ -317,7 +317,7 @@ class efieldInterferometricDepthReco:
 
         evt : Event
             Event to run the module on.
-        
+
         det : Detector
             Detector description
 
@@ -328,7 +328,7 @@ class efieldInterferometricDepthReco:
             if true, take electric field trace from sim_station
         """
 
-        # TODO: Mimic imperfect time syncronasation by adding a time jitter here? 
+        # TODO: Mimic imperfect time syncronasation by adding a time jitter here?
 
         # TODO: Make it more flexible. Choose shower from which the geometry and atmospheric properties are taken.
         # Also store xrit in this shower.
@@ -336,7 +336,7 @@ class efieldInterferometricDepthReco:
             shower = evt.get_first_sim_shower()
         else:
             shower = evt.get_first_shower()
-        
+
         self.update_atmospheric_model_and_refractivity_table(shower)
         core, shower_axis, cs = get_geometry_and_transformation(shower)
 
@@ -363,7 +363,7 @@ class efieldInterferometricDepthReco:
         shower.set_parameter(shp.interferometric_shower_maximum, xrit * units.g / units.cm2)
 
         #TODO: Add calibration Xmax(Xrit, theta, ...)?
-        
+
         # for plotting
         self._data["xrit"].append(xrit)
         self._data["xmax"].append(shower[shp.shower_maximum] / (units.g / units.cm2))
@@ -388,7 +388,7 @@ class efieldInterferometricDepthReco:
 
 class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
     """
-    Class to reconstruct the shower axis with beamforming.     
+    Class to reconstruct the shower axis with beamforming.
     """
     def __init__(self):
         super().__init__()
@@ -397,7 +397,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
     def find_maximum_in_plane(self, xs, ys, p_axis, station_positions, traces, times, cs):
         """
         Sample interferometric signals in 2-d plane (vxB-vxvxB) perpendicular to a given axis on a rectangular/quadratic grid.
-        The orientation of the plane is defined by the radiotools.coordinatesytem.cstrafo argument. 
+        The orientation of the plane is defined by the radiotools.coordinatesytem.cstrafo argument.
 
         Parameters
         ----------
@@ -454,12 +454,12 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             traces, times, station_positions,
             shower_axis_inital, core, depth, cs,
             shower_axis_mc, core_mc,
-            relative=False, initial_grid_spacing=100, centered_around_truth=True,
+            relative=False, initial_grid_spacing=60, centered_around_truth=True,
             cross_section_size=1000, deg_resolution=np.deg2rad(0.005)):
         """
-        Sampling the "cross section", i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere. 
-        It is looking for the maximum in the lateral distribution with an (stupid) iterative grid search. 
-        
+        Sampling the "cross section", i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere.
+        It is looking for the maximum in the lateral distribution with an (stupid) iterative grid search.
+
         Returns the position and the strenght of the maximum signal.
 
         Parameters
@@ -486,33 +486,41 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         cs : radiotools.coordinatesytem.cstrafo
 
         shower_axis_mc : np.array(3,)
-        
+
         core_mc : np.array(3,)
 
-        relative : bool
-            False
-            
-        initial_grid_spacing : int
-            100
-        
-        centered_around_truth : bool
-            True
+        relative : bool (Default: False)
+            If True, the size of the search grid is relative to the distance between the MC axis and the inital guess axis.
+            The search grid will by a 20 x 20 and just include the MC axis. It is made sure that the MC axis is not at a
+            grid point. If False, see `centered_around_truth`.
 
-        cross_section_size : int
-            1000
-            
+        initial_grid_spacing : double
+            Initial spacing of your grid points in meters. (Default: 60m)
+
+        centered_around_truth : bool (Default: True)
+            Only used when `relative == False`. If True, the search grid will be constructed around the MC axis. The size
+            and spacing between grid points is determined by `cross_section_size` and `initial_grid_spacing`. If False,
+            the search grid is constructed around the inital guess axis. It ensured that the MC-axis is within the search grid.
+            that means the grid size might be abitrary large (which makes the reconstruction very slow) if the inital axis is far off
+            the MC axis.
+
+        cross_section_size : float
+            (Only used when `centered_around_truth == True`.) Side length on the 2-d planes (slice) along which the maximum around
+            the initial axis is sampled in meters. (Default: 1000m)
+
         deg_resolution : float
-            np.deg2rad(0.005))
-        
+            Target spacing for the grid spacing in terms of opening angle. Unit is radiants.
+            Defines the stopping condition for the iterations. (Default: np.deg2rad(0.005))
+
         Returns
         -------
-        
+
         point_found : np.array(3,)
             Position of the found maximum
 
         weight : float
             Amplitude/Strengt of the maximum
-        
+
         """
 
         zenith_inital, _ = hp.cartesian_to_spherical(
@@ -530,10 +538,9 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         dr_ref_target = np.tan(deg_resolution) * dist
         if relative:
             # ensure that true xmax is within the search grid but not on a grid point
-            xlims = (
-                np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[0])
-            ylims = (
-                np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[1])
+            xlims = (np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[0])
+            ylims = (np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[1])
+
             xs = np.linspace(*xlims, 20)
             ys = np.linspace(*ylims, 20)
 
@@ -601,7 +608,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
 
     def reconstruct_shower_axis(
-            self, 
+            self,
             traces, times, station_positions,
             shower_axis, core,
             magnetic_field_vector,
@@ -609,7 +616,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             initial_grid_spacing=60,
             cross_section_size=1000):
         """
-        Run interferometric reconstruction of the shower axis. Find the maxima of the interferometric signals 
+        Run interferometric reconstruction of the shower axis. Find the maxima of the interferometric signals
         within 2-d plane (slices) along a given axis (initial guess). Through those maxima (their position in the
         atmosphere) a straight line is fitted to reconstruct the shower axis.
 
@@ -634,8 +641,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         is_mc : bool
             If true, interprete the provided shower axis as truth and add some gaussian smearing to optain an
-            inperfect initial guess for the shower axis (Default: True). 
-        
+            inperfect initial guess for the shower axis (Default: True).
+
         initial_grid_spacing : double
             Spacing of your grid points in meters (Default: 60m)
 
@@ -644,7 +651,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             (Default: 1000m).
 
         """
-        
+
 
         if is_mc:
             zenith_mc, azimuth_mc = hp.cartesian_to_spherical(*shower_axis)
@@ -656,8 +663,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
                 zenith=zenith_inital, azimuth=azimuth_inital)
 
         else:
-            shower_axis_inital = shower_axis 
-            core_inital = core 
+            shower_axis_inital = shower_axis
+            core_inital = core
             zenith_inital, azimuth_inital = hp.cartesian_to_spherical(
                 *shower_axis)
 
@@ -667,7 +674,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         cs = coordinatesystems.cstrafo(
             zenith_inital, azimuth_inital, magnetic_field_vector=magnetic_field_vector)
-        
+
         if is_mc:
             core_inital = cs.transform_from_vxB_vxvxB_2D(
                 np.array([np.random.normal(0, 100), np.random.normal(0, 100), 0]), core)
@@ -682,15 +689,15 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         centered_around_truth = True
 
         def sample_lateral_cross_section_placeholder(dep):
-            """ 
+            """
             Run sample_lateral_cross_section for a particular depth.
-            
+
             Parameters
             ----------
 
             dep : double
                 Depth along the axis at which the cross section is sampled in g/cm2.
-            
+
             """
             return self.sample_lateral_cross_section(
                 traces, times, station_positions,
@@ -745,7 +752,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
     @register_run()
     def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True):
-        """ 
+        """
         Run interferometric reconstruction of depth of coherent signal.
 
         Parameters
@@ -753,7 +760,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         evt : Event
             Event to run the module on.
-        
+
         det : Detector
             Detector description
 
@@ -790,7 +797,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
 
 def get_geometry_and_transformation(shower):
-    """ 
+    """
     Returns core (def. as intersection between shower axis and observation plane,
     shower axis, and radiotools.coordinatesytem for given shower.
 
@@ -819,9 +826,9 @@ def get_geometry_and_transformation(shower):
 
 
 def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
-    """ 
+    """
     Returns station data in a proper format
-    
+
     Parameters
     ----------
 
@@ -839,15 +846,15 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
 
     Returns
     -------
-    
+
     traces_vxB : np.array
         The electric field traces in the vxB polarisation (takes first electric field stored in a station) for all stations/observers.
 
-    times : mp.array  
+    times : mp.array
         The electric field traces time series for all stations/observers.
-        
+
     pos : np.array
-        Positions for all stations/observers. 
+        Positions for all stations/observers.
     """
 
     traces_vxB = []
@@ -869,11 +876,11 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
                 hw = n_sampling // 2
                 m = np.argmax(np.abs(trace_vxB))
 
-                if m < hw: 
+                if m < hw:
                     m = hw
                 if m > len(trace_vxB) - hw:
                     m = len(trace_vxB) - hw
-                
+
                 trace_vxB = trace_vxB[m-hw:m+hw]
                 time = time[m-hw:m+hw]
 
@@ -882,7 +889,7 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
             break  # just take the first efield. TODO: Improve this
 
         pos.append(det.get_absolute_position(station.get_id()))
-    
+
     traces_vxB = np.array(traces_vxB)
     times = np.array(times)
     pos = np.array(pos)
@@ -891,7 +898,7 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
 
 
 def plot_lateral_cross_section(xs, ys, signals, mc_pos=None, fname=None, title=None):
-    """ 
+    """
     Plot the lateral distribution of the beamformed singal (in the vxB, vxvxB directions).
 
     Parameters
@@ -901,7 +908,7 @@ def plot_lateral_cross_section(xs, ys, signals, mc_pos=None, fname=None, title=N
         Positions on x-axis (vxB) at which the signal is sampled (on a 2d grid)
 
     ys : np.array
-        Positions on y-axis (vxvxB) at which the signal is sampled (on a 2d grid)   
+        Positions on y-axis (vxvxB) at which the signal is sampled (on a 2d grid)
 
     signals : np.array
         Signals sampled on the 2d grid defined by xs and ys.
