@@ -25,7 +25,6 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
-import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
@@ -41,28 +40,19 @@ from NuRadioReco.framework.parameters import particleParameters as simp
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import datetime
 import logging
+import warnings
 from six import iteritems
 import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
-
-STATUS = 31
-
-# logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
-
-
-class NuRadioMCLogger(logging.Logger):
-
-    def status(self, msg, *args, **kwargs):
-        if self.isEnabledFor(STATUS):
-            self._log(STATUS, msg, args, **kwargs)
+# logging imports
+import logging
+from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 
-logging.setLoggerClass(NuRadioMCLogger)
-logging.addLevelName(STATUS, 'STATUS')
-logger = logging.getLogger("NuRadioMC")
-assert isinstance(logger, NuRadioMCLogger)
+logger = logging.getLogger("NuRadioMC.simulation")
+
 # formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
 # ch = logging.StreamHandler()
 # ch.setFormatter(formatter)
@@ -98,12 +88,14 @@ class simulation:
 
     def __init__(self, inputfilename,
                  outputfilename,
-                 detectorfile,
+                 detectorfile=None,
+                 det=None,
+                 det_kwargs={},
                  outputfilenameNuRadioReco=None,
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
-                 log_level=logging.WARNING,
+                 log_level=LOGGING_STATUS,
                  default_detector_station=None,
                  default_detector_channel=None,
                  file_overwrite=False,
@@ -124,6 +116,10 @@ class simulation:
             specify hdf5 output filename.
         detectorfile: string
             path to the json file containing the detector description
+        det: detector object
+            Pass a detector class object
+        det_kwargs: dict
+            Pass arguments to the detector (only used when det == None)
         station_id: int
             the station id for which the simulation is performed. Must match a station
             deself._fined in the detector description
@@ -157,8 +153,9 @@ class simulation:
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
         """
         logger.setLevel(log_level)
-        if 'write_mode' in kwargs.keys():
+        if 'write_mode' in kwargs:
             logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
+
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
@@ -212,19 +209,15 @@ class simulation:
         self._mout_groups = collections.OrderedDict()
         self._mout_attrs = collections.OrderedDict()
 
-        # read in detector positions
-        logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
-        self._det = None
-        if default_detector_station is not None:
-            logger.warning(
-                'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
-                'channel should be specified in the detector description directly.'
-            )
-            logger.status(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
-            self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
-                                                 default_channel=default_detector_channel, antenna_by_depth=False)
+        # Initialize detector
+        if det is None:
+            logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
+            kwargs = dict(json_filename=self._detectorfile, default_station=default_detector_station,
+                              default_channel=default_detector_channel, antenna_by_depth=False)
+            kwargs.update(det_kwargs)
+            self._det = detector.Detector(**kwargs)
         else:
-            self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
+            self._det = det
 
         self._det.update(evt_time)
 
@@ -263,10 +256,14 @@ class simulation:
             logger.status(f"input file {self._inputfilename} is empty")
             return
 
-        ################################
-        # perfom a dummy detector simulation to determine how the signals are filtered
-        self._bandwidth_per_channel = {}
-        self._amplification_per_channel = {}
+        # Perfom a dummy detector simulation to determine how the signals are filtered.
+        # This variable stores the integrated channel response for each channel, i.e.
+        # the integral of the squared signal chain response over all frequencies, int S21^2 df.
+        # For a system without amplification, it is equivalent to the bandwidth of the system.
+        self._integrated_channel_response = {}
+
+        self._integrated_channel_response_normalization = {}
+        self._max_amplification_per_channel = {}
         self.__noise_adder_normalization = {}
 
         # first create dummy event and station with channels
@@ -301,9 +298,13 @@ class simulation:
             self._station.set_station_time(self._evt_time)
             self._evt.set_station(self._station)
 
+            # run detector simulation
             self._detector_simulation_filter_amp(self._evt, self._station, self._det)
-            self._bandwidth_per_channel[self._station_id] = {}
-            self._amplification_per_channel[self._station_id] = {}
+
+            self._integrated_channel_response[self._station_id] = {}
+            self._integrated_channel_response_normalization[self._station_id] = {}
+            self._max_amplification_per_channel[self._station_id] = {}
+
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
                 filt = np.ones_like(ff, dtype=complex)
@@ -311,56 +312,102 @@ class simulation:
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
 
-                self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
-                bandwidth = np.trapz(np.abs(filt) ** 2, ff)
-                self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
-                logger.status(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
+                self._max_amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
+
+                mean_integrated_response = np.mean(
+                    np.abs(filt)[np.abs(filt) > np.abs(filt).max() / 100] ** 2)  # a factor of 100 corresponds to -40 dB in amplitude
+                self._integrated_channel_response_normalization[self._station_id][channel_id] = mean_integrated_response
+
+                integrated_channel_response = np.trapz(np.abs(filt) ** 2, ff)
+                self._integrated_channel_response[self._station_id][channel_id] = integrated_channel_response
+
+                logger.debug(f"Station.channel {self._station_id}.{channel_id} estimated bandwidth is "
+                             f"{integrated_channel_response / mean_integrated_response / units.MHz:.1f} MHz")
 
         ################################
 
-        self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))
-        amplification = next(iter(next(iter(self._amplification_per_channel.values())).values()))
+        self._bandwidth = next(iter(next(iter(self._integrated_channel_response.values())).values()))  # get value of first station/channel key pair
+        norm = next(iter(next(iter(self._integrated_channel_response_normalization.values())).values()))
+        amplification = next(iter(next(iter(self._max_amplification_per_channel.values())).values()))
+
         noise_temp = self._cfg['trigger']['noise_temperature']
         Vrms = self._cfg['trigger']['Vrms']
+
         if noise_temp is not None and Vrms is not None:
-            raise AttributeError(f"Specifying noise temperature (set to {noise_temp}) and Vrms (set to {Vrms} is not allowed.")
+            raise AttributeError(f"Specifying noise temperature (set to {noise_temp}) and Vrms (set to {Vrms}) is not allowed).")
+
+        self._Vrms_per_channel = collections.defaultdict(dict)
+        self._Vrms_efield_per_channel = collections.defaultdict(dict)
+
         if noise_temp is not None:
+
             if noise_temp == "detector":
+                logger.status("Use noise temperature from detector description to determine noise Vrms in each channel.")
                 self._noise_temp = None  # the noise temperature is defined in the detector description
             else:
                 self._noise_temp = float(noise_temp)
-            self._Vrms_per_channel = {}
-            self._noiseless_channels = {}
-            for station_id in self._bandwidth_per_channel:
-                self._Vrms_per_channel[station_id] = {}
-                self._noiseless_channels[station_id] = []
-                for channel_id in self._bandwidth_per_channel[station_id]:
+                logger.status(f"Use a noise temperature of {noise_temp / units.kelvin:.1f} K for each channel to determine noise Vrms.")
+
+            self._noiseless_channels = collections.defaultdict(list)
+            for station_id in self._integrated_channel_response:
+                for channel_id in self._integrated_channel_response[station_id]:
                     if self._noise_temp is None:
                         noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
                     else:
                         noise_temp_channel = self._noise_temp
+
                     if self._det.is_channel_noiseless(station_id, channel_id):
                         self._noiseless_channels[station_id].append(channel_id)
 
-                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k *
-                           self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-                    logger.status(f'station {station_id} channel {channel_id} noise temperature = {noise_temp_channel}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id]/ units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id]/ units.V / units.micro:.2f} muV')
+                    # Calculation of Vrms. For details see from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
+                    # (last two Eqs. in "noise voltage and power" section) or our wiki https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
+
+                    # Bandwidth, i.e., \Delta f in equation
+                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
+                    max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+
+                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
+                    self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / max_amplification / units.m  # VEL = 1m
+
+                    # for logging
+                    mean_integrated_response = self._integrated_channel_response_normalization[self._station_id][channel_id]
+
+                    logger.status(f'Station.channel {station_id}.{channel_id:02d}: noise temperature = {noise_temp_channel} K, '
+                                  f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
+                                  f'max. filter amplification = {max_amplification:.2e} -> Vrms = '
+                                  f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz -> Vrms = '
+                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV -> efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
+
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
-            logger.status('(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._noise_temp, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
+
         elif Vrms is not None:
             self._Vrms = float(Vrms) * units.V
             self._noise_temp = None
+            logger.status(f"Use a fix noise Vrms of {self._Vrms / units.mV:.2f} mV in each channel.")
+
+            for station_id in self._integrated_channel_response:
+
+                for channel_id in self._integrated_channel_response[station_id]:
+                    max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+                    self._Vrms_per_channel[station_id][channel_id] = self._Vrms  # to be stored in the hdf5 file
+                    self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms / max_amplification / units.m  # VEL = 1m
+
+                    # for logging
+                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
+                    mean_integrated_response = self._integrated_channel_response_normalization[self._station_id][channel_id]
+
+                    logger.status(f'Station.channel {station_id}.{channel_id:02d}: '
+                                  f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
+                                  f'max. filter amplification = {max_amplification:.2e} '
+                                  f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz ->'
+                                  f'efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
+
         else:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
 
-        self._Vrms_efield_per_channel = {}
-        for station_id in self._bandwidth_per_channel:
-            self._Vrms_efield_per_channel[station_id] = {}
-            for channel_id in self._bandwidth_per_channel[station_id]:
-                self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / self._amplification_per_channel[station_id][channel_id] / units.m
         self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
-        tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
-        logger.status(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
+        speed_cut = float(self._cfg['speedup']['min_efield_amplitude'])
+        logger.status(f"All signals with less then {speed_cut:.1f} x Vrms_efield will be skipped.")
 
         self._distance_cut_polynomial = None
         if self._cfg['speedup']['distance_cut']:
@@ -591,8 +638,9 @@ class simulation:
 
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
-                    if not self._is_in_fiducial_volume():
-                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
+                    if not self._is_in_fiducial_volume(self._shower_vertex):
+                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, "
+                                     f"{self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
                         continue
 
                     # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
@@ -851,7 +899,7 @@ class simulation:
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
                 self._station.get_sim_station().set_station_time(self._evt_time)
-                
+
                 # convert efields to voltages at digitizer
                 if hasattr(self, '_detector_simulation_part1'):
                     # we give the user the opportunity to define a custom detector simulation
@@ -954,7 +1002,7 @@ class simulation:
                             channel_ids = self._det.get_channel_ids(self._station.get_id())
                             Vrms = {}
                             for channel_id in channel_ids:
-                                norm = self._bandwidth_per_channel[self._station.get_id()][channel_id]
+                                norm = self._integrated_channel_response[self._station.get_id()][channel_id]
                                 Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                                          max_freq=max_freq, type='rayleigh', excluded_channels=self._noiseless_channels[station_id])
@@ -1063,26 +1111,27 @@ class simulation:
         """
         return bool(self._cfg['noise'])
 
-    def _is_in_fiducial_volume(self):
-        """
-        checks wether a vertex is in the fiducial volume
+    def _is_in_fiducial_volume(self, pos):
+        """ Checks if pos is in fiducial volume """
 
-        if the fiducial volume is not specified in the input file, True is returned (this is required for the simulation
-        of pulser calibration measuremens)
-        """
-        tt = ['fiducial_rmin', 'fiducial_rmax', 'fiducial_zmin', 'fiducial_zmax']
-        has_fiducial = True
-        for t in tt:
-            if not t in self._fin_attrs:
-                has_fiducial = False
-        if not has_fiducial:
-            return True
-
-        r = (self._shower_vertex[0] ** 2 + self._shower_vertex[1] ** 2) ** 0.5
-        if r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']:
-            if self._shower_vertex[2] >= self._fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <= self._fin_attrs['fiducial_zmax']:
+        for check_attr in ['fiducial_zmin', 'fiducial_zmax']:
+            if not check_attr in self._fin_attrs:
+                logger.warning("Fiducial volume not defined. Return True")
                 return True
-        return False
+
+        pos = copy.deepcopy(pos) - np.array([self._fin_attrs.get("x0", 0), self._fin_attrs.get("y0", 0), 0])
+
+        if not (self._fin_attrs["fiducial_zmin"] < pos[2] < self._fin_attrs["fiducial_zmax"]):
+            return False
+
+        if "fiducial_rmax" in self._fin_attrs:
+            radius = np.sqrt(pos[0] ** 2 + pos[1] ** 2)
+            return self._fin_attrs["fiducial_rmin"] < radius < self._fin_attrs["fiducial_rmax"]
+        elif "fiducial_xmax" in self._fin_attrs:
+            return (self._fin_attrs["fiducial_xmin"] < pos[0] < self._fin_attrs["fiducial_xmax"] and
+                    self._fin_attrs["fiducial_ymin"] < pos[1] < self._fin_attrs["fiducial_ymax"])
+        else:
+            raise ValueError("Could not contruct fiducial volume from input file.")
 
     def _increase_signal(self, channel_id, factor):
         """
@@ -1248,11 +1297,19 @@ class simulation:
         checks if the same detector was simulated before (then we can save the ray tracing part)
         """
         self._was_pre_simulated = False
+
         if 'detector' in self._fin_attrs:
-            with open(self._detectorfile, 'r') as fdet:
-                if fdet.read() == self._fin_attrs['detector']:
+            if isinstance(self._det, detector.rnog_detector.Detector):
+                if self._det.export_as_string() == self._fin_attrs['detector']:
                     self._was_pre_simulated = True
-                    logger.status("the simulation was already performed with the same detector")
+            else:
+                with open(self._detectorfile, 'r') as fdet:
+                    if fdet.read() == self._fin_attrs['detector']:
+                        self._was_pre_simulated = True
+
+        if self._was_pre_simulated:
+            logger.status("the simulation was already performed with the same detector")
+
         return self._was_pre_simulated
 
     def _create_meta_output_datastructures(self):
@@ -1438,8 +1495,11 @@ class simulation:
         for (key, value) in iteritems(self._mout_attrs):
             fout.attrs[key] = value
 
-        with open(self._detectorfile, 'r') as fdet:
-            fout.attrs['detector'] = fdet.read()
+        if isinstance(self._det, detector.rnog_detector.Detector):
+            fout.attrs['detector'] = self._det.export_as_string()
+        else:
+            with open(self._detectorfile, 'r') as fdet:
+                fout.attrs['detector'] = fdet.read()
 
         if not empty:
             # save antenna position separately to hdf5 output
@@ -1450,7 +1510,7 @@ class simulation:
                     positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
                 fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
                 fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
-                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
+                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._integrated_channel_response[station_id].values())
 
             fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
             fout.attrs.create("Vrms", self._Vrms, dtype=float)
@@ -1512,3 +1572,23 @@ class simulation:
             msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
             logger.error(msg)
             raise ValueError(msg)
+
+    @property
+    def _bandwidth_per_channel(self):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                      "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        return self._integrated_channel_response
+
+    @_bandwidth_per_channel.setter
+    def _bandwidth_per_channel(self, value):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                        "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        self._integrated_channel_response = value
+
+    @property
+    def integrated_channel_response(self):
+        return self._integrated_channel_response
+
+    @integrated_channel_response.setter
+    def integrated_channel_response(self, value):
+        self._integrated_channel_response = value

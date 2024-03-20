@@ -79,7 +79,6 @@ def buffer_db(in_memory, filename=None):
     table_channels = db.table('channels')
     table_channels.truncate()
     results = sqldet.get_everything_channels()
-    # TODO: add channel_group_id feature
     for channel in results:
         table_channels.insert({'station_id': channel['st.station_id'],
                                'channel_id': channel['ch.channel_id'],
@@ -141,7 +140,7 @@ class DetectorBase(object):
         is returned. To force the creation of a new detector instance, pass the additional keyword parameter
         `create_new=True` to this function. For more details, check the documentation for the
         `Singleton metaclass <NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton>`_.
-        
+
         Parameters
         ----------
         source : str
@@ -232,7 +231,7 @@ class DetectorBase(object):
         return self._channels.search((Channel.station_id == station_id)
                                      & (Channel.commission_time <= self.__current_time.datetime)
                                      & (Channel.decommission_time > self.__current_time.datetime))
-                                     
+
     def _query_devices(self, station_id):
         Device = Query()
         if self.__current_time is None:
@@ -306,13 +305,13 @@ class DetectorBase(object):
         if station_id not in self._buffered_stations.keys():
             self._buffer(station_id)
         return self._buffered_channels[station_id][channel_id]
-        
-        
+
+
     def __get_devices(self, station_id):
         if station_id not in self._buffered_stations.keys():
             self._buffer(station_id)
         return self._buffered_devices[station_id]
-        
+
     def __get_device(self, station_id, device_id):
         if station_id not in self._buffered_stations.keys():
             self._buffer(station_id)
@@ -334,7 +333,7 @@ class DetectorBase(object):
             self._buffered_devices[station_id][device['device_id']] = device
             self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
             self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
-        
+
 
     def __buffer_position(self, position_id):
         self.__buffered_positions[position_id] = self.__query_position(position_id)
@@ -412,6 +411,7 @@ class DetectorBase(object):
             self.__current_time = astropy.time.Time(time)
         else:
             self.__current_time = time
+
         logger.info("updating detector time to {}".format(self.__current_time))
         if not ((self.__current_time > self.__valid_t0) and (self.__current_time < self.__valid_t1)):
             self._buffered_stations = {}
@@ -441,8 +441,8 @@ class DetectorBase(object):
         dict of channel parameters
         """
         return self.__get_channel(station_id, channel_id)
-        
-        
+
+
     def get_device(self, station_id, device_id):
         """
         returns a dictionary of all device parameters
@@ -531,11 +531,14 @@ class DetectorBase(object):
         -------
         3-dim array of relative station position
         """
-        if mode == 'channel': res = self.__get_channel(station_id, channel_id)
-        elif mode == 'device': res = self.__get_device(station_id, channel_id)
-        else: 
+        if mode == 'channel':
+            res = self.__get_channel(station_id, channel_id)
+        elif mode == 'device':
+            res = self.__get_device(station_id, channel_id)
+        else:
             logger.error("Mode {} does not exist. Use 'channel' or 'device'".format(mode))
             raise NameError
+
         return np.array([res['ant_position_x'], res['ant_position_y'], res['ant_position_z']])
 
     def get_site(self, station_id):
@@ -640,10 +643,10 @@ class DetectorBase(object):
                             if np.sum(mask):
                                 parallel_antennas.append(channel_ids[mask])
         return np.array(parallel_antennas)
-        
-        
-        
-        
+
+
+
+
     def get_number_of_devices(self, station_id):
         """
         Get the number of devices per station
@@ -973,7 +976,7 @@ class DetectorBase(object):
         stage: string (default 'amp')
             specifies the stage of reconstruction you want the noise RMS for,
             `stage` can be one of
-            
+
              * 'raw' (raw measured trace)
              * 'amp' (after the amp was deconvolved)
              * 'filt' (after the trace was highpass with 100MHz
