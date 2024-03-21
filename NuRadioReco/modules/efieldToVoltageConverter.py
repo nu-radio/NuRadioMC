@@ -91,7 +91,7 @@ class efieldToVoltageConverter():
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
     @register_run()
-    def run(self, evt, station, det):
+    def run(self, evt, station, det, channel_ids=None):
         t = time.time()
 
         # access simulated efield and high level parameters
@@ -104,7 +104,9 @@ class efieldToVoltageConverter():
         # for different cable delays
         times_min = []
         times_max = []
-        for iCh in det.get_channel_ids(sim_station_id):
+        if channel_ids is None:
+            channel_ids = det.get_channel_ids(sim_station_id)
+        for iCh in channel_ids:
             for electric_field in sim_station.get_electric_fields_for_channels([iCh]):
                 time_resolution = 1. / electric_field.get_sampling_rate()
                 cab_delay = det.get_cable_delay(sim_station_id, iCh)
@@ -143,7 +145,7 @@ class efieldToVoltageConverter():
         self.logger.debug("smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(times_min.min(), times_max.max(), trace_length_samples, trace_length / units.ns))
 
         # loop over all channels
-        for channel_id in det.get_channel_ids(station.get_id()):
+        for channel_id in channel_ids:
 
             # one channel might contain multiple channels to store the signals from multiple ray paths,
             # so we loop over all simulated channels with the same id,

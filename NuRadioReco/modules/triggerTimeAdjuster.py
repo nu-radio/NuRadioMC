@@ -93,6 +93,9 @@ class triggerTimeAdjuster:
                 store_pre_trigger_time = {} # we also want to save the used pre_trigger_time
                 for channel in station.iter_channels():
                     trigger_time_channel = trigger_time - channel.get_trace_start_time()
+                    if trigger_time_channel == 0:
+                        logger.warning(f"the trigger time is equal to the trace start time for channel {channel.get_id()}. This is likely because this module was already run on this station. The trace will not be changed.")
+                        continue
 
                     trace = channel.get_trace()
                     trace_length = len(trace)
@@ -129,11 +132,11 @@ class triggerTimeAdjuster:
                         samples_before_trigger = int(pre_trigger_time * sampling_rate)
                         rel_station_time_samples = 0
                         cut_samples_beginning = 0
-                        if(samples_before_trigger < trigger_time_sample):
+                        if(samples_before_trigger <= trigger_time_sample):
                             cut_samples_beginning = trigger_time_sample - samples_before_trigger
                             roll_by = 0
                             if(cut_samples_beginning + number_of_samples > trace_length):
-                                logger.info("trigger time is sample {} but total trace length is only {} samples (requested trace length is {} with an offest of {} before trigger). To achieve desired configuration, trace will be rolled".format(
+                                logger.warning("trigger time is sample {} but total trace length is only {} samples (requested trace length is {} with an offest of {} before trigger). To achieve desired configuration, trace will be rolled".format(
                                     trigger_time_sample, trace_length, number_of_samples, samples_before_trigger))
                                 roll_by = cut_samples_beginning + number_of_samples - trace_length  # roll_by is positive
                                 trace = np.roll(trace, -1 * roll_by)
@@ -141,14 +144,13 @@ class triggerTimeAdjuster:
                             rel_station_time_samples = cut_samples_beginning + roll_by
                         elif(samples_before_trigger > trigger_time_sample):
                             roll_by = -trigger_time_sample + samples_before_trigger
-                            logger.info(
+                            logger.warning(
                                 "trigger time is before 'trigger offset window', the trace needs to be rolled by {} samples first".format(roll_by))
                             trace = np.roll(trace, roll_by)
                             trigger_time_sample -= roll_by
                             rel_station_time_samples = -roll_by
 
                         # shift trace to be in the correct location for cutting
-                        # logger.debug(f"cutting trace to {cut_samples_beginning}-{number_of_samples + cut_samples_beginning} samples")
                         trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
                         channel.set_trace(trace, channel.get_sampling_rate())
                         channel.set_trace_start_time(trigger_time)
