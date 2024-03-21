@@ -21,6 +21,7 @@ can then iterate over a channel group, which yields all channels for a given gro
 - Added LOFAR modules for reading data, removing RFI, beamforming and fitting the arrival direction
 - Added functionality to remove Channel from Station
 - Added LOFAR antenna pattern and function to parse TXT simulation file
+- Added utility functions to correct for noise, gain, position and magnification based on refractive index
 
 bugfixes:
 
