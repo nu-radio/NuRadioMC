@@ -29,6 +29,7 @@ import NuRadioReco.modules.efieldToVoltageConverterPerEfield
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
+import NuRadioReco.modules.triggerTimeAdjuster
 from NuRadioReco.detector import detector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
@@ -59,6 +60,7 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
+triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 
 def merge_config(user, default):
     """
@@ -509,7 +511,8 @@ def apply_det_response(evt, det, config,
                         integrated_channel_response=None,
                         noiseless_channels=None,
                         detector_simulation_part2=None,
-                        time_logger=None):
+                        time_logger=None,
+                        channel_ids=None):
     """
     Apply the detector response to the simulated electric field, i.e., the voltage traces
     seen by the readout system. This function combines all electric fields (from different showers and
@@ -543,6 +546,10 @@ def apply_det_response(evt, det, config,
     detector_simulation_part2: function (optional)
         this function gives the user the full flexibility to implement all processing
         arguments to the function are (event, station, detector)
+    time_logger: time_logger object
+        the time logger to be used for the simulation
+    channel_ids: list of ints
+        the channel ids for which the detector response should be calculated. If None, all channels are used.
 
     Returns nothing. The Channels are added to the Station object.
     """
@@ -558,16 +565,15 @@ def apply_det_response(evt, det, config,
     else:
         dt = 1. / (config['sampling_rate'] * units.GHz)
         # start detector simulation
-        efieldToVoltageConverter.run(evt, station, det)  # convolve efield with antenna pattern
+        efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)  # convolve efield with antenna pattern
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
         # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
         channelResampler.run(evt, station, det, sampling_rate=1. / dt)
 
         if add_noise:
             max_freq = 0.5 / dt
-            channel_ids = det.get_channel_ids(station.get_id())
             Vrms = {}
-            for channel_id in channel_ids:
+            for channel_id in det.get_channel_ids(station.get_id()):
                 norm = integrated_channel_response[station.get_id()][channel_id]
                 Vrms[channel_id] = Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
             channelGenericNoiseAdder.run(evt, station, det, amplitude=Vrms, min_freq=0 * units.MHz,
@@ -1469,7 +1475,8 @@ class simulation:
                                        bool(self._config['noise']),
                                        self._Vrms_efield_per_channel, self._integrated_channel_response,
                                        self._noiseless_channels, 
-                                       time_logger=self.__time_logger)  # TODO: Add option to pass fully custon detector simulation
+                                       time_logger=self.__time_logger,
+                                       channel_ids=channel_ids)  # TODO: Add option to pass fully custon detector simulation
 
                     # calculate trigger
                     self.__time_logger.start_time("trigger")
@@ -1478,6 +1485,7 @@ class simulation:
                     self.__time_logger.stop_time("trigger")
                     if not evt.get_station().has_triggered():
                         continue
+                    triggerTimeAdjuster.run(evt, station, self._det)
                     evt_group_triggered = True
                     channelSignalReconstructor.run(evt, station, self._det)
                     # save RMS and bandwidth to channel object
@@ -1506,6 +1514,55 @@ class simulation:
                             eventWriter.run(evt, mode=output_mode)
                     remove_all_traces(evt)  # remove all traces to save memory
                     output_buffer[sid][evt.get_id()] = evt
+                # end event loop
+                # now simulate non-trigger channels
+                # we loop through all non-trigger channels and simulate the electric fields for all showers. 
+                # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
+                non_trigger_channels = list(set(self._det.get_channel_ids(sid)) - set(channel_ids))
+                for iCh, channel_id in enumerate(non_trigger_channels):
+                    if particle_mode:
+                        sim_station = calculate_sim_efield(showers=event_group.get_sim_showers(),
+                                                        sid=sid, cid=channel_id,
+                                                        det=self._det, propagator=self._propagator, medium=self._ice,
+                                                        config=self._config,
+                                                        time_logger=self.__time_logger,
+                                                        min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id],
+                                                        distance_cut=self._get_distance_cut)
+                    else:
+                        sim_station = calculate_sim_efield_for_emitter(emitters=event_group.get_sim_emitters(),
+                                            sid=sid, cid=channel_id,
+                                            det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
+                                            rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
+                                            min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id],
+                                            time_logger=self.__time_logger)
+                    # skip to next channel if the efield is below the speed cut
+                    if len(sim_station.get_electric_fields()) == 0:
+                        logger.info(f"Eventgroup {event_group.get_run_number()} Station {sid} channel {channel_id:02d} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
+                        continue
+
+                    # applies the detector response to the electric fields (the antennas are defined
+                    # in the json detector description file)
+                    apply_det_response_sim(sim_station, self._det, self._config, self._detector_simulation_filter_amp,
+                                           event_time=self._evt_time, time_logger=self.__time_logger)
+                    logger.debug(f"adding sim_station to station {sid} for event group {event_group.get_run_number()}, channel {channel_id}")
+                    station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
+                    for evt in output_buffer[sid].values():
+                        # add sim channel based on timing TODO
+                        # 
+                        pass
+                # # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
+                # for evt in events:
+                #     station = evt.get_station()
+                #     # TODO: This function is not appropriate. Rather just combine sim channels of channel together
+                #     # and add noise. 
+                #     apply_det_response(evt, self._det, self._config, self._detector_simulation_filter_amp,
+                #                        bool(self._config['noise']),
+                #                        self._Vrms_efield_per_channel, self._integrated_channel_response,
+                #                        self._noiseless_channels, 
+                #                        time_logger=self.__time_logger,
+                #                        channel_ids=non_trigger_channels)  # TODO: Add option to pass fully custon detector simulation
+
+
                 if(evt_group_triggered):
                     self._output_writer_hdf5.add_event_group(output_buffer)
 
