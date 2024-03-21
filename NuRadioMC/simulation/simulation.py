@@ -1519,48 +1519,50 @@ class simulation:
                 # we loop through all non-trigger channels and simulate the electric fields for all showers. 
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(sid)) - set(channel_ids))
-                for iCh, channel_id in enumerate(non_trigger_channels):
-                    if particle_mode:
-                        sim_station = calculate_sim_efield(showers=event_group.get_sim_showers(),
-                                                        sid=sid, cid=channel_id,
-                                                        det=self._det, propagator=self._propagator, medium=self._ice,
-                                                        config=self._config,
-                                                        time_logger=self.__time_logger,
-                                                        min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id],
-                                                        distance_cut=self._get_distance_cut)
-                    else:
-                        sim_station = calculate_sim_efield_for_emitter(emitters=event_group.get_sim_emitters(),
-                                            sid=sid, cid=channel_id,
-                                            det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
-                                            rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
-                                            min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id],
-                                            time_logger=self.__time_logger)
-                    # skip to next channel if the efield is below the speed cut
-                    if len(sim_station.get_electric_fields()) == 0:
-                        logger.info(f"Eventgroup {event_group.get_run_number()} Station {sid} channel {channel_id:02d} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
-                        continue
+                if (len(non_trigger_channels) > 0):
+                    logger.status(f"Simulating non-trigger channels for station {sid}")
+                    for iCh, channel_id in enumerate(non_trigger_channels):
+                        if particle_mode:
+                            sim_station = calculate_sim_efield(showers=event_group.get_sim_showers(),
+                                                            sid=sid, cid=channel_id,
+                                                            det=self._det, propagator=self._propagator, medium=self._ice,
+                                                            config=self._config,
+                                                            time_logger=self.__time_logger,
+                                                            min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id],
+                                                            distance_cut=self._get_distance_cut)
+                        else:
+                            sim_station = calculate_sim_efield_for_emitter(emitters=event_group.get_sim_emitters(),
+                                                sid=sid, cid=channel_id,
+                                                det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
+                                                rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
+                                                min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[sid][channel_id],
+                                                time_logger=self.__time_logger)
+                        # skip to next channel if the efield is below the speed cut
+                        if len(sim_station.get_electric_fields()) == 0:
+                            logger.info(f"Eventgroup {event_group.get_run_number()} Station {sid} channel {channel_id:02d} has {len(sim_station.get_electric_fields())} efields, skipping to next channel")
+                            continue
 
-                    # applies the detector response to the electric fields (the antennas are defined
-                    # in the json detector description file)
-                    apply_det_response_sim(sim_station, self._det, self._config, self._detector_simulation_filter_amp,
-                                           event_time=self._evt_time, time_logger=self.__time_logger)
-                    logger.debug(f"adding sim_station to station {sid} for event group {event_group.get_run_number()}, channel {channel_id}")
-                    station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
-                    for evt in output_buffer[sid].values():
-                        # add sim channel based on timing TODO
-                        # 
-                        pass
-                # # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
-                # for evt in events:
-                #     station = evt.get_station()
-                #     # TODO: This function is not appropriate. Rather just combine sim channels of channel together
-                #     # and add noise. 
-                #     apply_det_response(evt, self._det, self._config, self._detector_simulation_filter_amp,
-                #                        bool(self._config['noise']),
-                #                        self._Vrms_efield_per_channel, self._integrated_channel_response,
-                #                        self._noiseless_channels, 
-                #                        time_logger=self.__time_logger,
-                #                        channel_ids=non_trigger_channels)  # TODO: Add option to pass fully custon detector simulation
+                        # applies the detector response to the electric fields (the antennas are defined
+                        # in the json detector description file)
+                        apply_det_response_sim(sim_station, self._det, self._config, self._detector_simulation_filter_amp,
+                                            event_time=self._evt_time, time_logger=self.__time_logger)
+                        logger.debug(f"adding sim_station to station {sid} for event group {event_group.get_run_number()}, channel {channel_id}")
+                        station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
+                        for evt in output_buffer[sid].values():
+                            # add sim channel based on timing TODO
+                            # 
+                            pass
+                    # # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
+                    # for evt in events:
+                    #     station = evt.get_station()
+                    #     # TODO: This function is not appropriate. Rather just combine sim channels of channel together
+                    #     # and add noise. 
+                    #     apply_det_response(evt, self._det, self._config, self._detector_simulation_filter_amp,
+                    #                        bool(self._config['noise']),
+                    #                        self._Vrms_efield_per_channel, self._integrated_channel_response,
+                    #                        self._noiseless_channels, 
+                    #                        time_logger=self.__time_logger,
+                    #                        channel_ids=non_trigger_channels)  # TODO: Add option to pass fully custon detector simulation
 
 
                 if(evt_group_triggered):

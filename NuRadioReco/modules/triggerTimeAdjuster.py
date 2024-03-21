@@ -72,6 +72,16 @@ class triggerTimeAdjuster:
             only this trigger is considered.
         
         """
+        counter = 0
+        for i, (name, instance, kwargs) in enumerate(event.iter_modules(station.get_id())):
+            if name == 'triggerTimeAdjuster':
+                if(kwargs['mode'] == mode):
+                    counter += 1
+        if counter > 1:
+            logger.warning('triggerTimeAdjuster was called twice with the same mode. This is likely a mistake. The module will not be applied again.')
+            return 0
+
+
         if mode == 'sim_to_data':
             trigger = None
             if self.__trigger_name is not None:
@@ -93,9 +103,9 @@ class triggerTimeAdjuster:
                 store_pre_trigger_time = {} # we also want to save the used pre_trigger_time
                 for channel in station.iter_channels():
                     trigger_time_channel = trigger_time - channel.get_trace_start_time()
-                    if trigger_time_channel == 0:
-                        logger.warning(f"the trigger time is equal to the trace start time for channel {channel.get_id()}. This is likely because this module was already run on this station. The trace will not be changed.")
-                        continue
+                    # if trigger_time_channel == 0:
+                    #     logger.warning(f"the trigger time is equal to the trace start time for channel {channel.get_id()}. This is likely because this module was already run on this station. The trace will not be changed.")
+                    #     continue
 
                     trace = channel.get_trace()
                     trace_length = len(trace)
@@ -144,8 +154,9 @@ class triggerTimeAdjuster:
                             rel_station_time_samples = cut_samples_beginning + roll_by
                         elif(samples_before_trigger > trigger_time_sample):
                             roll_by = -trigger_time_sample + samples_before_trigger
-                            logger.warning(
-                                "trigger time is before 'trigger offset window', the trace needs to be rolled by {} samples first".format(roll_by))
+                            logger.warning(f"trigger time is before 'trigger offset window' (requested samples before trigger = {samples_before_trigger}," \
+                                           f"trigger time sample = {trigger_time_sample}), the trace needs to be rolled by {roll_by} samples first" \
+                                            f" = {roll_by / sampling_rate/units.ns:.2f}ns")
                             trace = np.roll(trace, roll_by)
                             trigger_time_sample -= roll_by
                             rel_station_time_samples = -roll_by
