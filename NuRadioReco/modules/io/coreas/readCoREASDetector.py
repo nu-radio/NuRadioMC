@@ -6,6 +6,7 @@ import h5py
 import numpy as np
 from radiotools import coordinatesystems as cstrafo
 import cr_pulse_interpolator.signal_interpolation_fourier
+import cr_pulse_interpolator.interpolation_fourier
 import matplotlib.pyplot as plt
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.event
@@ -36,6 +37,8 @@ def get_efield_times(efield, sampling_rate):
     ----------
     efield: array (n_samples, n_polarizations)
     """
+    if efield is None:
+        return None
     efield_times = np.arange(0, len(efield[:,0])) / sampling_rate
     return efield_times
 
@@ -123,7 +126,7 @@ class readCoREASDetector:
         self.__interp_highfreq = None
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
-    def begin(self, input_file, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO, debug=False):
+    def begin(self, input_file, interp_efield=True, interp_fluence=True, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO, debug=False):
             
         """
         begin method
@@ -139,6 +142,8 @@ class readCoREASDetector:
         """
         self.__input_file = input_file
         self.__corsika = h5py.File(input_file, "r")
+        self.__interp_efield = interp_efield
+        self.__interp_fluence = interp_fluence
         self.__interp_lowfreq = interp_lowfreq
         self.__interp_highfreq = interp_highfreq
         self.__sampling_rate = 1. / (self.__corsika['CoREAS'].attrs['TimeResolution'] * units.second)
@@ -191,27 +196,38 @@ class readCoREASDetector:
             plt.show()
             plt.close()
 
-        # consturct interpolator object for air shower efield in shower plane
-        self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
-            obs_positions_vBvvB[:, 0],
-            obs_positions_vBvvB[:, 1],
-            electric_field_r_theta_phi,
-            lowfreq=self.__interp_lowfreq/units.MHz,
-            highfreq=self.__interp_highfreq/units.MHz,
-            sampling_period=coreas_dt/units.s,
-            phase_method="phasor",
-            radial_method='cubic',
-            upsample_factor=5,
-            coherency_cutoff_threshold=0.9,
-            ignore_cutoff_freq_in_timing=False,
-            verbose=False
-        )
+        if self.__interp_efield:
+            logging.info(f'initilize electric field interpolator with lowfreq {self.__interp_lowfreq/units.MHz} MHz and highfreq {self.__interp_highfreq/units.MHz} MHz')
+            self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
+                obs_positions_vBvvB[:, 0],
+                obs_positions_vBvvB[:, 1],
+                electric_field_r_theta_phi,
+                lowfreq=self.__interp_lowfreq/units.MHz,
+                highfreq=self.__interp_highfreq/units.MHz,
+                sampling_period=coreas_dt/units.s,
+                phase_method="phasor",
+                radial_method='cubic',
+                upsample_factor=5,
+                coherency_cutoff_threshold=0.9,
+                ignore_cutoff_freq_in_timing=False,
+                verbose=False
+            )
+
+        if self.__interp_fluence:
+            logging.info(f'initilize fluence interpolator')
+            self.fluence_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
+                obs_positions_vBvvB[:, 0],
+                obs_positions_vBvvB[:, 1],
+                electric_field_r_theta_phi,
+                fill_value="extrapolate"  # THIS OPTION IS UNUSED  IN fluinterp.interp2d_fourier.__init__
+            )
 
         self.empty_efield = np.zeros_like(electric_field_r_theta_phi[0,:,:])
 
-    def get_interpolated_efield(self, position, core):
+    def get_interpolated_value(self, position, core, kind):
         """
-        Accesses the interpolated electric field at the position of the detector on ground. Set pulse_centered to True to
+        Accesses the interpolated electric field given the position of the detector on ground. For the interpolation, the pulse will be
+        projected in the shower plane for geometrical resonst. Set pulse_centered to True to
         shift all pulses to the center of the trace and account for the physical time delay of the signal.
         """
         antenna_position = position
@@ -227,8 +243,9 @@ class readCoREASDetector:
         # interpolate electric field at antenna position in shower plane which are inside star pattern
         if dcore_vBvvB > self.star_radius:
             efield_interp = self.empty_efield
-            logging.info(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f}, set efield to zero')
-        else:
+            fluence_interp = 0
+            logging.info(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f}, set efield and fluence to zero')
+        elif kind == 'efield':
             efield_interp = self.efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1],
                                                 lowfreq=self.__interp_lowfreq/units.MHz,
                                                 highfreq=self.__interp_highfreq/units.MHz,
@@ -237,10 +254,16 @@ class readCoREASDetector:
                                                 pulse_centered=True,
                                                 const_time_offset=20.0e-9,
                                                 full_output=False)
-
-        return efield_interp
-
-
+        elif kind == 'fluence':
+            fluence_interp = self.fluence_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1])
+        else:
+            raise ValueError(f'kind {kind} not supported, please choose between efield and fluence')
+    
+        if kind == 'efield':
+            return efield_interp
+        elif kind == 'fluence':
+            return fluence_interp
+        
     @register_run()
     def run(self, detector, core_position_list=[], selected_station_ids=[], selected_channel_ids=[]):
         """
@@ -289,11 +312,18 @@ class readCoREASDetector:
                     for ch_g_ids in channel_ids_dict.keys():
                         antenna_position_rel = detector.get_relative_position(station_id, ch_g_ids)
                         antenna_position = det_station_position + antenna_position_rel
-                        res_efield = self.get_interpolated_efield(antenna_position, core)
-                        smooth_res_efield = apply_hanning(res_efield)
-                        efield_times = get_efield_times(smooth_res_efield, self.__sampling_rate)
+                        if self.__interp_efield:
+                            res_efield = self.get_interpolated_value(antenna_position, core, kind='efield')
+                            smooth_res_efield = apply_hanning(res_efield)
+                            if smooth_res_efield is None:
+                                smooth_res_efield = self.empty_efield
+                            efield_times = get_efield_times(smooth_res_efield, self.__sampling_rate)
+                        if self.__interp_fluence:
+                            res_fluence = self.get_interpolated_value(antenna_position, core, kind='fluence')
+                        else:
+                            res_fluence = None
                         channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
-                        coreas.add_electric_field(sim_station, channel_ids_for_group_id, smooth_res_efield.T, efield_times, self.__corsika)
+                        coreas.add_electric_field(sim_station, channel_ids_for_group_id, smooth_res_efield.T, efield_times, self.__corsika, fluence=res_fluence)
                     station.set_sim_station(sim_station)
                     evt.set_station(station)
                     t_event_structure = time.time()

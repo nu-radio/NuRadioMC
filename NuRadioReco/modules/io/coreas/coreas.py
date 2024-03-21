@@ -101,7 +101,8 @@ def coreas_observer_to_nuradio_efield(corsika, out_dir=None, save_dict=False):
         dic['efield'] = electric_field
         dic['sampling_rates'] =  1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
 
-        outfile = 'coreas' + hdf5_file.split(".")[0] + '.pickle'
+        run_nr = corsika['inputs'].attrs['RUNNR']
+        outfile = f'coreas_SIM_{run_nr:06}_efield.pickle'
 
         with open(os.path.join(out_dir, outfile), 'wb') as pickle_out:
             pickle.dump(dic, pickle_out)
@@ -152,7 +153,8 @@ def coreas_observer_to_nuradio_positions(corsika, out_dir=None, save_dict=False)
         dic['obs_positions_geo'] = obs_positions_geo
         dic['obs_positions_vBvvB'] = obs_positions_vBvvB
 
-        outfile = 'coreas' + hdf5_file.split(".")[0] + '.pickle'
+        run_nr = corsika['inputs'].attrs['RUNNR']
+        outfile = f'coreas_SIM_{run_nr:06}_pos.pickle'
 
         with open(os.path.join(out_dir, outfile), 'wb') as pickle_out:
             pickle.dump(dic, pickle_out)
@@ -263,7 +265,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
 
     return weights
 
-def make_sim_station(station_id, corsika, observer, channel_ids, weight=None, observer_in_nuradio_units=False):
+def make_sim_station(station_id, corsika, observer, channel_ids, fluence=None, weight=None, observer_in_nuradio_units=False):
     """
     creates an NuRadioReco sim station with the same (interpolated) observer object of the coreas hdf5 file
     for all channel ids.
@@ -325,7 +327,7 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None, ob
     elif observer_in_nuradio_units and observer is not None:
         efield = observer[1:, :]
         efield_times = observer[0, :]
-
+    
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
     sim_station.set_parameter(stnp.azimuth, azimuth)
@@ -352,11 +354,13 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None, ob
         electric_field.set_parameter(efp.ray_path_type, 'direct')
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
+        if fluence is not None:
+            electric_field.set_parameter(efp.signal_energy_fluence, fluence)
         sim_station.add_electric_field(electric_field)
    
     return sim_station
 
-def add_electric_field(sim_station, channel_ids, efield, efield_times, corsika):
+def add_electric_field(sim_station, channel_ids, efield, efield_times, corsika, fluence=None):
     """
     adds an electric field trace to an existing sim station
 
@@ -385,6 +389,8 @@ def add_electric_field(sim_station, channel_ids, efield, efield_times, corsika):
     electric_field.set_parameter(efp.ray_path_type, 'direct')
     electric_field.set_parameter(efp.zenith, zenith)
     electric_field.set_parameter(efp.azimuth, azimuth)
+    if fluence is not None:
+        electric_field.set_parameter(efp.signal_energy_fluence, fluence)
     sim_station.add_electric_field(electric_field)
 
 def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
