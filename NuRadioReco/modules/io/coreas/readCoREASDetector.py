@@ -119,7 +119,6 @@ class readCoREASDetector:
         self.__t_event_structure = 0
         self.__t_per_event = 0
         self.__input_file = None
-        self.__random_generator = None
         self.__interp_lowfreq = None
         self.__interp_highfreq = None
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
@@ -134,9 +133,9 @@ class readCoREASDetector:
         input_files: input files
             list of coreas hdf5 files
         interp_lowfreq: float (default = 30)
-            lower frequency for the bandpass filter in interpolation
+            lower frequency for the bandpass filter in interpolation, should be broader than the sensetivity band of the detector
         interp_highfreq: float (default = 1000)
-            higher frequency for the bandpass filter in interpolation
+            higher frequency for the bandpass filter in interpolation,  should be broader than the sensetivity band of the detector
         """
         self.__input_file = input_file
         self.__corsika = h5py.File(input_file, "r")
@@ -281,13 +280,11 @@ class readCoREASDetector:
                 evt.add_shower(rd_shower)
                 for station_id in selected_station_ids:
                     station = NuRadioReco.framework.station.Station(station_id)
-                    sim_station = coreas.make_empty_sim_station(station_id, self.__corsika)
+                    sim_station = coreas.make_sim_station(station_id, self.__corsika, observer=None, channel_ids=None) # create empty station
                     det_station_position = detector.get_absolute_position(station_id)
                     channel_ids_in_station = detector.get_channel_ids(station_id)
-
                     if len(selected_channel_ids) == 0:
                         selected_channel_ids = channel_ids_in_station
-
                     channel_ids_dict = select_channels_per_station(detector, station_id, selected_channel_ids)
                     for ch_g_ids in channel_ids_dict.keys():
                         antenna_position_rel = detector.get_relative_position(station_id, ch_g_ids)
@@ -303,6 +300,7 @@ class readCoREASDetector:
 
                 self.__t += time.time() - t
                 yield evt
+            self.__corsika.close()
 
     def end(self):
         self.logger.setLevel(logging.INFO)
