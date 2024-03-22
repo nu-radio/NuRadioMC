@@ -49,6 +49,9 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def add_channel(self, channel):
         self.__channels[channel.get_id()] = channel
 
+    def has_channel(self, channel_id):
+        return channel_id in self.__channels
+
     def set_reference_reconstruction(self, reference):
         if reference not in ['RD', 'MC']:
             import sys

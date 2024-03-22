@@ -44,6 +44,19 @@ class triggerTimeAdjuster:
         self.__pre_trigger_time = pre_trigger_time
         self.__sampling_rate_warning_issued = False
 
+    def get_pre_trigger_times(self, channel_id=None):
+        """
+        Returns the pre_trigger_time for the given channel_id.
+
+        If no channel_id is given, the pre_trigger_time for all channels is returned.
+        """
+        if channel_id is not None:
+            if isinstance(self.__pre_trigger_time, dict):
+                return self.__pre_trigger_time[channel_id]
+            else:
+                return self.__pre_trigger_time
+        return self.__pre_trigger_time
+
     @register_run()
     def run(self, event, station, detector, mode='sim_to_data'):
         """
