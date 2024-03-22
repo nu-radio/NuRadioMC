@@ -563,7 +563,7 @@ def apply_det_response(evt, det, config,
     if detector_simulation_part2 is not None:
         detector_simulation_part2(evt, station, det)
     else:
-        dt = 1. / (config['sampling_rate'] * units.GHz)
+        dt = 1. / (config['sampling_rate'])
         # start detector simulation
         efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)  # convolve efield with antenna pattern
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
@@ -1487,32 +1487,6 @@ class simulation:
                         continue
                     triggerTimeAdjuster.run(evt, station, self._det)
                     evt_group_triggered = True
-                    channelSignalReconstructor.run(evt, station, self._det)
-                    # save RMS and bandwidth to channel object
-                    evt.set_generator_info(genattrs.Vrms, self._Vrms)
-                    evt.set_generator_info(genattrs.dt, 1. / self._config['sampling_rate'])
-                    evt.set_generator_info(genattrs.Tnoise, self._noise_temp)
-                    evt.set_generator_info(genattrs.bandwidth, next(iter(next(iter(self._integrated_channel_response.values())).values())))
-                    for channel in station.iter_channels():
-                        channel[chp.Vrms_NuRadioMC_simulation] = self._Vrms_per_channel[sid][channel.get_id()]
-                        channel[chp.bandwidth_NuRadioMC_simulation] = self._integrated_channel_response[sid][channel.get_id()]
-
-                    if self._outputfilenameNuRadioReco is not None:
-                        # downsample traces to detector sampling rate to save file size
-                        sampling_rate_detector = self._det.get_sampling_frequency(sid, self._det.get_channel_ids(sid)[0])
-                        channelResampler.run(evt, station, self._det, sampling_rate=sampling_rate_detector)
-                        channelResampler.run(evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
-                        electricFieldResampler.run(evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
-
-                        output_mode = {'Channels': self._config['output']['channel_traces'],
-                                       'ElectricFields': self._config['output']['electric_field_traces'],
-                                       'SimChannels': self._config['output']['sim_channel_traces'],
-                                       'SimElectricFields': self._config['output']['sim_electric_field_traces']}
-                        if self.__write_detector:
-                            eventWriter.run(evt, self._det, mode=output_mode)
-                        else:
-                            eventWriter.run(evt, mode=output_mode)
-                    remove_all_traces(evt)  # remove all traces to save memory
                     output_buffer[sid][evt.get_id()] = evt
                 # end event loop
                 # now simulate non-trigger channels
@@ -1549,22 +1523,80 @@ class simulation:
                         logger.debug(f"adding sim_station to station {sid} for event group {event_group.get_run_number()}, channel {channel_id}")
                         station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
                         for evt in output_buffer[sid].values():
-                            # add sim channel based on timing TODO
-                            # 
-                            pass
-                    # # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
-                    # for evt in events:
-                    #     station = evt.get_station()
-                    #     # TODO: This function is not appropriate. Rather just combine sim channels of channel together
-                    #     # and add noise. 
-                    #     apply_det_response(evt, self._det, self._config, self._detector_simulation_filter_amp,
-                    #                        bool(self._config['noise']),
-                    #                        self._Vrms_efield_per_channel, self._integrated_channel_response,
-                    #                        self._noiseless_channels, 
-                    #                        time_logger=self.__time_logger,
-                    #                        channel_ids=non_trigger_channels)  # TODO: Add option to pass fully custon detector simulation
+                            trace_start_time = evt.get_station().get_channel(channel_ids[0]).get_trace_start_time()
+                            # determine the trigger that was used to determine the readout window
+                            trigger_name = None
+                            trigger_time = None
+                            pre_trigger_time = None
+                            for trigger in evt.get_station().get_triggers().values():
+                                if trigger.get_pre_trigger_times() is not None:
+                                    pre_trigger_time = trigger.get_pre_trigger_times()
+                                    trigger_time = trigger.get_trigger_time()
+                                    trigger_name = trigger.get_name()
+                                    break
 
+                            assert(trigger_time is not None)
+                            assert(trigger_name is not None)
+                            assert(trace_start_time == trigger_time)
 
+                            for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
+                                tt = sim_channel.get_times()
+                                t0 = tt[0]
+                                t1 = tt[-1]
+                                pre_trigger_time = triggerTimeAdjuster.get_pre_trigger_times(sim_channel.get_id())
+                                t0_readout = trigger_time - pre_trigger_time
+                                t1_readout = t0_readout + self._det.get_number_of_samples(sid, sim_channel.get_id()) * self._det.get_sampling_frequency(sid, sim_channel.get_id())
+
+                                # determine if the two intervals have any overlap
+                                if max(t0, t0_readout) < min(t1, t1_readout):
+                                    if(station.has_channel(sim_channel.get_id())):
+                                        channel = station.get_channel(sim_channel.get_id())
+                                        channel += sim_channel
+                                    else:
+                                        station.add_channel(sim_channel)
+              
+
+                for evt in output_buffer[sid].values():
+                    # the only thing left is to add noise to the non-trigger traces
+                    # we need to do it a bit differently than for the trigger traces, because we need to add noise to traces where the amplifier response
+                    # was already applied to. 
+                    if bool(self._config['noise']):
+                        dt = 1. / (self._config['sampling_rate'])
+                        max_freq = 0.5 / dt
+                        Vrms = {}
+                        for channel_id in non_trigger_channels:
+                            norm = self._integrated_channel_response[station.get_id()][channel_id]
+                            Vrms[channel_id] = self._Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
+                        # channelGenericNoiseAdder.run(evt, station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
+                        #                                 max_freq=max_freq, type='rayleigh',
+                        #                                 excluded_channels=self._noiseless_channels[station.get_id()])
+                        # TODO: generate noise for the filter function of that channel
+                    channelSignalReconstructor.run(evt, station, self._det)
+                    # save RMS and bandwidth to channel object
+                    evt.set_generator_info(genattrs.Vrms, self._Vrms)
+                    evt.set_generator_info(genattrs.dt, 1. / self._config['sampling_rate'])
+                    evt.set_generator_info(genattrs.Tnoise, self._noise_temp)
+                    evt.set_generator_info(genattrs.bandwidth, next(iter(next(iter(self._integrated_channel_response.values())).values())))
+                    for channel in station.iter_channels():
+                        channel[chp.Vrms_NuRadioMC_simulation] = self._Vrms_per_channel[sid][channel.get_id()]
+                        channel[chp.bandwidth_NuRadioMC_simulation] = self._integrated_channel_response[sid][channel.get_id()]
+
+                    if self._outputfilenameNuRadioReco is not None:
+                        # downsample traces to detector sampling rate to save file size
+                        sampling_rate_detector = self._det.get_sampling_frequency(sid, self._det.get_channel_ids(sid)[0])
+                        channelResampler.run(evt, station, self._det, sampling_rate=sampling_rate_detector)
+                        channelResampler.run(evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
+                        electricFieldResampler.run(evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
+
+                        output_mode = {'Channels': self._config['output']['channel_traces'],
+                                       'ElectricFields': self._config['output']['electric_field_traces'],
+                                       'SimChannels': self._config['output']['sim_channel_traces'],
+                                       'SimElectricFields': self._config['output']['sim_electric_field_traces']}
+                        if self.__write_detector:
+                            eventWriter.run(evt, self._det, mode=output_mode)
+                        else:
+                            eventWriter.run(evt, mode=output_mode)
+                    remove_all_traces(evt)  # remove all traces to save memory
                 if(evt_group_triggered):
                     self._output_writer_hdf5.add_event_group(output_buffer)
 
