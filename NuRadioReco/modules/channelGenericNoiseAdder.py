@@ -299,6 +299,60 @@ class channelGenericNoiseAdder:
         else:
             return noise
 
+        
+    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude = None, type='perfect_white',
+                          time_domain=True):
+        """
+        Generating noise of n_samples in a bandwidth [min_freq,max_freq].
+
+        Parameters
+        ----------
+        n_samples: int
+            number of samples in the time domain
+        sampling_rate: float
+            desired sampling rate of data
+        spectrum: numpy.ndarray, function
+            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function 
+            that takes the frequencies as an argument and returns the amplitudes. The overall normalization
+            of the spectrum is ignored if the paramter "amplitude" is set.
+        amplitude: float, optional
+            desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the 
+            power of the spectrum.
+        type: string
+            perfect_white: flat frequency spectrum
+            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            # white: flat frequency spectrum with random jitter
+        time_domain: bool (default True)
+            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
+            might be more performant as the noise is generated internally in the frequency domain.
+        """
+        frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
+        n_samples_freq = len(frequencies)
+
+        if callable(spectrum):
+            spectrum = spectrum(frequencies)
+
+        if amplitude is not None:
+            power = np.sum(spectrum**2)
+            sigscale = (1. * n_samples) / np.sqrt(power)
+        elif amplitude is None:
+            amplitude = np.sqrt(n_samples)
+            sigscale = 1
+
+        if type == 'perfect_white':
+            ampl = amplitude * sigscale * spectrum
+        elif type == 'rayleigh':
+            fsigma = amplitude * sigscale / np.sqrt(2.)
+            ampl = self.__random_generator.rayleigh(fsigma, n_samples_freq) * spectrum
+        else:
+            self.logger.error("Other types of noise not yet implemented.")
+            raise NotImplementedError("Other types of noise not yet implemented.")
+
+        noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+        if(time_domain):
+            return fft.freq2time(noise, sampling_rate, n=n_samples)
+        else:
+            return noise
 
     def __init__(self):
         self.__debug = None
