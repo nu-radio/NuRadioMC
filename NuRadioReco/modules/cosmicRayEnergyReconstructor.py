@@ -36,12 +36,17 @@ class cosmicRayEnergyReconstructor:
             'auger': {
                 'scale': np.array([(229.96, -123.75, 110.51), (214.46, -111.01, 119.18)]),
                 'falloff': np.array([(-.1445, -.09820), (.5936, -1.1763)])
+            },
+            'summit': {
+                'scale': np.array([[ 281.34, -551.65,  610.25],[ 411.01, -590.02,  570.2 ]]),
+                'falloff': np.array([[-0.2285,  0.4058], [ 2.0967, -1.2992]])
             }
         }
         self.__elevations = {  # TODO: This should be changed once we have implemented a proper coordinate system
             'mooresbay': 30.,
             'southpole': 2800.,
-            'auger': 1560.
+            'auger': 1560.,
+            'summit': 3216.
         }
         self.__site = None
         self.__parametrization_for_site = None
