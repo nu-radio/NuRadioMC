@@ -39,8 +39,8 @@ class cosmicRayEnergyReconstructor:
                 'falloff': np.array([(-.1445, -.09820), (.5936, -1.1763)])
             },
             'summit': {
-                'scale': np.array([[ 281.34, -551.65,  610.25],[ 411.01, -590.02,  570.2 ]]),
-                'falloff': np.array([[-0.2285,  0.4058], [ 2.0967, -1.2992]])
+                'scale': np.array([[ 610.25, -551.65,  281.34], [ 570.2 , -590.02,  411.01]]),
+                'falloff': np.array([[ 0.4058, -0.2285], [-1.2992,  2.0967]])
             }
         }
         self.__elevations = {  # TODO: This should be changed once we have implemented a proper coordinate system
