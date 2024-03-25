@@ -6,7 +6,7 @@ import logging
 import re
 
 logging.basicConfig()
-logger = logging.getLogger(name="Make_docs")
+logger = logging.getLogger(name="documentation.make_docs")
 logger.setLevel(logging.INFO)
 
 # we do some error classification, because we don't want to fail on all errors
@@ -55,10 +55,12 @@ if __name__ == "__main__":
             " Useful if you are only modifying or adding (not moving/removing) pages.")
     )
     argparser.add_argument(
-        '--debug', default=False, const=True, action='store_const',
+        '--debug', '-v', default=0, action='count',
         help="Store full debugging output in make_docs.log."
         )
     parsed_args = argparser.parse_args()
+
+    pipe_stdout = subprocess.PIPE # by default, hide the stdout, unless we want LOTS of debugging
     if parsed_args.debug: # set up the logger to also write output to make_docs.log
         logfile = 'make_docs.log'
         with open(logfile, 'w') as file:
@@ -66,9 +68,8 @@ if __name__ == "__main__":
         file_logger = logging.FileHandler(logfile)
         file_logger.setLevel(logger.getEffectiveLevel())
         logger.addHandler(file_logger)
-        pipe_stdout = None
-    else:
-        pipe_stdout = subprocess.PIPE # hide the stdout
+        if parsed_args.debug > 1:
+            pipe_stdout = None
 
     doc_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(doc_path)
@@ -111,7 +112,9 @@ if __name__ == "__main__":
     if not parsed_args.no_clean:
         logger.info('Removing old \'build\' directory...')
         subprocess.check_output(['make', 'clean'])
+    logger.info('Building documentation. This may take a while...')
     sphinx_log = subprocess.run(['make', 'html'], stderr=subprocess.PIPE, stdout=pipe_stdout)
+    logger.info('Finished building documentation.')
 
     # we write out all the sphinx errors to sphinx-debug.log, and parse these
     with open('sphinx-debug.log') as f:

@@ -37,6 +37,7 @@ jobs:
           python install_dev.py --install --dev documentation proposal --no-interactive
           export PYTHONPATH=$PWD:$PYTHONPATH
           echo $PYTHONPATH
+          NuRadioMC/SignalProp/install.sh
 
       - name: Debugging
         run: |
@@ -59,7 +60,7 @@ jobs:
         run: |
           export PYTHONPATH=$(pwd):$PYTHONPATH
           cd documentation/
-          python make_docs.py
+          python make_docs.py --debug
 
       - name: No Jekyll
         if: ${{ github.ref == 'refs/heads/develop'}}
