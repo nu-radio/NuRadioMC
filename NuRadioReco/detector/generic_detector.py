@@ -94,6 +94,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
                 # json when updating the table to include reference_station/channel/device
                 with open(json_filename, "r") as json_input:
                     dictionary = json.load(json_input)
+
             super(GenericDetector, self).__init__(source="dictionary", json_filename=None,
                                                   dictionary=dictionary, assume_inf=assume_inf,
                                                   antenna_by_depth=antenna_by_depth)
@@ -153,6 +154,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
                                              (Device.station_id == dev["station_id"]) & (
                                                      Device.device_id == dev["device_id"]))
             self.__default_station = default_station
+
         # TODO maybe these dicts/lists can be omitted
         # a lookup with one reference station for each station in the detector description
         self.__lookuptable_reference_station = {}
