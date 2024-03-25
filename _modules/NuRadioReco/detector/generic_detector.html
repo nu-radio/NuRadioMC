@@ -678,6 +678,7 @@
                 <span class="c1"># json when updating the table to include reference_station/channel/device</span>
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_input</span><span class="p">:</span>
                     <span class="n">dictionary</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_input</span><span class="p">)</span>
+
             <span class="nb">super</span><span class="p">(</span><span class="n">GenericDetector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;dictionary&quot;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                                   <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">assume_inf</span><span class="o">=</span><span class="n">assume_inf</span><span class="p">,</span>
                                                   <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">antenna_by_depth</span><span class="p">)</span>
@@ -737,6 +738,7 @@
                                              <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">dev</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span>
                                                      <span class="n">Device</span><span class="o">.</span><span class="n">device_id</span> <span class="o">==</span> <span class="n">dev</span><span class="p">[</span><span class="s2">&quot;device_id&quot;</span><span class="p">]))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span> <span class="o">=</span> <span class="n">default_station</span>
+
         <span class="c1"># TODO maybe these dicts/lists can be omitted</span>
         <span class="c1"># a lookup with one reference station for each station in the detector description</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__lookuptable_reference_station</span> <span class="o">=</span> <span class="p">{}</span>
