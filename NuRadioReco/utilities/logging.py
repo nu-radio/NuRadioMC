@@ -77,15 +77,10 @@ def setup_logger(name="NuRadioReco", level=None):
     """
     logger = logging.getLogger(name)
     logger.propagate = False
+    logger.setLevel(1)  # Logger should process all log events, and let the handlers choose which messages to output
 
     # First clear all the handlers
     logger.handlers = []
-
-    # Then add our custom handler to the logger
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
 
     # Add the STATUS log level
     try:
@@ -93,10 +88,17 @@ def setup_logger(name="NuRadioReco", level=None):
     except AttributeError:
         pass
 
-    # Set logging level
+    # Create a StreamHandler with correct level and format
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
+    handler.setFormatter(formatter)
+
     if level is not None:
-        logger.setLevel(level=level)
+        handler.setLevel(level=level)
     else:
-        logger.setLevel(logging.STATUS)
+        handler.setLevel(logging.STATUS)
+
+    # Then add our custom handler to the logger
+    logger.addHandler(handler)
 
     return logger
