@@ -1,0 +1,7 @@
+NuRadioReco.framework.sim\_emitter module
+=========================================
+
+.. automodule:: NuRadioReco.framework.sim_emitter
+   :members:
+   :undoc-members:
+   :show-inheritance:

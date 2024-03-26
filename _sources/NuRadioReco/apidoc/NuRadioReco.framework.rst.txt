@@ -17,6 +17,7 @@ Submodules
    NuRadioReco.framework.base_trace
    NuRadioReco.framework.channel
    NuRadioReco.framework.electric_field
+   NuRadioReco.framework.emitter
    NuRadioReco.framework.event
    NuRadioReco.framework.hybrid_information
    NuRadioReco.framework.hybrid_shower
@@ -25,6 +26,7 @@ Submodules
    NuRadioReco.framework.particle
    NuRadioReco.framework.radio_shower
    NuRadioReco.framework.sim_channel
+   NuRadioReco.framework.sim_emitter
    NuRadioReco.framework.sim_station
    NuRadioReco.framework.station
    NuRadioReco.framework.trigger

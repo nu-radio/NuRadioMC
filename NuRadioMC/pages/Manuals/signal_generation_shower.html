@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Signal Generation (electric field) &mdash; NuRadio 2.3.0-dev documentation</title>
+  <title>Signal Generation (from in-ice showers) &mdash; NuRadio 2.3.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
       <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
@@ -24,7 +24,7 @@
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Signal Propagation" href="signal_propagation.html" />
+    <link rel="next" title="Signal Generation (emitter)" href="signal_generation_emitter.html" />
     <link rel="prev" title="Event Generation" href="event_generation.html" /> 
 </head>
 
@@ -118,6 +118,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
@@ -256,6 +257,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -264,6 +266,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -502,13 +505,17 @@
 <li class="toctree-l4"><a class="reference internal" href="event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Signal Generation (electric field)</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Signal Generation (from in-ice showers)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#timing">Timing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="signal_propagation.html">Signal Propagation</a><ul>
@@ -539,6 +546,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="simulation_configuration.html">Simulation and configuration</a><ul>
@@ -577,9 +591,9 @@
       <li><a href="../../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../manuals.html">Manuals</a></li>
-      <li class="breadcrumb-item active">Signal Generation (electric field)</li>
+      <li class="breadcrumb-item active">Signal Generation (from in-ice showers)</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../../_sources/NuRadioMC/pages/Manuals/signal_generation.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../../_sources/NuRadioMC/pages/Manuals/signal_generation_shower.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -587,8 +601,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="signal-generation-electric-field">
-<h1>Signal Generation (electric field)<a class="headerlink" href="#signal-generation-electric-field" title="Permalink to this heading"></a></h1>
+  <section id="signal-generation-from-in-ice-showers">
+<h1>Signal Generation (from in-ice showers)<a class="headerlink" href="#signal-generation-from-in-ice-showers" title="Permalink to this heading"></a></h1>
 <p>One of the NuRadioMC pillars is the signal generation procedure. All the relevant modules for signal generation can be found in the SignalGen folder. NuRadioMC has two methods for generating the electric field. The first one is through the use of frequency-domain parameterisations, and the second one is the use of the semianalytical ARZ model. An more in-depth explanation of the models can be found in the <a class="reference external" href="https://link.springer.com/article/10.1140%2Fepjc%2Fs10052-020-7612-8">NuRadioMC paper</a>.</p>
 <section id="frequency-domain-parameterisations">
 <h2>Frequency-domain parameterisations<a class="headerlink" href="#frequency-domain-parameterisations" title="Permalink to this heading"></a></h2>
@@ -801,7 +815,7 @@ the numpy random seed can be fixed right before calling the  <code class="docuti
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="event_generation.html" class="btn btn-neutral float-left" title="Event Generation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="signal_propagation.html" class="btn btn-neutral float-right" title="Signal Propagation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="signal_generation_emitter.html" class="btn btn-neutral float-right" title="Signal Generation (emitter)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

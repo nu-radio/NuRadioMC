@@ -117,6 +117,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#trigger">Trigger</a></li>
@@ -255,6 +256,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -263,6 +265,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -501,13 +504,17 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
@@ -538,6 +545,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
@@ -739,6 +753,14 @@ used, respectrively.</p>
 They are the same class as <code class="docutils literal notranslate"><span class="pre">RadioShower</span></code>, but are stored separately to distinguish
 between simulated and reconstructed properties.</p>
 <p>It can be accessed by the <code class="docutils literal notranslate"><span class="pre">get_sim_showers</span></code> method of the <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a> class.</p>
+</section>
+<section id="simemitter">
+<h3>SimEmitter<a class="headerlink" href="#simemitter" title="Permalink to this heading"></a></h3>
+<p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter" title="NuRadioReco.framework.sim_emitter.SimEmitter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimEmitter</span></code></a> class is used to hold parameters of simulated emitters via the parameter storage.
+The concept is similar to the SimShower, but is used when NuRadioMC is used to simulate emitters (and)
+not particle showers.</p>
+<p>It can be accessed by the <code class="docutils literal notranslate"><span class="pre">get_sim_emitters</span></code> method of the <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a> class.
+We allow for multiple emitters per event analogous to the multiple showers per event.</p>
 </section>
 <section id="particle">
 <h3>Particle<a class="headerlink" href="#particle" title="Permalink to this heading"></a></h3>

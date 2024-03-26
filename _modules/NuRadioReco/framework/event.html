@@ -114,6 +114,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
@@ -252,6 +253,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -260,6 +262,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -498,13 +501,17 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
@@ -535,6 +542,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
@@ -586,6 +600,8 @@
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.station</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.radio_shower</span>
+<span class="kn">import</span> <span class="nn">NuRadioReco.framework.emitter</span>
+<span class="kn">import</span> <span class="nn">NuRadioReco.framework.sim_emitter</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.hybrid_information</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.particle</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="k">as</span> <span class="nn">parameters</span>
@@ -605,6 +621,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__radio_showers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sim_showers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__particles</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span> <span class="c1"># stores a dictionary of simulated MC particles in an event</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># copies over the relevant information on event generation from the input file attributes</span>
@@ -1000,6 +1017,69 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sim_showers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
 
+<div class="viewcode-block" id="Event.add_sim_emitter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.add_sim_emitter">[docs]</a>    <span class="k">def</span> <span class="nf">add_sim_emitter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_emitter</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a simulated emitter to the event</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sim_emitter: SimEmitter object</span>
+<span class="sd">            The emitter to be added to the event</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sim_emitter</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">sim_emitter</span><span class="o">.</span><span class="n">SimEmitter</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;emitter needs to be of type NuRadioReco.framework.sim_emitter.SimEmitter but is of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">sim_emitter</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">sim_emitter</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;sim emitter with id </span><span class="si">{</span><span class="n">sim_emitter</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> already exists. Emitter id needs to be unique per event&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;sim emitter with id </span><span class="si">{</span><span class="n">sim_emitter</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> already exists. Emitter id needs to be unique per event&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="p">[</span><span class="n">sim_emitter</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">sim_emitter</span></div>
+
+<div class="viewcode-block" id="Event.get_sim_emitters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_sim_emitters">[docs]</a>    <span class="k">def</span> <span class="nf">get_sim_emitters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an iterator over all simulated emitters in the event</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">emitter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">emitter</span></div>
+
+<div class="viewcode-block" id="Event.get_sim_emitter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_sim_emitter">[docs]</a>    <span class="k">def</span> <span class="nf">get_sim_emitter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emitter_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns a specific emitter identified by its unique id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">emitter_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;sim emitter with id </span><span class="si">{</span><span class="n">emitter_id</span><span class="si">}</span><span class="s2"> not present&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="p">[</span><span class="n">emitter_id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Event.get_first_sim_emitter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_first_sim_emitter">[docs]</a>    <span class="k">def</span> <span class="nf">get_first_sim_emitter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns only the first sim emitter stored in the event. Useful in cases</span>
+<span class="sd">        when there is only one emitter in the event.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_ids: list of integers</span>
+<span class="sd">            A list of station IDs. The first emitter that is associated with</span>
+<span class="sd">            all stations in the list is returned</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">emitter_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="p">[</span><span class="n">emitter_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">emitter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">emitter</span><span class="o">.</span><span class="n">has_station_ids</span><span class="p">(</span><span class="n">ids</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">emitter</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Event.has_sim_emitter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_sim_emitter">[docs]</a>    <span class="k">def</span> <span class="nf">has_sim_emitter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emitter_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if at least one simulated emitter is stored in the event</span>
+
+<span class="sd">        If emitter_id is given, it checks if this particular emitter exists</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">emitter_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">emitter_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
 <div class="viewcode-block" id="Event.get_hybrid_information"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_hybrid_information">[docs]</a>    <span class="k">def</span> <span class="nf">get_hybrid_information</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get information about hybrid detector data stored in the event.</span>
@@ -1020,6 +1100,7 @@
 
         <span class="n">showers_pkl</span> <span class="o">=</span> <span class="p">[</span><span class="n">shower</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span> <span class="k">for</span> <span class="n">shower</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_showers</span><span class="p">()]</span>
         <span class="n">sim_showers_pkl</span> <span class="o">=</span> <span class="p">[</span><span class="n">shower</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span> <span class="k">for</span> <span class="n">shower</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_showers</span><span class="p">()]</span>
+        <span class="n">sim_emitters_pkl</span> <span class="o">=</span> <span class="p">[</span><span class="n">emitter</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span> <span class="k">for</span> <span class="n">emitter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_emitters</span><span class="p">()]</span>
         <span class="n">particles_pkl</span> <span class="o">=</span> <span class="p">[</span><span class="n">particle</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span> <span class="k">for</span> <span class="n">particle</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_particles</span><span class="p">()]</span>
 
         <span class="n">hybrid_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_information</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
@@ -1047,6 +1128,7 @@
                 <span class="s1">&#39;stations&#39;</span><span class="p">:</span> <span class="n">stations_pkl</span><span class="p">,</span>
                 <span class="s1">&#39;showers&#39;</span><span class="p">:</span> <span class="n">showers_pkl</span><span class="p">,</span>
                 <span class="s1">&#39;sim_showers&#39;</span><span class="p">:</span> <span class="n">sim_showers_pkl</span><span class="p">,</span>
+                <span class="s1">&#39;sim_emitters&#39;</span><span class="p">:</span> <span class="n">sim_emitters_pkl</span><span class="p">,</span>
                 <span class="s1">&#39;particles&#39;</span><span class="p">:</span> <span class="n">particles_pkl</span><span class="p">,</span>
                 <span class="s1">&#39;hybrid_info&#39;</span><span class="p">:</span> <span class="n">hybrid_info</span><span class="p">,</span>
                 <span class="s1">&#39;generator_info&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span><span class="p">,</span>
@@ -1072,6 +1154,11 @@
                 <span class="n">shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">radio_shower</span><span class="o">.</span><span class="n">RadioShower</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
                 <span class="n">shower</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">shower_pkl</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_sim_shower</span><span class="p">(</span><span class="n">shower</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;sim_emitters&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">emmitter_pkl</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sim_emitters&#39;</span><span class="p">]:</span>
+                <span class="n">emitter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">sim_emitter</span><span class="o">.</span><span class="n">SimEmitter</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">emitter</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">emmitter_pkl</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_sim_emitter</span><span class="p">(</span><span class="n">emitter</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;particles&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">particle_pkl</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;particles&#39;</span><span class="p">]:</span>
                 <span class="n">particle</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Particle</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>

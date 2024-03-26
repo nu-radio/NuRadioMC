@@ -114,6 +114,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
@@ -252,6 +253,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -260,6 +262,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -498,13 +501,17 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
@@ -535,6 +542,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
@@ -585,10 +599,15 @@
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">h5py</span>
 <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">import</span> <span class="nn">NuRadioReco.framework.base_trace</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;SignalGen.emitter&quot;</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span><span class="o">,</span> <span class="nn">lzma</span>
+
+<span class="n">buffer_emitter_model</span> <span class="o">=</span> <span class="p">{}</span>
 
 
 <div class="viewcode-block" id="get_time_trace"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.emitter.html#NuRadioMC.SignalGen.emitter.get_time_trace">[docs]</a><span class="k">def</span> <span class="nf">get_time_trace</span><span class="p">(</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -611,6 +630,10 @@
 <span class="sd">        time bin width, i.e. the inverse of the sampling rate</span>
 <span class="sd">    model: string</span>
 <span class="sd">        specifies the signal model</span>
+<span class="sd">        If the model string starts with &quot;efield_&quot;, the function provides the three dimensional electric field emitted</span>
+<span class="sd">        by the pulser/antena combination normalized to a distance of 1m.</span>
+<span class="sd">        If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain</span>
+<span class="sd">        the emitted electric field. This is automatically done in a NuRadioMC simulation).</span>
 
 <span class="sd">        * delta_pulse: a simple signal model of a delta pulse emitter</span>
 <span class="sd">        * cw : a sinusoidal wave of given frequency</span>
@@ -619,30 +642,59 @@
 <span class="sd">        * idl1 &amp; hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files</span>
 <span class="sd">        * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum</span>
 <span class="sd">        * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02</span>
+<span class="sd">        * efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE</span>
+<span class="sd">          calibration campaigns from 2018 and 2019.</span>
+<span class="sd">          The `launch_vector` needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,</span>
+<span class="sd">          doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.</span>
+<span class="sd">          the `amplitude` is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an </span>
+<span class="sd">          amplitude of 10 will return 10 times the measured efield amplitude, etc.</span>
+<span class="sd">          Use kwarg `iN` to select a specific pulse from the 10 available pulses. The default is a random selection.</span>
+<span class="sd">        * efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg `polarization` needs</span>
+<span class="sd">          to be specified to select the polarization of the efield, defined as float between 0 and 1 with</span>
+<span class="sd">          0 = eTheta polarized and 1 = ePhi polarized. The default is 0.5, i.e. unpolarized. The amplitudes are</span>
+<span class="sd">          set to preserve the total power of the delta pulse, i.e. A_theta = sqrt(1-polarization)</span>
+<span class="sd">          and A_phi = sqrt(polarization).</span>
+
 <span class="sd">    full_output: bool (default False)</span>
 <span class="sd">        if True, can return additional output</span>
 
+<span class="sd">    kwargs: dict</span>
+<span class="sd">        specifies needed parameters for certain emitters.</span>
+
+<span class="sd">        * emitter_frequency: Frequency of the emitted pulse.</span>
+<span class="sd">        * half_width: Half width of the emitted pulse.</span>
+<span class="sd">        * launch_vector: Launch vector of the emitted pulse.</span>
+<span class="sd">        * polarization: Polarization of the emitted pulse.</span>
+<span class="sd">        * iN: Index of the measured pulse used for the propagation</span>
+<span class="sd">        * rnd: Random number generator used to select a pulse form.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    time trace: 2d array, shape (3, N)</span>
-<span class="sd">        the amplitudes for each time bin</span>
+<span class="sd">    time trace: 1d or 2d array, shape (N) or (3, N) for efield</span>
+<span class="sd">        the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</span>
 <span class="sd">    additional information: dict</span>
 <span class="sd">        only available if `full_output` enabled</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">half_width</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;half_width&quot;</span><span class="p">)</span>
-    <span class="n">emitter_frequency</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;emitter_frequency&quot;</span><span class="p">)</span>
     <span class="n">trace</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">additional_output</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span><span class="p">(</span><span class="n">amplitude</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;efield_&quot;</span><span class="p">)):</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
     <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;delta_pulse&#39;</span><span class="p">):</span>  <span class="c1"># this takes delta signal as input voltage</span>
         <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
         <span class="n">trace</span><span class="p">[</span><span class="n">N</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">amplitude</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;cw&#39;</span><span class="p">):</span>  <span class="c1"># generates a sine wave of given frequency</span>
+        <span class="k">if</span> <span class="s1">&#39;emitter_frequency&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;emitter_frequency has to be passed as a parameter&quot;</span><span class="p">)</span>
         <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span><span class="p">,</span> <span class="p">((</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
-        <span class="n">trace</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">emitter_frequency</span> <span class="o">*</span> <span class="n">time</span><span class="p">)</span>
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;emitter_frequency&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">time</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;square&#39;</span> <span class="ow">or</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;tone_burst&#39;</span><span class="p">):</span>  <span class="c1"># generates a rectangular or tone_burst signal of given width and frequency</span>
+        <span class="k">if</span> <span class="s1">&#39;half_width&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;half_width has to be passed as a parameter&quot;</span><span class="p">)</span>
+        <span class="n">half_width</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;half_width&quot;</span><span class="p">)</span>
         <span class="k">if</span><span class="p">(</span><span class="n">half_width</span> <span class="o">&gt;</span> <span class="nb">int</span><span class="p">(</span><span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot; half_width </span><span class="si">{}</span><span class="s2"> should be &lt; half of the number of samples N &quot;</span> <span class="o">.</span> <span class="nb">format</span><span class="p">(</span><span class="n">half_width</span><span class="p">))</span>
         <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span><span class="p">,</span> <span class="p">((</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
@@ -653,10 +705,14 @@
         <span class="k">if</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;square&#39;</span><span class="p">):</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">voltage</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">trace</span> <span class="o">=</span> <span class="n">voltage</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">emitter_frequency</span> <span class="o">*</span> <span class="n">time</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;emitter_frequency&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;emitter_frequency has to be passed as a parameter&quot;</span><span class="p">)</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">voltage</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;emitter_frequency&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">time</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;gaussian&#39;</span><span class="p">):</span>  <span class="c1"># generates gaussian pulse where half_width represents the half width at half maximum</span>
+        <span class="k">if</span> <span class="s1">&#39;half_width&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;half_width has to be passed as a parameter&quot;</span><span class="p">)</span>
         <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span><span class="p">,</span> <span class="p">((</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
-        <span class="n">sigma</span> <span class="o">=</span> <span class="n">half_width</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;half_width&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
         <span class="n">trace</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">sigma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">time</span> <span class="o">-</span> <span class="mi">500</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">trace</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span> <span class="o">*</span> <span class="n">trace</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;idl1&#39;</span> <span class="ow">or</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;hvsp1&#39;</span> <span class="ow">or</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;ARA02_calPulser&#39;</span><span class="p">):</span>  <span class="c1"># the idl1 &amp; hvsp1 waveforms gemerated in KU Lab stored in hdf5 file</span>
@@ -689,6 +745,95 @@
         <span class="n">trace</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">trace</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span>  <span class="c1"># trace now has dimension of amplitude given from event generation file</span>
         <span class="n">peak_amplitude_index_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">)))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">peak_amplitude_index_new</span><span class="p">)</span>  <span class="c1"># this rolls the array(trace) to keep peak amplitude at center</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;efield_delta_pulse&#39;</span><span class="p">):</span>  <span class="c1"># this takes delta signal as input voltage</span>
+        <span class="k">if</span> <span class="s1">&#39;polarization&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;polarization has to be passed as a parameter&quot;</span><span class="p">)</span>
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+        <span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;polarization&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">amplitude</span>
+        <span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;polarization&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">amplitude</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;efield_idl1_spice&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;launch_vector&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;launch_vector has to be passed as a parameter&quot;</span><span class="p">)</span>
+        <span class="n">launch_zenith</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span><span class="o">*</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;launch_vector&quot;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">buffer_emitter_model</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+            <span class="n">SPice_pulses</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="s2">&quot;SignalProp/examples/birefringence_examples/extra_files/SPice_pulses.xz&quot;</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="n">lzma</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">SPice_pulses</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">buffer_emitter_model</span><span class="p">[</span><span class="n">model</span><span class="p">]</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">launch_keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">buffer_emitter_model</span><span class="p">[</span><span class="n">model</span><span class="p">][</span><span class="s1">&#39;efields&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">launch_angles</span> <span class="o">=</span> <span class="n">launch_keys</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+
+        <span class="n">launch_angle</span> <span class="o">=</span> <span class="n">launch_keys</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">launch_angles</span> <span class="o">-</span> <span class="n">launch_zenith</span><span class="p">))]</span>
+        <span class="n">n_pulses</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">buffer_emitter_model</span><span class="p">[</span><span class="n">model</span><span class="p">][</span><span class="s1">&#39;efields&#39;</span><span class="p">][</span><span class="n">launch_angle</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="s2">&quot;iN&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">iN</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;iN&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">iN</span> <span class="o">&gt;=</span> <span class="n">n_pulses</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;the selected pulse iN </span><span class="si">{</span><span class="n">iN</span><span class="si">}</span><span class="s2"> is out of range. Only </span><span class="si">{</span><span class="n">n_pulses</span><span class="si">}</span><span class="s2"> different pulses are available&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;rnd&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">iN</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;rnd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_pulses</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">iN</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_pulses</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no random number generator provided, using np.random.randint to select pulse </span><span class="si">{</span><span class="n">iN</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">n_pulses</span><span class="si">}</span><span class="s2"> available pulses. This might not be reproducible.&quot;</span><span class="p">)</span>
+
+        <span class="n">additional_output</span><span class="p">[</span><span class="s1">&#39;iN&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">iN</span>
+
+        <span class="n">spice_pulse</span> <span class="o">=</span> <span class="n">buffer_emitter_model</span><span class="p">[</span><span class="n">model</span><span class="p">][</span><span class="s1">&#39;efields&#39;</span><span class="p">][</span><span class="n">launch_angle</span><span class="p">][</span><span class="n">iN</span><span class="p">]</span>
+
+        <span class="n">voltage_original_theta</span> <span class="o">=</span> <span class="n">spice_pulse</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">voltage_original_phi</span> <span class="o">=</span> <span class="n">spice_pulse</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sampling_rate_tmp</span> <span class="o">=</span> <span class="n">buffer_emitter_model</span><span class="p">[</span><span class="n">model</span><span class="p">][</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">]</span>
+
+        <span class="n">btrace</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">electric_field</span><span class="o">.</span><span class="n">ElectricField</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">shower_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ray_tracing_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">btrace</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">voltage_original_theta</span><span class="p">),</span> <span class="n">voltage_original_theta</span><span class="p">,</span> <span class="n">voltage_original_phi</span><span class="p">]),</span> <span class="n">sampling_rate_tmp</span><span class="p">)</span>
+        <span class="n">btrace</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">dt</span><span class="p">)</span>  <span class="c1"># this resamples the trace to have 1/dt sampling rate</span>
+
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">btrace</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">N</span><span class="p">:</span>
+            <span class="n">peak_amplitude_index_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">])))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">peak_amplitude_index_theta</span><span class="p">)</span>
+            <span class="n">lower_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">final_theta</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">lower_index</span><span class="p">:</span> <span class="n">lower_index</span> <span class="o">+</span> <span class="n">N</span><span class="p">]</span>  <span class="c1"># this truncate data making trace lenght of N</span>
+        <span class="c1"># for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">add_zeros</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">N</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">adjustment</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">N</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">adjustment</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">final_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="n">add_zeros</span> <span class="o">+</span> <span class="n">adjustment</span><span class="p">,</span> <span class="n">add_zeros</span><span class="p">),</span> <span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">N</span><span class="p">:</span>
+            <span class="n">peak_amplitude_index_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">])))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">peak_amplitude_index_phi</span><span class="p">)</span>
+            <span class="n">lower_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">final_phi</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">lower_index</span><span class="p">:</span> <span class="n">lower_index</span> <span class="o">+</span> <span class="n">N</span><span class="p">]</span>  <span class="c1"># this truncate data making trace lenght of N</span>
+        <span class="c1"># for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">add_zeros</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">N</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">adjustment</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">N</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">adjustment</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">final_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">(</span><span class="n">add_zeros</span> <span class="o">+</span> <span class="n">adjustment</span><span class="p">,</span> <span class="n">add_zeros</span><span class="p">),</span> <span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="c1">#trace_theta = amplitude * trace_theta / np.max(np.abs(trace_theta))  # trace now has dimension of amplitude given from event generation file</span>
+        <span class="n">peak_amplitude_index_theta_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">final_theta</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">final_theta</span><span class="p">)))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">final_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">final_theta</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">peak_amplitude_index_theta_new</span><span class="p">)</span>
+
+        <span class="c1">#trace_phi = amplitude * trace_phi / np.max(np.abs(trace_phi))  # trace now has dimension of amplitude given from event generation file</span>
+        <span class="n">peak_amplitude_index_phi_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">final_phi</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">final_phi</span><span class="p">)))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">final_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">final_phi</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">N</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">peak_amplitude_index_phi_new</span><span class="p">)</span>
+
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="n">N</span><span class="p">))</span>
+        <span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">final_theta</span> <span class="o">*</span> <span class="n">amplitude</span>
+        <span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">final_phi</span> <span class="o">*</span> <span class="n">amplitude</span>
+
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;model </span><span class="si">{}</span><span class="s2"> unknown&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
     <span class="k">if</span><span class="p">(</span><span class="n">full_output</span><span class="p">):</span>
@@ -703,7 +848,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    amplitude : float</span>
+<span class="sd">    amplitude : float </span>
 <span class="sd">        strength of a pulse</span>
 <span class="sd">    N : int</span>
 <span class="sd">        number of samples in the time domain</span>
@@ -711,6 +856,10 @@
 <span class="sd">        time bin width, i.e. the inverse of the sampling rate</span>
 <span class="sd">    model: string</span>
 <span class="sd">        specifies the signal model</span>
+<span class="sd">        If the model string starts with &quot;efield_&quot;, the function provides the three dimensional electric field emitted</span>
+<span class="sd">        by the pulser/antena combination normalized to a distance of 1m. </span>
+<span class="sd">        If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain</span>
+<span class="sd">        the emitted electric field. This is automatically done in a NuRadioMC simulation).  </span>
 
 <span class="sd">        * delta_pulse: a simple signal model of a delta pulse emitter</span>
 <span class="sd">        * cw : a sinusoidal wave of given frequency</span>
@@ -722,13 +871,22 @@
 <span class="sd">    full_output: bool (default False)</span>
 <span class="sd">        if True, can return additional output</span>
 
+<span class="sd">    kwargs: dict</span>
+<span class="sd">        specifies needed parameters for certain emitters.</span>
+
+<span class="sd">        * emitter_frequency: Frequency of the emitted pulse.</span>
+<span class="sd">        * half_width: Half width of the emitted pulse.</span>
+<span class="sd">        * launch_vector: Launch vector of the emitted pulse.</span>
+<span class="sd">        * polarization: Polarization of the emitted pulse.</span>
+<span class="sd">        * iN: Index of the measured pulse used for the propagation</span>
+<span class="sd">        * rnd: Random number generator used to select a pulse form.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    time trace: 2d array, shape (3, N)</span>
-<span class="sd">        the amplitudes for each time bin</span>
+<span class="sd">    time trace: 1d or 2d array, shape (N) or (3, N) for efield</span>
+<span class="sd">        the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</span>
 <span class="sd">    additional information: dict</span>
 <span class="sd">        only available if `full_output` enabled</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">tmp</span> <span class="o">=</span> <span class="n">get_time_trace</span><span class="p">(</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="n">full_output</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span><span class="p">(</span><span class="n">full_output</span><span class="p">):</span>

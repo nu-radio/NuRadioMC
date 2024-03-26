@@ -24,7 +24,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="NuRadioReco.framework.hybrid_information module" href="NuRadioReco.framework.hybrid_information.html" />
-    <link rel="prev" title="NuRadioReco.framework.electric_field module" href="NuRadioReco.framework.electric_field.html" /> 
+    <link rel="prev" title="NuRadioReco.framework.emitter module" href="NuRadioReco.framework.emitter.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -117,6 +117,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#trigger">Trigger</a></li>
@@ -255,6 +256,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -263,6 +265,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -501,13 +504,17 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
@@ -538,6 +545,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
@@ -602,11 +616,17 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_shower" title="NuRadioReco.framework.event.Event.add_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_shower</span></code></a>(shower)</p></td>
 <td><p>Adds a radio shower to the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_sim_shower" title="NuRadioReco.framework.event.Event.add_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sim_shower</span></code></a>(sim_shower)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_sim_emitter" title="NuRadioReco.framework.event.Event.add_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sim_emitter</span></code></a>(sim_emitter)</p></td>
+<td><p>Add a simulated emitter to the event</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_sim_shower" title="NuRadioReco.framework.event.Event.add_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sim_shower</span></code></a>(sim_shower)</p></td>
 <td><p>Add a simulated shower to the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_shower" title="NuRadioReco.framework.event.Event.get_first_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_shower</span></code></a>([ids])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_shower" title="NuRadioReco.framework.event.Event.get_first_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_shower</span></code></a>([ids])</p></td>
 <td><p>Returns only the first shower stored in the event.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_emitter" title="NuRadioReco.framework.event.Event.get_first_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_emitter</span></code></a>([ids])</p></td>
+<td><p>Returns only the first sim emitter stored in the event.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_shower" title="NuRadioReco.framework.event.Event.get_first_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_shower</span></code></a>([ids])</p></td>
 <td><p>Returns only the first sim shower stored in the event.</p></td>
@@ -635,6 +655,12 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_showers" title="NuRadioReco.framework.event.Event.get_showers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_showers</span></code></a>([ids])</p></td>
 <td><p>Returns an iterator over the showers stored in the event</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_emitter" title="NuRadioReco.framework.event.Event.get_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_emitter</span></code></a>(emitter_id)</p></td>
+<td><p>returns a specific emitter identified by its unique id</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_emitters" title="NuRadioReco.framework.event.Event.get_sim_emitters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_emitters</span></code></a>()</p></td>
+<td><p>Get an iterator over all simulated emitters in the event</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_shower" title="NuRadioReco.framework.event.Event.get_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_shower</span></code></a>(shower_id)</p></td>
 <td><p>returns a specific shower identified by its unique id</p></td>
 </tr>
@@ -650,19 +676,22 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_shower" title="NuRadioReco.framework.event.Event.has_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_shower</span></code></a>([shower_id])</p></td>
 <td><p>Returns true if at least one shower is stored in the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="NuRadioReco.framework.event.Event.has_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_shower</span></code></a>([shower_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_emitter" title="NuRadioReco.framework.event.Event.has_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_emitter</span></code></a>([emitter_id])</p></td>
+<td><p>Returns true if at least one simulated emitter is stored in the event</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="NuRadioReco.framework.event.Event.has_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_shower</span></code></a>([shower_id])</p></td>
 <td><p>Returns true if at least one simulated shower is stored in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_triggered" title="NuRadioReco.framework.event.Event.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_triggered" title="NuRadioReco.framework.event.Event.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
 <td><p>Returns true if any station has been triggered.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
 <td><p>returns an interator that loops over all modules.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
 </tbody>
@@ -1035,6 +1064,55 @@ all stations in the list is returned</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.add_sim_emitter">
+<span class="sig-name descname"><span class="pre">add_sim_emitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_emitter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.add_sim_emitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.add_sim_emitter" title="Permalink to this definition"></a></dt>
+<dd><p>Add a simulated emitter to the event</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sim_emitter: SimEmitter object</strong></dt><dd><p>The emitter to be added to the event</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_sim_emitters">
+<span class="sig-name descname"><span class="pre">get_sim_emitters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_sim_emitters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_sim_emitters" title="Permalink to this definition"></a></dt>
+<dd><p>Get an iterator over all simulated emitters in the event</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_sim_emitter">
+<span class="sig-name descname"><span class="pre">get_sim_emitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emitter_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_sim_emitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_sim_emitter" title="Permalink to this definition"></a></dt>
+<dd><p>returns a specific emitter identified by its unique id</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_first_sim_emitter">
+<span class="sig-name descname"><span class="pre">get_first_sim_emitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_first_sim_emitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_first_sim_emitter" title="Permalink to this definition"></a></dt>
+<dd><p>Returns only the first sim emitter stored in the event. Useful in cases
+when there is only one emitter in the event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_ids: list of integers</strong></dt><dd><p>A list of station IDs. The first emitter that is associated with
+all stations in the list is returned</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.has_sim_emitter">
+<span class="sig-name descname"><span class="pre">has_sim_emitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emitter_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.has_sim_emitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_sim_emitter" title="Permalink to this definition"></a></dt>
+<dd><p>Returns true if at least one simulated emitter is stored in the event</p>
+<p>If emitter_id is given, it checks if this particular emitter exists</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_hybrid_information">
 <span class="sig-name descname"><span class="pre">get_hybrid_information</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_hybrid_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_hybrid_information" title="Permalink to this definition"></a></dt>
 <dd><p>Get information about hybrid detector data stored in the event.</p>
@@ -1058,7 +1136,7 @@ all stations in the list is returned</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.framework.electric_field.html" class="btn btn-neutral float-left" title="NuRadioReco.framework.electric_field module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.framework.emitter.html" class="btn btn-neutral float-left" title="NuRadioReco.framework.emitter module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="NuRadioReco.framework.hybrid_information.html" class="btn btn-neutral float-right" title="NuRadioReco.framework.hybrid_information module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

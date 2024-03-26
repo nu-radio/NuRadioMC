@@ -118,6 +118,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
@@ -256,6 +257,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -264,6 +266,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -502,13 +505,17 @@
 <li class="toctree-l4"><a class="reference internal" href="event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="signal_propagation.html">Signal Propagation</a><ul>
@@ -539,6 +546,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="simulation_configuration.html">Simulation and configuration</a><ul>
@@ -699,8 +713,8 @@
 <h3>Simple ice models<a class="headerlink" href="#simple-ice-models" title="Permalink to this heading"></a></h3>
 <p>In the table below we can find the different parameters for the simple ice refractive index models available in NuRadioMC.</p>
 <blockquote>
-<div><table class="docutils align-default" id="id1">
-<caption><span class="caption-text">Simple Ice Models</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
+<div><table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Simple Ice Models</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p><span class="math notranslate nohighlight">\(n_{ice}\)</span></p></th>
@@ -795,6 +809,90 @@
 </pre></div>
 </div>
 </div></blockquote>
+</section>
+<section id="birefringence-ice-models">
+<h2>Birefringence Ice Models<a class="headerlink" href="#birefringence-ice-models" title="Permalink to this heading"></a></h2>
+<p>Birefringence is an optional propagation setting in NuRadioMC which allows to simulate radio pulses propagating in anisotropic ice. The details about how the calculations in the propagation work can be found here <a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">(Heyer &amp; Glaser, 2023)</a>. When using birefringence several options exist about what birefringence-ice-model to propagate in and what propagation code should be used for the propagation.</p>
+<p>There are several example scripts available demonstrating all available (<code class="docutils literal notranslate"><span class="pre">NuRadioMC/SignalProp/examples/birefringence_examples</span></code>) functions when dealing with birefringent ice. Check read_me.txt for a more detailed description of the examples and data used.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Using this code assumes that the ice flow points in the positive x-direction. Therefore, a rotation of the detector geometry into this coordinate system might be necessary. This rotation can be done by either changing the source/antenna positions or by using the ‘angle_to_iceflow’ parameter in the config file.</p>
+</div>
+<section id="available-birefringence-ice-models">
+<h3>Available Birefringence Ice Models<a class="headerlink" href="#available-birefringence-ice-models" title="Permalink to this heading"></a></h3>
+<p>The anisotropy of the ice at the South Pole was published here: <a class="reference external" href="https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39">(Jordan et al., 2020)</a></p>
+<p>The anisotropy of the ice in Greenland was published here: <a class="reference external" href="https://arxiv.org/abs/2212.10285">(RNO-G, 2022)</a></p>
+<p>To use these ice models in NuRadioMC the measurement data was interpolated using splines. As the measurements don’t extend from the ice surface to bedrock or to account for measurement uncertainties, there is some freedom in how to interpolate the data. Different interpolations are indexed via capital letters, <code class="docutils literal notranslate"><span class="pre">A</span></code> always denoting the most reasonable interpolation. The files <code class="docutils literal notranslate"><span class="pre">NuRadioMC/utilities/birefringence_models/IceModel_interpolation_southpole.py</span></code> and <code class="docutils literal notranslate"><span class="pre">NuRadioMC/utilities/birefringence_models/IceModel_interpolation_greenland.py</span></code> can be used to adjust the interpolation method and come up with new ice models.</p>
+<blockquote>
+<div><table class="docutils align-default" id="id3">
+<caption><span class="caption-text">South Pole Birefringence Ice Models</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>southpole_A</p></td>
+<td><p>assumes a constant index of refraction at shallow and deep depths</p></td>
+</tr>
+<tr class="row-odd"><td><p>southpole_B</p></td>
+<td><p>assumes a converging index of refraction at shallow depths</p></td>
+</tr>
+<tr class="row-even"><td><p>southpole_C</p></td>
+<td><p>no birefringence as nx = ny = nz</p></td>
+</tr>
+<tr class="row-odd"><td><p>southpole_D</p></td>
+<td><p>assumes a constant average over all depths</p></td>
+</tr>
+<tr class="row-even"><td><p>southpole_E</p></td>
+<td><p>assumes ny and nz to be the same value at the average of the two</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Greenland Birefringence Ice Models</span><a class="headerlink" href="#id4" title="Permalink to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>greenland_A</p></td>
+<td><p>the most reasonable interpolation</p></td>
+</tr>
+<tr class="row-odd"><td><p>greenland_B</p></td>
+<td><p>assumes ny and nx to be the same value at the average of the two</p></td>
+</tr>
+<tr class="row-even"><td><p>greenland_C</p></td>
+<td><p>assumes ny and nx to diverge more than the data indicates</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+<section id="ice-flow-direction">
+<h3>Ice-Flow Direction<a class="headerlink" href="#ice-flow-direction" title="Permalink to this heading"></a></h3>
+<p>As birefringence acts in a very specific coordinate system defined by the flow of the ice, one has to be careful when defining source and antenna locations. The standard code assumes an ice flow in the x-direction. In NuRadioMC this corresponds to the east-direction. When defining a detector geometry in terms of northing and easting the angle between the ice-flow direction and the easting direction can be passed by using the <code class="docutils literal notranslate"><span class="pre">angle_to_iceflow</span></code> parameter in the config file. The angle is passed in degrees.</p>
+<p>For the South Pole this angle is measured to be -131 degrees with an uncertainty of 2 degrees <a class="reference external" href="https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39">(Jordan et al., 2020)</a>. For Greenland this angle is measured to be roughly 180 degrees <a class="reference external" href="https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2020GL088864">(Hawley et al., 2020)</a>.</p>
+</section>
+<section id="available-birefringence-propagation-options">
+<h3>Available Birefringence Propagation Options<a class="headerlink" href="#available-birefringence-propagation-options" title="Permalink to this heading"></a></h3>
+<p>There is an option to use RadioPropa <a class="reference external" href="https://github.com/nu-radio/RadioPropa/tree/birefrigence">(birefringence branch)</a>  to speed up the pulse propagation. If both the ray tracing and the birefringence pulse propagation should be handled by the analytical ray tracer, use <code class="docutils literal notranslate"><span class="pre">analytical</span></code> in the config file. If the ray tracing should be handled by the analytical ray tracer but the birefringence pulse propagation by RadioPropa, use <code class="docutils literal notranslate"><span class="pre">numerical</span></code> in the config file. There is also the option to handle everything in RadioPropa.</p>
+<p>Currently, the RadioPropa implementation of birefringence only supports the birefringence-ice-model <code class="docutils literal notranslate"><span class="pre">southpole_A</span></code>.</p>
+</section>
+<section id="id1">
+<h3>Using specific models<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p>Birefringence is an optional setting in a NuRadioMC simulation. To use it in a simulation the following lines should be added to the config file:</p>
+<blockquote>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">birefringence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">    </span><span class="nt">birefringence_propagation</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;analytical&#39;</span>
+<span class="w">    </span><span class="nt">birefringence_model</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;southpole_A&#39;</span>
+<span class="w">    </span><span class="nt">angle_to_iceflow</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-131</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
 </section>
 </section>
 

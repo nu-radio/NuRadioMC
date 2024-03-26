@@ -1,0 +1,7 @@
+NuRadioReco.framework.emitter module
+====================================
+
+.. automodule:: NuRadioReco.framework.emitter
+   :members:
+   :undoc-members:
+   :show-inheritance:

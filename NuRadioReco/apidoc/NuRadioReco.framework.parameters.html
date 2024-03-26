@@ -117,6 +117,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#trigger">Trigger</a></li>
@@ -255,6 +256,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -263,6 +265,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -501,13 +504,17 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
@@ -538,6 +545,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
@@ -1212,6 +1226,79 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.parameters.showerParameters.interferometric_core">
 <span class="sig-name descname"><span class="pre">interferometric_core</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">122</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.showerParameters.interferometric_core" title="Permalink to this definition"></a></dt>
 <dd><p>core (intersection of shower axis with obs plane) derived from beam-formed signal</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.parameters.</span></span><span class="sig-name descname"><span class="pre">emitterParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value=&lt;no_arg&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameters.html#emitterParameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.position">
+<span class="sig-name descname"><span class="pre">position</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.position" title="Permalink to this definition"></a></dt>
+<dd><p>the interaction vertex (for air showers this corresponds to the point of X0)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.model">
+<span class="sig-name descname"><span class="pre">model</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.model" title="Permalink to this definition"></a></dt>
+<dd><p>the emitter model used to simulate the emission (as defined in NuRadioMC/SignalGen/emitter.py)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.amplitude">
+<span class="sig-name descname"><span class="pre">amplitude</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.amplitude" title="Permalink to this definition"></a></dt>
+<dd><p>the amplitude of the signal</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.polarization">
+<span class="sig-name descname"><span class="pre">polarization</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.polarization" title="Permalink to this definition"></a></dt>
+<dd><p>the polarization of the signal</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.half_width">
+<span class="sig-name descname"><span class="pre">half_width</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.half_width" title="Permalink to this definition"></a></dt>
+<dd><p>the width of square and tone_burst signal</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.frequency">
+<span class="sig-name descname"><span class="pre">frequency</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.frequency" title="Permalink to this definition"></a></dt>
+<dd><p>the frequency of a signal (for cw and tone_burst model)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.orientation_phi">
+<span class="sig-name descname"><span class="pre">orientation_phi</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">7</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.orientation_phi" title="Permalink to this definition"></a></dt>
+<dd><p>the orientation of the emiting antenna, defined via two vectors that are defined with two angles each</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.orientation_theta">
+<span class="sig-name descname"><span class="pre">orientation_theta</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.orientation_theta" title="Permalink to this definition"></a></dt>
+<dd><p>the orientation of the emiting antenna, defined via two vectors that are defined with two angles each</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.rotation_phi">
+<span class="sig-name descname"><span class="pre">rotation_phi</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.rotation_phi" title="Permalink to this definition"></a></dt>
+<dd><p>the orientation of the emiting antenna, defined via two vectors that are defined with two angles each</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.rotation_theta">
+<span class="sig-name descname"><span class="pre">rotation_theta</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.rotation_theta" title="Permalink to this definition"></a></dt>
+<dd><p>the orientation of the emiting antenna, defined via two vectors that are defined with two angles each</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.realization_id">
+<span class="sig-name descname"><span class="pre">realization_id</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">11</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.realization_id" title="Permalink to this definition"></a></dt>
+<dd><p>the id of the measurement of the emitted electric field</p>
 </dd></dl>
 
 </dd></dl>

@@ -114,6 +114,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
@@ -252,6 +253,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -260,6 +262,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -498,13 +501,17 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
@@ -535,6 +542,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
@@ -585,10 +599,11 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">optimize</span><span class="p">,</span> <span class="n">integrate</span><span class="p">,</span> <span class="n">interpolate</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">optimize</span><span class="p">,</span> <span class="n">integrate</span><span class="p">,</span> <span class="n">interpolate</span><span class="p">,</span> <span class="n">signal</span>
 <span class="kn">import</span> <span class="nn">scipy.constants</span>
 <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">itemgetter</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.utilities.geometryUtilities</span>
+
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -596,11 +611,22 @@
 
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">attenuation</span> <span class="k">as</span> <span class="n">attenuation_util</span>
+
+<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
+<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">coordinatesystems</span>
+
+<span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">medium</span>
+
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
+
+<span class="kn">from</span> <span class="nn">NuRadioReco.framework</span> <span class="kn">import</span> <span class="n">base_trace</span>
+
 <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.propagation_base_class</span> <span class="kn">import</span> <span class="n">ray_tracing_base</span>
 <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.propagation</span> <span class="kn">import</span> <span class="n">solution_types</span><span class="p">,</span> <span class="n">solution_types_revert</span>
+
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities.logging</span> <span class="kn">import</span> <span class="n">LOGGING_STATUS</span><span class="p">,</span> <span class="n">setup_logger</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.analytic_ray_tracing&quot;</span><span class="p">)</span>
 
 <span class="c1"># check if CPP implementation is available</span>
 <span class="n">cpp_available</span> <span class="o">=</span> <span class="kc">False</span>
@@ -717,8 +743,7 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;attenuation model </span><span class="si">{}</span><span class="s2"> is not implemented&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model_int</span> <span class="o">=</span> <span class="n">attenuation_util</span><span class="o">.</span><span class="n">model_to_int</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__b</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">n_ice</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ray_tracing_2D&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ray_tracing_2D&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_frequencies_integration</span> <span class="o">=</span> <span class="n">n_frequencies_integration</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__use_optimized_start_values</span> <span class="o">=</span> <span class="n">use_optimized_start_values</span>
 
@@ -2399,6 +2424,7 @@
 <span class="sd">                * self._config[&#39;propagation&#39;][&#39;attenuate_ice&#39;] = True</span>
 <span class="sd">                * self._config[&#39;propagation&#39;][&#39;focusing_limit&#39;] = 2</span>
 <span class="sd">                * self._config[&#39;propagation&#39;][&#39;focusing&#39;] = False</span>
+<span class="sd">                * self._config[&#39;propagation&#39;][&#39;birefringence&#39;] = False</span>
 
 <span class="sd">        detector: detector object</span>
 <span class="sd">        </span>
@@ -2410,8 +2436,7 @@
 <span class="sd">            default: True if CPP version is available</span>
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ray_tracing_analytic&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ray_tracing_analytic&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="p">)</span>
 
         <span class="kn">from</span> <span class="nn">NuRadioMC.utilities.medium_base</span> <span class="kn">import</span> <span class="n">IceModelSimple</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">medium</span><span class="p">,</span> <span class="n">IceModelSimple</span><span class="p">):</span>
@@ -2443,6 +2468,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span> <span class="o">=</span> <span class="kc">None</span>
 
+
 <div class="viewcode-block" id="ray_tracing.reset_solutions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions">[docs]</a>    <span class="k">def</span> <span class="nf">reset_solutions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resets the raytracing solutions back to None. This is useful to do when changing the start and end</span>
@@ -2467,6 +2493,7 @@
 <span class="sd">        x2: 3dim np.array</span>
 <span class="sd">            stop point of the ray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_start_and_end_point</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
 
@@ -2556,10 +2583,406 @@
                                                  <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
                                                  <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
         <span class="n">path_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xx</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">xx</span><span class="p">),</span> <span class="n">zz</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+
         <span class="n">dP</span> <span class="o">=</span> <span class="n">path_2d</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
         <span class="n">MM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">dP</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">MM</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span>
         <span class="k">return</span> <span class="n">path</span></div>
+
+<div class="viewcode-block" id="ray_tracing.get_effective_index_birefringence"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence">[docs]</a>    <span class="k">def</span> <span class="nf">get_effective_index_birefringence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function to find the analytical solutions for the effective refractive indices. </span>
+<span class="sd">        The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        direction: numpy.array</span>
+<span class="sd">            propagation direction of the wave</span>
+<span class="sd">        nx: float</span>
+<span class="sd">            the index of refraction in the x-direction</span>
+<span class="sd">        ny: float</span>
+<span class="sd">            the index of refraction in the y-direction</span>
+<span class="sd">        nz: float</span>
+<span class="sd">            the index of refraction in the z-direction</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        output format: np.array([n1, n2])</span>
+<span class="sd">        meaning: effective refractive indices</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sx</span> <span class="o">=</span> <span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sy</span> <span class="o">=</span> <span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sz</span> <span class="o">=</span> <span class="n">direction</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">n1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> 
+                     <span class="p">(</span><span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span> 
+                      <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> 
+                                                                    <span class="o">+</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> 
+                                                                    <span class="o">+</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span> 
+                                                                    <span class="o">+</span> <span class="p">(</span><span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> 
+                                                                    <span class="o">+</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> 
+                                                                    <span class="o">+</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span>
+        <span class="n">n2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> 
+                     <span class="p">(</span><span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span> 
+                      <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> 
+                                                                    <span class="o">+</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> 
+                                                                    <span class="o">+</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span> 
+                                                                    <span class="o">+</span> <span class="p">(</span><span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> 
+                                                                    <span class="o">+</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> 
+                                                                    <span class="o">+</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">sz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ray_tracing.get_polarization_birefringence_simple"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence_simple">[docs]</a>    <span class="k">def</span> <span class="nf">get_polarization_birefringence_simple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function for the normalized e-field vector of a wave for the direction of propagation in cartesian coordinates without special cases.</span>
+<span class="sd">        For the function with special cases see get_polarization_birefringence.</span>
+<span class="sd">        For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.</span>
+<span class="sd">        The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        n: float</span>
+<span class="sd">            the effective index of refraction in the propagation direction calculated by get_effective_index_birefringence</span>
+<span class="sd">        direction: numpy.array</span>
+<span class="sd">            propagation direction of the wave</span>
+<span class="sd">        nx: float</span>
+<span class="sd">            the index of refraction in the x-direction</span>
+<span class="sd">        ny: float</span>
+<span class="sd">            the index of refraction in the y-direction</span>
+<span class="sd">        nz: float</span>
+<span class="sd">            the index of refraction in the z-direction</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        efield : np.ndarray of shape (3,)</span>
+<span class="sd">            normalized e-field vector in cartesian coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">polarization</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="n">direction</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)])</span>
+        <span class="n">polarization</span> <span class="o">=</span> <span class="n">polarization</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">polarization</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">polarization</span></div>
+
+<div class="viewcode-block" id="ray_tracing.get_polarization_birefringence"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence">[docs]</a>    <span class="k">def</span> <span class="nf">get_polarization_birefringence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N1</span><span class="p">,</span> <span class="n">N2</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function for the normalized e-field vector of a wave for the direction of propagation in spherical coordinates with special cases.</span>
+<span class="sd">        For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.</span>
+<span class="sd">        The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        N1: float</span>
+<span class="sd">            the first effective index of refraction in the propagation direction calculated by get_effective_index_birefringence</span>
+<span class="sd">        N2: float</span>
+<span class="sd">            the second effective index of refraction in the propagation direction calculated by get_effective_index_birefringence</span>
+<span class="sd">        direction: numpy.array</span>
+<span class="sd">            propagation direction of the wave</span>
+<span class="sd">        nx: float</span>
+<span class="sd">            the index of refraction in the x-direction</span>
+<span class="sd">        ny: float</span>
+<span class="sd">            the index of refraction in the y-direction</span>
+<span class="sd">        nz: float</span>
+<span class="sd">            the index of refraction in the z-direction</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        efield : np.ndarray of shape (2, 3)</span>
+<span class="sd">            normalized e-field vector in spherical coordinates for both birefringence solutions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">narrow_check</span> <span class="o">=</span> <span class="mf">1e-9</span>
+        <span class="n">wide_check</span> <span class="o">=</span> <span class="mf">1e-10</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">narrow_check</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">narrow_check</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()):</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">narrow_check</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">narrow_check</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;warning: Polarization vectors not computable&quot;</span><span class="p">)</span>
+                <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+                <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            
+            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N1</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">wide_check</span><span class="p">):</span>
+
+                <span class="k">if</span> <span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N1</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">narrow_check</span><span class="p">):</span>
+                
+                <span class="k">if</span> <span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N2</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">narrow_check</span><span class="p">):</span>
+
+                <span class="k">if</span> <span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+                    <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+                    <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N2</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">wide_check</span><span class="p">):</span>
+
+                <span class="k">if</span> <span class="n">direction</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">polarization_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polarization_birefringence_simple</span><span class="p">(</span><span class="n">N1</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+                <span class="n">polarization_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polarization_birefringence_simple</span><span class="p">(</span><span class="n">N2</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+
+                <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span> <span class="o">*</span> <span class="p">(</span><span class="n">direction</span><span class="p">))</span>
+                <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_sky_birefringence</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">polarization_1</span><span class="p">)</span>
+                <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_sky_birefringence</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">polarization_2</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">polarization_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polarization_birefringence_simple</span><span class="p">(</span><span class="n">N1</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+            <span class="n">polarization_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polarization_birefringence_simple</span><span class="p">(</span><span class="n">N2</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+
+            <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span> <span class="o">*</span> <span class="p">(</span><span class="n">direction</span><span class="p">))</span>
+            <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_sky_birefringence</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">polarization_1</span><span class="p">)</span>
+            <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_sky_birefringence</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">polarization_2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">sky_polarization_1</span><span class="p">,</span> <span class="n">sky_polarization_2</span><span class="p">))</span></div>
+    
+<div class="viewcode-block" id="ray_tracing.on_sky_birefringence"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence">[docs]</a>    <span class="k">def</span> <span class="nf">on_sky_birefringence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">polarization</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function for the normalized e-field vector from cartesian to spherical coordinates.</span>
+<span class="sd">        The function does the same as the following radiotool functions, only faster:             </span>
+<span class="sd">        from radiotools import coordinatesystems</span>
+<span class="sd">        cs = coordinatesystems.cstrafo(theta, phi)</span>
+<span class="sd">        sky = cs.transform_from_ground_to_onsky(p)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        theta: float</span>
+<span class="sd">            zenith angle of the propagation direction</span>
+<span class="sd">        phi: float</span>
+<span class="sd">            azimuth angle of the propagation direction</span>
+<span class="sd">        polarization: np.array([px, py, pz])</span>
+<span class="sd">            normalized e-field vector in cartesian coordinates</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        efield : np.ndarray of shape (3,)</span>
+<span class="sd">            normalized e-field vector in spherical coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>  <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>   <span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>    <span class="p">],</span> 
+                                <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>   <span class="p">,</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>  <span class="p">],</span> 
+                                <span class="p">[</span><span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>               <span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>                   <span class="p">,</span> <span class="mi">0</span>                <span class="p">]</span>       <span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">transform</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">polarization</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ray_tracing.get_pulse_propagation_birefringence"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence">[docs]</a>    <span class="k">def</span> <span class="nf">get_pulse_propagation_birefringence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pulse</span><span class="p">,</span> <span class="n">samp_rate</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">,</span> <span class="n">bire_model</span> <span class="o">=</span> <span class="s1">&#39;southpole_A&#39;</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function for the time trace propagation according to the polarization change due to birefringence. </span>
+<span class="sd">        The trace propagation is explained in this paper: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pulse: np.ndarray</span>
+<span class="sd">            3d array with the frequency spectrum of np.array([eR, eTheta, ePhi]), usually provided by the apply_propagation_effects function</span>
+<span class="sd">        samp_rate: float</span>
+<span class="sd">            sampling rate of the time traces</span>
+<span class="sd">        i_solution: int</span>
+<span class="sd">            choose which ray-tracing solution should be propagated</span>
+<span class="sd">        bire_model: string</span>
+<span class="sd">            choose the interpolation to fit the measured refractive index data</span>
+<span class="sd">            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        final pulse: numpy.array([eR, eTheta, ePhi])</span>
+<span class="sd">            [0] - eR        - final frequency spectrum of the radial component - not altered by the function</span>
+<span class="sd">            [1] - eTheta    - final frequency spectrum of the theta component</span>
+<span class="sd">            [2] - ePhi      - final frequency spectrum of the phi component</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">t_fast</span> <span class="o">=</span> <span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">()</span>
+
+        <span class="n">ice_n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span>
+        <span class="n">ice_birefringence</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="s1">&#39;birefringence_medium&#39;</span><span class="p">)</span>
+        <span class="n">ice_birefringence</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">bire_model</span><span class="p">)</span>
+
+        <span class="n">acc</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="n">i_solution</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;angle_to_iceflow&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">]:</span>
+            <span class="n">rotation_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;angle_to_iceflow&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="n">rot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">)],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">)]])</span>
+            <span class="n">path</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">path</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)),</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+
+            <span class="n">refractive_index</span> <span class="o">=</span> <span class="n">ice_n</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">refractive_index_birefringence</span> <span class="o">=</span> <span class="n">ice_birefringence</span><span class="o">.</span><span class="n">get_birefringence_index_of_refraction</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="n">refractive_index</span> <span class="o">+</span> <span class="n">refractive_index_birefringence</span> <span class="o">-</span> <span class="mf">1.78</span>
+            <span class="n">dD</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>     
+
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dD</span><span class="p">)</span>
+            <span class="n">len_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span> <span class="o">/</span> <span class="n">len_diff</span>
+
+            <span class="n">N_effective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_effective_index_birefringence</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+            <span class="n">sky_polarization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polarization_birefringence</span><span class="p">(</span><span class="n">N_effective</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">N_effective</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+
+            <span class="n">t_0</span><span class="p">,</span> <span class="n">t_1</span> <span class="o">=</span> <span class="n">len_diff</span> <span class="o">*</span> <span class="n">N_effective</span> <span class="o">/</span> <span class="p">(</span><span class="n">speed_of_light</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">)</span>
+
+            <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">sky_polarization</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+            <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">sky_polarization</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">d</span> <span class="o">-</span> <span class="n">b</span> <span class="o">*</span> <span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">])</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;warning: Polarization vectors similar, R-matrix not invertible, iteration&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="k">continue</span>
+
+            <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([[</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">],</span> <span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">]])</span>
+
+            <span class="n">birefringent_base</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">pulse</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> 
+
+            <span class="n">t_fast</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">birefringent_base</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="n">samp_rate</span><span class="p">)</span>
+            <span class="n">t_fast</span><span class="o">.</span><span class="n">apply_time_shift</span><span class="p">(</span><span class="n">t_1</span> <span class="o">-</span> <span class="n">t_0</span><span class="p">)</span>
+            <span class="n">birefringent_base</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_fast</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
+            
+            <span class="n">Rtransp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+            <span class="n">pulse</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>  <span class="o">=</span> <span class="n">Rtransp</span> <span class="o">*</span> <span class="n">birefringent_base</span>
+
+        <span class="k">return</span> <span class="n">pulse</span></div>
+    
+<div class="viewcode-block" id="ray_tracing.get_path_properties_birefringence"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence">[docs]</a>    <span class="k">def</span> <span class="nf">get_path_properties_birefringence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">,</span> <span class="n">bire_model</span> <span class="o">=</span> <span class="s1">&#39;southpole_A&#39;</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function to extract important information about the birefringent propagation along the path.</span>
+<span class="sd">        The important properties include effective refractive indices, polarization eigenvectors, and incremental time delays</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        i_solution: int</span>
+<span class="sd">            choose which ray-tracing solution should be propagated</span>
+<span class="sd">        bire_model: string</span>
+<span class="sd">            choose the interpolation to fit the measured refractive index data</span>
+<span class="sd">            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        path_properties: dict</span>
+<span class="sd">            a dictionary containing the following keys:</span>
+<span class="sd">            </span>
+<span class="sd">            * &#39;path&#39;: np.ndarray - propagation path in x, y, z with the same granularity as the nirefringent propagation</span>
+<span class="sd">            * &#39;nominal_refractive_index&#39;: np.ndarray - nominal refractive index if only density effects were taken into account</span>
+<span class="sd">            * &#39;refractive_index_x&#39;: np.ndarray - refractive index for the x-direction</span>
+<span class="sd">            * &#39;refractive_index_y&#39;: np.ndarray - refractive index for the y-direction</span>
+<span class="sd">            * &#39;refractive_index_z&#39;: np.ndarray - refractive index for the z-direction</span>
+<span class="sd">            * &#39;first_refractive_index&#39;: np.ndarray - effective refractive index of the first birefringent state along the full path</span>
+<span class="sd">            * &#39;second_refractive_index&#39;: np.ndarray - effective refractive index of the second birefringent state along the full path</span>
+<span class="sd">            * &#39;first_polarization_vector&#39;: np.ndarray - polarization vector of the first birefringent state in spherical coordinates along the full path</span>
+<span class="sd">            * &#39;second_polarization_vector&#39;: np.ndarray - polarization vector of the second birefringent state in spherical coordinates along the full path</span>
+<span class="sd">            * &#39;first_time_delay&#39;: np.ndarray - incremental time delays of the first birefringent state along the full path</span>
+<span class="sd">            * &#39;second_time_delay&#39;: np.ndarray - incremental time delays of the second birefringent state along the full path</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ice_n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span>
+        <span class="n">ice_birefringence</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="s1">&#39;birefringence_medium&#39;</span><span class="p">)</span>
+        <span class="n">ice_birefringence</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">bire_model</span><span class="p">)</span>
+
+        <span class="n">acc</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="n">i_solution</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="s1">&#39;angle_to_iceflow&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">]:</span>
+            <span class="n">rotation_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;angle_to_iceflow&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="n">rot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">)],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">)]])</span>
+            <span class="n">path</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">path</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)),</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">n_nominal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">N1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">N2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">Nx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Ny</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Nz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">P1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">P2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="n">T1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">T2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">acc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+
+            <span class="n">refractive_index</span> <span class="o">=</span> <span class="n">ice_n</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">refractive_index_birefringence</span> <span class="o">=</span> <span class="n">ice_birefringence</span><span class="o">.</span><span class="n">get_birefringence_index_of_refraction</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="n">refractive_index</span> <span class="o">+</span> <span class="n">refractive_index_birefringence</span> <span class="o">-</span> <span class="mf">1.78</span>
+            <span class="n">dD</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>   
+
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dD</span><span class="p">)</span>
+            <span class="n">len_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span> <span class="o">/</span> <span class="n">len_diff</span>
+
+            <span class="n">N_effective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_effective_index_birefringence</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+            <span class="n">sky_polarization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polarization_birefringence</span><span class="p">(</span><span class="n">N_effective</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">N_effective</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+
+            <span class="n">t_0</span><span class="p">,</span> <span class="n">t_1</span> <span class="o">=</span> <span class="n">len_diff</span> <span class="o">*</span> <span class="n">N_effective</span> <span class="o">/</span> <span class="p">(</span><span class="n">speed_of_light</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">)</span>
+            <span class="n">n_nominal</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">refractive_index</span>
+
+            <span class="n">Nx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">refractive_index_birefringence</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">Ny</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">refractive_index_birefringence</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">Nz</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">refractive_index_birefringence</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+            <span class="n">N1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">N_effective</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">N2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">N_effective</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">P1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sky_polarization</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">P2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sky_polarization</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">T1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_0</span>
+            <span class="n">T2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_1</span>
+
+        <span class="n">path_properties</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;nominal_refractive_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_nominal</span>
+
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;refractive_index_x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nx</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;refractive_index_y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ny</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;refractive_index_z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nz</span>
+
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;first_refractive_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N1</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;second_refractive_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N2</span>
+
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;first_polarization_vector&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">P1</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;second_polarization_vector&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">P2</span>
+
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;first_time_delay&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">T1</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;second_time_delay&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">T2</span>
+
+        <span class="k">return</span> <span class="n">path_properties</span></div>
 
 <div class="viewcode-block" id="ray_tracing.get_launch_vector"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector">[docs]</a>    <span class="k">def</span> <span class="nf">get_launch_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -2889,7 +3312,10 @@
 <span class="sd">        efield: ElectricField object</span>
 <span class="sd">            The modified ElectricField object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s_rate</span> <span class="o">=</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
+
+        
         <span class="n">apply_attenuation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;attenuate_ice&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">apply_attenuation</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2950,7 +3376,21 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing&#39;</span><span class="p">]:</span>
             <span class="n">focusing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_focusing</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing_limit&#39;</span><span class="p">]))</span>
             <span class="n">spec</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">*=</span> <span class="n">focusing</span>
+        
+        <span class="c1"># apply the birefringence effect</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence&#39;</span><span class="p">]:</span>
+            <span class="n">bire_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence_model&#39;</span><span class="p">]</span>
 
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence_propagation&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;analytical&#39;</span><span class="p">:</span>
+                <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pulse_propagation_birefringence</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">s_rate</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">,</span> <span class="n">bire_model</span> <span class="o">=</span> <span class="n">bire_model</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence_propagation&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;numerical&#39;</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp</span> <span class="kn">import</span> <span class="n">radioproparaytracing</span>
+                <span class="n">launch_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_launch_vector</span><span class="p">(</span><span class="n">i_solution</span><span class="p">)</span>
+                <span class="n">radiopropa_rays</span> <span class="o">=</span> <span class="n">radioproparaytracing</span><span class="o">.</span><span class="n">radiopropa_ray_tracing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">)</span>
+                <span class="n">radiopropa_rays</span><span class="o">.</span><span class="n">set_start_and_end_point</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">)</span>
+                <span class="n">spec</span> <span class="o">=</span> <span class="n">radiopropa_rays</span><span class="o">.</span><span class="n">raytracer_birefringence</span><span class="p">(</span><span class="n">launch_v</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">s_rate</span><span class="p">)</span> <span class="c1">#, bire_model = bire_model --&gt; has to be implemented</span>
+                
         <span class="n">efield</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">efield</span></div>
 
@@ -2969,6 +3409,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;attenuate_ice&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing_limit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            
+
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span></div></div>
 </pre></div>

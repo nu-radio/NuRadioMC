@@ -117,6 +117,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
@@ -255,6 +256,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -263,6 +265,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -501,13 +504,17 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
@@ -538,6 +545,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
@@ -607,7 +621,11 @@ to be known by the user.</p>
 </dd>
 <dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
 </dd>
-<dt><strong>model: string</strong></dt><dd><p>specifies the signal model</p>
+<dt><strong>model: string</strong></dt><dd><p>specifies the signal model
+If the model string starts with “<a href="#id1"><span class="problematic" id="id2">efield_</span></a>”, the function provides the three dimensional electric field emitted
+by the pulser/antena combination normalized to a distance of 1m.
+If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain
+the emitted electric field. This is automatically done in a NuRadioMC simulation).</p>
 <ul class="simple">
 <li><p>delta_pulse: a simple signal model of a delta pulse emitter</p></li>
 <li><p>cw : a sinusoidal wave of given frequency</p></li>
@@ -616,15 +634,37 @@ to be known by the user.</p>
 <li><p>idl1 &amp; hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files</p></li>
 <li><p>gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum</p></li>
 <li><p>ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02</p></li>
+<li><p>efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE
+calibration campaigns from 2018 and 2019.
+The <em class="xref py py-obj">launch_vector</em> needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
+doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.
+the <em class="xref py py-obj">amplitude</em> is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an 
+amplitude of 10 will return 10 times the measured efield amplitude, etc.
+Use kwarg <em class="xref py py-obj">iN</em> to select a specific pulse from the 10 available pulses. The default is a random selection.</p></li>
+<li><p>efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg <em class="xref py py-obj">polarization</em> needs
+to be specified to select the polarization of the efield, defined as float between 0 and 1 with
+0 = eTheta polarized and 1 = ePhi polarized. The default is 0.5, i.e. unpolarized. The amplitudes are
+set to preserve the total power of the delta pulse, i.e. A_theta = sqrt(1-polarization)
+and A_phi = sqrt(polarization).</p></li>
 </ul>
 </dd>
 <dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, can return additional output</p>
+</dd>
+<dt><strong>kwargs: dict</strong></dt><dd><p>specifies needed parameters for certain emitters.</p>
+<ul class="simple">
+<li><p>emitter_frequency: Frequency of the emitted pulse.</p></li>
+<li><p>half_width: Half width of the emitted pulse.</p></li>
+<li><p>launch_vector: Launch vector of the emitted pulse.</p></li>
+<li><p>polarization: Polarization of the emitted pulse.</p></li>
+<li><p>iN: Index of the measured pulse used for the propagation</p></li>
+<li><p>rnd: Random number generator used to select a pulse form.</p></li>
+</ul>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>time trace: 2d array, shape (3, N)</dt><dd><p>the amplitudes for each time bin</p>
+<dt>time trace: 1d or 2d array, shape (N) or (3, N) for efield</dt><dd><p>the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</p>
 </dd>
 <dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
 </dd>
@@ -646,7 +686,11 @@ to be known by the user.</p>
 </dd>
 <dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
 </dd>
-<dt><strong>model: string</strong></dt><dd><p>specifies the signal model</p>
+<dt><strong>model: string</strong></dt><dd><p>specifies the signal model
+If the model string starts with “<a href="#id3"><span class="problematic" id="id4">efield_</span></a>”, the function provides the three dimensional electric field emitted
+by the pulser/antena combination normalized to a distance of 1m. 
+If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain
+the emitted electric field. This is automatically done in a NuRadioMC simulation).</p>
 <ul class="simple">
 <li><p>delta_pulse: a simple signal model of a delta pulse emitter</p></li>
 <li><p>cw : a sinusoidal wave of given frequency</p></li>
@@ -659,11 +703,21 @@ to be known by the user.</p>
 </dd>
 <dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, can return additional output</p>
 </dd>
+<dt><strong>kwargs: dict</strong></dt><dd><p>specifies needed parameters for certain emitters.</p>
+<ul class="simple">
+<li><p>emitter_frequency: Frequency of the emitted pulse.</p></li>
+<li><p>half_width: Half width of the emitted pulse.</p></li>
+<li><p>launch_vector: Launch vector of the emitted pulse.</p></li>
+<li><p>polarization: Polarization of the emitted pulse.</p></li>
+<li><p>iN: Index of the measured pulse used for the propagation</p></li>
+<li><p>rnd: Random number generator used to select a pulse form.</p></li>
+</ul>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>time trace: 2d array, shape (3, N)</dt><dd><p>the amplitudes for each time bin</p>
+<dt>time trace: 1d or 2d array, shape (N) or (3, N) for efield</dt><dd><p>the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</p>
 </dd>
 <dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
 </dd>

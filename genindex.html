@@ -114,6 +114,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
@@ -252,6 +253,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -260,6 +262,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -498,13 +501,17 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioMC/pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
@@ -535,6 +542,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC/pages/Manuals/icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC/pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC/pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioMC/pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
@@ -652,9 +666,13 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases">add_random_phases() (NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder method)</a>
 </li>
-      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.add_reflective_bottom">add_reflective_bottom() (NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARA_2022.add_reflective_bottom">add_reflective_bottom() (NuRadioMC.utilities.medium.ARA_2022 method)</a>
 
       <ul>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.add_reflective_bottom">(NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.birefringence_medium.add_reflective_bottom">(NuRadioMC.utilities.medium.birefringence_medium method)</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_firn.add_reflective_bottom">(NuRadioMC.utilities.medium.greenland_firn method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation.add_reflective_bottom">(NuRadioMC.utilities.medium.greenland_perturbation method)</a>
@@ -673,10 +691,14 @@
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom">(NuRadioMC.utilities.medium_base.IceModel method)</a>
 </li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence.add_reflective_bottom">(NuRadioMC.utilities.medium_base.IceModelBirefringence method)</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.add_reflective_bottom">(NuRadioMC.utilities.medium_base.IceModelSimple method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.add_shower">add_shower() (NuRadioReco.framework.event.Event method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.add_sim_emitter">add_sim_emitter() (NuRadioReco.framework.event.Event method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.add_sim_shower">add_sim_shower() (NuRadioReco.framework.event.Event method)</a>
 </li>
@@ -692,11 +714,13 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.add_trace_start_time">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
 </li>
       </ul></li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.addLoggingLevel">addLoggingLevel() (in module NuRadioReco.utilities.logging)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.addLoggingLevel">addLoggingLevel() (in module NuRadioReco.utilities.logging)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html#NuRadioReco.utilities.analytic_pulse.amp_from_energy">amp_from_energy() (in module NuRadioReco.utilities.analytic_pulse)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.amplitude">amplitude (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.analogToDigitalConverter.html#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter">analogToDigitalConverter (class in NuRadioReco.modules.analogToDigitalConverter)</a>
 </li>
@@ -752,6 +776,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARA_2022">ARA_2022 (class in NuRadioMC.utilities.medium)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole">ARAsim_southpole (class in NuRadioMC.utilities.medium)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.area">area (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
@@ -926,6 +952,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.birefringence_medium">birefringence_medium (class in NuRadioMC.utilities.medium)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParameters.block_offsets">block_offsets (NuRadioReco.framework.parameters.channelParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.buffer_db">buffer_db() (in module NuRadioReco.detector.detector_base)</a>
@@ -1143,6 +1171,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.deserialize">(NuRadioReco.framework.electric_field.ElectricField method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.deserialize">(NuRadioReco.framework.emitter.Emitter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.deserialize">(NuRadioReco.framework.event.Event method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html#NuRadioReco.framework.hybrid_information.HybridInformation.deserialize">(NuRadioReco.framework.hybrid_information.HybridInformation method)</a>
@@ -1154,6 +1184,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.deserialize">(NuRadioReco.framework.radio_shower.RadioShower method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.deserialize">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.deserialize">(NuRadioReco.framework.sim_emitter.SimEmitter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.deserialize">(NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
@@ -1263,6 +1295,10 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.Emax">Emax (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.Emin">Emin (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter">Emitter (class in NuRadioReco.framework.emitter)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters">emitterParameters (class in NuRadioReco.framework.parameters)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer.encode">encode() (NuRadioReco.detector.detector_base.DateTimeSerializer method)</a>
 </li>
@@ -1499,6 +1535,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationGalacticCalibrator.html#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.fourier_series">fourier_series() (in module NuRadioReco.modules.LOFAR.stationGalacticCalibrator)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.fft.html#NuRadioReco.utilities.fft.freq2time">freq2time() (in module NuRadioReco.utilities.fft)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.frequency">frequency (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1738,9 +1776,13 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.analog_components.html#NuRadioReco.detector.RNO_G.analog_components.get_available_amplifiers">(in module NuRadioReco.detector.RNO_G.analog_components)</a>
 </li>
       </ul></li>
-      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.get_average_index_of_refraction">get_average_index_of_refraction() (NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARA_2022.get_average_index_of_refraction">get_average_index_of_refraction() (NuRadioMC.utilities.medium.ARA_2022 method)</a>
 
       <ul>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.get_average_index_of_refraction">(NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.birefringence_medium.get_average_index_of_refraction">(NuRadioMC.utilities.medium.birefringence_medium method)</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_firn.get_average_index_of_refraction">(NuRadioMC.utilities.medium.greenland_firn method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation.get_average_index_of_refraction">(NuRadioMC.utilities.medium.greenland_perturbation method)</a>
@@ -1759,6 +1801,8 @@
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_average_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModel method)</a>
 </li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_average_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModelBirefringence method)</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_average_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModelSimple method)</a>
 </li>
       </ul></li>
@@ -1772,6 +1816,12 @@
       </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.simulation.get_bandwidth">get_bandwidth() (NuRadioMC.simulation.simulation.simulation method)</a>
 </li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.birefringence_medium.get_birefringence_index_of_refraction">get_birefringence_index_of_refraction() (NuRadioMC.utilities.medium.birefringence_medium method)</a>
+
+      <ul>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_birefringence_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModelBirefringence method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_c">get_c() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C0_from_log">get_C0_from_log() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
@@ -2022,6 +2072,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.analogToDigitalConverter.html#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace">get_digital_trace() (NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter method)</a>
 </li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence">get_effective_index_birefringence() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor">get_efield_antenna_factor() (in module NuRadioReco.utilities.trace_utilities)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html#NuRadioReco.utilities.geometryUtilities.get_efield_in_spherical_coords">get_efield_in_spherical_coords() (in module NuRadioReco.utilities.geometryUtilities)</a>
@@ -2116,6 +2168,8 @@
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_first_shower">get_first_shower() (NuRadioReco.framework.event.Event method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_first_sim_emitter">get_first_sim_emitter() (NuRadioReco.framework.event.Event method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_first_sim_shower">get_first_sim_shower() (NuRadioReco.framework.event.Event method)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.fluxes.html#NuRadioMC.utilities.fluxes.get_fluence_limit">get_fluence_limit() (in module NuRadioMC.utilities.fluxes)</a>
@@ -2200,9 +2254,13 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.version.html#NuRadioReco.utilities.version.get_git_commit_hash">get_git_commit_hash() (in module NuRadioReco.utilities.version)</a>
 </li>
-      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.get_gradient_of_index_of_refraction">get_gradient_of_index_of_refraction() (NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARA_2022.get_gradient_of_index_of_refraction">get_gradient_of_index_of_refraction() (NuRadioMC.utilities.medium.ARA_2022 method)</a>
 
       <ul>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.get_gradient_of_index_of_refraction">(NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.birefringence_medium.get_gradient_of_index_of_refraction">(NuRadioMC.utilities.medium.birefringence_medium method)</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_firn.get_gradient_of_index_of_refraction">(NuRadioMC.utilities.medium.greenland_firn method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation.get_gradient_of_index_of_refraction">(NuRadioMC.utilities.medium.greenland_perturbation method)</a>
@@ -2220,6 +2278,8 @@
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.uniform_ice.get_gradient_of_index_of_refraction">(NuRadioMC.utilities.medium.uniform_ice method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_gradient_of_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModel method)</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_gradient_of_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModelBirefringence method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModelSimple method)</a>
 </li>
@@ -2274,9 +2334,13 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.get_ice_model">get_ice_model() (in module NuRadioMC.utilities.medium)</a>
 </li>
-      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.get_ice_model_radiopropa">get_ice_model_radiopropa() (NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARA_2022.get_ice_model_radiopropa">get_ice_model_radiopropa() (NuRadioMC.utilities.medium.ARA_2022 method)</a>
 
       <ul>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.get_ice_model_radiopropa">(NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.birefringence_medium.get_ice_model_radiopropa">(NuRadioMC.utilities.medium.birefringence_medium method)</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa">(NuRadioMC.utilities.medium.greenland_firn method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa">(NuRadioMC.utilities.medium.greenland_perturbation method)</a>
@@ -2295,6 +2359,8 @@
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa">(NuRadioMC.utilities.medium_base.IceModel method)</a>
 </li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_ice_model_radiopropa">(NuRadioMC.utilities.medium_base.IceModelBirefringence method)</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa">(NuRadioMC.utilities.medium_base.IceModelSimple method)</a>
 </li>
       </ul></li>
@@ -2305,6 +2371,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.get_id">(NuRadioReco.framework.channel.Channel method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.get_id">(NuRadioReco.framework.emitter.Emitter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_id">(NuRadioReco.framework.event.Event method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.get_id">(NuRadioReco.framework.hybrid_shower.HybridShower method)</a>
@@ -2314,6 +2382,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.get_id">(NuRadioReco.framework.radio_shower.RadioShower method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_id">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.get_id">(NuRadioReco.framework.sim_emitter.SimEmitter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_id">(NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
@@ -2328,9 +2398,13 @@
       </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.Veff.html#NuRadioMC.utilities.Veff.get_index">get_index() (in module NuRadioMC.utilities.Veff)</a>
 </li>
-      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.get_index_of_refraction">get_index_of_refraction() (NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARA_2022.get_index_of_refraction">get_index_of_refraction() (NuRadioMC.utilities.medium.ARA_2022 method)</a>
 
       <ul>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.get_index_of_refraction">(NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.birefringence_medium.get_index_of_refraction">(NuRadioMC.utilities.medium.birefringence_medium method)</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction">(NuRadioMC.utilities.medium.greenland_firn method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation.get_index_of_refraction">(NuRadioMC.utilities.medium.greenland_perturbation method)</a>
@@ -2348,6 +2422,8 @@
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.uniform_ice.get_index_of_refraction">(NuRadioMC.utilities.medium.uniform_ice method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModel method)</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModelBirefringence method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction">(NuRadioMC.utilities.medium_base.IceModelSimple method)</a>
 </li>
@@ -2386,6 +2462,8 @@
         <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_launch_vector">(NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_launch_vector_analytic">get_launch_vector_analytic() (NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.fluxes.html#NuRadioMC.utilities.fluxes.get_limit_e1_flux">get_limit_e1_flux() (in module NuRadioMC.utilities.fluxes)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.fluxes.html#NuRadioMC.utilities.fluxes.get_limit_e2_flux">get_limit_e2_flux() (in module NuRadioMC.utilities.fluxes)</a>
@@ -2414,6 +2492,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.get_metadata">get_metadata() (in module NuRadioReco.modules.io.LOFAR.readLOFARData)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_mingainlin">get_mingainlin() (NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator method)</a>
 
       <ul>
@@ -2422,8 +2502,6 @@
       </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module">get_module() (NuRadioMC.utilities.medium_base.RadioPropaIceWrapper method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules">get_modules() (NuRadioMC.utilities.medium_base.RadioPropaIceWrapper method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.get_multiple_high_low_trigger">get_multiple_high_low_trigger() (in module NuRadioReco.modules.trigger.multiHighLowThreshold)</a>
@@ -2607,6 +2685,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.get_parameter">(NuRadioReco.framework.electric_field.ElectricField method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.get_parameter">(NuRadioReco.framework.emitter.Emitter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_parameter">(NuRadioReco.framework.event.Event method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.get_parameter">(NuRadioReco.framework.hybrid_shower.HybridShower method)</a>
@@ -2616,6 +2696,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.get_parameter">(NuRadioReco.framework.radio_shower.RadioShower method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_parameter">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.get_parameter">(NuRadioReco.framework.sim_emitter.SimEmitter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_parameter">(NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
@@ -2639,7 +2721,11 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.get_parameters">(NuRadioReco.framework.electric_field.ElectricField method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.get_parameters">(NuRadioReco.framework.emitter.Emitter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.get_parameters">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.get_parameters">(NuRadioReco.framework.sim_emitter.SimEmitter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_parameters">(NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
@@ -2682,11 +2768,17 @@
       </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length_analytic">get_path_length_analytic() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
 </li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence">get_path_properties_birefringence() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_reflections">get_path_reflections() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_segments">get_path_segments() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.get_pickle_antenna_response">get_pickle_antenna_response() (in module NuRadioReco.detector.antennapattern)</a>
+</li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence">get_polarization_birefringence() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
+</li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence_simple">get_polarization_birefringence_simple() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_position">get_position() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
 
@@ -2721,6 +2813,8 @@
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_product_position_time">get_product_position_time() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation.html#NuRadioMC.SignalProp.propagation.get_propagation_module">get_propagation_module() (in module NuRadioMC.SignalProp.propagation)</a>
+</li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence">get_pulse_propagation_birefringence() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_quantity_names">get_quantity_names() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
 
@@ -2900,6 +2994,10 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.get_signal_travel_time">(NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_sim_emitter">get_sim_emitter() (NuRadioReco.framework.event.Event method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_sim_emitters">get_sim_emitters() (NuRadioReco.framework.event.Event method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_sim_shower">get_sim_shower() (NuRadioReco.framework.event.Event method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_sim_showers">get_sim_showers() (NuRadioReco.framework.event.Event method)</a>
@@ -2977,9 +3075,13 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.get_station_ids">(NuRadioReco.framework.emitter.Emitter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_station_ids">(NuRadioReco.framework.event.Event method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.get_station_ids">(NuRadioReco.framework.radio_shower.RadioShower method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.get_station_ids">(NuRadioReco.framework.sim_emitter.SimEmitter method)</a>
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_station_name">get_station_name() (NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1 method)</a>
@@ -3324,6 +3426,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html#NuRadioReco.utilities.signal_processing.half_hann_window">half_hann_window() (in module NuRadioReco.utilities.signal_processing)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.half_width">half_width (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.ARA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator">hardwareResponseIncorporator (class in NuRadioReco.modules.ARA.hardwareResponseIncorporator)</a>
 
       <ul>
@@ -3355,6 +3459,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.has_parameter">(NuRadioReco.framework.electric_field.ElectricField method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.has_parameter">(NuRadioReco.framework.emitter.Emitter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_parameter">(NuRadioReco.framework.event.Event method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.has_parameter">(NuRadioReco.framework.hybrid_shower.HybridShower method)</a>
@@ -3364,6 +3470,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.has_parameter">(NuRadioReco.framework.radio_shower.RadioShower method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.has_parameter">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.has_parameter">(NuRadioReco.framework.sim_emitter.SimEmitter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.has_parameter">(NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
@@ -3375,6 +3483,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_particle">has_particle() (NuRadioReco.framework.event.Event method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_shower">has_shower() (NuRadioReco.framework.event.Event method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_sim_emitter">has_sim_emitter() (NuRadioReco.framework.event.Event method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_sim_shower">has_sim_shower() (NuRadioReco.framework.event.Event method)</a>
 </li>
@@ -3404,8 +3514,14 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.has_station_ids">has_station_ids() (NuRadioReco.framework.radio_shower.RadioShower method)</a>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.has_station_ids">has_station_ids() (NuRadioReco.framework.emitter.Emitter method)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.has_station_ids">(NuRadioReco.framework.radio_shower.RadioShower method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.has_station_ids">(NuRadioReco.framework.sim_emitter.SimEmitter method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.has_trigger">has_trigger() (NuRadioReco.framework.base_station.BaseStation method)</a>
 
       <ul>
@@ -3463,6 +3579,8 @@
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.ice_cube_nu_fit_2022">ice_cube_nu_fit_2022() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel">IceModel (class in NuRadioMC.utilities.medium_base)</a>
+</li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence">IceModelBirefringence (class in NuRadioMC.utilities.medium_base)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple">IceModelSimple (class in NuRadioMC.utilities.medium_base)</a>
 </li>
@@ -3640,6 +3758,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.beamforming_utilities.html#NuRadioReco.modules.LOFAR.beamforming_utilities.mini_beamformer">mini_beamformer() (in module NuRadioReco.modules.LOFAR.beamforming_utilities)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.model">model (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
+</li>
       <li>
     module
 
@@ -3790,6 +3910,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#module-NuRadioReco.framework.electric_field">NuRadioReco.framework.electric_field</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#module-NuRadioReco.framework.emitter">NuRadioReco.framework.emitter</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#module-NuRadioReco.framework.event">NuRadioReco.framework.event</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html#module-NuRadioReco.framework.hybrid_information">NuRadioReco.framework.hybrid_information</a>
@@ -3805,6 +3927,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#module-NuRadioReco.framework.radio_shower">NuRadioReco.framework.radio_shower</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#module-NuRadioReco.framework.sim_channel">NuRadioReco.framework.sim_channel</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#module-NuRadioReco.framework.sim_emitter">NuRadioReco.framework.sim_emitter</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#module-NuRadioReco.framework.sim_station">NuRadioReco.framework.sim_station</a>
 </li>
@@ -4645,6 +4769,13 @@
 </li>
       </ul></li>
       <li>
+    NuRadioReco.framework.emitter
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#module-NuRadioReco.framework.emitter">module</a>
+</li>
+      </ul></li>
+      <li>
     NuRadioReco.framework.event
 
       <ul>
@@ -4698,6 +4829,13 @@
 
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#module-NuRadioReco.framework.sim_channel">module</a>
+</li>
+      </ul></li>
+      <li>
+    NuRadioReco.framework.sim_emitter
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#module-NuRadioReco.framework.sim_emitter">module</a>
 </li>
       </ul></li>
       <li>
@@ -4791,6 +4929,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.beamFormingDirectionFitter.html#module-NuRadioReco.modules.beamFormingDirectionFitter">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     NuRadioReco.modules.channelAddCableDelay
 
@@ -4798,8 +4938,6 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelAddCableDelay.html#module-NuRadioReco.modules.channelAddCableDelay">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     NuRadioReco.modules.channelAntennaDedispersion
 
@@ -5575,13 +5713,19 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y">obj_delta_y() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y_square">obj_delta_y_square() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.observation_level">observation_level (NuRadioReco.framework.parameters.showerParameters attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence">on_sky_birefringence() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.openFile">openFile() (NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.orientation_phi">orientation_phi (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.orientation_theta">orientation_theta (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -5639,19 +5783,23 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.plot">plot() (NuRadioReco.detector.response.Response method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.plot_lateral_cross_section">plot_lateral_cross_section() (in module NuRadioReco.modules.efieldRadioInterferometricReconstruction)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.plot_measured_spectrum">plot_measured_spectrum() (in module NuRadioReco.utilities.cr_flux)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.plot_result">plot_result() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html#NuRadioMC.utilities.plotting.plot_vertex_distribution">plot_vertex_distribution() (in module NuRadioMC.utilities.plotting)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.polarization">polarization (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.electricFieldParameters.polarization_angle">polarization_angle (NuRadioReco.framework.parameters.electricFieldParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.electricFieldParameters.polarization_angle_expectation">polarization_angle_expectation (NuRadioReco.framework.parameters.electricFieldParameters attribute)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.position">position (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.power_sum">power_sum() (NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator method)</a>
 </li>
@@ -5731,6 +5879,8 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base">ray_tracing_base (class in NuRadioMC.SignalProp.propagation_base_class)</a>
 </li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.raytracer_birefringence">raytracer_birefringence() (NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.raytracer_iterative">raytracer_iterative() (NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.raytracer_minimizer">raytracer_minimizer() (NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
@@ -5768,6 +5918,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData">readLOFARData (class in NuRadioReco.modules.io.LOFAR.readLOFARData)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData">readRNOGData (class in NuRadioReco.modules.io.RNO_G.readRNOGDataMattak)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.realization_id">realization_id (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_interferometric_depth">reconstruct_interferometric_depth() (NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco method)</a>
 
@@ -5868,6 +6020,10 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html#NuRadioReco.utilities.geometryUtilities.rot_y">rot_y() (in module NuRadioReco.utilities.geometryUtilities)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html#NuRadioReco.utilities.geometryUtilities.rot_z">rot_z() (in module NuRadioReco.utilities.geometryUtilities)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.rotation_phi">rotation_phi (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.rotation_theta">rotation_theta (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.analogToDigitalConverter.html#NuRadioReco.modules.analogToDigitalConverter.round_to_int">round_to_int() (in module NuRadioReco.modules.analogToDigitalConverter)</a>
 </li>
@@ -6058,6 +6214,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.serialize">(NuRadioReco.framework.electric_field.ElectricField method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.serialize">(NuRadioReco.framework.emitter.Emitter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.serialize">(NuRadioReco.framework.event.Event method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html#NuRadioReco.framework.hybrid_information.HybridInformation.serialize">(NuRadioReco.framework.hybrid_information.HybridInformation method)</a>
@@ -6069,6 +6227,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.serialize">(NuRadioReco.framework.radio_shower.RadioShower method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.serialize">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.serialize">(NuRadioReco.framework.sim_emitter.SimEmitter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.serialize">(NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
@@ -6157,9 +6317,13 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.set_hybrid_detector">set_hybrid_detector() (NuRadioReco.framework.hybrid_shower.HybridShower method)</a>
 </li>
-      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.set_ice_model_radiopropa">set_ice_model_radiopropa() (NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARA_2022.set_ice_model_radiopropa">set_ice_model_radiopropa() (NuRadioMC.utilities.medium.ARA_2022 method)</a>
 
       <ul>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole.set_ice_model_radiopropa">(NuRadioMC.utilities.medium.ARAsim_southpole method)</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.birefringence_medium.set_ice_model_radiopropa">(NuRadioMC.utilities.medium.birefringence_medium method)</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_firn.set_ice_model_radiopropa">(NuRadioMC.utilities.medium.greenland_firn method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation.set_ice_model_radiopropa">(NuRadioMC.utilities.medium.greenland_perturbation method)</a>
@@ -6177,6 +6341,8 @@
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.uniform_ice.set_ice_model_radiopropa">(NuRadioMC.utilities.medium.uniform_ice method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa">(NuRadioMC.utilities.medium_base.IceModel method)</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence.set_ice_model_radiopropa">(NuRadioMC.utilities.medium_base.IceModelBirefringence method)</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.set_ice_model_radiopropa">(NuRadioMC.utilities.medium_base.IceModelSimple method)</a>
 </li>
@@ -6232,6 +6398,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.set_parameter">(NuRadioReco.framework.electric_field.ElectricField method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.set_parameter">(NuRadioReco.framework.emitter.Emitter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_parameter">(NuRadioReco.framework.event.Event method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.set_parameter">(NuRadioReco.framework.hybrid_shower.HybridShower method)</a>
@@ -6241,6 +6409,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.set_parameter">(NuRadioReco.framework.radio_shower.RadioShower method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.set_parameter">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.set_parameter">(NuRadioReco.framework.sim_emitter.SimEmitter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.set_parameter">(NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
@@ -6470,6 +6640,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.eventParameters.sim_config">sim_config (NuRadioReco.framework.parameters.eventParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel">SimChannel (class in NuRadioReco.framework.sim_channel)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter">SimEmitter (class in NuRadioReco.framework.sim_emitter)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.SimplePhasedTrigger">SimplePhasedTrigger (class in NuRadioReco.framework.trigger)</a>
 </li>

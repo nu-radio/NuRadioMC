@@ -117,6 +117,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#simemitter">SimEmitter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/event_structure.html#trigger">Trigger</a></li>
@@ -255,6 +256,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
@@ -263,6 +265,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
@@ -501,13 +504,17 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html">Signal Generation (from in-ice showers)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
@@ -538,6 +545,13 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#example-script">Example script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#birefringence-ice-models">Birefringence Ice Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
@@ -737,6 +751,21 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.framework.emitter.html">NuRadioReco.framework.emitter module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter"><code class="docutils literal notranslate"><span class="pre">Emitter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.get_id"><code class="docutils literal notranslate"><span class="pre">Emitter.get_id()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.get_parameters"><code class="docutils literal notranslate"><span class="pre">Emitter.get_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.get_station_ids"><code class="docutils literal notranslate"><span class="pre">Emitter.get_station_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.has_station_ids"><code class="docutils literal notranslate"><span class="pre">Emitter.has_station_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.get_parameter"><code class="docutils literal notranslate"><span class="pre">Emitter.get_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.set_parameter"><code class="docutils literal notranslate"><span class="pre">Emitter.set_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.has_parameter"><code class="docutils literal notranslate"><span class="pre">Emitter.has_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.serialize"><code class="docutils literal notranslate"><span class="pre">Emitter.serialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.emitter.html#NuRadioReco.framework.emitter.Emitter.deserialize"><code class="docutils literal notranslate"><span class="pre">Emitter.deserialize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event"><code class="docutils literal notranslate"><span class="pre">Event</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.register_module_event"><code class="docutils literal notranslate"><span class="pre">Event.register_module_event()</span></code></a></li>
@@ -773,6 +802,11 @@
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_sim_shower"><code class="docutils literal notranslate"><span class="pre">Event.get_sim_shower()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_first_sim_shower"><code class="docutils literal notranslate"><span class="pre">Event.get_first_sim_shower()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_sim_shower"><code class="docutils literal notranslate"><span class="pre">Event.has_sim_shower()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.add_sim_emitter"><code class="docutils literal notranslate"><span class="pre">Event.add_sim_emitter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_sim_emitters"><code class="docutils literal notranslate"><span class="pre">Event.get_sim_emitters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_sim_emitter"><code class="docutils literal notranslate"><span class="pre">Event.get_sim_emitter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_first_sim_emitter"><code class="docutils literal notranslate"><span class="pre">Event.get_first_sim_emitter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_sim_emitter"><code class="docutils literal notranslate"><span class="pre">Event.has_sim_emitter()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_hybrid_information"><code class="docutils literal notranslate"><span class="pre">Event.get_hybrid_information()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.serialize"><code class="docutils literal notranslate"><span class="pre">Event.serialize()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.deserialize"><code class="docutils literal notranslate"><span class="pre">Event.deserialize()</span></code></a></li>
@@ -930,6 +964,20 @@
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.interferometric_core"><code class="docutils literal notranslate"><span class="pre">showerParameters.interferometric_core</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters"><code class="docutils literal notranslate"><span class="pre">emitterParameters</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.position"><code class="docutils literal notranslate"><span class="pre">emitterParameters.position</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.model"><code class="docutils literal notranslate"><span class="pre">emitterParameters.model</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.amplitude"><code class="docutils literal notranslate"><span class="pre">emitterParameters.amplitude</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.polarization"><code class="docutils literal notranslate"><span class="pre">emitterParameters.polarization</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.half_width"><code class="docutils literal notranslate"><span class="pre">emitterParameters.half_width</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.frequency"><code class="docutils literal notranslate"><span class="pre">emitterParameters.frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.orientation_phi"><code class="docutils literal notranslate"><span class="pre">emitterParameters.orientation_phi</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.orientation_theta"><code class="docutils literal notranslate"><span class="pre">emitterParameters.orientation_theta</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.rotation_phi"><code class="docutils literal notranslate"><span class="pre">emitterParameters.rotation_phi</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.rotation_theta"><code class="docutils literal notranslate"><span class="pre">emitterParameters.rotation_theta</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.realization_id"><code class="docutils literal notranslate"><span class="pre">emitterParameters.realization_id</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.particleParameters"><code class="docutils literal notranslate"><span class="pre">particleParameters</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.particleParameters.parent_id"><code class="docutils literal notranslate"><span class="pre">particleParameters.parent_id</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.particleParameters.zenith"><code class="docutils literal notranslate"><span class="pre">particleParameters.zenith</span></code></a></li>
@@ -1052,6 +1100,21 @@
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.set_parameter"><code class="docutils literal notranslate"><span class="pre">SimChannel.set_parameter()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="docutils literal notranslate"><span class="pre">SimChannel.set_trace()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.set_trace_start_time"><code class="docutils literal notranslate"><span class="pre">SimChannel.set_trace_start_time()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html">NuRadioReco.framework.sim_emitter module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter"><code class="docutils literal notranslate"><span class="pre">SimEmitter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.deserialize"><code class="docutils literal notranslate"><span class="pre">SimEmitter.deserialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.get_id"><code class="docutils literal notranslate"><span class="pre">SimEmitter.get_id()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.get_parameter"><code class="docutils literal notranslate"><span class="pre">SimEmitter.get_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.get_parameters"><code class="docutils literal notranslate"><span class="pre">SimEmitter.get_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.get_station_ids"><code class="docutils literal notranslate"><span class="pre">SimEmitter.get_station_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.has_parameter"><code class="docutils literal notranslate"><span class="pre">SimEmitter.has_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.has_station_ids"><code class="docutils literal notranslate"><span class="pre">SimEmitter.has_station_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.serialize"><code class="docutils literal notranslate"><span class="pre">SimEmitter.serialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.framework.sim_emitter.html#NuRadioReco.framework.sim_emitter.SimEmitter.set_parameter"><code class="docutils literal notranslate"><span class="pre">SimEmitter.set_parameter()</span></code></a></li>
 </ul>
 </li>
 </ul>
