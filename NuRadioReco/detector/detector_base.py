@@ -208,6 +208,38 @@ class DetectorBase(object):
             logger.info("the correct antenna model will be determined automatically based on the depth of the antenna")
         self._antenna_by_depth = antenna_by_depth
 
+    @property
+    def assume_inf(self):
+        """
+        Getter function for the `assume_inf` attribute
+        """
+        return self.__assume_inf
+
+    @assume_inf.setter
+    def assume_inf(self, value):
+        """
+        Setter function for the `assume_inf` attribute. Checks whether new value is boolean before assigning
+        the value to the attribute.
+        """
+        if isinstance(value, bool):
+            self.__assume_inf = value
+
+    @property
+    def antenna_by_depth(self):
+        """
+        Getter function for the `antenna_by_depth` attribute
+        """
+        return self._antenna_by_depth
+
+    @antenna_by_depth.setter
+    def antenna_by_depth(self, value):
+        """
+        Setter function for the `antenna_by_depth` attribute. Checks whether new value is boolean before assigning
+        the value to the attribute.
+        """
+        if isinstance(value, bool):
+            self.__assume_inf = value
+
     def __query_channel(self, station_id, channel_id):
         Channel = Query()
         if self.__current_time is None:
