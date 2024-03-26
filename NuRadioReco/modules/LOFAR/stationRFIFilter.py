@@ -540,13 +540,10 @@ class stationRFIFilter:
                 f'Removing the following channels from station {station_name}: \n'
                 f'{channel_ids_to_remove}'
             )
-            # remove from station, add to flagged list
-            for ant_id in antenna_ids[bad_dipole_indices]:
-                station.remove_channel(int(ant_id))  # are channel ids integers?
 
             # Remove bad antennas (= both channels!) from station, if it exists
             for nrr_id in channel_ids_to_remove:
-                station.remove_channel_id(nrr_id)
+                station.remove_channel(nrr_id)
 
             flagged_channel_ids.update(
                 channel_ids_to_remove
