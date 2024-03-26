@@ -99,7 +99,7 @@ def Detector(*args, **kwargs):
         if len(args) >= 4:
             assume_inf = args[3]
         else:
-            assume_inf = kwargs.pop("assume_inf", True)
+            assume_inf = kwargs.pop("assume_inf", None)
 
         if len(args) >= 5:
             antenna_by_depth = args[4]
@@ -110,7 +110,8 @@ def Detector(*args, **kwargs):
         if source == "sql":
             return detector_base.DetectorBase(
                 json_filename=None, source=source, dictionary=dictionary,
-                assume_inf=assume_inf, antenna_by_depth=if_not_None(antenna_by_depth, True))
+                assume_inf=if_not_None(assume_inf, True),
+                antenna_by_depth=if_not_None(antenna_by_depth, True))
 
         elif source == "rnog_mongo":
             return rnog_detector.Detector(*args, **kwargs)
@@ -165,7 +166,8 @@ def Detector(*args, **kwargs):
 
             return generic_detector.GenericDetector(
                 json_filename=filename, source=source, dictionary=dictionary,
-                assume_inf=assume_inf, antenna_by_depth=if_not_None(antenna_by_depth, False), **kwargs)
+                assume_inf=if_not_None(assume_inf, True),
+                antenna_by_depth=if_not_None(antenna_by_depth, False), **kwargs)
         else:
             # Keys might be present (but should be None). Keys are deprecated, keep them for backwards compatibility
             for key in ["default_station", "default_channel", "default_device"]:
@@ -173,4 +175,5 @@ def Detector(*args, **kwargs):
 
             return detector_base.DetectorBase(
                 json_filename=filename, source=source, dictionary=dictionary,
-                assume_inf=assume_inf, antenna_by_depth=if_not_None(antenna_by_depth, True), **kwargs)
+                assume_inf=if_not_None(assume_inf, True),
+                antenna_by_depth=if_not_None(antenna_by_depth, True), **kwargs)
