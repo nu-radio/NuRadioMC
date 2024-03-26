@@ -70,11 +70,16 @@ jobs:
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
-    - name: "Detector"
+    - name: "RNO-G Detector"
       if: always()
       run: |
         export PYTHONPATH=$(pwd):$PYTHONPATH
-        NuRadioReco/detector/test/tests.sh
+        python NuRadioReco/detector/test/test_rnog_detector.py
+    - name: "detector.Response"
+      if: always()
+      run: |
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        python NuRadioReco/detector/test/test_response.py
     - name: "RNO-G data reader"
       if: always()
       run: |
