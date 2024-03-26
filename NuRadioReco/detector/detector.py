@@ -40,6 +40,11 @@ def find_reference_entry(station_dict):
     return False
 
 
+def if_not_None(value, default):
+    """ Return `value` if `value is not None`, otherwise return `default` """
+    return value if value is not None else default
+
+
 def Detector(*args, **kwargs):
         """
         This function returns a detector class object. It chooses the correct class based on the "source" argument.
@@ -102,11 +107,10 @@ def Detector(*args, **kwargs):
             # None because the default argument for GenericDetector and DetectorBase are different
             antenna_by_depth = kwargs.pop("antenna_by_depth", None)
 
-
         if source == "sql":
             return detector_base.DetectorBase(
                 json_filename=None, source=source, dictionary=dictionary,
-                assume_inf=assume_inf, antenna_by_depth=antenna_by_depth or True)
+                assume_inf=assume_inf, antenna_by_depth=if_not_None(antenna_by_depth, True))
 
         elif source == "rnog_mongo":
             return rnog_detector.Detector(*args, **kwargs)
@@ -158,7 +162,7 @@ def Detector(*args, **kwargs):
 
             return generic_detector.GenericDetector(
                 json_filename=filename, source=source, dictionary=dictionary,
-                assume_inf=assume_inf, antenna_by_depth=antenna_by_depth or False, **kwargs)
+                assume_inf=assume_inf, antenna_by_depth=if_not_None(antenna_by_depth, False), **kwargs)
         else:
             # Keys might be present (but should be None). Keys are deprecated, keep them for backwards compatibility
             for key in ["default_station", "default_channel", "default_device"]:
@@ -166,4 +170,4 @@ def Detector(*args, **kwargs):
 
             return detector_base.DetectorBase(
                 json_filename=filename, source=source, dictionary=dictionary,
-                assume_inf=assume_inf, antenna_by_depth=antenna_by_depth or True, **kwargs)
+                assume_inf=assume_inf, antenna_by_depth=if_not_None(antenna_by_depth, True), **kwargs)
