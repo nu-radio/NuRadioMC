@@ -47,9 +47,9 @@ class DetectorProvider(object):
             ID of the channel to be set as default channel
         """
         import NuRadioReco.detector.generic_detector
-        self.__detector = NuRadioReco.detector.generic_detector.GenericDetector.__new__(
-            NuRadioReco.detector.generic_detector.GenericDetector, filename, default_station, 
-            default_channel, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
+        self.__detector = NuRadioReco.detector.generic_detector.GenericDetector(
+            filename, default_station, default_channel, assume_inf=assume_inf,
+            antenna_by_depth=antenna_by_depth, create_new=True)
 
     def set_event_file(self, filename):
         """
