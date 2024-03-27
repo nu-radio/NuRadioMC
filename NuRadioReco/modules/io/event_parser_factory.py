@@ -98,10 +98,16 @@ def scan_files_function(version_major, version_minor):
                 is_generic_detector = False
             else:
                 is_generic_detector = detector_dict['generic_detector']
+
+            if 'detector_parameters' not in detector_dict.keys():
+                detector_parameters = {}
+            else:
+                detector_parameters = detector_dict['detector_parameters']
             
             if iF not in self._detector_dicts.keys():
                 self._detector_dicts[iF] = {
                     'generic_detector': is_generic_detector,
+                    'detector_parameters': detector_parameters,
                     'channels': {},
                     'stations': {}
                 }
