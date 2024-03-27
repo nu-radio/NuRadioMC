@@ -75,7 +75,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
         assume_inf : Bool
             Default to True, if true forces antenna models to have infinite boundary conditions, otherwise the antenna
             madel will be determined by the station geometry.
-        antenna_by_depth: bool (default True)
+        antenna_by_depth: bool (default False)
             if True the antenna model is determined automatically depending on the depth of the antenna.
             This is done by appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
