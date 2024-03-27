@@ -94,15 +94,9 @@ def scan_files_function(version_major, version_minor):
             self.logger.debug("Read detector ...")
 
             detector_dict = pickle.loads(self._get_file(iF).read(bytes_to_read))
-            if 'generic_detector' not in detector_dict.keys():
-                is_generic_detector = False
-            else:
-                is_generic_detector = detector_dict['generic_detector']
 
-            if 'detector_parameters' not in detector_dict.keys():
-                detector_parameters = {}
-            else:
-                detector_parameters = detector_dict['detector_parameters']
+            is_generic_detector = detector_dict.get('generic_detector', False)
+            detector_parameters = detector_dict.get('detector_parameters', {})
             
             if iF not in self._detector_dicts.keys():
                 self._detector_dicts[iF] = {
