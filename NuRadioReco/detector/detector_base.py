@@ -223,6 +223,8 @@ class DetectorBase(object):
         """
         if isinstance(value, bool):
             self.__assume_inf = value
+        else:
+            raise ValueError(f"Value for assume_inf should be boolean, not {type(value)}")
 
     @property
     def antenna_by_depth(self):
@@ -239,6 +241,8 @@ class DetectorBase(object):
         """
         if isinstance(value, bool):
             self.__assume_inf = value
+        else:
+            raise ValueError(f"Value for antenna_by_depth should be boolean, not {type(value)}")
 
     def __query_channel(self, station_id, channel_id):
         Channel = Query()
