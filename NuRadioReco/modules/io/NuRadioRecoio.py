@@ -358,14 +358,9 @@ class NuRadioRecoio(object):
 
             detector_dict = self._detector_dicts[self._current_file_id]
 
-            # Extract keywords from detector dict
-            assume_inf = None
-            antenna_by_depth = None
-            if 'detector_parameters' in detector_dict:
-                if 'assume_inf' in detector_dict['detector_parameters']:
-                    assume_inf = detector_dict['detector_parameters']['assume_inf']
-                if 'antenna_by_depth' in detector_dict['detector_parameters']:
-                    antenna_by_depth = detector_dict['detector_parameters']['antenna_by_depth']
+            # Extract keywords from detector dict (if not present in nur file, "detector_parameters" is empty dict)
+            assume_inf = detector_dict['detector_parameters'].get('assume_inf', None)
+            antenna_by_depth = detector_dict['detector_parameters'].get('antenna_by_depth', None)
 
             if 'generic_detector' in detector_dict:
                 if detector_dict['generic_detector']:
