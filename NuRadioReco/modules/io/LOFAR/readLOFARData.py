@@ -6,7 +6,8 @@ import math
 import logging
 import numpy as np
 
-from datetime import datetime
+# from datetime import datetime
+from astropy.time import Time
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 
@@ -19,7 +20,6 @@ from NuRadioReco.framework.parameters import stationParameters, showerParameters
 
 import NuRadioReco.modules.io.LOFAR.rawTBBio as rawTBBio
 import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as rawTBBio_metadata
-
 
 logger = logging.getLogger('NuRadioReco.readLOFARData')
 
@@ -68,13 +68,13 @@ def get_metadata(filenames, metadata_dir):
 
 
 def lora_timestamp_to_blocknumber(
-    lora_seconds,
-    lora_nanoseconds,
-    start_time,
-    sample_number,
-    clock_offset=1e4 * units.ns,
-    block_size=2**16,
-    sampling_frequency=200 * units.MHz,
+        lora_seconds,
+        lora_nanoseconds,
+        start_time,
+        sample_number,
+        clock_offset=1e4 * units.ns,
+        block_size=2 ** 16,
+        sampling_frequency=200 * units.MHz,
 ):
     """
     Calculates block number corresponding to LORA timestamp and the sample number within that block
@@ -114,23 +114,43 @@ def lora_timestamp_to_blocknumber(
     return int(value / block_size), int(value % block_size)
 
 
-def tbb_filetag_from_utc(timestamp):
+def LOFAR_event_id_to_unix(event_id):
+    # 1262304000 = Unix timestamp on Jan 1, 2010 (date -u --date "Jan 1, 2010 00:00:00" +"%s")
+    return event_id + 1262304000
+
+
+def tbb_filetag_from_unix(timestamp):
     """
-    Returns TBB filename based on UTC timestamp of an event.
+    Returns TBB filename based on UNIX timestamp of an event.
 
     Parameters
     ----------
     timestamp: int
-        UTC timestamp from GPS
+        UNIX timestamp from GPS
 
     Returns
     -------
     filename: str
         The tag in the TBB filename identifying the files of the event.
-    """
-    # utc_timestamp_base = 1262304000  # Unix timestamp on Jan 1, 2010 (date -u --date "Jan 1, 2010 00:00:00" +"%s")
 
-    dt_object = datetime.utcfromtimestamp(timestamp)
+    Notes
+    -----
+    Technically speaking there is no such thing as an "UTC timestamp". The Coordinated Universal Time (UTC)
+    is a time standard , which defines a reference for current time. It uses hours, minutes and seconds to
+    divide a day. Crucially, it allows for the introduction of leap seconds.
+
+    The UNIX timestamp on the other hand is defined as the number of **non-leap** seconds passed since
+    00:00:00 UTC on 1 January 1970. However, when a leap second occurs the UNIX timestamp is actually reset
+    (i.e. that same timestamp refers to two moments in time). As such, the UNIX timestamp remains
+    synchronised with the UTC time (except for the one second that is a leap second).
+
+    Note that astropy has support for leap seconds. During the day a leap seconds occurs, UNIX timestamps
+    are reported as floating point values (instead of the usual integers). Conversely, converting a UNIX
+    timestamp to a datetime will give a millisecond contribution. Though the seconds are still accounted
+    for as one would expect.
+    """
+
+    dt_object = Time(timestamp, format='unix').to_datetime()
     year = dt_object.year
     month = dt_object.month
     day = dt_object.day
@@ -144,9 +164,87 @@ def tbb_filetag_from_utc(timestamp):
     return radio_file_tag
 
 
+def tbbID_to_nrrID(channel_id, mode):
+    """
+    Converts a TBB channel ID to the corresponding NRR channel ID given the antenna mode. This simply adds a "9" as
+    the fourth element of the channelID, if the antenna mode is "LBA_inner". The function :func:`nrrID_to_tbbID`
+    can be used to do the opposite.
+
+    As of February 2024, this function only supports "LBA_INNER" and "LBA_OUTER" as possible antenna modes.
+    Note that the antenna mode is always converted to lowercase, so the comparison is case-insensitive (i.e.
+    "LBA_inner" and "LBA_INNER" are both recognised as the same antenna set).
+    
+    Parameters
+    ----------
+    channel_id: str or int
+        TBB channel ID
+    mode: {"LBA_inner", "LBA_outer"}
+        The antenna set for which to convert (case-insensitive).
+
+    Returns
+    -------
+    nrr_channel_id: str
+        The NuRadioReco channelID corresponding to the TBB channelID depending on whether the antenna mode
+        is "lba_inner" or "lba_outer"
+
+    Notes
+    -----
+    This function encodes the convention used in the `LOFAR.json` detector description. For the inner LBA antennas,
+    a "9" was added as the fourth element of the channelID. However, the TBB files always use the same set of
+    channel IDs (i.e. the same channel ID refers to different physical antennas depending on the antenna set).
+    Given a channel ID from the TBB file and the antenna set, this function returns the channel ID of the
+    corresponding channel in the NRR Detector description.
+    """
+
+    # if channelID is integer, convert to string and fill it with zeroes at the beginning to get a string length of 9
+    if type(channel_id) == int:
+        channel_id = str(channel_id).zfill(9)
+
+    if mode.lower() == "lba_outer":  # for LBA_outer, keep the zero on 4th position of string
+        # For safety, the string is overwritten here. But it should not be necessary
+        nrr_channel_id = channel_id[:3] + '0' + channel_id[4:]
+    elif mode.lower() == "lba_inner":  # for LBA_inner, replace the fourth digit (zero) in the string with a 9
+        nrr_channel_id = channel_id[:3] + '9' + channel_id[4:]
+    else:
+        logger.warning("%s is not a valid antenna mode - valid modes are LBA_inner and LBA_outer" % mode)
+        nrr_channel_id = channel_id  # return the input channel ID if mode is invalid.
+
+    return nrr_channel_id
+
+
+def nrrID_to_tbbID(channel_id):
+    """
+    This function does the opposite of :func:`tbbID_to_nrrID` . It returns the TBB channel ID given a NRR channel ID.
+    Following the convention used in the LOFAR detector description as of February 2024, this simply replaces the
+    fourth element of the channelID with a "0".
+    
+    Parameters
+    ------------
+    channel_id: str or int
+        Channel ID
+
+    Returns
+    -------
+    tbb_channel_id: str
+        The TBB channelID corresponding to the NuRadioReco channelID
+
+    See Also
+    --------
+    tbbID_to_nrrID : convert TBB channel ID to NRR channel ID
+    """
+
+    # if channelID is integer, convert to string and fill it with zeroes at the beginning to get a string length of 9
+    if type(channel_id) == int:
+        channel_id = str(channel_id).zfill(9)
+
+    tbb_channel_id = channel_id[:3] + '0' + channel_id[4:]  # replace fourth element with a 0
+
+    return tbb_channel_id
+
+
 class getLOFARtraces:
     def __init__(
-        self, tbb_h5_filename, metadata_dir, time_s, time_ns, trace_length_nbins
+            self, tbb_h5_filename, metadata_dir, time_s, time_ns, trace_length_nbins
     ):
         """
         A Class to facilitate getting traces from LOFAR TBB HDF5 Files
@@ -195,7 +293,7 @@ class getLOFARtraces:
         self.block_number, self.sample_number_in_block = packet
 
         self.alignment_shift = -(
-            self.trace_length_nbins // 2 - self.sample_number_in_block
+                self.trace_length_nbins // 2 - self.sample_number_in_block
         )  # minus sign, apparently...
 
         logger.info(
@@ -287,6 +385,7 @@ class readLOFARData:
     metadata_directory: Path-like str, default="/vol/astro7/lofar/vhecr/kratos/data/"
         The path to the directory containing the LOFAR metadata (antenna positions and timing calibrations).
     """
+
     def __init__(self, restricted_station_set=None, tbb_directory=None, json_directory=None, metadata_directory=None):
         self.logger = logging.getLogger('NuRadioReco.readLOFARData')
 
@@ -396,6 +495,9 @@ class readLOFARData:
         self.__lora_timestamp = lora_dict["LORA"]["utc_time_stamp"]
         self.__lora_timestamp_ns = lora_dict["LORA"]["time_stamp_ns"]
 
+        if self.__lora_timestamp != LOFAR_event_id_to_unix(self.__event_id):
+            self.logger.error(f"LORA timestamp {self.__lora_timestamp} does not match event ID {self.__event_id}")
+
         # Read in data from LORA file and save it in a HybridShower
         self.__hybrid_shower = NuRadioReco.framework.hybrid_shower.HybridShower("LORA")
 
@@ -410,7 +512,7 @@ class readLOFARData:
         self.__hybrid_shower.set_parameter(showerParameters.azimuth, azimuth * units.radian)
 
         # Go through TBB directory and identify all files for this event
-        tbb_filename_pattern = tbb_filetag_from_utc(self.__event_id + 1262304000)  # event id is based on timestamp
+        tbb_filename_pattern = tbb_filetag_from_unix(self.__lora_timestamp)
 
         tbb_filename_pattern = self.tbb_dir + "/*" + tbb_filename_pattern + "*.h5"
         self.logger.debug(f'Looking for files with {tbb_filename_pattern}...')
@@ -422,11 +524,12 @@ class readLOFARData:
         for tbb_filename in all_tbb_files:
             station_name = re.findall(r"CS\d\d\d", tbb_filename)[0]
             if (self.__restricted_station_set is not None) and (station_name not in self.__restricted_station_set):
-                continue # only process stations in the given set
+                continue  # only process stations in the given set
             self.logger.info(f'Found file {tbb_filename} for station {station_name}...')
             self.__stations[station_name]['files'].append(tbb_filename)
 
             # Save the metadata only once (in case there are multiple files for a station)
+            # TODO: make metadata a dictionary
             if 'metadata' not in self.__stations[station_name]:
                 self.__stations[station_name]['metadata'] = get_metadata([tbb_filename], self.meta_dir)
 
@@ -434,9 +537,10 @@ class readLOFARData:
     def run(self, detector, trace_length=65536):
         """
         Runs the reader with the provided detector. For every station that has files associated with it, a Station
-        object is created together with its channels (pulled from the detector description). Every channel also gets
-        a group ID which corresponds to the polarisation (i.e. 0 for even and 1 for odd), as to be able to retrieve
-        all channels per polarisation during processing.
+        object is created together with its channels (pulled from the detector description, depending on the antenna 
+        set (LBA_OUTER/INNER)). Every channel also gets a group ID which corresponds to the antenna name, formatted
+        as 'a{even_dipole_number}'. So channels '001000000' and '001000001', which are the two dipoles composing
+        one physical antenna, both get group ID 'a1000000'.
 
         Parameters
         ----------
@@ -456,6 +560,10 @@ class readLOFARData:
         # Add HybridShower to HybridInformation
         evt.get_hybrid_information().add_hybrid_shower(self.__hybrid_shower)
 
+        # update the detector to the event time 
+        time = Time(self.__lora_timestamp, format='unix')
+        detector.update(time)
+
         # Add all Detector stations to Event
         for station_name, station_dict in self.__stations.items():
             station_id = int(station_name[2:])
@@ -464,7 +572,11 @@ class readLOFARData:
             if len(station_files) == 0:
                 continue
 
+            # The metadata is only defined if there are files in the station
+            antenna_set = station_dict['metadata'][1]
+            
             station = NuRadioReco.framework.station.Station(station_id)
+            station.set_station_time(time)
             radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
                                                                           station_ids=[station_id])
 
@@ -483,28 +595,58 @@ class readLOFARData:
 
             # done here as it needs median timing values over all traces in the station
             flagged_channel_ids = channels_deviating.union(channels_missing_counterpart)
-            for channel_id in detector.get_channel_ids(station_id):
-                if channel_id in flagged_channel_ids:
-                    continue                 
+
+            # empty set to add the NRR flagged channel IDs to
+            flagged_nrr_channel_ids = set()
+            channel_set_ids = set()
+
+            channels = detector.get_channel_ids(station_id)
+            if antenna_set == "LBA_OUTER":
+                # for LBA_OUTER, the antennas have a "0" as fourth element in 9 element string
+                for c in channels:
+                    c_str = str(c).zfill(9)
+                    if c_str[3] == "0":
+                        channel_set_ids.add(c)
+
+            elif antenna_set == "LBA_INNER":
+                # for LBA_OUTER, the antennas have a "9" as fourth element in 9 element string
+                for c in channels:
+                    c_str = str(c).zfill(9)
+                    if c_str[3] == "9":
+                        channel_set_ids.add(c)
+            else:
+                # other modes are currently not supported
+                # TODO: add them
+                self.logger.warning(f"Station {station_id} has unknown antenna set: {antenna_set}")
+                continue
+
+            for channel_id in channel_set_ids:
+                # convert channel ID to TBB ID to be able to access trace
+                TBB_channel_id = nrrID_to_tbbID(channel_id)
+
+                if int(TBB_channel_id) in flagged_channel_ids:
+                    flagged_nrr_channel_ids.add(channel_id)
+                    continue
 
                 # read in trace, see if that works. Needed or overly careful?
                 try:
-                    this_trace = lofar_trace_access.get_trace(str(channel_id).zfill(9))  # channel ID is 9 digits
+                    this_trace = lofar_trace_access.get_trace(TBB_channel_id)  # channel ID is 9 digits
                 except:  # FIXME: Too general except statement
-                    flagged_channel_ids.add(channel_id)                    
+                    flagged_channel_ids.add(int(TBB_channel_id))
+                    flagged_nrr_channel_ids.add(channel_id)
                     logger.warning("Could not read data for channel id %s" % channel_id)
                     continue
 
                 # The channel_group_id should be interpreted as an antenna index
                 # dipoles '001000000' and '001000001' -> 'a1000000'
                 channel_group = 'a' + str(detector.get_channel_group_id(station_id, channel_id))
-                
+
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
                 station.add_channel(channel)
 
-            # store set of flagged channel ids as station parameter
-            station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
+            # store set of flagged nrr channel ids as station parameter
+            station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
 
             # Add station to Event, together with RadioShower to store reconstruction values later on
             evt.set_station(station)
