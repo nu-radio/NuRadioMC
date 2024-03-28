@@ -357,6 +357,11 @@ class NuRadioRecoio(object):
                     return None
 
             detector_dict = self._detector_dicts[self._current_file_id]
+
+            # Extract keywords from detector dict (if not present in nur file, "detector_parameters" is empty dict)
+            assume_inf = detector_dict['detector_parameters'].get('assume_inf', None)
+            antenna_by_depth = detector_dict['detector_parameters'].get('antenna_by_depth', None)
+
             if 'generic_detector' in detector_dict:
                 if detector_dict['generic_detector']:
 
@@ -368,6 +373,7 @@ class NuRadioRecoio(object):
                         source='dictionary', dictionary=detector_dict,
                         default_station=detector_dict.get('default_station', None),
                         default_channel=detector_dict.get('default_channel', None),
+                        assume_inf=assume_inf, antenna_by_depth=antenna_by_depth,
                         create_new=True)
 
                     if self._current_file_id in self._event_specific_detector_changes.keys():
@@ -384,7 +390,9 @@ class NuRadioRecoio(object):
             # Detector is a normal detector
             self.__detectors[self._current_file_id] = NuRadioReco.detector.detector.Detector(
                 source='dictionary', dictionary=self._detector_dicts[self._current_file_id],
-                create_new=True)
+                assume_inf=assume_inf, antenna_by_depth=antenna_by_depth,
+                create_new=True
+            )
 
         # Detector object for current file already exists. If it is a generic detector,
         # we update it to the run number and ID of the last event that was requested
