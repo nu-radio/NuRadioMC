@@ -29,12 +29,12 @@ def find_reference_entry(station_dict):
     """
 
     for station in station_dict['stations']:
-        if 'reference_station' in station_dict['stations'][station].keys():
+        if 'reference_station' in station_dict['stations'][station]:
             return True
 
     for channel in station_dict['channels']:
-        if 'reference_channel' in station_dict['channels'][channel].keys() or 'reference_station' in \
-                station_dict['channels'][channel].keys():
+        if 'reference_channel' in station_dict['channels'][channel] or 'reference_station' in \
+                station_dict['channels'][channel]:
             return True
 
     return False
@@ -112,10 +112,13 @@ def Detector(*args, **kwargs):
 
         elif source == "dictionary":
 
-            if "dictionary" not in kwargs:
-                raise ValueError("Argument \"dictionary\" is not passed to Detector() while source=\"dictionary\" is set.")
+            if not isinstance(dictionary, dict):
+                raise ValueError("Argument \"dictionary\" is not correct while source=\"dictionary\" is set.")
 
-            station_dict = kwargs["dictionary"]
+            station_dict = dictionary
+
+            # in this case, `json_filname` not need and should not be passed twice
+            kwargs.pop("json_filename", None)
             filename = ''
 
         elif source == 'json':
