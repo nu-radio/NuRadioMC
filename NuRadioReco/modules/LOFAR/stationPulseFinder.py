@@ -271,15 +271,24 @@ class stationPulseFinder:
             station_id = station.get_id()
 
             # Get the channel IDs grouped per polarisation (i.e. dipole orientation)
-            ant_same_orientation = detector.get_parallel_channels(station_id)
+            # -> take these from Event, cause some might already be thrown out!
+            station_even_list = []
+            station_odd_list = []
+            for channel in station.iter_channels():
+                if channel.get_id() == int(channel.get_group_id()[1:]):
+                    station_even_list.append(channel.get_id())
+                else:
+                    station_odd_list.append(channel.get_id())
 
             # Find the antenna positions by only looking at the channels from a given polarisation
             position_array = [
                 detector.get_absolute_position(station_id) +
                 detector.get_relative_position(station_id, channel_id)
-                for channel_id in ant_same_orientation[0]
+                for channel_id in station_even_list
             ]
             position_array = np.asarray(position_array)
+
+            ant_same_orientation = [station_even_list, station_odd_list]
 
             # Find polarisation with max envelope amplitude and calculate pulse search window from it
             dominant_pol, pulse_window_start, pulse_window_end = self._signal_windows_polarisation(
