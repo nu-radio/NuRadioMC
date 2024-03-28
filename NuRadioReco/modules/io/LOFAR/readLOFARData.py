@@ -538,8 +538,9 @@ class readLOFARData:
         """
         Runs the reader with the provided detector. For every station that has files associated with it, a Station
         object is created together with its channels (pulled from the detector description, depending on the antenna 
-        set (LBA_OUTER/INNER)). Every channel also gets a group ID which corresponds to the polarisation (i.e. 0 
-        for even and 1 for odd), as to be able to retrieve all channels per polarisation during processing.
+        set (LBA_OUTER/INNER)). Every channel also gets a group ID which corresponds to the antenna name, formatted
+        as 'a{even_dipole_number}'. So channels '001000000' and '001000001', which are the two dipoles composing
+        one physical antenna, both get group ID 'a1000000'.
 
         Parameters
         ----------
