@@ -88,7 +88,10 @@ def setup_logger(name="NuRadioReco", level=None):
     logger.addHandler(handler)
 
     # Add the STATUS log level
-    addLoggingLevel('STATUS', LOGGING_STATUS)
+    try:
+        addLoggingLevel('STATUS', LOGGING_STATUS)
+    except AttributeError:
+        pass
 
     # Set logging level
     if level is not None:
