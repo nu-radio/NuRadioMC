@@ -15,6 +15,7 @@ from NuRadioMC.simulation import simulation
 from NuRadioMC.utilities import runner
 from NuRadioReco.utilities import units
 
+from NuRadioReco.detector import detector
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.modules import triggerTimeAdjuster
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
@@ -181,7 +182,15 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
     flavor_ids = {"e": [12, -12], "mu": [14, -14], "tau": [16, -16]}
     r_max = get_max_radius_shallow(energy_max)
     z_min = get_min_z_shallow(energy_max)
-    volume = {"fiducial_rmax": r_max, "fiducial_rmin": 0 * units.km, "fiducial_zmin": z_min, "fiducial_zmax": 0}
+    r_max = 0.000001
+    volume = {
+        "fiducial_rmax": r_max,
+        "fiducial_rmin": 0 * units.km,
+        "fiducial_zmin": z_min,
+        "fiducial_zmax": 0,
+        "x0": kwargs["x0"],
+        "y0": kwargs["y0"],
+    }
 
     input_data = generator.generate_eventlist_cylinder(
         "on-the-fly",
@@ -244,9 +253,24 @@ if __name__ == "__main__":
     parser.add_argument("--n_triggers", type=int, default=3e4, help="Number of total events to generate")
     parser.add_argument("--n_events_per_file", type=int, default=1e3, help="Number of nu-interactions per file")
     parser.add_argument("--data_dir", type=str, default=def_data_dir, help="directory name where the library will be created")
+    parser.add_argument("--x0", type=float, default=0.0, help="x-coord center of the cylinder over which to throw events")
+    parser.add_argument("--y0", type=float, default=0.0, help="y-coord center of the cylinder over which to throw events")
+    parser.add_argument(
+        "--center_around_station_id",
+        type=int,
+        default=None,
+        help="If set, will center the cylinder around this station, overwrites x0, y0 commands",
+    )
 
     args = parser.parse_args()
     kwargs = args.__dict__
+
+    if args.center_around_station_id is not None:
+        temp_det = detector.Detector(json_filename=args.detectordescription, antenna_by_depth=False)
+        if args.center_around_station_id not in temp_det.get_station_ids():
+            raise RuntimeError(f"Cannot find station {args.center_around_station_id} in detector config")
+        kwargs["x0"] = temp_det.get_absolute_position(args.center_around_station_id)[0]
+        kwargs["y0"] = temp_det.get_absolute_position(args.center_around_station_id)[1]
 
     filename = (os.path.splitext(os.path.basename(__file__))[0]).split(".")[0]
     output_path = os.path.join(
