@@ -182,7 +182,6 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
     flavor_ids = {"e": [12, -12], "mu": [14, -14], "tau": [16, -16]}
     r_max = get_max_radius_shallow(energy_max)
     z_min = get_min_z_shallow(energy_max)
-    r_max = 0.000001
     volume = {
         "fiducial_rmax": r_max,
         "fiducial_rmin": 0 * units.km,
