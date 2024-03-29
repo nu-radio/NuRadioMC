@@ -692,14 +692,14 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Read detector ...&quot;</span><span class="p">)</span>
 
             <span class="n">detector_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">bytes_to_read</span><span class="p">))</span>
-            <span class="k">if</span> <span class="s1">&#39;generic_detector&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detector_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">is_generic_detector</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">is_generic_detector</span> <span class="o">=</span> <span class="n">detector_dict</span><span class="p">[</span><span class="s1">&#39;generic_detector&#39;</span><span class="p">]</span>
+
+            <span class="n">is_generic_detector</span> <span class="o">=</span> <span class="n">detector_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;generic_detector&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">detector_parameters</span> <span class="o">=</span> <span class="n">detector_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;detector_parameters&#39;</span><span class="p">,</span> <span class="p">{})</span>
             
             <span class="k">if</span> <span class="n">iF</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s1">&#39;generic_detector&#39;</span><span class="p">:</span> <span class="n">is_generic_detector</span><span class="p">,</span>
+                    <span class="s1">&#39;detector_parameters&#39;</span><span class="p">:</span> <span class="n">detector_parameters</span><span class="p">,</span>
                     <span class="s1">&#39;channels&#39;</span><span class="p">:</span> <span class="p">{},</span>
                     <span class="s1">&#39;stations&#39;</span><span class="p">:</span> <span class="p">{}</span>
                 <span class="p">}</span>

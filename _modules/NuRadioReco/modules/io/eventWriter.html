@@ -784,6 +784,10 @@
         <span class="n">is_generic_detector</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">generic_detector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">)</span>
         <span class="n">det_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;generic_detector&quot;</span><span class="p">:</span> <span class="n">is_generic_detector</span><span class="p">,</span>
+            <span class="s2">&quot;detector_parameters&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;assume_inf&quot;</span><span class="p">:</span> <span class="n">det</span><span class="o">.</span><span class="n">assume_inf</span><span class="p">,</span>
+                <span class="s2">&quot;antenna_by_depth&quot;</span><span class="p">:</span> <span class="n">det</span><span class="o">.</span><span class="n">antenna_by_depth</span>
+            <span class="p">},</span>
             <span class="s2">&quot;channels&quot;</span><span class="p">:</span> <span class="p">{},</span>
             <span class="s2">&quot;stations&quot;</span><span class="p">:</span> <span class="p">{}</span>
         <span class="p">}</span>

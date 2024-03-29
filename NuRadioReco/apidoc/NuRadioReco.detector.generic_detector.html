@@ -620,6 +620,16 @@ of the other channels will be taken from the default channel.
 The GenericDetector also ignores commission and decommission times and should
 therefore not be used for real data, but only for simulation studies.
 This detector only accepts json detector descriptions or dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth" title="NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">antenna_by_depth</span></code></a></dt><dd><p>Getter function for the <a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth" title="NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">antenna_by_depth</span></code></a> attribute</p>
+</dd>
+<dt><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.assume_inf" title="NuRadioReco.detector.generic_detector.GenericDetector.assume_inf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assume_inf</span></code></a></dt><dd><p>Getter function for the <a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.assume_inf" title="NuRadioReco.detector.generic_detector.GenericDetector.assume_inf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assume_inf</span></code></a> attribute</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -812,9 +822,17 @@ passed to this parameter will be used for the detector description.</p>
 <dt><strong>assume_inf</strong><span class="classifier">Bool</span></dt><dd><p>Default to True, if true forces antenna models to have infinite boundary conditions, otherwise the antenna
 madel will be determined by the station geometry.</p>
 </dd>
-<dt><strong>antenna_by_depth: bool (default True)</strong></dt><dd><p>if True the antenna model is determined automatically depending on the depth of the antenna.
+<dt><strong>antenna_by_depth: bool (default False)</strong></dt><dd><p>if True the antenna model is determined automatically depending on the depth of the antenna.
 This is done by appending e.g. ‘_InfFirn’ to the antenna model name.
 if False, the antenna model as specified in the database is used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth" title="NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">antenna_by_depth</span></code></a></dt><dd><p>Getter function for the <a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth" title="NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">antenna_by_depth</span></code></a> attribute</p>
+</dd>
+<dt><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.assume_inf" title="NuRadioReco.detector.generic_detector.GenericDetector.assume_inf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assume_inf</span></code></a></dt><dd><p>Getter function for the <a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.assume_inf" title="NuRadioReco.detector.generic_detector.GenericDetector.assume_inf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assume_inf</span></code></a> attribute</p>
 </dd>
 </dl>
 </dd>
@@ -1161,6 +1179,18 @@ for backward compatibility datetime is also accepted, but astropy.time is prefer
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">antenna_by_depth</span></span><a class="headerlink" href="#NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth" title="Permalink to this definition"></a></dt>
+<dd><p>Getter function for the <a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth" title="NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">antenna_by_depth</span></code></a> attribute</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.detector.generic_detector.GenericDetector.assume_inf">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">assume_inf</span></span><a class="headerlink" href="#NuRadioReco.detector.generic_detector.GenericDetector.assume_inf" title="Permalink to this definition"></a></dt>
+<dd><p>Getter function for the <a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.assume_inf" title="NuRadioReco.detector.generic_detector.GenericDetector.assume_inf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assume_inf</span></code></a> attribute</p>
 </dd></dl>
 
 <dl class="py method">
