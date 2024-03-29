@@ -21,6 +21,8 @@ can then iterate over a channel group, which yields all channels for a given gro
 - Added LOFAR modules for reading data, removing RFI, beamforming and fitting the arrival direction
 - Added functionality to remove Channel from Station
 - Added LOFAR antenna pattern and function to parse TXT simulation file
+- The assume_inf and antenna_by_depth Detector keywords are now saved in the nur file, and will be
+loaded again when reading in the Detector from a nur file
 
 bugfixes:
 
