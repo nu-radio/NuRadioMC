@@ -75,7 +75,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
         assume_inf : Bool
             Default to True, if true forces antenna models to have infinite boundary conditions, otherwise the antenna
             madel will be determined by the station geometry.
-        antenna_by_depth: bool (default True)
+        antenna_by_depth: bool (default False)
             if True the antenna model is determined automatically depending on the depth of the antenna.
             This is done by appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
@@ -94,6 +94,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
                 # json when updating the table to include reference_station/channel/device
                 with open(json_filename, "r") as json_input:
                     dictionary = json.load(json_input)
+
             super(GenericDetector, self).__init__(source="dictionary", json_filename=None,
                                                   dictionary=dictionary, assume_inf=assume_inf,
                                                   antenna_by_depth=antenna_by_depth)
@@ -153,6 +154,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
                                              (Device.station_id == dev["station_id"]) & (
                                                      Device.device_id == dev["device_id"]))
             self.__default_station = default_station
+
         # TODO maybe these dicts/lists can be omitted
         # a lookup with one reference station for each station in the detector description
         self.__lookuptable_reference_station = {}

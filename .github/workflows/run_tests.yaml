@@ -129,6 +129,12 @@ jobs:
          export PYTHONPATH=$PWD:$PYTHONPATH
          export GSLDIR=$(gsl-config --prefix)
          python NuRadioMC/SignalProp/examples/ray_tracing_modules.py
+    - name: "Test Birefringence"
+      if: always()
+      run: |
+         export PYTHONPATH=$PWD:$PYTHONPATH
+         export GSLDIR=$(gsl-config --prefix)
+         NuRadioMC/test/SignalProp/run_birefringence_tests.sh
     - name: "Test Veff example"
       if: always()
       run: |
@@ -141,7 +147,7 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
-        NuRadioMC/test/examples/test_emitter_example.sh
+        NuRadioMC/test/examples/test_cal_pulser_example.sh
     - name: "Test radio emitter pulser example"
       if: always()
       run: |

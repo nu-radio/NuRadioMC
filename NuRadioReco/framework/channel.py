@@ -12,10 +12,21 @@ logger = logging.getLogger('channel')
 
 class Channel(NuRadioReco.framework.base_trace.BaseTrace):
 
-    def __init__(self, channel_id):
+    def __init__(self, channel_id, channel_group_id=None):
+        """
+        Parameters
+        ----------
+        channel_id: int
+            the id of the channel
+        channel_group_id: int (default None)
+            optionally, several channels can belong to a "channel group". Use case is to identify
+            the channels of a single dual or triple polarized antenna as common in air shower arrays. 
+        
+        """
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._parameters = {}
         self._id = channel_id
+        self._group_id = channel_group_id
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.channelParameters):
@@ -46,6 +57,17 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
 
     def get_id(self):
         return self._id
+    
+    def get_group_id(self):
+        """
+        channel group id
+        If no group id is specified, the channel id is returned. This allows using modules that use the `group_id`
+        feature also on detector setups that don't use this feature.
+        """
+        if self._group_id is None:
+            return self._id
+        else:
+            return self._group_id
 
     def serialize(self, save_trace):
         if save_trace:
@@ -54,6 +76,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
             base_trace_pkl = None
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 'id': self.get_id(),
+                'group_id': self._group_id,
                 'base_trace': base_trace_pkl}
 
         return pickle.dumps(data, protocol=4)
@@ -64,3 +87,4 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
         self._id = data['id']
+        self._group_id = data.get('group_id')  # Attempts to load group_id, returns None if not found
