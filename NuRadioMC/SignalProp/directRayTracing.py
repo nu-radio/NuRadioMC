@@ -48,13 +48,13 @@ class direct_ray_tracing(ray_tracing_base):
     def get_travel_time(self, iS):
         traveltime = 0
         path = self.get_path(iS)
-        segment = [path[0][1]-path[0][0],path[1][1]-path[1][0],path[2][1]-path[2][0]]
+        segment = [path[1][0]-path[0][0],path[1][1]-path[0][1],path[1][2]-path[0][2]]
         r = np.linalg.norm(segment)
-        for i in range(len(path[0])-1):
-            xx = np.array([path[0][i], path[1][i], path[2][i]])
-            yy = np.array([path[0][i+1], path[1][i+1], path[2][i+1]])
-            x = (xx+yy)/2
-            n = self._medium.get_index_of_refraction(x)
+        for i in range(len(path)-1):
+            xx = np.array([path[i][0], path[i][1], path[i][2]])
+            yy = np.array([path[i+1][0], path[i+1][1], path[i+1][2]])
+            center_of_segment = (xx+yy)/2
+            n = self._medium.get_index_of_refraction(center_of_segment)
             traveltime += r/(speed_of_light/n)
         return traveltime
     
