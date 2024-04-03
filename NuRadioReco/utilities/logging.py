@@ -4,6 +4,11 @@ LOGGING_STATUS = 25
 
 
 class NuRadioLogger(logging.Logger):
+    """
+    Custom logging class for NuRadio modules and applications. It adds a custom log level STATUS,
+    which has level=`LOGGING_STATUS` as defined in `logging.py` (as of February 2024, its value is 25).
+    The associated `status()` call is also implemented.
+    """
     def __init__(self, name="NuRadioReco"):
         super().__init__(name)
 
@@ -81,11 +86,9 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
 
 def setup_logger(name="NuRadioReco", level=None):
     """
-    Set up the parent logger which all module loggers should pass their logs on to. Any handler which was
-    previously added to the logger is cleared, and a single new `logging.StreamHandler()` with a custom
-    formatter is added. Next to this, an extra logging level STATUS is added with level=`LOGGING_STATUS`,
-    which is defined in `module.py` (as of February 2024, its value is 25). Then STATUS is also set as
-    the default logging level.
+    Set up the parent logger which all module loggers should pass their logs on to. If this one already
+    exists, nothing is done and the logger is returned as is. Otherwise a single new `logging.StreamHandler()`
+    with a custom formatter is added.
 
     Parameters
     ----------
@@ -101,9 +104,6 @@ def setup_logger(name="NuRadioReco", level=None):
         logger.warning(f"Logger {name} already has handlers. Not changing anything, returning the existing logger...")
         return logger
     logger.propagate = False
-
-    # First clear all the handlers
-    logger.handlers = []
 
     # Create a StreamHandler with correct level and format
     handler = logging.StreamHandler()
@@ -122,3 +122,19 @@ def setup_logger(name="NuRadioReco", level=None):
     logger.addHandler(handler)
 
     return logger
+
+
+def set_general_log_level(level):
+    """
+    Set the logging level of the NuRadioMC and NuRadioReco loggers to `level`.
+
+    Parameters
+    ----------
+    level : int
+        The desired logging level
+    """
+    nrr_logger = logging.getLogger("NuRadioReco")
+    nrr_logger.setLevel(level)
+
+    nrmc_logger = logging.getLogger("NuRadioMC")
+    nrmc_logger.setLevel(level)
