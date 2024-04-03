@@ -5,9 +5,6 @@ import argparse
 import numpy as np
 import sys
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--create_reference', help='create new reference instead of comparing to current reference', action='store_true')
