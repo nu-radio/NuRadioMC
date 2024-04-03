@@ -1,4 +1,11 @@
 import os
+import logging
+
+from NuRadioReco.utilities.logging import NuRadioLogger, setup_logger
+
+logging.setLoggerClass(NuRadioLogger)
+setup_logger(name="NuRadioReco")
+
 try:
     import importlib.metadata as importlib_metadata
 except ModuleNotFoundError:
