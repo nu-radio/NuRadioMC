@@ -20,9 +20,6 @@ import os
 import sys
 
 
-logger = setup_logger(name="")
-
-
 if (len(sys.argv) < 2):
     mode = 'simple'
 else:
