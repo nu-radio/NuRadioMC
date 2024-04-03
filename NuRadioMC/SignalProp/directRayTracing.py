@@ -47,12 +47,11 @@ class direct_ray_tracing(ray_tracing_base):
     
     def get_travel_time(self, iS):
         path = self.get_path(iS)
-        segment_length = np.linalg.norm(path[1,:]-path[0,:])
+        segment_length = np.linalg.norm(path[1]-path[0])
         segment_centers = (path[:-1]+path[1:])/2
         n = self._medium.get_index_of_refraction(segment_centers)
         traveltime = np.sum(segment_length/(speed_of_light/n))
         return traveltime
-    
     
     def get_reflection_angle(self):
         return None 
