@@ -1,7 +1,26 @@
 import logging
 
-
 LOGGING_STATUS = 25
+
+
+class NuRadioLogger(logging.Logger):
+    def __init__(self, name="NuRadioReco"):
+        super().__init__(name)
+
+        # Add STATUS as the level name, to be used in message formatting
+        logging.addLevelName(LOGGING_STATUS, "STATUS")
+
+    def addHandler(self, hdlr: logging.Handler):
+        # Ensure that the logger level is always lower than the lowest handler
+        if hdlr.level < self.level:
+            self.setLevel(hdlr.level)
+
+        super().addHandler(hdlr)
+
+    def status(self, message, *args, **kwargs):
+        print(message)
+        if self.isEnabledFor(LOGGING_STATUS):
+            self._log(LOGGING_STATUS, message, args, **kwargs)
 
 
 def addLoggingLevel(levelName, levelNum, methodName=None):
@@ -38,11 +57,11 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
         methodName = levelName.lower()
 
     if hasattr(logging, levelName):
-       raise AttributeError('{} already defined in logging module'.format(levelName))
+        raise AttributeError('{} already defined in logging module'.format(levelName))
     if hasattr(logging, methodName):
-       raise AttributeError('{} already defined in logging module'.format(methodName))
+        raise AttributeError('{} already defined in logging module'.format(methodName))
     if hasattr(logging.getLoggerClass(), methodName):
-       raise AttributeError('{} already defined in logger class'.format(methodName))
+        raise AttributeError('{} already defined in logger class'.format(methodName))
 
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
@@ -76,27 +95,28 @@ def setup_logger(name="NuRadioReco", level=None):
         The logging level to use for the base logger
     """
     logger = logging.getLogger(name)
+
+    if logger.hasHandlers():
+        # Don't change the logger if it already exists
+        logger.warning(f"Logger {name} already has handlers. Not changing anything, returning the existing logger...")
+        return logger
     logger.propagate = False
-    logger.setLevel(1)  # Logger should process all log events, and let the handlers choose which messages to output
 
     # First clear all the handlers
     logger.handlers = []
 
-    # Add the STATUS log level
-    try:
-        addLoggingLevel('STATUS', LOGGING_STATUS)
-    except AttributeError:
-        pass
-
     # Create a StreamHandler with correct level and format
     handler = logging.StreamHandler()
-    formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
+    formatter = logging.Formatter(
+        '\033[33;20m%(levelname)s - \033[93m%(asctime)s - \033[32m%(name)s - \033[0m%(message)s',
+        datefmt="%Y %b %d @ %H:%M:%S UTC%z"
+    )
     handler.setFormatter(formatter)
 
     if level is not None:
         handler.setLevel(level=level)
     else:
-        handler.setLevel(logging.STATUS)
+        handler.setLevel(LOGGING_STATUS)
 
     # Then add our custom handler to the logger
     logger.addHandler(handler)
