@@ -14,6 +14,9 @@ speed_of_light = scipy.constants.c * units.m / units.s
 
 
 class direct_ray_tracing(ray_tracing_base):
+    """
+    Raytracing module for direct ray (straight line) propagation. 
+    """
         
     def find_solutions(self):
         results = []
@@ -33,6 +36,11 @@ class direct_ray_tracing(ray_tracing_base):
         return solution_types_revert['direct']
     
     def get_path(self, iS, n_points = 1000):
+        """
+        Calculates the path from the shower to the observer of the iS'th solution 
+        and splits it into segments (points). The returned path is an array with
+        dimensions [n_points, 3].
+        """
         delta_x =(self._X2-self._X1)/(n_points-1)
         path = self._X1[None] + np.arange(n_points)[:, None] * delta_x[None]
         return path
@@ -46,11 +54,15 @@ class direct_ray_tracing(ray_tracing_base):
         return path_length 
     
     def get_travel_time(self, iS):
+        """
+        Calculate the travel time for the signal traveling along the solution. Takes
+        into account the varying index of refraction along the path.
+        """
         path = self.get_path(iS)
-        segment_length = np.linalg.norm(path[1]-path[0])
-        segment_centers = (path[:-1]+path[1:])/2
+        segment_length = np.linalg.norm(path[1] - path[0])
+        segment_centers = (path[:-1] + path[1:]) / 2
         n = self._medium.get_index_of_refraction(segment_centers)
-        traveltime = np.sum(segment_length/(speed_of_light/n))
+        traveltime = np.sum(segment_length / (speed_of_light / n))
         return traveltime
     
     def get_reflection_angle(self):
