@@ -5,10 +5,6 @@ from NuRadioReco.utilities import units
 import sys
 import os
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
-
 ###########################
 # Reference values from previous run, have to be updated, if code changes
 ###########################
