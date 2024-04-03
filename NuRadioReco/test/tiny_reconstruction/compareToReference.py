@@ -7,10 +7,6 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
-# Logging level
-import logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name='NuRadioReco', level=logging.WARNING)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('filename', help='name of the file that should be compared to reference')

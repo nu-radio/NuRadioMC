@@ -25,10 +25,9 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.io.eventWriter
 
-# Logging level
+# Setup logger for this script
 import logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name='NuRadioReco', level=logging.WARNING)
+logger = logging.getLogger('NuRadioReco.TinyReconstruction')
 
 matplotlib.use('agg')
 plt.switch_backend('agg')
