@@ -522,7 +522,11 @@ class readLOFARData:
         # TODO: save paths of files per event in some kind of database
 
         for tbb_filename in all_tbb_files:
-            station_name = re.findall(r"CS\d\d\d", tbb_filename)[0]
+            station_name = re.findall(r"CS\d\d\d", tbb_filename)
+            station_name = next(iter(station_name), None)  # Get the first entry, if the list is not empty -> defaults to None
+            if station_name is None:
+                logger.status(f'TBB file {tbb_filename} is for remote station, skipping...')
+                continue
             if (self.__restricted_station_set is not None) and (station_name not in self.__restricted_station_set):
                 continue  # only process stations in the given set
             self.logger.info(f'Found file {tbb_filename} for station {station_name}...')
