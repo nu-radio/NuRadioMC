@@ -23,6 +23,7 @@ can then iterate over a channel group, which yields all channels for a given gro
 - Added LOFAR antenna pattern and function to parse TXT simulation file
 - The assume_inf and antenna_by_depth Detector keywords are now saved in the nur file, and will be
 loaded again when reading in the Detector from a nur file
+- Added LOFAR coordinates to Detector site coordinates
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
