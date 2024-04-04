@@ -606,7 +606,8 @@ class DetectorBase(object):
             'auger': (-35.10, -69.55),
             'mooresbay': (-78.74, 165.09),
             'southpole': (-90., 0.),
-            'summit': (72.57, -38.46)
+            'summit': (72.57, -38.46),
+            'lofar': (52.92, 6.87)
         }
         site = self.get_site(station_id)
         if site in sites.keys():
