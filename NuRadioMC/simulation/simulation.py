@@ -9,6 +9,7 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
+from numpy.random import Generator, Philox
 import h5py
 import time
 import six
@@ -29,6 +30,7 @@ import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
+import NuRadioReco.framework.sim_emitter
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -36,6 +38,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 # parameters describing simulated Monte Carlo particles
 from NuRadioReco.framework.parameters import particleParameters as simp
+from NuRadioReco.framework.parameters import emitterParameters as ep
 # parameters set in the event generator
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import datetime
@@ -46,17 +49,10 @@ import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
-# logging imports
 import logging
-from NuRadioReco.utilities.logging import LOGGING_STATUS
+from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
 
-
-logger = logging.getLogger("NuRadioMC.simulation")
-
-# formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
-# ch = logging.StreamHandler()
-# ch.setFormatter(formatter)
-# logger.addHandler(ch)
+logger = setup_logger("NuRadioMC.simulation")
 
 
 def pretty_time_delta(seconds):
@@ -174,6 +170,8 @@ class simulation:
             # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
+
+        self._rnd = Generator(Philox(self._cfg['seed']))
 
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
@@ -654,6 +652,16 @@ class simulation:
                     if particle_mode:
                         self._create_sim_shower()  # create sim shower
                         self._evt_tmp.add_sim_shower(self._sim_shower)
+                    else:
+                        emitter_obj = NuRadioReco.framework.sim_emitter.SimEmitter(self._shower_index)  # shower_id is equivalent to emitter_id in this case
+                        emitter_obj[ep.position] = np.array([self._fin['xx'][self._primary_index], self._fin['yy'][self._primary_index], self._fin['zz'][self._primary_index]])
+                        emitter_obj[ep.model] = self._fin['emitter_model'][self._primary_index]
+                        emitter_obj[ep.amplitude] = self._fin['emitter_amplitudes'][self._primary_index]
+                        for key in ep:
+                            if not emitter_obj.has_parameter(key):
+                                if 'emitter_' + key.name in self._fin:
+                                    emitter_obj[key] = self._fin['emitter_' + key.name][self._primary_index]
+                        self._evt_tmp.add_sim_emitter(emitter_obj)
 
                     # generate unique and increasing event id per station
                     self._event_ids_counter[self._station_id] += 1
@@ -812,26 +820,51 @@ class simulation:
                             elif self._fin_attrs['simulation_mode'] == "emitter":
                                 # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
                                 amplitude = self._fin['emitter_amplitudes'][self._shower_index]
-                                # following two lines used only for few models( not for all)
-                                emitter_frequency = self._fin['emitter_frequency'][self._shower_index]  # the frequency of cw and tone_burst signal
-                                half_width = self._fin['emitter_half_width'][self._shower_index]  # defines width of square and tone_burst signals
-                                # get emitting antenna properties
-                                antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
-                                antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
-                                ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
-                                       self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
+                                emitter_model = self._fin['emitter_model'][self._shower_index]
+                                emitter_kwargs = {}
+                                emitter_kwargs["launch_vector"] = self._launch_vector
+                                for key in self._fin.keys():
+                                    if key not in ['emitter_amplitudes', 'emitter_model']:
+                                        if key.startswith("emitter_"):
+                                            emitter_kwargs[key[8:]] = self._fin[key][self._shower_index]
 
-                                # source voltage given to the emitter
-                                voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
-                                                                                          self._fin['emitter_model'][self._shower_index], half_width=half_width, emitter_frequency=emitter_frequency)
-                                # convolve voltage output with antenna response to obtain emitted electric field
-                                frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
-                                zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
-                                VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
-                                c = constants.c * units.m / units.s
-                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
-                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
-                                eR = np.zeros_like(eTheta)
+                                if emitter_model.startswith("efield_"):
+                                    if emitter_model == "efield_idl1_spice":
+                                        if "emitter_realization" in self._fin:
+                                            emitter_kwargs['iN'] = self._fin['emitter_realization'][self._shower_index]
+                                        elif emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_kwargs['iN'] = emitter_obj.get_parameter(ep.realization_id)
+                                        else:
+                                            emitter_kwargs['rnd'] = self._rnd
+
+                                    (eR, eTheta, ePhi), additional_output = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs, full_output=True)
+                                    if emitter_model == "efield_idl1_spice":
+                                        if 'emitter_realization' not in self._mout:
+                                            self._mout['emitter_realization'] = np.zeros(self._n_showers)
+                                        if not emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_obj.set_parameter(ep.realization_id, additional_output['iN'])
+                                            self._mout['emitter_realization'][self._shower_index] = additional_output['iN']
+                                            logger.debug(f"setting emitter realization to i = {additional_output['iN']}")
+                                else:
+                                    # the emitter fuction returns the voltage output of the pulser. We need to convole with the antenna response of the emitting antenna
+                                    # to obtain the emitted electric field.
+                                    # get emitting antenna properties
+                                    antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
+                                    antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
+                                    ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
+                                           self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
+
+                                    # source voltage given to the emitter
+                                    voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
+                                                                                              emitter_model, **emitter_kwargs)
+                                    # convolve voltage output with antenna response to obtain emitted electric field
+                                    frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
+                                    zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
+                                    VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
+                                    c = constants.c * units.m / units.s
+                                    eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
+                                    ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
+                                    eR = np.zeros_like(eTheta)
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
                                 eTheta *= 1 / R
                                 ePhi *= 1 / R
@@ -979,6 +1012,9 @@ class simulation:
                         # add showers that contribute to this (sub) event to event structure
                         for shower_id in self._shower_ids_of_sub_event:
                             self._evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
+                    else:
+                        for shower_id in self._shower_ids_of_sub_event:
+                            self._evt.add_sim_emitter(self._evt_tmp.get_sim_emitter(shower_id))
                     self._station.set_sim_station(sim_station)
                     self._station.set_station_time(self._evt_time)
                     self._evt.set_station(self._station)
@@ -1065,10 +1101,11 @@ class simulation:
             self._eventWriter.end()
             logger.debug("closing nur file")
 
-        try:
-            self.calculate_Veff()
-        except:
-            logger.error("error in calculating effective volume")
+        if "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] == "neutrino": # only calcualte Veff for neutrino simulations
+            try:
+                self.calculate_Veff()
+            except:
+                logger.error("error in calculating effective volume")
 
         t_total = time.time() - t_start
         outputTime = time.time() - t5
