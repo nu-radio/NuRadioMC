@@ -75,7 +75,8 @@ class channelGalacticNoiseAdder:
             within this limit. Brightness temperature for frequencies in between are
             calculated by interpolation the log10 of the temperature
             The interpolation_frequencies have to cover the entire passband
-            specified in the run method.
+            specified in the run method. Frequencies should be in MHz, but without
+            units specified.
         """
         
         self.__debug = debug
