@@ -952,7 +952,7 @@ class ray_tracing_2D(ray_tracing_base):
                 output.append(None)
         return np.squeeze(output)
 
-    def get_path(self, x1, x2, C_0, n_points=1000):
+    def get_path(self, x1, x2, C_0, n_points=1000, additional_output=False):
         """
         for plotting purposes only, returns the ray tracing path between x1 and x2
 
@@ -1002,6 +1002,16 @@ class ray_tracing_2D(ray_tracing_base):
 
         self.__logger.debug('turning points for C_0 = {:.2f}, b= {:.2f}, gamma = {:.4f}, z = {:.1f}, y_turn = {:.0f}'.format(
             C_0, self.__b, gamma_turn, z_turn, y_turn))
+        if additional_output:
+            tmp = {}
+            tmp['reflection_angle'] = self.get_reflection_angle(x1, x2, C_0)
+            if(tmp['reflection_angle'] is not None):
+                tmp['reflection_index'] = np.argwhere(mask)[-1][0]
+            tmp['r_theta'] = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
+                    tmp['reflection_angle'], n_2=1., n_1=self.medium.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+            tmp['r_phi'] = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
+                    tmp['reflection_angle'], n_2=1., n_1=self.medium.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+            return res, zs, tmp
         return res, zs
 
     def get_path_reflections(self, x1, x2, C_0, n_points=1000, reflection=0, reflection_case=1):
