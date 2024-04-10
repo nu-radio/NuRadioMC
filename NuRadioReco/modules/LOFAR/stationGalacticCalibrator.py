@@ -65,8 +65,6 @@ class stationGalacticCalibrator:
         self.__abs_calibration_curve = None
         self.__rel_calibration_coefficients = None
 
-        self.begin()
-
     def begin(self, logger_level=logging.WARNING):
         """
         Loads the experimental parameters (such as longitude and latitude) as well as the Galactic calibration
