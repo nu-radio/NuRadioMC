@@ -2233,6 +2233,7 @@ class ray_tracing(ray_tracing_base):
         """
 
         t_fast = base_trace.BaseTrace()
+        t_slow = base_trace.BaseTrace()
 
         ice_n = self._medium
         ice_birefringence = medium.get_ice_model('birefringence_medium')
@@ -2262,6 +2263,7 @@ class ray_tracing(ray_tracing_base):
             sky_polarization = self.get_polarization_birefringence(N_effective[0], N_effective[1], direction, nx, ny, nz)
 
             t_0, t_1 = len_diff * N_effective / (speed_of_light * units.m / units.ns)
+            t_absolute = len_diff * refractive_index / (speed_of_light * units.m / units.ns)
 
             a, b = sky_polarization[0, 1:]
             c, d = sky_polarization[1, 1:]
@@ -2274,10 +2276,12 @@ class ray_tracing(ray_tracing_base):
 
             birefringent_base = R * pulse[1:] 
 
+            t_slow.set_frequency_spectrum(birefringent_base[0], sampling_rate=samp_rate)
             t_fast.set_frequency_spectrum(birefringent_base[1], sampling_rate=samp_rate)
-            t_fast.apply_time_shift(t_1 - t_0)
+            t_fast.apply_time_shift(t_absolute - t_0)
+            t_slow.apply_time_shift(t_absolute - t_1)
+            birefringent_base[0] = t_slow.get_frequency_spectrum()
             birefringent_base[1] = t_fast.get_frequency_spectrum()
-            
             Rtransp = np.matrix.transpose(R)
             pulse[1:]  = Rtransp * birefringent_base
 
