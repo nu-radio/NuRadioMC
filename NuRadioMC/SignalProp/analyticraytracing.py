@@ -5,6 +5,7 @@ from scipy import optimize, integrate, interpolate, signal
 import scipy.constants
 from operator import itemgetter
 import NuRadioReco.utilities.geometryUtilities
+import matplotlib.pylab as plt
 
 try:
     from functools import lru_cache
@@ -1005,16 +1006,17 @@ class ray_tracing_2D(ray_tracing_base):
         if additional_output:
             tmp = {}
             tmp['reflection_angle'] = self.get_reflection_angle(x1, x2, C_0)
-            if(tmp['reflection_angle'] is not None):
-                tmp['reflection_index'] = np.argwhere(mask)[-1][0]
-            tmp['r_theta'] = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
-                    tmp['reflection_angle'], n_2=1., n_1=self.medium.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-            tmp['r_phi'] = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
-                    tmp['reflection_angle'], n_2=1., n_1=self.medium.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+            
+            if(tmp['reflection_angle'] != None):
+                tmp['reflection_index'] = np.argwhere(~mask)[0]
+                tmp['r_theta'] = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
+                        tmp['reflection_angle'], n_2=1., n_1=self.medium.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
+                tmp['r_phi'] = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
+                        tmp['reflection_angle'], n_2=1., n_1=self.medium.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
             return res, zs, tmp
         return res, zs
 
-    def get_path_reflections(self, x1, x2, C_0, n_points=1000, reflection=0, reflection_case=1):
+    def get_path_reflections(self, x1, x2, C_0, n_points=1000, reflection=0, reflection_case=1, additional_output=False):
         """
         calculates the ray path in the presence of reflections at the bottom
         The full path is constructed by multiple calls to the `get_path()` function to put together the full path
@@ -1059,24 +1061,45 @@ class ray_tracing_2D(ray_tracing_base):
 
         if(reflection == 0):
             # in case of no bottom reflections, return path right away
-            return self.get_path(x1, x2, C_0, n_points)
+            return self.get_path(x1, x2, C_0, n_points, additional_output=additional_output)
+
         x22 = copy.copy(x2)
+        
+        if additional_output:
+            tmp_all = {}
+            reflection_index_list = []
+
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
             C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
             x2 = self.get_reflection_point(C_0, C_1)
             if(x2[0] > x22[0]):
                 x2 = x22
-            yyy, zzz = self.get_path(x1, x2, C_0, n_points)
-            yy.extend(yyy)
-            zz.extend(zzz)
+            
+            if additional_output:
+                yyy, zzz, tmp = self.get_path(x1, x2, C_0, n_points, additional_output=True)
+                yy.extend(yyy)
+                zz.extend(zzz)
+                reflection_index_list.append(len(zz) - 1)
+
+            else:
+                yyy, zzz = self.get_path(x1, x2, C_0, n_points)
+                yy.extend(yyy)
+                zz.extend(zzz)    
+
             self.__logger.debug("setting x1 from {} to {}".format(x1, x2))
             x1 = x2
 
         yy = np.array(yy)
         zz = np.array(zz)
         mask = yy > x11[0]
-        return yy[mask], zz[mask]
+        
+        if additional_output:
+            tmp_all['reflection_index'] = reflection_index_list
+            return yy[mask], zz[mask], tmp_all
+
+        else:
+            return yy[mask], zz[mask]
 
     def get_reflection_point(self, C_0, C_1):
         """
@@ -1985,21 +2008,34 @@ class ray_tracing(ray_tracing_base):
         """
         return self._r2d.determine_solution_type(self._x1, self._x2, self._results[iS]['C0'])
 
-    def get_path(self, iS, n_points=1000):
+    def get_path(self, iS, n_points=1000, additional_output=False):
         n = self.get_number_of_solutions()
         if(iS >= n):
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
         result = self._results[iS]
-        xx, zz = self._r2d.get_path_reflections(self._x1, self._x2, result['C0'], n_points=n_points,
-                                                 reflection=result['reflection'],
-                                                 reflection_case=result['reflection_case'])
-        path_2d = np.array([xx, np.zeros_like(xx), zz]).T
 
-        dP = path_2d - np.array([self._X1[0], 0, self._X1[2]])
-        MM = np.matmul(self._R.T, dP.T)
-        path = MM.T + self._X1
-        return path
+        if additional_output:
+            xx, zz, tmp = self._r2d.get_path_reflections(self._x1, self._x2, result['C0'], n_points=n_points,
+                                                    reflection=result['reflection'],
+                                                    reflection_case=result['reflection_case'], additional_output=True)
+
+            path_2d = np.array([xx, np.zeros_like(xx), zz]).T
+            dP = path_2d - np.array([self._X1[0], 0, self._X1[2]])
+            MM = np.matmul(self._R.T, dP.T)
+            path = MM.T + self._X1
+            return path, tmp
+
+        else:
+            xx, zz = self._r2d.get_path_reflections(self._x1, self._x2, result['C0'], n_points=n_points,
+                                                    reflection=result['reflection'],
+                                                    reflection_case=result['reflection_case'])
+
+            path_2d = np.array([xx, np.zeros_like(xx), zz]).T
+            dP = path_2d - np.array([self._X1[0], 0, self._X1[2]])
+            MM = np.matmul(self._R.T, dP.T)
+            path = MM.T + self._X1
+            return path
 
     def get_effective_index_birefringence(self, direction, nx, ny, nz):
 
@@ -2162,49 +2198,21 @@ class ray_tracing(ray_tracing_base):
                 polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
 
                 zenith, azimuth = hp.cartesian_to_spherical( * (direction))
-                sky_polarization_1 = self.on_sky_birefringence(zenith, azimuth, polarization_1)
-                sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
+
+                sky_polarization_1 = NuRadioReco.utilities.geometryUtilities.get_efield_in_spherical_coords(polarization_1, zenith, azimuth)
+                sky_polarization_2 = NuRadioReco.utilities.geometryUtilities.get_efield_in_spherical_coords(polarization_2, zenith, azimuth)
 
         else:
             polarization_1 = self.get_polarization_birefringence_simple(N1, direction, nx, ny, nz)
             polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
 
             zenith, azimuth = hp.cartesian_to_spherical( * (direction))
-            sky_polarization_1 = self.on_sky_birefringence(zenith, azimuth, polarization_1)
-            sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
+
+            sky_polarization_1 = NuRadioReco.utilities.geometryUtilities.get_efield_in_spherical_coords(polarization_1, zenith, azimuth)
+            sky_polarization_2 = NuRadioReco.utilities.geometryUtilities.get_efield_in_spherical_coords(polarization_2, zenith, azimuth)
 
         return np.vstack((sky_polarization_1, sky_polarization_2))
     
-    def on_sky_birefringence(self, theta, phi, polarization):
-
-        """
-        Function for the normalized e-field vector from cartesian to spherical coordinates.
-        The function does the same as the following radiotool functions, only faster:             
-        from radiotools import coordinatesystems
-        cs = coordinatesystems.cstrafo(theta, phi)
-        sky = cs.transform_from_ground_to_onsky(p)
-
-        Parameters
-        ----------
-        theta: float
-            zenith angle of the propagation direction
-        phi: float
-            azimuth angle of the propagation direction
-        polarization: np.array([px, py, pz])
-            normalized e-field vector in cartesian coordinates
-
-        Returns
-        -------
-        efield : np.ndarray of shape (3,)
-            normalized e-field vector in spherical coordinates
-        """
-
-        transform = np.array([  [np.sin(theta) * np.cos(phi) , np.sin(theta) * np.sin(phi)   , np.cos(theta)    ], 
-                                [np.cos(theta) * np.cos(phi) , np.cos(theta) * np.sin(phi)   , - np.sin(theta)  ], 
-                                [- np.sin(phi)               , np.cos(phi)                   , 0                ]       ])
-
-        return transform.dot(polarization)
-
     def get_pulse_propagation_birefringence(self, pulse, samp_rate, i_solution, bire_model = 'southpole_A'):
         
         """
@@ -2240,7 +2248,10 @@ class ray_tracing(ray_tracing_base):
         ice_birefringence.__init__(bire_model)
 
         acc = int(self.get_path_length(i_solution) / units.m)
-        path = self.get_path(i_solution, n_points=acc)
+        path, tmp_dict = self.get_path(i_solution, n_points=acc, additional_output=True)
+
+        reflection_index = tmp_dict['reflection_index']
+        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))
 
         if 'angle_to_iceflow' in self._config['propagation']:
             rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
@@ -2248,6 +2259,9 @@ class ray_tracing(ray_tracing_base):
             path[:, :2] = np.swapaxes(np.matmul(rot, np.swapaxes(path[:, :2],0,1)),0,1)
 
         for i in range(acc - 1):
+
+            if i in reflection_index:
+                pulse, _, _, _ = self.apply_single_reflection(pulse, zenith_reflections[i == reflection_index][0])
 
             refractive_index = ice_n.get_index_of_refraction(path[i])
             refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
@@ -2282,6 +2296,7 @@ class ray_tracing(ray_tracing_base):
             t_slow.apply_time_shift(t_absolute - t_1)
             birefringent_base[0] = t_slow.get_frequency_spectrum()
             birefringent_base[1] = t_fast.get_frequency_spectrum()
+            
             Rtransp = np.matrix.transpose(R)
             pulse[1:]  = Rtransp * birefringent_base
 
@@ -2710,6 +2725,63 @@ class ray_tracing(ray_tracing_base):
             'focusing_factor': focusing
         }
         return output_dict
+    
+    def apply_single_reflection(self, spec_efield, ref_angle):
+
+        ad_efield = 0
+
+        if(self._x2[1] > 0):  # we need to treat the case of air to ice/ice to air propagation sepatately:
+            # air/ice propagation
+            self.__logger.warning(f"calculation of transmission coefficients and focussing factor for air/ice propagation is experimental and needs further validation")
+            if(not self._swap):  # ice to air case
+                r_theta_helper = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
+                    ref_angle, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                r_phi_helper = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
+                    ref_angle, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                self.__logger.info(f"propagating from ice to air: transmission coefficient is {r_theta_helper:.2f}, {r_theta_helper:.2f}")
+            else:   # air to ice
+                r_theta_helper = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
+                    ref_angle, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                r_phi_helper = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
+                    ref_angle, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                self.__logger.info(f"propagating from air to ice: transmission coefficient is {r_phi_helper:.2f}, {r_phi_helper:.2f}")
+            spec_efield[1] *= r_theta_helper
+            spec_efield[2] *= r_phi_helper
+        else:
+            #in-ice propagation
+            r_theta_helper = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
+                ref_angle, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+            r_phi_helper = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
+                ref_angle, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+            ad_efield = 1
+
+            spec_efield[1] *= r_theta_helper
+            spec_efield[2] *= r_phi_helper
+            self.__logger.info(
+                "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
+                    ref_angle / units.deg,
+                    r_theta_helper, r_phi_helper))
+            
+        return spec_efield, r_theta_helper, r_phi_helper, ad_efield
+
+    def apply_reflection(self, efield_spec, i_solution):
+
+        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
+        adjust_efield = np.zeros_like(zenith_reflections)
+        all_t_theta = np.zeros_like(zenith_reflections)
+        all_t_phi = np.zeros_like(zenith_reflections)
+
+        for count, zenith_reflection in enumerate(zenith_reflections):  # loop through all possible reflections
+            if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
+                continue
+
+            efield_spec, t_theta, t_phi, ad_efield = self.apply_single_reflection(efield_spec, zenith_reflection)
+            adjust_efield[count] = ad_efield
+
+            all_t_theta[count] = t_theta
+            all_t_phi[count] = t_phi
+        return efield_spec, all_t_theta, all_t_phi, adjust_efield
+
 
     def apply_propagation_effects(self, efield, i_solution):
         """
@@ -2741,42 +2813,6 @@ class ray_tracing(ray_tracing_base):
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
 
-        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
-        for zenith_reflection in zenith_reflections:  # loop through all possible reflections
-            if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
-                continue
-            if(self._x2[1] > 0):  # we need to treat the case of air to ice/ice to air propagation sepatately:
-                # air/ice propagation
-                self.__logger.warning(f"calculation of transmission coefficients and focussing factor for air/ice propagation is experimental and needs further validation")
-                if(not self._swap):  # ice to air case
-                    t_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
-                        zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    t_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
-                        zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
-                else:   # air to ice
-                    t_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
-                        zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    t_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
-                        zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
-                spec[1] *= t_theta
-                spec[2] *= t_phi
-            else:
-                #in-ice propagation
-                r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
-                    zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
-                    zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                efield[efp.reflection_coefficient_theta] = r_theta
-                efield[efp.reflection_coefficient_phi] = r_phi
-    
-                spec[1] *= r_theta
-                spec[2] *= r_phi
-                self.__logger.info(
-                    "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
-                        zenith_reflection / units.deg,
-                        r_theta, r_phi))
         i_reflections = self.get_results()[i_solution]['reflection']
         if (i_reflections > 0):  # take into account possible bottom reflections
             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
@@ -2806,7 +2842,16 @@ class ray_tracing(ray_tracing_base):
                 radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
                 radiopropa_rays.set_start_and_end_point(self._X1, self._X2)
                 spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate) #, bire_model = bire_model --> has to be implemented
-                
+
+        else:
+            spec, r_th, r_ph, adjust_efield = self.apply_reflection(spec, i_solution)
+            
+            for i, app in enumerate(adjust_efield):
+                if app == 1:
+                    efield[efp.reflection_coefficient_theta] = r_th[i]
+                    efield[efp.reflection_coefficient_phi] = r_ph[i]
+                    
+
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
 
