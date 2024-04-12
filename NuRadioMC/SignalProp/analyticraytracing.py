@@ -989,7 +989,7 @@ class ray_tracing_2D(ray_tracing_base):
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i + 1))
             C_1 = self.get_C_1(x1, C_0)
-            x2 = get_reflection_point(C_0, C_1)
+            x2 = get_reflection_point(C_0, C_1, n_ice, reflection, b, z_0, delta_n)
             stop_loop = False
             if(x2[0] > x22[0]):
                 stop_loop = True
@@ -1186,7 +1186,7 @@ class ray_tracing_2D(ray_tracing_base):
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
             C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0,self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
-            x2 = get_reflection_point(C_0, C_1)
+            x2 = get_reflection_point(C_0, C_1, n_ice, reflection, b, z_0, delta_n)
             if(x2[0] > x22[0]):
                 x2 = x22
             yyy, zzz = self.get_path(x1, x2, C_0, n_points)
