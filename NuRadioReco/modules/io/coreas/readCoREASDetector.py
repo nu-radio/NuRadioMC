@@ -183,7 +183,6 @@ class readCoREASDetector:
 
         self.star_radius = np.max(np.linalg.norm(obs_positions_vBvvB[:, :-1], axis=-1))
 
-
         if self.debug:
             max_efield = []
             for i in range(len(electric_field_on_sky[:,0,1])):
@@ -218,7 +217,7 @@ class readCoREASDetector:
             self.fluence_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
                 obs_positions_vBvvB[:, 0],
                 obs_positions_vBvvB[:, 1],
-                electric_field_r_theta_phi,
+                np.max(np.max(electric_field_r_theta_phi, axis=1),axis=1),
                 fill_value="extrapolate"  # THIS OPTION IS UNUSED  IN fluinterp.interp2d_fourier.__init__
             )
 
@@ -263,7 +262,37 @@ class readCoREASDetector:
             return efield_interp
         elif kind == 'fluence':
             return fluence_interp
-        
+
+    def plot_footprint_fluence(self, dist_scale=300, save_file_path=None):
+        from matplotlib import cm
+        import matplotlib.pyplot as plt
+        print("plotting footprint")
+
+        # Make color plot of f(x, y), using a meshgrid
+        ti = np.linspace(-dist_scale, dist_scale, 500)
+        XI, YI = np.meshgrid(ti, ti)
+
+        ### Get interpolated values at each grid point, calling the instance of interp2d_fourier
+        ZI =  self.fluence_interpolator(XI, YI)
+        ZI_mV = ZI/units.mV
+        ###
+        # And plot it
+        maxp = np.max(ZI_mV)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.pcolor(XI, YI, ZI_mV, vmax=maxp, vmin=0, cmap=cm.gnuplot2_r)
+        mm = cm.ScalarMappable(cmap=cm.gnuplot2_r)
+        mm.set_array([0.0, maxp])
+        cbar = plt.colorbar(mm, ax=ax)
+        cbar.set_label(r'Efield strength [mV/m]', fontsize=14)
+        ax.set_xlabel('x [m]', fontsize=16)
+        ax.set_ylabel('y [m]', fontsize=16)
+        ax.set_xlim(-dist_scale, dist_scale)
+        ax.set_ylim(-dist_scale, dist_scale)
+        ax.set_aspect('equal')
+        if save_file_path is not None:
+            plt.savefig(save_file_path)
+        plt.close()
+
     @register_run()
     def run(self, detector, core_position_list=[], selected_station_ids=[], selected_channel_ids=[]):
         """

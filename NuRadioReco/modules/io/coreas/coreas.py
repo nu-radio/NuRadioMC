@@ -272,6 +272,8 @@ def make_sim_station(station_id, corsika, observer, channel_ids, fluence=None, w
 
     Parameters
     ----------
+    station_id : station id
+        the id of the station to create
     corsika : hdf5 file object
         the open hdf5 file object of the corsika hdf5 file
     observer : hdf5 observer object or 4d array
@@ -290,9 +292,8 @@ def make_sim_station(station_id, corsika, observer, channel_ids, fluence=None, w
 
     Returns
     -------
-    efield: np.array (3, n_samples)
-        efield with three polarizations (r, theta, phi)
-    efield_times: np.array (n_samples)
+    sim_station: sim station
+        simulated station object
     """
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
 
