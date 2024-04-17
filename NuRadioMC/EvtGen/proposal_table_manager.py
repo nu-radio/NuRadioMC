@@ -89,7 +89,7 @@ def download_proposal_tables(config_file, tables_path=None):
         tables_path = proposal_func._ProposalFunctions__tables_path
 
     # does not exist yet -> download file
-    from NuRadioReco.detector.dataservers import download_from_dataserver
+    from NuRadioReco.utilities.dataservers import download_from_dataserver
     proposal_version = proposal.__version__
     remote_path = f'proposal_tables/v{proposal_version}/{get_compiler()}/{config_file}.tar.gz'
     target_path = f"{tables_path}/{config_file}.tar.gz"

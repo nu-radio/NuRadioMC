@@ -381,7 +381,7 @@ class ARZ(object):
         if not download_file:
             return True
         else:
-            from NuRadioReco.detector.dataservers import download_from_dataserver
+            from NuRadioReco.utilities.dataservers import download_from_dataserver
 
             remote_path = 'shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
             download_from_dataserver(remote_path, path)
