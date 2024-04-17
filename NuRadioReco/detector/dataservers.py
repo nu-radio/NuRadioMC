@@ -9,7 +9,7 @@ from geolite2 import geolite2
 import logging
 logger = logging.getLogger('NuRadioReco.dataservers')
 
-dataservers = ["https://rnog-data.zeuthen.desy.de", "https://rno-g.uchicago.edu/data/desy-mirror", "https://rno-g.tash.cb"]
+dataservers = ["https://rnog-data.zeuthen.desy.de", "https://rno-g.uchicago.edu/data/desy-mirror"]
 
 def get_available_dataservers_by_responsetime(dataservers=dataservers):
     """ requests a small index file from the list of dataservers and returns a list of responsive ones ordered by elapsed time """
@@ -55,7 +55,7 @@ def download_from_dataserver(remote_path, target_path, dataservers=dataservers, 
     for dataserver in dataservers:
         URL = f'{dataserver}/{remote_path}'
 
-        logger.info(
+        logger.warning(
             "downloading file {} from {}. This can take a while...".format(target_path, URL))
 
         try:
@@ -64,16 +64,16 @@ def download_from_dataserver(remote_path, target_path, dataservers=dataservers, 
             requests_status = r.status_code
             break
         except requests.exceptions.HTTPError as errh:
-            logger.info(f"HTTP Error for {dataserver}:",errh)
+            logger.warning(f"HTTP Error for {dataserver}. Does the file {remote_path} exist on the server?")
             pass
         except requests.exceptions.ConnectionError as errc:
-            logger.info(f"Error Connecting to {dataserver}:",errc)
+            logger.warning(f"Error Connecting to {dataserver}. Maybe you don't have internet... or the server is down?")
             pass
         except requests.exceptions.Timeout as errt:
-            logger.info(f"Timeout Error for {dataserver}:",errt)
+            logger.warning(f"Timeout Error for {dataserver}.")
             pass
         except requests.exceptions.RequestException as err:
-            logger.info(f"Another Error",err)
+            logger.warning(f"An unusual error for {dataserver} occurred:", err)
             pass
             
         logger.warning("problem downloading file {} from {}. Let's see if there is another server.".format(target_path, URL))
