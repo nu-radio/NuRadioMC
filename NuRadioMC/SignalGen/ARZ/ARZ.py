@@ -381,17 +381,10 @@ class ARZ(object):
         if not download_file:
             return True
         else:
-            import requests
-            URL = 'https://rnog-data.zeuthen.desy.de/shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
+            from NuRadioReco.detector.dataservers import download_from_dataserver
 
-            logger.info("downloading shower library {} from {}. This can take a while...".format(self._version, URL))
-            r = requests.get(URL)
-            if (r.status_code != requests.codes.ok):
-                logger.error("error in download of antenna model")
-                raise IOError("error in download of antenna model")
-            with open(path, "wb") as code:
-                code.write(r.content)
-            logger.info("...download finished.")
+            remote_path = 'shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
+            download_from_dataserver(remote_path, path)
 
     def __set_model_parameters(self, arz_version='ARZ2020'):
         """

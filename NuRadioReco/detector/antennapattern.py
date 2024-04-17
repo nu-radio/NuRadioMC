@@ -536,7 +536,6 @@ def save_preprocessed_WIPLD_forARA(path):
                                                                                 np.angle(H_theta[mask][i]) / units.deg,
                                                                                 np.angle(H_phi[mask][i]) / units.deg))
 
-
 def get_pickle_antenna_response(path):
     """
     opens and return the pickle file containing the preprocessed WIPL-D antenna simulation
@@ -583,23 +582,12 @@ def get_pickle_antenna_response(path):
 
     if download_file:
         # does not exist yet -> download file
-        import requests
-        antenna_pattern_name = os.path.splitext(os.path.basename(path))[0]
-        URL = 'https://rnog-data.zeuthen.desy.de/AntennaModels/{name}/{name}.pkl'.format(
-            name=antenna_pattern_name)
+        from NuRadioReco.detector.dataservers import download_from_dataserver
 
-        folder = os.path.dirname(path)
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        logger.info(
-            "downloading antenna pattern {} from {}. This can take a while...".format(antenna_pattern_name, URL))
-        r = requests.get(URL)
-        if r.status_code != requests.codes.ok:
-            logger.error("error in download of antenna model")
-            raise IOError
-        with open(path, "wb") as code:
-            code.write(r.content)
-        logger.warning("...download finished.")
+        antenna_pattern_name = os.path.splitext(os.path.basename(path))[0]
+        remote_path = 'AntennaModels/{name}/{name}.pkl'.format(name=antenna_pattern_name)
+
+        download_from_dataserver(remote_path, path)
 
     #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
     #         preprocess_WIPLD(path)
