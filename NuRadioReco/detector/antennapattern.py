@@ -582,7 +582,7 @@ def get_pickle_antenna_response(path):
 
     if download_file:
         # does not exist yet -> download file
-        from NuRadioReco.detector.dataservers import download_from_dataserver
+        from NuRadioReco.utilities.dataservers import download_from_dataserver
 
         antenna_pattern_name = os.path.splitext(os.path.basename(path))[0]
         remote_path = 'AntennaModels/{name}/{name}.pkl'.format(name=antenna_pattern_name)

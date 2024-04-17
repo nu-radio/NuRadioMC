@@ -1,11 +1,6 @@
 import requests
 import os
-"""
-import socket
-import pytz
-from datetime import datetime
-from geolite2 import geolite2
-"""
+
 import logging
 logger = logging.getLogger('NuRadioReco.dataservers')
 
@@ -28,9 +23,14 @@ def get_available_dataservers_by_responsetime(dataservers=dataservers):
         available_dataservers.append(dataserver)
     ranked_dataservers = [x for _, x in sorted(zip(response_times, available_dataservers))]
     return ranked_dataservers
-'''
+
 def get_available_dataservers_by_timezone(dataservers=dataservers):
     """ uses the server locations' timezones from the list of dataservers and returns the list of dataservers ordered by proximity """
+    import socket
+    import pytz
+    from datetime import datetime
+    from geolite2 import geolite2
+
     geo = geolite2.reader()
 
     naive = datetime.utcnow()
@@ -46,11 +46,13 @@ def get_available_dataservers_by_timezone(dataservers=dataservers):
 
     ranked_dataservers = [x for _, x in sorted(zip(server_offsets, dataservers))]
     return ranked_dataservers
-'''
+
 def download_from_dataserver(remote_path, target_path, dataservers=dataservers, try_ordered=False):
+    """ download remote_path to target_path from the list of NuRadio dataservers """
     if try_ordered:
         dataservers = get_available_dataservers_by_responsetime(dataservers)
-
+        # alternatively:
+        # dataservers = get_available_dataservers_by_timezone(dataservers)
     requests_status = requests.codes["not_found"]
     for dataserver in dataservers:
         URL = f'{dataserver}/{remote_path}'
