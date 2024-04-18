@@ -23,7 +23,6 @@ class NuRadioLogger(logging.Logger):
         super().addHandler(hdlr)
 
     def status(self, message, *args, **kwargs):
-        print(message)
         if self.isEnabledFor(LOGGING_STATUS):
             self._log(LOGGING_STATUS, message, args, **kwargs)
 
@@ -119,6 +118,7 @@ def setup_logger(name="NuRadioReco", level=None):
         handler.setLevel(LOGGING_STATUS)
 
     # Then add our custom handler to the logger
+    logger.setLevel(50)  # will get adjusted when adding handler
     logger.addHandler(handler)
 
     return logger
