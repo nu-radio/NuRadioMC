@@ -36,7 +36,7 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.logging import setup_logger
+
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,
@@ -56,8 +56,6 @@ parser.add_argument('--nchannels', type=int,
 args = parser.parse_args()
 
 n_channels = args.nchannels
-
-logger = setup_logger(name="", level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()

@@ -5,7 +5,6 @@ import argparse
 import numpy as np
 from NuRadioReco.utilities import units, bandpass_filter, geometryUtilities
 from NuRadioReco.detector import detector
-from NuRadioReco.utilities.logging import setup_logger
 import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.coreas.simulationSelector
 import NuRadioReco.modules.efieldToVoltageConverter
@@ -22,8 +21,11 @@ import NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconst
 import NuRadioReco.framework.base_trace
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import stationParameters as stnp
+
+# Logging
 import logging
-logger = setup_logger(name='NuRadioReco', level=logging.WARNING)
+logger = logging.getLogger("NuRadioReco.IFT_field_reconstruction")
+logger.setLevel(logging.DEBUG)  # Let parent logger decide logging level
 
 
 parser = argparse.ArgumentParser(

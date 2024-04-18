@@ -25,7 +25,6 @@ from __future__ import absolute_import, division, print_function
 
 import argparse
 import json
-import logging
 import copy
 import numpy as np
 from NuRadioMC.simulation import simulation
@@ -36,9 +35,6 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.logging import setup_logger
-
-logger = setup_logger(name="", level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()

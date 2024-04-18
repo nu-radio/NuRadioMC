@@ -28,10 +28,7 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 from NuRadioReco.utilities.traceWindows import get_window_around_maximum
-import logging
-from NuRadioReco.utilities.logging import setup_logger
 
-logger = setup_logger(name="", level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
