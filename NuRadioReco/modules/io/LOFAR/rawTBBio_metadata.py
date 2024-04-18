@@ -158,14 +158,14 @@ def getItrfAntennaPosition(station, antenna_set, metadata_dir):
         # h for lbh
         # l for lbl
         feed = {"CS": {}, "RS": {}, "DE": {}}
-        feed["CS"]["LBA_SPARSE_EVEN"] = "24llhh"
-        feed["CS"]["LBA_SPARSE_ODD"] = "24hhll"
+        feed["CS"]["LBA_SPARSE_EVEN"] = "24hhll"
+        feed["CS"]["LBA_SPARSE_ODD"] = "24llhh"
         feed["CS"]["LBA_X"] = "48hl"
         feed["CS"]["LBA_Y"] = "48lh"
         feed["CS"]["LBA_INNER"] = "96h"
         feed["CS"]["LBA_OUTER"] = "96l"
-        feed["RS"]["LBA_SPARSE_EVEN"] = "24llhh"
-        feed["RS"]["LBA_SPARSE_ODD"] = "24hhll"
+        feed["RS"]["LBA_SPARSE_EVEN"] = "24hhll"
+        feed["RS"]["LBA_SPARSE_ODD"] = "24llhh"
         feed["RS"]["LBA_X"] = "48hl"
         feed["RS"]["LBA_Y"] = "48lh"
         feed["RS"]["LBA_INNER"] = "96h"
