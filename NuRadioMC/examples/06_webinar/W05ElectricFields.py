@@ -3,9 +3,6 @@ from NuRadioMC.SignalGen.askaryan import get_time_trace, get_frequency_spectrum
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
 
 """
 This file shows how to use the electric field modules for standalone calculations.

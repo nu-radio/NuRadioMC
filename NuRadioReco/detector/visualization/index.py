@@ -5,10 +5,7 @@ from dash import html
 import dash
 from flask import Flask
 from NuRadioReco.detector import detector
-import logging
-from NuRadioReco.utilities.logging import setup_logger
 
-logger = setup_logger(level=logging.INFO)
 
 det = detector.Detector(source='sql')
 

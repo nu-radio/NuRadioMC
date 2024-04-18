@@ -13,7 +13,7 @@
 from __future__ import absolute_import, division, print_function
 
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.logging import setup_logger
+
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
 import os

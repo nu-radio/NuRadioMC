@@ -2,7 +2,6 @@ import numpy as np
 from numpy.polynomial import polynomial as pol
 import copy
 import matplotlib.pyplot as plt
-import logging
 import datetime
 import os
 from radiotools import plthelpers as php
@@ -23,8 +22,6 @@ import NuRadioReco.modules.ARA.triggerSimulator
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioMC.SignalGen import parametrizations as signalgen
 from NuRadioReco.detector import detector
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(level=logging.DEBUG)
 
 
 def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):
@@ -75,8 +72,6 @@ efieldToVoltageConverter.begin()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-
-logger.setLevel(logging.WARNING)
 
 
 n_index = 1.78
