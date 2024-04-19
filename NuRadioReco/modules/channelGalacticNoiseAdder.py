@@ -61,7 +61,7 @@ class channelGalacticNoiseAdder:
             skymodel=None,
             debug=False,
             n_side=4,
-            freq_range=[30, 80]
+            freq_range=None
     ):
         """
         Set up important parameters for the module
@@ -79,22 +79,25 @@ class channelGalacticNoiseAdder:
             from that direction is calculated. The number of pixels used is
             12 * n_side ** 2, so a larger value for n_side will result better accuracy
             but also greatly increase computing time.
-        freq_range: array of len=2
+        freq_range: array of len=2, default: [30, 80] * units.MHZ
             The sky brightness temperature will be evaluated for the frequencies 
             within this limit. Brightness temperature for frequencies in between are
             calculated by interpolation the log10 of the temperature
             The interpolation_frequencies have to cover the entire passband
-            specified in the run method. Frequencies should be in MHz, but without
-            units specified.
+            specified in the run method.
         """
-
         self.__debug = debug
         self.__n_side = n_side
 
-        # define interpolation frequencies. Set in logarithmic range from 10 to 1010MHz,
+        if freq_range is None:
+            freq_range = np.array([30, 80]) * units.MHz
+
+        # define interpolation frequencies. Set in logarithmic range from freq_range[0] to freq_range[1],
         # rounded to 0 decimal places to avoid import errors from LFmap abd tabulated models.
         self.__interpolation_frequencies = np.around(
-            np.logspace(np.log(freq_range[0]) / np.log(10), np.log(freq_range[1]) / np.log(10), num=30), 0
+            np.logspace(
+                *np.log10(freq_range / units.MHz), num=30
+            ), 0
         ) * units.MHz
 
         # initialise sky model
