@@ -98,61 +98,53 @@ class channelGalacticNoiseAdder:
         ) * units.MHz
 
         # initialise sky model
-        if skymodel == 'lfss':
-            sky_model = LowFrequencySkyModel(freq_unit="MHz")
-            logger.info("Using LFSS as sky model")
-        elif skymodel == 'gsm2008':
-            sky_model = GlobalSkyModel(freq_unit="MHz")
-            logger.info("Using GSM2008 as sky model")
-        elif skymodel == 'gsm2016':
-            sky_model = GlobalSkyModel16(freq_unit="MHz")
-            logger.info("Using GSM2016 as sky model")
-        elif skymodel == 'haslam':
-            sky_model = HaslamSkyModel(freq_unit="MHz", spectral_index=-2.53)
-            logger.info("Using Haslam as sky model")
-
-        elif skymodel is None:
-            sky_model = GlobalSkyModel(freq_unit="MHz")
-            logger.warning("No sky model specified. Using standard: Global Sky Model (2008). "
-                           "Available models: lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci")
-
-        else:
-            try:
-                if skymodel == 'lfmap':
-                    sky_model = LFmap()
-                    logger.info("Using LFmap as sky model")
-
-                elif skymodel == 'ssm':
-                    sky_model = SSM()
-                    logger.info("Using SSM as sky model")
-
-                elif skymodel == 'gmoss':
-                    sky_model = GMOSS()
-                    logger.info("Using GMOSS as sky model")
-
-                elif skymodel == 'ulsa_fdi':
-                    sky_model = ULSA(index_type='freq_dependent_index')
-                    logger.info("Using ULSA_fdi as sky model")
-
-                elif skymodel == 'ulsa_ci':
-                    sky_model = ULSA(index_type='constant_index')
-                    logger.info("Using ULSA_ci as sky model")
-
-                elif skymodel == 'ulsa_dpi':
-                    sky_model = ULSA(index_type='direction_dependent_index')
-                    logger.info("Using ULSA_dpi as sky model")
-
-                else:
-                    sky_model = GlobalSkyModel(freq_unit="MHz")
-                    logger.error(f"sky model <{skymodel}> unknown. Defaulting to GSM2008.")
-
-            except NameError:
-                logger.error(f"Could not  find {skymodel} skymodel. Do you have the correct package installed? \n"
-                             f"Defaulting to Global Sky Model (2008) as sky model.")
+        try:
+            if skymodel is None:
+                sky_model = GlobalSkyModel(freq_unit="MHz")
+                logger.warning("No sky model specified. Using standard: Global Sky Model (2008). Available models: "
+                               "lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci")
+            elif skymodel == 'lfss':
+                sky_model = LowFrequencySkyModel(freq_unit="MHz")
+                logger.info("Using LFSS as sky model")
+            elif skymodel == 'gsm2008':
+                sky_model = GlobalSkyModel(freq_unit="MHz")
+                logger.info("Using GSM2008 as sky model")
+            elif skymodel == 'gsm2016':
+                sky_model = GlobalSkyModel16(freq_unit="MHz")
+                logger.info("Using GSM2016 as sky model")
+            elif skymodel == 'haslam':
+                sky_model = HaslamSkyModel(freq_unit="MHz", spectral_index=-2.53)
+                logger.info("Using Haslam as sky model")
+            elif skymodel == 'lfmap':
+                sky_model = LFmap()
+                logger.info("Using LFmap as sky model")
+            elif skymodel == 'ssm':
+                sky_model = SSM()
+                logger.info("Using SSM as sky model")
+            elif skymodel == 'gmoss':
+                sky_model = GMOSS()
+                logger.info("Using GMOSS as sky model")
+            elif skymodel == 'ulsa_fdi':
+                sky_model = ULSA(index_type='freq_dependent_index')
+                logger.info("Using ULSA_fdi as sky model")
+            elif skymodel == 'ulsa_ci':
+                sky_model = ULSA(index_type='constant_index')
+                logger.info("Using ULSA_ci as sky model")
+            elif skymodel == 'ulsa_dpi':
+                sky_model = ULSA(index_type='direction_dependent_index')
+                logger.info("Using ULSA_dpi as sky model")
+            else:
+                logger.error(f"Sky model {skymodel} unknown. Defaulting to Global Sky Model (2008).")
                 sky_model = GlobalSkyModel(freq_unit="MHz")
 
+        except NameError:
+            logger.error(f"Could not find {skymodel} skymodel. Do you have the correct package installed? \n"
+                         f"Defaulting to Global Sky Model (2008) as sky model.")
+            sky_model = GlobalSkyModel(freq_unit="MHz")
+
         self.__noise_temperatures = np.zeros(
-            (len(self.__interpolation_frequencies), healpy.pixelfunc.nside2npix(self.__n_side)))
+            (len(self.__interpolation_frequencies), healpy.pixelfunc.nside2npix(self.__n_side))
+        )
         logger.info("generating noise temperatures")
 
         # generating sky maps and noise temperatures from chosen sky model in given frequency range
