@@ -221,7 +221,7 @@ def get_y_turn( C_0, x1, n_ice, b, delta_n, z_0):
     """
     c = n_ice ** 2 - C_0 ** -2
     gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
-    C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, n_ice, b, delta_n, z_0)
+    C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, n_ice, b, delta_n, z_0)[0]
     y_turn = get_y(gamma_turn[0], C_0, C_1, n_ice, b, z_0) 
     return y_turn
 
