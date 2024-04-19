@@ -205,7 +205,7 @@ def get_y_with_z_mirror(z, C_0, n_ice, b, delta_n, z_0, C_1=0.0):
         res[~mask] = 2 * y_turn - get_y(gamma, C_0, C_1, n_ice, b, z_0)
         zs[~mask] = 2 * z_turn - z[~mask]
 
-        return res, zs
+        return np.array([res, zs])
 
 def get_y_turn( C_0, x1, n_ice, b, delta_n, z_0):
     """
@@ -1404,7 +1404,9 @@ class ray_tracing_2D(ray_tracing_base):
         C_1 = self.get_C_1(x1, C_0)
 
         zs = np.linspace(x1[1], x1[1] + np.abs(x1[1]) + np.abs(x2[1]), 1000)
-        yy, zz = get_y_with_z_mirror(zs, C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, C_1)
+        yz = get_y_with_z_mirror(zs, C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, C_1)
+        yy = yz[0] 
+        zz = yz[1]        
         ax.plot(yy, zz, '-', label='C0 = {:.3f}'.format(C_0))
         ax.plot(x1[0], x1[1], 'ko')
         ax.plot(x2[0], x2[1], 'd')
