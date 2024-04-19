@@ -1,11 +1,10 @@
-from NuRadioReco.utilities import units, fft, ice, geometryUtilities
+from NuRadioReco.utilities import units, ice, geometryUtilities
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 import NuRadioReco.detector.antennapattern
 import logging
 import numpy as np
-import matplotlib.pyplot as plt
 import scipy.constants
 import scipy.interpolate
 
@@ -53,6 +52,8 @@ class channelGalacticNoiseAdder:
         self.__n_side = None
         self.__interpolation_frequencies = None
         self.__gdsm = None
+        self.__radio_sky = None
+        self.__noise_temperatures = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
     def begin(
