@@ -9,17 +9,17 @@ import matplotlib.pyplot as plt
 import scipy.constants
 import scipy.interpolate
 
-logger = logging.getLogger('channelGalacticNoiseAdder')
+logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
 
 try:
     from radiocalibrationtoolkit import * #Documentation: https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main contains SSM, GMOSS, ULSA
 except:
-    logger.info("radiocalibrationtoolkit import failed. Consider installing it to use more sky models.")
+    logger.warning("radiocalibrationtoolkit import failed. Consider installing it to use more sky models.")
 
 try:
     from pylfmap import LFmap #Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
 except:
-    logger.info("LFmap import failed. Consider installing it to use LFmap as sky model.")
+    logger.warning("LFmap import failed. Consider installing it to use LFmap as sky model.")
 
 from pygdsm import (
     GlobalSkyModel16,
@@ -56,7 +56,6 @@ class channelGalacticNoiseAdder:
         self.__interpolation_frequencies = None
         self.__gdsm = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
-        #self.begin(skymodel=None)
 
 
     def begin(
@@ -97,70 +96,63 @@ class channelGalacticNoiseAdder:
         self.__interpolation_frequencies = np.around(np.logspace(np.log(freq_range[0])/np.log(10), np.log(freq_range[1])/np.log(10), num=30),0) * units.MHz
         
         # initialise sky model
-        if skymodel == 'lfmap':
-            try:
-                sky_model = LFmap()
-                print("Using LFmap as sky model")
-            except:
-                sky_model = GlobalSkyModel(freq_unit="MHz")
-                print(f"{skymodel} import not found. Defaulting to GSM2008 as sky model.")
 
         if skymodel == 'lfss':
             sky_model = LowFrequencySkyModel(freq_unit="MHz")
-            print("Using LFSS as sky model")
-        if skymodel == 'gsm2008':
+            logger.info("Using LFSS as sky model")
+        elif skymodel == 'gsm2008':
             sky_model = GlobalSkyModel(freq_unit="MHz")
-            print("Using GSM2008 as sky model")
-        if skymodel == 'gsm2016':
+            logger.info("Using GSM2008 as sky model")
+        elif skymodel == 'gsm2016':
             sky_model = GlobalSkyModel16(freq_unit="MHz")
-            print("Using GSM2016 as sky model")
-        if skymodel == 'haslam':
+            logger.info("Using GSM2016 as sky model")
+        elif skymodel == 'haslam':
             sky_model = HaslamSkyModel(freq_unit="MHz", spectral_index=-2.53)
-            print("Using Haslam as sky model")
+            logger.info("Using Haslam as sky model")
 
-        if skymodel == 'ssm':
-            try:
-                sky_model = SSM()
-                print("Using SSM as sky model")
-            except:
-                sky_model = GlobalSkyModel(freq_unit="MHz")
-                print(f"{skymodel} import not found. Defaulting to GSM2008 as sky model.")
-        if skymodel == 'gmoss':
-            try:
-                sky_model = GMOSS()
-                print("Using GMOSS as sky model")
-            except:
-                sky_model = GlobalSkyModel(freq_unit="MHz")
-                print(f"{skymodel} import not found. Defaulting to GSM2008 as sky model.")
-        if skymodel == 'ulsa_fdi':
-            try:
-                sky_model = ULSA(index_type='freq_dependent_index')
-                print("Using ULSA_fdi as sky model")
-            except:
-                sky_model = GlobalSkyModel(freq_unit="MHz")
-                print(f"{skymodel} import not found. Defaulting to GSM2008 as sky model.")
-        if skymodel == 'ulsa_ci':
-            try:
-                sky_model = ULSA(index_type='constant_index')
-                print("Using ULSA_ci as sky model")
-            except:
-                sky_model = GlobalSkyModel(freq_unit="MHz")
-                print(f"{skymodel} import not found. Defaulting to GSM2008 as sky model.")
-        if skymodel == 'ulsa_dpi':
-            try:
-                sky_model = ULSA(index_type='direction_dependent_index')
-                print("Using ULSA_dpi as sky model")
-            except:
-                sky_model = GlobalSkyModel(freq_unit="MHz")
-                print(f"{skymodel} import not found. Defaulting to GSM2008 as sky model.")
-
-        if skymodel is None:
+        elif skymodel is None:
             sky_model = GlobalSkyModel(freq_unit="MHz")
-            print("No sky model specified. Using standard: Global Sky Model (2008). Other sky models available: lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci. ")
+            logger.warning("No sky model specified. Using standard: Global Sky Model (2008). Other sky models available: lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci. ")
         
+        else:
+            try:
+                if skymodel == 'lfmap':
+                    sky_model = LFmap()
+                    logger.info("Using LFmap as sky model")
+
+                elif skymodel == 'ssm':
+                    sky_model = SSM()
+                    logger.info("Using SSM as sky model")
+
+                elif skymodel == 'gmoss':
+                    sky_model = GMOSS()
+                    logger.info("Using GMOSS as sky model")
+
+                elif skymodel == 'ulsa_fdi':
+                    sky_model = ULSA(index_type='freq_dependent_index')
+                    logger.info("Using ULSA_fdi as sky model")
+
+                elif skymodel == 'ulsa_ci':
+                    sky_model = ULSA(index_type='constant_index')
+                    logger.info("Using ULSA_ci as sky model")
+
+                elif skymodel == 'ulsa_dpi':
+                    sky_model = ULSA(index_type='direction_dependent_index')
+                    logger.info("Using ULSA_dpi as sky model")
+
+                else:
+                    sky_model = GlobalSkyModel(freq_unit="MHz")
+                    logger.error(f"sky model <{skymodel}> unknown. Defaulting to GSM2008.")
+
+            except:
+                sky_model = GlobalSkyModel(freq_unit="MHz")
+                logger.error(f"{skymodel} import not found. Defaulting to GSM2008 as sky model.")
+
+
+
         self.__noise_temperatures = np.zeros((len(self.__interpolation_frequencies), healpy.pixelfunc.nside2npix(self.__n_side)))
-        print("generating noise temperatures")
-        
+        logger.info("generating noise temperatures")
+
         # generating sky maps and noise temperatures from chosen sky model in given frequency range
         for i_freq, noise_freq in enumerate(self.__interpolation_frequencies):
             self.__radio_sky = sky_model.generate(noise_freq / units.MHz)
