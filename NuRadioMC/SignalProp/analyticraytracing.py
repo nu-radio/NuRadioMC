@@ -221,8 +221,7 @@ def get_y_turn( C_0, x1, n_ice, b, delta_n, z_0):
     """
     c = n_ice ** 2 - C_0 ** -2
     gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
-    C_1_temp ,  = get_y_with_z_mirror(x1[1], C_0, n_ice, b, delta_n, z_0)
-    C_1 = x1[0] - C_1_temp
+    C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, n_ice, b, delta_n, z_0)
     y_turn = get_y(gamma_turn[0], C_0, C_1, n_ice, b, z_0) 
     return y_turn
 
@@ -239,7 +238,7 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, C0range=None, reflection=0,
         C0range = [float(C0range[0]), float(C0range[1])]
     Corange_array = np.array(C0range ,  dtype=np.float64)
     if((C_0_first < Corange_array[0]) or(C_0_first > Corange_array[1])):
-        return np.array([-np.inf])
+        return -np.inf
     c = n_ice ** 2 - C_0 ** -2
     # we consider two cases here,
     # 1) the rays start rising -> the default case
@@ -248,7 +247,7 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, C0range=None, reflection=0,
     if(reflection > 0 and reflection_case == 2):
         y_turn = get_y_turn(C_0_first, x1, n_ice, b, delta_n, z_0)
         dy = y_turn - x1[0]
-        x1[0] = x1[0] - 2 * dy
+        x1[0] = x1[0] - 2 * dy[0]
 
     for i in range(reflection):
         # we take account reflections at the bottom layer into account via
@@ -256,14 +255,14 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, C0range=None, reflection=0,
         # 2) starting a ray tracing from this new point
 
         # determine y translation first
-        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0_first, n_ice, b, delta_n, z_0)
+        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0_first, n_ice, b, delta_n, z_0)[0]
         if(hasattr(C_1, '__len__')):
             C_1 = C_1[0]
 
         x1 = get_reflection_point(C_0, C_1, n_ice, reflection, b, z_0, delta_n)
 
     # determine y translation first
-    C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0_first, n_ice, b, delta_n, z_0)
+    C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0_first, n_ice, b, delta_n, z_0)[0]
     if(hasattr(C_1, '__len__')):
         C_1 = C_1[0]
 
@@ -279,14 +278,14 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, C0range=None, reflection=0,
         # and the target position. This results in a objective function that has the solutions as the only minima and
         # is smooth in C_0
         diff = ((z_turn - x2[1]) ** 2 + (y_turn - x2[0]) ** 2) ** 0.5 + 10 * np.abs(z_turn - x2[1])
-        return -diff
+        return -diff[0]
 #             return -np.inf
     if(y_turn > x2[0]):  # we always propagate from left to right
         # direct ray
         y2_fit = get_y(get_gamma(x2[1], delta_n, z_0), C_0_first, C_1, n_ice, b, z_0)  # calculate y position at get_path position
         diff = (x2[0] - y2_fit)
-        if(hasattr(diff, '__len__')):
-            diff = diff[0]
+        #if(hasattr(diff, '__len__')):
+        #    diff = diff[0]
         if(hasattr(x2[0], '__len__')):
             x2[0] = x2[0][0]
 
@@ -300,7 +299,7 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, C0range=None, reflection=0,
         y2_fit = 2 * y_turn - y2_raw
         diff = (x2[0] - y2_fit)
 
-        return -1 * diff
+        return -1 * diff[0]
 
 def obj_delta_y_square( logC_0, x1, x2, n_ice, b, delta_n, z_0, reflection=0, reflection_case=2):
     """
@@ -318,7 +317,7 @@ def get_reflection_point(C_0, C_1, n_ice, reflection, b, z_0, delta_n):
     c = n_ice ** 2 - C_0 ** -2
     _gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
     x2 = np.array([0, reflection],dtype = np.float64)
-    x2[0] ,  = get_y_with_z_mirror(-x2[1] + 2 * z_turn, C_0, n_ice, b, delta_n, z_0, C_1)
+    x2[0]  = get_y_with_z_mirror(-x2[1] + 2 * z_turn, C_0, n_ice, b, delta_n, z_0, C_1)[0]
     return x2
 
 class ray_tracing_2D(ray_tracing_base):
@@ -415,7 +414,7 @@ class ray_tracing_2D(ray_tracing_base):
         """
         calculates constant C_1 for a given C_0 and start point x1
         """
-        return x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
+        return x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
 
     def get_c(self, C_0):
         return self.medium.n_ice ** 2 - C_0 ** -2
@@ -456,7 +455,7 @@ class ray_tracing_2D(ray_tracing_base):
         calculates the mirrored x2 position so that y(z) can be used as a continuous function
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
+        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
         gamma_turn, z_turn = get_turning_point(c, self.__b, self.medium.z_0, self.medium.delta_n)
         gamma_turn = gamma_turn[0]
         z_turn = z_turn[0]
@@ -1230,7 +1229,7 @@ class ray_tracing_2D(ray_tracing_base):
 
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
+        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
         gamma_turn, z_turn = get_turning_point(c, self.__b, self.medium.z_0, self.medium.delta_n)
         gamma_turn = gamma_turn[0]
         z_turn = z_turn[0]
