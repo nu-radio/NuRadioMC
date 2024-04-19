@@ -1279,9 +1279,9 @@ class simulation:
 
                     logger.status(f'Station.channel {station_id}.{channel_id:02d}: noise temperature = {noise_temp_channel} K, '
                                   f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
-                                  f'max. filter amplification = {max_amplification:.2e} -> Vrms = '
+                                  f'max. filter amplification = {max_amplification:.2e} '
                                   f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz -> Vrms = '
-                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV -> efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
+                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.4f} mV -> efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
 
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
 
@@ -1561,16 +1561,22 @@ class simulation:
                     # we need to do it a bit differently than for the trigger traces, because we need to add noise to traces where the amplifier response
                     # was already applied to. 
                     if bool(self._config['noise']):
-                        dt = 1. / (self._config['sampling_rate'])
-                        max_freq = 0.5 / dt
-                        Vrms = {}
                         for channel_id in non_trigger_channels:
-                            norm = self._integrated_channel_response[station.get_id()][channel_id]
-                            Vrms[channel_id] = self._Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
-                        # channelGenericNoiseAdder.run(evt, station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                        #                                 max_freq=max_freq, type='rayleigh',
-                        #                                 excluded_channels=self._noiseless_channels[station.get_id()])
-                        # TODO: generate noise for the filter function of that channel
+                            if channel_id in self._noiseless_channels[sid]:
+                                continue
+                            channel = evt.get_station().get_channel(channel_id)
+                            # logger.status(f"norm  = {norm}, Vrms = {Vrms[channel_id]}, max_freq = {max_freq}")
+                            ff = channel.get_frequencies()
+                            filt = np.ones_like(ff, dtype=complex)
+                            for i, (name, instance, kwargs) in enumerate(evt.iter_modules(sid)):
+                                if hasattr(instance, "get_filter"):
+                                    filt *= instance.get_filter(ff, sid, channel_id, self._det, **kwargs)
+                            noise = channelGenericNoiseAdder.bandlimited_noise_from_spectrum(len(channel.get_trace()), channel.get_sampling_rate(),
+                                                                                            spectrum=filt, amplitude=self._Vrms_per_channel[station.get_id()][channel_id],
+                                                                                            type='rayleigh', time_domain=False)
+                            # from NuRadioReco.utilities import fft
+                            # logger.warning(f"adding noise to channel {channel.get_id()} with Vrms = {Vrms[channel_id]/units.mV:.4f}mV, realized noise Vrms = {np.std(fft.freq2time(noise, 1/dt))/units.mV:.4f}mV")
+                            channel.set_frequency_spectrum(channel.get_frequency_spectrum() + noise, channel.get_sampling_rate())
                     channelSignalReconstructor.run(evt, station, self._det)
                     # save RMS and bandwidth to channel object
                     evt.set_generator_info(genattrs.Vrms, self._Vrms)

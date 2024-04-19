@@ -1,9 +1,8 @@
-from __future__ import print_function
-from NuRadioReco.modules.base.module import register_run
-import numpy as np
-from NuRadioReco.utilities import units, fft
-from numpy.random import Generator, Philox
 import logging
+import numpy as np
+from numpy.random import Generator, Philox
+from NuRadioReco.utilities import units, fft
+from NuRadioReco.modules.base.module import register_run
 
 
 class channelGenericNoiseAdder:
@@ -327,29 +326,35 @@ class channelGenericNoiseAdder:
             might be more performant as the noise is generated internally in the frequency domain.
         """
         frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
-        n_samples_freq = len(frequencies)
+        selection = frequencies > 0
+        n_samples_freq = np.sum(selection)
 
         if callable(spectrum):
             spectrum = spectrum(frequencies)
 
         if amplitude is not None:
-            power = np.sum(spectrum**2)
-            sigscale = (1. * n_samples) / np.sqrt(power)
+            # power = np.sum(spectrum**2)
+            norm = np.trapz(np.abs(spectrum) ** 2, frequencies)
+            max_freq = frequencies[-1]
+            amplitude = amplitude / (norm / max_freq) ** 0.5
+            sigscale = (1. * n_samples) / np.sqrt(n_samples_freq)
         elif amplitude is None:
             amplitude = np.sqrt(n_samples)
             sigscale = 1
 
+        ampl = np.zeros(len(frequencies), dtype=complex)
         if type == 'perfect_white':
-            ampl = amplitude * sigscale * spectrum
+            ampl = amplitude * sigscale
         elif type == 'rayleigh':
             fsigma = amplitude * sigscale / np.sqrt(2.)
-            ampl = self.__random_generator.rayleigh(fsigma, n_samples_freq) * spectrum
+            ampl[selection] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
         else:
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
         noise = self.add_random_phases(ampl, n_samples) / sampling_rate
-        if(time_domain):
+        noise *= spectrum
+        if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
             return noise
