@@ -1549,11 +1549,19 @@ class simulation:
 
                                 # determine if the two intervals have any overlap
                                 if max(t0, t0_readout) < min(t1, t1_readout):
+                                    tmp_channel = NuRadioReco.framework.channel.Channel(sim_channel.get_id())
+                                    tmp_channel.set_trace(sim_channel.get_trace(), sim_channel.get_sampling_rate())
+                                    tmp_channel.set_trace_start_time(sim_channel.get_trace_start_time())
                                     if(station.has_channel(sim_channel.get_id())):
                                         channel = station.get_channel(sim_channel.get_id())
-                                        channel += sim_channel
+                                        # logger.status(f"channel type {type(channel)}, sim_channel type {type(sim_channel)}")
+                                        combined_trace = channel + tmp_channel
+                                        channel.set_trace(combined_trace.get_trace(), combined_trace.get_sampling_rate())
+                                        channel.set_trace_start_time(combined_trace.get_trace_start_time())
+
+                                        # logger.status(f"channel type {type(channel)}")
                                     else:
-                                        station.add_channel(sim_channel)
+                                        station.add_channel(tmp_channel)
               
 
                 for evt in output_buffer[sid].values():
