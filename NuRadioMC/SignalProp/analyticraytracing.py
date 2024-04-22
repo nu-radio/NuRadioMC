@@ -247,7 +247,7 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, C0range=None, reflection=0,
     if(reflection > 0 and reflection_case == 2):
         y_turn = get_y_turn(C_0_first, x1, n_ice, b, delta_n, z_0)
         dy = y_turn - x1[0]
-        x1[0] = x1[0] - 2 * dy[0]
+        x1[0] = x1[0] - 2.0 * dy
 
     for i in range(reflection):
         # we take account reflections at the bottom layer into account via
