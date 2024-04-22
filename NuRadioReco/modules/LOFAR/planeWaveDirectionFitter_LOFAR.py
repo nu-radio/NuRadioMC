@@ -14,6 +14,9 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.voltageToEfieldConverter import voltageToEfieldConverter
 
 lightspeed = constants.c * units.m / units.s
+halfpi = np.pi / 2.
+
+debug = True
 
 # adapted from pycrtools.modules.tasks.directionfitplanewave and NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR
 
@@ -27,7 +30,7 @@ class planeWaveDirectionFitter:
 
         self.__cr_snr = None
 
-    def begin(self, max_iter=10, cr_snr=3, rmsfactor=2.0, ignoreNonHorizontalArray=False, logger_level=logging.WARNING):
+    def begin(self, max_iter=10, cr_snr=3, rmsfactor=2.0, ignoreNonHorizontalArray=True, logger_level=logging.WARNING):
         """
         Set the parameters for the plane wave fit.
 
@@ -39,8 +42,9 @@ class planeWaveDirectionFitter:
             The minimum SNR a channel should have to be considered having a cosmic ray signal.
         rmsfactor : float, default=2.0
             How many sigma (times RMS) above the average can a delay deviate from the expected timelag (from latest fit iteration) before it is considered bad and removed as outlier.
-        ignoreNonHorizontalArray : bool, default=False
-            Set to True when you know the array is non-horizontal (z > 0.5) but want to use the horizaontal approximation anyway
+        ignoreNonHorizontalArray : bool, default=True
+            Set to True when you know the array is non-horizontal (z > 0.5) but want to use the horizontal approximation anyway 
+            TODO: implement non-horizontal array
         logger_level : int, default=logging.WARNING
             The logging level to use for the module.
         """
@@ -70,21 +74,21 @@ class planeWaveDirectionFitter:
         self.logger.debug(f"Dominant polarisation is {dominant_pol}")
 
         # Collect the Efield traces
-        traces = np.array([trace[dominant_pol]
+        traces = np.array([trace.get_trace()[dominant_pol]
                                for trace in station.get_electric_fields()])
 
         times = station.get_electric_fields()[0].get_times()
 
         # So far, the time, where the abs of the trace is maximal is used as the time of the signal. 
         # TODO: add 'better' method for finding the signal pulse time
-        indices_max_trace = np.array([np.argmax(trace) for trace in traces])
+        indices_max_trace = np.array([np.argmax(np.abs(trace)) for trace in traces])
 
         timelags = np.array([times[index] for index in indices_max_trace])
         timelags = timelags - timelags[0]
 
         return timelags
 
-    def _directionForHorizontalArray(positions:np.ndarray, times:np.ndarray, ignoreZCoordinate=False):
+    def _directionForHorizontalArray(self, positions:np.ndarray, times:np.ndarray, ignoreZCoordinate=False):
         """
         --- adapted from pycrtools.modules.scrfind ---
         Given N antenna positions, and (pulse) arrival times for each antenna,
@@ -139,6 +143,9 @@ class planeWaveDirectionFitter:
 
         M = np.vstack([x, y, np.ones(len(x))]).T  # says the linalg.lstsq doc
 
+        if debug:
+            print(f"M dim: {M.shape}, times dim: {times.shape}")
+
         (A, B, C) = np.linalg.lstsq(M, lightspeed * times)[0]
 
         el = np.arccos(np.sqrt(A * A + B * B))
@@ -146,7 +153,7 @@ class planeWaveDirectionFitter:
         # note: Changed to az = 90_deg - phi
         return (az, el)
 
-    def _timeDelaysFromDirection(positions, direction):
+    def _timeDelaysFromDirection(self, positions, direction):
         """
         --- adapted from pycrtools.modules.scrfind ---
         Get time delays for antennas at given position for a given direction.
@@ -163,15 +170,15 @@ class planeWaveDirectionFitter:
         """
         # convert position array into shape used by original implementation:
         positions = np.copy(positions).flatten()
-        n = len(positions) / 3
+        n = int(len(positions) / 3)
         phi = halfpi - direction[0]  # warning, 90 degree? -- Changed to az = 90_deg - phi
         theta = halfpi - direction[1]  # theta as in standard spherical coords, while el=90 means zenith...
 
-        cartesianDirection = np.array([sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta)])
+        cartesianDirection = np.array([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
         timeDelays = np.zeros(n)
         for i in range(n):
             thisPosition = np.array(positions[3 * i:3 * (i + 1)])
-            timeDelays[i] = - (1 / c) * np.dot(cartesianDirection, thisPosition)  # note the minus sign! Signal vector points down from the sky.
+            timeDelays[i] = - (1 / lightspeed) * np.dot(cartesianDirection, thisPosition)  # note the minus sign! Signal vector points down from the sky.
 
         return timeDelays
 
@@ -217,13 +224,15 @@ class planeWaveDirectionFitter:
                         detector.get_relative_position(station.get_id(), channels[0].get_id())
                     ) # positions are the same for every polarization, array of [easting, northing, altitude] ([x, y, z])
 
-                    good_antennas.append((channels[0].get_(id), channels[1].get_id()))
+                    good_antennas.append((channels[0].get_id(), channels[1].get_id()))
 
             station.set_parameter(stationParameters.zenith, zenith)
             station.set_parameter(stationParameters.azimuth, azimuth)
             
             mask_good_antennas = np.full((len(good_antennas)), True)
+            good_antennas = np.array(good_antennas)
             num_good_antennas = len(good_antennas[mask_good_antennas])
+            position_array = np.array(position_array)
 
 
             niter = 0
@@ -248,17 +257,8 @@ class planeWaveDirectionFitter:
                 # get timelags
                 times = self._get_timelags(station) # TODO: check if additional masking is needed or if the converter does this automatically
 
-                # Perform the direction fit on the station
-                try:
-                    direction_fit, freq_spectrum = self._direction_fit(
-                        station, position_array
-                    )
-                except RuntimeError:
-                    self.logger.error(f"Direction fit could not be completed for station  CS{station.get_id():03d}")
-                    break
-
-                goodpositions = positions[mask_good_antennas]
-                goodtimes = times
+                goodpositions = position_array[mask_good_antennas]
+                goodtimes = times[mask_good_antennas]
                 (az, el) = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
                 if np.isnan(el) or np.isnan(az):
                     self.logger.warning('Plane wave fit returns NaN. Setting elevation to 0.0')
@@ -273,7 +273,7 @@ class planeWaveDirectionFitter:
                 residual_delays = goodtimes - expectedDelays
 
                 if fit_failed:
-                    bins = int((residual_delays.max()-residual_delays.min())*lightspeed/(positions[:,0].max()-positions[:,0].min()))
+                    bins = int((residual_delays.max()-residual_delays.min())*lightspeed/(position_array[:,0].max()-position_array[:,0].min()))
                     if bins < 1:
                         bins = 1
                     hist, edges = np.histogram(residual_delays,bins=bins)
