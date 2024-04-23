@@ -42,6 +42,28 @@ def get_angles(corsika):
     magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, 0 + np.pi * 0.5)
     return zenith, azimuth, magnetic_field_vector
 
+def get_geomagnetic_angle(zenith, azimuth, magnetic_field_vector):
+    """
+    Calculates the angle between the geomagnetic field and the shower axis.
+
+    Parameters
+    ----------
+    zenith : float
+        zenith angle in radians
+    azimuth : float
+        azimuth angle in radians
+    magnetic_field_vector : np.array (3)
+        magnetic field vector in cartesian coordinates
+
+    Returns
+    -------
+    geomagnetic_angle : float
+        geomagnetic angle in radians
+    """
+    shower_axis_vector = hp.spherical_to_cartesian(zenith, azimuth)
+    geomagnetic_angle = hp.get_angle(magnetic_field_vector, shower_axis_vector)
+    return geomagnetic_angle
+
 def coreas_observer_to_nuradio_efield(corsika, out_dir=None, save_dict=False):
     """
     converts the electric field from the corsika file to NuRadio units

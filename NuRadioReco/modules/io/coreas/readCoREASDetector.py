@@ -58,7 +58,7 @@ def apply_hanning(efields):
     def _half_hann_window(length, half_percent=None, hann_window_length=None):
         """
         Produce a half-Hann window. This is the Hann window from SciPY with ones inserted in the middle to make the window
-        `length` long. Note that this is different from a Hamming window.
+        'length' long. Note that this is different from a Hamming window.
         Parameters
         ----------
         length : int
@@ -67,6 +67,10 @@ def apply_hanning(efields):
             The percentage of `length` at the beginning **and** end that should correspond to half of the Hann window
         hann_window_length : int, default=None
             The length of the half the Hann window. If `half_percent` is set, this value will be overwritten by it.
+
+        Returns
+        ----------
+        half_hann_window : array with shape (length,)
         """
         if half_percent is not None:
             hann_window_length = int(length * half_percent)
@@ -114,7 +118,8 @@ class readCoREASDetector:
     Use this as default when reading CoREAS files and combining them with a detector.
 
     This model reads the electric fields of a CoREAS file with a star shaped pattern and foldes them with it given detector. 
-    The electric field of the star shaped pattern is interpolated at the detector positions. 
+    The electric field of the star shaped pattern is interpolated at the detector positions. If the angle between magnetic field 
+    and shower direction are below about 15 deg, the interpolation is no longer reliable and the closest observer is used instead.
     """
 
     def __init__(self):
@@ -154,6 +159,7 @@ class readCoREASDetector:
 
     def initialize_efield_interpolator(self):
         zenith, azimuth, magnetic_field_vector = coreas.get_angles(self.__corsika)
+        geomagnetic_angle = coreas.get_geomagnetic_angle(zenith, azimuth, magnetic_field_vector)
         self.cs = cstrafo.cstrafo(zenith, azimuth, magnetic_field_vector)
 
         obs_positions = []
@@ -171,23 +177,24 @@ class readCoREASDetector:
             electric_field_on_sky.append(np.insert(efield_on_sky.T, 0, efield[0,:], axis = 1))
 
         # shape: (n_observers, n_samples, (time, eR, eTheta, ePhi))
-        electric_field_on_sky = np.array(electric_field_on_sky)
-        electric_field_r_theta_phi = electric_field_on_sky[:,:,1:]
+        self.electric_field_on_sky = np.array(electric_field_on_sky)
+        self.electric_field_r_theta_phi = self.electric_field_on_sky[:,:,1:]
+        self.empty_efield = np.zeros_like(self.electric_field_r_theta_phi[0,:,:])
         coreas_dt = (self.__corsika['CoREAS'].attrs['TimeResolution'] * units.second)
 
         obs_positions = np.array(obs_positions)
         # second to last dimension has to be 3 for the transformation
-        obs_positions_geo = self.cs.transform_from_magnetic_to_geographic(obs_positions.T)
+        self.obs_positions_geo = self.cs.transform_from_magnetic_to_geographic(obs_positions.T)
         # transforms the coreas observer positions into the vxB, vxvxB shower plane
-        obs_positions_vBvvB = self.cs.transform_to_vxB_vxvxB(obs_positions_geo).T
+        self.obs_positions_vBvvB = self.cs.transform_to_vxB_vxvxB(self.obs_positions_geo).T
 
-        self.star_radius = np.max(np.linalg.norm(obs_positions_vBvvB[:, :-1], axis=-1))
+        self.star_radius = np.max(np.linalg.norm(self.obs_positions_vBvvB[:, :-1], axis=-1))
 
         if self.debug:
             max_efield = []
-            for i in range(len(electric_field_on_sky[:,0,1])):
-                max_efield.append(np.max(np.abs(electric_field_on_sky[i,:,1:4])))
-            plt.scatter(obs_positions_vBvvB[:,0], obs_positions_vBvvB[:,1], c=max_efield, cmap='viridis', marker='o', edgecolors='k')
+            for i in range(len(self.electric_field_on_sky[:,0,1])):
+                max_efield.append(np.max(np.abs(self.electric_field_on_sky[i,:,1:4])))
+            plt.scatter(self.obs_positions_vBvvB[:,0], self.obs_positions_vBvvB[:,1], c=max_efield, cmap='viridis', marker='o', edgecolors='k')
             cbar = plt.colorbar()
             cbar.set_label('max amplitude')
             plt.xlabel('v x B [m]')
@@ -196,34 +203,36 @@ class readCoREASDetector:
             plt.close()
 
         if self.__interp_efield:
-            logging.info(f'initilize electric field interpolator with lowfreq {self.__interp_lowfreq/units.MHz} MHz and highfreq {self.__interp_highfreq/units.MHz} MHz')
-            self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
-                obs_positions_vBvvB[:, 0],
-                obs_positions_vBvvB[:, 1],
-                electric_field_r_theta_phi,
-                lowfreq=self.__interp_lowfreq/units.MHz,
-                highfreq=self.__interp_highfreq/units.MHz,
-                sampling_period=coreas_dt/units.s,
-                phase_method="phasor",
-                radial_method='cubic',
-                upsample_factor=5,
-                coherency_cutoff_threshold=0.9,
-                ignore_cutoff_freq_in_timing=False,
-                verbose=False
-            )
-
+            if geomagnetic_angle < 15*units.deg:
+                logging.warning(f'geomagnetic angle is {geomagnetic_angle/units.deg:.2f} deg, which is smaller than 15 deg, which is the lower limit for the signal interpolation. The closest obersever is used instead.')
+                self.efield_interpolator = -1
+            else:
+                logging.info(f'initilize electric field interpolator with lowfreq {self.__interp_lowfreq/units.MHz} MHz and highfreq {self.__interp_highfreq/units.MHz} MHz')
+                self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
+                    self.obs_positions_vBvvB[:, 0],
+                    self.obs_positions_vBvvB[:, 1],
+                    self.electric_field_r_theta_phi,
+                    lowfreq=self.__interp_lowfreq/units.MHz,
+                    highfreq=self.__interp_highfreq/units.MHz,
+                    sampling_period=coreas_dt/units.s,
+                    phase_method="phasor",
+                    radial_method='cubic',
+                    upsample_factor=5,
+                    coherency_cutoff_threshold=0.9,
+                    ignore_cutoff_freq_in_timing=False,
+                    verbose=False
+                )
         if self.__interp_fluence:
+            #TODO use 10ns around the maximum for the fluence interpolation, then the sum of the square of the efield
             logging.info(f'initilize fluence interpolator')
             self.fluence_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
-                obs_positions_vBvvB[:, 0],
-                obs_positions_vBvvB[:, 1],
-                np.max(np.max(electric_field_r_theta_phi, axis=1),axis=1),
+                self.obs_positions_vBvvB[:, 0],
+                self.obs_positions_vBvvB[:, 1],
+                np.max(np.max(np.abs(self.electric_field_r_theta_phi), axis=1),axis=1),
                 fill_value="extrapolate"  # THIS OPTION IS UNUSED  IN fluinterp.interp2d_fourier.__init__
             )
 
-        self.empty_efield = np.zeros_like(electric_field_r_theta_phi[0,:,:])
-
-    def get_interpolated_value(self, position, core, kind):
+    def get_efield_value(self, position, core, kind):
         """
         Accesses the interpolated electric field given the position of the detector on ground. For the interpolation, the pulse will be
         projected in the shower plane for geometrical resonst. Set pulse_centered to True to
@@ -244,20 +253,25 @@ class readCoREASDetector:
             efield_interp = self.empty_efield
             fluence_interp = 0
             logging.info(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f}, set efield and fluence to zero')
-        elif kind == 'efield':
-            efield_interp = self.efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1],
-                                                lowfreq=self.__interp_lowfreq/units.MHz,
-                                                highfreq=self.__interp_highfreq/units.MHz,
-                                                filter_up_to_cutoff=False,
-                                                account_for_timing=False,
-                                                pulse_centered=True,
-                                                const_time_offset=20.0e-9,
-                                                full_output=False)
-        elif kind == 'fluence':
-            fluence_interp = self.fluence_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1])
         else:
-            raise ValueError(f'kind {kind} not supported, please choose between efield and fluence')
-    
+            if kind == 'efield':
+                if self.efield_interpolator == -1:
+                    efield = self.get_closest_observer_efield(antenna_pos_vBvvB)
+                    efield_interp = efield
+                else:
+                    efield_interp = self.efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1],
+                                                    lowfreq=self.__interp_lowfreq/units.MHz,
+                                                    highfreq=self.__interp_highfreq/units.MHz,
+                                                    filter_up_to_cutoff=False,
+                                                    account_for_timing=False,
+                                                    pulse_centered=True,
+                                                    const_time_offset=20.0e-9,
+                                                    full_output=False)
+            elif kind == 'fluence':
+                fluence_interp = self.fluence_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1])
+            else:
+                raise ValueError(f'kind {kind} not supported, please choose between efield and fluence')
+
         if kind == 'efield':
             return efield_interp
         elif kind == 'fluence':
@@ -284,14 +298,22 @@ class readCoREASDetector:
         mm.set_array([0.0, maxp])
         cbar = plt.colorbar(mm, ax=ax)
         cbar.set_label(r'Efield strength [mV/m]', fontsize=14)
-        ax.set_xlabel('x [m]', fontsize=16)
-        ax.set_ylabel('y [m]', fontsize=16)
+        ax.set_xlabel(r'$\vec{v} \times \vec{B} [m]', fontsize=16)
+        ax.set_ylabel(r'$\vec{v} \times (\vec{v} \times \vec{B})$ [m]', fontsize=16)
         ax.set_xlim(-dist_scale, dist_scale)
         ax.set_ylim(-dist_scale, dist_scale)
         ax.set_aspect('equal')
         if save_file_path is not None:
             plt.savefig(save_file_path)
         plt.close()
+
+    def get_closest_observer_efield(self, antenna_pos_vBvvB):
+        distances = np.linalg.norm(antenna_pos_vBvvB[:2] - self.obs_positions_vBvvB[:,:2], axis=1)
+        index = np.argmin(distances)
+        distance = distances[index]
+        efield = self.electric_field_r_theta_phi[index,:,:]
+        logging.info(f'antenna position with distance {distance:.2f} to closest observer is used')
+        return efield
 
     @register_run()
     def run(self, detector, core_position_list=[], selected_station_ids=[], selected_channel_ids=[]):
@@ -342,13 +364,13 @@ class readCoREASDetector:
                         antenna_position_rel = detector.get_relative_position(station_id, ch_g_ids)
                         antenna_position = det_station_position + antenna_position_rel
                         if self.__interp_efield:
-                            res_efield = self.get_interpolated_value(antenna_position, core, kind='efield')
+                            res_efield = self.get_efield_value(antenna_position, core, kind='efield')
                             smooth_res_efield = apply_hanning(res_efield)
                             if smooth_res_efield is None:
                                 smooth_res_efield = self.empty_efield
                             efield_times = get_efield_times(smooth_res_efield, self.__sampling_rate)
                         if self.__interp_fluence:
-                            res_fluence = self.get_interpolated_value(antenna_position, core, kind='fluence')
+                            res_fluence = self.get_efield_value(antenna_position, core, kind='fluence')
                         else:
                             res_fluence = None
                         channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
