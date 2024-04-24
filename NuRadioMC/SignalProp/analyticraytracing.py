@@ -361,7 +361,10 @@ class ray_tracing_2D(ray_tracing_base):
         self.medium = medium
         if(not hasattr(self.medium, "reflection")):
             self.medium.reflection = None
-
+        # This variable is needed for numba optimization as numba cannot associate None to a type
+        self.reflection = 100
+        if(self.medium.reflection is not None) :
+            self.reflection = self.medium.reflection
         self.attenuation_model = attenuation_model
         if(not self.attenuation_model in attenuation_util.model_to_int):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
@@ -988,7 +991,7 @@ class ray_tracing_2D(ray_tracing_base):
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i + 1))
             C_1 = self.get_C_1(x1, C_0)
-            x2 = get_reflection_point(C_0, C_1, self.medium.n_ice, self.medium.reflection, self.__b, self.medium.z_0, self.medium.delta_n)
+            x2 = get_reflection_point(C_0, C_1, self.medium.n_ice, self.reflection, self.__b, self.medium.z_0, self.medium.delta_n)
             stop_loop = False
             if(x2[0] > x22[0]):
                 stop_loop = True
@@ -1185,7 +1188,7 @@ class ray_tracing_2D(ray_tracing_base):
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
             C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0,self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
-            x2 = get_reflection_point(C_0, C_1,  self.medium.n_ice, self.medium.reflection, self.__b, self.medium.z_0, self.medium.delta_n)
+            x2 = get_reflection_point(C_0, C_1,  self.medium.n_ice, self.reflection, self.__b, self.medium.z_0, self.medium.delta_n)
             if(x2[0] > x22[0]):
                 x2 = x22
             yyy, zzz = self.get_path(x1, x2, C_0, n_points)
@@ -1205,7 +1208,7 @@ class ray_tracing_2D(ray_tracing_base):
         result is signed! (important to use a root finder)
         """
         C_0 = get_C0_from_log(logC_0,self.medium.n_ice)
-        return get_delta_y(C_0, np.array(x1), np.array(x2),self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, self.medium.reflection, None, reflection, reflection_case)
+        return get_delta_y(C_0, np.array(x1), np.array(x2),self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, self.reflection, None, reflection, reflection_case)
 
     def determine_solution_type(self, x1, x2, C_0):
         """ returns the type of the solution
@@ -1324,7 +1327,7 @@ class ray_tracing_2D(ray_tracing_base):
             else:
                 logC_0_start = -1
             obj_delta_y_sqr = obj_delta_y_square
-            result = optimize.root(obj_delta_y_sqr, x0=logC_0_start, args=(np.array(x1), np.array(x2),self.medium.n_ice,self.__b, self.medium.delta_n, self.medium.z_0, self.medium.reflection, reflection, reflection_case), tol=tol)
+            result = optimize.root(obj_delta_y_sqr, x0=logC_0_start, args=(np.array(x1), np.array(x2),self.medium.n_ice,self.__b, self.medium.delta_n, self.medium.z_0, self.reflection, reflection, reflection_case), tol=tol)
             if(plot):
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(1, 1)
