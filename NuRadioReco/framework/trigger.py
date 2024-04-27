@@ -27,9 +27,9 @@ def deserialize(triggers_pkl):
             trigger = EnvelopePhasedTrigger(None, None, None, None)
         elif(trigger_type == 'rnog_surface_trigger'):
             trigger = RNOGSurfaceTrigger(None, None, None, None)
-	elif(trigger_type == 'radiant_aux_trigger'):
+	    elif(trigger_type == 'radiant_aux_trigger'):
             trigger = RadiantAUXTrigger(None)
-	else:
+	    else:
             raise ValueError("unknown trigger type")
         trigger.deserialize(data_pkl)
         triggers[trigger.get_name()] = trigger
