@@ -131,7 +131,7 @@ class readCoREASDetector:
         self.__interp_highfreq = None
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
-    def begin(self, input_file, interp_efield=True, interp_fluence=True, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO, debug=False):
+    def begin(self, input_file, interp_efield=True, interp_fluence=False, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO, debug=False):
             
         """
         begin method
@@ -179,6 +179,8 @@ class readCoREASDetector:
         # shape: (n_observers, n_samples, (time, eR, eTheta, ePhi))
         self.electric_field_on_sky = np.array(electric_field_on_sky)
         self.electric_field_r_theta_phi = self.electric_field_on_sky[:,:,1:]
+        self.max_coreas_efield = np.max(np.abs(self.electric_field_r_theta_phi))
+        print('!!!! max coreas efield', self.max_coreas_efield )
         self.empty_efield = np.zeros_like(self.electric_field_r_theta_phi[0,:,:])
         coreas_dt = (self.__corsika['CoREAS'].attrs['TimeResolution'] * units.second)
 
@@ -187,8 +189,12 @@ class readCoREASDetector:
         self.obs_positions_geo = self.cs.transform_from_magnetic_to_geographic(obs_positions.T)
         # transforms the coreas observer positions into the vxB, vxvxB shower plane
         self.obs_positions_vBvvB = self.cs.transform_to_vxB_vxvxB(self.obs_positions_geo).T
-
+        print('self.obs_positions_vBvvB', self.obs_positions_vBvvB.shape)
+        print('self.obs_positions_geo', self.obs_positions_geo.shape)
         self.star_radius = np.max(np.linalg.norm(self.obs_positions_vBvvB[:, :-1], axis=-1))
+        self.geo_star_radius = np.max(np.linalg.norm(self.obs_positions_geo[:-1, :], axis=0))
+        print('star_radius', self.star_radius)
+        print('geo_star_radius', self.geo_star_radius)
 
         if self.debug:
             max_efield = []
@@ -242,12 +248,11 @@ class readCoREASDetector:
         z_plane = core[2]
         #core and antenna need to be in the same z plane
         antenna_position[2] = z_plane
-
         # transform antenna position into shower plane with respect to core position, core position is set to 0,0 in shower plane
         antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(antenna_position, core=core)
 
         # calculate distance between core position at(0,0) and antenna positions in shower plane
-        dcore_vBvvB = np.linalg.norm(antenna_pos_vBvvB[:1])
+        dcore_vBvvB = np.linalg.norm(antenna_pos_vBvvB[:-1])
         # interpolate electric field at antenna position in shower plane which are inside star pattern
         if dcore_vBvvB > self.star_radius:
             efield_interp = self.empty_efield
@@ -273,8 +278,12 @@ class readCoREASDetector:
                 raise ValueError(f'kind {kind} not supported, please choose between efield and fluence')
 
         if kind == 'efield':
+            if np.max(np.abs(efield_interp)) > self.max_coreas_efield:
+                logging.warning(f'interpolated efield {np.max(np.abs(efield_interp)):.2f} is larger than the maximum coreas efield {self.max_coreas_efield:.2f}')
             return efield_interp
         elif kind == 'fluence':
+            if np.max(np.abs(fluence_interp)) > self.max_coreas_efield:
+                logging.warning(f'interpolated fluence {np.max(np.abs(fluence_interp)):.2f} is larger than the maximum coreas efield {self.max_coreas_efield:.2f}')
             return fluence_interp
 
     def plot_footprint_fluence(self, dist_scale=300, save_file_path=None):
