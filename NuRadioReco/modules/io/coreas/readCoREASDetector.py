@@ -180,7 +180,6 @@ class readCoREASDetector:
         self.electric_field_on_sky = np.array(electric_field_on_sky)
         self.electric_field_r_theta_phi = self.electric_field_on_sky[:,:,1:]
         self.max_coreas_efield = np.max(np.abs(self.electric_field_r_theta_phi))
-        print('!!!! max coreas efield', self.max_coreas_efield )
         self.empty_efield = np.zeros_like(self.electric_field_r_theta_phi[0,:,:])
         coreas_dt = (self.__corsika['CoREAS'].attrs['TimeResolution'] * units.second)
 
@@ -189,12 +188,8 @@ class readCoREASDetector:
         self.obs_positions_geo = self.cs.transform_from_magnetic_to_geographic(obs_positions.T)
         # transforms the coreas observer positions into the vxB, vxvxB shower plane
         self.obs_positions_vBvvB = self.cs.transform_to_vxB_vxvxB(self.obs_positions_geo).T
-        print('self.obs_positions_vBvvB', self.obs_positions_vBvvB.shape)
-        print('self.obs_positions_geo', self.obs_positions_geo.shape)
         self.star_radius = np.max(np.linalg.norm(self.obs_positions_vBvvB[:, :-1], axis=-1))
         self.geo_star_radius = np.max(np.linalg.norm(self.obs_positions_geo[:-1, :], axis=0))
-        print('star_radius', self.star_radius)
-        print('geo_star_radius', self.geo_star_radius)
 
         if self.debug:
             max_efield = []
@@ -229,7 +224,7 @@ class readCoREASDetector:
                     verbose=False
                 )
         if self.__interp_fluence:
-            #TODO use 10ns around the maximum for the fluence interpolation, then the sum of the square of the efield
+            #TODO use 10ns around the maximum for the fluence interpolation, then the sum of the square of the efield, get_electric_field_energy_fluence in utilities
             logging.info(f'initilize fluence interpolator')
             self.fluence_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
                 self.obs_positions_vBvvB[:, 0],
@@ -257,7 +252,7 @@ class readCoREASDetector:
         if dcore_vBvvB > self.star_radius:
             efield_interp = self.empty_efield
             fluence_interp = 0
-            logging.info(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f}, set efield and fluence to zero')
+            logging.info(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, set efield and fluence to zero')
         else:
             if kind == 'efield':
                 if self.efield_interpolator == -1:
