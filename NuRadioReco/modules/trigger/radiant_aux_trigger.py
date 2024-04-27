@@ -87,11 +87,7 @@ class triggerSimulator:
 
         power_int_trace = self.get_power_int_trace(filtered_trace, int_window)
         threshold = self.get_threshold(filtered_trace, threshold_sigma, int_window)
-
-        print(np.max(power_int_trace), threshold)
-
         triggered_bins = np.array(power_int_trace) > threshold
-        print(np.sum(triggered_bins))
         return (triggered_bins, threshold)
 
     @register_run()
@@ -153,7 +149,6 @@ class triggerSimulator:
         
         has_triggered, triggered_bins, triggered_times = get_majority_logic(triggered_bins_channels,
                                                                             number_coincidences, coinc_window, dt)
-        print('has_triggered', has_triggered)
         trigger = RadiantAUXTrigger(trigger_name, threshold_sigma, int_window, number_coincidences, coinc_window, triggered_channels)
         trigger.set_triggered_channels(channels_that_passed_trigger)
 
