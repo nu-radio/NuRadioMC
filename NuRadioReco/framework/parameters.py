@@ -58,6 +58,7 @@ class channelParameters(Enum):
     signal_ray_type = 16        #: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuth = 17   #: the azimuth angle of direction at which the radio signal arrived at the antenna
     block_offsets = 18 #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+    radiant_aux_trigger_threshold = 19  #: the threshold of the radiant aux trigger
 
 
 class electricFieldParameters(Enum):

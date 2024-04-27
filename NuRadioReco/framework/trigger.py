@@ -24,12 +24,12 @@ def deserialize(triggers_pkl):
         elif trigger_type == 'int_power':
             trigger = IntegratedPowerTrigger(None, None, None)
         elif trigger_type == 'envelope_phased':
-            trigger  = EnvelopePhasedTrigger(None, None, None, None)
+            trigger = EnvelopePhasedTrigger(None, None, None, None)
         elif(trigger_type == 'rnog_surface_trigger'):
             trigger = RNOGSurfaceTrigger(None, None, None, None)
-        elif(trigger_type == 'radiant_surface_trigger'):
-            trigger = RadiantSurfaceTrigger(None)
-        else:
+	elif(trigger_type == 'radiant_aux_trigger'):
+            trigger = RadiantAUXTrigger(None)
+	else:
             raise ValueError("unknown trigger type")
         trigger.deserialize(data_pkl)
         triggers[trigger.get_name()] = trigger
@@ -426,16 +426,19 @@ class RNOGSurfaceTrigger(Trigger):
         self._temperature = temperature
         self._Vbias = Vbias
 
-class RadiantSurfaceTrigger(Trigger):
-    def __init__(self, name, number_of_coincidences=2, channel_coincidence_window=60, channels=[13, 16, 19]):
+class RadiantAUXTrigger(Trigger):
+    def __init__(self, name, threshold_sigma=30, int_window=11, number_of_coincidences=2, channel_coincidence_window=60, channels=[13, 16, 19]):
         """
         initialize trigger class
-
-        Parameters
+	Parameters
         ----------
         name: string
             unique name of the trigger
-        number_of_coincidences: int
+	threshold_sigma: float
+            the threshold as a multiple of the noise standard deviation
+        int_window: float
+            the integration window
+	number_of_coincidences: int
             the number of channels that need to fulfill the trigger condition
             default: 1
         channel_coincidence_window: float or None (default)
@@ -444,6 +447,8 @@ class RadiantSurfaceTrigger(Trigger):
             the channels that are involved in the trigger
             default: None, i.e. all channels
         """
-        Trigger.__init__(self, name, channels, 'radiant_surface_trigger')
-        self._number_of_coincidences = number_of_coincidences
+	Trigger.__init__(self, name, channels, 'radiant_aux_trigger')
+        self._threshold_sigma = threshold_sigma
+        self._int_window = int_window
+	self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
