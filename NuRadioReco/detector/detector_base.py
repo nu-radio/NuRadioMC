@@ -930,7 +930,7 @@ class DetectorBase(object):
         """
         res = self.__get_channel(station_id, channel_id)
         if 'channel_group_id' not in res.keys():
-            logger.warning(
+            logger.info(
                 'Channel group ID not set for channel {} in station {}, returning channel id'.format(
                     channel_id, station_id))
             return channel_id

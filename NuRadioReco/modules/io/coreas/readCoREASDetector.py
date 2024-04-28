@@ -13,6 +13,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
 from collections import defaultdict
@@ -380,6 +381,8 @@ class readCoREASDetector:
                         channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
                         coreas.add_electric_field(sim_station, channel_ids_for_group_id, smooth_res_efield.T, efield_times, self.__corsika, fluence=res_fluence)
                     station.set_sim_station(sim_station)
+                    distance_to_core = np.linalg.norm(det_station_position[:-1] - core[:-1])
+                    station.set_parameter(stnp.distance_to_core, distance_to_core)
                     evt.set_station(station)
                     t_event_structure = time.time()
 

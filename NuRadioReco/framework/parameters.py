@@ -41,6 +41,7 @@ class stationParameters(Enum):
     flagged_channels = 60  #: a set of flagged channel ids (calculated by readLOFARData and adjusted by stationRFIFilter)
     cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
     dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
+    distance_to_core = 33 #: distance to the shower core
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
@@ -60,7 +61,7 @@ class channelParameters(Enum):
     signal_ray_type = 16        #: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuth = 17   #: the azimuth angle of direction at which the radio signal arrived at the antenna
     block_offsets = 18 #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
-
+    radiant_aux_trigger_threshold = 19  #: the threshold of the radiant aux trigger
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
