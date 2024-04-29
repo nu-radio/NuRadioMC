@@ -14,8 +14,18 @@ the time and frequency domain, i.e.
 
     np.sum(trace**2) * dt = np.sum(spectrum**2) * df
 
-Note that this will have units of :math:`V^2/GHz`.
-In order to obtain the correct units (i.e. energy in eV) one additionally has to divide by the impedance ``Z``.
+with units of :math:`V^2/GHz`. In order to obtain the correct units
+(i.e. energy in eV) one additionally has to divide by the impedance ``Z``.
+
+Note that in our convention, the above equality holds only **approximately**, as also the zero-frequency
+and the Nyquist frequency are multiplied by sqrt(2). This effect is however very small and negligible
+in practice.
+
+Finally, we remark that our normalization ensures implies the FFT describes the **energy** spectral density;
+this is in contrast to another common convention where the Fourier transform describes the
+**power** spectral density. One should keep this in mind especially when working with e.g. noise temperatures
+which are defined using the latter convention.
+
 """
 
 import numpy as np
