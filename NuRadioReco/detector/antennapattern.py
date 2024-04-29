@@ -1467,7 +1467,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
             index = np.argmax(freq > self._cutoff_freq)
             Gain = np.ones_like(freq)
-            from scipy.signal import hann
+            from scipy.signal.windows import hann
             gain_filter = hann(2 * index)
             Gain[:index] = gain_filter[:index]
 
