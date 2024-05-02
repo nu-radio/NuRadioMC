@@ -27,8 +27,8 @@ The pip installation will also install all core dependencies.
 
 Development version
 ---------------------------
-The most recent version of ``NuRadioMC`` is available on `github <github.com>`_. 
-It can be downloaded manually from the `repository website <https://github.com/nu-radio/NuRadioMC.git>`_,
+The most recent version of ``NuRadioMC`` is available on `github <https://github.com/nu-radio/NuRadioMC.git>`__.
+It can be downloaded manually from the `repository website <https://github.com/nu-radio/NuRadioMC/releases/latest>`__,
 or cloned using ``git``
 
 .. code-block:: Bash
