@@ -20,6 +20,7 @@
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -603,6 +604,26 @@
              
   <section id="module-NuRadioReco.utilities.fft">
 <span id="nuradioreco-utilities-fft-module"></span><h1>NuRadioReco.utilities.fft module<a class="headerlink" href="#module-NuRadioReco.utilities.fft" title="Permalink to this heading"></a></h1>
+<p>A wrapper around the numpy fft routines to achive a coherent normalization of the fft</p>
+<p>As we have real valued data in the time domain, we use the ‘real ffts’ that omit the negative frequencies in Fourier
+space. To account for the missing power in the frequency domain, we multiply the frequency spectrum by sqrt(2),
+and divide the iFFT with 1/sqrt(2) accordingly. The frequency spectrum is divided by the sampling rate so that the
+units if the spectrum are volts/GHz instead of volts/bin and the voltage in the frequency domain is independent of the
+sampling rate.</p>
+<p>Then, a calculation of the energy leads the same result in
+the time and frequency domain, i.e.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">trace</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">spectrum</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">df</span>
+</pre></div>
+</div>
+<p>with units of <span class="math notranslate nohighlight">\(V^2/GHz\)</span>. In order to obtain the correct units
+(i.e. energy in eV) one additionally has to divide by the impedance <code class="docutils literal notranslate"><span class="pre">Z</span></code>.</p>
+<p>Note that in our convention, the above equality holds only <strong>approximately</strong>, as also the zero-frequency
+and the Nyquist frequency are multiplied by sqrt(2). This effect is however very small and negligible
+in practice.</p>
+<p>Finally, we remark that our normalization ensures implies the FFT describes the <strong>energy</strong> spectral density;
+this is in contrast to another common convention where the Fourier transform describes the
+<strong>power</strong> spectral density. One should keep this in mind especially when working with e.g. noise temperatures
+which are defined using the latter convention.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.fft.time2freq">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.fft.</span></span><span class="sig-name descname"><span class="pre">time2freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/fft.html#time2freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.fft.time2freq" title="Permalink to this definition"></a></dt>
