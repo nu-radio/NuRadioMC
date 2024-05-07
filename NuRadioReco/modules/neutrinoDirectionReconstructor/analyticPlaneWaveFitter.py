@@ -1,8 +1,11 @@
 import numpy as np
 from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
-from scipy.constants import c as speed_of_light
-speed_of_light *= units.m / units.s # convert to NuRadio units
+import scipy.constants
+from scipy.spatial.transform import Rotation
+from radiotools import helper as hp
+
+SPEED_OF_LIGHT = scipy.constants.c * units.m / units.s # convert to NuRadio units
 
 import logging
 logging.basicConfig()
@@ -106,16 +109,32 @@ def analytic_plane_wave_fitter(dt, pos, n_index=1.000293):
     (theta, phi): tuple of floats
         zenith and azimuth of the analytic solution
     
+    Notes
+    -----
+    Note that the solution returned is not unique; mirroring the direction
+    in the plane formed by the three observer positions also gives
+    a valid solution. If this plane is the x-y plane (all observers have the same
+    z coordinate), the solution coming from above (zenith < pi/2) is returned.
+
     """
     if len(dt) > 3:
         logger.warning("System overdetermined, using only first three time delays & observers")
-    #TODO - implement rotation so this is valid
-    #even if the observers don't have the same z coord
-    if not all(np.abs(pos[:,2] - pos[0,2]) <= 1e-8):
-        logger.warning("Z coordinates of observers are not identical! Result will not be valid.")
+
+    dpos = pos - pos[0:1]
+    rot = None
+
+    # If the observers don't all have the same z coord,
+    # we perform a rotation such that they do
+    if not all(np.abs(dpos[:,2]) <= 1e-8):
+        rot_angle, phi_dpos = hp.cartesian_to_spherical(*np.cross(dpos[1], dpos[2]))
+        rot = Rotation.from_rotvec(
+            np.sign(rot_angle - np.pi/2) * rot_angle
+            * hp.spherical_to_cartesian(np.pi/2, phi_dpos + np.pi/2))
+        pos_xy = rot.apply(dpos)[1:3, 0:2]
+    else:
+        pos_xy = dpos[1:3, 0:2]
     
-    pos_xy = pos[1:3,:2] - pos[0:1, :2]
-    ds = speed_of_light * np.array(dt) / n_index
+    ds = SPEED_OF_LIGHT * np.array(dt) / n_index
     ds = ds[1:3] - ds[0]
 
     sol_vector = -np.linalg.inv(pos_xy) @ ds # - sign because we want the source direction
@@ -125,4 +144,11 @@ def analytic_plane_wave_fitter(dt, pos, n_index=1.000293):
         logger.warning("No valid solution!")
         return np.nan, np.nan
 
-    return np.arcsin(sin_theta), np.arctan2(sol_vector[1], sol_vector[0])
+    if rot is None:
+        return np.arcsin(sin_theta), np.arctan2(sol_vector[1], sol_vector[0])
+    else: # we have rotated our coordinate system, so we should rotate back
+        theta_rot, phi_rot = np.arcsin(sin_theta), np.arctan2(sol_vector[1], sol_vector[0])
+        v_rot = hp.spherical_to_cartesian(theta_rot, phi_rot)
+        zenith, azimuth = hp.cartesian_to_spherical(*rot.apply(v_rot, inverse=True))
+        return zenith, azimuth
+
