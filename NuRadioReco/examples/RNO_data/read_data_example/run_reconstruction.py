@@ -1,6 +1,6 @@
 import NuRadioReco
 import matplotlib.pyplot as plt
-from NuRadioReco.modules.io.rno_g.readRNOGData import readRNOGData
+from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 import pandas as pd
 import numpy as np
 from NuRadioReco.utilities import units
@@ -37,7 +37,7 @@ plots = True
 list_of_root_files = ['pulser_data_21.root']
 
 
-readRNOGData = NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData()
+readRNOGData = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData()
 readRNOGData.begin(list_of_root_files)
 
 for i_event, event in enumerate(readRNOGData.run()):
@@ -61,8 +61,8 @@ for i_event, event in enumerate(readRNOGData.run()):
 
 		fig.tight_layout()
 		fig.savefig("trace_{}.pdf".format(i_event))
-    
 
 
 
-                    
+
+

@@ -1,7 +1,7 @@
 """
 Provides an interface to store simulated and reconstructed quantities
 
-The parameters module provides access to store and read simulated or 
+The parameters module provides access to store and read simulated or
 reconstructed quantities in the different custom classes used in NuRadioMC.
 
 """
@@ -36,9 +36,11 @@ class stationParameters(Enum):
     cr_xmax = 28  #: Depth of shower maximum of the air shower
     vertex_2D_fit = 29  #: horizontal distance and z coordinate of the reconstructed vertex of the neutrino
     distance_correlations = 30
-    shower_energy = 31 #: the energy of the shower 
+    shower_energy = 31 #: the energy of the shower
     viewing_angles = 32 #: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
-
+    flagged_channels = 60  #: a set of flagged channel ids (calculated by readLOFARData and adjusted by stationRFIFilter)
+    cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
+    dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
@@ -57,6 +59,7 @@ class channelParameters(Enum):
     signal_receiving_zenith = 15    #: the zenith angle of direction at which the radio signal arrived at the antenna
     signal_ray_type = 16        #: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuth = 17   #: the azimuth angle of direction at which the radio signal arrived at the antenna
+    block_offsets = 18 #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
 
 
 class electricFieldParameters(Enum):
@@ -122,6 +125,21 @@ class showerParameters(Enum):
     interferometric_shower_maximum = 120  #: depth of the maximum of the longitudinal profile of the beam-formed signal
     interferometric_shower_axis = 121  #: shower axis (direction) derived from beam-formed signal
     interferometric_core = 122  #: core (intersection of shower axis with obs plane) derived from beam-formed signal
+
+
+class emitterParameters(Enum):
+    position = 1  #: the interaction vertex (for air showers this corresponds to the point of X0)
+    model = 2  #: the emitter model used to simulate the emission (as defined in NuRadioMC/SignalGen/emitter.py)
+    amplitude = 3  #: the amplitude of the signal
+    polarization = 4  #: the polarization of the signal
+    half_width = 5  #: the width of square and tone_burst signal
+    frequency = 6  #: the frequency of a signal (for cw and tone_burst model)
+    orientation_phi = 7  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
+    orientation_theta = 8  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
+    rotation_phi = 9  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
+    rotation_theta = 10  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
+    realization_id = 11  #: the id of the measurement of the emitted electric field
+
 
 class particleParameters(Enum):
     parent_id = 1 #: the entry number of the parent particle, None if primary.
