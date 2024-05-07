@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import copy
-from scipy import optimize, integrate, interpolate
+from scipy import optimize, integrate, interpolate, signal
 import scipy.constants
 from operator import itemgetter
 import NuRadioReco.utilities.geometryUtilities
+
 try:
     from functools import lru_cache
 except ImportError:
@@ -12,11 +13,22 @@ except ImportError:
 
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
+
+from radiotools import helper as hp
+from radiotools import coordinatesystems
+
+from NuRadioMC.utilities import medium
+
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
+from NuRadioReco.framework import base_trace
+
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
+
+from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
 import logging
-logging.basicConfig()
+logger = setup_logger("NuRadioMC.analytic_ray_tracing")
 
 # check if CPP implementation is available
 cpp_available = False
@@ -24,7 +36,7 @@ cpp_available = False
 try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
     cpp_available = True
-    print("using CPP version of ray tracer")
+    print("CPP version of ray tracer is available")
 except:
     print("trying to compile the CPP extension on-the-fly")
     try:
@@ -34,11 +46,12 @@ except:
                                  "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
-        print("compilation was successful, using CPP version of ray tracer")
+        print("compilation was successful, CPP version of ray tracer is available")
     except:
         print("compilation was not successful, using python version of ray tracer")
         print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
+
 
 """
 analytic ray tracing solution
@@ -92,7 +105,8 @@ class ray_tracing_2D(ray_tracing_base):
                  log_level=logging.WARNING,
                  n_frequencies_integration=25,
                  use_optimized_start_values=False,
-                 overwrite_speedup=None):
+                 overwrite_speedup=None,
+                 use_cpp=cpp_available):
         """
         initialize 2D analytic ray tracing class
 
@@ -117,6 +131,9 @@ class ray_tracing_2D(ray_tracing_base):
             speedup_attenuation_models (i.e., "GL3"). With this argument you can explicitly activate or deactivate
             (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
             listed in speedup_attenuation_models)
+        use_cpp: bool
+            if True, use CPP implementation of minimization routines
+            default: True if CPP version is available
             
         """
         self.medium = medium
@@ -128,15 +145,14 @@ class ray_tracing_2D(ray_tracing_base):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
         self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
-        self.__logger = logging.getLogger('ray_tracing_2D')
-        self.__logger.setLevel(log_level)
+        self.__logger = setup_logger('NuRadioMC.ray_tracing_2D', log_level)
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
-        
+
         self._use_optimized_calculation = self.attenuation_model in speedup_attenuation_models
         if overwrite_speedup is not None:
             self._use_optimized_calculation = overwrite_speedup
-                    
+        self.use_cpp = use_cpp
 
     def n(self, z):
         """
@@ -243,12 +259,19 @@ class ray_tracing_2D(ray_tracing_base):
         result = self.medium.z_0 * (self.medium.n_ice ** 2 * C_0 ** 2 - 1) ** -0.5 * np.log(logargument) + C_1
         return result
 
-    def get_y_diff(self, z_raw, C_0):
+    def get_y_diff(self, z_raw, C_0, in_air=False):
         """
         derivative dy(z)/dz
         """
-
-        z = self.get_z_unmirrored(z_raw, C_0)
+        correct_for_air = False
+        # if we are above the ice surface, the analytic expression below
+        # does not apply. Therefore, we instead calculate dy/dz at z=0 where it is still valid
+        # and then correct this using Snell's law
+        if (not in_air) or (z_raw < 0):
+            z = self.get_z_unmirrored(z_raw, C_0)
+        else: # we are above the ice surface, where the below expression does not apply
+            z = 0
+            correct_for_air = True
         c = self.medium.n_ice ** 2 - C_0 ** -2
         B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
                                           2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c)
@@ -258,7 +281,11 @@ class ray_tracing_2D(ray_tracing_base):
         E = (E1 + E2 + c)
         res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z /
                                                                                                                                                      self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
-
+        if correct_for_air:
+            n_surface = self.n(0)
+            theta_ice = np.arctan(res)
+            theta_air = np.arcsin(n_surface * np.sin(theta_ice))
+            res = np.tan(theta_air)
         if(z != z_raw):
             res *= -1
         return res
@@ -349,16 +376,28 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-            x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-            gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+                
+            # first treat special case of ice to air propagation
+            z_int = None
             points = None
-            if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
-                points = [z_turn]
-            path_length = integrate.quad(self.ds, x1[1], x2_mirrored[1], args=(C_0), points=points, epsabs=1e-4, epsrel=1.49e-08, limit=50)
-            self.__logger.info("calculating path length ({}) from ({:.0f}, {:.0f}) to ({:.2f}, {:.2f}) = ({:.2f}, {:.2f}) = {:.2f} m".format(solution_types[self.determine_solution_type(x1, x2, C_0)], x1[0], x1[1], x2[0], x2[1],
-                                                                                                                                        x2_mirrored[0],
-                                                                                                                                        x2_mirrored[1],
-                                                                                                                                        path_length[0] / units.m))
+            if(x2[1] > 0):
+                # we need to integrat only until the ray touches the surface
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
+                tmp += d_air
+                z_int = z_turn
+                self.__logger.info(f"adding additional propagation path through air of {d_air/units.m:.1f}m")
+            else:
+                x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
+                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+                if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+                    points = [z_turn]
+                z_int = x2_mirrored[1]
+            path_length = integrate.quad(self.ds, x1[1], z_int, args=(C_0), points=points,
+                                         epsabs=1e-4, epsrel=1.49e-08, limit=50)
+            self.__logger.info(f"calculating path length ({solution_types[self.determine_solution_type(x1, x2, C_0)]}) \
+                                from ({x1[0]:.0f}, {x1[1]:.0f}) to ({x2[0]:.2f}, {x2[1]:.2f}) = {path_length[0] / units.m:.2f} m")
             tmp += path_length[0]
         return tmp
 
@@ -436,18 +475,32 @@ class ray_tracing_2D(ray_tracing_base):
                         # z0 above z_deep, z1 below z_deep
                         return int2 - int1 - int_diff
 
-            if(solution_type == 1):
-                tmp += get_path_direct(x1[1], x2[1])
-            else:
-                if(solution_type == 3):
-                    z_turn = 0
-                else:
-                    gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-    #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+            # first treat special case of ice to air propagation
+            if(x2[1] > 0):
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
                 try:
-                    tmp += get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
+                    ttmp = get_path_direct(x1[1], z_turn)
+                    tmp += ttmp + d_air
+                    self.__logger.info("calculating travel distance from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} m in ice + {:.2f} m in air".format(
+                        x1[0], x1[1], x2[0], x2[1], ttmp / units.m, d_air / units.m))
                 except:
                     tmp += None
+                
+            else:
+                if(solution_type == 1):
+                    tmp += get_path_direct(x1[1], x2[1])
+                else:
+                    if(solution_type == 3):
+                        z_turn = 0
+                    else:
+                        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+        #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+                    try:
+                        tmp += get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
+                    except:
+                        tmp += None
 
         return tmp
 
@@ -464,18 +517,29 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-
+                
+            # first treat special case of ice to air propagation
+            z_int = None
+            points = None
             x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-
+            if(x2[1] > 0):
+                # we need to integrat only until the ray touches the surface
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                T_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5 / speed_of_light
+                tmp += T_air
+                z_int = z_turn
+                self.__logger.info(f"adding additional propagation path through air of {T_air/units.ns:.1f}ns")
+            else:
+                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+                if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+                    points = [z_turn]
+                z_int = x2_mirrored[1]
             def dt(t, C_0):
                 z = self.get_z_unmirrored(t, C_0)
                 return self.ds(t, C_0) / speed_of_light * self.n(z)
-
-            gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-            points = None
-            if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
-                points = [z_turn]
-            travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0), points=points, epsabs=1e-10, epsrel=1.49e-08, limit=500)
+            travel_time = integrate.quad(dt, x1[1], z_int, args=(C_0), points=points,
+                                         epsabs=1e-10, epsrel=1.49e-08, limit=500)
             self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(
                 x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], travel_time[0] / units.ns))
             tmp += travel_time[0]
@@ -557,24 +621,38 @@ class ray_tracing_2D(ray_tracing_base):
                         # z0 above z_deep, z1 below z_deep
                         return int2 - int1 - int_diff
 
-            if(solution_type == 1):
-                ttmp = get_ToF_direct(x1[1], x2[1])
-                tmp += ttmp
-                self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns".format(
-                    x1[0], x1[1], x2[0], x2[1], ttmp / units.ns))
-            else:
-                if(solution_type == 3):
-                    z_turn = 0
-                else:
-                    gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-    #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+            # first treat special case of ice to air propagation
+            if(x2[1] > 0):
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                t_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5 / speed_of_light
                 try:
-                    ttmp = get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
+                    ttmp = get_ToF_direct(x1[1], z_turn)
+                    tmp += ttmp + t_air
+                    self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns in ice + {:.2f} ns in air".format(
+                        x1[0], x1[1], x2[0], x2[1], ttmp / units.ns, t_air / units.ns))
+                except:
+                    tmp += None
+                
+            else:
+                if(solution_type == 1):
+                    ttmp = get_ToF_direct(x1[1], x2[1])
                     tmp += ttmp
                     self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns".format(
                         x1[0], x1[1], x2[0], x2[1], ttmp / units.ns))
-                except:
-                    tmp += None
+                else:
+                    if(solution_type == 3):
+                        z_turn = 0
+                    else:
+                        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+        #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+                    try:
+                        ttmp = get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
+                        tmp += ttmp
+                        self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns".format(
+                            x1[0], x1[1], x2[0], x2[1], ttmp / units.ns))
+                    except:
+                        tmp += None
         return tmp
 
     def __get_frequencies_for_attenuation(self, frequency, max_detector_freq):
@@ -590,19 +668,18 @@ class ray_tracing_2D(ray_tracing_base):
             self.__logger.debug(f"calculating attenuation for frequencies {freqs}")
             return freqs
 
-
-    def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, 
+    def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq,
                                    reflection=0, reflection_case=1):
-        
+
         attenuation = np.ones_like(frequency)
 
         output = f"calculating attenuation for n_ref = {int(reflection):d}: "
-        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, 
+        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection,
                                                             reflection_case)):
-            
-            # we can only integrate upward going rays, so if the ray starts downwardgoing, 
+
+            # we can only integrate upward going rays, so if the ray starts downwardgoing,
             # we need to mirror
-            if iS == 0 and reflection_case == 2: 
+            if iS == 0 and reflection_case == 2:
                 x11, x1, x22, x2, C_0, C_1 = segment
                 x1t = copy.copy(x11)
                 x2t = copy.copy(x2)
@@ -613,19 +690,26 @@ class ray_tracing_2D(ray_tracing_base):
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
                 
-            if cpp_available:
+            # treat special ice to air case. Attenuation in air can be neglected, so only 
+            # calculate attenuation until the ray reaches the surface
+            if x2[1] > 0:
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                x2 = [y_turn, z_turn]
+
+            if self.use_cpp:
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 tmp = np.zeros_like(freqs)
                 for i, f in enumerate(freqs):
                     tmp[i] = wrapper.get_attenuation_along_path(
-                        x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, 
+                        x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n,
                         self.medium.z_0, self.attenuation_model_int)
-                
+
                 self.__logger.debug(tmp)
                 tmp_attenuation = np.ones_like(frequency)
                 tmp_attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
-            
+
             else:
 
                 x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
@@ -633,50 +717,50 @@ class ray_tracing_2D(ray_tracing_base):
                 def dt(t, C_0, frequency):
                     z = self.get_z_unmirrored(t, C_0)
                     return self.ds(t, C_0) / attenuation_util.get_attenuation_length(z, frequency, self.attenuation_model)
-                
+
                 # to speed up things we only calculate the attenuation for a few frequencies
                 # and interpolate linearly between them
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-                self.__logger.info("_use_optimized_calculation", self._use_optimized_calculation)
+                self.__logger.info(f"_use_optimized_calculation {self._use_optimized_calculation}")
 
                 if self._use_optimized_calculation:
-                    # The integration of the attenuation factor along the path with scipy.quad is inefficient. The 
+                    # The integration of the attenuation factor along the path with scipy.quad is inefficient. The
                     # reason for this is that attenuation profile is varying a lot with depth. Hence, to improve
-                    # performance we sum over discrete segments with loss of some accuracy. 
+                    # performance we sum over discrete segments with loss of some accuracy.
                     # However, when a path becomes to horizontal (i.e., at the turning point of an refracted ray)
                     # the calculation via a discrete sum becomes to inaccurate. This is because we describe the
                     # path as a function of dz (vertical distance) and have the sum over discrete bins in dz. To avoid that
-                    # we fall back to a numerical integration with scipy.quad only around the turning point. However, instead 
+                    # we fall back to a numerical integration with scipy.quad only around the turning point. However, instead
                     # of integrating over dt (the exponent of the attenuation factor), we integrate only over ds (the path length)
-                    # and evaluate the attenuation (as function of depth and frequency) for the central depth of this segment 
+                    # and evaluate the attenuation (as function of depth and frequency) for the central depth of this segment
                     # (because this is what takes time)
                     # For more details and comparisons see PR #507 : https://github.com/nu-radio/NuRadioMC/pull/507
 
-                    # define the width of the vertical (!) segments over which we sum. 
+                    # define the width of the vertical (!) segments over which we sum.
                     # Since we use linspace the actual width will differ slightly
                     dx = 10
                     # define the vertical window around a turning point within we will fall back to a numerical integration
                     int_window_size = 20
-                    
+
                     # Check if a turning point "z_turn" is within our ray path or close to it (i.e., right behind the antenna)
                     # if so we need to fallback to numerical integration
                     fallback = False
                     if x1[1] - int_window_size / 2 < z_turn and z_turn < x2_mirrored[1] + int_window_size / 2:
                         fallback = True
-                        
+
                     if fallback:
                         # If we need the fallback, make sure that the turning point is in the middle of a segment (unless it is at
                         # the edge of a path). Otherwise the segment next to the turning point will be inaccurate
-                        int_window = [max(x1[1], z_turn - int_window_size / 2), 
+                        int_window = [max(x1[1], z_turn - int_window_size / 2),
                                       min(z_turn + int_window_size / 2, x2_mirrored[1])]
 
                         # Merge two arrays which start and stop at int_window (and thus include it). The width might be slightly different
                         segments = np.append(get_segments(x1[1], int_window[0], dx), get_segments(int_window[1], x2_mirrored[1], dx))
                     else:
                         segments = get_segments(x1[1], x2_mirrored[1], dx)
-                    
+
                     # get the actual width of each segment and their center
                     dx_actuals = np.diff(segments)
                     mid_points = segments[:-1] + dx_actuals / 2
@@ -691,19 +775,19 @@ class ray_tracing_2D(ray_tracing_base):
 
                         # find segment which contains z_turn
                         idx = np.digitize(z_turn, segments) - 1
-                        
+
                         # if z_turn is outside of segments
                         if idx == len(segments) - 1:
                             idx -= 1
                         elif idx == -1:
                             idx = 0
-                        
+
                         att_int = np.array(
                             [integrate.quad(self.ds, segments[idx], segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0] /
                             attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs])
-                            
+
                         attenuation_exp_tmp[:, idx] = att_int
-                    
+
                     # sum over all segments
                     attenuation_exp = np.sum(attenuation_exp_tmp, axis=1)
 
@@ -711,25 +795,24 @@ class ray_tracing_2D(ray_tracing_base):
                     points = None
                     if x1[1] < z_turn and z_turn < x2_mirrored[1]:
                         points = [z_turn]
-                    
+
                     attenuation_exp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
                         C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
 
                 tmp = np.exp(-1 * attenuation_exp)
-                
+
                 tmp_attenuation = np.ones_like(frequency)
                 tmp_attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
                 self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
                     x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / tmp_attenuation))
-            
+
             iF = len(frequency) // 3
             output += f"adding attenuation for path segment {iS:d} -> {tmp_attenuation[iF]:.2g} at {frequency[iF]/units.MHz:.0f} MHz, "
-            
+
             attenuation *= tmp_attenuation
-        
+
         self.__logger.info(output)
         return attenuation
-
 
     def get_path_segments(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
@@ -792,7 +875,7 @@ class ray_tracing_2D(ray_tracing_base):
             x1 = x2
         return tmp
 
-    def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1):
+    def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1, in_air=False):
         """
         calculates the angle with respect to the positive z-axis of the ray path at position x
 
@@ -816,18 +899,21 @@ class ray_tracing_2D(ray_tracing_base):
         last_segment = self.get_path_segments(x_start, x, C_0, reflection, reflection_case)[-1]
         x_start = last_segment[1]
 
-        z = self.get_z_mirrored(x_start, x, C_0)[1]
-        dy = self.get_y_diff(z, C_0)
+        if in_air:
+            z = x[1]
+        else:
+            z = self.get_z_mirrored(x_start, x, C_0)[1]
+        dy = self.get_y_diff(z, C_0, in_air=in_air)
         angle = np.arctan(dy)
         if(angle < 0):
             angle = np.pi + angle
         return angle
 
     def get_launch_angle(self, x1, C_0, reflection=0, reflection_case=1):
-        return self.get_angle(x1, x1, C_0, reflection, reflection_case)
+        return self.get_angle(x1, x1, C_0, reflection, reflection_case, in_air=x1[1]>0)
 
     def get_receive_angle(self, x1, x2, C_0, reflection=0, reflection_case=1):
-        return np.pi - self.get_angle(x2, x1, C_0, reflection, reflection_case)
+        return np.pi - self.get_angle(x2, x1, C_0, reflection, reflection_case, in_air=x2[1]>0)
 
     def get_reflection_angle(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
@@ -903,9 +989,16 @@ class ray_tracing_2D(ray_tracing_base):
         gamma = self.get_gamma(z[mask])
         zs[mask] = z[mask]
         res[mask] = self.get_y(gamma, C_0, C_1)
-        gamma = self.get_gamma(2 * z_turn - z[~mask])
-        res[~mask] = 2 * y_turn - self.get_y(gamma, C_0, C_1)
-        zs[~mask] = 2 * z_turn - z[~mask]
+        if x2[1] > 0:  # treat ice to air case
+            zenith_reflection = self.get_reflection_angle(x1, x2, C_0)
+            n_1 = self.medium.get_index_of_refraction([y_turn, 0, z_turn])
+            zenith_air = NuRadioReco.utilities.geometryUtilities.get_fresnel_angle(zenith_reflection, n_1=n_1, n_2=1)
+            zs[~mask] = z[~mask]
+            res[~mask] = zs[~mask] * np.tan(zenith_air) + y_turn
+        else:
+            gamma = self.get_gamma(2 * z_turn - z[~mask])
+            res[~mask] = 2 * y_turn - self.get_y(gamma, C_0, C_1)
+            zs[~mask] = 2 * z_turn - z[~mask]
 
         self.__logger.debug('turning points for C_0 = {:.2f}, b= {:.2f}, gamma = {:.4f}, z = {:.1f}, y_turn = {:.0f}'.format(
             C_0, self.__b, gamma_turn, z_turn, y_turn))
@@ -1023,7 +1116,7 @@ class ray_tracing_2D(ray_tracing_base):
         if(reflection > 0 and reflection_case == 2):
             y_turn = self.get_y_turn(C_0, x1)
             dy = y_turn - x1[0]
-            self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
+            self.__logger.debug("reflection case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
 
         for i in range(reflection):
@@ -1052,17 +1145,37 @@ class ray_tracing_2D(ray_tracing_base):
         # 3) reflected ray, i.e. after the ray reaches the surface
         gamma_turn, z_turn = self.get_turning_point(c)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
-        if(z_turn < x2[1]):  # turning points is deeper that x2 positions, can't reach target
+        if(z_turn < min(x2[1], 0)):  # turning points is deeper that x2 positions, can't reach target
             # the minimizer has problems finding the minimum if inf is returned here. Therefore, we return the distance
             # between the turning point and the target point + 10 x the distance between the z position of the turning points
             # and the target position. This results in a objective function that has the solutions as the only minima and
             # is smooth in C_0
+            
             diff = ((z_turn - x2[1]) ** 2 + (y_turn - x2[0]) ** 2) ** 0.5 + 10 * np.abs(z_turn - x2[1])
             self.__logger.debug(
-                "turning points (zturn = {:.0f} is deeper than x2 positon z2 = {:.0f}, setting distance to target position to {:.1f}".format(z_turn, x2[1], -diff))
+                "turning points (zturn = {:.4g} is deeper than x2 positon z2 = {:.0f}, setting distance to target position to {:.1f}".format(z_turn, x2[1], -diff))
             return -diff
 #             return -np.inf
         self.__logger.debug('turning points is z = {:.1f}, y =  {:.1f}'.format(z_turn, y_turn))
+        
+        if(x2[1] > 0):  # first treat the ice to air case
+            # Do nothing if ray is refracted. If ray is reflected, don't mirror but do straight line upwards
+            if(z_turn == 0):
+                zenith_reflection = self.get_reflection_angle(x1, x2, C_0, reflection, reflection_case)
+                if(zenith_reflection == None):
+                    diff = x2[1]
+                    self.__logger.debug(f"not refracting into air")
+                    return diff
+                n_1 = self.medium.get_index_of_refraction([y_turn, 0, z_turn])
+                zenith_air = NuRadioReco.utilities.geometryUtilities.get_fresnel_angle(zenith_reflection, n_1=n_1, n_2=1)
+                if(zenith_air is None):
+                    diff = x2[1]
+                    self.__logger.debug(f"not refracting into air")
+                    return diff
+                z = (x2[0] - y_turn) / np.tan(zenith_air)
+                diff = x2[1] - z
+                self.__logger.debug(f"touching surface at {zenith_reflection/units.deg:.1f}deg -> {zenith_air/units.deg:.1f}deg -> x2 = {x2} diff {diff:.2f}")
+                return diff
         if(y_turn > x2[0]):  # we always propagate from left to right
             # direct ray
             y2_fit = self.get_y(self.get_gamma(x2[1]), C_0, C_1)  # calculate y position at get_path position
@@ -1087,6 +1200,7 @@ class ray_tracing_2D(ray_tracing_base):
 
             self.__logger.debug('we have a reflected/refracted ray, y({:.1f}) = {:.1f} ({:.1f}) -> {:.1f} away from {:.1f} (gamma = {:.5g})'.format(
                 z_mirrored, y2_fit, y2_raw, diff, x2[0], gamma))
+
             return -1 * diff
 
     def determine_solution_type(self, x1, x2, C_0):
@@ -1147,7 +1261,7 @@ class ray_tracing_2D(ray_tracing_base):
             self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflection))
             raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflection))
 
-        if(cpp_available):
+        if(self.use_cpp):
             #             t = time.time()
 #             print("find solutions", x1, x2, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, reflection, reflection_case, self.medium.reflection)
             tmp_reflection = copy.copy(self.medium.reflection)
@@ -1161,6 +1275,31 @@ class ray_tracing_2D(ray_tracing_base):
             tol = 1e-6
             results = []
             C0s = []  # intermediate storage of results
+
+            if(x2[1] > 0):
+                # special case of ice to air ray tracing. There is always one unique solution between C_0 = inf and C_0 that
+                # skims the surface. Therefore, we can find the solution using an efficient root finding algorithm.
+                logC0_start = 100  # infinity is bad, 100 is steep enough
+                C_0_stop = self.get_C_0_from_angle(np.arcsin(1/self.medium.get_index_of_refraction([0, x1[0], x1[1]])), x1[1]).x[0]
+                logC0_stop = np.log(C_0_stop - 1/self.medium.n_ice)
+                delta_ys = [self.obj_delta_y(logC0, x1, x2, reflection, reflection_case) for logC0 in [logC0_start, logC0_stop]]
+                self.__logger.debug("Looking for ice-air solutions between log(C0) ({}, {}) with delta_y ({}, {})".format(logC0_start, logC0_stop, *delta_ys))
+                if(np.sign(delta_ys[0]) == np.sign(delta_ys[1])):
+                    self.__logger.warning(f"can't find a solution for ice/air propagation. The trajectory might be too vertical! This is currently not"\
+                                          " supported because of numerical instabilities.")
+                    return results
+                result = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
+
+                C_0 = self.get_C0_from_log(result)
+                C0s.append(C_0)
+                solution_type = self.determine_solution_type(x1, x2, C_0)
+                self.__logger.info("found {} solution C0 = {:.2f} (internal logC = {:.2f})".format(solution_types[solution_type], C_0, result))
+                results.append({'type': solution_type,
+                                'C0': C_0,
+                                'C1': self.get_C_1(x1, C_0),
+                                'reflection': reflection,
+                                'reflection_case': reflection_case})
+                return results
 
             # calculate optimal start value. The objective function becomes infinity if the turning point is below the z
             # position of the observer. We calculate the corresponding value so that the minimization starts at one edge
@@ -1269,11 +1408,11 @@ class ray_tracing_2D(ray_tracing_base):
     #     ax.plot(x2[1], x2[0], 'd')
         ax.legend()
 
-    def get_angle_from_C_0(self, C_0, z_pos, angoff=0):
+    def get_angle_from_C_0(self, C_0, z_pos, angoff=0, in_air=False):
         logC_0 = np.log(C_0 - 1. / self.medium.n_ice)
-        return self.get_angle_from_logC_0(logC_0, z_pos, angoff)
+        return self.get_angle_from_logC_0(logC_0, z_pos, angoff, in_air=in_air)
 
-    def get_angle_from_logC_0(self, logC_0, z_pos, angoff=0):
+    def get_angle_from_logC_0(self, logC_0, z_pos, angoff=0, in_air=False):
 
         '''
         argument angoff is provided so that the function can be used for minimization in get_C_0_from_angle(),
@@ -1296,7 +1435,7 @@ class ray_tracing_2D(ray_tracing_base):
 
         C_0 = self.get_C0_from_log(logC_0)
 
-        dydz = self.get_y_diff(z_pos, C_0)
+        dydz = self.get_y_diff(z_pos, C_0, in_air=in_air)
 #        dydz = self.get_dydz_analytic(C_0, z_pos)
         angle = np.arctan(dydz)
 
@@ -1304,7 +1443,7 @@ class ray_tracing_2D(ray_tracing_base):
 
         return angle - angoff
 
-    def get_C_0_from_angle(self, anglaunch, z_pos):
+    def get_C_0_from_angle(self, anglaunch, z_pos, in_air=False):
 
         '''
         Find parameter C0 corresponding to a given launch angle and z-position of a ray.
@@ -1327,7 +1466,7 @@ class ray_tracing_2D(ray_tracing_base):
         logC_0_start = np.log(C_0_start - 1. / self.medium.n_ice)
 
 #        result = optimize.root(self.get_angle_from_C_0,np.pi/4.,args=(z_pos,anglaunch))
-        result = optimize.root(self.get_angle_from_logC_0, logC_0_start, args=(z_pos, anglaunch))
+        result = optimize.root(self.get_angle_from_logC_0, logC_0_start, args=(z_pos, anglaunch, in_air))
 
         # want to return the complete instance of the result class; result value result.x[0] is logC_0,
         # but we want C_0, so replace it in the result class. This may not be good practice but it seems to be
@@ -1645,7 +1784,8 @@ class ray_tracing(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100, n_reflections=0, config=None,
-                 detector=None, ray_tracing_2D_kwards={}):
+                 detector=None, ray_tracing_2D_kwards={},
+                 use_cpp=cpp_available):
         """
         class initilization
 
@@ -1686,18 +1826,22 @@ class ray_tracing(ray_tracing_base):
                 * self._config['propagation']['attenuate_ice'] = True
                 * self._config['propagation']['focusing_limit'] = 2
                 * self._config['propagation']['focusing'] = False
+                * self._config['propagation']['birefringence'] = False
 
         detector: detector object
         
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
             
+        use_cpp: bool
+            if True, use CPP implementation of minimization routines
+            default: True if CPP version is available
+            
         """
-        self.__logger = logging.getLogger('ray_tracing_analytic')
-        self.__logger.setLevel(log_level)
+        self.__logger = setup_logger('NuRadioMC.ray_tracing_analytic', log_level)
 
         from NuRadioMC.utilities.medium_base import IceModelSimple
-        if not isinstance(medium,IceModelSimple):
+        if not isinstance(medium, IceModelSimple):
             self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
             raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
 
@@ -1710,15 +1854,22 @@ class ray_tracing(ray_tracing_base):
                          detector=detector)
         self.set_config(config=config)
         
+        self.use_cpp = use_cpp
+        if use_cpp:
+            self.__logger.debug(f"using CPP version of ray tracer")
+        else:
+            self.__logger.debug(f"using python version of ray tracer")
+
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration,
-                                    **ray_tracing_2D_kwards)
+                                    **ray_tracing_2D_kwards, use_cpp=use_cpp)
 
         self._swap = None
         self._dPhi = None
         self._R = None
         self._x1 = None
         self._x2 = None
+
 
     def reset_solutions(self):
         """
@@ -1745,14 +1896,15 @@ class ray_tracing(ray_tracing_base):
             stop point of the ray
         """
 
+
         super().set_start_and_end_point(x1, x2)
 
         self._swap = False
         if(self._X2[2] < self._X1[2]):
             self._swap = True
             self.__logger.debug('swap = True')
-            self._X2 = np.array(x1, dtype =float)
-            self._X1 = np.array(x2, dtype =float)
+            self._X2 = np.array(x1, dtype=float)
+            self._X1 = np.array(x2, dtype=float)
 
         dX = self._X2 - self._X1
         self._dPhi = -np.arctan2(dX[1], dX[0])
@@ -1833,10 +1985,406 @@ class ray_tracing(ray_tracing_base):
                                                  reflection=result['reflection'],
                                                  reflection_case=result['reflection_case'])
         path_2d = np.array([xx, np.zeros_like(xx), zz]).T
+
         dP = path_2d - np.array([self._X1[0], 0, self._X1[2]])
         MM = np.matmul(self._R.T, dP.T)
         path = MM.T + self._X1
         return path
+
+    def get_effective_index_birefringence(self, direction, nx, ny, nz):
+
+        """
+        Function to find the analytical solutions for the effective refractive indices. 
+        The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        direction: numpy.array
+            propagation direction of the wave
+        nx: float
+            the index of refraction in the x-direction
+        ny: float
+            the index of refraction in the y-direction
+        nz: float
+            the index of refraction in the z-direction
+
+        Returns
+        -------
+        output format: np.array([n1, n2])
+        meaning: effective refractive indices
+        """
+
+        sx = direction[0]
+        sy = direction[1]
+        sz = direction[2]
+
+        n1 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) / 
+                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2)) 
+                      - np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2) 
+                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2) 
+                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2)) 
+                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) 
+                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2) 
+                                                                    + ny ** 2 * ( - 1 + sz ** 2))) ** 2)))
+        n2 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) / 
+                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2)) 
+                      + np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2) 
+                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2) 
+                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2)) 
+                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) 
+                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2) 
+                                                                    + ny ** 2 * ( - 1 + sz ** 2))) ** 2)))
+
+        return np.array([n1, n2])
+
+    def get_polarization_birefringence_simple(self, n, direction, nx, ny, nz):
+
+        """
+        Function for the normalized e-field vector of a wave for the direction of propagation in cartesian coordinates without special cases.
+        For the function with special cases see get_polarization_birefringence.
+        For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.
+        The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        n: float
+            the effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+        direction: numpy.array
+            propagation direction of the wave
+        nx: float
+            the index of refraction in the x-direction
+        ny: float
+            the index of refraction in the y-direction
+        nz: float
+            the index of refraction in the z-direction
+
+        Returns
+        -------
+        efield : np.ndarray of shape (3,)
+            normalized e-field vector in cartesian coordinates
+        """
+
+        polarization = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
+        polarization = polarization / np.linalg.norm(polarization)
+
+        return polarization
+
+    def get_polarization_birefringence(self, N1, N2, direction, nx, ny, nz):
+
+        """
+        Function for the normalized e-field vector of a wave for the direction of propagation in spherical coordinates with special cases.
+        For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.
+        The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        N1: float
+            the first effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+        N2: float
+            the second effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+        direction: numpy.array
+            propagation direction of the wave
+        nx: float
+            the index of refraction in the x-direction
+        ny: float
+            the index of refraction in the y-direction
+        nz: float
+            the index of refraction in the z-direction
+
+        Returns
+        -------
+        efield : np.ndarray of shape (2, 3)
+            normalized e-field vector in spherical coordinates for both birefringence solutions
+        """
+        
+        narrow_check = 1e-9
+        wide_check = 1e-10
+
+        if (np.isclose(N1, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()) or (np.isclose(N2, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()):
+
+            if (np.isclose(N1, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()) and (np.isclose(N2, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()):
+                self.__logger.warning("warning: Polarization vectors not computable")
+                sky_polarization_1 = np.array([0, 0, 0])
+                sky_polarization_2 = np.array([0, 0, 0])
+            
+            elif np.isclose(N1, nx, rtol=0, atol=wide_check):
+
+                if direction[0] < 0:
+                    sky_polarization_1 = np.array([0, 0, 1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+                else:
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+            elif np.isclose(N1, ny, rtol=0, atol=narrow_check):
+                
+                if direction[1] < 0:
+                    sky_polarization_1 = np.array([0, 0, 1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+                else:
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+            elif np.isclose(N2, ny, rtol=0, atol=narrow_check):
+
+                if direction[1] < 0:
+                    sky_polarization_1 = np.array([0, 1, 0])
+                    sky_polarization_2 = np.array([0, 0, -1])
+
+                else:
+                    sky_polarization_1 = np.array([0, 1, 0])
+                    sky_polarization_2 = np.array([0, 0, 1])
+
+            elif np.isclose(N2, nz, rtol=0, atol=wide_check):
+
+                if direction[2] < 0:
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, -1, 0])
+
+                else:
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+            else:
+                polarization_1 = self.get_polarization_birefringence_simple(N1, direction, nx, ny, nz)
+                polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
+
+                zenith, azimuth = hp.cartesian_to_spherical( * (direction))
+                sky_polarization_1 = self.on_sky_birefringence(zenith, azimuth, polarization_1)
+                sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
+
+        else:
+            polarization_1 = self.get_polarization_birefringence_simple(N1, direction, nx, ny, nz)
+            polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
+
+            zenith, azimuth = hp.cartesian_to_spherical( * (direction))
+            sky_polarization_1 = self.on_sky_birefringence(zenith, azimuth, polarization_1)
+            sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
+
+        return np.vstack((sky_polarization_1, sky_polarization_2))
+    
+    def on_sky_birefringence(self, theta, phi, polarization):
+
+        """
+        Function for the normalized e-field vector from cartesian to spherical coordinates.
+        The function does the same as the following radiotool functions, only faster:             
+        from radiotools import coordinatesystems
+        cs = coordinatesystems.cstrafo(theta, phi)
+        sky = cs.transform_from_ground_to_onsky(p)
+
+        Parameters
+        ----------
+        theta: float
+            zenith angle of the propagation direction
+        phi: float
+            azimuth angle of the propagation direction
+        polarization: np.array([px, py, pz])
+            normalized e-field vector in cartesian coordinates
+
+        Returns
+        -------
+        efield : np.ndarray of shape (3,)
+            normalized e-field vector in spherical coordinates
+        """
+
+        transform = np.array([  [np.sin(theta) * np.cos(phi) , np.sin(theta) * np.sin(phi)   , np.cos(theta)    ], 
+                                [np.cos(theta) * np.cos(phi) , np.cos(theta) * np.sin(phi)   , - np.sin(theta)  ], 
+                                [- np.sin(phi)               , np.cos(phi)                   , 0                ]       ])
+
+        return transform.dot(polarization)
+
+    def get_pulse_propagation_birefringence(self, pulse, samp_rate, i_solution, bire_model = 'southpole_A'):
+        
+        """
+        Function for the time trace propagation according to the polarization change due to birefringence. 
+        The trace propagation is explained in this paper: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        pulse: np.ndarray
+            3d array with the frequency spectrum of np.array([eR, eTheta, ePhi]), usually provided by the apply_propagation_effects function
+        samp_rate: float
+            sampling rate of the time traces
+        i_solution: int
+            choose which ray-tracing solution should be propagated
+        bire_model: string
+            choose the interpolation to fit the measured refractive index data
+            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+
+        Returns
+        -------
+
+        final pulse: numpy.array([eR, eTheta, ePhi])
+            [0] - eR        - final frequency spectrum of the radial component - not altered by the function
+            [1] - eTheta    - final frequency spectrum of the theta component
+            [2] - ePhi      - final frequency spectrum of the phi component
+        """
+
+        t_fast = base_trace.BaseTrace()
+
+        ice_n = self._medium
+        ice_birefringence = medium.get_ice_model('birefringence_medium')
+        ice_birefringence.__init__(bire_model)
+
+        acc = int(self.get_path_length(i_solution) / units.m)
+        path = self.get_path(i_solution, n_points=acc)
+
+        if 'angle_to_iceflow' in self._config['propagation']:
+            rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
+            rot = np.matrix([[np.cos(rotation_angle), -np.sin(rotation_angle)], [np.sin(rotation_angle), np.cos(rotation_angle)]])
+            path[:, :2] = np.swapaxes(np.matmul(rot, np.swapaxes(path[:, :2],0,1)),0,1)
+
+        for i in range(acc - 1):
+
+            refractive_index = ice_n.get_index_of_refraction(path[i])
+            refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
+
+            nx, ny, nz = refractive_index + refractive_index_birefringence - 1.78
+            dD = path[i + 1] - path[i]     
+
+            direction = np.array(dD)
+            len_diff = np.linalg.norm(direction)
+            direction = direction / len_diff
+
+            N_effective = self.get_effective_index_birefringence(direction, nx, ny, nz)
+            sky_polarization = self.get_polarization_birefringence(N_effective[0], N_effective[1], direction, nx, ny, nz)
+
+            t_0, t_1 = len_diff * N_effective / (speed_of_light * units.m / units.ns)
+
+            a, b = sky_polarization[0, 1:]
+            c, d = sky_polarization[1, 1:]
+
+            if np.isclose(a * d - b * c, 0) or np.isnan([a, b, c, d]).any():
+                self.__logger.warning("warning: Polarization vectors similar, R-matrix not invertible, iteration" + str(i))
+                continue
+
+            R = np.matrix([[a, b], [c, d]])
+
+            birefringent_base = R * pulse[1:] 
+
+            t_fast.set_frequency_spectrum(birefringent_base[1], sampling_rate=samp_rate)
+            t_fast.apply_time_shift(t_1 - t_0)
+            birefringent_base[1] = t_fast.get_frequency_spectrum()
+            
+            Rtransp = np.matrix.transpose(R)
+            pulse[1:]  = Rtransp * birefringent_base
+
+        return pulse
+    
+    def get_path_properties_birefringence(self, i_solution, bire_model = 'southpole_A'):
+
+        """
+        Function to extract important information about the birefringent propagation along the path.
+        The important properties include effective refractive indices, polarization eigenvectors, and incremental time delays
+
+        Parameters
+        ----------
+
+        i_solution: int
+            choose which ray-tracing solution should be propagated
+        bire_model: string
+            choose the interpolation to fit the measured refractive index data
+            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+
+        Returns
+        -------
+
+        path_properties: dict
+            a dictionary containing the following keys:
+            
+            * 'path': np.ndarray - propagation path in x, y, z with the same granularity as the nirefringent propagation
+            * 'nominal_refractive_index': np.ndarray - nominal refractive index if only density effects were taken into account
+            * 'refractive_index_x': np.ndarray - refractive index for the x-direction
+            * 'refractive_index_y': np.ndarray - refractive index for the y-direction
+            * 'refractive_index_z': np.ndarray - refractive index for the z-direction
+            * 'first_refractive_index': np.ndarray - effective refractive index of the first birefringent state along the full path
+            * 'second_refractive_index': np.ndarray - effective refractive index of the second birefringent state along the full path
+            * 'first_polarization_vector': np.ndarray - polarization vector of the first birefringent state in spherical coordinates along the full path
+            * 'second_polarization_vector': np.ndarray - polarization vector of the second birefringent state in spherical coordinates along the full path
+            * 'first_time_delay': np.ndarray - incremental time delays of the first birefringent state along the full path
+            * 'second_time_delay': np.ndarray - incremental time delays of the second birefringent state along the full path
+
+        """
+
+        ice_n = self._medium
+        ice_birefringence = medium.get_ice_model('birefringence_medium')
+        ice_birefringence.__init__(bire_model)
+
+        acc = int(self.get_path_length(i_solution) / units.m)
+        path = self.get_path(i_solution, n_points=acc)
+        
+        if 'angle_to_iceflow' in self._config['propagation']:
+            rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
+            rot = np.matrix([[np.cos(rotation_angle), -np.sin(rotation_angle)], [np.sin(rotation_angle), np.cos(rotation_angle)]])
+            path[:, :2] = np.swapaxes(np.matmul(rot, np.swapaxes(path[:, :2],0,1)),0,1)
+
+        n_nominal = np.zeros(acc - 1)
+
+        N1 = np.zeros(acc - 1)
+        N2 = np.zeros(acc - 1)
+
+        Nx = np.zeros(acc - 1)
+        Ny = np.zeros(acc - 1)
+        Nz = np.zeros(acc - 1)
+
+        P1 = np.zeros((acc - 1, 3))
+        P2 = np.zeros((acc - 1, 3))
+
+        T1 = np.zeros(acc - 1)
+        T2 = np.zeros(acc - 1)
+
+        for i in range(acc - 1):
+
+            refractive_index = ice_n.get_index_of_refraction(path[i])
+            refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
+
+            nx, ny, nz = refractive_index + refractive_index_birefringence - 1.78
+            dD = path[i + 1] - path[i]   
+
+            direction = np.array(dD)
+            len_diff = np.linalg.norm(direction)
+            direction = direction / len_diff
+
+            N_effective = self.get_effective_index_birefringence(direction, nx, ny, nz)
+            sky_polarization = self.get_polarization_birefringence(N_effective[0], N_effective[1], direction, nx, ny, nz)
+
+            t_0, t_1 = len_diff * N_effective / (speed_of_light * units.m / units.ns)
+            n_nominal[i] = refractive_index
+
+            Nx[i] = refractive_index_birefringence[0]
+            Ny[i] = refractive_index_birefringence[1]
+            Nz[i] = refractive_index_birefringence[2]
+
+            N1[i] = N_effective[0]
+            N2[i] = N_effective[1]
+
+            P1[i] = sky_polarization[0]
+            P2[i] = sky_polarization[1]
+
+            T1[i] = t_0
+            T2[i] = t_1
+
+        path_properties = {}
+
+        path_properties['path'] = path[1:]
+        path_properties['nominal_refractive_index'] = n_nominal
+
+        path_properties['refractive_index_x'] = Nx
+        path_properties['refractive_index_y'] = Ny
+        path_properties['refractive_index_z'] = Nz
+
+        path_properties['first_refractive_index'] = N1
+        path_properties['second_refractive_index'] = N2
+
+        path_properties['first_polarization_vector'] = P1
+        path_properties['second_polarization_vector'] = P2
+
+        path_properties['first_time_delay'] = T1
+        path_properties['second_time_delay'] = T2
+
+        return path_properties
 
     def get_launch_vector(self, iS):
         """
@@ -2082,31 +2630,41 @@ class ray_tracing(ray_tracing_base):
             recPos1 = np.array([self._X2[0], self._X2[1], self._X2[2] + dz])
         if not hasattr(self, "_r1"):
             self._r1 = ray_tracing(self._medium, self._attenuation_model, logging.WARNING,
-                             self._n_frequencies_integration, self._n_reflections)
+                             self._n_frequencies_integration, self._n_reflections, use_cpp=self.use_cpp)
         self._r1.set_start_and_end_point(vetPos, recPos1)
         self._r1.find_solutions()
         if iS < self._r1.get_number_of_solutions():
             lauVec1 = self._r1.get_launch_vector(iS)
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
+            self.__logger.debug(
+                "focusing: receive angle {:.2f} / launch angle {:.2f} / d_launch_angle {:.4f}".format(
+                    recAng / units.deg, lauAng / units.deg, (lauAng1-lauAng) / units.deg
+                )
+            )
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
-            if (self.get_results()[iS]['reflection'] != self._r1.get_results()[iS]['reflection'] 
+            if (self.get_results()[iS]['reflection'] != self._r1.get_results()[iS]['reflection']
                     or self.get_results()[iS]['reflection_case'] != self._r1.get_results()[iS]['reflection_case']):
                 self.__logger.error("Number or type of reflections are different between solutions - focusing correction may not be reliable.")
         else:
             focusing = 1.0
-            self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
+            self.__logger.warning("too few ray tracing solutions, setting focusing factor to 1")
         self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
         if(focusing > limit):
             self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
             focusing = limit
 
         # now also correct for differences in refractive index between emitter and receiver position
+        # for ice-to-air transmission, the fresnel coefficients account for this at the boundary already,
+        # so in that case we only take the difference up to the ice-air boundary
+        z_max = -0.01 * units.m
+        z1 = np.min([self._X1[-1], z_max])
+        z2 = np.min([self._X2[-1], z_max])
         if self._swap:
-            n1 = self._medium.get_index_of_refraction(self._X2)  # emitter
-            n2 = self._medium.get_index_of_refraction(self._X1)  # receiver
+            n1 = self._medium.get_index_of_refraction([0, 0, z2])  # emitter
+            n2 = self._medium.get_index_of_refraction([0, 0, z1])  # receiver
         else:
-            n1 = self._medium.get_index_of_refraction(self._X1)  # emitter
-            n2 = self._medium.get_index_of_refraction(self._X2)  # receiver
+            n1 = self._medium.get_index_of_refraction([0, 0, z1])  # emitter
+            n2 = self._medium.get_index_of_refraction([0, 0, z2])  # receiver
         return focusing * (n1 / n2) ** 0.5
 
     def get_ray_path(self, iS):
@@ -2156,7 +2714,10 @@ class ray_tracing(ray_tracing_base):
         efield: ElectricField object
             The modified ElectricField object
         """
+        s_rate = efield.get_sampling_rate()
         spec = efield.get_frequency_spectrum()
+
+        
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
             if self._max_detector_frequency is None:
@@ -2170,19 +2731,38 @@ class ray_tracing(ray_tracing_base):
         for zenith_reflection in zenith_reflections:  # loop through all possible reflections
             if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                 continue
-            r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
-                zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-            r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
-                zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-            efield[efp.reflection_coefficient_theta] = r_theta
-            efield[efp.reflection_coefficient_phi] = r_phi
-
-            spec[1] *= r_theta
-            spec[2] *= r_phi
-            self.__logger.debug(
-                "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
-                    zenith_reflection / units.deg,
-                    r_theta, r_phi))
+            if(self._x2[1] > 0):  # we need to treat the case of air to ice/ice to air propagation sepatately:
+                # air/ice propagation
+                self.__logger.warning(f"calculation of transmission coefficients and focussing factor for air/ice propagation is experimental and needs further validation")
+                if(not self._swap):  # ice to air case
+                    t_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
+                        zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                    t_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
+                        zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                    self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
+                else:   # air to ice
+                    t_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
+                        zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                    t_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
+                        zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                    self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
+                spec[1] *= t_theta
+                spec[2] *= t_phi
+            else:
+                #in-ice propagation
+                r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
+                    zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
+                    zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                efield[efp.reflection_coefficient_theta] = r_theta
+                efield[efp.reflection_coefficient_phi] = r_phi
+    
+                spec[1] *= r_theta
+                spec[2] *= r_phi
+                self.__logger.info(
+                    "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
+                        zenith_reflection / units.deg,
+                        r_theta, r_phi))
         i_reflections = self.get_results()[i_solution]['reflection']
         if (i_reflections > 0):  # take into account possible bottom reflections
             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
@@ -2198,7 +2778,21 @@ class ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
             spec[1:] *= focusing
+        
+        # apply the birefringence effect
+        if self._config['propagation']['birefringence']:
+            bire_model = self._config['propagation']['birefringence_model']
 
+            if self._config['propagation']['birefringence_propagation'] == 'analytical':
+                spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution, bire_model = bire_model)
+
+            elif self._config['propagation']['birefringence_propagation'] == 'numerical':
+                from NuRadioMC.SignalProp import radioproparaytracing
+                launch_v = self.get_launch_vector(i_solution)
+                radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
+                radiopropa_rays.set_start_and_end_point(self._X1, self._X2)
+                spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate) #, bire_model = bire_model --> has to be implemented
+                
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
 
@@ -2217,5 +2811,8 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['attenuate_ice'] = True
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
+            self._config['propagation']['birefringence'] = False
+            
+
         else:
             self._config = config

@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function
 import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
+import NuRadioReco.framework.emitter
+import NuRadioReco.framework.sim_emitter
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.parameters as parameters
@@ -21,6 +23,7 @@ class Event:
         self.__stations = collections.OrderedDict()
         self.__radio_showers = collections.OrderedDict()
         self.__sim_showers = collections.OrderedDict()
+        self.__sim_emitters = collections.OrderedDict()
         self.__event_time = 0
         self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
         self._generator_info = {} # copies over the relevant information on event generation from the input file attributes
@@ -59,8 +62,9 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-        if(station_id not in self.__modules_station):
+        if station_id not in self.__modules_station:
             self.__modules_station[station_id] = []
+
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
@@ -163,7 +167,7 @@ class Event:
 
     def set_station(self, station):
         self.__stations[station.get_id()] = station
-        
+
     def has_triggered(self, trigger_name=None):
         """
         Returns true if any station has been triggered.
@@ -174,16 +178,16 @@ class Event:
             * if None: The function returns False if not trigger was set. If one or multiple triggers were set,
                        it returns True if any of those triggers triggered
             * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
-            
+
         Returns
         -------
-        
+
         has_triggered : bool
         """
         for station in self.get_stations():
             if station.has_triggered(trigger_name):
                 return True
-        
+
         # if it reaches this point, no station has a trigger
         return False
 
@@ -199,11 +203,11 @@ class Event:
         if not isinstance(particle, NuRadioReco.framework.particle.Particle):
             logger.error("Requested to add non-Particle item to the list of particles. {particle} needs to be an instance of Particle.")
             raise TypeError("Requested to add non-Particle item to the list of particles. {particle}   needs to be an instance of Particle.")
-        
+
         if particle.get_id() in self.__particles:
             logger.error("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
             raise AttributeError("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
-        
+
         self.__particles[particle.get_id()] = particle
 
     def get_particles(self):
@@ -253,13 +257,13 @@ class Event:
         """
         if particle_id is None:
             return len(self.__particles) > 0
-        
+
         return particle_id in self.__particles.keys()
 
     def get_interaction_products(self, parent_particle, showers=True, particles=True):
         """
         Return all the daughter particles and showers generated in the interaction of the <parent_particle>
-  
+
         Parameters
         ----------
         showers: bool
@@ -415,6 +419,69 @@ class Event:
         else:
             return len(self.__sim_showers) > 0
 
+    def add_sim_emitter(self, sim_emitter):
+        """
+        Add a simulated emitter to the event
+
+        Parameters
+        ----------
+        sim_emitter: SimEmitter object
+            The emitter to be added to the event
+        """
+        if not isinstance(sim_emitter, NuRadioReco.framework.sim_emitter.SimEmitter):
+            raise AttributeError(f"emitter needs to be of type NuRadioReco.framework.sim_emitter.SimEmitter but is of type {type(sim_emitter)}")
+        if(sim_emitter.get_id() in self.__sim_emitters):
+            logger.error(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
+            raise AttributeError(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
+        self.__sim_emitters[sim_emitter.get_id()] = sim_emitter
+
+    def get_sim_emitters(self):
+        """
+        Get an iterator over all simulated emitters in the event
+        """
+        for emitter in self.__sim_emitters.values():
+            yield emitter
+
+    def get_sim_emitter(self, emitter_id):
+        """
+        returns a specific emitter identified by its unique id
+        """
+        if(emitter_id not in self.__sim_emitters):
+            raise AttributeError(f"sim emitter with id {emitter_id} not present")
+        return self.__sim_emitters[emitter_id]
+
+    def get_first_sim_emitter(self, ids=None):
+        """
+        Returns only the first sim emitter stored in the event. Useful in cases
+        when there is only one emitter in the event.
+
+        Parameters
+        ----------
+        station_ids: list of integers
+            A list of station IDs. The first emitter that is associated with
+            all stations in the list is returned
+        """
+        if len(self.__sim_emitters) == 0:
+            return None
+        if ids is None:
+            emitter_ids = list(self.__sim_emitters.keys())
+            return self.__sim_emitters[emitter_ids[0]]
+        for emitter in self.__sim_emitters:
+            if emitter.has_station_ids(ids):
+                return emitter
+        return None
+
+    def has_sim_emitter(self, emitter_id=None):
+        """
+        Returns true if at least one simulated emitter is stored in the event
+
+        If emitter_id is given, it checks if this particular emitter exists
+        """
+        if(emitter_id is None):
+            return emitter_id in self.__sim_emitters.keys()
+        else:
+            return len(self.__sim_emitters) > 0
+
     def get_hybrid_information(self):
         """
         Get information about hybrid detector data stored in the event.
@@ -427,30 +494,34 @@ class Event:
             commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
         except:
+            logger.warning("Event is serialized without commit hash!")
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
 
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 
-        showers_pkl = []
-        for shower in self.get_showers():
-            showers_pkl.append(shower.serialize())
-        sim_showers_pkl = []
-        for shower in self.get_sim_showers():
-            sim_showers_pkl.append(shower.serialize())
-        particles_pkl = []
-        for particle in self.get_particles():
-            particles_pkl.append(particle.serialize())
+        showers_pkl = [shower.serialize() for shower in self.get_showers()]
+        sim_showers_pkl = [shower.serialize() for shower in self.get_sim_showers()]
+        sim_emitters_pkl = [emitter.serialize() for emitter in self.get_sim_emitters()]
+        particles_pkl = [particle.serialize() for particle in self.get_particles()]
+
         hybrid_info = self.__hybrid_information.serialize()
+
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
             modules_out_event.append([value[0], None, value[2]])
+            invalid_keys = [key for key,val in value[2].items() if isinstance(val, BaseException)]
+            if len(invalid_keys):
+                logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
 
         modules_out_station = {}
         for key in self.__modules_station:  # remove module instances (this will just blow up the file size)
             modules_out_station[key] = []
             for value in self.__modules_station[key]:
                 modules_out_station[key].append([value[0], value[1], None, value[3]])
+                invalid_keys = [key for key,val in value[3].items() if isinstance(val, BaseException)]
+                if len(invalid_keys):
+                    logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
 
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
@@ -459,6 +530,7 @@ class Event:
                 'stations': stations_pkl,
                 'showers': showers_pkl,
                 'sim_showers': sim_showers_pkl,
+                'sim_emitters': sim_emitters_pkl,
                 'particles': particles_pkl,
                 'hybrid_info': hybrid_info,
                 'generator_info': self._generator_info,
@@ -484,14 +556,21 @@ class Event:
                 shower = NuRadioReco.framework.radio_shower.RadioShower(None)
                 shower.deserialize(shower_pkl)
                 self.add_sim_shower(shower)
+        if 'sim_emitters' in data.keys():
+            for emmitter_pkl in data['sim_emitters']:
+                emitter = NuRadioReco.framework.sim_emitter.SimEmitter(None)
+                emitter.deserialize(emmitter_pkl)
+                self.add_sim_emitter(emitter)
         if 'particles' in data.keys():
             for particle_pkl in data['particles']:
                 particle = NuRadioReco.framework.particle.Particle(None)
                 particle.deserialize(particle_pkl)
                 self.add_particle(particle)
+
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
+
         self._parameters = data['_parameters']
         self.__run_number = data['__run_number']
         self._id = data['_id']
@@ -500,7 +579,7 @@ class Event:
         if 'generator_info' in data.keys():
             self._generator_info = data['generator_info']
 
-        if("__modules_event" in data):
+        if "__modules_event" in data:
             self.__modules_event = data['__modules_event']
-        if("__modules_station" in data):
+        if "__modules_station" in data:
             self.__modules_station = data['__modules_station']

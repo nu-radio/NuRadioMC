@@ -40,7 +40,10 @@ class voltageToEfieldConverterPerChannel:
         det: detector object
             the detector object
         pol: polarization
-            0 = eTheta polarized, 1 = ePhi polarized
+          defined as float between 0 and 1 with 0 = eTheta polarized and 1 = ePhi polarized.
+          The default is 0.5, i.e. unpolarized. The amplitudes are
+          set to preserve the total power of the delta pulse, i.e. E_theta = sqrt(1-polarization)
+          and E_phi = sqrt(polarization).
         """
         self.__counter += 1
         station_id = station.get_id()
@@ -53,12 +56,12 @@ class voltageToEfieldConverterPerChannel:
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
 
-        frequencies = station.get_channel(0).get_frequencies()  # assuming that all channels have the  same sampling rate and length
         use_channels = det.get_channel_ids(station.get_id())
+        frequencies = station.get_channel(use_channels[0]).get_frequencies()  # assuming that all channels have the  same sampling rate and length
         efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det,
                                                                           zenith, azimuth, self.antenna_provider)
 
-        sampling_rate = station.get_channel(0).get_sampling_rate()
+        sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()
 
         for iCh, channel in enumerate(station.iter_channels()):
             efield = ef.ElectricField([iCh])
@@ -66,8 +69,8 @@ class voltageToEfieldConverterPerChannel:
             mask1 = np.abs(efield_antenna_factor[iCh][0]) != 0
             mask2 = np.abs(efield_antenna_factor[iCh][1]) != 0
             efield_spectrum = np.zeros((3, len(trace)), dtype=complex)
-            efield_spectrum[1][mask1] = (1.0 - pol) ** 2 * trace[mask1] / efield_antenna_factor[iCh][0][mask1]
-            efield_spectrum[2][mask2] = pol ** 2 * trace[mask2] / efield_antenna_factor[iCh][1][mask2]
+            efield_spectrum[1][mask1] = (1.0 - pol) ** 0.5 * trace[mask1] / efield_antenna_factor[iCh][0][mask1]
+            efield_spectrum[2][mask2] = pol ** 0.5 * trace[mask2] / efield_antenna_factor[iCh][1][mask2]
             efield.set_frequency_spectrum(efield_spectrum, sampling_rate)
             efield.set_trace_start_time(channel.get_trace_start_time())
             efield[efp.zenith] = zenith

@@ -2,8 +2,38 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
-version 2.2.0-dev
+version 2.3.0-dev
 new features:
+- Added new detector class for RNO-G (+db interface) which uses a mongo-db as source.
+The new class allows import/export via compressed json files and has a buffer machinary.
+It comes with a class to handle responses of the different signal chain components easily.
+- Improved logging module: streamlined logging for NuRadioReco and NuRadioMC modules,
+added new STATUS logging level by default, added logging documentation and moved logging
+module to NuRadioReco/utilities folder. Logging functionality from NuRadioReco/modules/base
+is now deprecated.
+- Added StationParameters to store channel IDs of flagged (i.e.) bad channels, the polarisation
+which contains the strongest CR pulse and the list of frequency bands which are flagged for RFI.
+- Added interface to give (Sim)Channel a group ID . This is implemented as a keyword in the
+Detector description, such that it can be added to the Detector description JSON file. The
+(Sim)Channel objects can now optionally take a channel_group_id parameter. In a Station, one
+can then iterate over a channel group, which yields all channels for a given group ID.
+- Added Gaussian tapered and Hann tapered bandpass filters
+- Added LOFAR modules for reading data, removing RFI, beamforming and fitting the arrival direction
+- Added functionality to remove Channel from Station
+- Added LOFAR antenna pattern and function to parse TXT simulation file
+- The assume_inf and antenna_by_depth Detector keywords are now saved in the nur file, and will be
+loaded again when reading in the Detector from a nur file
+
+bugfixes:
+- Fixed bug in get_travel_time in directRayTracing propagation module
+
+version 2.2.1
+bugfixes:
+- readRNOGDataMattak: fix bug where .root files would not be found if they are passed as relative paths (instead of absolute paths or folder)
+
+version 2.2.0
+new features:
+- expand values stored in SimplePhasedTrigger
 - added getting to query ARZ charge-excess profiles
 - upgrade to proposal v 7.5.0 with new NuRadioProposal interface and improved LPM treatment
 - add script to generate / download pre-calculated proposal tables for known detector configurations
@@ -13,10 +43,21 @@ new features:
 - added ability to generate high-low-triggered noise on a narrow band but return full-band waveforms
 - phased array noise generation utility class: calculate trigger time and cut trace accordingly
 - use Philox noise generator in noise adder module (this changes the default random sequence)
+- allow raytracing from air to ice and vice versa. Only supported by the Python implementation. (Note that the calculation of the focussing factor was not thoroughly tested.)
+- added 'block offset' removal/simulation module for RNO-G
+- triggerTimeAdjuster now works more reliably and supports different readout windows per channel.
+  The readout time adjustment now is stored in the trigger object and needs to be accounted for in analysis
+  by running the triggerTimeAdjuster, analogously to the channelAddCableDelay module.
+
+
 
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
 - fixed wrong number in Feldman-Cousins upper limit
+- updated reference channel check in GenericDetector to look into the reference station when the channel
+is not found in the current station
+- in antennapattern.py, fixed line 1398; was masking frequencies >= 0 instead of frequencies > 0, causing NaN errors
+- Fixed issue where saving empty traces (channels or Efields) created unreadable .nur files
 
 version 2.1.8
 bugfixes:
@@ -33,16 +74,18 @@ new features:
 bugfixes:
 - fix bug in NuRadioProposal which pervented muons from tau decays to be propagated
 - update proposal version to 6.1.8 to avoid problems with pypi
+- updated reference channel check in GenericDetector to look into the reference station when the channel
+is not found in the current station
 
 version 2.1.6
 bugfixes:
-- the n_interaction parameter was accidentally overridden. n_interaction counts the number of interactions of taus and 
+- the n_interaction parameter was accidentally overridden. n_interaction counts the number of interactions of taus and
 muons generated in the corresponding CC interactions. The bug resulted in the following behaviour: The n_interaction value of the primary
 neutrino interaction was overridden with the n_interaction value of the last shower of the previous event group. If the previous event group
 was a CC interaction, the n_interaction value of the primary interaction was set to a value larger than 1. If that happened, and if the primary
-shower did not trigger the detector, this shower is not added to the output hdf5 file. This has consquences for analyzing hdf5 files for 
-secondary interactions. With this bug, the initial interaction needs to be idenfified with np.abs(flavor) == 14 or 16.  
-This bug does not effect any effective volume calculation. 
+shower did not trigger the detector, this shower is not added to the output hdf5 file. This has consquences for analyzing hdf5 files for
+secondary interactions. With this bug, the initial interaction needs to be idenfified with np.abs(flavor) == 14 or 16.
+This bug does not effect any effective volume calculation.
 
 new features:
 - add hvsp1, update idl1 model for emitter simulation (from KU lab measurements) and remove hvsp2(no longer in use for experiment)
@@ -52,7 +95,7 @@ version 2.1.5
 
 bugfixes:
 - the phased array trigger module did not calculate the trigger time.
-  The trigger time was always set to the trace start time. This got fixed in this version. 
+  The trigger time was always set to the trace start time. This got fixed in this version.
 
 version 2.1.4
 
@@ -65,7 +108,7 @@ bugfixes:
 
 version 2.1.2
 bugfixes:
-- Fixes that the generic detector crashes for certain detector files. 
+- Fixes that the generic detector crashes for certain detector files.
 
 version 2.1.1
 new features:
@@ -82,7 +125,7 @@ new features:
 - add a basic uproot data reader for RNO-G data
 - add option to simulate emitters
 - added helper function for cosmic ray flux models
-- speed improvements of ARZ model through use of numba  
+- speed improvements of ARZ model through use of numba
 
 bugfixes:
 - correct volume extension depending on zenith angle range when running with
@@ -101,26 +144,26 @@ bugfixes:
 
 version 2.0.0
 - NuRadioReco is merged into the NuRadioMC repository. No new features were added and everything works (e.g. the imports)
-as before but the NuRadioReco code is now part of the NuRadioMC github repository to simplify code development where NuRadioMC 
-changes depend on changes in NuRadioReco. 
+as before but the NuRadioReco code is now part of the NuRadioMC github repository to simplify code development where NuRadioMC
+changes depend on changes in NuRadioReco.
 
 
 version 1.2.0
 new features:
-- major change in internal looping. Now, the radio signal from each shower is calculated and signal arrival times 
+- major change in internal looping. Now, the radio signal from each shower is calculated and signal arrival times
   (from different shower, ray racing solutions and receiver positions) that cluster together are simualted as one event
 - merge hdf5 utility has multithreading option (and was refactored -> function names changed)
 - distance cut can sum up all sourounding shower energies to properly account for possible interference
 - noise temperature can be specified per station and channel
 - trigger thresholds can be specified per channel
-- bandwidth can be specified per station and channel 
+- bandwidth can be specified per station and channel
 - specifying the detector simulation became easier (check out the updated examples)
 - memory consumption was optimized to stay <4GB per core
 - random realization of showers are saved so that triggered events can be resimulated using the same random realization
 - added option for noiseless channels in a "with noise" simulation
 - add option to generate events on the fly and pass them directly to the simulation part (no need to save input hdf5 files anymore)
 - added uncertainties to CTW cross sections
-- 
+-
 
 bugfixes:
 - Fixed issue with merge hdf5 utility so that "event_group_ids" are properly unique
@@ -128,7 +171,7 @@ bugfixes:
 
 
 
-version 1.1.2 - 
+version 1.1.2 -
 new features:
 - Veff utility can now handle extended bins
 - New tutorial and example for the webinar
@@ -145,10 +188,10 @@ bugfixes:
 
 version 1.1.1 - 2020/03/23
 new features
-- New version for the ARZ model available (ARZ2020) 
-- a list with event ids can be passed to the main simulation class. All events not in this list will not be simulated. 
-  This is useful for a quick resimulation of certain events. 
-- Alvarez???? Askaryan models now place the trace into the center of the trace (instead of 50ns into the trace) 
+- New version for the ARZ model available (ARZ2020)
+- a list with event ids can be passed to the main simulation class. All events not in this list will not be simulated.
+  This is useful for a quick resimulation of certain events.
+- Alvarez???? Askaryan models now place the trace into the center of the trace (instead of 50ns into the trace)
 - New data set array 'vertex_times' contains the time elapsed from the first interaction to the current interaction
 - new utility to split output hdf5 files into smaller chucks (to be able to resimulate events on a cluster)
 - Greenland added to proposal config
@@ -156,11 +199,11 @@ new features
 - improved Earth model (PREM), path from interaction vertex through Earth is calculated (before interaction was assumed
   to happen at the surface)
 - detector description is saved to nur output files
-- new handling of random numbers. Each module has its own random generator instance. Global seed can be controlled via 
+- new handling of random numbers. Each module has its own random generator instance. Global seed can be controlled via
   config file setting.
 
 bugfixes:
-- ARZxxxx and Alvarez2009 Askaryan modules now use the same (random) shower per event. 
+- ARZxxxx and Alvarez2009 Askaryan modules now use the same (random) shower per event.
 - fixes zenith distribution of event generator back to cos(zenith)
 - ray tracing precision was increased to 1e-9
 - saveguard against too many ray tracing solutions added
@@ -184,9 +227,9 @@ bugfixes:
 	- fixed that Veff utility script didn't calculate effective volumes for individual triggers
 	- fixed that the multiple_triggers key was not created for multiple stations
 	- Angular distribution now accounts for projected area
-	- 
-	
-	
+	-
+
+
 version 1.0.0 - 2019/08/30 - first python 3 release
 
 
