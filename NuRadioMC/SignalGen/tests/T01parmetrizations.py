@@ -25,6 +25,7 @@ if shower_type == "HAD":
 
 
 models = param.get_parametrizations()
+print("Using the models: {}".format(models))
 
 fig, ax = plt.subplots(1, 1)
 fig1, ax1 = plt.subplots(1, 1)
