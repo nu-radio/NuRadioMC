@@ -473,6 +473,36 @@ class readLOFARData:
         """
         return self.__stations.copy()
 
+    def get_station_calibration_delays(self, station_id):
+        """
+        Make a dictionary of channel ids and their corresponding calibration delays,
+        to avoid misapplying the delays to the wrong channel. Also converts the list
+        of channel IDs pulled from the TBB metadata to their NRR channel ID counterpart.
+
+        Parameters
+        ----------
+        station_id : int
+            The station ID for which to get the calibration delays
+
+        Returns
+        -------
+        station_calibration_delays : dict
+            Dictionary containing the NRR channel IDs as keys and the calibration delays as values
+        """
+        station_name = f"CS{station_id:03}"
+        station_calibration_delays = dict(
+            zip(
+                map(
+                    int,
+                    [tbbID_to_nrrID(channel_id, self.__stations[station_name]['metadata'][1])
+                     for channel_id in self.__stations[station_name]['metadata'][-2]]
+                ),
+                self.__stations[station_name]['metadata'][-1]
+            )
+        )
+
+        return station_calibration_delays
+
     def begin(self, event_id, logger_level=logging.WARNING):
         """
         Prepare the reader to ingest the event with ID `event_id`. This resets the internal representation of the
