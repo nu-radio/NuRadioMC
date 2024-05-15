@@ -304,6 +304,11 @@ class getLOFARtraces:
     def check_trace_quality(self):
         """
         Check all traces recorded from the TBB against quality requirements.
+
+        Returns
+        -------
+        deviating_dipoles : set of str
+        dipoles_missing_counterpart : set of str
         """
         dipole_names = np.array(self.tbb_file.get_antenna_names())
 
@@ -574,7 +579,7 @@ class readLOFARData:
 
             # The metadata is only defined if there are files in the station
             antenna_set = station_dict['metadata'][1]
-            
+
             station = NuRadioReco.framework.station.Station(station_id)
             station.set_station_time(time)
             radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
@@ -594,11 +599,11 @@ class readLOFARData:
             self.logger.debug("Channels no counterpart: %s" % channels_missing_counterpart)
 
             # done here as it needs median timing values over all traces in the station
-            flagged_channel_ids = channels_deviating.union(channels_missing_counterpart)
+            flagged_channel_ids: set[str] = channels_deviating.union(channels_missing_counterpart)
 
             # empty set to add the NRR flagged channel IDs to
-            flagged_nrr_channel_ids = set()
-            channel_set_ids = set()
+            flagged_nrr_channel_ids: set[int] = set()
+            channel_set_ids: set[int] = set()
 
             channels = detector.get_channel_ids(station_id)
             if antenna_set == "LBA_OUTER":
@@ -624,15 +629,15 @@ class readLOFARData:
                 # convert channel ID to TBB ID to be able to access trace
                 TBB_channel_id = nrrID_to_tbbID(channel_id)
 
-                if int(TBB_channel_id) in flagged_channel_ids:
+                if TBB_channel_id in flagged_channel_ids:
                     flagged_nrr_channel_ids.add(channel_id)
                     continue
 
                 # read in trace, see if that works. Needed or overly careful?
                 try:
-                    this_trace = lofar_trace_access.get_trace(TBB_channel_id)  # channel ID is 9 digits
-                except:  # FIXME: Too general except statement
-                    flagged_channel_ids.add(int(TBB_channel_id))
+                    this_trace = lofar_trace_access.get_trace(TBB_channel_id)  # TBB_channel_id is str of 9 digits
+                except IndexError:
+                    flagged_channel_ids.add(TBB_channel_id)
                     flagged_nrr_channel_ids.add(channel_id)
                     logger.warning("Could not read data for channel id %s" % channel_id)
                     continue
