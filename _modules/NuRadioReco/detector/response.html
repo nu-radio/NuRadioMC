@@ -772,7 +772,7 @@
                         <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">T%H%M%S&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">_debug.png&#39;</span><span class="p">,</span> <span class="n">transparent</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">component_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">component_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blacklist</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the complex response for a given frequency.</span>
 
@@ -782,17 +782,36 @@
 <span class="sd">        freq: list(float)</span>
 <span class="sd">            The frequencies for which to get the response.</span>
 
+<span class="sd">        component_names: list(str) or None (Default: None)</span>
+<span class="sd">            Only return the (combined) response of components selected by their names.</span>
+<span class="sd">            List of names to consider or not to consider (depends on `blacklist`).</span>
+<span class="sd">            `None` mean no selection.</span>
+
+<span class="sd">        blacklist: bool (Default: True)</span>
+<span class="sd">            If True (and `component_names is not None`), ignore components selected with `component_names`.</span>
+<span class="sd">            If False, only consider components selected with `component_names`.</span>
+
 <span class="sd">        Returns</span>
+<span class="sd">        -------</span>
 
 <span class="sd">        response: np.array(np.complex128)</span>
 <span class="sd">            The complex response at the desired frequencies</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">component_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">component_names</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">component_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">component_names</span><span class="p">]</span>
+
         <span class="k">for</span> <span class="n">gain</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__gains</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__phases</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__weights</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="p">):</span>
 
-            <span class="k">if</span> <span class="n">component_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">component_name</span> <span class="o">!=</span> <span class="n">name</span><span class="p">:</span>
-                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">component_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">blacklist</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">component_names</span><span class="p">:</span>  <span class="c1"># if name in blacklist skip</span>
+                        <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">component_names</span><span class="p">:</span>  <span class="c1"># if name *not* in whitelist skip</span>
+                        <span class="k">continue</span>
 
             <span class="n">_gain</span> <span class="o">=</span> <span class="n">gain</span><span class="p">(</span><span class="n">freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">)</span>
 
@@ -803,9 +822,9 @@
             <span class="n">response</span> <span class="o">*=</span> <span class="p">(</span><span class="n">_gain</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase</span><span class="p">(</span><span class="n">freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">)))</span> <span class="o">**</span> <span class="n">weight</span>
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">component_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">component_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Returned response is equal to 1. &quot;</span>
-                                <span class="sa">f</span><span class="s2">&quot;Did you requested a non-existing component (</span><span class="si">{</span><span class="n">component_name</span><span class="si">}</span><span class="s2">)? &quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;Did you requested a non-existing component (</span><span class="si">{</span><span class="n">component_names</span><span class="si">}</span><span class="s2">)? &quot;</span>
                                 <span class="sa">f</span><span class="s2">&quot;Options are: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Returned response is equal to 1.&quot;</span><span class="p">)</span>
