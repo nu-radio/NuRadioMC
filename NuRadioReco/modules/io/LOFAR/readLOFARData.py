@@ -659,17 +659,22 @@ class readLOFARData:
 
             # Check both channels from the flagged group IDs are removed from station
             # This is needed because when a trace read in fails, the counterpart is not automatically removed
+            self.logger.debug(f"Flagged channel group IDs: {flagged_nrr_channel_group_ids}")
+            channels_to_remove = []  # cannot remove channel in loop, so store them and delete after
             for channel_group_id in flagged_nrr_channel_group_ids:
                 try:
                     for channel in station.iter_channel_group(channel_group_id):
                         self.logger.status(f"Removing channel {channel.get_id()} with group ID {channel_group_id} "
                                            f"from station {station_name}")
-                        station.remove_channel(channel)
-                        flagged_nrr_channel_ids.add(channel.get_id())
+                        channels_to_remove.append(channel)
                 except ValueError:
                     # The channel_group_id not longer present in the station
                     self.logger.debug(f"Both channels of group ID {channel_group_id} were already removed "
                                       f"from station {station_name}")
+
+            for channel in channels_to_remove:
+                station.remove_channel(channel)
+                flagged_nrr_channel_ids.add(channel.get_id())
 
             # store set of flagged nrr channel ids as station parameter
             station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
