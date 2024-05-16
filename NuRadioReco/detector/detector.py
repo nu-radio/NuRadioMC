@@ -8,6 +8,8 @@ from NuRadioReco.detector import generic_detector
 from NuRadioReco.detector.RNO_G import rnog_detector
 
 
+logger = logging.getLogger("NuRadioReco.detector")
+
 
 def find_path(name):
     """ Checks for file relative to local folder and detector.py """
@@ -150,13 +152,14 @@ def Detector(*args, **kwargs):
 
         if has_reference_entry or has_default:
             if has_default:
-                logging.warning(
-                    'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
-                    'channel should be specified in the detector description directly.')
+                logger.warning(
+                    'Deprecation warning: Passing the default detector station is deprecated. Default stations '
+                    'and default channel should be specified in the detector description directly.'
+                )
 
                 if "default_station" in kwargs:
-                    logging.info('Default detector station provided (station '
-                                 f'{kwargs["default_station"]}) -> Using generic detector')
+                    logger.info('Default detector station provided (station '
+                                f'{kwargs["default_station"]}) -> Using generic detector')
 
             return generic_detector.GenericDetector(
                 json_filename=filename, source=source, dictionary=dictionary,
