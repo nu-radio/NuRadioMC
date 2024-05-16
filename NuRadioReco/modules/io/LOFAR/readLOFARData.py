@@ -603,6 +603,7 @@ class readLOFARData:
 
             # empty set to add the NRR flagged channel IDs to
             flagged_nrr_channel_ids: set[int] = set()
+            flagged_nrr_channel_group_ids: set[int] = set()  # keep track of channel group IDs to remove
             channel_set_ids: set[int] = set()
 
             channels = detector.get_channel_ids(station_id)
@@ -630,7 +631,10 @@ class readLOFARData:
                 TBB_channel_id = nrrID_to_tbbID(channel_id)
 
                 if TBB_channel_id in flagged_channel_ids:
+                    self.logger.status(f"Channel {channel_id} was flagged at read-in, "
+                                       f"not adding to station {station_name}")
                     flagged_nrr_channel_ids.add(channel_id)
+                    flagged_nrr_channel_group_ids.add(detector.get_channel_group_id(station_id, channel_id))
                     continue
 
                 # read in trace, see if that works. Needed or overly careful?
@@ -639,7 +643,8 @@ class readLOFARData:
                 except IndexError:
                     flagged_channel_ids.add(TBB_channel_id)
                     flagged_nrr_channel_ids.add(channel_id)
-                    logger.warning("Could not read data for channel id %s" % channel_id)
+                    flagged_nrr_channel_group_ids.add(detector.get_channel_group_id(station_id, channel_id))
+                    self.logger.warning("Could not read data for channel id %s" % channel_id)
                     continue
 
                 # The channel_group_id should be interpreted as an antenna index
@@ -649,6 +654,20 @@ class readLOFARData:
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
                 station.add_channel(channel)
+
+            # Check both channels from the flagged group IDs are removed from station
+            # This is needed because when a trace read in fails, the counterpart is not automatically removed
+            for channel_group_id in flagged_nrr_channel_group_ids:
+                try:
+                    for channel in station.iter_channel_group(channel_group_id):
+                        self.logger.status(f"Removing channel {channel.get_id()} with group ID {channel_group_id} "
+                                           f"from station {station_name}")
+                        station.remove_channel(channel)
+                        flagged_nrr_channel_ids.add(channel.get_id())
+                except ValueError:
+                    # The channel_group_id not longer present in the station
+                    self.logger.debug(f"Both channels of group ID {channel_group_id} were already removed "
+                                      f"from station {station_name}")
 
             # store set of flagged nrr channel ids as station parameter
             station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
