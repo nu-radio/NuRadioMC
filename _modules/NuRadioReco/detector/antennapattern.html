@@ -2065,7 +2065,7 @@
 
             <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">freq</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_freq</span><span class="p">)</span>
             <span class="n">Gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">hann</span>
+            <span class="kn">from</span> <span class="nn">scipy.signal.windows</span> <span class="kn">import</span> <span class="n">hann</span>
             <span class="n">gain_filter</span> <span class="o">=</span> <span class="n">hann</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">index</span><span class="p">)</span>
             <span class="n">Gain</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">gain_filter</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span>
 
