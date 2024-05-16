@@ -606,17 +606,17 @@ class readLOFARData:
             flagged_nrr_channel_group_ids: set[int] = set()  # keep track of channel group IDs to remove
             channel_set_ids: set[int] = set()
 
-            channels = detector.get_channel_ids(station_id)
+            channel_ids = detector.get_channel_ids(station_id)
             if antenna_set == "LBA_OUTER":
                 # for LBA_OUTER, the antennas have a "0" as fourth element in 9 element string
-                for c in channels:
+                for c in channel_ids:
                     c_str = str(c).zfill(9)
                     if c_str[3] == "0":
                         channel_set_ids.add(c)
 
             elif antenna_set == "LBA_INNER":
                 # for LBA_OUTER, the antennas have a "9" as fourth element in 9 element string
-                for c in channels:
+                for c in channel_ids:
                     c_str = str(c).zfill(9)
                     if c_str[3] == "9":
                         channel_set_ids.add(c)
@@ -647,9 +647,11 @@ class readLOFARData:
                     self.logger.warning("Could not read data for channel id %s" % channel_id)
                     continue
 
-                # The channel_group_id should be interpreted as an antenna index
-                # dipoles '001000000' and '001000001' -> 'a1000000'
-                channel_group = 'a' + str(detector.get_channel_group_id(station_id, channel_id))
+                # The channel_group_id should be interpreted as an antenna index (e.g. like 'a1000000' which
+                # was used in PyCRTools). The group ID is pulled from the Detector description.
+                # Example: dipoles '001000000' (NRR ID 1000000) and '001000001' (NRR ID 1000001)
+                # both get group ID 1000000
+                channel_group: int = detector.get_channel_group_id(station_id, channel_id)
 
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
