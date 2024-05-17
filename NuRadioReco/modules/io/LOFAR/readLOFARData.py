@@ -638,31 +638,16 @@ class readLOFARData:
             # empty set to add the NRR flagged channel IDs to
             flagged_nrr_channel_ids: set[int] = set()
             flagged_nrr_channel_group_ids: set[int] = set()  # keep track of channel group IDs to remove
-            channel_set_ids: set[int] = set()
 
-            channel_ids = detector.get_channel_ids(station_id)
-            if antenna_set == "LBA_OUTER":
-                # for LBA_OUTER, the antennas have a "0" as fourth element in 9 element string
-                for c in channel_ids:
-                    c_str = str(c).zfill(9)
-                    if c_str[3] == "0":
-                        channel_set_ids.add(c)
+            # Get the list of all dipole names which are present in the TTB file
+            # This avoids issues when a TBB file would not contain all channels
+            channel_tbb_ids: list[str] = station_dict['metadata'][6]
 
-            elif antenna_set == "LBA_INNER":
-                # for LBA_OUTER, the antennas have a "9" as fourth element in 9 element string
-                for c in channel_ids:
-                    c_str = str(c).zfill(9)
-                    if c_str[3] == "9":
-                        channel_set_ids.add(c)
-            else:
-                # other modes are currently not supported
-                # TODO: add them
-                self.logger.warning(f"Station {station_id} has unknown antenna set: {antenna_set}")
-                continue
+            self.logger.debug(f"These channels are present in the TBB file: {channel_tbb_ids}")
 
-            for channel_id in channel_set_ids:
-                # convert channel ID to TBB ID to be able to access trace
-                TBB_channel_id = nrrID_to_tbbID(channel_id)
+            for TBB_channel_id in channel_tbb_ids:
+                # convert TBB ID to NRR equivalent based on antenna set to be able to access trace
+                channel_id = int(tbbID_to_nrrID(TBB_channel_id, antenna_set))
 
                 if TBB_channel_id in flagged_channel_ids:
                     self.logger.status(f"Channel {channel_id} was flagged at read-in, "
