@@ -181,9 +181,8 @@ def FindRFI_LOFAR(
             except IndexError:
                 logger.warning('Could not read data for antenna %s block %d' % (antenna_ids[ant_i], block_i))
                 # proceed with zeros in the block
-            # oneAnt_data[:] = tbb_file.get_data(
-            #    rfi_cleaning_trace_length * block, rfi_cleaning_trace_length, antenna_index=ant_i
-            # )
+                blocks_good[ant_i, block_i] = False
+                continue
             if (
                     num_double_zeros(oneAnt_data) < num_dbl_z
             ):  # this antenna on this block is good
