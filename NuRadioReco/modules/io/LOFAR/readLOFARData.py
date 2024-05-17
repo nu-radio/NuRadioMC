@@ -564,13 +564,16 @@ class readLOFARData:
                 continue
             if (self.__restricted_station_set is not None) and (station_name not in self.__restricted_station_set):
                 continue  # only process stations in the given set
-            self.logger.info(f'Found file {tbb_filename} for station {station_name}...')
+
             self.__stations[station_name]['files'].append(tbb_filename)
 
-            # Save the metadata only once (in case there are multiple files for a station)
-            # TODO: make metadata a dictionary
-            if 'metadata' not in self.__stations[station_name]:
-                self.__stations[station_name]['metadata'] = get_metadata([tbb_filename], self.meta_dir)
+        # Save the metadata after all files for a station have been found
+        # TODO: make metadata a dictionary
+        for station_name in self.__stations:
+            station_files = self.__stations[station_name]['files']
+            if len(station_files) > 0:
+                self.logger.info(f'Found files {station_files} for station {station_name}...')
+                self.__stations[station_name]['metadata'] = get_metadata(station_files, self.meta_dir)
 
     @register_run()
     def run(self, detector, trace_length=65536):
