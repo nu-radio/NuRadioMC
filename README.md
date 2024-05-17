@@ -79,3 +79,8 @@ NuRadioMC is used in an increasing number of studies. To get an overview for wha
 If you want to keep up to date, consider signing up to the following email lists:
  * user email list, will be used to announce new versions and major improvements etc. Subscribe via https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc
  * developer email list, will be used to discuss the future development of NuRadioMC/Reco. Subscribe via: https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc-dev
+
+
+We are thankful for the financial support from:
+
+![Co-funded by the European Union](https://github.com/nu-radio/NuRadioMC/blob/logos/NuRadioMC/documentation/source/logos/EU_cofunded_logo.jpg?raw=true)
