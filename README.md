@@ -83,4 +83,4 @@ If you want to keep up to date, consider signing up to the following email lists
 
 We are thankful for the financial support from:
 
-![Co-funded by the European Union](https://github.com/nu-radio/NuRadioMC/blob/logos/NuRadioMC/documentation/source/logos/EU_cofunded_logo.jpg?raw=true)
+![Co-funded by the European Union](https://github.com/nu-radio/NuRadioMC/blob/logos/documentation/source/logos/EU_cofunded_logo.jpg?raw=true)
