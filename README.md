@@ -84,3 +84,6 @@ If you want to keep up to date, consider signing up to the following email lists
 We are thankful for the financial support from:
 
 <img src="https://github.com/nu-radio/NuRadioMC/blob/logos/documentation/source/logos/EU_cofunded_logo.jpg" alt="Co-funded by the European Union" width="400"/>
+<img src="https://github.com/nu-radio/NuRadioMC/blob/logos/documentation/source/logos/VR_black.png" alt="Co-funded by the Swedish Research Council" width="400"/>
+<img src="https://github.com/nu-radio/NuRadioMC/blob/logos/documentation/source/logos/dfg_logo_englisch_blau_en.jpg" alt="Co-funded by the German Research Foundation" width="400"/>
+<img src="https://github.com/nu-radio/NuRadioMC/blob/logos/documentation/source/logos/BMBF-Logo.jpg" alt="Co-funded by the BMBF" width="400"/>
