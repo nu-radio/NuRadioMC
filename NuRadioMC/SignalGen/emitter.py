@@ -197,40 +197,28 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         btrace.resample(1/dt)  # this resamples the trace to have 1/dt sampling rate
 
         trace = btrace.get_trace()
+        trace_length = len(trace[1])
 
-        if len(trace[1]) > N:
+        if trace_length > N:
             peak_amplitude_index_theta = np.where(np.abs(trace[1]) == np.max(np.abs(trace[1])))[0][0]
-            trace[1] = np.roll(trace[1], int(len(trace[1]) / 2) - peak_amplitude_index_theta)
-            lower_index = int(len(trace[1]) / 2 - N / 2)
+            trace[1] = np.roll(trace[1], int(trace_length / 2) - peak_amplitude_index_theta)
+            trace[2] = np.roll(trace[2], int(trace_length / 2) - peak_amplitude_index_theta)
+            lower_index = int(trace_length / 2 - N / 2)
             final_theta = trace[1, lower_index: lower_index + N]  # this truncate data making trace lenght of N
+            final_phi = trace[2, lower_index: lower_index + N]
         # for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd
         else:
-            add_zeros = int((N - len(trace[1])) / 2)
+            add_zeros = int((N - trace_length) / 2)
             adjustment = 0
-            if ((N + len(trace[1])) % 2 != 0):
+            if ((N + trace_length) % 2 != 0):
                 adjustment = 1
             final_theta = np.pad(trace[1], (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
-
-        if len(trace[2]) > N:
-            peak_amplitude_index_phi = np.where(np.abs(trace[2]) == np.max(np.abs(trace[2])))[0][0]
-            trace[2] = np.roll(trace[2], int(len(trace[2]) / 2) - peak_amplitude_index_phi)
-            lower_index = int(len(trace[2]) / 2 - N / 2)
-            final_phi = trace[2][lower_index: lower_index + N]  # this truncate data making trace lenght of N
-        # for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd
-        else:
-            add_zeros = int((N - len(trace[2])) / 2)
-            adjustment = 0
-            if ((N + len(trace[2])) % 2 != 0):
-                adjustment = 1
             final_phi = np.pad(trace[2], (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
 
         #trace_theta = amplitude * trace_theta / np.max(np.abs(trace_theta))  # trace now has dimension of amplitude given from event generation file
         peak_amplitude_index_theta_new = np.where(np.abs(final_theta) == np.max(np.abs(final_theta)))[0][0]
         final_theta = np.roll(final_theta, int(N / 2) - peak_amplitude_index_theta_new)
-
-        #trace_phi = amplitude * trace_phi / np.max(np.abs(trace_phi))  # trace now has dimension of amplitude given from event generation file
-        peak_amplitude_index_phi_new = np.where(np.abs(final_phi) == np.max(np.abs(final_phi)))[0][0]
-        final_phi = np.roll(final_phi, int(N / 2) - peak_amplitude_index_phi_new)
+        final_phi = np.roll(final_phi, int(N / 2) - peak_amplitude_index_theta_new)
 
         trace = np.zeros((3,N))
         trace[1,:] = final_theta * amplitude

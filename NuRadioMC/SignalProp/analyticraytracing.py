@@ -2250,8 +2250,11 @@ class ray_tracing(ray_tracing_base):
         acc = int(self.get_path_length(i_solution) / units.m)
         path, tmp_dict = self.get_path(i_solution, n_points=acc, additional_output=True)
 
-        reflection_index = tmp_dict['reflection_index']
-        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))
+        if 'reflection_index' in tmp_dict.keys():
+            reflection_index = tmp_dict['reflection_index']
+            zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))
+        else:
+            reflection_index=[]
 
         if 'angle_to_iceflow' in self._config['propagation']:
             rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
