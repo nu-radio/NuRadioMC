@@ -1568,11 +1568,12 @@ class simulation:
                     # the only thing left is to add noise to the non-trigger traces
                     # we need to do it a bit differently than for the trigger traces, because we need to add noise to traces where the amplifier response
                     # was already applied to. 
+                    station = evt.get_station()
                     if bool(self._config['noise']):
                         for channel_id in non_trigger_channels:
                             if channel_id in self._noiseless_channels[sid]:
                                 continue
-                            channel = evt.get_station().get_channel(channel_id)
+                            channel = station.get_channel(channel_id)
                             # logger.status(f"norm  = {norm}, Vrms = {Vrms[channel_id]}, max_freq = {max_freq}")
                             ff = channel.get_frequencies()
                             filt = np.ones_like(ff, dtype=complex)
