@@ -92,7 +92,7 @@ def FindRFI_LOFAR(
         Size of total block of trace to be evaluated for finding dirty rfi channels.
     rfi_cleaning_trace_length : int
         Size of one chunk of trace to be evaluated at a time for calculating spectrum from.
-    flagged_antenna_ids : list or set, default=[]
+    flagged_antenna_ids : list[str] or set[str], default=[]
         List of antennas which are already flagged. These will not be considered for the RFI detection process.
     num_dbl_z : int, default=100
         The number of double zeros allowed in a block, if there are too many, then there could be data loss.
@@ -497,7 +497,7 @@ class stationRFIFilter:
 
             flagged_tbb_channel_ids = set()
             for ind in flagged_channel_ids:
-                flagged_tbb_channel_ids.add(int(nrrID_to_tbbID(ind)))
+                flagged_tbb_channel_ids.add(nrrID_to_tbbID(ind))  # in rawTBBio, antenna IDs are str
 
             packet = FindRFI_LOFAR(station_files,
                                    self.metadata_dir,
