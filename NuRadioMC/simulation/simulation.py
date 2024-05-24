@@ -1115,8 +1115,6 @@ class simulation:
 
         self._rnd = Generator(Philox(self._config['seed']))
 
-        self._rnd = Generator(Philox(self._cfg['seed']))
-
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
             msg = f"hdf5 output file {self._outputfilename} already exists"
