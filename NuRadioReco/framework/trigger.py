@@ -125,7 +125,7 @@ class Trigger:
         Set the pre-trigger times
 
         This parameter should only be set if this trigger 
-        determines the readout windows (e.g. by :py:`NuRadioReco.modules.triggerTimeAdjuster`)
+        determines the readout windows (e.g. by :class:`NuRadioReco.modules.triggerTimeAdjuster`)
 
         Parameters
         ----------
