@@ -62,6 +62,21 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def has_channel(self, channel_id):
         return channel_id in self.__channels
 
+    def remove_channel(self, channel_id):
+        """
+        Removes a channel from the station by deleting is from the channels dictionary. The `channel_id`
+        should be the id of the Channel, but supplying the Channel object itself is also supported.
+
+        Parameters
+        ----------
+        channel_id : int or NuRadioReco.framework.channel.Channel
+            The Channel (id) to remove from the Station.
+        """
+        if isinstance(channel_id, NuRadioReco.framework.channel.Channel):
+            del self.__channels[channel_id.get_id()]
+        else:
+            del self.__channels[channel_id]
+
     def set_reference_reconstruction(self, reference):
         if reference not in ['RD', 'MC']:
             import sys
