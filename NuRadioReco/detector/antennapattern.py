@@ -966,6 +966,89 @@ def preprocess_XFDTD(path):
                 fout, protocol=4)
 
 
+def parse_LOFAR_txt_file(path_theta, path_phi):
+    """
+    Extract the values from a simulation file for the LOFAR LBA antenna model.
+
+    Parameters
+    ----------
+    path_theta : str
+        Path to the file containing the values for the theta component
+    path_phi : str
+        Path to the file containing the values for the phi component
+
+    """
+    freq, theta, phi, real_theta, imaginary_theta = np.genfromtxt(path_theta, skip_header=1).T
+    freq2, theta2, phi2, real_phi, imaginary_phi = np.genfromtxt(path_phi, skip_header=1).T
+
+    if not np.all(freq == freq2) or not np.all(theta == theta2) or not np.all(phi == phi2):
+        raise ValueError("Values in theta and phi files do not match")
+
+    # Convert units to NRR system
+    freq *= units.MHz
+    theta *= units.deg
+    phi *= units.deg
+
+    # Add the weird -1 to the theta component
+    real_theta *= -1
+    imaginary_theta *= -1
+
+    return freq, theta, phi, real_theta, imaginary_theta, real_phi, imaginary_phi
+
+
+def preprocess_LOFAR_txt(directory, ant='LBA'):
+    """
+    Function to parse the LOFAR antenna model simulation files in TXT format. It extracts the
+    vector effective length for all simulated frequencies, azimuth and zenith angles and dumps
+    them into a pickle file according to the NRR specification.
+
+    Parameters
+    ----------
+    directory : str
+        The path to the directory where the TXT files are stored
+    ant : str, default='LBA'
+        The antenna type
+    """
+    path_theta = os.path.join(directory, f'{ant}_Vout_theta.txt')
+    path_phi = os.path.join(directory, f'{ant}_Vout_phi.txt')
+
+    frequencies, thetas, phis, theta_real, theta_imag, phi_real, phi_imag = parse_LOFAR_txt_file(path_theta, path_phi)
+
+    VEL_thetas = theta_real + 1j * theta_imag
+    VEL_phis = phi_real + 1j * phi_imag
+
+    # sort with increasing frequency, increasing phi, and increasing theta
+    index = np.lexsort((thetas, phis, frequencies))
+    VEL_thetas = VEL_thetas.flatten()[index]
+    VEL_phis = VEL_phis.flatten()[index]
+
+    # (angle) -> (freq * angle)
+    theta = thetas[index]
+    phi = phis[index]
+
+    # TODO: is the correct calculation of VEL? Felix wrote that for AERA, |H| < 0.1 should not happen...
+    H_phi = VEL_phis
+    H_theta = VEL_thetas
+
+    # values for an upright LBA antenna aligned along E-W
+    orientation_theta, orientation_phi, rotation_theta, rotation_phi = \
+        90 * units.deg, 0 * units.deg, 0 * units.deg, 0 * units.deg
+
+    fname = f'LOFAR_{ant}'
+    output_filename = '{}.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
+
+    directory = os.path.dirname(output_filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    with open(output_filename, 'wb') as fout:
+        logger.info('saving output to {}'.format(output_filename))
+        # Notice the ordering!
+        pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi,
+                     frequencies, theta, phi, H_phi, H_theta],
+                    fout, protocol=4)
+
+
 class AntennaPatternBase:
     """
     base class of utility class that handles access and buffering to antenna pattern
@@ -1384,7 +1467,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
             index = np.argmax(freq > self._cutoff_freq)
             Gain = np.ones_like(freq)
-            from scipy.signal import hann
+            from scipy.signal.windows import hann
             gain_filter = hann(2 * index)
             Gain[:index] = gain_filter[:index]
 
