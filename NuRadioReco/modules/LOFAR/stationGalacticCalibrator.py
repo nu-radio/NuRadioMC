@@ -96,7 +96,7 @@ class stationGalacticCalibrator:
             ),
         )
 
-        # Get fitted Fourier coefficients for relative calibration and store them based on polarisation group ID
+        # Get fitted Fourier coefficients for relative calibration and store them based on polarisation
         rel_calibration_file = np.genfromtxt(
             os.path.join(
                 data_dir, "galactic_calibration",
