@@ -951,7 +951,7 @@ class DetectorBase(object):
 
     def get_channel_group_id(self, station_id, channel_id):
         """
-        returns the group ID of a channel
+        returns the group ID of a channel. If the channel has no group ID, the channel ID is returned.
 
         Parameters
         ----------
