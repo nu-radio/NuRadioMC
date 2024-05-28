@@ -375,6 +375,7 @@ class ARZ(object):
                 if("{:d}.{:d}".format(*self._version) in lib_hashs.keys()):
                     if(sha1.hexdigest() != lib_hashs["{:d}.{:d}".format(*self._version)]):
                         logger.warning("shower library {} has changed on the server. downloading newest version...".format(self._version))
+                        os.remove(path)
                         download_file = True
                 else:
                     logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
