@@ -576,6 +576,7 @@ def get_pickle_antenna_response(path):
                 if sha1.hexdigest() != antenna_hashs[os.path.basename(path)]:
                     logger.warning("antenna model {} has changed on the server. downloading newest version...".format(
                         os.path.basename(path)))
+                    os.remove(path) # remove outdated file
                     download_file = True
             else:
                 logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
