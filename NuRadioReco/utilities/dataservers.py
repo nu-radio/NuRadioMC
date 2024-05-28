@@ -1,7 +1,27 @@
 import requests
 import os
-
+import filelock
 import logging
+  
+  lock = filelock.FileLock("my_lock_file.lock")
+  
+  # This is the easiest way to use the file lock. Note, that the FileLock
+  # object blocks until the lock can be acquired.
+  
+  if not os.path.exists("my_lock_file"):
+      print("waiting for my_lock_file download")
+      with lock:
+          if not os.path.exists("my_lock_file"):
+              time.sleep(20)
+--            f = open("my_lock_file", "w")
+              f.write("done")
+              f.close()
+              print("Download complete")
+  
+          else:
+              print("Already downloaded")
+  print("using file...")
+
 logger = logging.getLogger('NuRadioReco.dataservers')
 
 dataservers = ["https://rnog-data.zeuthen.desy.de", "https://rno-g.uchicago.edu/data/desy-mirror"]
@@ -49,45 +69,56 @@ def get_available_dataservers_by_timezone(dataservers=dataservers):
 
 def download_from_dataserver(remote_path, target_path, dataservers=dataservers, try_ordered=False):
     """ download remote_path to target_path from the list of NuRadio dataservers """
-    if try_ordered:
-        dataservers = get_available_dataservers_by_responsetime(dataservers)
-        # alternatively:
-        # dataservers = get_available_dataservers_by_timezone(dataservers)
-    requests_status = requests.codes["not_found"]
-    for dataserver in dataservers:
-        URL = f'{dataserver}/{remote_path}'
-
-        logger.warning(
-            "downloading file {} from {}. This can take a while...".format(target_path, URL))
-
-        try:
-            r = requests.get(URL)
-            r.raise_for_status()
-            requests_status = r.status_code
-            break
-        except requests.exceptions.HTTPError as errh:
-            logger.warning(f"HTTP Error for {dataserver}. Does the file {remote_path} exist on the server?")
-            pass
-        except requests.exceptions.ConnectionError as errc:
-            logger.warning(f"Error Connecting to {dataserver}. Maybe you don't have internet... or the server is down?")
-            pass
-        except requests.exceptions.Timeout as errt:
-            logger.warning(f"Timeout Error for {dataserver}.")
-            pass
-        except requests.exceptions.RequestException as err:
-            logger.warning(f"An unusual error for {dataserver} occurred:", err)
-            pass
-            
-        logger.warning("problem downloading file {} from {}. Let's see if there is another server.".format(target_path, URL))
-
-    if requests_status != requests.codes["ok"]:
-        logger.error(f"error in download of file {target_path}. Tried all servers in {dataservers} without success.")
-        raise IOError
 
     folder = os.path.dirname(target_path)
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    with open(target_path, "wb") as code:
-        code.write(r.content)
-    logger.warning("...download finished.")
+    lockfile = os.path.join(target_path, ".lock")
+    lock = filelock.FileLock(lockfile)
+   
+    logger.warning(f"Assuring no other process is downloading. Will wait until {lockfile} is unlocked.")
+    with lock:
+        logger.warning(f"Locking {lockfile}")
+        if os.path.isfile(target_path):
+            logger.warning(f"{target_path} already exists. Maybe download was already completed by another instance?")
+            return
+
+        if try_ordered:
+            dataservers = get_available_dataservers_by_responsetime(dataservers)
+            # alternatively:
+            # dataservers = get_available_dataservers_by_timezone(dataservers)
+        requests_status = requests.codes["not_found"]
+        for dataserver in dataservers:
+            URL = f'{dataserver}/{remote_path}'
+
+            logger.warning(
+                "downloading file {} from {}. This can take a while...".format(target_path, URL))
+
+            try:
+                r = requests.get(URL)
+                r.raise_for_status()
+                requests_status = r.status_code
+                break
+            except requests.exceptions.HTTPError as errh:
+                logger.warning(f"HTTP Error for {dataserver}. Does the file {remote_path} exist on the server?")
+                pass
+            except requests.exceptions.ConnectionError as errc:
+                logger.warning(f"Error Connecting to {dataserver}. Maybe you don't have internet... or the server is down?")
+                pass
+            except requests.exceptions.Timeout as errt:
+                logger.warning(f"Timeout Error for {dataserver}.")
+                pass
+            except requests.exceptions.RequestException as err:
+                logger.warning(f"An unusual error for {dataserver} occurred:", err)
+                pass
+
+            logger.warning("problem downloading file {} from {}. Let's see if there is another server.".format(target_path, URL))
+
+        if requests_status != requests.codes["ok"]:
+            logger.error(f"error in download of file {target_path}. Tried all servers in {dataservers} without success.")
+            raise IOError
+
+        with open(target_path, "wb") as code:
+            code.write(r.content)
+        logger.warning("...download finished.")
