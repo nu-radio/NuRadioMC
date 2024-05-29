@@ -39,8 +39,8 @@ class cosmicRayEnergyReconstructor:
                 'falloff': np.array([(-.1445, -.09820), (.5936, -1.1763)])
             },
             'summit': {
-                'scale': np.array([[ 610.25, -551.65,  281.34], [ 570.2 , -590.02,  411.01]]),
-                'falloff': np.array([[ 0.4058, -0.2285], [-1.2992,  2.0967]])
+                'scale': np.array([[ 404.5 , -131.56,   11.7 ], [ 428.97,  -92.11,    5.94]]),
+                'falloff': np.array([[-0.3391,  0.1738], [ 0.9543, -1.6967]])
             }
         }
         self.__elevations = {  # TODO: This should be changed once we have implemented a proper coordinate system
@@ -133,14 +133,15 @@ class cosmicRayEnergyReconstructor:
         energy_fluence = NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence(efield_trace_vxB_vxvxB, electric_field.get_times())
         energy_fluence = np.abs(energy_fluence[0]) + np.abs(energy_fluence[1])
         xmax_distance = self.__atmosphere.get_distance_xmax_geometric(zenith, 750., elevation)  # parametrization is for Xmax of 750g/cm^2
+        xmax_distance = np.abs(xmax_distance) #np.max([xmax_distance, 200*units.m]) # for some zeniths and altitudes the parameterization can become negative
 
         # find out if we are inside or outside of the Cherenkov ring
         second_order_spectrum_parameter = electric_field.get_parameter(efp.cr_spectrum_quadratic_term)
         if second_order_spectrum_parameter <= spectrum_slope * .1:
-            scale_parameter = parametrization_for_site['scale'][0][0] * zenith ** 2 + parametrization_for_site['scale'][0][1] * zenith + parametrization_for_site['scale'][0][0]
+            scale_parameter = parametrization_for_site['scale'][0][0] * zenith ** 2 + parametrization_for_site['scale'][0][1] * zenith + parametrization_for_site['scale'][0][2]
             falloff_parameter = parametrization_for_site['falloff'][0][0] * zenith + parametrization_for_site['falloff'][0][1]
         else:
-            scale_parameter = parametrization_for_site['scale'][1][0] * zenith ** 2 + parametrization_for_site['scale'][1][1] * zenith + parametrization_for_site['scale'][1][0]
+            scale_parameter = parametrization_for_site['scale'][1][0] * zenith ** 2 + parametrization_for_site['scale'][1][1] * zenith + parametrization_for_site['scale'][1][2]
             falloff_parameter = parametrization_for_site['falloff'][1][0] * zenith + parametrization_for_site['falloff'][1][1]
         rec_energy = 1.e18 * np.sqrt(energy_fluence) * (xmax_distance / units.km) / (scale_parameter * np.exp(falloff_parameter * np.abs(spectrum_slope) ** 0.8))
         station.set_parameter(stnp.cr_energy_em, rec_energy)
