@@ -2,25 +2,7 @@ import requests
 import os
 import filelock
 import logging
-  
-  lock = filelock.FileLock("my_lock_file.lock")
-  
-  # This is the easiest way to use the file lock. Note, that the FileLock
-  # object blocks until the lock can be acquired.
-  
-  if not os.path.exists("my_lock_file"):
-      print("waiting for my_lock_file download")
-      with lock:
-          if not os.path.exists("my_lock_file"):
-              time.sleep(20)
---            f = open("my_lock_file", "w")
-              f.write("done")
-              f.close()
-              print("Download complete")
-  
-          else:
-              print("Already downloaded")
-  print("using file...")
+import shutil
 
 logger = logging.getLogger('NuRadioReco.dataservers')
 
@@ -67,7 +49,7 @@ def get_available_dataservers_by_timezone(dataservers=dataservers):
     ranked_dataservers = [x for _, x in sorted(zip(server_offsets, dataservers))]
     return ranked_dataservers
 
-def download_from_dataserver(remote_path, target_path, dataservers=dataservers, try_ordered=False):
+def download_from_dataserver(remote_path, target_path, unpack_tarball=True, dataservers=dataservers, try_ordered=False):
     """ download remote_path to target_path from the list of NuRadio dataservers """
 
     folder = os.path.dirname(target_path)
@@ -80,6 +62,7 @@ def download_from_dataserver(remote_path, target_path, dataservers=dataservers, 
     logger.warning(f"Assuring no other process is downloading. Will wait until {lockfile} is unlocked.")
     with lock:
         logger.warning(f"Locking {lockfile}")
+
         if os.path.isfile(target_path):
             logger.warning(f"{target_path} already exists. Maybe download was already completed by another instance?")
             return
@@ -122,3 +105,9 @@ def download_from_dataserver(remote_path, target_path, dataservers=dataservers, 
         with open(target_path, "wb") as code:
             code.write(r.content)
         logger.warning("...download finished.")
+
+        if unpack_tarball and target_path.endswith(".tar.gz"):
+            target_dir = os.path.dirname(target_path)
+            logger.warning(f"...unpacking archive to {target_dir}")
+            shutil.unpack_archive(target_path, target_dir)
+            #os.remove(target_path) do not remove for lock file
