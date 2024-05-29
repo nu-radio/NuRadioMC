@@ -96,12 +96,7 @@ def download_proposal_tables(config_file, tables_path=None):
 
     logger.warning(
         "downloading pre-calculated proposal tables for {}. This can take a while...".format(config_file))
-    download_from_dataserver(remote_path, target_path)
-
-    logger.warning(f"...unpacking archive to {tables_path}")
-    shutil.unpack_archive(f"{tables_path}/{config_file}.tar.gz", tables_path)
-    os.remove(f"{tables_path}/{config_file}.tar.gz")
-
+    download_from_dataserver(remote_path, target_path, unpack_tarball=True)
 
 
 if __name__ == "__main__":
