@@ -127,7 +127,7 @@ def calculate_sim_efield(showers, sid, cid,
     n_samples = int(np.ceil(n_samples / 2.) * 2)  # round to nearest even integer
 
     for shower in showers:
-        time_logger.start_time('ray tracing')
+        #time_logger.start_time('ray tracing')
         logger.debug(f"Calculating electric field for shower {shower.get_id()} and station {sid}, channel {cid}")
         shower_axis = -1 * shower.get_axis() # We need the propagation direction here, so we multiply the shower axis with '-1'
         x1 = shower.get_parameter(shp.vertex)
@@ -156,9 +156,9 @@ def calculate_sim_efield(showers, sid, cid,
         if min(np.abs(delta_Cs)) > config['speedup']['delta_C_cut']:
             logger.debug(f'delta_C too large, event unlikely to be observed, (min(Delta_C) = {min(np.abs(delta_Cs))/units.deg:.1f}deg), skipping event')
             continue
-        time_logger.stop_time('ray tracing')
+        #time_logger.stop_time('ray tracing')
         for iS in range(n): # loop through all ray tracing solution
-            time_logger.start_time('ray tracing (time)')
+            #time_logger.start_time('ray tracing (time)')
             # skip individual channels where the viewing angle difference is too large
             # discard event if delta_C (angle off cherenkov cone) is too large
             if np.abs(delta_Cs[iS]) > config['speedup']['delta_C_cut']:
@@ -167,7 +167,7 @@ def calculate_sim_efield(showers, sid, cid,
             # TODO: Fill with previous values if RT was already performed
             R = p.get_path_length(iS)  # calculate path length
             T = p.get_travel_time(iS)  # calculate travel time
-            time_logger.start_time('ray tracing (time)')
+            #time_logger.start_time('ray tracing (time)')
             if R is None or T is None:
                 logger.warning(f'travel distance or travel time could not be calculated, skipping ray tracing solution. Shower ID: {shower.get_id()} Station ID: {sid} Channel ID: {cid}')
                 continue
@@ -182,7 +182,7 @@ def calculate_sim_efield(showers, sid, cid,
                 kwargs['k_L'] = shower[shp.k_L]
                 logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
 
-            time_logger.start_time('signal generation')
+            #time_logger.start_time('signal generation')
             spectrum, additional_output = askaryan.get_frequency_spectrum(shower[shp.energy], viewing_angles[iS],
                             n_samples, dt, shower[shp.type], n_index, R,
                             config['signal']['model'], seed=config['seed'], full_output=True, **kwargs)
@@ -198,16 +198,16 @@ def calculate_sim_efield(showers, sid, cid,
             polarization_direction_onsky = calculate_polarization_vector(shower_axis, p.get_launch_vector(iS), config)
             receive_vector = p.get_receive_vector(iS)
             eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-            time_logger.stop_time('signal generation')
+            #time_logger.stop_time('signal generation')
 
             # this is common stuff which is the same between emitters and showers
             electric_field = NuRadioReco.framework.electric_field.ElectricField([cid],
                                     position=det.get_relative_position(sid, cid),
                                     shower_id=shower.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
-            time_logger.start_time('propagation effects')
+            #time_logger.start_time('propagation effects')
             electric_field = p.apply_propagation_effects(electric_field, iS)
-            time_logger.stop_time('propagation effects')
+            #time_logger.stop_time('propagation effects')
             # Trace start time is equal to the interaction time relative to the first
             # interaction plus the wave travel time.
             if shower.has_parameter(shp.vertex_time):
@@ -291,7 +291,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
     n_samples = int(np.ceil(n_samples / 2.) * 2)  # round to nearest even integer
 
     for emitter in emitters:
-        time_logger.start_time('ray tracing')
+        #time_logger.start_time('ray tracing')
         x1 = emitter.get_parameter(ep.position)
         n_index = medium.get_index_of_refraction(x1)
 
@@ -300,18 +300,18 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             pass
             # TODO: initiatlize ray tracer with existing results if available
         p.find_solutions()
-        time_logger.stop_time('ray tracing')
+        #time_logger.stop_time('ray tracing')
         if not p.has_solution():
             logger.debug(f"emitter {emitter.get_id()} and station {sid}, channel {cid} from {x1} to {x2} does not have any ray tracing solution")
             continue
 
         n = p.get_number_of_solutions()
         for iS in range(n): # loop through all ray tracing solution
-            time_logger.start_time('ray tracing (time)')
+            #time_logger.start_time('ray tracing (time)')
             # TODO: Fill with previous values if RT was already performed
             R = p.get_path_length(iS)  # calculate path length
             T = p.get_travel_time(iS)  # calculate travel time
-            time_logger.stop_time('ray tracing (time)')
+            #time_logger.stop_time('ray tracing (time)')
             if R is None or T is None:
                 logger.warning(f'travel distance or travel time could not be calculated, skipping ray tracing solution. Emitter ID: {emitter.get_id()} Station ID: {sid} Channel ID: {cid}')
                 continue
@@ -327,7 +327,7 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
                     if emitter.has_parameter(key):
                         emitter_kwargs[key.name] = emitter[key]
 
-            time_logger.start_time('signal generation')
+            #time_logger.start_time('signal generation')
             if emitter_model.startswith("efield_"):
                 if emitter_model == "efield_idl1_spice":
                     if emitter.has_parameter(ep.realization_id):
@@ -362,16 +362,16 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
             eTheta *= 1 / R
             ePhi *= 1 / R
-            time_logger.stop_time('signal generation')
+            #time_logger.stop_time('signal generation')
 
             # this is common stuff which is the same between emitters and showers. Make sure to do any changes to this code in both places
             electric_field = NuRadioReco.framework.electric_field.ElectricField([cid],
                                     position=det.get_relative_position(sid, cid),
                                     shower_id=emitter.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
-            time_logger.start_time('propagation effects')
+            #time_logger.start_time('propagation effects')
             electric_field = p.apply_propagation_effects(electric_field, iS)
-            time_logger.stop_time('propagation effects')
+            #time_logger.stop_time('propagation effects')
             # Trace start time is equal to the emitter time in case one was defined
             # (relevant for multiple emitters per event group)
             if emitter.has_parameter(ep.time):

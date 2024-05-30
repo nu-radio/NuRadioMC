@@ -579,7 +579,8 @@ def get_pickle_antenna_response(path):
                         os.path.basename(path)))
                     download_file = True
             else:
-                logger.status("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
+                #logger.status("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
+                pass
 
     if download_file:
         # does not exist yet -> download file
@@ -1167,7 +1168,7 @@ class AntennaPattern(AntennaPatternBase):
                             freq, ff[index]))
                         raise Exception("frequency has changed")
 
-        logger.status('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
+        #logger.status('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
 
     def _get_index(self, iFreq, iTheta, iPhi):
         """
