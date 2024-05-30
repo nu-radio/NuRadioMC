@@ -17,7 +17,7 @@ The database is organized in collections. Each collection contains a list of obj
 Signal Chain
 ------------
 
-Each channel has a "signal chain" which which is basically a list of all the individual reponses which are necessary to describe the entire analog response of this channel. This list is implemented as dictionary, the key of the dictionary is the also the name of the collection in which it looks for the specified response (value). The key can have a suffix like `_1` which allows to specify several response from the same collection to be added to the signal chain.
+Each channel has a "signal chain" which is basically a list of all the individual reponses which are necessary to describe the entire analog response of this channel. This list is implemented as dictionary, the key of the dictionary is also the name of the collection in which it looks for the specified response (value). The key can have a suffix like `_1` which allows to specify several response from the same collection to be added to the signal chain.
 
 
 Detector class
