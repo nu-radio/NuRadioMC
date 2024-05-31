@@ -108,24 +108,30 @@ class readCoREASShower:
             # add simulated pulses as sim station
             for idx, (name, observer) in enumerate(f_coreas['observers'].items()):
                 # returns proper station id if possible
+                # TODO I dont understand this fuction
                 station_id = antenna_id(name, idx)
 
                 station = NuRadioReco.framework.station.Station(station_id)
+                sim_station = coreas.make_sim_station(station_id, corsika)
+                efield, efield_times = coreas.convert_obs_to_nuradio_efield(observer, sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
+                                           magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector), prepend_zeros=True)
                 if self.__det is None:
-                    sim_station = coreas.make_sim_station(
-                        station_id, corsika, observer, channel_ids=[0, 1, 2])
+                    channel_ids = [0]
                 else:
-                    sim_station = coreas.make_sim_station(
-                        station_id, corsika, observer, 
-                        channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
-                
+                    if self.__det.has_station(station_id):
+                        channel_ids = self.__det.get_channel_ids(station_id)
+                    else:
+                        channel_ids = self.__det.get_channel_ids(self.__det.get_reference_station_ids()[0])
+
+                coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_times, corsika)
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
                 
                 if self.__det is not None:
                     position = observer.attrs['position']
-                    antenna_position = np.array([-position[1], position[0], position[2]]) * units.cm
-                    antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
+                    antenna_position = coreas.convert_obs_positions_to_nuradio_on_ground(position, sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
+                                           magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
+
                     
                     if not self.__det.has_station(station_id):
                         self.__det.add_generic_station({
