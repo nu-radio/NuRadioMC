@@ -54,7 +54,7 @@ def apply_hanning(efields):
     efield in time domain: array (n_samples, n_polarizations)
 
     Returns
-    ----------
+    -------
     smoothed_efield: array (n_samples, n_polarizations)
     """
 
@@ -88,7 +88,6 @@ def select_channels_per_station(det, station_id, requested_channel_ids):
             channel_ids[channel_group_id].append(channel_id)
     return channel_ids
 
-coreasInterpolator = NuRadioReco.modules.io.coreas.coreasInterpolator()
 
 class readCoREASDetector():
     """
@@ -105,14 +104,12 @@ class readCoREASDetector():
         self.__t_per_event = 0
         self.__input_file = None
         self.__corsika = None
-        self.__interp_efield = None
-        self.__interp_fluence = None
         self.__interp_lowfreq = None
         self.__interp_highfreq = None
         self.__sampling_rate = None
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
-    def begin(self, input_file, interp_efield=True, interp_fluence=False, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO, debug=False):
+    def begin(self, input_file, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO, debug=False):
             
         """
         begin method
@@ -128,8 +125,6 @@ class readCoREASDetector():
         """
         self.__input_file = input_file
         self.__corsika = h5py.File(input_file, "r")
-        self.__interp_efield = interp_efield
-        self.__interp_fluence = interp_fluence
         self.__interp_lowfreq = interp_lowfreq
         self.__interp_highfreq = interp_highfreq
         self.__sampling_rate = 1. / (self.__corsika['CoREAS'].attrs['TimeResolution'] * units.second)
@@ -137,12 +132,9 @@ class readCoREASDetector():
 
         self.logger.setLevel(log_level)
         self.debug = debug
+        coreasInterpolator = NuRadioReco.modules.io.coreas.coreasInterpolator(self.__corsika)
+        coreasInterpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
 
-        coreasInterpolator = coreas.coreasInterpolator(self.__corsika)
-        if interp_efield:
-            coreasInterpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
-        if interp_fluence:
-            coreasInterpolator.initialize_fluence_interpolator()
 
 
     @register_run()
@@ -194,17 +186,13 @@ class readCoREASDetector():
                         antenna_position_rel = detector.get_relative_position(station_id, ch_g_ids)
                         antenna_position = det_station_position + antenna_position_rel
                         if self.__interp_efield:
-                            res_efield = coreasInterpolator.get_efield_value(antenna_position, core, kind='efield')
+                            res_efield = coreasInterpolator.get_efield_value(antenna_position, core)
                             smooth_res_efield = apply_hanning(res_efield)
                             if smooth_res_efield is None:
                                 smooth_res_efield = coreasInterpolator.get_empty_efield()
                             efield_times = get_efield_times(smooth_res_efield, self.__sampling_rate)
-                        if self.__interp_fluence:
-                            res_fluence = coreasInterpolator.get_efield_value(antenna_position, core, kind='fluence')
-                        else:
-                            res_fluence = None
                         channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
-                        coreas.add_electric_field_to_sim_station(sim_station, channel_ids_for_group_id, smooth_res_efield.T, efield_times, self.zenith, self.azimuth, self.magnetic_field_vector, self.__sampling_rate , fluence=res_fluence)
+                        coreas.add_electric_field_to_sim_station(sim_station, channel_ids_for_group_id, smooth_res_efield.T, efield_times, self.zenith, self.azimuth, self.magnetic_field_vector, self.__sampling_rate )
                     station.set_sim_station(sim_station)
                     distance_to_core = np.linalg.norm(det_station_position[:-1] - core[:-1])
                     station.set_parameter(stnp.distance_to_core, distance_to_core)
