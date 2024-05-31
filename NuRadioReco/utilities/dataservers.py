@@ -3,6 +3,7 @@ import os
 import filelock
 import logging
 import shutil
+from glob import glob
 
 logger = logging.getLogger('NuRadioReco.dataservers')
 
@@ -61,10 +62,11 @@ def download_from_dataserver(remote_path, target_path, unpack_tarball=True, data
    
     logger.warning(f"Assuring no other process is downloading. Will wait until {lockfile} is unlocked.")
     with lock:
-        logger.warning(f"Locking {lockfile}")
-
         if os.path.isfile(target_path):
             logger.warning(f"{target_path} already exists. Maybe download was already completed by another instance?")
+            return
+        elif unpack_tarball and (len(glob(os.path.dirname(target_path) + "/*.dat")) > 0): #just check if any .dat files present (similar to NuRadioProposal.py)
+            logger.warning(f"{os.path.dirname(target_path)} contains .dat files. Maybe download was already completed by another instance?")
             return
 
         if try_ordered:
@@ -110,4 +112,4 @@ def download_from_dataserver(remote_path, target_path, unpack_tarball=True, data
             target_dir = os.path.dirname(target_path)
             logger.warning(f"...unpacking archive to {target_dir}")
             shutil.unpack_archive(target_path, target_dir)
-            #os.remove(target_path) do not remove for lock file
+            os.remove(target_path)
