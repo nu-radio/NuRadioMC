@@ -45,31 +45,22 @@ class readCoREASStation:
         for input_file in self.__input_files:
             self.__current_event = 0
             with h5py.File(input_file, "r") as corsika:
-                if "highlevel" not in corsika.keys() or list(corsika["highlevel"].values()) == []:
-                    logger.warning(" No highlevel quantities in simulated hdf5 files, weights will be taken from station position")
-                    positions = []
-                    for observer in corsika['CoREAS']['observers'].values():
-                        position = observer.attrs['position']
-                        positions.append(np.array([-position[1], position[0], 0]) * units.cm)
-                    positions = np.array(positions)
-                    zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
-                    weights = coreas.calculate_simulation_weights(positions, zenith, azimuth, debug=self.__debug)
-
-                    if self.__debug:
-                        import matplotlib.pyplot as plt
-                        fig, ax = plt.subplots()
-                        im = ax.scatter(positions[:, 0], positions[:, 1], c=weights)
-                        fig.colorbar(im, ax=ax).set_label(label=r'Area $[m^2]$')
-                        plt.xlabel('East [m]')
-                        plt.ylabel('West [m]')
-                        plt.title('Final weighting')
-                        plt.gca().set_aspect('equal')
-                        plt.show()
-
-                else:
-                    positions = list(corsika["highlevel"].values())[0]["antenna_position"]
-                    zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
-                    weights = coreas.calculate_simulation_weights(positions, zenith, azimuth)
+                zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
+                obs_positions_geo = []
+                for i, (name, observer) in enumerate(corsika['CoREAS']['observers'].items()):
+                    obs_positions_geo.append(coreas.convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector))
+                obs_positions_geo = np.array(obs_positions_geo)
+                weights = coreas.calculate_simulation_weights(obs_positions_geo, zenith, azimuth, debug=self.__debug)
+                if self.__debug:
+                    import matplotlib.pyplot as plt
+                    fig, ax = plt.subplots()
+                    im = ax.scatter(obs_positions_geo[:, 0], obs_positions_geo[:, 1], c=weights)
+                    fig.colorbar(im, ax=ax).set_label(label=r'Area $[m^2]$')
+                    plt.xlabel('East [m]')
+                    plt.ylabel('West [m]')
+                    plt.title('Final weighting')
+                    plt.gca().set_aspect('equal')
+                    plt.show()
 
                 for i, (name, observer) in enumerate(corsika['CoREAS']['observers'].items()):
                     evt = NuRadioReco.framework.event.Event(self.__current_input_file, self.__current_event)  # create empty event
@@ -77,10 +68,12 @@ class readCoREASStation:
                     sim_station = coreas.make_sim_station(
                         self.__station_id,
                         corsika,
-                        observer,
-                        detector.get_channel_ids(self.__station_id),
                         weights[i]
                     )
+
+                    channel_ids = detector.get_channel_ids(self.__station_id)
+                    efield, efield_times = coreas.convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vector, prepend_zeros=True)
+                    coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_times, corsika)
                     station.set_sim_station(sim_station)
                     sim_shower = coreas.make_sim_shower(corsika, observer, detector, self.__station_id)
                     evt.add_sim_shower(sim_shower)
