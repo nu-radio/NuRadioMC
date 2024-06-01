@@ -3,6 +3,7 @@ from timeit import default_timer as timer
 import NuRadioReco.framework.event
 import NuRadioReco.framework.base_station
 import NuRadioReco.detector.detector_base
+import NuRadioReco.detector.RNO_G.rnog_detector
 import inspect
 import pickle
 
