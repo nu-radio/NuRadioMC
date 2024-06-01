@@ -43,6 +43,8 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         if position is None:
             self._position = [0, 0, 0]
 
+        self._position_onsky = None
+
         self._shower_id = shower_id
         self._ray_tracing_id = ray_tracing_id
 
@@ -126,6 +128,18 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         set position of the electric field relative to station position
         """
         self._position = position
+
+    def set_position_onsky(self, position):
+        """
+        set position of the electric field in the on sky (vxB, vxvxB) coordinate system
+        """
+        self._position_onsky = position
+
+    def get_position_onsky(self):
+        """
+        get position of the electric field in the on sky (vxB, vxvxB) coordinate system
+        """
+        return self._position_onsky
 
     def serialize(self, save_trace):
         if save_trace:
