@@ -126,13 +126,14 @@ class electricFieldSignalReconstructor:
             electric_field.set_parameter_error(efp.polarization_angle, pol_angle_error)
 
             # compute expeted polarization
-            site = det.get_site(station.get_id())
-            exp_efield = hp.get_lorentzforce_vector(electric_field[efp.zenith], electric_field[efp.azimuth], hp.get_magnetic_field_vector(site))
-            cs = coordinatesystems.cstrafo(electric_field[efp.zenith], electric_field[efp.azimuth], site=site)
-            exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
-            exp_pol_angle = np.arctan2(np.abs(exp_efield_onsky[2]), np.abs(exp_efield_onsky[1]))
-            logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
-            electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
+            if det is not None:
+                site = det.get_site(station.get_id())
+                exp_efield = hp.get_lorentzforce_vector(electric_field[efp.zenith], electric_field[efp.azimuth], hp.get_magnetic_field_vector(site))
+                cs = coordinatesystems.cstrafo(electric_field[efp.zenith], electric_field[efp.azimuth], site=site)
+                exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
+                exp_pol_angle = np.arctan2(np.abs(exp_efield_onsky[2]), np.abs(exp_efield_onsky[1]))
+                logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
+                electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
 
     def end(self):
         pass

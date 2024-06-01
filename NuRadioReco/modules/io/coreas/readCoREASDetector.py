@@ -110,7 +110,6 @@ class readCoREASDetector():
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
     def begin(self, input_file, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO, debug=False):
-            
         """
         begin method
         initialize readCoREAS module
@@ -123,19 +122,19 @@ class readCoREASDetector():
         interp_highfreq: float (default = 1000)
             higher frequency for the bandpass filter in interpolation,  should be broader than the sensetivity band of the detector
         """
-        self.__input_file = input_file
-        self.__corsika = h5py.File(input_file, "r")
+        self.logger.setLevel(log_level)
+        filesize = os.path.getsize(input_file)
+        if(filesize < 18456 * 2):  # based on the observation that a file with such a small filesize is corrupt
+            self.logger.warning("file {} seems to be corrupt".format(input_file))
+        self.__corsika = coreas.read_CORSIKA7(input_file)
+        self.logger.info(f"using coreas simulation {input_file} with E={self.__corsika.get_first_sim_shower().get_parameter(shp.energy):.2g}eV, zenith angle = {self.__corsika.get_first_sim_shower().get_parameter(shp.zenith) / units.deg:.0f}deg")
+
         self.__interp_lowfreq = interp_lowfreq
         self.__interp_highfreq = interp_highfreq
-        self.__sampling_rate = 1. / (self.__corsika['CoREAS'].attrs['TimeResolution'] * units.second)
-        self.zenith, self.azimuth, self.magnetic_field_vector = coreas.get_angles(self.__corsika)
 
-        self.logger.setLevel(log_level)
         self.debug = debug
-        coreasInterpolator = NuRadioReco.modules.io.coreas.coreasInterpolator(self.__corsika)
-        coreasInterpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
-
-
+        self.coreasInterpolator = NuRadioReco.modules.io.coreas.coreasInterpolator(self.__corsika)
+        self.coreasInterpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
 
     @register_run()
     def run(self, detector, core_position_list=[], selected_station_ids=[], selected_channel_ids=[]):
@@ -151,57 +150,51 @@ class readCoREASDetector():
         else:
             logging.info(f"using selected station ids: {selected_station_ids}")
 
-        filesize = os.path.getsize(self.__input_file)
-        if(filesize < 18456 * 2):  # based on the observation that a file with such a small filesize is corrupt
-            self.logger.warning("file {} seems to be corrupt".format(self.__input_file))
-        else:
+
+        t = time.time()
+        t_per_event = time.time()
+        self.__t_per_event += time.time() - t_per_event
+        self.__t += time.time() - t
+
+        for iCore, core in enumerate(core_position_list):
             t = time.time()
-            t_per_event = time.time()
-            self.logger.info(
-                "using coreas simulation {} with E={:2g} theta = {:.0f}".format(
-                    self.__input_file,
-                    self.__corsika['inputs'].attrs["ERANGE"][0] * units.GeV,
-                    self.__corsika['inputs'].attrs["THETAP"][0]))
-            
-            self.__t_per_event += time.time() - t_per_event
+            evt = NuRadioReco.framework.event.Event(evt.get_run_number(), iCore)  # create empty event
+            sim_shower = self.__corsika.get_first_sim_shower()
+            sim_shower.set_parameter(shp.core, core)
+            evt.add_sim_shower(sim_shower)
+            # rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=selected_station_ids)
+            # evt.add_shower(rd_shower)
+            corsika_sim_stn = self.__corsika.get_station(0).get_sim_station()
+            for station_id in selected_station_ids:
+                station = NuRadioReco.framework.station.Station(station_id)
+                sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+                for key, value in corsika_sim_stn.get_parameters().items():
+                    sim_station.set_parameter(key, value)  # copy relevant sim_station parameters over
+                sim_station.set_magnetic_field_vector(corsika_sim_stn.get_magnetic_field_vector())
+                sim_station.set_is_cosmic_ray()
+
+                det_station_position = detector.get_absolute_position(station_id)
+                channel_ids_in_station = detector.get_channel_ids(station_id)
+                if len(selected_channel_ids) == 0:
+                    selected_channel_ids = channel_ids_in_station
+                channel_ids_dict = select_channels_per_station(detector, station_id, selected_channel_ids)
+                for ch_g_ids in channel_ids_dict.keys():
+                    antenna_position_rel = detector.get_relative_position(station_id, ch_g_ids)
+                    antenna_position = det_station_position + antenna_position_rel
+                    res_efield = self.coreasInterpolator.get_interp_efield_value(antenna_position, core)
+                    smooth_res_efield = apply_hanning(res_efield)
+                    if smooth_res_efield is None:
+                        smooth_res_efield = self.coreasInterpolator.get_empty_efield()
+                    efield_times = get_efield_times(smooth_res_efield, self.__sampling_rate)
+                    channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
+                    coreas.add_electric_field_to_sim_station(sim_station, channel_ids_for_group_id, smooth_res_efield.T, efield_times, self.zenith, self.azimuth, self.magnetic_field_vector, self.__sampling_rate )
+                station.set_sim_station(sim_station)
+                distance_to_core = np.linalg.norm(det_station_position[:-1] - core[:-1])
+                station.set_parameter(stnp.distance_to_core, distance_to_core)
+                evt.set_station(station)
+
             self.__t += time.time() - t
-
-            for iCore, core in enumerate(core_position_list):
-                t = time.time()
-                evt = NuRadioReco.framework.event.Event(self.__input_file, iCore)  # create empty event
-                sim_shower = coreas.make_sim_shower(self.__corsika)
-                sim_shower.set_parameter(shp.core, core)
-                evt.add_sim_shower(sim_shower)
-                rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=selected_station_ids)
-                evt.add_shower(rd_shower)
-                for station_id in selected_station_ids:
-                    station = NuRadioReco.framework.station.Station(station_id)
-                    sim_station = coreas.make_sim_station(station_id, self.__corsika, observer=None, channel_ids=None) # create empty station
-                    det_station_position = detector.get_absolute_position(station_id)
-                    channel_ids_in_station = detector.get_channel_ids(station_id)
-                    if len(selected_channel_ids) == 0:
-                        selected_channel_ids = channel_ids_in_station
-                    channel_ids_dict = select_channels_per_station(detector, station_id, selected_channel_ids)
-                    for ch_g_ids in channel_ids_dict.keys():
-                        antenna_position_rel = detector.get_relative_position(station_id, ch_g_ids)
-                        antenna_position = det_station_position + antenna_position_rel
-                        if self.__interp_efield:
-                            res_efield = coreasInterpolator.get_efield_value(antenna_position, core)
-                            smooth_res_efield = apply_hanning(res_efield)
-                            if smooth_res_efield is None:
-                                smooth_res_efield = coreasInterpolator.get_empty_efield()
-                            efield_times = get_efield_times(smooth_res_efield, self.__sampling_rate)
-                        channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
-                        coreas.add_electric_field_to_sim_station(sim_station, channel_ids_for_group_id, smooth_res_efield.T, efield_times, self.zenith, self.azimuth, self.magnetic_field_vector, self.__sampling_rate )
-                    station.set_sim_station(sim_station)
-                    distance_to_core = np.linalg.norm(det_station_position[:-1] - core[:-1])
-                    station.set_parameter(stnp.distance_to_core, distance_to_core)
-                    evt.set_station(station)
-                    t_event_structure = time.time()
-
-                self.__t += time.time() - t
-                yield evt
-        self.__corsika.close()
+            yield evt
 
     def end(self):
         self.logger.setLevel(logging.INFO)
