@@ -553,6 +553,12 @@ class coreasInterpolator:
         logger.info(f'Initialize star shape pattern for interpolation. The shower arrives at zenith={self.zenith/units.deg:.0f}deg, azimuth={self.azimuth/units.deg:.0f}deg with radius {self.star_radius:.0f}m in the shower plane and {self.geo_star_radius:.0f}m on ground. ')
         self.star_shape_initilized = True
 
+    def get_sampling_rate(self):
+        """
+        returns the sampling rate of the electric field
+        """
+        return self.sampling_rate
+    
     def get_empty_efield(self):
         """
         returns the an array of zeros in the shape of the electric field on the sky
@@ -728,11 +734,13 @@ class coreasInterpolator:
         efield_interp : float
             interpolated efield value or efield of clostest observer
         """
+        logger.info(f"get interpolated efield for antenna position {position_on_ground} on ground and core position {core}")
         antenna_position = copy.copy(position_on_ground)
         #core and antenna need to be in the same z plane
         antenna_position[2] = core[2]
         # transform antenna position into shower plane with respect to core position, core position is set to 0,0 in shower plane
         antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(antenna_position, core=core)
+        logger.info(f"antenna position in shower plane {antenna_pos_vBvvB}")
 
         # calculate distance between core position at(0,0) and antenna positions in shower plane
         dcore_vBvvB = np.linalg.norm(antenna_pos_vBvvB[:-1])

@@ -14,6 +14,7 @@ import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.modules.io.coreas
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
@@ -32,19 +33,6 @@ def get_random_core_positions(xmin, xmax, ymin, ymax, n_cores, seed=None):
                     np.zeros(n_cores)]).T
     return cores
 
-def get_efield_times(efield, sampling_rate):
-    """
-    calculate the time axis of the electric field from the sampling rate
-
-    Parameters
-    ----------
-    efield: array (n_samples, n_polarizations)
-    """
-    if efield is None:
-        return None
-    efield_times = np.arange(0, len(efield[:,0])) / sampling_rate
-    return efield_times
-
 def apply_hanning(efields):
     """
     Apply a half hann window to the electric field in the time domain
@@ -62,9 +50,9 @@ def apply_hanning(efields):
         return None
     else:
         smoothed_trace = np.zeros_like(efields)
-        half_hann_window = half_hann_window(efields.shape[0], half_percent=0.1)
+        filter = half_hann_window(efields.shape[0], half_percent=0.1)
         for pol in range(efields.shape[1]):
-            smoothed_trace[:,pol] = efields[:,pol] * half_hann_window
+            smoothed_trace[:,pol] = efields[:,pol] * filter
         return smoothed_trace
 
 def select_channels_per_station(det, station_id, requested_channel_ids):
@@ -102,11 +90,9 @@ class readCoREASDetector():
         self.__t = 0
         self.__t_event_structure = 0
         self.__t_per_event = 0
-        self.__input_file = None
         self.__corsika = None
         self.__interp_lowfreq = None
         self.__interp_highfreq = None
-        self.__sampling_rate = None
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
     def begin(self, input_file, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO, debug=False):
@@ -133,7 +119,7 @@ class readCoREASDetector():
         self.__interp_highfreq = interp_highfreq
 
         self.debug = debug
-        self.coreasInterpolator = NuRadioReco.modules.io.coreas.coreasInterpolator(self.__corsika)
+        self.coreasInterpolator = coreas.coreasInterpolator(self.__corsika)
         self.coreasInterpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
 
     @register_run()
@@ -158,7 +144,7 @@ class readCoREASDetector():
 
         for iCore, core in enumerate(core_position_list):
             t = time.time()
-            evt = NuRadioReco.framework.event.Event(evt.get_run_number(), iCore)  # create empty event
+            evt = NuRadioReco.framework.event.Event(self.__corsika.get_run_number(), iCore)  # create empty event
             sim_shower = self.__corsika.get_first_sim_shower()
             sim_shower.set_parameter(shp.core, core)
             evt.add_sim_shower(sim_shower)
@@ -179,18 +165,23 @@ class readCoREASDetector():
                     selected_channel_ids = channel_ids_in_station
                 channel_ids_dict = select_channels_per_station(detector, station_id, selected_channel_ids)
                 for ch_g_ids in channel_ids_dict.keys():
-                    antenna_position_rel = detector.get_relative_position(station_id, ch_g_ids)
+                    channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
+                    antenna_position_rel = detector.get_relative_position(station_id, channel_ids_for_group_id[0])
                     antenna_position = det_station_position + antenna_position_rel
                     res_efield = self.coreasInterpolator.get_interp_efield_value(antenna_position, core)
                     smooth_res_efield = apply_hanning(res_efield)
                     if smooth_res_efield is None:
                         smooth_res_efield = self.coreasInterpolator.get_empty_efield()
-                    efield_times = get_efield_times(smooth_res_efield, self.__sampling_rate)
-                    channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
-                    coreas.add_electric_field_to_sim_station(sim_station, channel_ids_for_group_id, smooth_res_efield.T, efield_times, self.zenith, self.azimuth, self.magnetic_field_vector, self.__sampling_rate )
+                    electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids_for_group_id)
+                    electric_field.set_trace(smooth_res_efield.T, self.coreasInterpolator.get_sampling_rate())
+                    electric_field.set_trace_start_time(0)  # TODO: set this correctly. 
+                    electric_field.set_parameter(efp.ray_path_type, 'direct')
+                    electric_field.set_parameter(efp.zenith, sim_shower[shp.zenith])
+                    electric_field.set_parameter(efp.azimuth, sim_shower[shp.azimuth])
+                    sim_station.add_electric_field(electric_field)
                 station.set_sim_station(sim_station)
-                distance_to_core = np.linalg.norm(det_station_position[:-1] - core[:-1])
-                station.set_parameter(stnp.distance_to_core, distance_to_core)
+                # distance_to_core = np.linalg.norm(det_station_position[:-1] - core[:-1])
+                # station.set_parameter(stnp.distance_to_core, distance_to_core)
                 evt.set_station(station)
 
             self.__t += time.time() - t
