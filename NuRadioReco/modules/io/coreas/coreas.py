@@ -11,7 +11,7 @@ import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
-import cr_pulse_interpolator.signal_interpolation_fourier
+import cr_pulse_interpolator.self.__corsika_evt
 import cr_pulse_interpolator.interpolation_fourier
 import logging
 import copy
@@ -308,7 +308,7 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
     observer : hdf5 observer object
     detector : detector object
     station_id : station id of the station relativ to which the shower core is given
-    
+
     Returns
     -------
     sim_shower: sim shower
@@ -495,11 +495,11 @@ class coreasInterpolator:
 
     Parameters
     ----------
-    event : NuRadioReco event object containing the CoREAS output (use read_CORSIKA7() to read the file)
-
+    corsika_evt : NuRadio event object
+            use read_CORSIKA7() to create the event object containing the CoREAS output
     """
 
-    def __init__(self, evt):
+    def __init__(self, corsika_evt):
         self.electric_field_on_sky = None
         self.efield_times = None
         self.obs_positions_geo = None
@@ -509,9 +509,9 @@ class coreasInterpolator:
         self.star_radius = None
         self.geo_star_radius = None
 
-        self.evt = evt
-        self.sim_station = evt.get_station(0).get_sim_station()
-        self.shower = evt.get_first_sim_shower()  # there should only be one simulated shower
+        self.corsika_evt = corsika_evt
+        self.sim_station = corsika_evt.get_station(0).get_sim_station()
+        self.shower = corsika_evt.get_first_sim_shower()  # there should only be one simulated shower
         self.star_shape_initilized = False
         self.efield_interpolator_initilized = False
         self.fluence_interpolator_initilized = False
@@ -627,7 +627,7 @@ class coreasInterpolator:
             self.efield_interpolator = -1
         else:
             logger.info(f'electric field interpolation with lowfreq {interp_lowfreq/units.MHz} MHz and highfreq {interp_highfreq/units.MHz} MHz')
-            self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
+            self.efield_interpolator = cr_pulse_interpolator.self.__corsika_evt.interp2d_signal(
                 self.obs_positions_vxB_vxvxB[:, 0],
                 self.obs_positions_vxB_vxvxB[:, 1],
                 self.electric_field_on_sky,
@@ -771,6 +771,19 @@ class coreasInterpolator:
     def get_interp_fluence_value(self, position_on_ground, core):
         """
         Accesses the interpolated fluence for a given position on ground
+
+        Parameters
+        ----------
+        position_on_ground : np.array (3)
+            position of the antenna on ground
+
+        core : np.array (3)
+            position of the core on ground
+
+        Returns
+        -------
+        fluence_interp : float
+            interpolated fluence value
         """
         antenna_position = position_on_ground
         z_plane = core[2]

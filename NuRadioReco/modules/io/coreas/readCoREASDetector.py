@@ -5,7 +5,6 @@ import time
 import h5py
 import numpy as np
 from radiotools import coordinatesystems as cstrafo
-import cr_pulse_interpolator.signal_interpolation_fourier
 import cr_pulse_interpolator.interpolation_fourier
 import matplotlib.pyplot as plt
 from NuRadioReco.modules.base.module import register_run
@@ -25,6 +24,29 @@ from scipy.signal.windows import hann
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
 def get_random_core_positions(xmin, xmax, ymin, ymax, n_cores, seed=None):
+    """
+    Generate random core positions within a rectangle
+
+    Parameters
+    ----------
+    xmin: float
+        minimum x value
+    xmax: float
+        maximum x value
+    ymin: float
+        minimum y value
+    ymax: float
+        maximum y value
+    n_cores: int
+        number of cores to generate
+    seed: int
+        seed for the random number generator
+
+    Returns
+    -------
+    cores: array (n_cores, 3)
+        array containing the core positions
+    """
     random_generator = np.random.RandomState(seed)
 
     # generate core positions randomly within a rectangle
@@ -35,7 +57,7 @@ def get_random_core_positions(xmin, xmax, ymin, ymax, n_cores, seed=None):
 
 def apply_hanning(efields):
     """
-    Apply a half hann window to the electric field in the time domain
+    Apply a half hann window to the electric field in the time domain. This smoothens the edges to avoid ringing effects.
 
     Parameters
     ----------
@@ -68,6 +90,11 @@ def select_channels_per_station(det, station_id, requested_channel_ids):
         The station id to select channels from
     requested_channel_ids : list
         List of requested channel ids
+
+    Returns
+    -------
+    channel_ids : defaultdict
+        Dictionary with channel group ids as keys and lists of channel ids as values
     """
     channel_ids = defaultdict(list)
     for channel_id in requested_channel_ids:
@@ -90,36 +117,35 @@ class readCoREASDetector():
         self.__t = 0
         self.__t_event_structure = 0
         self.__t_per_event = 0
-        self.__corsika = None
+        self.__corsika_evt = None
         self.__interp_lowfreq = None
         self.__interp_highfreq = None
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
-    def begin(self, input_file, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO, debug=False):
+    def begin(self, input_file, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO):
         """
-        begin method
-        initialize readCoREAS module
+        begin method, initialize readCoREASDetector module
+
         Parameters
         ----------
-        input_files: input files
-            list of coreas hdf5 files
-        interp_lowfreq: float (default = 30)
+        input_files: str
+            coreas hdf5 file
+        interp_lowfreq: float (default = 30 MHz)
             lower frequency for the bandpass filter in interpolation, should be broader than the sensetivity band of the detector
-        interp_highfreq: float (default = 1000)
+        interp_highfreq: float (default = 1000 MHz)
             higher frequency for the bandpass filter in interpolation,  should be broader than the sensetivity band of the detector
         """
         self.logger.setLevel(log_level)
         filesize = os.path.getsize(input_file)
         if(filesize < 18456 * 2):  # based on the observation that a file with such a small filesize is corrupt
             self.logger.warning("file {} seems to be corrupt".format(input_file))
-        self.__corsika = coreas.read_CORSIKA7(input_file)
-        self.logger.info(f"using coreas simulation {input_file} with E={self.__corsika.get_first_sim_shower().get_parameter(shp.energy):.2g}eV, zenith angle = {self.__corsika.get_first_sim_shower().get_parameter(shp.zenith) / units.deg:.0f}deg")
+        self.__corsika_evt = coreas.read_CORSIKA7(input_file)
+        self.logger.info(f"using coreas simulation {input_file} with E={self.__corsika_evt.get_first_sim_shower().get_parameter(shp.energy):.2g}eV, zenith angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.zenith) / units.deg:.0f}deg")
 
         self.__interp_lowfreq = interp_lowfreq
         self.__interp_highfreq = interp_highfreq
 
-        self.debug = debug
-        self.coreasInterpolator = coreas.coreasInterpolator(self.__corsika)
+        self.coreasInterpolator = coreas.coreasInterpolator(self.__corsika_evt)
         self.coreasInterpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
 
     @register_run()
@@ -144,13 +170,13 @@ class readCoREASDetector():
 
         for iCore, core in enumerate(core_position_list):
             t = time.time()
-            evt = NuRadioReco.framework.event.Event(self.__corsika.get_run_number(), iCore)  # create empty event
-            sim_shower = self.__corsika.get_first_sim_shower()
+            evt = NuRadioReco.framework.event.Event(self.__corsika_evt.get_run_number(), iCore)  # create empty event
+            sim_shower = self.__corsika_evt.get_first_sim_shower()
             sim_shower.set_parameter(shp.core, core)
             evt.add_sim_shower(sim_shower)
             # rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=selected_station_ids)
             # evt.add_shower(rd_shower)
-            corsika_sim_stn = self.__corsika.get_station(0).get_sim_station()
+            corsika_sim_stn = self.__corsika_evt.get_station(0).get_sim_station()
             for station_id in selected_station_ids:
                 station = NuRadioReco.framework.station.Station(station_id)
                 sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
