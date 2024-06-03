@@ -885,15 +885,15 @@ class Database(object):
             supp_info = {k.replace(component + "_", ""): additional_information[k] for k in additional_information
                          if re.search(component, k)}
 
-            if re.search("golden", component, re.IGNORECASE):
-                collection_component = component.replace("_1", "").replace("_2", "")
-                # load the s21 parameter measurement
-                component_data = self.get_component_data(
-                    collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
+            if re.search("_\d+", component, re.IGNORECASE):
+                collection_suffix = re.findall("(_\d+)", component, re.IGNORECASE)[0]
+                collection_component = component.replace(collection_suffix, "")
             else:
-                # load the s21 parameter measurement
-                component_data = self.get_component_data(
-                    component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
+                collection_component = component
+
+            # load the s21 parameter measurement
+            component_data = self.get_component_data(
+                collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
 
             # add the component name, the weight of the s21 measurement and the actual s21 measurement (component_data) to a combined dictionary
             components_data[component] = {'name': component_id}
