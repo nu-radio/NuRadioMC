@@ -11,8 +11,13 @@ To describe the detector at any time we use two different time variables, the `d
 Database data structure
 -----------------------
 
-The database is organized in collections. Each collection contains a list of objects which contain our data. The primary collection which describes our detector is the called `station_rnog`. This collection contains the `station list` which describes which station are deployed, when they were deployed. Each station has a list of its deployed channels. The information of the stations and channels positions is organized in seperate collections. Also the response of the different components in a channel's signal chain are stored in other collections. 
+The database is organized in collections. Each collection contains a list of objects which contain our data. The primary collection which describes our detector is the called `station_rnog`. This collection contains the `station list` which describes which station are deployed, when they were deployed. Each station has a list of its deployed channels. The information of the stations and channels positions is organized in seperate collections. Also the response of the different components in a channel's signal chain are stored in other collections.
 
+
+Signal Chain
+------------
+
+Each channel has a "signal chain" which is basically a list of all the individual reponses which are necessary to describe the entire analog response of this channel. This list is implemented as dictionary, the key of the dictionary is also the name of the collection in which it looks for the specified response (value). The key can have a suffix like `_1` which allows to specify several response from the same collection to be added to the signal chain.
 
 
 Detector class

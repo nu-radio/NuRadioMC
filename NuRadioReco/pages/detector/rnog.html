@@ -228,6 +228,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">The RNO-G detector class and database interface</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#detector-time-and-database-time">Detector time and database time</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#database-data-structure">Database data structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#signal-chain">Signal Chain</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#detector-class">Detector class</a></li>
 </ul>
 </li>
@@ -610,6 +611,10 @@
 <section id="database-data-structure">
 <h2>Database data structure<a class="headerlink" href="#database-data-structure" title="Permalink to this heading"></a></h2>
 <p>The database is organized in collections. Each collection contains a list of objects which contain our data. The primary collection which describes our detector is the called <em class="xref py py-obj">station_rnog</em>. This collection contains the <em class="xref py py-obj">station list</em> which describes which station are deployed, when they were deployed. Each station has a list of its deployed channels. The information of the stations and channels positions is organized in seperate collections. Also the response of the different components in a channel’s signal chain are stored in other collections.</p>
+</section>
+<section id="signal-chain">
+<h2>Signal Chain<a class="headerlink" href="#signal-chain" title="Permalink to this heading"></a></h2>
+<p>Each channel has a “signal chain” which is basically a list of all the individual reponses which are necessary to describe the entire analog response of this channel. This list is implemented as dictionary, the key of the dictionary is also the name of the collection in which it looks for the specified response (value). The key can have a suffix like <em class="xref py py-obj">_1</em> which allows to specify several response from the same collection to be added to the signal chain.</p>
 </section>
 <section id="detector-class">
 <h2>Detector class<a class="headerlink" href="#detector-class" title="Permalink to this heading"></a></h2>
