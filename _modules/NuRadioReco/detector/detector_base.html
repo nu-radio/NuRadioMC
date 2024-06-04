@@ -1549,7 +1549,7 @@
 
 <div class="viewcode-block" id="DetectorBase.get_channel_group_id"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_channel_group_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel_group_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the group ID of a channel</span>
+<span class="sd">        returns the group ID of a channel. If the channel has no group ID, the channel ID is returned.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1564,11 +1564,11 @@
 <span class="sd">            the channel group ID</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;channel_group_id&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s1">&#39;Channel group ID not set for channel </span><span class="si">{}</span><span class="s1"> in station </span><span class="si">{}</span><span class="s1">, returning -1&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="k">if</span> <span class="s1">&#39;channel_group_id&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;Channel group ID not set for channel </span><span class="si">{}</span><span class="s1"> in station </span><span class="si">{}</span><span class="s1">, returning channel_id&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">channel_id</span><span class="p">,</span> <span class="n">station_id</span><span class="p">))</span>
-            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">return</span> <span class="n">channel_id</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;channel_group_id&#39;</span><span class="p">]</span></div>
 
