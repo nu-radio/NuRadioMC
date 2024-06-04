@@ -49,6 +49,27 @@ def _keys_not_in_dict(d, keys):
 
     return False
 
+def replace_value_in_dict(d, keys, value):
+    """
+    Replaces the value of a nested dict entry.
+
+    Example:
+
+        d = {1: {2: {3: 1, 4: 2}}}
+        replace_value_in_dict(d, [1, 2, 4], 14)
+        print(d)
+        # {1: {2: {3: 1, 4: 14}}}
+
+    """
+    d_tmp = d
+    while True:
+        key = keys.pop(0)  # get the first key
+        if not len(keys):
+            d_tmp[key] = value
+            break
+        else:
+            d_tmp = d_tmp[key]
+
 
 def _check_detector_time(method):
     @wraps(method)
@@ -1144,6 +1165,7 @@ class Detector():
         """
         return self.get_time_delay(station_id, channel_id, cable_only=True, use_stored=use_stored)
 
+
     def get_time_delay(self, station_id, channel_id, cable_only=False, use_stored=True):
         """ Return the sum of the time delay of all components in the signal chain calculated from the phase
 
@@ -1212,6 +1234,38 @@ class Detector():
             Returns "summit"
         """
         return "summit"
+
+    def modify_channel_description(self, station_id, channel_id, keys, value):
+        """
+        This function allows you to replace/modifty the description of a channel.
+
+        Parameters
+        ----------
+
+        station_id: int
+            The station id
+
+        channel_id: int
+            The channel id
+
+        keys: list of str
+            The list of keys of the corresponding part of the description to be changed
+
+        value: various types
+            The value of the description to be changed
+        """
+
+        if not self.has_station(station_id):
+            err = f"Station id {station_id} not commission at {self.get_detector_time()}"
+            self.logger.error(err)
+            raise ValueError(err)
+
+        channel_dict = self.__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True)
+        if _keys_not_in_dict(channel_dict, keys):  # to simplify the code here all keys have to exist already
+            raise KeyError(
+                f"Could not find {keys} for station.channel {station_id}.{channel_id}.")
+
+        replace_value_in_dict(self.__get_channel, keys, value)
 
 
 if __name__ == "__main__":
