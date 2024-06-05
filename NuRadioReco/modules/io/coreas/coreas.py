@@ -11,8 +11,8 @@ import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
-import cr_pulse_interpolator.self.__corsika_evt
 import cr_pulse_interpolator.interpolation_fourier
+import cr_pulse_interpolator.signal_interpolation_fourier
 import logging
 import copy
 import h5py
@@ -627,7 +627,7 @@ class coreasInterpolator:
             self.efield_interpolator = -1
         else:
             logger.info(f'electric field interpolation with lowfreq {interp_lowfreq/units.MHz} MHz and highfreq {interp_highfreq/units.MHz} MHz')
-            self.efield_interpolator = cr_pulse_interpolator.self.__corsika_evt.interp2d_signal(
+            self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
                 self.obs_positions_vxB_vxvxB[:, 0],
                 self.obs_positions_vxB_vxvxB[:, 1],
                 self.electric_field_on_sky,
