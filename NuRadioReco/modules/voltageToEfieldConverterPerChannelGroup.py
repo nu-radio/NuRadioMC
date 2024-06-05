@@ -72,6 +72,11 @@ class voltageToEfieldConverterPerChannelGroup:
 
         group_ids = select_channels_per_station(det, station.get_id(), station.get_channel_ids())
         for gid, use_channels in group_ids.items():
+            pos = []
+            for channel_id in use_channels:
+                pos.append(det.get_relative_position(station.get_id(), channel_id))
+            pos = np.array(pos)
+            pos = np.average(pos, axis=0)
             efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det,
                                                                             zenith, azimuth, self.antenna_provider)
             V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
@@ -90,6 +95,7 @@ class voltageToEfieldConverterPerChannelGroup:
             E2[mask] = (V[-1] - efield_antenna_factor[-1][0] * E1)[mask] / efield_antenna_factor[-1][1][mask]
 
             efield = ef.ElectricField(use_channels)
+            efield.set_position(pos)
             efield.set_frequency_spectrum(np.array([np.zeros_like(E1), E1, E2]), sampling_rate)
 
             efield.set_trace_start_time(station.get_channel(use_channels[0]).get_trace_start_time())
