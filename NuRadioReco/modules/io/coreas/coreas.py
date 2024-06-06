@@ -16,7 +16,7 @@ import cr_pulse_interpolator.signal_interpolation_fourier
 import logging
 import copy
 import h5py
-logger = logging.getLogger('coreas')
+logger = logging.getLogger('NuRadioReoc.coreas')
 logger.setLevel(logging.INFO)
 
 warning_printed_coreas_py = False
@@ -734,20 +734,20 @@ class coreasInterpolator:
         efield_interp : float
             interpolated efield value or efield of clostest observer
         """
-        logger.info(f"get interpolated efield for antenna position {position_on_ground} on ground and core position {core}")
+        logger.debug(f"get interpolated efield for antenna position {position_on_ground} on ground and core position {core}")
         antenna_position = copy.copy(position_on_ground)
         #core and antenna need to be in the same z plane
         antenna_position[2] = core[2]
         # transform antenna position into shower plane with respect to core position, core position is set to 0,0 in shower plane
         antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(antenna_position, core=core)
-        logger.info(f"antenna position in shower plane {antenna_pos_vBvvB}")
+        logger.debug(f"antenna position in shower plane {antenna_pos_vBvvB}")
 
         # calculate distance between core position at(0,0) and antenna positions in shower plane
         dcore_vBvvB = np.linalg.norm(antenna_pos_vBvvB[:-1])
         # interpolate electric field at antenna position in shower plane which are inside star pattern
         if dcore_vBvvB > self.star_radius:
             efield_interp = self.empty_efield
-            logger.info(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, set efield and fluence to zero')
+            logger.debug(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, set efield and fluence to zero')
         else:
             if self.efield_interpolator == -1:
                 efield = self.get_closest_observer_efield(antenna_pos_vBvvB)
@@ -797,13 +797,13 @@ class coreasInterpolator:
         # interpolate electric field at antenna position in shower plane which are inside star pattern
         if dcore_vBvvB > self.star_radius:
             fluence_interp = 0
-            logger.info(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, set efield and fluence to zero')
+            logger.debug(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, set efield and fluence to zero')
         else:
             fluence_interp = self.fluence_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1])
 
-        #check if interpolation is within expected range
-        if np.max(np.abs(fluence_interp)) > self.max_coreas_efield:
-            logger.warning(f'interpolated fluence {np.max(np.abs(fluence_interp)):.2f} is larger than the maximum coreas efield {self.max_coreas_efield:.2f}')
+        # #check if interpolation is within expected range
+        # if np.max(np.abs(fluence_interp)) > self.max_coreas_efield:
+        #     logger.warning(f'interpolated fluence {np.max(np.abs(fluence_interp)):.2f} is larger than the maximum coreas efield {self.max_coreas_efield:.2f}')
         return fluence_interp
 
 
