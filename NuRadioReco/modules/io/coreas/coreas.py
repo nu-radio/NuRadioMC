@@ -23,7 +23,7 @@ warning_printed_coreas_py = False
 
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
-def get_angles(corsika):
+def get_angles(corsika, declination):
     """
     Converting angles in corsika coordinates to local coordinates. 
     
@@ -37,10 +37,17 @@ def get_angles(corsika):
     
     NuRadio describes the particle zenith and azimuthal angle in the direction where the particle is coming from. 
     Therefore the zenith angle is the same, but the azimuthal angle has to be shifted by 180 + 90 degrees. The north has to be shifted by 90 degrees plus difference in geomagetic and magnetic north.
+
+
+    Parameters
+    ----------
+    corsika : hdf5 file object
+        the open hdf5 file object of the corsika hdf5 file
+    declination : float
+        declination of the magnetic field
     """
-    #TODO difference between magnetic and geographic north, sofar 90deg is assumed
     zenith = np.deg2rad(corsika['inputs'].attrs["THETAP"][0])
-    azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]))
+    azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]) + declination)  # TODO: check if sign of declination is correct is correct
 
     Bx, Bz = corsika['inputs'].attrs["MAGNET"]
     B_inclination = np.arctan2(Bz, Bx)
@@ -48,7 +55,7 @@ def get_angles(corsika):
     B_strength = (Bx ** 2 + Bz ** 2) ** 0.5 * units.micro * units.tesla
 
     # in local coordinates north is + 90 deg
-    magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, 0 + np.pi * 0.5)
+    magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, declination + np.pi * 0.5)  # TODO: check if sign of declination is correct is correct
 
     return zenith, azimuth, magnetic_field_vector
 
@@ -164,7 +171,7 @@ def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field
 
     return obs_positions_vxB_vxvxB
 
-def read_CORSIKA7(input_file):
+def read_CORSIKA7(input_file, declination=None):
     """
     this function reads the corsika hdf5 file and returns a sim_station with all relevent information from the file
 
@@ -173,9 +180,12 @@ def read_CORSIKA7(input_file):
     input_file : string
         path to the corsika hdf5 file
     """
+    if(declination is None):
+        declination = 0
+        logger.warning("No declination given, assuming 0 degree. This might need to incorrect electric field polarizations.")
     corsika = h5py.File(input_file, "r")
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
-    zenith, azimuth, magnetic_field_vector = get_angles(corsika)
+    zenith, azimuth, magnetic_field_vector = get_angles(corsika, declination)
     
     sim_shower = NuRadioReco.framework.radio_shower.RadioShower()
     sim_shower.set_parameter(shp.zenith, zenith)
