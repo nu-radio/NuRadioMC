@@ -660,7 +660,7 @@
 <div class="viewcode-block" id="Detector"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector">[docs]</a><span class="k">class</span> <span class="nc">Detector</span><span class="p">():</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s1">&#39;RNOG_test_public&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">over_write_handset_values</span><span class="o">=</span><span class="p">{},</span>
                  <span class="n">database_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detector_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">select_stations</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">select_stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create_new</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Parameters</span>
@@ -677,7 +677,7 @@
 <span class="sd">            Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.</span>
 <span class="sd">            (Default: {}, the acutally default values for the parameters in question are defined below)</span>
 
-<span class="sd">        database_time : `datetime.datetime` or ``astropy.time.Time``</span>
+<span class="sd">        database_time : `datetime.datetime` or `astropy.time.Time`</span>
 <span class="sd">            Set database time which is used to select the primary measurement. By default (= None) the database time</span>
 <span class="sd">            is set to now (time the code is running) to select the measurement which is now primary.</span>
 
@@ -691,6 +691,10 @@
 <span class="sd">            Select a station or list of stations using their station ids for which the describtion is provided.</span>
 <span class="sd">            This is useful for example in simulations when one wants to simulate only one station. The default None</span>
 <span class="sd">            means to descibe all commissioned stations.</span>
+
+<span class="sd">        create_new : bool (Default: False)</span>
+<span class="sd">            If False, and a database already exists, the existing database will be used rather than initializing a</span>
+<span class="sd">            new connection. Set to True to create a new database connection.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.RNOGdetector&quot;</span><span class="p">)</span>
@@ -712,7 +716,7 @@
         <span class="k">if</span> <span class="n">detector_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_det_imported_from_file</span> <span class="o">=</span> <span class="kc">False</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">__db</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">database_connection</span><span class="o">=</span><span class="n">database_connection</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__db</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">database_connection</span><span class="o">=</span><span class="n">database_connection</span><span class="p">,</span> <span class="n">create_new</span><span class="o">=</span><span class="n">create_new</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">database_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__db</span><span class="o">.</span><span class="n">set_database_time</span><span class="p">(</span><span class="n">database_time</span><span class="p">)</span>
 
