@@ -490,18 +490,6 @@ def get_antenna_model_file(station_type):
     return antenna_model_file
 
 
-def get_relative_position(station, channel):
-    # default 4 antenna station
-    if station == 41:
-        rel_pos = {0: np.array([0, 4, 0]) * units.m, 1: np.array([4, 0, 0]) * units.m,
-                   2: np.array([0, -4, 0]) * units.m, 3: np.array([-4, 0, 0]) * units.m}
-    else:
-        logger.debug("Getting antenna positions for default station.")
-        rel_pos = {0: np.array([0, 3, 0]) * units.m, 1: np.array([3, 0, 0]) * units.m,
-                   2: np.array([0, -3, 0]) * units.m, 3: np.array([-3, 0, 0]) * units.m}
-    return rel_pos[channel]
-
-
 def get_relative_positions(station):
     # default 4 antenna station
     if station == 41:
@@ -512,6 +500,11 @@ def get_relative_positions(station):
         rel_pos = {0: np.array([0, 3, 0]) * units.m, 1: np.array([3, 0, 0]) * units.m,
                    2: np.array([0, -3, 0]) * units.m, 3: np.array([-3, 0, 0]) * units.m}
     return rel_pos
+
+
+def get_relative_position(station, channel):
+    rel_pos = get_relative_positions(station)
+    return rel_pos[channel]
 
 
 def get_antenna_type(station_type, channel):

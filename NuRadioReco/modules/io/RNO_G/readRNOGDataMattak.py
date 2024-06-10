@@ -18,46 +18,17 @@ import NuRadioReco.framework.parameters
 from NuRadioReco.utilities import units
 import mattak.Dataset
 
-import string
-import random
-
-
-def _create_random_directory_path(prefix="/tmp/", n=7):
-    """
-    Produces a path for a temporary directory with a n letter random suffix
-
-    Parameters
-    ----------
-
-    prefix: str
-        Path prefix, i.e., root directory. (Defaut: /tmp/)
-
-    n: int
-        Number of letters for the random suffix. (Default: 7)
-
-    Returns
-    -------
-
-    path: str
-        Return path (e.g, /tmp/readRNOGData_XXXXXXX)
-    """
-    # generating random strings
-    res = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
-    path = os.path.join(prefix, "readRNOGData_" + res)
-
-    return path
-
 
 def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     """
-    Simple baseline correction function. 
-    
+    Simple baseline correction function.
+
     Determines baseline in discrete chuncks of "n_bins" with
     the function specified (i.e., mean or median).
 
     .. Warning:: This function has been deprecated, use :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
       instead
-    
+
     Parameters
     ----------
 
@@ -69,10 +40,10 @@ def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
 
     func: np.mean or np.median
         Function to calculate pedestal
-    
+
     return_offsets: bool, default False
         if True, additionally return the baseline offsets
-    
+
     Returns
     -------
 
@@ -86,6 +57,7 @@ def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     warnings.warn(
         'baseline_correction is deprecated, use NuRadioReco.modules.RNO_G.channelBlockOffsetFitter instead',
         DeprecationWarning)
+
     # Example: Get baselines in chunks of 128 bins
     # wfs in (n_events, n_channels, 2048)
     # np.split -> (16, n_events, n_channels, 128) each waveform split in 16 chuncks
@@ -102,10 +74,10 @@ def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
 
     # np.moveaxis -> (n_events, n_channels, 2048)
     baseline_traces = np.moveaxis(baseline_traces, 0, -1)
-     
+
     if return_offsets:
         return wfs - baseline_traces, baseline_values
-    
+
     return wfs - baseline_traces
 
 
@@ -182,6 +154,11 @@ def _all_files_in_directory(mattak_dir):
     return True
 
 
+def _convert_to_astropy_time(t):
+    """ Convert to astropy.time.Time """
+    return None if t is None else astropy.time.Time(t)
+
+
 class readRNOGData:
 
     def __init__(self, run_table_path=None, load_run_table=True, log_level=logging.INFO):
@@ -226,7 +203,7 @@ class readRNOGData:
         self.logger.setLevel(log_level)
 
         self._blockoffsetfitter = channelBlockOffsets()
-     
+
         # Initialize run table for run selection
         self.__run_table = None
 
@@ -296,7 +273,7 @@ class readRNOGData:
 
         Other Parameters
         ----------------
-        
+
         apply_baseline_correction: 'approximate' | 'fit' | 'none'
             Only applies when non-calibrated data are read. Removes the DC (baseline)
             block offsets (pedestals).
@@ -334,7 +311,8 @@ class readRNOGData:
             pyroot is used if available otherwise a "fallback" to uproot is used. (Default: "auto")
 
         overwrite_sampling_rate: float
-            Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo (i.e., stored in the mattak files).
+            Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo
+            (i.e., stored in the mattak files) only when the stored sampling rate is invalid (i.e. 0 or None).
             If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
             NOTE: This option might be necessary when old mattak files are read which have this not set.
         """
@@ -363,9 +341,8 @@ class readRNOGData:
         self.__run_types = run_types
 
         if run_time_range is not None:
-            convert_time = lambda t: None if t is None else astropy.time.Time(t)
-            self._time_low = convert_time(run_time_range[0])
-            self._time_high = convert_time(run_time_range[1])
+            self._time_low = _convert_to_astropy_time(run_time_range[0])
+            self._time_high = _convert_to_astropy_time(run_time_range[1])
         else:
             self._time_low = None
             self._time_high = None
@@ -413,28 +390,9 @@ class readRNOGData:
                 if not _all_files_in_directory(dir_file):
                     self.logger.error(f"Incomplete directory: {dir_file}. Skip ...")
                     continue
-            else:
-                # Providing direct paths to a Mattak combined.root file is not supported by the mattak library yet.
-                # It only accepts directry paths in which it will look for a file called `combined.root` (or waveforms.root if
-                # it is not a combined file). To work around this: Create a tmp directory under `/tmp/`, link the file you want to
-                # read into this directory with the the name `combined.root`, use this path to read the run.
-
-                path = _create_random_directory_path()
-                self.logger.debug(f"Create temporary directory: {path}")
-                if os.path.exists(path):
-                    raise ValueError(f"Temporary directory {path} already exists.")
-
-                os.mkdir(path)
-                self.__temporary_dirs.append(path)  # for housekeeping
-
-                self.logger.debug(f"Create symlink for {dir_file}")
-                os.symlink(os.path.abspath(dir_file), os.path.join(path, "combined.root"))
-
-                dir_file = path  # set path to e.g. /tmp/NuRadioReco_XXXXXXX/combined.root
-
 
             try:
-                dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
+                dataset = mattak.Dataset.Dataset(station=0, run=0, data_path=dir_file, verbose=verbose, **mattak_kwargs)
             except (ReferenceError, KeyError) as e:
                 self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
                 continue
@@ -536,7 +494,7 @@ class readRNOGData:
                 return False
 
         run_type = run_info["run_type"].values[0]
-        if not run_type in self.__run_types:
+        if run_type not in self.__run_types:
             self.logger.info(f"Reject station {station_id} run {run_id} because of run type {run_type}")
             return False
 
@@ -600,7 +558,7 @@ class readRNOGData:
             for selector in self._selectors:
                 if not selector(evtinfo):
                     self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
-                                      f"event number {evtinfo.eventNumber}) is skipped.")
+                                      f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
                     self.__skipped += 1
                     return True
 
@@ -713,7 +671,8 @@ class readRNOGData:
         """
 
         trigger_time = event_info.triggerTime
-        if self._overwrite_sampling_rate is not None:
+        # only overwrite sampling rate if the stored value is invalid
+        if self._overwrite_sampling_rate is not None and event_info.sampleRate in [0, None]:
             sampling_rate = self._overwrite_sampling_rate
         else:
             sampling_rate = event_info.sampleRate
@@ -897,14 +856,16 @@ class readRNOGData:
     def end(self):
         if self.__counter:
             self.logger.info(
-                f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)"
+                f"\n\tRead {self.__counter} events ({self.__skipped} events are skipped (filtered), {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s"
                 f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
                 f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
         else:
-            self.logger.info(
-                f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)")
+            self.logger.warning(
+                f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
+                f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
+                f"\n\tTime to read all events       : {self._time_run:.2f}s")
 
         # Clean up links and temporary directories.
         for d in self.__temporary_dirs:
