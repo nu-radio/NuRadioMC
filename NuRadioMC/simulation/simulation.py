@@ -9,6 +9,7 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
+from numpy.random import Generator, Philox
 import h5py
 import time
 import six
@@ -25,11 +26,11 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
-import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
+import NuRadioReco.framework.sim_emitter
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -37,36 +38,21 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 # parameters describing simulated Monte Carlo particles
 from NuRadioReco.framework.parameters import particleParameters as simp
+from NuRadioReco.framework.parameters import emitterParameters as ep
 # parameters set in the event generator
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import datetime
 import logging
+import warnings
 from six import iteritems
 import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
+import logging
+from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
 
-STATUS = 31
-
-# logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
-
-
-class NuRadioMCLogger(logging.Logger):
-
-    def status(self, msg, *args, **kwargs):
-        if self.isEnabledFor(STATUS):
-            self._log(STATUS, msg, args, **kwargs)
-
-
-logging.setLoggerClass(NuRadioMCLogger)
-logging.addLevelName(STATUS, 'STATUS')
-logger = logging.getLogger("NuRadioMC")
-assert isinstance(logger, NuRadioMCLogger)
-# formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
-# ch = logging.StreamHandler()
-# ch.setFormatter(formatter)
-# logger.addHandler(ch)
+logger = setup_logger("NuRadioMC.simulation")
 
 
 def pretty_time_delta(seconds):
@@ -98,12 +84,14 @@ class simulation:
 
     def __init__(self, inputfilename,
                  outputfilename,
-                 detectorfile,
+                 detectorfile=None,
+                 det=None,
+                 det_kwargs={},
                  outputfilenameNuRadioReco=None,
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
-                 log_level=logging.WARNING,
+                 log_level=LOGGING_STATUS,
                  default_detector_station=None,
                  default_detector_channel=None,
                  file_overwrite=False,
@@ -124,6 +112,10 @@ class simulation:
             specify hdf5 output filename.
         detectorfile: string
             path to the json file containing the detector description
+        det: detector object
+            Pass a detector class object
+        det_kwargs: dict
+            Pass arguments to the detector (only used when det == None)
         station_id: int
             the station id for which the simulation is performed. Must match a station
             deself._fined in the detector description
@@ -157,8 +149,9 @@ class simulation:
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
         """
         logger.setLevel(log_level)
-        if 'write_mode' in kwargs.keys():
+        if 'write_mode' in kwargs:
             logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
+
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
@@ -177,6 +170,8 @@ class simulation:
             # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
+
+        self._rnd = Generator(Philox(self._cfg['seed']))
 
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
@@ -212,19 +207,15 @@ class simulation:
         self._mout_groups = collections.OrderedDict()
         self._mout_attrs = collections.OrderedDict()
 
-        # read in detector positions
-        logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
-        self._det = None
-        if default_detector_station is not None:
-            logger.warning(
-                'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
-                'channel should be specified in the detector description directly.'
-            )
-            logger.status(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
-            self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
-                                                 default_channel=default_detector_channel, antenna_by_depth=False)
+        # Initialize detector
+        if det is None:
+            logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
+            kwargs = dict(json_filename=self._detectorfile, default_station=default_detector_station,
+                              default_channel=default_detector_channel, antenna_by_depth=False)
+            kwargs.update(det_kwargs)
+            self._det = detector.Detector(**kwargs)
         else:
-            self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
+            self._det = det
 
         self._det.update(evt_time)
 
@@ -263,11 +254,12 @@ class simulation:
             logger.status(f"input file {self._inputfilename} is empty")
             return
 
-        ################################
-        # perfom a dummy detector simulation to determine how the signals are filtered
-        self._bandwidth_per_channel = {}  # this variable stores the integrated channel response for each channel, i.e.
-        # the integral of the squared signal chain response over all frequencies, int S21^2 df. For a system without
-        # amplification, it is equivalent to the bandwidth of the system. 
+        # Perfom a dummy detector simulation to determine how the signals are filtered.
+        # This variable stores the integrated channel response for each channel, i.e.
+        # the integral of the squared signal chain response over all frequencies, int S21^2 df.
+        # For a system without amplification, it is equivalent to the bandwidth of the system.
+        self._integrated_channel_response = {}
+
         self._integrated_channel_response_normalization = {}
         self._max_amplification_per_channel = {}
         self.__noise_adder_normalization = {}
@@ -307,7 +299,7 @@ class simulation:
             # run detector simulation
             self._detector_simulation_filter_amp(self._evt, self._station, self._det)
 
-            self._bandwidth_per_channel[self._station_id] = {}
+            self._integrated_channel_response[self._station_id] = {}
             self._integrated_channel_response_normalization[self._station_id] = {}
             self._max_amplification_per_channel[self._station_id] = {}
 
@@ -325,14 +317,14 @@ class simulation:
                 self._integrated_channel_response_normalization[self._station_id][channel_id] = mean_integrated_response
 
                 integrated_channel_response = np.trapz(np.abs(filt) ** 2, ff)
-                self._bandwidth_per_channel[self._station_id][channel_id] = integrated_channel_response
+                self._integrated_channel_response[self._station_id][channel_id] = integrated_channel_response
 
                 logger.debug(f"Station.channel {self._station_id}.{channel_id} estimated bandwidth is "
                              f"{integrated_channel_response / mean_integrated_response / units.MHz:.1f} MHz")
 
         ################################
 
-        self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))  # get value of first station/channel key pair
+        self._bandwidth = next(iter(next(iter(self._integrated_channel_response.values())).values()))  # get value of first station/channel key pair
         norm = next(iter(next(iter(self._integrated_channel_response_normalization.values())).values()))
         amplification = next(iter(next(iter(self._max_amplification_per_channel.values())).values()))
 
@@ -355,8 +347,8 @@ class simulation:
                 logger.status(f"Use a noise temperature of {noise_temp / units.kelvin:.1f} K for each channel to determine noise Vrms.")
 
             self._noiseless_channels = collections.defaultdict(list)
-            for station_id in self._bandwidth_per_channel:
-                for channel_id in self._bandwidth_per_channel[station_id]:
+            for station_id in self._integrated_channel_response:
+                for channel_id in self._integrated_channel_response[station_id]:
                     if self._noise_temp is None:
                         noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
                     else:
@@ -369,7 +361,7 @@ class simulation:
                     # (last two Eqs. in "noise voltage and power" section) or our wiki https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
 
                     # Bandwidth, i.e., \Delta f in equation
-                    integrated_channel_response = self._bandwidth_per_channel[station_id][channel_id]
+                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
                     max_amplification = self._max_amplification_per_channel[station_id][channel_id]
 
                     self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
@@ -391,15 +383,15 @@ class simulation:
             self._noise_temp = None
             logger.status(f"Use a fix noise Vrms of {self._Vrms / units.mV:.2f} mV in each channel.")
 
-            for station_id in self._bandwidth_per_channel:
+            for station_id in self._integrated_channel_response:
 
-                for channel_id in self._bandwidth_per_channel[station_id]:
+                for channel_id in self._integrated_channel_response[station_id]:
                     max_amplification = self._max_amplification_per_channel[station_id][channel_id]
                     self._Vrms_per_channel[station_id][channel_id] = self._Vrms  # to be stored in the hdf5 file
                     self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms / max_amplification / units.m  # VEL = 1m
 
                     # for logging
-                    integrated_channel_response = self._bandwidth_per_channel[station_id][channel_id]
+                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
                     mean_integrated_response = self._integrated_channel_response_normalization[self._station_id][channel_id]
 
                     logger.status(f'Station.channel {station_id}.{channel_id:02d}: '
@@ -660,6 +652,16 @@ class simulation:
                     if particle_mode:
                         self._create_sim_shower()  # create sim shower
                         self._evt_tmp.add_sim_shower(self._sim_shower)
+                    else:
+                        emitter_obj = NuRadioReco.framework.sim_emitter.SimEmitter(self._shower_index)  # shower_id is equivalent to emitter_id in this case
+                        emitter_obj[ep.position] = np.array([self._fin['xx'][self._primary_index], self._fin['yy'][self._primary_index], self._fin['zz'][self._primary_index]])
+                        emitter_obj[ep.model] = self._fin['emitter_model'][self._primary_index]
+                        emitter_obj[ep.amplitude] = self._fin['emitter_amplitudes'][self._primary_index]
+                        for key in ep:
+                            if not emitter_obj.has_parameter(key):
+                                if 'emitter_' + key.name in self._fin:
+                                    emitter_obj[key] = self._fin['emitter_' + key.name][self._primary_index]
+                        self._evt_tmp.add_sim_emitter(emitter_obj)
 
                     # generate unique and increasing event id per station
                     self._event_ids_counter[self._station_id] += 1
@@ -818,26 +820,51 @@ class simulation:
                             elif self._fin_attrs['simulation_mode'] == "emitter":
                                 # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
                                 amplitude = self._fin['emitter_amplitudes'][self._shower_index]
-                                # following two lines used only for few models( not for all)
-                                emitter_frequency = self._fin['emitter_frequency'][self._shower_index]  # the frequency of cw and tone_burst signal
-                                half_width = self._fin['emitter_half_width'][self._shower_index]  # defines width of square and tone_burst signals
-                                # get emitting antenna properties
-                                antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
-                                antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
-                                ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
-                                       self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
+                                emitter_model = self._fin['emitter_model'][self._shower_index]
+                                emitter_kwargs = {}
+                                emitter_kwargs["launch_vector"] = self._launch_vector
+                                for key in self._fin.keys():
+                                    if key not in ['emitter_amplitudes', 'emitter_model']:
+                                        if key.startswith("emitter_"):
+                                            emitter_kwargs[key[8:]] = self._fin[key][self._shower_index]
 
-                                # source voltage given to the emitter
-                                voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
-                                                                                          self._fin['emitter_model'][self._shower_index], half_width=half_width, emitter_frequency=emitter_frequency)
-                                # convolve voltage output with antenna response to obtain emitted electric field
-                                frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
-                                zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
-                                VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
-                                c = constants.c * units.m / units.s
-                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
-                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
-                                eR = np.zeros_like(eTheta)
+                                if emitter_model.startswith("efield_"):
+                                    if emitter_model == "efield_idl1_spice":
+                                        if "emitter_realization" in self._fin:
+                                            emitter_kwargs['iN'] = self._fin['emitter_realization'][self._shower_index]
+                                        elif emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_kwargs['iN'] = emitter_obj.get_parameter(ep.realization_id)
+                                        else:
+                                            emitter_kwargs['rnd'] = self._rnd
+
+                                    (eR, eTheta, ePhi), additional_output = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs, full_output=True)
+                                    if emitter_model == "efield_idl1_spice":
+                                        if 'emitter_realization' not in self._mout:
+                                            self._mout['emitter_realization'] = np.zeros(self._n_showers)
+                                        if not emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_obj.set_parameter(ep.realization_id, additional_output['iN'])
+                                            self._mout['emitter_realization'][self._shower_index] = additional_output['iN']
+                                            logger.debug(f"setting emitter realization to i = {additional_output['iN']}")
+                                else:
+                                    # the emitter fuction returns the voltage output of the pulser. We need to convole with the antenna response of the emitting antenna
+                                    # to obtain the emitted electric field.
+                                    # get emitting antenna properties
+                                    antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
+                                    antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
+                                    ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
+                                           self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
+
+                                    # source voltage given to the emitter
+                                    voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
+                                                                                              emitter_model, **emitter_kwargs)
+                                    # convolve voltage output with antenna response to obtain emitted electric field
+                                    frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
+                                    zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
+                                    VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
+                                    c = constants.c * units.m / units.s
+                                    eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
+                                    ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
+                                    eR = np.zeros_like(eTheta)
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
                                 eTheta *= 1 / R
                                 ePhi *= 1 / R
@@ -985,6 +1012,9 @@ class simulation:
                         # add showers that contribute to this (sub) event to event structure
                         for shower_id in self._shower_ids_of_sub_event:
                             self._evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
+                    else:
+                        for shower_id in self._shower_ids_of_sub_event:
+                            self._evt.add_sim_emitter(self._evt_tmp.get_sim_emitter(shower_id))
                     self._station.set_sim_station(sim_station)
                     self._station.set_station_time(self._evt_time)
                     self._evt.set_station(self._station)
@@ -1008,7 +1038,7 @@ class simulation:
                             channel_ids = self._det.get_channel_ids(self._station.get_id())
                             Vrms = {}
                             for channel_id in channel_ids:
-                                norm = self._bandwidth_per_channel[self._station.get_id()][channel_id]
+                                norm = self._integrated_channel_response[self._station.get_id()][channel_id]
                                 Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                                          max_freq=max_freq, type='rayleigh', excluded_channels=self._noiseless_channels[station_id])
@@ -1071,10 +1101,11 @@ class simulation:
             self._eventWriter.end()
             logger.debug("closing nur file")
 
-        try:
-            self.calculate_Veff()
-        except:
-            logger.error("error in calculating effective volume")
+        if "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] == "neutrino": # only calcualte Veff for neutrino simulations
+            try:
+                self.calculate_Veff()
+            except:
+                logger.error("error in calculating effective volume")
 
         t_total = time.time() - t_start
         outputTime = time.time() - t5
@@ -1303,11 +1334,19 @@ class simulation:
         checks if the same detector was simulated before (then we can save the ray tracing part)
         """
         self._was_pre_simulated = False
+
         if 'detector' in self._fin_attrs:
-            with open(self._detectorfile, 'r') as fdet:
-                if fdet.read() == self._fin_attrs['detector']:
+            if isinstance(self._det, detector.rnog_detector.Detector):
+                if self._det.export_as_string() == self._fin_attrs['detector']:
                     self._was_pre_simulated = True
-                    logger.status("the simulation was already performed with the same detector")
+            else:
+                with open(self._detectorfile, 'r') as fdet:
+                    if fdet.read() == self._fin_attrs['detector']:
+                        self._was_pre_simulated = True
+
+        if self._was_pre_simulated:
+            logger.status("the simulation was already performed with the same detector")
+
         return self._was_pre_simulated
 
     def _create_meta_output_datastructures(self):
@@ -1493,8 +1532,11 @@ class simulation:
         for (key, value) in iteritems(self._mout_attrs):
             fout.attrs[key] = value
 
-        with open(self._detectorfile, 'r') as fdet:
-            fout.attrs['detector'] = fdet.read()
+        if isinstance(self._det, detector.rnog_detector.Detector):
+            fout.attrs['detector'] = self._det.export_as_string()
+        else:
+            with open(self._detectorfile, 'r') as fdet:
+                fout.attrs['detector'] = fdet.read()
 
         if not empty:
             # save antenna position separately to hdf5 output
@@ -1505,7 +1547,7 @@ class simulation:
                     positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
                 fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
                 fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
-                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
+                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._integrated_channel_response[station_id].values())
 
             fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
             fout.attrs.create("Vrms", self._Vrms, dtype=float)
@@ -1567,3 +1609,23 @@ class simulation:
             msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
             logger.error(msg)
             raise ValueError(msg)
+
+    @property
+    def _bandwidth_per_channel(self):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                      "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        return self._integrated_channel_response
+
+    @_bandwidth_per_channel.setter
+    def _bandwidth_per_channel(self, value):
+        warnings.warn("This variable `_bandwidth_per_channel` is deprecated. "
+                        "Please use `integrated_channel_response` instead.", DeprecationWarning)
+        self._integrated_channel_response = value
+
+    @property
+    def integrated_channel_response(self):
+        return self._integrated_channel_response
+
+    @integrated_channel_response.setter
+    def integrated_channel_response(self, value):
+        self._integrated_channel_response = value
