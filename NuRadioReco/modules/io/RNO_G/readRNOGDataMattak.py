@@ -250,7 +250,8 @@ class readRNOGData:
             run_time_range=None,
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
-            overwrite_sampling_rate=None):
+            overwrite_sampling_rate=None,
+            max_in_mem = 256):
         """
         Parameters
         ----------
@@ -335,6 +336,9 @@ class readRNOGData:
         self._adc_n_bits = 12
 
         self._overwrite_sampling_rate = overwrite_sampling_rate
+
+        # set max wavform array size that can be loaded in memory
+        self._max_in_mem = max_in_mem
 
         # Set parameter for run selection
         self.__max_trigger_rate = max_trigger_rate
@@ -724,29 +728,20 @@ class readRNOGData:
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
 
-            # read all event infos of the entier dataset (= run)
-            event_infos = dataset.eventInfo()
-            wfs = None
-
-            for idx, evtinfo in enumerate(event_infos):  # returns a list
+            # read all event infos of the entire dataset (= run)
+            for evtinfo, wf in dataset.iterate(start = 0, stop = dataset.N(),
+                                                              calibrated = self._read_calibrated_data,
+                                                              selector = self._selectors,
+                                                              max_entries_in_mem = self._max_in_mem):
                 event_idx += 1
 
-                self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
-                t0 = time.time()
-
-                if self._filter_event(evtinfo, event_idx):
-                    continue
+                self.logger.debug(f"Processing (filtered) event number {event_idx} out of (unfiltered) total {self._n_events_total}")
+                t0 =time.time()
 
                 if not self._check_for_valid_information_in_event_info(evtinfo):
-                    continue
+                    continue 
 
-                # Just read wfs if necessary
-                if wfs is None:
-                    wfs = dataset.wfs()
-
-                waveforms_of_event = wfs[idx]
-
-                evt = self._get_event(evtinfo, waveforms_of_event)
+                evt = self._get_event(evtinfo, wf)
 
                 self._time_run += time.time() - t0
                 self.__counter += 1
