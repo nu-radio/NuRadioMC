@@ -142,6 +142,7 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
     detector = detector_provider.get_detector()
     if 'amp' in response_type:
         try:
+            # RNO-G mongo detector class provides full signal chain response
             amp_response = detector.get_amplifier_response(station_id, channel_id, frequencies)
         except:
             amp_type = detector.get_amplifier_type(station_id, channel_id)
