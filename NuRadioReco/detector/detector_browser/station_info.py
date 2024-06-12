@@ -40,8 +40,10 @@ def update_station_info_table(station_id):
         )
     ]
     for key, value in station_info.items():
+        # ignore mongo _id and other masked keys
         if key.startswith("_"):
             continue
+        # for dicts do only display which keys are contained
         if isinstance(value, dict):
             value = ", ".join([str(k) for k in value.keys()])
         table_rows.append(html.Div([

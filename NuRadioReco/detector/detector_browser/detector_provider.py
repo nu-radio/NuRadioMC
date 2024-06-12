@@ -58,6 +58,7 @@ class DetectorProvider(object):
         """
         self.__detector = NuRadioReco.detector.detector.Detector(source="rnog_mongo", log_level=logging.ERROR, always_query_entire_description=False,
                             database_connection='RNOG_public')
+        # use the latest state of the detector
         self.__detector.update(datetime.datetime.now())
 
     def set_event_file(self, filename):
