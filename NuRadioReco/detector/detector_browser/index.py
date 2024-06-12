@@ -40,4 +40,4 @@ if __name__ == '__main__':
     if not parsed_args.debug:
         logger = logging.getLogger('werkzeug')
         logger.setLevel(logging.WARNING)
-    app.run_server(debug=parsed_args.debug, port=parsed_args.port)
+    app.run_server(debug=parsed_args.debug, dev_tools_hot_reload=False, port=parsed_args.port)

@@ -141,16 +141,19 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
     detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
     detector = detector_provider.get_detector()
     if 'amp' in response_type:
-        amp_type = detector.get_amplifier_type(station_id, channel_id)
-        if amp_type in ['100', '200', '300']:
-            amp_response_provider = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amp_type)
-            amp_response = amp_response_provider['gain'](frequencies) * amp_response_provider['phase'](frequencies)
-        elif amp_type in ['rno_surface', 'iglu']:
-            amp_response_provider = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(amp_type)
-            amp_response = amp_response_provider['gain'](frequencies) * amp_response_provider['phase'](frequencies)
-        else:
-            print('Warning: the specified amplifier was not found')
-            amp_response = 1
+        try:
+            amp_response = detector.get_amplifier_response(station_id, channel_id, frequencies)
+        except:
+            amp_type = detector.get_amplifier_type(station_id, channel_id)
+            if amp_type in ['100', '200', '300']:
+                amp_response_provider = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amp_type)
+                amp_response = amp_response_provider['gain'](frequencies) * amp_response_provider['phase'](frequencies)
+            elif amp_type in ['rno_surface', 'iglu']:
+                amp_response_provider = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(amp_type)
+                amp_response = amp_response_provider['gain'](frequencies) * amp_response_provider['phase'](frequencies)
+            else:
+                print('Warning: the specified amplifier was not found')
+                amp_response = 1
         response[0] *= amp_response
         response[1] *= amp_response
     if 'antenna' in response_type:

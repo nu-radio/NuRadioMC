@@ -4,6 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 2.3.0-dev
 new features:
+- Enhanced detector_browser to allow display RNO-G database detector
 - Added new detector class for RNO-G (+db interface) which uses a mongo-db as source.
 The new class allows import/export via compressed json files and has a buffer machinary.
 It comes with a class to handle responses of the different signal chain components easily.
