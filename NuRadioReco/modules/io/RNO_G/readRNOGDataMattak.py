@@ -730,9 +730,9 @@ class readRNOGData:
 
             # read all event infos of the entire dataset (= run)
             for evtinfo, wf in dataset.iterate(start = 0, stop = dataset.N(),
-                                                              calibrated = self._read_calibrated_data,
-                                                              selector = self._selectors,
-                                                              max_entries_in_mem = self._max_in_mem):
+                                               calibrated = self._read_calibrated_data,
+                                               selectors = self._selectors,
+                                               max_entries_in_mem = self._max_in_mem):
                 event_idx += 1
 
                 self.logger.debug(f"Processing (filtered) event number {event_idx} out of (unfiltered) total {self._n_events_total}")
