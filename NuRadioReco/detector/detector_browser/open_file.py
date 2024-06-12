@@ -20,7 +20,8 @@ layout = html.Div([
                         options=[
                             {'label': 'Detector', 'value': 'detector'},
                             {'label': 'Generic Detector', 'value': 'generic_detector'},
-                            {'label': 'Event File', 'value': 'event_file'}
+                            {'label': 'Event File', 'value': 'event_file'},
+                            {'label': 'RNO-G Detector', 'value': 'rnog_detector'}
                         ],
                         value='detector',
                         multi=False
@@ -197,6 +198,9 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
     context = dash.callback_context
     options = []
 
+    if file_type == 'rnog_detector':
+        options.append({'label': "~ from Database ~", 'value': "from Database"})
+        return options
     if file_type == 'event_file':
         suffix = '/*.nur'
     else:
@@ -248,7 +252,7 @@ def open_detector(
     time_n_clicks: int
         Similar use as n_clicks, but for the
     """
-    if filename is None:
+    if (filename is None) and (detector_type != "rnog_detector"):
         return ''
     detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
     context = dash.callback_context
@@ -279,6 +283,9 @@ def open_detector(
             detector_provider.set_generic_detector(filename, default_station=None, default_channel=None, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
     elif detector_type == 'event_file':
         detector_provider.set_event_file(filename)
+    elif detector_type == 'rnog_detector':
+        detector_provider.set_rnog_detector()
+    
     return n_clicks
 
 

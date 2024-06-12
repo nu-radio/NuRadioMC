@@ -172,6 +172,9 @@ def draw_station_view(station_id, checklist):
                 delaunayaxis='x',
                 hoverinfo='skip'
             ))
+    # TODO: insert also device info once in the database
+
+
     channel_positions = np.array(channel_positions)
     antenna_types = np.array(antenna_types)
     antenna_orientations = np.array(antenna_orientations)
