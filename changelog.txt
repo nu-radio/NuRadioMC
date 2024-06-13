@@ -34,6 +34,7 @@ loaded again when reading in the Detector from a nur file
 for the phasing_mode == "slice"
 - Improved logging: created NuRadioLogger class which is now used by default, the NRR and NRMC loggers
 are created automatically when importing the packages, and a new STATUS logging level was added.
+- Implemented mattak dataset iterator in readRNOGDataMattak.run()
 - Updating the ray_tracing_2D class in order to be able to use Numba optimization
 
 bugfixes:
