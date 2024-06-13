@@ -24,6 +24,7 @@ can then iterate over a channel group, which yields all channels for a given gro
 - The assume_inf and antenna_by_depth Detector keywords are now saved in the nur file, and will be
 loaded again when reading in the Detector from a nur file
 - Added LOFAR coordinates to Detector site coordinates
+- Implemented mattak dataset iterator in readRNOGDataMattak.run()
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
