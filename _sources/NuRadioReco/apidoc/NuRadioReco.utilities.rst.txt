@@ -15,6 +15,7 @@ Submodules
    NuRadioReco.utilities.analytic_pulse
    NuRadioReco.utilities.bandpass_filter
    NuRadioReco.utilities.cr_flux
+   NuRadioReco.utilities.dataservers
    NuRadioReco.utilities.diodeSimulator
    NuRadioReco.utilities.fft
    NuRadioReco.utilities.geometryUtilities
