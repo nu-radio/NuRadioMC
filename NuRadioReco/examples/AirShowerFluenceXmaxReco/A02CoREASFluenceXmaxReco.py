@@ -29,6 +29,7 @@ from astropy import time
 from NuRadioReco.detector import detector
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.dataservers import download_from_dataserver
 import NuRadioReco.modules.io.coreas.readCoREASDetector
 import NuRadioReco.modules.io.coreas.simulationSelector
 import NuRadioReco.modules.efieldToVoltageConverter
@@ -52,10 +53,18 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 
+
 if not os.path.exists("plots"):
     os.makedirs("plots")
 
-# TODO: Add boilerplate code to download data
+# download coreas simulations
+remote_path = "data/CoREAS/LOFAR/evt_00001"
+path = 'data/CoREAS/LOFAR/evt_00001'
+for i in [0,1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29]:
+    filename = os.path.join(remote_path, f"SIM0000{i:02d}.hdf5")
+    if not os.path.exists(filename):
+        download_from_dataserver(os.path.join(remote_path, f"SIM0000{i:02d}.hdf5"),
+                                os.path.join(path, f"SIM0000{i:02d}.hdf5"))
 
 # Initialize detector
 det = detector.Detector(json_filename="grid_array_SKALA_InfFirn.json",
@@ -95,7 +104,7 @@ filt_settings = {'passband': [80 * units.MHz, 300 * units.MHz],
                             'filter_type': 'butter',
                             'order': 10}
 
-input_file = "data/LOFAR/SIM000000.hdf5"
+input_file = os.path.join(path, "SIM000000.hdf5")
 coreas_reader.begin(input_file)
 # we only need a single realization of the shower, so we set the core position to zero for simplicity
 for iE, evt in enumerate(coreas_reader.run(det, [core])):
@@ -192,7 +201,7 @@ for iE, evt in enumerate(coreas_reader.run(det, [core])):
 
         # perform Xmax fit:
 
-        input_files = glob.glob("data/LOFAR/*.hdf5")
+        input_files = glob.glob(os.path.join(path, "*.hdf5"))
         N_showers = len(input_files)
 
         # initialize arrays to store the fit results
