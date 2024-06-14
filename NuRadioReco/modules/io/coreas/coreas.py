@@ -16,7 +16,7 @@ import cr_pulse_interpolator.signal_interpolation_fourier
 import logging
 import copy
 import h5py
-logger = logging.getLogger('NuRadioReoc.coreas')
+logger = logging.getLogger('NuRadioReco.coreas')
 logger.setLevel(logging.INFO)
 
 warning_printed_coreas_py = False
