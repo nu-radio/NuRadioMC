@@ -316,6 +316,10 @@ class readRNOGData:
             (i.e., stored in the mattak files) only when the stored sampling rate is invalid (i.e. 0 or None).
             If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
             NOTE: This option might be necessary when old mattak files are read which have this not set.
+
+        max_in_mem: int
+            Set the maximum number of events that can be stored in memory. The datareader will divide
+            the data in batches based on this number.
         """
 
         t0 = time.time()
@@ -361,6 +365,7 @@ class readRNOGData:
         # Read data
         self._time_begin = 0
         self._time_run = 0
+        self._event_idx = 0
         self.__counter = 0
         self.__skipped = 0
         self.__invalid = 0
@@ -434,8 +439,8 @@ class readRNOGData:
         Parameters
         ----------
 
-        selectors: list of lambdas
-            List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
+        selectors: list of Callables
+            List of Callable(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
 
         select_triggers: str or list(str)
@@ -443,6 +448,8 @@ class readRNOGData:
         """
 
         # Initialize selectors for event filtering
+        if selectors is None:
+            selectors = []
         if not isinstance(selectors, (list, np.ndarray)):
             selectors = [selectors]
 
@@ -556,17 +563,18 @@ class readRNOGData:
         -------
 
         skip: bool
-            Returns True to skip/reject event, return False to keep/read event
+            Returns False to skip/reject event, return True to keep/read event
         """
         if self._selectors is not None:
             for selector in self._selectors:
                 if not selector(evtinfo):
-                    self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
+                    self.logger.debug(f"Event {self._event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
                                       f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
                     self.__skipped += 1
-                    return True
+                    return False
 
-        return False
+        
+        return True
 
 
     def get_events_information(self, keys=["station", "run", "eventNumber"]):
@@ -638,6 +646,9 @@ class readRNOGData:
         is_valid: bool
             Returns True if all information valid, false otherwise
         """
+        # Count events processed here since this function will always be called to check event validity
+        self._event_idx += 1
+        self.logger.debug(f"Processing event number {self._event_idx} out of total {self._n_events_total}")
 
         if math.isinf(event_info.triggerTime):
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
@@ -724,30 +735,27 @@ class readRNOGData:
 
         evt: `NuRadioReco.framework.event.Event`
         """
-        event_idx = -1
+        self._event_idx = 0
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
 
+            # _filter_event is a wrapper for the selectors defined in begin()
+            selectors = [self._filter_event, self._check_for_valid_information_in_event_info] if len(self._selectors) !=0 \
+                   else [self._check_for_valid_information_in_event_info]
+
             # read all event infos of the entire dataset (= run)
-            for evtinfo, wf in dataset.iterate(start = 0, stop = dataset.N(),
-                                               calibrated = self._read_calibrated_data,
-                                               selectors = self._selectors,
+            for evtinfo, wf in dataset.iterate(calibrated = self._read_calibrated_data,
+                                               selectors = selectors,
                                                max_entries_in_mem = self._max_in_mem):
-                event_idx += 1
 
-                self.logger.debug(f"Processing (filtered) event number {event_idx} out of (unfiltered) total {self._n_events_total}")
-                t0 =time.time()
-
-                if not self._check_for_valid_information_in_event_info(evtinfo):
-                    continue 
-
+                
                 evt = self._get_event(evtinfo, wf)
-
-                self._time_run += time.time() - t0
+                
                 self.__counter += 1
 
                 yield evt
 
+            
 
 
     def get_event_by_index(self, event_index):
