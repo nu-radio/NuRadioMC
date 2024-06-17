@@ -622,8 +622,8 @@ class readRNOGData:
                 for idx, evtinfo in enumerate(dataset.eventInfo()):  # returns a list
 
                     event_idx = idx + n_prev  # event index accross all datasets combined
-
-                    if not self._select_events(evtinfo, event_idx):
+                    self._event_idx = event_idx
+                    if not self._select_events(evtinfo):
                         continue
 
                     self._events_information[event_idx] = {key: getattr(evtinfo, key) for key in keys}
@@ -760,7 +760,6 @@ class readRNOGData:
         evt: `NuRadioReco.framework.event.Event`
         """
 
-        self._event_idx = 0
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
 
@@ -849,11 +848,11 @@ class readRNOGData:
 
         # int(...) necessary to pass it to mattak
         event_index = int(event_idx_ids[mask, 0][0])
-
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
-        if not self._select_events(event_info, event_index):
+        self._event_idx = event_index
+        if not self._select_events(event_info):
             return None
 
         # access data
