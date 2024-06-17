@@ -360,7 +360,7 @@ class readRNOGData:
                                  f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                                  f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
-        self.add_selectors([self._meta_selector, self._check_for_valid_information_in_event_info, self._select_events])
+        self.add_selectors([self._meta_selector, self._check_for_valid_information_in_event_info])
         self.add_selectors(selectors, select_triggers)
 
         # Read data
@@ -552,7 +552,7 @@ class readRNOGData:
         return dataset
 
 
-    def _select_events(self, evtinfo, event_idx=None):
+    def _select_events(self, evtinfo):
         """ Filter an event base on its EventInfo and the configured selectors.
 
         Parameters
