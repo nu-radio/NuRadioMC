@@ -360,7 +360,7 @@ class readRNOGData:
                                  f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                                  f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
-        self.add_selectors([self._meta_selector, self._check_for_valid_information_in_event_info])
+        self.add_selectors(self._check_for_valid_information_in_event_info)
         self.add_selectors(selectors, select_triggers)
 
         # Read data
@@ -384,10 +384,7 @@ class readRNOGData:
         self.__n_runs = 0
 
         # Set verbose for mattak
-        if "verbose" in mattak_kwargs:
-            verbose = mattak_kwargs.pop("verbose")
-        else:
-            verbose = self.logger.level >= logging.DEBUG
+        verbose = mattak_kwargs.pop("verbose", self.logger.level >= logging.DEBUG)
 
         for dir_file in dirs_files:
 
@@ -762,15 +759,15 @@ class readRNOGData:
 
         evt: `NuRadioReco.framework.event.Event`
         """
+
         self._event_idx = 0
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
 
             # read all event infos of the entire dataset (= run)
             for evtinfo, wf in dataset.iterate(calibrated=self._read_calibrated_data,
-                                               selectors=self._selectors,
+                                               selectors=self._select_events,
                                                max_entries_in_mem=self._max_in_mem):
-
 
                 evt = self._get_event(evtinfo, wf)
 
@@ -803,10 +800,6 @@ class readRNOGData:
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
         if not self._select_events(event_info, event_index):
-            return None
-
-        # check this before reading the wfs
-        if not self._check_for_valid_information_in_event_info(event_info):
             return None
 
         # access data
@@ -861,10 +854,6 @@ class readRNOGData:
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
         if not self._select_events(event_info, event_index):
-            return None
-
-        # check this before reading the wfs
-        if not self._check_for_valid_information_in_event_info(event_info):
             return None
 
         # access data
