@@ -320,6 +320,7 @@ class readRNOGData:
         max_in_mem: int
             Set the maximum number of events that can be stored in memory. The datareader will divide
             the data in batches based on this number.
+            NOTE: This is only relevant for the mattak uproot backend
         """
 
         t0 = time.time()
@@ -365,7 +366,7 @@ class readRNOGData:
         # Read data
         self._time_begin = 0
         self._time_run = 0
-        self._event_idx = 0
+        self._event_idx = 0 # only for logging
         self.__counter = 0
         self.__skipped = 0
         self.__invalid = 0
@@ -444,7 +445,7 @@ class readRNOGData:
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
 
         select_triggers: str or list(str)
-            Names of triggers which should be selected. Convinence interface instead of passing a selector. (Default: None)
+            Names of triggers which should be selected. Convenience interface instead of passing a selector. (Default: None)
         """
 
         # Initialize selectors for event filtering
@@ -547,7 +548,7 @@ class readRNOGData:
         return dataset
 
 
-    def _filter_event(self, evtinfo, event_idx=None):
+    def _select_events(self, evtinfo, event_idx=None):
         """ Filter an event base on its EventInfo and the configured selectors.
 
         Parameters
@@ -621,7 +622,7 @@ class readRNOGData:
 
                     event_idx = idx + n_prev  # event index accross all datasets combined
 
-                    if self._filter_event(evtinfo, event_idx):
+                    if not self._select_events(evtinfo, event_idx):
                         continue
 
                     self._events_information[event_idx] = {key: getattr(evtinfo, key) for key in keys}
@@ -646,10 +647,7 @@ class readRNOGData:
         is_valid: bool
             Returns True if all information valid, false otherwise
         """
-        # Count events processed here since this function will always be called to check event validity
-        self._event_idx += 1
-        self.logger.debug(f"Processing event number {self._event_idx} out of total {self._n_events_total}")
-
+       
         if math.isinf(event_info.triggerTime):
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
                                      "has inf trigger time. Skip event...")
@@ -724,6 +722,31 @@ class readRNOGData:
 
         return evt
 
+    def _meta_selector(self, evtinfo):
+        """
+        Dummy selector to pass to the the mattak dataset iterator in run() to use for tracking
+        metadata such as counting indices of processed events. 
+        This is a kind of cheat to run things in the mattak iterator itself since a selector will be called
+        in every iteration of the mattak loop
+
+        Parameters
+        ----------
+
+        event_info: mattak.Dataset.EventInfo
+            The event info object for one event.
+
+        Returns
+        -------
+        True
+            This needs to always return true because we don't want to actually do any selecting
+        """
+
+        # Count events processed here since this function will always be called
+        self._event_idx += 1
+        self.logger.debug(f"Processing event number {self._event_idx} out of total {self._n_events_total}")
+
+        return True
+
 
     @register_run()
     def run(self):
@@ -739,20 +762,19 @@ class readRNOGData:
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
 
-            # _filter_event is a wrapper for the selectors defined in begin()
-            selectors = [self._filter_event, self._check_for_valid_information_in_event_info] if len(self._selectors) !=0 \
-                   else [self._check_for_valid_information_in_event_info]
+            # select_events is a wrapper for the selectors defined in begin()
+            selector_list = [self._meta_selector, self._check_for_valid_information_in_event_info, self._select_events] if len(self._selectors) !=0 \
+                       else [self._meta_selector, self._check_for_valid_information_in_event_info]
 
             # read all event infos of the entire dataset (= run)
             for evtinfo, wf in dataset.iterate(calibrated = self._read_calibrated_data,
-                                               selectors = selectors,
+                                               selectors = selector_list,
                                                max_entries_in_mem = self._max_in_mem):
 
                 
                 evt = self._get_event(evtinfo, wf)
                 
                 self.__counter += 1
-
                 yield evt
 
             
@@ -780,7 +802,7 @@ class readRNOGData:
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
-        if self._filter_event(event_info, event_index):
+        if not self._select_events(event_info, event_index):
             return None
 
         # check this before reading the wfs
@@ -838,7 +860,7 @@ class readRNOGData:
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
-        if self._filter_event(event_info, event_index):
+        if not self._select_events(event_info, event_index):
             return None
 
         # check this before reading the wfs
