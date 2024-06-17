@@ -250,7 +250,7 @@ class readRNOGData:
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
             overwrite_sampling_rate=None,
-            max_in_mem = 256):
+            max_in_mem=256):
         """
         Parameters
         ----------
@@ -360,7 +360,8 @@ class readRNOGData:
                                  f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                                  f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
-        self.set_selectors(selectors, select_triggers)
+        self.add_selectors([self._meta_selector, self._check_for_valid_information_in_event_info, self._select_events])
+        self.add_selectors(selectors, select_triggers)
 
         # Read data
         self._time_begin = 0
@@ -434,8 +435,11 @@ class readRNOGData:
             raise ValueError(err)
 
 
-    def set_selectors(self, selectors, select_triggers=None):
+    def add_selectors(self, selectors, select_triggers=None):
         """
+        Add selectors (Callable(eventInfo) -> bool) to an internal list of selectors.
+        They are used for event filtering.
+
         Parameters
         ----------
 
@@ -450,6 +454,7 @@ class readRNOGData:
         # Initialize selectors for event filtering
         if selectors is None:
             selectors = []
+
         if not isinstance(selectors, (list, np.ndarray)):
             selectors = [selectors]
 
@@ -460,8 +465,8 @@ class readRNOGData:
                 for select_trigger in select_triggers:
                     selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
 
-        self._selectors = selectors
-        self.logger.info(f"Set {len(self._selectors)} selector(s)")
+        self.logger.info(f"Add {len(selectors)} selector(s)")
+        self._selectors += selectors
 
 
     def __select_run(self, dataset):
@@ -573,7 +578,7 @@ class readRNOGData:
                     self.__skipped += 1
                     return False
 
-        
+
         return True
 
 
@@ -646,7 +651,7 @@ class readRNOGData:
         is_valid: bool
             Returns True if all information valid, false otherwise
         """
-       
+
         if math.isinf(event_info.triggerTime):
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
                                      "has inf trigger time. Skip event...")
@@ -724,7 +729,7 @@ class readRNOGData:
     def _meta_selector(self, evtinfo):
         """
         Dummy selector to pass to the the mattak dataset iterator in run() to use for tracking
-        metadata such as counting indices of processed events. 
+        metadata such as counting indices of processed events.
         This is a kind of cheat to run things in the mattak iterator itself since a selector will be called
         in every iteration of the mattak loop
 
@@ -761,22 +766,18 @@ class readRNOGData:
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
 
-            # select_events is a wrapper for the selectors defined in begin()
-            selector_list = [self._meta_selector, self._check_for_valid_information_in_event_info, self._select_events] if len(self._selectors) !=0 \
-                       else [self._meta_selector, self._check_for_valid_information_in_event_info]
-
             # read all event infos of the entire dataset (= run)
-            for evtinfo, wf in dataset.iterate(calibrated = self._read_calibrated_data,
-                                               selectors = selector_list,
-                                               max_entries_in_mem = self._max_in_mem):
+            for evtinfo, wf in dataset.iterate(calibrated=self._read_calibrated_data,
+                                               selectors=self._selectors,
+                                               max_entries_in_mem=self._max_in_mem):
 
-                
+
                 evt = self._get_event(evtinfo, wf)
-                
+
                 self.__counter += 1
                 yield evt
 
-            
+
 
 
     def get_event_by_index(self, event_index):
