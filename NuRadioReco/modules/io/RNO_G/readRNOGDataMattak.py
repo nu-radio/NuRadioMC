@@ -207,7 +207,6 @@ class readRNOGData:
         # Initialize run table for run selection
         self.__run_table = None
 
-        self.__temporary_dirs = []
         if load_run_table:
             if run_table_path is None:
                 try:
@@ -891,12 +890,6 @@ class readRNOGData:
                 f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
-
-        # Clean up links and temporary directories.
-        for d in self.__temporary_dirs:
-            self.logger.debug(f"Remove temporary folder: {d}")
-            os.unlink(os.path.join(d, "combined.root"))
-            os.rmdir(d)
 
 
 ### we create a wrapper for readRNOGData to mirror the interface of the .nur reader
