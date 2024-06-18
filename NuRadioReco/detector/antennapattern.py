@@ -539,7 +539,7 @@ def save_preprocessed_WIPLD_forARA(path):
 
 def get_pickle_antenna_response(path):
     """
-    opens and return the pickle file containing the preprocessed WIPL-D antenna simulation
+    opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation
 
     If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
     the file will be downloaded from a central data server
@@ -1061,7 +1061,7 @@ class AntennaPatternBase:
         ----------
 
         """
-        # define orientation of wiplD antenna simulation (in ARIANNA CS)
+        # define orientation of WIPL-D antenna simulation in NuRadio coordinate system
         e1 = hp.spherical_to_cartesian(self._orientation_theta, self._orientation_phi)  # boresight direction
         e2 = hp.spherical_to_cartesian(self._rotation_theta, self._rotation_phi)  # vector perpendicular to tine plane
         e3 = np.cross(e1, e2)
@@ -1070,7 +1070,7 @@ class AntennaPatternBase:
             logger.error("orientation of antenna not properly defined in WIPL-D orientation file")
             raise AssertionError("orientation of antenna not properly defined in WIPL-D orientation file")
 
-        # get normal vectors for antenne orientation in field (in ARIANNA CS)
+        # get normal vectors for antenne orientation in field in NuRadio coordinate system
         a1 = hp.spherical_to_cartesian(orientation_theta, orientation_phi)
         a2 = hp.spherical_to_cartesian(rotation_theta, rotation_phi)
         a3 = np.cross(a1, a2)
@@ -1084,7 +1084,7 @@ class AntennaPatternBase:
 
     def _get_theta_and_phi(self, zenith, azimuth, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
         """
-        transform zenith and azimuth angle in ARIANNA coordinate system to the WIPLD coordinate system.
+        transform zenith and azimuth angle in NuRadio coordinate system to the WIPLD coordinate system.
         In addition the orientation of the antenna as deployed in the field is taken into account.
 
         Parameters
@@ -1115,7 +1115,7 @@ class AntennaPatternBase:
         """
         get the antenna response for a specific frequency, zenith and azimuth angle
 
-        All angles are specified in the ARIANNA coordinate system. All units are in ARIANNA default units
+        All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units
 
         Parameters
         ----------
@@ -1153,8 +1153,8 @@ class AntennaPatternBase:
 
         Vtheta_raw, Vphi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
-        # now rotate the raw theta and phi component of the VEL into the ARIANNA coordinate system.
-        # As the theta and phi angles are differently defined in WIPLD and ARIANNA, also the orientation of the
+        # now rotate the raw theta and phi component of the VEL into the NuRadio coordinate system.
+        # As the theta and phi angles are differently defined in WIPLD and NuRadio, also the orientation of the
         # eTheta and ePhi unit vectors are different.
         cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
         V_xyz_raw = cstrans.transform_from_onsky_to_ground(
@@ -1259,7 +1259,7 @@ class AntennaPattern(AntennaPatternBase):
 
     def _get_antenna_response_vectorized_raw(self, freq, theta, phi):
         """
-        get vector effective length in WIPLD coordinate system
+        get vector effective length in (WIPLD) coordinate system
         """
         while phi < self.phi_lower_bound:
             phi += 2 * np.pi
