@@ -291,6 +291,7 @@ class readRNOGData:
         selectors: list of lambdas
             List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
+            (Default: [])
 
         run_types: list
             Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: ['physics'])
@@ -360,13 +361,14 @@ class readRNOGData:
                                  f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                                  f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
+        self._selectors = []                   
         self.add_selectors(self._check_for_valid_information_in_event_info)
         self.add_selectors(selectors, select_triggers)
 
         # Read data
         self._time_begin = 0
         self._time_run = 0
-        self._event_idx = 0 # only for logging
+        self._event_idx = -1 # only for logging
         self.__counter = 0
         self.__skipped = 0
         self.__invalid = 0
@@ -567,6 +569,9 @@ class readRNOGData:
         skip: bool
             Returns False to skip/reject event, return True to keep/read event
         """
+        self._event_idx += 1
+        self.logger.debug(f"Processing event number {self._event_idx} out of total {self._n_events_total}")
+
         if self._selectors is not None:
             for selector in self._selectors:
                 if not selector(evtinfo):
@@ -574,7 +579,6 @@ class readRNOGData:
                                       f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
                     self.__skipped += 1
                     return False
-
 
         return True
 
@@ -723,31 +727,6 @@ class readRNOGData:
 
         return evt
 
-    def _meta_selector(self, evtinfo):
-        """
-        Dummy selector to pass to the the mattak dataset iterator in run() to use for tracking
-        metadata such as counting indices of processed events.
-        This is a kind of cheat to run things in the mattak iterator itself since a selector will be called
-        in every iteration of the mattak loop
-
-        Parameters
-        ----------
-
-        event_info: mattak.Dataset.EventInfo
-            The event info object for one event.
-
-        Returns
-        -------
-        True
-            This needs to always return true because we don't want to actually do any selecting
-        """
-
-        # Count events processed here since this function will always be called
-        self._event_idx += 1
-        self.logger.debug(f"Processing event number {self._event_idx} out of total {self._n_events_total}")
-
-        return True
-
 
     @register_run()
     def run(self):
@@ -772,9 +751,7 @@ class readRNOGData:
 
                 self.__counter += 1
                 yield evt
-
-
-
+                
 
     def get_event_by_index(self, event_index):
         """ Allows to read a specific event identifed by its index
