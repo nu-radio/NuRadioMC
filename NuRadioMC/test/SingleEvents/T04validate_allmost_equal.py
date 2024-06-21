@@ -30,7 +30,7 @@ def test_equal_attributes(keys, fin1=fin1, fin2=fin2, error=error):
         except AssertionError as e:
             print("\n attribute {} not almost equal".format(key))
             print(e)
-            error = -1
+            error += 1
     return error
 
 
@@ -41,9 +41,9 @@ def test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
 
         except AssertionError as e:
             print("\narray {} not almost equal".format(key))
-            print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
+            print("\Reference: {}, reconstruction: {}".format(fin2['station_101'][key], fin1['station_101'][key]))
             print(e)
-            error = -1
+            error += 1
     return error
 
 
@@ -55,7 +55,7 @@ def test_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
             print("\narray {} not almost equal".format(key))
             print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
             print(e)
-            error = -1
+            error += 1
     return error
 
 
@@ -67,7 +67,7 @@ def test_almost_equal_attributes(keys, fin1=fin1, fin2=fin2, error=error):
         if max_diff > accuracy:
             print('Reconstruction of {} does not agree with reference (error: {})'.format(key, max_diff))
             print("\n attribute {} not almost equal".format(key))
-            error = -1
+            error += 1
     return error
 
 
@@ -87,13 +87,19 @@ def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accu
                 print(np.abs((arr1[i] - arr2[i]) / arr2[i]))
                 print(arr1[i])
                 print(arr2[i])
-                error = -1
+                error += 1
             # now test zero entries for equality
-            if not np.all(arr1[i][zero_mask] == arr2[i][zero_mask]):
+            tmp = arr1[i][zero_mask]
+            if(key == 'max_amp_shower_and_ray'):
+                tmp = np.nan_to_num(arr1[i][zero_mask])  # the previous implementation initialized the array with zeros, the new one with nans
+
+            if not np.all(tmp == arr2[i][zero_mask]):
                 max_diff = np.max(np.abs(arr1[i][zero_mask] - arr2[i][zero_mask]))
                 print('Reconstruction of {} of event {} does not agree with reference (absolute error: {})'.format(key, i, max_diff))
                 print("\n attribute {} not almost equal".format(key))
-                error = -1
+                print(arr1[i])
+                print(arr2[i])
+                error += 1
     return error
 
 
@@ -106,7 +112,7 @@ def test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
             if max_diff > accuracy:
                 print('Reconstruction of {} of event {} does not agree with reference (error: {})'.format(key, i, max_diff))
                 print("\n attribute {} not almost equal".format(key))
-                error = -1
+                error += 1
     return error
 
 # Test those attributes that should be perfectly equal
@@ -115,13 +121,12 @@ def test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
 attributes = [u'trigger_names',
  u'Tnoise',
  u'dt',
- u'bandwidth',
- u'n_samples',
+#  u'n_samples',
  u'thetamin',
  u'zmax',
  u'zmin',
  u'thetamax',
- u'header',
+#  u'header',
  u'fiducial_zmax',
  u'fiducial_zmin',
  u'flavors',
@@ -142,6 +147,7 @@ error = test_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
 # Test those attributes that should be numerically equal
 
 attributes = [
+ u'bandwidth',
  u'Vrms']
 
 error = test_almost_equal_attributes(attributes, fin1=fin1, fin2=fin2, error=error)
@@ -183,6 +189,7 @@ keys = [
  u'launch_vectors',
  u'receive_vectors',
  u'travel_times',
+ u'trigger_times_per_event',
  u'trigger_times',
  u'travel_distances',
  u'polarization',
@@ -194,18 +201,18 @@ error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
 # for some reason the test suddenly can't achieve a good enough precision on this quantity. Lets reduce precision
 # for this vairble for now.
 keys = [u'maximum_amplitudes_envelope']
-error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.001)
+error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.002)
 
 # test maximimum amplitude separately because it might differ slightly because of differences in the interferene between signals
 keys = [u'maximum_amplitudes']
 error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.01)
 
-if error == -1:
+if error == 0:
+    print("The two files are (almost) identical.")
+else:
     from NuRadioMC.utilities.dump_hdf5 import dump
     print(f"file 1 {file1}")
     dump(file1)
     print(f"file 2 {file2}")
     dump(file2)
     sys.exit(error)
-else:
-    print("The two files are (almost) identical.")

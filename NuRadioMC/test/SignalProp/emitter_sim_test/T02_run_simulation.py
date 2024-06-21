@@ -46,7 +46,7 @@ if __name__ == "__main__":
                                 outputfilenameNuRadioReco='test_output.nur',
                                 config_file='test_config.yaml',
                                 #log_level=logging.WARNING,
-                                log_level=logging.ERROR,
+                                log_level=logging.STATUS,
                                 evt_time=datetime.datetime(2018, 12, 30),
                                 file_overwrite=True)
     sim.run()
