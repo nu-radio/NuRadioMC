@@ -21,6 +21,9 @@ class NoiseModel:
         spectra : numpy.ndarray, optional
             Spectra of the noise in the antennas. Has dimensions [n_antennas,n_samples/2+1]. Default value is None, 
             and can instead be calculated using NoiseModel.calculate_spectra_from_data.
+        Vrms : numpy.ndarray, optional
+            List of Vrms values for each antenna. If provided, the spectra will be normalized to these values. Otherwise
+            the normalization of the spectra is used. Default value is None.
         matrix_inversion_method : str, optional
             If the covariance matrix is not full rank, the inverse, which is used to calculate the multivariate normal, 
             does not exist. This is the case if any frequency amplitudes in the spectra are zero, which corresponds to
@@ -44,11 +47,12 @@ class NoiseModel:
             the distribution cancels out and can just be set to 1. This speeds up initializing the class/covariance matrices.
     """
 
-    def __init__(self, n_antennas, n_samples, sampling_rate, spectra=None, matrix_inversion_method="pseudo_inv", threshold_pdet=1e-12, increase_cov_diagonal=0, ignore_normalization=True):
+    def __init__(self, n_antennas, n_samples, sampling_rate, spectra=None, Vrms=None, matrix_inversion_method="pseudo_inv", threshold_pdet=1e-12, increase_cov_diagonal=0, ignore_normalization=True):
         self.n_antennas = n_antennas
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
         self.spectra = spectra
+        self.Vrms = Vrms
         self.matrix_inversion_method = matrix_inversion_method
         self.threshold_pdet = threshold_pdet
         self.increase_cov_diagonal = increase_cov_diagonal
@@ -72,6 +76,12 @@ class NoiseModel:
             cov : numpy.ndarray
                 Covariance matrices for all antennas. Has dimensions [n_antennas,n_samples,n_samples]
         """
+
+        # scale covariance matrices to Vrms if provided:
+        if self.Vrms is not None:
+            for i in range(self.n_antennas):
+                cov[i,:,:] = cov[i,:,:] / cov[i,0,0] * self.Vrms[i]**2
+        
         self.cov = cov
         self.cov_inv = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
         self.cov_log_det = np.zeros(self.n_antennas)
