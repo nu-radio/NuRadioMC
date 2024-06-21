@@ -125,7 +125,7 @@ def calculate_sim_efield(showers, sid, cid,
 
     """
     if distance_cut is not None:
-        time_logger.start_time('distance cut')
+        #time_logger.start_time('distance cut')
         vertex_positions = []
         shower_energies = []
         for i, shower in enumerate(showers):
@@ -134,7 +134,7 @@ def calculate_sim_efield(showers, sid, cid,
         vertex_positions = np.array(vertex_positions)
         shower_energies = np.array(shower_energies)
         vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
-        time_logger.stop_time('distance cut')
+        #time_logger.stop_time('distance cut')
     logger.debug("Calculating electric field for station %d , channel %d from list of showers", sid, cid)
     p = propagator # shorthand for more compact coding
 
@@ -153,16 +153,16 @@ def calculate_sim_efield(showers, sid, cid,
     for iSh, shower in enumerate(showers):
         x1 = shower.get_parameter(shp.vertex)
         if distance_cut is not None:
-            time_logger.start_time('distance cut')
+            #time_logger.start_time('distance cut')
             mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < config['speedup']['distance_cut_sum_length']
             shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
             if np.linalg.norm(x1 - x2) > distance_cut(shower_energy_sum):
                 # logger.warning(f"shower {shower.get_id()} is too far away ({np.linalg.norm(x1 - x2)/units.km:.2f} > {distance_cut(shower_energy_sum)/units.km:.2f}) from station {sid} channel {cid}, skipping shower")
-                time_logger.stop_time('distance cut')
+                #time_logger.stop_time('distance cut')
                 continue
             # logger.warning(f"shower {shower.get_id()} is close enough ({np.linalg.norm(x1 - x2)/units.km:.2f} < {distance_cut(shower_energy_sum)/units.km:.2f}) to station {sid} channel {cid}, continuing with shower")
-            time_logger.stop_time('distance cut')
-        time_logger.start_time('ray tracing')
+            #time_logger.stop_time('distance cut')
+        #time_logger.start_time('ray tracing')
         logger.debug(f"Calculating electric field for shower {shower.get_id()} and station {sid}, channel {cid}")
         shower_axis = -1 * shower.get_axis() # We need the propagation direction here, so we multiply the shower axis with '-1'
         n_index = medium.get_index_of_refraction(x1)
@@ -482,7 +482,7 @@ def apply_det_response_sim(sim_station, det, config,
 
     Returns nothing. The SimChannels are added to the SimStation object.
     """
-    if time_logger is not None: time_logger.start_time('detector response (sim)')
+    #if time_logger is not None: time_logger.start_time('detector response (sim)')
     if evt is None:
         evt = NuRadioReco.framework.event.Event(0, 0)
     if event_time is not None:
@@ -502,7 +502,7 @@ def apply_det_response_sim(sim_station, det, config,
 
     if config['speedup']['amp_per_ray_solution']:
         channelSignalReconstructor.run(evt, sim_station, det)
-    if time_logger is not None: time_logger.stop_time('detector response (sim)')
+    #if time_logger is not None: time_logger.stop_time('detector response (sim)')
 
 def apply_det_response(evt, det, config,
                         detector_simulation_filter_amp=None,
@@ -553,7 +553,7 @@ def apply_det_response(evt, det, config,
 
     Returns nothing. The Channels are added to the Station object.
     """
-    if time_logger is not None: time_logger.start_time('detector response')
+    #if time_logger is not None: time_logger.start_time('detector response')
     if detector_simulation_filter_amp is None and detector_simulation_part2 is None:
         logger.error("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part1")
         raise ValueError("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part1")
@@ -582,7 +582,7 @@ def apply_det_response(evt, det, config,
 
         detector_simulation_filter_amp(evt, station, det)
 
-    if time_logger is not None: time_logger.stop_time('detector response')
+    #if time_logger is not None: time_logger.stop_time('detector response')
 
 def build_dummy_event(sid, det, config):
     """
@@ -652,7 +652,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
         the output should contain all relevant information from the hdf5 file (except the attributes)
         to perform a NuRadioMC simulation
     """
-    if time_logger is not None: time_logger.start_time('event builder (hdf5 -> nur)')
+    #if time_logger is not None: time_logger.start_time('event builder (hdf5 -> nur)')
     parent_id = idxs[0]
     event_group_id = fin['event_group_ids'][parent_id]
     event_group = NuRadioReco.framework.event.Event(event_group_id, parent_id)
@@ -727,7 +727,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
                     if 'emitter_' + key.name in fin:
                         emitter_obj[key] = fin['emitter_' + key.name][idx]
             event_group.add_sim_emitter(emitter_obj)
-    if time_logger is not None: time_logger.stop_time('event builder (hdf5 -> nur)')
+    #if time_logger is not None: time_logger.stop_time('event builder (hdf5 -> nur)')
     return event_group
 
 def get_config(config_file):
@@ -888,7 +888,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     events : list of NuRadioReco.framework.event.Event
         The list of events created from the grouped signals.
     """
-    if time_logger is not None: time_logger.start_time('group into events')
+    #if time_logger is not None: time_logger.start_time('group into events')
     event_group_id = event_group.get_run_number()
     start_times = []
     channel_identifiers = []
@@ -960,7 +960,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             increase_signal(station, None, 0)
         events.append(evt)
     logger.info(f"created {len(events)} events from event group {event_group_id}")
-    if time_logger is not None: time_logger.stop_time('group into events')
+    #if time_logger is not None: time_logger.stop_time('group into events')
     return events
 
 def read_input_hdf5(filename):
@@ -1342,7 +1342,7 @@ class simulation:
             logger.status("terminating simulation")
             return 0
         logger.status("Starting NuRadioMC simulation")
-        self.__time_logger.reset_times()
+        #self.__time_logger.reset_times()
 
         efieldToVoltageConverter.begin(time_resolution=self._config['speedup']['time_res_efieldconverter'])
         channelGenericNoiseAdder.begin(seed=self._config['seed'])
@@ -1369,17 +1369,17 @@ class simulation:
                 continue
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(event_group_ids == event_group_id)))
 
-            self.__time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
+            #self.__time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
 
             event_group = build_NuRadioEvents_from_hdf5(self._fin, self._fin_attrs, event_indices, time_logger=self.__time_logger)
             event_group.set_event_time(self._evt_time)
 
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
-            self.__time_logger.start_time("weight calc.")
+            #self.__time_logger.start_time("weight calc.")
             weight = 1
             if particle_mode:
                 weight = calculate_particle_weight(event_group, event_indices[0], self._config, self._fin)
-            self.__time_logger.stop_time("weight calc.")
+            #self.__time_logger.stop_time("weight calc.")
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if weight < self._config['speedup']['minimum_weight_cut']:
@@ -1389,7 +1389,7 @@ class simulation:
             # these quantities get computed to apply the distance cut as a function of shower energies
             # the shower energies of closeby showers will be added as they can constructively interfere
             if self._config['speedup']['distance_cut']:
-                self.__time_logger.start_time("distance cut")
+                #self.__time_logger.start_time("distance cut")
                 shower_energies = []
                 vertex_positions = []
                 for shower in event_group.get_sim_showers():
@@ -1397,7 +1397,7 @@ class simulation:
                     vertex_positions.append([shower[shp.vertex]])
                 shower_energies = np.array(shower_energies)
                 vertex_positions = np.array(vertex_positions)
-                self.__time_logger.stop_time("distance cut")
+                #self.__time_logger.stop_time("distance cut")
 
             output_buffer = {}
             # loop over all stations (each station is treated independently)
@@ -1479,10 +1479,10 @@ class simulation:
                                        channel_ids=channel_ids)  # TODO: Add option to pass fully custon detector simulation
 
                     # calculate trigger
-                    self.__time_logger.start_time("trigger")
+                    #self.__time_logger.start_time("trigger")
                     self._detector_simulation_trigger(evt, station, self._det)
                     logger.debug(f"event {evt.get_run_number()},{evt.get_id()} tiggered: {evt.get_station().has_triggered()}")
-                    self.__time_logger.stop_time("trigger")
+                    #self.__time_logger.stop_time("trigger")
                     if not evt.get_station().has_triggered():
                         continue
                     triggerTimeAdjuster.run(evt, station, self._det)
