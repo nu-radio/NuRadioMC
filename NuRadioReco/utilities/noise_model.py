@@ -18,12 +18,6 @@ class NoiseModel:
             Number of samples in each trace
         sampling_rate : float
             The sampling rate of the antennas
-        spectra : numpy.ndarray, optional
-            Spectra of the noise in the antennas. Has dimensions [n_antennas,n_samples/2+1]. Default value is None, 
-            and can instead be calculated using NoiseModel.calculate_spectra_from_data.
-        Vrms : numpy.ndarray, optional
-            List of Vrms values for each antenna. If provided, the spectra will be normalized to these values. Otherwise
-            the normalization of the spectra is used. Default value is None.
         matrix_inversion_method : str, optional
             If the covariance matrix is not full rank, the inverse, which is used to calculate the multivariate normal, 
             does not exist. This is the case if any frequency amplitudes in the spectra are zero, which corresponds to
@@ -47,25 +41,58 @@ class NoiseModel:
             the distribution cancels out and can just be set to 1. This speeds up initializing the class/covariance matrices.
     """
 
-    def __init__(self, n_antennas, n_samples, sampling_rate, spectra=None, Vrms=None, matrix_inversion_method="pseudo_inv", threshold_pdet=1e-12, increase_cov_diagonal=0, ignore_normalization=True):
+    def __init__(self, n_antennas, n_samples, sampling_rate, matrix_inversion_method="pseudo_inv", threshold_pdet=1e-12, increase_cov_diagonal=0, ignore_normalization=True):
         self.n_antennas = n_antennas
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
-        self.spectra = spectra
-        self.Vrms = Vrms
         self.matrix_inversion_method = matrix_inversion_method
         self.threshold_pdet = threshold_pdet
         self.increase_cov_diagonal = increase_cov_diagonal
         self.ignore_normalization = ignore_normalization
         self.frequencies = np.fft.rfftfreq(n_samples, 1.0/sampling_rate)
         self.n_frequencies = len(self.frequencies)
+        self.Vrms = None
         self.cov = None
         self.cov_inv = None
         self.cov_log_det = None
         self.t_array = np.arange(n_samples) * 1.0 / sampling_rate
 
-        if spectra is not None:
-            assert np.shape(spectra)[1] == self.n_frequencies, "The dimensionality of the provided spectra does not match the number of samples per trace"
+    def initialize_with_spectra(self, spectra, Vrms=None):
+        """
+        Initialize the noise model using spectra
+
+        Parameters
+        ----------
+            spectra : numpy.ndarray
+                Array containing spectra with dimensions [n_antennas,n_frequencies]
+            Vrms : numpy.ndarray, optional
+                List of Vrms values for each antenna. If provided, the spectra will be normalized to these values. Otherwise
+                the normalization of the spectra is used. Default value is None.
+        """
+        assert np.shape(spectra)[1] == self.n_frequencies, "The dimensionality of the provided spectra does not match the number of samples per trace"
+        self.spectra = spectra
+        self.Vrms = Vrms
+        self._calculate_covariance_matrices_from_spectra(spectra)
+    
+    def initialize_with_data(self, data, method="using_spectra"):
+        """
+        Initialize the noise model using traces containing noise
+
+        Parameters
+        ----------
+            data : numpy.ndarray
+                Array containing traces with noise with dimensions [n_datasets,n_antennas,n_samples]
+            method : str, optional
+                Method to calculate the covariance matrices. If set to "using_spectra", the spectra are calculated
+                from the data and the covariance matrices are calculated from the spectra. If set to "autocorrelation",
+                the covariance matrices are calculated directly from the data using numpy.cov()
+        """
+        if method == "using_spectra":
+            spectra = self._calculate_spectra_from_data(data)
+            self._calculate_covariance_matrices_from_spectra(spectra)
+        elif method == "autocorrelation":
+            self._calculate_covariance_matrices_from_data(data)
+    
 
     def _set_covariance_matrices(self, cov):
         """
@@ -99,7 +126,7 @@ class NoiseModel:
             else:
                 raise Exception("""matrix_inversion_method not recognized. Choose "pseudo_inv" or "regular_inv" """)
 
-    def calculate_spectra_from_data(self, data):
+    def _calculate_spectra_from_data(self, data):
         """
         Calculates the spectra for all antennas
 
@@ -114,18 +141,18 @@ class NoiseModel:
             fourier_transforms_mean = np.sqrt(np.mean(fourier_transforms.real**2 + fourier_transforms.imag**2, axis=0))
             spectra[i,:] = fourier_transforms_mean
         
-        self.spectra = spectra
+        return spectra
 
-    def calculate_covariance_matrices_from_spectra(self):
+    def _calculate_covariance_matrices_from_spectra(self, spectra):
         """
-        Calculates covariance matrices from self.spectra
+        Calculates covariance matrices from spectra
 
         """
 
-        assert self.spectra is not None, "Spectra are not set"
+        assert spectra is not None, "Spectra are not set"
 
         # The normalization convention of the Fourier transform in NuRadioReco has to be taken into account:
-        amplitudes = self.spectra * self.sampling_rate * np.sqrt(2) / self.n_samples
+        amplitudes = spectra * self.sampling_rate * np.sqrt(2) / self.n_samples
 
         covariance_matrices = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
 
@@ -148,7 +175,7 @@ class NoiseModel:
 
         self._set_covariance_matrices(covariance_matrices)
 
-    def calculate_covariance_matrices_from_data(self, data):
+    def _calculate_covariance_matrices_from_data(self, data):
         """
         Calculates the covariance matrix for each antenna using numpy.cov and averages along the diagonals 
         assuming the covariance matrix is circulant
