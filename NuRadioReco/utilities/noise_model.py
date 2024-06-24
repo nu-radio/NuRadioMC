@@ -64,13 +64,18 @@ class NoiseModel:
         Parameters
         ----------
             spectra : numpy.ndarray
-                Array containing spectra with dimensions [n_antennas,n_frequencies]
+                Array containing spectra with dimensions [n_antennas,n_frequencies] or [n_frequencies]. For the latter case, all antennas
+                are assumed to have the same spectrum.
             Vrms : numpy.ndarray, optional
                 List of Vrms values for each antenna. If provided, the spectra will be normalized to these values. Otherwise
-                the normalization of the spectra is used. Default value is None.
+                the normalization of the spectra is used. Default value is None. If only one value is given, all antennas
+                are assumed to have the same Vrms.
         """
-        assert np.shape(spectra)[1] == self.n_frequencies, "The dimensionality of the provided spectra does not match the number of samples per trace"
-        self.spectra = spectra
+        #assert spectra.shape[1] == self.n_frequencies, "The dimensionality of the provided spectra does not match the number of samples per trace"
+        if len(spectra.shape) == 1:
+            spectra = np.tile(spectra,[self.n_antennas,1])
+        if Vrms is not None and len(np.atleast_2d(Vrms)) == 1:
+            Vrms = np.tile(Vrms, self.n_antennas)
         self.Vrms = Vrms
         self._calculate_covariance_matrices_from_spectra(spectra)
     
@@ -81,12 +86,15 @@ class NoiseModel:
         Parameters
         ----------
             data : numpy.ndarray
-                Array containing traces with noise with dimensions [n_datasets,n_antennas,n_samples]
+                Array containing traces with noise with dimensions [n_datasets,n_antennas,n_samples] or [n_datasets,n_samples] for one antenna
             method : str, optional
                 Method to calculate the covariance matrices. If set to "using_spectra", the spectra are calculated
                 from the data and the covariance matrices are calculated from the spectra. If set to "autocorrelation",
                 the covariance matrices are calculated directly from the data using numpy.cov()
         """
+        if self.n_antennas == 1 and len(data.shape) == 2:
+            data = data[:,np.newaxis,:]
+        
         if method == "using_spectra":
             spectra = self._calculate_spectra_from_data(data)
             self._calculate_covariance_matrices_from_spectra(spectra)
@@ -246,7 +254,8 @@ class NoiseModel:
         Parameters
         ----------
             data : numpy.ndarray
-                Array containing data with dimensions [n_datasets,n_antennas,n_samples] or [n_antennas,n_samples]
+                Array containing data with dimensions [n_datasets,n_antennas,n_samples] or [n_antennas,n_samples]. For one antenna,
+                the shapes [n_datasets,n_samples] or [n_samples] are also allowed.
             signal : numpy.ndarray, optional
                 Array containing neutrino signal signal of dimensions [n_antennas,n_samples].
                 If no signal is provided, it will be set to zeros.
@@ -256,14 +265,20 @@ class NoiseModel:
             numpy.ndarray
                 The delta log likelihood for the data relative to the most probable noise
         """
+        # Handle different shapes of data and signal:
+        if self.n_antennas == 1 and len(data.shape) == 2:
+            data = data[:,np.newaxis,:]
+        if self.n_antennas != 1 and len(data.shape) == 2:
+            data = data[np.newaxis,:,:]
+        if self.n_antennas == 1 and len(data.shape) == 1:
+            data = data[np.newaxis,np.newaxis,:]
+
         if signal is None:
             means = np.zeros([self.n_antennas, self.n_samples])
-        else:
+        elif len(signal.shape) == 2:
             means = signal
-
-        # If only one dataset is given, add dimension along axis=0 ([1,n_antennas,n_samples]):
-        if len(np.shape(data)) == 2:
-            data = data[np.newaxis,:,:]
+        elif self.n_antennas == 1 and len(signal.shape) == 1:
+            means = signal[np.newaxis,:]
 
         n_datasets = len(data)
 
