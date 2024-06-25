@@ -2,6 +2,10 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 2.3.1-dev
+new features:
+- Added up to date in-ice VPol response (RNOG_vpol_v2_5inch_center_n1.75.pkl) sha-1 hash
+
 version 2.3.0-dev
 new features:
 - Added download utility unifying download of antenna models/proposal tables/shower
