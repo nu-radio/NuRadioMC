@@ -77,7 +77,8 @@ class NoiseModel:
         if Vrms is not None and len(np.atleast_2d(Vrms)) == 1:
             Vrms = np.tile(Vrms, self.n_antennas)
         self.Vrms = Vrms
-        self._calculate_covariance_matrices_from_spectra(spectra)
+        covariance_matrices = self._calculate_covariance_matrices_from_spectra(abs(spectra))
+        self._set_covariance_matrices(covariance_matrices, spectra)
     
     def initialize_with_data(self, data, method="using_spectra"):
         """
@@ -97,26 +98,36 @@ class NoiseModel:
         
         if method == "using_spectra":
             spectra = self._calculate_spectra_from_data(data)
-            self._calculate_covariance_matrices_from_spectra(spectra)
+            covariance_matrices = self._calculate_covariance_matrices_from_spectra(spectra)
+            self._set_covariance_matrices(covariance_matrices, spectra)
         elif method == "autocorrelation":
-            self._calculate_covariance_matrices_from_data(data)
+            spectra = self._calculate_spectra_from_data(data)
+            covariance_matrices = self._calculate_covariance_matrices_from_data(data)
+            self._set_covariance_matrices(covariance_matrices, spectra)
     
 
-    def _set_covariance_matrices(self, cov):
+    def _set_covariance_matrices(self, cov, spectra):
         """
-        Sets the covariance matrices, their (pseudo-)inverses, and log-determinants.
+        Sets the covariance matrices, their (pseudo-)inverses, and log-determinants. Additionally, the 
+        noise power spectral density is saved, for calculations in the frequency domain.
         
         Parameters
         ----------
             cov : numpy.ndarray
                 Covariance matrices for all antennas. Has dimensions [n_antennas,n_samples,n_samples]
+            spectra : numpy.ndarray
+                Array containing spectra with dimensions [n_antennas,n_frequencies] or [n_frequencies]. For the latter case, all antennas
+                are assumed to have the same spectrum.
         """
 
-        # scale covariance matrices to Vrms if provided:
+        # scale covariance matrices and spectra to Vrms if provided:
         if self.Vrms is not None:
             for i in range(self.n_antennas):
                 cov[i,:,:] = cov[i,:,:] / cov[i,0,0] * self.Vrms[i]**2
-        
+                spectrum_power = np.sum(spectra[i]**2) * (self.frequencies[1] - self.frequencies[0])
+                time_domain_power = self.Vrms[i]**2 * self.n_samples * 1/self.sampling_rate
+                spectra = spectra / np.sqrt(spectrum_power) * np.sqrt(time_domain_power)
+
         self.cov = cov
         self.cov_inv = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
         self.cov_log_det = np.zeros(self.n_antennas)
@@ -133,6 +144,12 @@ class NoiseModel:
                 self.cov_log_det[i] = np.linalg.det() if not self.ignore_normalization else 1
             else:
                 raise Exception("""matrix_inversion_method not recognized. Choose "pseudo_inv" or "regular_inv" """)
+            
+        # Calculate noise power spectral density from the spectra:
+        self.noise_psd = np.zeros([self.n_antennas, self.n_frequencies])
+        for i in range(self.n_antennas):
+            self.noise_psd[i,:] = 2 * spectra[i,:]**2 * (self.frequencies[1] - self.frequencies[0])
+
 
     def _calculate_spectra_from_data(self, data):
         """
@@ -155,9 +172,13 @@ class NoiseModel:
         """
         Calculates covariance matrices from spectra
 
-        """
+        Parameters
+        ----------
+            spectra : numpy.ndarray
+                Array containing spectra with dimensions [n_antennas,n_frequencies] or [n_frequencies]. For the latter case, all antennas
+                are assumed to have the same spectrum.
 
-        assert spectra is not None, "Spectra are not set"
+        """
 
         # The normalization convention of the Fourier transform in NuRadioReco has to be taken into account:
         amplitudes = spectra * self.sampling_rate * np.sqrt(2) / self.n_samples
@@ -181,6 +202,7 @@ class NoiseModel:
 
             covariance_matrices[i,:,:] = constructed_covariance_matrix
 
+        return covariance_matrices
         self._set_covariance_matrices(covariance_matrices)
 
     def _calculate_covariance_matrices_from_data(self, data):
@@ -216,6 +238,7 @@ class NoiseModel:
 
             covariance_matrices[i,:,:] = averaged_covariance_matrix
 
+        return covariance_matrices
         self._set_covariance_matrices(covariance_matrices)
 
     def _log_multivariate_normal(self, x, mu, cov_inv, cov_log_det):
