@@ -51,6 +51,7 @@ class NoiseModel:
         self.ignore_normalization = ignore_normalization
         self.frequencies = np.fft.rfftfreq(n_samples, 1.0/sampling_rate)
         self.n_frequencies = len(self.frequencies)
+        self.spectra = None
         self.Vrms = None
         self.cov = None
         self.cov_inv = None
@@ -149,6 +150,9 @@ class NoiseModel:
         self.noise_psd = np.zeros([self.n_antennas, self.n_frequencies])
         for i in range(self.n_antennas):
             self.noise_psd[i,:] = 2 * spectra[i,:]**2 * (self.frequencies[1] - self.frequencies[0])
+        
+        # Save spectra:
+        self.spectra = spectra
 
 
     def _calculate_spectra_from_data(self, data):
@@ -159,6 +163,10 @@ class NoiseModel:
         ----------
             data : numpy.ndarray
                 Array containing data with dimensions [n_datasets,n_antennas,n_samples]
+        Returns
+        -------
+            numpy.ndarray
+                spectra (average of Fourier transforms of events) for each antenna with dimensions [n_antennas,n_frequenciess]
         """
         spectra = np.zeros([self.n_antennas,self.n_frequencies])
         for i in range(self.n_antennas):
@@ -177,6 +185,11 @@ class NoiseModel:
             spectra : numpy.ndarray
                 Array containing spectra with dimensions [n_antennas,n_frequencies] or [n_frequencies]. For the latter case, all antennas
                 are assumed to have the same spectrum.
+
+        Returns
+        -------
+            numpy.ndarray
+                Covariance matrices for each antenna with dimensions [n_frequenciess,n_frequenciess]
 
         """
 
@@ -214,6 +227,11 @@ class NoiseModel:
         ----------
             data : numpy.ndarray
                 Array containing data with dimensions [n_datasets,n_antennas,n_samples]
+
+        Returns
+        -------
+            numpy.ndarray
+                Covariance matrices for each antenna with dimensions [n_frequenciess,n_frequenciess]
         """
 
         covariance_matrices = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
@@ -269,8 +287,37 @@ class NoiseModel:
         term_3_temp = np.array(np.matmul(cov_inv, x-mu)).flatten()
         term_3 = -0.5 * np.matmul(x-mu, term_3_temp)
         return term_1 + term_2 + term_3
+    
+    def _log_multivariate_normal_freq(self, x_minus_mu_fft, noise_psd):
+        """
+        Calculates the multivariate normal probability (PDF) of vector x, given the fourier transformed trace
+        minus signal and the noise power spectral density. This calculation is more effecient than the time domain
+        calculation.
 
-    def calculate_delta_llh(self, data, signal=None):
+        Parameters
+        ----------
+            x : numpy.ndarray
+                Vector containing noise with dimensions [n_samples]
+            mu : numpy.ndarray
+                Means of the distribution with dimensions [n_samples]
+            cov_inv : numpy.ndarray
+                Inverse covariance matrix of the distribution with dimensions [n_samples,n_samples]
+            cov_log_det : float
+                Determinant of covariance matrix of the distribution
+
+        Returns
+        -------
+            float
+                Natural logarithm to the PDF value of the vector x given the multivariate normal distribution described by mu, cov_inv, and cov_log_det
+        """
+        n = self.n_samples
+        term_1 = -0.5 * n * np.log(2*np.pi)
+        term_2 = -0.5 * self.cov_log_det[0]
+        integrand = abs(x_minus_mu_fft*x_minus_mu_fft.conj())/noise_psd
+        term_3 = -0.5 * 4*np.trapz(integrand[noise_psd>self.threshold_pdet], self.frequencies[noise_psd>self.threshold_pdet])
+        return term_1 + term_2 + term_3
+
+    def calculate_delta_llh(self, data, signal=None, frequency_domain=False):
         """
         Calculates delta log likelihood for the datasets relative to the most probable trace
 
@@ -282,6 +329,8 @@ class NoiseModel:
             signal : numpy.ndarray, optional
                 Array containing neutrino signal signal of dimensions [n_antennas,n_samples].
                 If no signal is provided, it will be set to zeros.
+            frequency_domain : bool, optional
+                If True, calculate the delta log likelihood in the frequency domain, which is faster.
 
         Returns
         -------
@@ -307,7 +356,10 @@ class NoiseModel:
 
         LLH_best = 0
         for i in range(self.n_antennas):
-            LLH_best += self._log_multivariate_normal(x=means[i,:], mu=means[i,:], cov_inv=self.cov_inv[i,:,:], cov_log_det=self.cov_log_det[i])
+            if not frequency_domain:
+               LLH_best += self._log_multivariate_normal(x=means[i,:], mu=means[i,:], cov_inv=self.cov_inv[i,:,:], cov_log_det=self.cov_log_det[i])
+            elif frequency_domain:
+                LLH_best += self._log_multivariate_normal_freq(x_minus_mu_fft=np.zeros(self.n_frequencies), noise_psd=self.noise_psd[i])
 
         LLH_array = np.zeros(n_datasets)
 
@@ -315,12 +367,17 @@ class NoiseModel:
             # Sum over likelihood for all antennas:
             LLH = 0
             for j in range(self.n_antennas):
-                LLH += self._log_multivariate_normal(x=data[i,j,:], mu=means[j,:], cov_inv=self.cov_inv[j,:,:], cov_log_det=self.cov_log_det[j])
+                if not frequency_domain:
+                    LLH += self._log_multivariate_normal(x=data[i,j,:], mu=means[j,:], cov_inv=self.cov_inv[j,:,:], cov_log_det=self.cov_log_det[j])
+                if frequency_domain:
+                    x_minus_mu_fft = fft.time2freq(data[i,j,:]-means[j,:], self.sampling_rate)
+                    LLH += self._log_multivariate_normal_freq(x_minus_mu_fft=x_minus_mu_fft, noise_psd=self.noise_psd[j])
+            
             LLH_array[i] = LLH
 
         return LLH_array - LLH_best
     
-    def calculate_minus_two_delta_llh(self, data, signal=None):
+    def calculate_minus_two_delta_llh(self, data, signal=None, frequency_domain=False):
         """
         Calculates the minus two delta log likelihood for the datasets relative to the most probable noise
 
@@ -331,15 +388,17 @@ class NoiseModel:
             signal : numpy.ndarray, optional
                 Array containing neutrino signal signal of dimensions [n_antennas,n_samples].
                 If no signal is provided, it will be set to zeros.
+            frequency_domain : bool, optional
+                If True, calculate the delta log likelihood in the frequency domain, which is faster.
 
         Returns
         -------
             np.array
                 Minus two delta log likelihood for the data given the noise model
         """
-        return -2*self.calculate_delta_llh(data, signal=signal)
+        return -2*self.calculate_delta_llh(data, signal=signal, frequency_domain=frequency_domain)
 
-    def get_minus_two_delta_llh_function(self, data_to_fit, signal_function):
+    def get_minus_two_delta_llh_function(self, data_to_fit, signal_function, frequency_domain=False):
         """
         Convenience function. Returns a function that calculates the minus two delta log likelihood for signal given a dataset with noise.
         The returned function can be used directly in optimizers like scipy.optimize.minimize.
@@ -350,6 +409,8 @@ class NoiseModel:
                 Array containing one dataset with dimensions [n_antennas,n_samples]
             signal_function : function
                 Function which takes a vector containing parameters as input and returns a signal array with dimensions [n_antennas,n_samples].
+            frequency_domain : bool, optional
+                If True, calculate the delta log likelihood in the frequency domain, which is faster.
 
         Returns
         -------
@@ -359,7 +420,7 @@ class NoiseModel:
 
         def minus_two_delta_llh_func(params):
             signal = signal_function(params)
-            LLH_signal = self.calculate_delta_llh(signal, data_to_fit)
+            LLH_signal = self.calculate_delta_llh(signal, data_to_fit, frequency_domain=frequency_domain)
             minus_two_delta_llh_signal = -2 * LLH_signal
             return minus_two_delta_llh_signal
 
@@ -367,7 +428,8 @@ class NoiseModel:
     
     def save_covariance_matrix(self, antenna, filename):
         """
-        Save compressed version (one row) of covariance matrix for one antenna along with the sample rate in GHz and number of samples
+        Save compressed version (one row) of covariance matrix for one antenna along with the sample rate in GHz, 
+        number of samples, and the spectra.
 
         Parameters
         ----------
@@ -379,7 +441,7 @@ class NoiseModel:
                 e.g.: noise_covariance_matrix_RNOG_station21_antenna6_2023-03-01_to_2023-10-31
         """
         cov_one_row = self.cov[antenna,:,0]
-        object_to_save = np.array([self.sampling_rate, self.n_samples, cov_one_row],dtype=object)
+        object_to_save = np.array([self.sampling_rate, self.n_samples, cov_one_row, self.spectra[antenna,:]],dtype=object)
         np.save(filename, object_to_save)
 
     def load_covariance_matrices(self, filenames):
@@ -394,9 +456,10 @@ class NoiseModel:
         assert len(filenames) == self.n_antennas, f"Number of filenames ({len(filenames)}) does not match the number of antennas ({self.n_antennas})"
 
         covariance_matrices = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
+        spectra = np.zeros([self.n_antennas, self.n_samples])
 
         for i, file in enumerate(filenames):
-            cov_sample_rate, cov_n_samples, cov_one_row = np.load(file, allow_pickle=True)
+            cov_sample_rate, cov_n_samples, cov_one_row, spectrum = np.load(file, allow_pickle=True)
 
             # Until resampling is implementet, only matching sampling rates and number of samples are allowed:
             assert cov_sample_rate == self.sampling_rate, f"Sampling rate ({self.sampling_rate}) does not match covariance matrix sampling rate ({cov_sample_rate})"
@@ -408,8 +471,9 @@ class NoiseModel:
                 constructed_covariance_matrix[:,j] = np.roll(cov_one_row, j)
 
             covariance_matrices[i,:,:] = constructed_covariance_matrix
+            spectra[i] = spectrum
 
-        self._set_covariance_matrices(covariance_matrices)
+        self._set_covariance_matrices(covariance_matrices, spectra=spectra)
     
     def resample_covariance_matrices(self, new_sampling_rate):
         """
@@ -426,15 +490,18 @@ class NoiseModel:
         self.n_samples = n_samples_new
         self.sampling_rate = new_sampling_rate
         self.frequencies = np.fft.rfftfreq(n_samples_new, 1.0/new_sampling_rate)
-        self.n_frequencies = len(self.frequencies)
+        n_frequencies_new = len(self.frequencies)
+        self.n_frequencies = n_frequencies_new
         
         covariance_matrices = np.zeros([self.n_antennas, n_samples_new, n_samples_new])
+        spectra = np.zeros([self.n_antennas, n_samples_new])
 
         for i in range(self.n_antennas):
             cov_one_row = self.cov[i,0,:]
             
-            # Resample:
+            # Resample covariance matrix and spectra:
             cov_one_row, t_array = scp.signal.resample(cov_one_row, n_samples_new, t=self.t_array)
+            spectra[i] = scp.signal.resample(self.spectra[i], n_frequencies_new)
 
             # Construct covariances matrix:
             covariance_matrix = np.zeros([n_samples_new, n_samples_new])
@@ -443,7 +510,7 @@ class NoiseModel:
 
             covariance_matrices[i,:,:] = covariance_matrix
 
-        self._set_covariance_matrices(covariance_matrices)
+        self._set_covariance_matrices(covariance_matrices, spectra)
 
     def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx):
         """
@@ -592,7 +659,7 @@ class NoiseModel:
         plt.ylabel(f"Cov$(\Delta t)$")
         plt.tight_layout()
 
-    def plot_llh_distribution(self, data, n_dof=None, make_new_figure = True):
+    def plot_llh_distribution(self, data, n_dof=None, frequency_domain=False, make_new_figure = True):
         """
         Calculate the llh values for many datasets and plot the distribution alongside a chi2 
         distribution with dof equal to the number of samples
@@ -604,10 +671,12 @@ class NoiseModel:
             n_dof : int, optional
                 Number of degrees of freedom for the chi2 distribution. If not provided, it is set equal to
                 the number of samples
+            frequency_domain : bool, optional
+                If True, calculate the delta log likelihood in the frequency domain, which is faster.
             make_new_figure : bool
                 If True create a new figure
         """
-        LLH_array = self.calculate_delta_llh(data)
+        LLH_array = self.calculate_delta_llh(data, frequency_domain=frequency_domain)
 
         n_datasets = len(data)
         if n_dof is None:
