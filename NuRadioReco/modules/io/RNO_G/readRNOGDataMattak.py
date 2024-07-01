@@ -375,6 +375,7 @@ class readRNOGData:
         self.__invalid = 0
 
         self._events_information = None
+        self._events_waveforms = None
         self._datasets = []
         self.__n_events_per_dataset = []
 
@@ -585,7 +586,8 @@ class readRNOGData:
 
 
     def get_events_information(self, keys=["station", "run", "eventNumber"]):
-        """ Return information of all events from the EventInfo
+        """ Return information of events from the EventInfo. Only information of events passing the
+        selectors, which may have been specified, are returned.
 
         This function is useful to make a pre-selection of events before actually reading them in combination with
         self.read_event().
@@ -639,6 +641,26 @@ class readRNOGData:
                 n_prev += dataset.N()
 
         return self._events_information
+
+    def get_waveforms(self):
+        """ Return waveforms of events passing the selectors which may have been specified
+
+        Returns
+        -------
+
+        wfs: np.array
+            Waveforms of all "selected" events.
+        """
+        if self._events_waveforms is None:
+            self._events_waveforms = []
+
+            for dataset in self._datasets:
+                dataset.setEntries((0, dataset.N()))
+
+                for idx, (_, wfs) in enumerate(dataset.iterate(selectors=self._select_events)):  # returns a list
+                    self._events_waveforms.append(wfs)
+
+        return np.array(self._events_waveforms)
 
 
     def _check_for_valid_information_in_event_info(self, event_info):
