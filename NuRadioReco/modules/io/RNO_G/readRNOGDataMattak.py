@@ -569,9 +569,9 @@ class readRNOGData:
         skip: bool
             Returns False to skip/reject event, return True to keep/read event
         """
-        self._event_idx += 1
         self.logger.debug(f"Processing event number {self._event_idx} out of total {self._n_events_total}")
 
+        self.__counter += 1  # for logging
         if self._selectors is not None:
             for selector in self._selectors:
                 if not selector(evtinfo):
@@ -749,9 +749,8 @@ class readRNOGData:
 
                 evt = self._get_event(evtinfo, wf)
 
-                self.__counter += 1
                 yield evt
-                
+
 
     def get_event_by_index(self, event_index):
         """ Allows to read a specific event identifed by its index
