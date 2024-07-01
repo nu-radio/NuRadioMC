@@ -149,6 +149,7 @@ def _all_files_in_directory(mattak_dir):
     req_files = ["daqstatus.root", "headers.root", "pedestal.root"]
     for file in req_files:
         if not os.path.exists(os.path.join(mattak_dir, file)):
+            logging.error(f"File {file} could not be found in {mattak_dir}")
             return False
 
     return True
@@ -361,7 +362,7 @@ class readRNOGData:
                                  f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                                  f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
-        self._selectors = []                   
+        self._selectors = []
         self.add_selectors(self._check_for_valid_information_in_event_info)
         self.add_selectors(selectors, select_triggers)
 
