@@ -7,7 +7,7 @@ import math
 from functools import lru_cache
 
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import channelBlockOffsets
+from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import channelBlockOffsets, fit_block_offsets
 
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
@@ -19,7 +19,7 @@ from NuRadioReco.utilities import units
 import mattak.Dataset
 
 
-def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
+def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False, warn=True):
     """
     Simple baseline correction function.
 
@@ -44,6 +44,9 @@ def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     return_offsets: bool, default False
         if True, additionally return the baseline offsets
 
+    warn: bool
+        If True, release a deprecation warning. (Default: True)
+
     Returns
     -------
 
@@ -53,10 +56,11 @@ def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     baseline_values: np.array of shape (n_samples // n_bins, n_events, n_channels)
         (Only if return_offsets==True) The baseline offsets
     """
-    import warnings
-    warnings.warn(
-        'baseline_correction is deprecated, use NuRadioReco.modules.RNO_G.channelBlockOffsetFitter instead',
-        DeprecationWarning)
+    if warn:
+        import warnings
+        warnings.warn(
+            'baseline_correction is deprecated, use NuRadioReco.modules.RNO_G.channelBlockOffsetFitter instead',
+            DeprecationWarning)
 
     # Example: Get baselines in chunks of 128 bins
     # wfs in (n_events, n_channels, 2048)
@@ -642,22 +646,48 @@ class readRNOGData:
 
         return self._events_information
 
-    def get_waveforms(self):
+    def get_waveforms(self, remove_block_offsets=False):
         """ Return waveforms of events passing the selectors which may have been specified
+
+        .. Warning:: The function to remove the block offsets is not the same as the one used in
+            the regular interface of this class.
+
+        Parameters
+        ----------
+
+        remove_block_offsets: bool
+            If True, use a simple function `_baseline_correction` (defined at the top if this file)
+            to remove the block offset. (Default: False)
 
         Returns
         -------
 
         wfs: np.array
-            Waveforms of all "selected" events.
+            Waveforms of all "selected" events. The wavefroms are either calibrated or not
+            based on the class config.
         """
+
         if self._events_waveforms is None:
             self._events_waveforms = []
 
             for dataset in self._datasets:
                 dataset.setEntries((0, dataset.N()))
 
-                for idx, (_, wfs) in enumerate(dataset.iterate(selectors=self._select_events)):  # returns a list
+                for idx, (_, wfs) in enumerate(dataset.iterate(
+                    calibrated=self._read_calibrated_data,
+                    selectors=self._select_events)):
+
+                    if remove_block_offsets:
+                        wfs = _baseline_correction(wfs, warn=False)
+
+                    if self._read_calibrated_data:
+                        wfs *= units.mV
+                    else:
+                        # wf stores ADC counts
+                        if self._convert_to_voltage:
+                            # convert adc to voltage
+                            wfs *= (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
+
                     self._events_waveforms.append(wfs)
 
         return np.array(self._events_waveforms)
