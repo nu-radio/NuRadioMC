@@ -27,28 +27,28 @@ class NoiseModel:
             set to "pseudo_inv", and is numerically stable but slow. We thus also provide the option to use the regular 
             inverse by setting this parameter to "regular_inv", which works for full rank matrices and sometimes for
             lower rank matrices (see increase_cov_diagonal).
-        threshold_pdet : float, optional
-            The pseudo-determinant of a matrix is the product of all non-zero eigenvalues. This is the threshold for what
-            is considered non-zero.
+        threshold_amplitude : float, optional
+            Below this threshold the frequency amplitudes of the spectra is considered zero. Also used as the threshold 
+            for the eigenvalues when calculating the pseudo-inverse and pseudo-determinant.
         increase_cov_diagonal : float, optional
             Only used if matrix_inversion_method is "regular_inv". Calculating the inverse of a (covariance) matrix is 
             numerically unstable, and it does not exist if the matrix is not full rank. By adding a small component to the 
             diagonal when the inverse increases the rank and can improve stability for lower rank matrices. The parameter is
             what fraction of the variance should be added to the diagonal of the covariance matrix only when calculating 
             the inverse.
-        ignore_normalization : bool, optional
+        ignore_llh_normalization : bool, optional
             We are generally only interrested in likelihood ratios or delta log likelihood. In this case the normalization of
             the distribution cancels out and can just be set to 1. This speeds up initializing the class/covariance matrices.
     """
 
-    def __init__(self, n_antennas, n_samples, sampling_rate, matrix_inversion_method="pseudo_inv", threshold_pdet=1e-12, increase_cov_diagonal=0, ignore_normalization=True):
+    def __init__(self, n_antennas, n_samples, sampling_rate, matrix_inversion_method="pseudo_inv", threshold_amplitude=1e-12, increase_cov_diagonal=0, ignore_llh_normalization=True):
         self.n_antennas = n_antennas
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
         self.matrix_inversion_method = matrix_inversion_method
-        self.threshold_pdet = threshold_pdet
+        self.threshold_amplitude = threshold_amplitude
         self.increase_cov_diagonal = increase_cov_diagonal
-        self.ignore_normalization = ignore_normalization
+        self.ignore_llh_normalization = ignore_llh_normalization
         self.frequencies = np.fft.rfftfreq(n_samples, 1.0/sampling_rate)
         self.n_frequencies = len(self.frequencies)
         self.spectra = None
@@ -66,7 +66,7 @@ class NoiseModel:
         ----------
             spectra : numpy.ndarray
                 Array containing spectra with dimensions [n_antennas,n_frequencies] or [n_frequencies]. For the latter case, all antennas
-                are assumed to have the same spectrum.
+                are assumed to have the same spectrum. The spectra are defined as the mean of the Fourier transforms of the noise traces.
             Vrms : numpy.ndarray, optional
                 List of Vrms values for each antenna. If provided, the spectra will be normalized to these values. Otherwise
                 the normalization of the spectra is used. Default value is None. If only one value is given, all antennas
@@ -78,8 +78,16 @@ class NoiseModel:
         if Vrms is not None and len(np.atleast_2d(Vrms)) == 1:
             Vrms = np.tile(Vrms, self.n_antennas)
         self.Vrms = Vrms
-        covariance_matrices = self._calculate_covariance_matrices_from_spectra(abs(spectra))
-        self._set_covariance_matrices(covariance_matrices, spectra)
+
+        # Scale spectra to Vrms if provided:
+        if Vrms is not None:
+            for i in range(self.n_antennas):
+                spectrum_power = np.sum(spectra[i]**2) * (self.frequencies[1] - self.frequencies[0])
+                time_domain_power = Vrms[i]**2 * self.n_samples * 1/self.sampling_rate
+                spectra[i,:] = spectra[i,:] / np.sqrt(spectrum_power) * np.sqrt(time_domain_power)
+        
+        covariance_matrices, covariance_matrices_inverse = self._calculate_covariance_matrices_from_spectra(abs(spectra))
+        self._set_covariance_matrices(covariance_matrices, spectra, cov_inv=covariance_matrices_inverse)
     
     def initialize_with_data(self, data, method="using_spectra"):
         """
@@ -99,15 +107,15 @@ class NoiseModel:
         
         if method == "using_spectra":
             spectra = self._calculate_spectra_from_data(data)
-            covariance_matrices = self._calculate_covariance_matrices_from_spectra(spectra)
-            self._set_covariance_matrices(covariance_matrices, spectra)
+            covariance_matrices, covariance_matrices_inverse = self._calculate_covariance_matrices_from_spectra(spectra)
+            self._set_covariance_matrices(covariance_matrices, spectra, cov_inv=covariance_matrices_inverse)
         elif method == "autocorrelation":
             spectra = self._calculate_spectra_from_data(data)
             covariance_matrices = self._calculate_covariance_matrices_from_data(data)
             self._set_covariance_matrices(covariance_matrices, spectra)
     
 
-    def _set_covariance_matrices(self, cov, spectra):
+    def _set_covariance_matrices(self, cov, spectra, cov_inv=None):
         """
         Sets the covariance matrices, their (pseudo-)inverses, and log-determinants. Additionally, the 
         noise power spectral density is saved, for calculations in the frequency domain.
@@ -121,30 +129,32 @@ class NoiseModel:
                 are assumed to have the same spectrum.
         """
 
-        # scale covariance matrices and spectra to Vrms if provided:
-        if self.Vrms is not None:
-            for i in range(self.n_antennas):
-                cov[i,:,:] = cov[i,:,:] / cov[i,0,0] * self.Vrms[i]**2
-                spectrum_power = np.sum(spectra[i]**2) * (self.frequencies[1] - self.frequencies[0])
-                time_domain_power = self.Vrms[i]**2 * self.n_samples * 1/self.sampling_rate
-                spectra = spectra / np.sqrt(spectrum_power) * np.sqrt(time_domain_power)
-
         self.cov = cov
-        self.cov_inv = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
-        self.cov_log_det = np.zeros(self.n_antennas)
-        for i in range(self.n_antennas):
-            if self.matrix_inversion_method == "pseudo_inv":
-                self.cov_inv[i,:,:] = scp.linalg.pinvh(cov[i,:,:])
-                if not self.ignore_normalization:
-                    eigen_values = np.linalg.eigvalsh(cov[i,:,:])
-                    self.cov_log_det[i] = np.sum(np.log(eigen_values[eigen_values > self.threshold_pdet]))
+        
+        # Set inverse or calculate it if not provided:
+        if cov_inv is not None:
+            self.cov_inv = cov_inv
+        elif cov_inv is None:
+            self.cov_inv = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
+            self.cov_log_det = np.zeros(self.n_antennas)
+            for i in range(self.n_antennas):
+                if self.matrix_inversion_method == "pseudo_inv":
+                    self.cov_inv[i,:,:] = scp.linalg.pinvh(cov[i,:,:], atol=self.threshold_amplitude)
+                elif self.matrix_inversion_method == "regular_inv":
+                    self.cov_inv[i,:,:] = np.linalg.inv(cov[i,:,:] + np.diag(np.ones(self.n_samples) * cov[i,0,0] * self.increase_cov_diagonal))
                 else:
-                    self.cov_log_det[i] = 1
-            elif self.matrix_inversion_method == "regular_inv":
-                self.cov_inv[i,:,:] = np.linalg.inv(cov[i,:,:] + np.diag(np.ones(self.n_samples) * cov[i,0,0] * self.increase_cov_diagonal))
-                self.cov_log_det[i] = np.linalg.det() if not self.ignore_normalization else 1
-            else:
-                raise Exception("""matrix_inversion_method not recognized. Choose "pseudo_inv" or "regular_inv" """)
+                    raise Exception("""matrix_inversion_method not recognized. Choose "pseudo_inv" or "regular_inv" """)
+        
+        # Calculate log-determinant of covariance matrix:
+        if not self.ignore_llh_normalization:
+            for i in range(self.n_antennas):
+                if self.matrix_inversion_method == "pseudo_inv":
+                    eigen_values = np.linalg.eigvalsh(cov[i,:,:])
+                    self.cov_log_det[i] = np.sum(np.log(eigen_values[eigen_values > self.threshold_amplitude]))
+                elif self.matrix_inversion_method == "regular_inv":
+                    self.cov_log_det[i] = np.linalg.det(cov[i,:,:])
+        else:
+            self.cov_log_det = np.ones(self.n_antennas)
             
         # Calculate noise power spectral density from the spectra:
         self.noise_psd = np.zeros([self.n_antennas, self.n_frequencies])
@@ -188,36 +198,35 @@ class NoiseModel:
 
         Returns
         -------
-            numpy.ndarray
+            covariance_matrices : numpy.ndarray
                 Covariance matrices for each antenna with dimensions [n_frequenciess,n_frequenciess]
-
+            covariance_matrices_inverse : numpy.ndarray
+                Inverse of covariance matrices for each antenna with dimensions [n_frequenciess,n_frequenciess]
         """
-
         # The normalization convention of the Fourier transform in NuRadioReco has to be taken into account:
-        amplitudes = spectra * self.sampling_rate * np.sqrt(2) / self.n_samples
+        amplitudes = spectra * self.sampling_rate / np.sqrt(2) / np.sqrt(self.n_samples)
 
         covariance_matrices = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
+        covariance_matrices_inverse = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
 
         for i in range(self.n_antennas):
+            active_amplitudes = amplitudes[i, amplitudes[i,:] > self.threshold_amplitude]
+            active_frequencies = self.frequencies[amplitudes[i,:]  > self.threshold_amplitude]
+
             # Calculate first row of covariance matrix:
-            covariance_total = np.zeros(self.n_samples)
-            for j in np.arange(0, self.n_frequencies):
-                covariance = 0.5 * amplitudes[i,j]**2 * np.cos(self.frequencies[j]*(2*np.pi)*self.t_array)
-                covariance_total += covariance
+            covariance_one_row = np.zeros(self.n_samples)
+            covariance_inverse_one_row = np.zeros(self.n_samples)
+            for j in np.arange(0, len(active_frequencies)):
+                covariance_one_row +=  2 * active_amplitudes[j]**2 * np.cos(2*np.pi * active_frequencies[j] * self.t_array ) / self.n_samples
+                covariance_inverse_one_row += 2 * (1/active_amplitudes[j]**2) * np.cos(2*np.pi * active_frequencies[j] * self.t_array) / self.n_samples
 
-            # Make sure covariance matrix is symmetric:
-            # for i in range(int(n_samples/2)): cov_total[-i] = cov_total[i]
-
-            # Construct covariances matrix assuming it is circulant:
-            constructed_covariance_matrix = np.zeros([self.n_samples, self.n_samples])
+            # Construct covariances matrix and its incerse assuming they are circulant:
             for j in range(self.n_samples):
-                constructed_covariance_matrix[:,j] = np.roll(covariance_total, j)
+                covariance_matrices[i,:,j] = np.roll(covariance_one_row, j)
+                covariance_matrices_inverse[i,:,j] = np.roll(covariance_inverse_one_row, j)
 
-            covariance_matrices[i,:,:] = constructed_covariance_matrix
-
-        return covariance_matrices
-        self._set_covariance_matrices(covariance_matrices)
-
+        return covariance_matrices, covariance_matrices_inverse
+    
     def _calculate_covariance_matrices_from_data(self, data):
         """
         Calculates the covariance matrix for each antenna using numpy.cov and averages along the diagonals 
@@ -312,9 +321,9 @@ class NoiseModel:
         """
         n = self.n_samples
         term_1 = -0.5 * n * np.log(2*np.pi)
-        term_2 = -0.5 * self.cov_log_det[0]
+        term_2 = -0.5 * np.sum(np.log(noise_psd[noise_psd>self.threshold_amplitude])) #-0.5 * self.cov_log_det[0]
         integrand = abs(x_minus_mu_fft*x_minus_mu_fft.conj())/noise_psd
-        term_3 = -0.5 * 4*np.trapz(integrand[noise_psd>self.threshold_pdet], self.frequencies[noise_psd>self.threshold_pdet])
+        term_3 = -0.5 * 4*np.sum(integrand[noise_psd>self.threshold_amplitude]) * (self.frequencies[1]-self.frequencies[0])
         return term_1 + term_2 + term_3
 
     def calculate_delta_llh(self, data, signal=None, frequency_domain=False):
