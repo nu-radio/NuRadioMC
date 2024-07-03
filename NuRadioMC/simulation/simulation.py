@@ -532,7 +532,7 @@ def apply_det_response(evt, det, config,
     detector_simulation_filter_amp: function (optional)
         a function that applies the filter and amplifier response to the electric field
         the arguments to the function are (event, station, detector)
-        if not provided, the function `detector_simulation_part1` needs to be provided.
+        if not provided, the function `detector_simulation_part2` needs to be provided.
     add_noise : bool
         if True, noise is added to the channels
     Vrms_per_channel : dict
@@ -555,8 +555,8 @@ def apply_det_response(evt, det, config,
     """
     if time_logger is not None: time_logger.start_time('detector response')
     if detector_simulation_filter_amp is None and detector_simulation_part2 is None:
-        logger.error("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part1")
-        raise ValueError("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part1")
+        logger.error("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part2")
+        raise ValueError("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part2")
 
     station = evt.get_station()  # will raise an error if there are more than one station, but this should never happen
     # convert efields to voltages at digitizer
@@ -1129,18 +1129,42 @@ class simulation:
         logger.status("setting event time to {}".format(evt_time))
         self._event_group_list = event_list
 
-        self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
-
-
-        if self._config['propagation']['ice_model'] == "custom":
-            if ice_model is None:
-                logger.error("ice model is set to 'custom' in config file but no custom ice model is provided.")
-                raise AttributeError("ice model is set to 'custom' in config file but no custom ice model is provided.")
-            self._ice = ice_model
-        else:
-            self._ice = NuRadioMC.utilities.medium.get_ice_model(self._config['propagation']['ice_model'])
+        # initialize detector simulation modules
+        # due to mostly historical reasons, the detector simulation is provided as protected member functions,
+        # the user inherits from the simulation class and provides the detector simulation functions as protected
+        # member functions. This has the advantage that the user has potential access to all internal member variables
+        # of the simulation class and thereby full control. However, this is discouraged as it makes it difficult to assure
+        # backwards compatibility.
+        # The default behaviour is that the user provides a function that defines the signal chain (i.e. filter and amplifiers etc.)
+        # and another function that defines the trigger. 
+        # The user can also provide a function that defines the full detector simulation (i.e. the signal chain and the trigger) including 
+        # how noise is added etc.
+        # The user needs to either provide the functions `_detector_simulation_filter_amp` and `_detector_simulation_trigger` or
+        # the function `_detector_simulation_part1` and `_detector_simulation_part2`.
+        self.detector_simulation_part1 = None
+        self.detector_simulation_part2 = None
+        self.detector_simulation_filter_amp = None
+        self.detector_simulation_trigger = None
+        if hasattr(self, '_detector_simulation_filter_amp'):
+            self.detector_simulation_filter_amp = self._detector_simulation_filter_amp
+        if hasattr(self, '_detector_simulation_trigger'):
+            self.detector_simulation_trigger = self._detector_simulation_trigger
+        if hasattr(self, '_detector_simulation_part1'):
+            self.detector_simulation_part1 = self._detector_simulation_part1
+        if hasattr(self, '_detector_simulation_part2'):
+            self.detector_simulation_part2 = self._detector_simulation_part2
+        if(self.detector_simulation_filter_amp is None ^ self.detector_simulation_trigger is None):
+            logger.error("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
+            raise ValueError("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
+        if(self.detector_simulation_part1 is None ^ self.detector_simulation_part2 is None):
+            logger.error("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
+            raise ValueError("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
+        if(self.detector_simulation_part1 is not None and self.detector_simulation_filter_amp is not None):
+            logger.error("Please provide either detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
+            raise ValueError("Please provide either detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
 
         # Initialize detector
+        self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
         if det is None:
             logger.status("Detectorfile {}".format(os.path.abspath(detectorfile)))
             kwargs = dict(json_filename=detectorfile, default_station=default_detector_station,
@@ -1153,6 +1177,13 @@ class simulation:
         self._det.update(self._evt_time)
 
         # initialize propagation module
+        if self._config['propagation']['ice_model'] == "custom":
+            if ice_model is None:
+                logger.error("ice model is set to 'custom' in config file but no custom ice model is provided.")
+                raise AttributeError("ice model is set to 'custom' in config file but no custom ice model is provided.")
+            self._ice = ice_model
+        else:
+            self._ice = NuRadioMC.utilities.medium.get_ice_model(self._config['propagation']['ice_model'])
         prop = propagation.get_propagation_module(self._config['propagation']['module'])
         self._propagator = prop(
             self._ice, self._config['propagation']['attenuation_model'],
@@ -1206,9 +1237,9 @@ class simulation:
         for sid in self._station_ids:
 
             evt = build_dummy_event(sid, self._det, self._config)
-            # TODO: It seems to be sufficient to just apply the `_detector_simulation_filter_amp` function to a dummy event
-            apply_det_response(evt, self._det, self._config, self._detector_simulation_filter_amp,
-                               add_noise=False)
+            # TODO: It seems to be sufficient to just apply the `detector_simulation_filter_amp` function to a dummy event
+            apply_det_response(evt, self._det, self._config, self.detector_simulation_filter_amp,
+                               add_noise=False, detector_simulation_part2=self.detector_simulation_part2)
 
             self._integrated_channel_response[sid] = {}
             self._integrated_channel_response_normalization[sid] = {}
@@ -1452,8 +1483,9 @@ class simulation:
 
                     # applies the detector response to the electric fields (the antennas are defined
                     # in the json detector description file)
-                    apply_det_response_sim(sim_station, self._det, self._config, self._detector_simulation_filter_amp,
-                                           event_time=self._evt_time, time_logger=self.__time_logger)
+                    apply_det_response_sim(sim_station, self._det, self._config, self.detector_simulation_filter_amp,
+                                           event_time=self._evt_time, time_logger=self.__time_logger,
+                                           detector_simulation_part1=self.detector_simulation_part1)
                     logger.debug(f"adding sim_station to station {sid} for event group {event_group.get_run_number()}, channel {channel_id}")
                     station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
                 # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
@@ -1471,16 +1503,17 @@ class simulation:
                 evt_group_triggered = False
                 for evt in events:
                     station = evt.get_station()
-                    apply_det_response(evt, self._det, self._config, self._detector_simulation_filter_amp,
+                    apply_det_response(evt, self._det, self._config, self.detector_simulation_filter_amp,
                                        bool(self._config['noise']),
                                        self._Vrms_efield_per_channel, self._integrated_channel_response,
                                        self._noiseless_channels, 
                                        time_logger=self.__time_logger,
-                                       channel_ids=channel_ids)  # TODO: Add option to pass fully custon detector simulation
+                                       channel_ids=channel_ids,
+                                       detector_simulation_part2=self.detector_simulation_part2)
 
                     # calculate trigger
                     self.__time_logger.start_time("trigger")
-                    self._detector_simulation_trigger(evt, station, self._det)
+                    self.detector_simulation_trigger(evt, station, self._det)
                     logger.debug(f"event {evt.get_run_number()},{evt.get_id()} tiggered: {evt.get_station().has_triggered()}")
                     self.__time_logger.stop_time("trigger")
                     if not evt.get_station().has_triggered():
@@ -1518,8 +1551,9 @@ class simulation:
 
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
-                        apply_det_response_sim(sim_station, self._det, self._config, self._detector_simulation_filter_amp,
-                                            event_time=self._evt_time, time_logger=self.__time_logger)
+                        apply_det_response_sim(sim_station, self._det, self._config, self.detector_simulation_filter_amp,
+                                            event_time=self._evt_time, time_logger=self.__time_logger,
+                                            detector_simulation_part1=self.detector_simulation_part1)
                         logger.debug(f"adding sim_station to station {sid} for event group {event_group.get_run_number()}, channel {channel_id}")
                         station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
                         for evt in output_buffer[sid].values():
