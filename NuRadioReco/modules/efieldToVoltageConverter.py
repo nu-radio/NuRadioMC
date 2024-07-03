@@ -106,15 +106,15 @@ class efieldToVoltageConverter():
         times_max = []
         if channel_ids is None:
             channel_ids = det.get_channel_ids(sim_station_id)
-        for iCh in channel_ids:
-            for electric_field in sim_station.get_electric_fields_for_channels([iCh]):
+        for channel_id in channel_ids:
+            for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
                 time_resolution = 1. / electric_field.get_sampling_rate()
-                cab_delay = det.get_cable_delay(sim_station_id, iCh)
+                cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                 t0 = electric_field.get_trace_start_time() + cab_delay
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
                     site = det.get_site(sim_station_id)
-                    antenna_position = det.get_relative_position(sim_station_id, iCh) - electric_field.get_position()
+                    antenna_position = det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position()
                     if sim_station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
                         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
                     else:  # signal is coming from above, so we take IOR of air
