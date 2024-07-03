@@ -463,6 +463,7 @@ class readRNOGData:
 
         self.logger.info(f"Add {len(selectors)} selector(s)")
         self._selectors += selectors
+        self._events_waveforms = None
 
 
     def __select_run(self, dataset):
