@@ -144,7 +144,7 @@ def draw_hardware_response(response_type, zenith, azimuth, station_id, channel_i
         try:
             # RNO-G mongo detector class provides full signal chain response
             amp_response = detector.get_amplifier_response(station_id, channel_id, frequencies)
-        except:
+        except KeyError:
             amp_type = detector.get_amplifier_type(station_id, channel_id)
             if amp_type in ['100', '200', '300']:
                 amp_response_provider = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amp_type)
