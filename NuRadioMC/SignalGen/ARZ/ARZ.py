@@ -375,23 +375,17 @@ class ARZ(object):
                 if("{:d}.{:d}".format(*self._version) in lib_hashs.keys()):
                     if(sha1.hexdigest() != lib_hashs["{:d}.{:d}".format(*self._version)]):
                         logger.warning("shower library {} has changed on the server. downloading newest version...".format(self._version))
+                        os.remove(path)
                         download_file = True
                 else:
                     logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
         if not download_file:
             return True
         else:
-            import requests
-            URL = 'https://rnog-data.zeuthen.desy.de/shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
+            from NuRadioReco.utilities.dataservers import download_from_dataserver
 
-            logger.info("downloading shower library {} from {}. This can take a while...".format(self._version, URL))
-            r = requests.get(URL)
-            if (r.status_code != requests.codes.ok):
-                logger.error("error in download of antenna model")
-                raise IOError("error in download of antenna model")
-            with open(path, "wb") as code:
-                code.write(r.content)
-            logger.info("...download finished.")
+            remote_path = 'shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
+            download_from_dataserver(remote_path, path)
 
     def __set_model_parameters(self, arz_version='ARZ2020'):
         """
