@@ -1153,13 +1153,13 @@ class simulation:
             self.detector_simulation_part1 = self._detector_simulation_part1
         if hasattr(self, '_detector_simulation_part2'):
             self.detector_simulation_part2 = self._detector_simulation_part2
-        if(self.detector_simulation_filter_amp is None ^ self.detector_simulation_trigger is None):
+        if((self.detector_simulation_filter_amp is None) ^ (self.detector_simulation_trigger is None)):
             logger.error("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
             raise ValueError("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
-        if(self.detector_simulation_part1 is None ^ self.detector_simulation_part2 is None):
+        if((self.detector_simulation_part1 is None) ^ (self.detector_simulation_part2 is None)):
             logger.error("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
             raise ValueError("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
-        if(self.detector_simulation_part1 is not None and self.detector_simulation_filter_amp is not None):
+        if((self.detector_simulation_part1 is not None) and (self.detector_simulation_filter_amp is not None)):
             logger.error("Please provide either detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
             raise ValueError("Please provide either detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
 
@@ -1596,7 +1596,6 @@ class simulation:
                                         # logger.status(f"channel type {type(channel)}")
                                     else:
                                         station.add_channel(tmp_channel)
-              
 
                 for evt in output_buffer[sid].values():
                     # the only thing left is to add noise to the non-trigger traces

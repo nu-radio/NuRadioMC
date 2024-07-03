@@ -60,7 +60,6 @@ class mySimulation(simulation.simulation):
                                     number_concidences=4,  # 4/4 majority logic
                                     trigger_name='surface_dipoles_4of4_3sigma',
                                     set_not_triggered=(not station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
-        triggerTimeAdjuster.run(evt, station, det)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
