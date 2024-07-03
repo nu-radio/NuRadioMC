@@ -41,9 +41,6 @@ def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     return_offsets: bool, default False
         if True, additionally return the baseline offsets
 
-    warn: bool
-        If True, release a deprecation warning. (Default: True)
-
     Returns
     -------
 
@@ -799,7 +796,7 @@ class readRNOGData:
             time_offset = get_time_offset(event_info.triggerType)
             channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
             if block_offsets is not None:
-                channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, block_offsets[channel_id])
+                channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, block_offsets.T[channel_id])
 
             station.add_channel(channel)
 
