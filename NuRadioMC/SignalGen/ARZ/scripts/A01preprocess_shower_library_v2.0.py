@@ -6,6 +6,7 @@ import glob
 import pickle
 import sys
 import corsika
+import lzma
 
 rho = 0.924 * units.g / units.cm**3  # density g cm^-3
 
@@ -44,10 +45,12 @@ if __name__ == "__main__":
                     CE = dat["electron"]- dat["positron"]
                     # total_CE[i] = np.sum(CE)
                     if(E not in library[subfolder]):
-                        library[subfolder][E] = {}
-                        library[subfolder][E]['depth'] = dat['X'].to_numpy(dtype='d') * units.g / units.cm**2
-                        library[subfolder][E]['charge_excess'] = []
-                    library[subfolder][E]['charge_excess'].append(CE)
+                        key = np.round(np.log10(E/units.eV), 2)
+                        library[subfolder][key] = {}
+                        library[subfolder][key]['depth'] = dat['X'].to_numpy(dtype='d') * units.g / units.cm**2
+                        library[subfolder][key]['charge_excess'] = []
+                    library[subfolder][key]['charge_excess'].append(CE)
+    library = np.array(library)
 
-    with open(os.path.join(path, out), 'wb') as fout:
+    with lzma.open(os.path.join(path, out)+".xz", 'wb') as fout:
         pickle.dump(library, fout, protocol=4)
