@@ -149,6 +149,7 @@ def _all_files_in_directory(mattak_dir):
     req_files = ["daqstatus.root", "headers.root", "pedestal.root"]
     for file in req_files:
         if not os.path.exists(os.path.join(mattak_dir, file)):
+            logging.error(f"File {file} could not be found in {mattak_dir}")
             return False
 
     return True
@@ -207,7 +208,6 @@ class readRNOGData:
         # Initialize run table for run selection
         self.__run_table = None
 
-        self.__temporary_dirs = []
         if load_run_table:
             if run_table_path is None:
                 try:
@@ -250,7 +250,8 @@ class readRNOGData:
             run_time_range=None,
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
-            overwrite_sampling_rate=None):
+            overwrite_sampling_rate=None,
+            max_in_mem=256):
         """
         Parameters
         ----------
@@ -291,6 +292,7 @@ class readRNOGData:
         selectors: list of lambdas
             List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
+            (Default: [])
 
         run_types: list
             Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: ['physics'])
@@ -315,6 +317,11 @@ class readRNOGData:
             (i.e., stored in the mattak files) only when the stored sampling rate is invalid (i.e. 0 or None).
             If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
             NOTE: This option might be necessary when old mattak files are read which have this not set.
+
+        max_in_mem: int
+            Set the maximum number of events that can be stored in memory. The datareader will divide
+            the data in batches based on this number.
+            NOTE: This is only relevant for the mattak uproot backend
         """
 
         t0 = time.time()
@@ -336,6 +343,9 @@ class readRNOGData:
 
         self._overwrite_sampling_rate = overwrite_sampling_rate
 
+        # set max wavform array size that can be loaded in memory
+        self._max_in_mem = max_in_mem
+
         # Set parameter for run selection
         self.__max_trigger_rate = max_trigger_rate
         self.__run_types = run_types
@@ -352,11 +362,14 @@ class readRNOGData:
                                  f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                                  f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
-        self.set_selectors(selectors, select_triggers)
+        self._selectors = []
+        self.add_selectors(self._check_for_valid_information_in_event_info)
+        self.add_selectors(selectors, select_triggers)
 
         # Read data
         self._time_begin = 0
         self._time_run = 0
+        self._event_idx = -1 # only for logging
         self.__counter = 0
         self.__skipped = 0
         self.__invalid = 0
@@ -374,10 +387,7 @@ class readRNOGData:
         self.__n_runs = 0
 
         # Set verbose for mattak
-        if "verbose" in mattak_kwargs:
-            verbose = mattak_kwargs.pop("verbose")
-        else:
-            verbose = self.logger.level >= logging.DEBUG
+        verbose = mattak_kwargs.pop("verbose", self.logger.level >= logging.DEBUG)
 
         for dir_file in dirs_files:
 
@@ -425,20 +435,26 @@ class readRNOGData:
             raise ValueError(err)
 
 
-    def set_selectors(self, selectors, select_triggers=None):
+    def add_selectors(self, selectors, select_triggers=None):
         """
+        Add selectors (Callable(eventInfo) -> bool) to an internal list of selectors.
+        They are used for event filtering.
+
         Parameters
         ----------
 
-        selectors: list of lambdas
-            List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
+        selectors: list of Callables
+            List of Callable(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
 
         select_triggers: str or list(str)
-            Names of triggers which should be selected. Convinence interface instead of passing a selector. (Default: None)
+            Names of triggers which should be selected. Convenience interface instead of passing a selector. (Default: None)
         """
 
         # Initialize selectors for event filtering
+        if selectors is None:
+            selectors = []
+
         if not isinstance(selectors, (list, np.ndarray)):
             selectors = [selectors]
 
@@ -449,8 +465,8 @@ class readRNOGData:
                 for select_trigger in select_triggers:
                     selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
 
-        self._selectors = selectors
-        self.logger.info(f"Set {len(self._selectors)} selector(s)")
+        self.logger.info(f"Add {len(selectors)} selector(s)")
+        self._selectors += selectors
 
 
     def __select_run(self, dataset):
@@ -536,7 +552,7 @@ class readRNOGData:
         return dataset
 
 
-    def _filter_event(self, evtinfo, event_idx=None):
+    def _select_events(self, evtinfo):
         """ Filter an event base on its EventInfo and the configured selectors.
 
         Parameters
@@ -552,17 +568,20 @@ class readRNOGData:
         -------
 
         skip: bool
-            Returns True to skip/reject event, return False to keep/read event
+            Returns False to skip/reject event, return True to keep/read event
         """
+        self.logger.debug(f"Processing event number {self._event_idx} out of total {self._n_events_total}")
+
+        self.__counter += 1  # for logging
         if self._selectors is not None:
             for selector in self._selectors:
                 if not selector(evtinfo):
-                    self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
+                    self.logger.debug(f"Event {self._event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
                                       f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
                     self.__skipped += 1
-                    return True
+                    return False
 
-        return False
+        return True
 
 
     def get_events_information(self, keys=["station", "run", "eventNumber"]):
@@ -574,7 +593,7 @@ class readRNOGData:
         Parameters
         ----------
 
-        keys: list(str)
+        keys: str or list(str)
             List of the information to receive from each event. Have to match the attributes (member variables)
             of the mattak.Dataset.EventInfo class (examples are "station", "run", "triggerTime", "triggerType", "eventNumber", ...).
             (Default: ["station", "run", "eventNumber"])
@@ -586,6 +605,9 @@ class readRNOGData:
             Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries
             them self containing the information specified with "keys" parameter.
         """
+
+        if isinstance(keys, str):
+            keys = [keys]
 
         # Read if dict is None ...
         do_read = self._events_information is None
@@ -608,8 +630,8 @@ class readRNOGData:
                 for idx, evtinfo in enumerate(dataset.eventInfo()):  # returns a list
 
                     event_idx = idx + n_prev  # event index accross all datasets combined
-
-                    if self._filter_event(evtinfo, event_idx):
+                    self._event_idx = event_idx
+                    if not self._select_events(evtinfo):
                         continue
 
                     self._events_information[event_idx] = {key: getattr(evtinfo, key) for key in keys}
@@ -720,39 +742,18 @@ class readRNOGData:
 
         evt: `NuRadioReco.framework.event.Event`
         """
-        event_idx = -1
+
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
 
-            # read all event infos of the entier dataset (= run)
-            event_infos = dataset.eventInfo()
-            wfs = None
+            # read all event infos of the entire dataset (= run)
+            for evtinfo, wf in dataset.iterate(calibrated=self._read_calibrated_data,
+                                               selectors=self._select_events,
+                                               max_entries_in_mem=self._max_in_mem):
 
-            for idx, evtinfo in enumerate(event_infos):  # returns a list
-                event_idx += 1
-
-                self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
-                t0 = time.time()
-
-                if self._filter_event(evtinfo, event_idx):
-                    continue
-
-                if not self._check_for_valid_information_in_event_info(evtinfo):
-                    continue
-
-                # Just read wfs if necessary
-                if wfs is None:
-                    wfs = dataset.wfs()
-
-                waveforms_of_event = wfs[idx]
-
-                evt = self._get_event(evtinfo, waveforms_of_event)
-
-                self._time_run += time.time() - t0
-                self.__counter += 1
+                evt = self._get_event(evtinfo, wf)
 
                 yield evt
-
 
 
     def get_event_by_index(self, event_index):
@@ -777,11 +778,7 @@ class readRNOGData:
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
-        if self._filter_event(event_info, event_index):
-            return None
-
-        # check this before reading the wfs
-        if not self._check_for_valid_information_in_event_info(event_info):
+        if not self._select_events(event_info, event_index):
             return None
 
         # access data
@@ -831,15 +828,11 @@ class readRNOGData:
 
         # int(...) necessary to pass it to mattak
         event_index = int(event_idx_ids[mask, 0][0])
-
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
-        if self._filter_event(event_info, event_index):
-            return None
-
-        # check this before reading the wfs
-        if not self._check_for_valid_information_in_event_info(event_info):
+        self._event_idx = event_index
+        if not self._select_events(event_info):
             return None
 
         # access data
@@ -866,12 +859,6 @@ class readRNOGData:
                 f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
-
-        # Clean up links and temporary directories.
-        for d in self.__temporary_dirs:
-            self.logger.debug(f"Remove temporary folder: {d}")
-            os.unlink(os.path.join(d, "combined.root"))
-            os.rmdir(d)
 
 
 ### we create a wrapper for readRNOGData to mirror the interface of the .nur reader
