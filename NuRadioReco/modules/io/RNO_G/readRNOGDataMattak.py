@@ -373,6 +373,7 @@ class readRNOGData:
 
         self._events_information = None
         self._events_waveforms = None
+        self._events_waveforms_baseline_correction = None
         self._datasets = []
         self.__n_events_per_dataset = []
 
@@ -668,8 +669,9 @@ class readRNOGData:
         if (apply_baseline_correction is None) and not self._read_calibrated_data:
             apply_baseline_correction = self._apply_baseline_correction
 
-        if self._events_waveforms is None:
+        if (self._events_waveforms is None) or (apply_baseline_correction != self._events_waveforms_baseline_correction):
             self._events_waveforms = []
+            self._events_waveforms_baseline_correction = apply_baseline_correction
 
             for dataset in self._datasets:
                 dataset.setEntries((0, dataset.N()))
@@ -706,7 +708,9 @@ class readRNOGData:
 
                     self._events_waveforms.append(wfs)
 
-        return np.array(self._events_waveforms)
+            self._events_waveforms = np.array(self._events_waveforms)
+
+        return self._events_waveforms
 
 
     def _check_for_valid_information_in_event_info(self, event_info):
