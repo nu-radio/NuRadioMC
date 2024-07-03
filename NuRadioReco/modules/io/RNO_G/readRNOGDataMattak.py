@@ -708,7 +708,7 @@ class readRNOGData:
 
             self._events_waveforms = np.array(self._events_waveforms)
 
-        return self._events_waveforms
+        return self._events_waveforms.copy()
 
 
     def _check_for_valid_information_in_event_info(self, event_info):
