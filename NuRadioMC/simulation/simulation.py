@@ -590,12 +590,12 @@ def build_dummy_event(sid, det, config):
 
     Parameters
     ----------
-        sid : int
-            The station ID.
-        det : Detector object
-            The detector description defining all channels.
-        config : dict
-            The NuRadioMC configuration dictionary (from the yaml file)
+    sid : int
+        The station ID.
+    det : Detector object
+        The detector description defining all channels.
+    config : dict
+        The NuRadioMC configuration dictionary (from the yaml file)
 
     Returns:
         object: The built event object.
@@ -648,6 +648,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
 
     Returns
     -------
+    event_group : `NuRadioReco.framework.event.Event`
         an event group object containing the showers and particles or emitters
         the output should contain all relevant information from the hdf5 file (except the attributes)
         to perform a NuRadioMC simulation
@@ -745,7 +746,7 @@ def get_config(config_file):
 
     Returns
     -------
-    dict
+    cfg : dict
         the configuration dictionary
     """
     config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
