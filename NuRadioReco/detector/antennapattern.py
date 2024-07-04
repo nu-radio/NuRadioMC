@@ -118,7 +118,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases, encoding = None):
 
     Returns
     -------
-    all paramters of the file
+    all paramters of the file as numpy arrays
     """""
 
     with open(path_gain, 'r', encoding = encoding) as fin:
@@ -179,7 +179,7 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74, 
 
     ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases, encoding = encoding)
     c = constants.c * units.m / units.s
-    Z_0 = 119.9169 * np.pi
+    Z_0 = 119.9169 * np.pi # free space impedance
 
     theta = np.deg2rad(theta)
     phi = np.deg2rad(phi)
@@ -188,9 +188,8 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74, 
 
     H_theta = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
     H_phi = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
-    H_theta = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
-    H_phi = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
 
+    # orientation and rotation angles of the antenna for which the pattern is given
     zen_boresight = 0
     azi_boresight = 0
     zen_ori = 0.5 * np.pi
@@ -319,9 +318,9 @@ def preprocess_WIPLD_old(path, gen_num=1, s_parameters=None):
     phi: float
         azimuth angle of incident electric field
     H_phi: float
-        the complex vector effective length of the ePhi polarization component
+        the complex realized vector effective length of the ePhi polarization component
     H_theta: float
-        the complex vector effective length of the eTheta polarization component
+        the complex realized vector effective length of the eTheta polarization component
     """
     if s_parameters is None:
         s_parameters = [1, 1]
@@ -413,9 +412,9 @@ def preprocess_WIPLD(path, gen_num=1, s_parameters=None):
     phi: float
         azimuth angle of incident electric field
     H_phi: float
-        the complex vector effective length of the ePhi polarization component
+        the complex realized vector effective length of the ePhi polarization component
     H_theta: float
-        the complex vector effective length of the eTheta polarization component
+        the complex realized vector effective length of the eTheta polarization component
     """
     if s_parameters is None:
         s_parameters = [1, 1]
@@ -539,7 +538,7 @@ def save_preprocessed_WIPLD_forARA(path):
 
 def get_pickle_antenna_response(path):
     """
-    opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation
+    opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation in NuRadioReco conventions.
 
     If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
     the file will be downloaded from a central data server
@@ -548,6 +547,30 @@ def get_pickle_antenna_response(path):
     ----------
     path: string
         the path to the pickle file
+
+    Returns
+    -------
+    res: 9 lists
+        list containing the following elements:
+
+        * orientation_theta: float
+            orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        * orientation_phi: float
+            orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        * rotation_theta: float
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+        * rotation_phi: float
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+        * ff: array of floats
+            array of frequencies
+        * thetas: array of floats
+            zenith angle of inicdent electric field
+        * phis: array of floats
+            azimuth angle of incident electric field
+        * H_phi: array of floats
+            the complex realized vector effective length of the ePhi polarization component
+        * H_theta: array of floats
+            the complex realized vector effective length of the eTheta polarization component
 
     """
 
@@ -875,7 +898,7 @@ def parse_HFSS_file(hfss):
 
 def preprocess_HFSS(path):
     """
-    preprocess an antenna pattern in the HFSS file format. The vector effective length is calculated and the output is saved in the NuRadioReco pickle format.
+    preprocess an antenna pattern in the HFSS file format. The realized vector effective length is calculated and the output is saved in the NuRadioReco pickle format.
 
     The vector effective length calculation still needs to be verified.
 
@@ -923,7 +946,7 @@ def preprocess_HFSS(path):
 
 def preprocess_XFDTD(path):
     """
-    preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
+    preprocess an antenna pattern in the XFDTD file format. The realized vector effective length is calculated and
     the output is saved to the NuRadioReco pickle format.
 
     Parameters
@@ -1000,7 +1023,7 @@ def preprocess_LOFAR_txt(directory, ant='LBA'):
     """
     Function to parse the LOFAR antenna model simulation files in TXT format. It extracts the
     vector effective length for all simulated frequencies, azimuth and zenith angles and dumps
-    them into a pickle file according to the NRR specification.
+    them into a pickle file according to the NuRadioReco specification.
 
     Parameters
     ----------
@@ -1172,7 +1195,30 @@ class AntennaPatternBase:
 
 class AntennaPattern(AntennaPatternBase):
     """
-    utility class that handles access and buffering to simulated antenna pattern
+    Utility class that handles access and buffering to simulated antenna pattern.
+    The class accesses the NuRadioReco pickle format file which contains the preprocessed antenna pattern.
+
+    The pickle file contains 9 lists of the following elements:
+
+    orientation_theta: float
+        orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+    orientation_phi: float
+        orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+    rotation_theta: float
+        rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+    rotation_phi: float
+        rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+    ff: array of floats
+        array of frequencies
+    thetas: array of floats
+        zenith angle of inicdent electric field
+    phis: array of floats
+        azimuth angle of incident electric field
+    H_phi: array of floats
+        the complex realized vector effective length of the ePhi polarization component
+    H_theta: array of floats
+        the complex realized vector effective length of the eTheta polarization component
+
     """
 
     def __init__(self, antenna_model, path=path_to_antennamodels,

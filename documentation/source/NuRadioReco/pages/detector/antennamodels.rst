@@ -1,18 +1,51 @@
 Antenna Models
 =========================================
 
-Overview of available Antenna Models
--------------------------------------
-
-The following antenna models are available in NuRadioReco.
-The headings are the unique identifiers of the antenna model that need to specified as  ``antenna_type`` in the detector description.
-
 All antenna models are stored on a central data server and are downloaded automatically on-demand
 whenever the user requests the antenna model for the first time.
 
 For developers:
 If you add new an antenna model please add the sha1sum = hashlib.sha1() to this list and send Christian
 the antenna model so that he can put it on our central server.
+
+Implemetation of Antenna Models
+===============================
+
+The antenna models are accessed in the `AntennaPattern` class in the `nuradioreco.detector.antennapattern.py` module.
+Different software packages are used to simulate the antennas, internally, NuRadioReco converts the data to a common pickle format in which they are
+stored.
+
+The antenna pickle files contains 9 lists of the following data:
+
+    - orientation theta: float
+        orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down)
+    - orientation phi: float
+        orientation of the antenna, as an azimuth angle (counting from East counterclockwise)
+    - rotation theta: float
+        rotation of the antenna
+    - rotation phi: float
+        rotation of the antenna
+    - ff: array of floats
+        array of frequencies
+    - theta: float
+        zenith angle of inicdent electric field
+    - phi: float
+        azimuth angle of incident electric field
+    - H_phi: float
+        the complex realized vector effective length of the ePhi polarization component as described in (A.13) of the NuRadioReco paper arxiv:1903.07023
+    - H_theta: float
+        the complex realized vector effective length of the eTheta polarization component as described in (A.13) of the NuRadioReco paper arxiv:1903.07023
+
+For the antenna orientation and rotation, the conventions are described in `Properties of Detector Description`.
+
+The calculation of the vector effective length is described in Appendix A.1, A.2 and A.3 of the NuRadioReco paper arxiv:1903.07023.
+
+
+Overview of available Antenna Models
+====================================
+
+The following antenna models are available in NuRadioReco.
+The headings are the unique identifiers of the antenna model that need to specified as  ``antenna_type`` in the detector description.
 
 Inf means usually an infinite medium, firn has a refractive index n = 1.3-1.4. Since this is a bit imprecise
 we changed the naming to the actual refractive index.
