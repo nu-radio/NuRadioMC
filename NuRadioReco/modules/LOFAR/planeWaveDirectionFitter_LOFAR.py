@@ -36,7 +36,7 @@ class planeWaveDirectionFitter:
         self.__cr_snr = None
 
 
-    def begin(self, max_iter=10, cr_snr=3, rmsfactor=2.0, use_correlation=False, assumeHorizontalArray=False, ignoreNonHorizontalArray=True, logger_level=logging.WARNING):
+    def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, use_correlation=False, assumeHorizontalArray=False, ignoreNonHorizontalArray=True, logger_level=logging.WARNING):
         """
         Set the parameters for the plane wave fit.
 
@@ -46,6 +46,8 @@ class planeWaveDirectionFitter:
             The maximum number of iterations to use during the fitting procedure.
         cr_snr : float, default=3
             The minimum SNR a channel should have to be considered having a cosmic ray signal.
+        min_amp : float, default=None
+            The minimum amplitude a channel should have to be considered having a cosmic ray signal.
         rmsfactor : float, default=2.0
             How many sigma (times RMS) above the average can a delay deviate from the expected timelag (from latest fit iteration) before it is considered bad and removed as outlier.
         use_correlation : bool, default=False
@@ -59,6 +61,7 @@ class planeWaveDirectionFitter:
         """
         self.__max_iter = max_iter
         self.__cr_snr = cr_snr
+        self.__min_amp = min_amp
         self.__rmsfactor = rmsfactor
         self.__use_correlation = use_correlation
         self.__assumeHorizontalArray = assumeHorizontalArray
@@ -324,13 +327,19 @@ class planeWaveDirectionFitter:
             for group_id in station_channel_group_ids:
                 channels = [channel for channel in station.iter_channel_group(group_id)]
 
-                # Only use channels with acceptable SNR
+                good_amp = False
                 good_snr = False
-                for channel in channels:
-                    if channel.get_parameter(channelParameters.SNR) > self.__cr_snr:
-                        good_snr = True
+                if self.__min_amp is not None:
+                    for channel in channels:
+                        if channel.get_parameter(channelParameters.amplitude) > self.__min_amp:
+                            good_amp = True
+                else:
+                # Only use channels with acceptable SNR
+                    for channel in channels:
+                        if channel.get_parameter(channelParameters.SNR) > self.__cr_snr:
+                            good_snr = True
 
-                if good_snr:
+                if good_snr or good_amp:
                     position_array.append( 
                         detector.get_absolute_position(station.get_id()) + 
                         detector.get_relative_position(station.get_id(), channels[0].get_id())
