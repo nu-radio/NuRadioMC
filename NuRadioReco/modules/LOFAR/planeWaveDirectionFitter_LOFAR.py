@@ -36,7 +36,7 @@ class planeWaveDirectionFitter:
         self.__cr_snr = None
 
 
-    def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, use_correlation=False, assumeHorizontalArray=False, ignoreNonHorizontalArray=True, logger_level=logging.WARNING):
+    def begin(self, max_iter=10, cr_snr=3, min_amp=0.001, rmsfactor=2.0, assumeHorizontalArray=True, ignoreNonHorizontalArray=True, logger_level=logging.WARNING):
         """
         Set the parameters for the plane wave fit.
 
@@ -45,17 +45,15 @@ class planeWaveDirectionFitter:
         max_iter : int, default=10
             The maximum number of iterations to use during the fitting procedure.
         cr_snr : float, default=3
-            The minimum SNR a channel should have to be considered having a cosmic ray signal.
-        min_amp : float, default=None
-            The minimum amplitude a channel should have to be considered having a cosmic ray signal.
+            The minimum SNR a channel should have to be considered having a cosmic ray signal. Ignored if min_amp is not None.
+        min_amp : float, default=0.001
+            The minimum amplitude a channel should have to be considered having a cosmic ray signal. Set to None if you want to use the SNR instead.
         rmsfactor : float, default=2.0
             How many sigma (times RMS) above the average can a delay deviate from the expected timelag (from latest fit iteration) before it is considered bad and removed as outlier.
-        use_correlation : bool, default=False
-            Whether to use the time of maximum correlation to a reference antenna as the pulse time. If False, the time of max(abs(electric field)) is used.
-        assumeHorizontalArray: bool, default=False
-            Whether a horizontal antenna array is assumed and whether to use the plane wave fit for a horizontal array (z=0).
+        assumeHorizontalArray: bool, default=True
+            Whether a horizontal antenna array is assumed and whether to use the plane wave fit for a horizontal array (z=0). Recommended to set to True.
         ignoreNonHorizontalArray : bool, default=True
-            Set to True when you know the array is non-horizontal (z > 0.5) but want to use the horizontal approximation anyway 
+            Set to True when you know the array is non-horizontal (z > 0.5) but want to use the horizontal approximation anyway. Recommended to set to True.
         logger_level : int, default=logging.WARNING
             The logging level to use for the module.
         """
@@ -63,7 +61,6 @@ class planeWaveDirectionFitter:
         self.__cr_snr = cr_snr
         self.__min_amp = min_amp
         self.__rmsfactor = rmsfactor
-        self.__use_correlation = use_correlation
         self.__assumeHorizontalArray = assumeHorizontalArray
         self.__ignoreNonHorizontalArray = ignoreNonHorizontalArray
         self.__logger_level = logger_level
@@ -81,57 +78,28 @@ class planeWaveDirectionFitter:
         """
 
         # bug with voltageToEfield converter: trace start times not correct --> manually set trace start times to 0
-
         for efield in station.get_electric_fields():
             efield.set_trace_start_time(0.0)
 
-        if not self.__use_correlation:
-            # Determine dominant polarisation in Efield by looking for strongest signal in 10 randomly selected traces
-            random_traces = np.random.choice(station.get_electric_fields(), size=10)
-            dominant_pol_traces = []
-            for trace in random_traces:
-                trace_envelope = np.abs(hilbert(trace.get_trace(), axis=0))
-                dominant_pol_traces.append(np.argmax(np.max(trace_envelope, axis=1)))
-            dominant_pol = np.argmax(np.bincount(dominant_pol_traces))
-            self.logger.debug(f"Dominant polarisation is {dominant_pol}")
+        # Determine dominant polarisation in Efield by looking for strongest signal in 10 randomly selected traces
+        random_traces = np.random.choice(station.get_electric_fields(), size=10)
+        dominant_pol_traces = []
+        for trace in random_traces:
+            trace_envelope = np.abs(hilbert(trace.get_trace(), axis=0))
+            dominant_pol_traces.append(np.argmax(np.max(trace_envelope, axis=1)))
+        dominant_pol = np.argmax(np.bincount(dominant_pol_traces))
+        self.logger.debug(f"Dominant polarisation is {dominant_pol}")
 
-            # Collect the Efield traces
-            traces = [trace.get_trace()[dominant_pol] for trace in station.get_electric_fields()]
-            times = station.get_electric_fields()[0].get_times()
+        # Collect the Efield traces
+        traces = [trace.get_trace()[dominant_pol] for trace in station.get_electric_fields()]
+        times = station.get_electric_fields()[0].get_times()
 
-            # use time of max(abs(hilbert(electric field))) as pulse time
-            indices_max_trace = []#np.array([np.argmax(np.abs(hilbert(trace[i]))) for trace in traces])
-            for trace in traces:
-                indices_max_trace.append(np.argmax(np.abs(hilbert(trace))))
-            timelags = np.array([times[index] for i, index in enumerate(indices_max_trace)])
-            timelags -= timelags[0] # get timelags wrt 1st antenna
-
-        else: # use correlation, not working so far
-            # Collect the Efield traces
-            traces = [trace.get_trace() for trace in station.get_electric_fields()]
-            times = station.get_electric_fields()[0].get_times()
-
-            # determine reference antenna: should be an antenna with clear signal
-            index_reference_antenna = 0
-            max_traces = 0
-            for ind, trace in enumerate(traces):
-                tmp_max = np.max(np.max(np.abs(hilbert(trace, axis=0)), axis=1))
-                if tmp_max > max_traces:
-                    index_reference_antenna = ind
-                    max_traces = tmp_max
-
-            # use time of maximum correlation of each antenna to a reference antenna (use dominant polarization of reference antenna):
-            dominant_pol = np.argmax(np.max(np.abs(hilbert(traces[index_reference_antenna], axis=0)), axis=1))
-            traces = [trace[dominant_pol] for trace in traces]
-            timelags = []
-            times_prime = times - np.min(times)
-            for trace in traces:
-                corr = correlate(traces[index_reference_antenna], normalize(trace), mode='full')
-                corr_lags = correlation_lags(len(traces[index_reference_antenna]), len(trace), mode='full')
-                argmax_corr = np.argmax(np.abs(corr))
-                max_corr_lag = corr_lags[argmax_corr]
-                timelags.append(np.sign(max_corr_lag) * times_prime[np.abs(max_corr_lag)])
-            timelags = np.array(timelags)
+        # use time of max(abs(hilbert(electric field))) as pulse time
+        indices_max_trace = []
+        for trace in traces:
+            indices_max_trace.append(np.argmax(np.abs(hilbert(trace))))
+        timelags = np.array([times[index] for i, index in enumerate(indices_max_trace)])
+        timelags -= timelags[0] # get timelags wrt 1st antenna
 
         return timelags - timelags[0]
 
@@ -241,6 +209,8 @@ class planeWaveDirectionFitter:
 
         """
 
+        # TODO results not yet compatible with beamformingDirectionFitter_LOFAR
+
         x = positions[:,0] 
         y = positions[:,1] 
         z = positions[:,2] 
@@ -253,7 +223,7 @@ class planeWaveDirectionFitter:
             A = - np.sin(zenith) * np.cos(azimuth) # minus sign, since we want the direction of the incoming particle
             B = - np.sin(zenith) * np.sin(azimuth)
             C = - np.cos(zenith)
-            return np.sum(np.abs(A  * x + B * y + C * z + D - times * lightspeed))
+            return np.sum(np.abs(A * x + B * y + C * z + D - times * lightspeed))
 
         output = minimize(
             fun=func_to_minimize, 
@@ -296,17 +266,18 @@ class planeWaveDirectionFitter:
 
         return timeDelays
 
-
-    def _plane_wave_fit(self, positions, times):
-        """ 
-        TODO ADD DOCUMENTATION!
-        """
-        pass
     
     @register_run()
     def run(self, event, detector):
-        """ 
-        TODO ADD DOCUMENTATION
+        """
+        Run the plane wave fit for the given event and detector.
+
+        Parameters
+        ----------
+        event : Event object
+            The event for which to run the plane wave fit.
+        detector : Detector object
+            The detector for which to run the plane wave fit.
         """
         converter = voltageToEfieldConverter()
         logging.getLogger('voltageToEfieldConverter').setLevel(self.__logger_level)
@@ -315,13 +286,15 @@ class planeWaveDirectionFitter:
         for station in event.get_stations():
             if not station.get_parameter(stationParameters.triggered):
                 continue
-
+            
+            # get LORA inital guess for the direction
             zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
             azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
 
             # Get all group IDs which are still present in the station
             station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
 
+            # collect the positions of 'good' antennas
             position_array = []
             good_antennas = []
             for group_id in station_channel_group_ids:
@@ -329,12 +302,12 @@ class planeWaveDirectionFitter:
 
                 good_amp = False
                 good_snr = False
+                # Only use channels with acceptable amplitude (if desired)
                 if self.__min_amp is not None:
                     for channel in channels:
-                        if channel.get_parameter(channelParameters.amplitude) > self.__min_amp:
+                        if np.max(np.abs(channel.get_trace())) >= self.__min_amp:
                             good_amp = True
-                else:
-                # Only use channels with acceptable SNR
+                else: # Only use channels with acceptable SNR
                     for channel in channels:
                         if channel.get_parameter(channelParameters.SNR) > self.__cr_snr:
                             good_snr = True
@@ -355,11 +328,11 @@ class planeWaveDirectionFitter:
             num_good_antennas = good_antennas.shape[0]
             position_array = np.array(position_array)
 
-
+            # iteratively do the plane wave fit and remove outliers (controlled by rmsfactor) until the number of good antennas remains constant
             niter = 0
             fit_failed = False
 
-            while niter < self.__max_iter: # TODO: maybe add additional condition
+            while niter < self.__max_iter: # TODO: maybe add additional condition?
                 niter += 1
                 # if fit only remains with three antennas (or less) it should not be trusted as it always has a solution (fails)
                 if num_good_antennas < 4:
@@ -395,10 +368,10 @@ class planeWaveDirectionFitter:
                     break
 
                 # get timelags
-                times = self._get_timelags(station) # TODO: check if additional masking is needed or if the converter does this automatically
+                times = self._get_timelags(station)
 
-                goodpositions = position_array#[mask_converter_successful]
-                goodtimes = times#[mask_converter_successful]
+                goodpositions = position_array
+                goodtimes = times
 
                 if self.__assumeHorizontalArray:
                     (az, el) = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
@@ -448,7 +421,7 @@ class planeWaveDirectionFitter:
                     # remove > k-sigma outliers and iterate
                     spread = np.std(residual_delays)
                     k = self.__rmsfactor
-                    mask_good_antennas = abs(residual_delays - np.mean(residual_delays)) < k * spread # TODO: check indizes
+                    mask_good_antennas = abs(residual_delays - np.mean(residual_delays)) < k * spread
                     # gives subset of 'good_antennas' that is 'good' after this iteration
                 
                 self.logger.info(f"station {station.get_id()}:")
@@ -456,8 +429,6 @@ class planeWaveDirectionFitter:
                 self.logger.info(f'az = {np.rad2deg(az):.3f}, el = {np.rad2deg(el):.3f}')
                 self.logger.info(f'number of good antennas = {num_good_antennas:d}')
                 
-                # TODO: double-check if following conversions are correct
-                # Note: seem to be compatible with beamformingDirectionFitter_LOFAR
                 azimuth = np.mod(90 * units.deg - np.rad2deg(az) * units.deg, 360 * units.deg)
                 zenith = np.mod(90 * units.deg - np.rad2deg(el) * units.deg, 360 * units.deg)
 
@@ -471,7 +442,6 @@ class planeWaveDirectionFitter:
                     break
                 else:
                     num_good_antennas = len(good_antennas[mask_good_antennas])
-                    # indicesOfGoodAntennas = indicesOfGoodAntennas[goodSubset]
                 
 
 
