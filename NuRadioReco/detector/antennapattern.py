@@ -9,6 +9,7 @@ import logging
 import pickle
 import csv
 import cmath
+import scipy
 
 logger = logging.getLogger('NuRadioReco.antennapattern')
 
@@ -1037,6 +1038,45 @@ def preprocess_LOFAR_txt(directory, ant='LBA'):
                      frequencies, theta, phi, H_phi, H_theta],
                     fout, protocol=4)
 
+def preprocess_FEKO_mat(path='/lustre/fs22/group/radio/lpyras/antenna_models/SKALA_v4/', polarization='X'):
+    """
+    used to convert FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat for the SKALA4 antenna to a pickle file
+    The file contains the embedded element simulation of the SKALA4 antenna in the frequency range of 50-350 MHz.
+
+    Parameters
+    ----------
+    directory : str
+        The path to the directory where the files are stored
+
+    polarization : str, default='X'
+        X polarization is the antenna in east-west orientation, Y polarization is the antenna in north-south orientation.
+    """
+
+    input_file = os.path.join(path, f'FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat')
+    data = scipy.io.loadmat(input_file)
+    Ephi = data['Ephi']
+    Etheta = data['Etheta']
+    freqs = np.linspace(50, 350, 301) * units.MHz
+    thetas = np.linspace(0, 360, 721) * units.deg
+    phis = np.linspace(0, 90, 181) * units.deg
+
+    if polarization == 'X':
+        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
+    if polarization == 'Y':
+        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 90 * units.deg, 90 * units.deg, 180 * units.deg
+
+    path_to_antennamodels = '/lustre/fs22/group/radio/lpyras/antenna_models/SKALA_v4/'
+    fname = f'SKALA_v4_{polarization}pol.pkl'
+    output_filename = os.path.join(path_to_antennamodels, fname)
+
+    directory = os.path.dirname(output_filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(output_filename, 'wb') as fout:
+        logger.info('saving output to {}'.format(output_filename))
+        pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi,
+                     freqs, thetas, phis, Ephi, Etheta],
+                    fout, protocol=4)
 
 class AntennaPatternBase:
     """
