@@ -685,6 +685,13 @@ class readRNOGData:
                     calibrated=self._read_calibrated_data,
                     selectors=self._select_events)):
 
+                    if self._read_calibrated_data:
+                        wfs = wfs * units.mV
+                    else:
+                        # wf stores ADC counts
+                        if self._convert_to_voltage:
+                            # convert adc to voltage
+                            wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
 
                     if apply_baseline_correction == 'median':
                         wfs = _baseline_correction(wfs)
@@ -695,14 +702,6 @@ class readRNOGData:
                                 sampling_rate=sampling_rate, return_trace=True)[1]
                             for wf in wfs])
 
-
-                    if self._read_calibrated_data:
-                        wfs = wfs * units.mV
-                    else:
-                        # wf stores ADC counts
-                        if self._convert_to_voltage:
-                            # convert adc to voltage
-                            wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
 
                     self._events_waveforms.append(wfs)
 
