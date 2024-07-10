@@ -166,7 +166,7 @@ class stationPulseFinder:
         if signal_window is None:
             signal_window = [0, -1]
         if noise_window is None:
-            noise_window = [0, -1]
+            noise_window = [10000, 20000]
 
         frequencies = station.get_channel(channel_ids_per_pol[0][0]).get_frequencies()
         sampling_rate = station.get_channel(channel_ids_per_pol[0][0]).get_sampling_rate()
@@ -204,7 +204,7 @@ class stationPulseFinder:
         if signal_window is None:
             signal_window = [0, -1]
         if noise_window is None:
-            noise_window = [0, -1]
+            noise_window = [10000, 20000]
 
         good_channels = []
         for channel in station.iter_channels():
@@ -275,7 +275,7 @@ class stationPulseFinder:
             station_even_list = []
             station_odd_list = []
             for channel in station.iter_channels():
-                if channel.get_id() == channel.get_group_id():
+                if channel.get_id() == int(channel.get_group_id()[1:]):
                     station_even_list.append(channel.get_id())
                 else:
                     station_odd_list.append(channel.get_id())
@@ -299,11 +299,21 @@ class stationPulseFinder:
             station.set_parameter(stationParameters.cr_dominant_polarisation,
                                   detector.get_antenna_orientation(station_id, ant_same_orientation[dominant_pol][0]))
 
-            # Check if the station has a strong enough signal
-            signal_window = [int(pulse_window_start), int(pulse_window_end)]
-            noise_window = [0, int(pulse_window_start - self.__noise_away_from_pulse)]
+            # # Check if the station has a strong enough signal
+            # signal_window = [int(pulse_window_start), int(pulse_window_end)]
+            # noise_window = [0, int(pulse_window_start - self.__noise_away_from_pulse)]
 
-            self._check_station_triggered(station, position_array, ant_same_orientation, signal_window, noise_window)
+            # there was a bug with the windows for the SNR calculation, where strong signals had low SNR and vice versa. 
+            # Since the pulse should be somewhere around the middle of the trace, we use a fixed noise window (without the tapered edges of the trace). 
+            # For the signal window, the whole trace is used since we need the maximum. 
+            # Narrowing this down may increase performance and may be worth looking into in the future.
+            self._check_station_triggered(
+                station, 
+                position_array, 
+                ant_same_orientation, 
+                signal_window=[0, -1], 
+                noise_window=[int(1e4), int(2e4)]
+                )
 
     def end(self):
         pass
