@@ -269,8 +269,7 @@ class readRNOGData:
         ----------------
 
         apply_baseline_correction: 'fit' | 'approximate' | 'median' | 'none'
-            Only applies when non-calibrated data are read. Removes the DC (baseline)
-            block offsets (pedestals).
+            Removes the DC (baseline) block offsets (pedestals).
             Options are, in order of decreasing precision and increasing performance:
 
             * 'fit' : do a full out-of-band fit to determine the block offsets; for more details,
@@ -663,7 +662,7 @@ class readRNOGData:
             based on the class config.
         """
 
-        if (apply_baseline_correction is None) and not self._read_calibrated_data:
+        if apply_baseline_correction is None:
             apply_baseline_correction = self._apply_baseline_correction
 
         events_waveforms = []
@@ -777,7 +776,7 @@ class readRNOGData:
         station.set_trigger(trigger)
         block_offsets = None
 
-        if (self._apply_baseline_correction == 'median') and not self._read_calibrated_data:
+        if self._apply_baseline_correction == 'median':
             waveforms, block_offsets = _baseline_correction(waveforms, return_offsets=True)
 
         for channel_id, wf in enumerate(waveforms):
@@ -800,7 +799,7 @@ class readRNOGData:
             station.add_channel(channel)
 
         evt.set_station(station)
-        if self._apply_baseline_correction in ['fit', 'approximate'] and not self._read_calibrated_data:
+        if self._apply_baseline_correction in ['fit', 'approximate']:
             self._blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
 
         return evt
