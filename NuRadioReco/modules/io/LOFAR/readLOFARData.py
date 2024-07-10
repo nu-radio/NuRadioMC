@@ -82,9 +82,9 @@ def lora_timestamp_to_blocknumber(
     Parameters
     ----------
     lora_seconds : int
-        LORA timestamp in seconds (UTC timestamp, second after 1st January 1970)
+        LORA timestamp in seconds (UNIX timestamp, second after 1st January 1970)
     lora_nanoseconds : int
-        LORA timestamp in nanoseconds
+        The number of nanoseconds after `lora_seconds` at which LORA triggered
     start_time : int
         LOFAR TBB timestamp
     sample_number : int
@@ -252,7 +252,7 @@ class getLOFARtraces:
         Parameters
         ----------
         time_s: int
-            Event trigger timestamp in UTC seconds
+            Event trigger timestamp in seconds
         time_ns: int
             Event trigger timestamp in ns past UTC second
         trace_length_nbins : int
@@ -465,7 +465,7 @@ class readLOFARData:
             1. station name
             2. antenna set
             3. tbb timestamp (seconds)
-            4. tbb timestamp (nanoseconds)
+            4. tbb timestamp (nanoseconds after last second)
             5. station clock frequency (Hz)
             6. positions of antennas
             7. dipole IDs
@@ -580,9 +580,9 @@ class readLOFARData:
         """
         Runs the reader with the provided detector. For every station that has files associated with it, a Station
         object is created together with its channels (pulled from the detector description, depending on the antenna 
-        set (LBA_OUTER/INNER)). Every channel also gets a group ID which corresponds to the antenna name, formatted
-        as 'a{even_dipole_number}'. So channels '001000000' and '001000001', which are the two dipoles composing
-        one physical antenna, both get group ID 'a1000000'.
+        set (LBA_OUTER/INNER)). Every channel also gets a group ID which is retrieved from the Detector description.
+        For LOFAR we use the integer value of the even dipole number, so channels '001000000' and '001000001',
+        which are the two dipoles composing one physical antenna, both get group ID 1000000.
 
         Parameters
         ----------
