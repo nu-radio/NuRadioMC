@@ -275,7 +275,7 @@ class stationPulseFinder:
             station_even_list = []
             station_odd_list = []
             for channel in station.iter_channels():
-                if channel.get_id() == int(channel.get_group_id()[1:]):
+                if channel.get_id() == channel.get_group_id():
                     station_even_list.append(channel.get_id())
                 else:
                     station_odd_list.append(channel.get_id())

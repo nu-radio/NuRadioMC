@@ -304,6 +304,11 @@ class getLOFARtraces:
     def check_trace_quality(self):
         """
         Check all traces recorded from the TBB against quality requirements.
+
+        Returns
+        -------
+        deviating_dipoles : set of str
+        dipoles_missing_counterpart : set of str
         """
         dipole_names = np.array(self.tbb_file.get_antenna_names())
 
@@ -468,6 +473,36 @@ class readLOFARData:
         """
         return self.__stations.copy()
 
+    def get_station_calibration_delays(self, station_id):
+        """
+        Make a dictionary of channel ids and their corresponding calibration delays,
+        to avoid misapplying the delays to the wrong channel. Also converts the list
+        of channel IDs pulled from the TBB metadata to their NRR channel ID counterpart.
+
+        Parameters
+        ----------
+        station_id : int
+            The station ID for which to get the calibration delays
+
+        Returns
+        -------
+        station_calibration_delays : dict
+            Dictionary containing the NRR channel IDs as keys and the calibration delays as values
+        """
+        station_name = f"CS{station_id:03}"
+        station_calibration_delays = dict(
+            zip(
+                map(
+                    int,
+                    [tbbID_to_nrrID(channel_id, self.__stations[station_name]['metadata'][1])
+                     for channel_id in self.__stations[station_name]['metadata'][-2]]
+                ),
+                self.__stations[station_name]['metadata'][-1]
+            )
+        )
+
+        return station_calibration_delays
+
     def begin(self, event_id, logger_level=logging.WARNING):
         """
         Prepare the reader to ingest the event with ID `event_id`. This resets the internal representation of the
@@ -522,16 +557,23 @@ class readLOFARData:
         # TODO: save paths of files per event in some kind of database
 
         for tbb_filename in all_tbb_files:
-            station_name = re.findall(r"CS\d\d\d", tbb_filename)[0]
+            station_name = re.findall(r"CS\d\d\d", tbb_filename)
+            station_name = next(iter(station_name), None)  # Get the first entry, if the list is not empty -> defaults to None
+            if station_name is None:
+                logger.status(f'TBB file {tbb_filename} is for remote station, skipping...')
+                continue
             if (self.__restricted_station_set is not None) and (station_name not in self.__restricted_station_set):
                 continue  # only process stations in the given set
-            self.logger.info(f'Found file {tbb_filename} for station {station_name}...')
+
             self.__stations[station_name]['files'].append(tbb_filename)
 
-            # Save the metadata only once (in case there are multiple files for a station)
-            # TODO: make metadata a dictionary
-            if 'metadata' not in self.__stations[station_name]:
-                self.__stations[station_name]['metadata'] = get_metadata([tbb_filename], self.meta_dir)
+        # Save the metadata after all files for a station have been found
+        # TODO: make metadata a dictionary
+        for station_name in self.__stations:
+            station_files = self.__stations[station_name]['files']
+            if len(station_files) > 0:
+                self.logger.info(f'Found files {station_files} for station {station_name}...')
+                self.__stations[station_name]['metadata'] = get_metadata(station_files, self.meta_dir)
 
     @register_run()
     def run(self, detector, trace_length=65536):
@@ -574,7 +616,7 @@ class readLOFARData:
 
             # The metadata is only defined if there are files in the station
             antenna_set = station_dict['metadata'][1]
-            
+
             station = NuRadioReco.framework.station.Station(station_id)
             station.set_station_time(time)
             radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
@@ -594,56 +636,67 @@ class readLOFARData:
             self.logger.debug("Channels no counterpart: %s" % channels_missing_counterpart)
 
             # done here as it needs median timing values over all traces in the station
-            flagged_channel_ids = channels_deviating.union(channels_missing_counterpart)
+            flagged_channel_ids: set[str] = channels_deviating.union(channels_missing_counterpart)
 
             # empty set to add the NRR flagged channel IDs to
-            flagged_nrr_channel_ids = set()
-            channel_set_ids = set()
+            flagged_nrr_channel_ids: set[int] = set()
+            flagged_nrr_channel_group_ids: set[int] = set()  # keep track of channel group IDs to remove
 
-            channels = detector.get_channel_ids(station_id)
-            if antenna_set == "LBA_OUTER":
-                # for LBA_OUTER, the antennas have a "0" as fourth element in 9 element string
-                for c in channels:
-                    c_str = str(c).zfill(9)
-                    if c_str[3] == "0":
-                        channel_set_ids.add(c)
+            # Get the list of all dipole names which are present in the TTB file
+            # This avoids issues when a TBB file would not contain all channels
+            channel_tbb_ids: list[str] = station_dict['metadata'][6]
 
-            elif antenna_set == "LBA_INNER":
-                # for LBA_OUTER, the antennas have a "9" as fourth element in 9 element string
-                for c in channels:
-                    c_str = str(c).zfill(9)
-                    if c_str[3] == "9":
-                        channel_set_ids.add(c)
-            else:
-                # other modes are currently not supported
-                # TODO: add them
-                self.logger.warning(f"Station {station_id} has unknown antenna set: {antenna_set}")
-                continue
+            self.logger.debug(f"These channels are present in the TBB file: {channel_tbb_ids}")
 
-            for channel_id in channel_set_ids:
-                # convert channel ID to TBB ID to be able to access trace
-                TBB_channel_id = nrrID_to_tbbID(channel_id)
+            for TBB_channel_id in channel_tbb_ids:
+                # convert TBB ID to NRR equivalent based on antenna set to be able to access trace
+                channel_id = int(tbbID_to_nrrID(TBB_channel_id, antenna_set))
 
-                if int(TBB_channel_id) in flagged_channel_ids:
+                if TBB_channel_id in flagged_channel_ids:
+                    self.logger.status(f"Channel {channel_id} was flagged at read-in, "
+                                       f"not adding to station {station_name}")
                     flagged_nrr_channel_ids.add(channel_id)
+                    flagged_nrr_channel_group_ids.add(detector.get_channel_group_id(station_id, channel_id))
                     continue
 
                 # read in trace, see if that works. Needed or overly careful?
                 try:
-                    this_trace = lofar_trace_access.get_trace(TBB_channel_id)  # channel ID is 9 digits
-                except:  # FIXME: Too general except statement
-                    flagged_channel_ids.add(int(TBB_channel_id))
+                    this_trace = lofar_trace_access.get_trace(TBB_channel_id)  # TBB_channel_id is str of 9 digits
+                except IndexError:
+                    flagged_channel_ids.add(TBB_channel_id)
                     flagged_nrr_channel_ids.add(channel_id)
-                    logger.warning("Could not read data for channel id %s" % channel_id)
+                    flagged_nrr_channel_group_ids.add(detector.get_channel_group_id(station_id, channel_id))
+                    self.logger.warning("Could not read data for channel id %s" % channel_id)
                     continue
 
-                # The channel_group_id should be interpreted as an antenna index
-                # dipoles '001000000' and '001000001' -> 'a1000000'
-                channel_group = 'a' + str(detector.get_channel_group_id(station_id, channel_id))
+                # The channel_group_id should be interpreted as an antenna index (e.g. like 'a1000000' which
+                # was used in PyCRTools). The group ID is pulled from the Detector description.
+                # Example: dipoles '001000000' (NRR ID 1000000) and '001000001' (NRR ID 1000001)
+                # both get group ID 1000000
+                channel_group: int = detector.get_channel_group_id(station_id, channel_id)
 
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
                 station.add_channel(channel)
+
+            # Check both channels from the flagged group IDs are removed from station
+            # This is needed because when a trace read in fails, the counterpart is not automatically removed
+            self.logger.debug(f"Flagged channel group IDs: {flagged_nrr_channel_group_ids}")
+            channels_to_remove = []  # cannot remove channel in loop, so store them and delete after
+            for channel_group_id in flagged_nrr_channel_group_ids:
+                try:
+                    for channel in station.iter_channel_group(channel_group_id):
+                        self.logger.status(f"Removing channel {channel.get_id()} with group ID {channel_group_id} "
+                                           f"from station {station_name}")
+                        channels_to_remove.append(channel)
+                except ValueError:
+                    # The channel_group_id not longer present in the station
+                    self.logger.debug(f"Both channels of group ID {channel_group_id} were already removed "
+                                      f"from station {station_name}")
+
+            for channel in channels_to_remove:
+                station.remove_channel(channel)
+                flagged_nrr_channel_ids.add(channel.get_id())
 
             # store set of flagged nrr channel ids as station parameter
             station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
