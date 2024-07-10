@@ -369,8 +369,6 @@ class readRNOGData:
         self.__invalid = 0
 
         self._events_information = None
-        self._events_waveforms = None
-        self._events_waveforms_baseline_correction = None
         self._datasets = []
         self.__n_events_per_dataset = []
 
@@ -463,7 +461,7 @@ class readRNOGData:
 
         self.logger.info(f"Add {len(selectors)} selector(s)")
         self._selectors += selectors
-        self._events_waveforms = None
+        self.get_waveforms.cache_clear() # reset cached waveforms
 
 
     def __select_run(self, dataset):
@@ -638,10 +636,9 @@ class readRNOGData:
 
         return self._events_information
 
-    def get_waveforms(self, apply_baseline_correction=None):
+    @lru_cache(maxsize=1)
+    def get_waveforms(self, apply_baseline_correction=None, max_events=1000):
         """ Return waveforms of events passing the selectors which may have been specified
-
-        Note that
 
         Parameters
         ----------
@@ -649,6 +646,14 @@ class readRNOGData:
         apply_baseline_correction: str | None
             If not None, apply a different baseline correction algorithm than specified in the
             `begin` method. Otherwise (default), use the same setting as specified there.
+
+        max_events : int | None
+            The maximum number of waveforms to return.
+
+            If None, return all waveforms in all datasets. Note that this may cause a crash
+            due to memory overflow if too many waveforms are selected.
+
+            Default: 1000
 
         Returns
         -------
@@ -658,56 +663,50 @@ class readRNOGData:
             based on the class config.
         """
 
-        if self._n_events_total > 2e3: # requires ~ 1 GB of memory
-            self.logger.warning(
-                f"You are attempting to construct an array of up to {self._n_events_total} waveforms."
-                " This may take a while and/or cause a crash once you run out of memory."
-            )
-
         if (apply_baseline_correction is None) and not self._read_calibrated_data:
             apply_baseline_correction = self._apply_baseline_correction
 
-        if (self._events_waveforms is None) or (apply_baseline_correction != self._events_waveforms_baseline_correction):
-            self._events_waveforms = []
-            self._events_waveforms_baseline_correction = apply_baseline_correction
+        events_waveforms = []
 
-            for dataset in self._datasets:
-                dataset.setEntries((0, dataset.N()))
-                if apply_baseline_correction in ['fit', 'approximate']: # we need the sampling rate
-                    try:
-                        sampling_rate = dataset.eventInfo()[0].sampleRate
-                    except AttributeError:
-                        sampling_rate = None
-                    if not sampling_rate: # invalid sampling rate - overwrite
-                        sampling_rate = self._overwrite_sampling_rate
+        for dataset in self._datasets:
+            dataset.setEntries((0, dataset.N()))
+            if apply_baseline_correction in ['fit', 'approximate']: # we need the sampling rate
+                try:
+                    sampling_rate = dataset.eventInfo()[0].sampleRate
+                except AttributeError:
+                    sampling_rate = None
+                if not sampling_rate: # invalid sampling rate - overwrite
+                    sampling_rate = self._overwrite_sampling_rate
 
-                for idx, (_, wfs) in enumerate(dataset.iterate(
-                    calibrated=self._read_calibrated_data,
-                    selectors=self._select_events)):
+            for idx, (_, wfs) in enumerate(dataset.iterate(
+                calibrated=self._read_calibrated_data,
+                selectors=self._select_events)):
 
-                    if self._read_calibrated_data:
-                        wfs = wfs * units.mV
-                    else:
-                        # wf stores ADC counts
-                        if self._convert_to_voltage:
-                            # convert adc to voltage
-                            wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
+                if self._read_calibrated_data:
+                    wfs = wfs * units.mV
+                else:
+                    # wf stores ADC counts
+                    if self._convert_to_voltage:
+                        # convert adc to voltage
+                        wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
 
-                    if apply_baseline_correction == 'median':
-                        wfs = _baseline_correction(wfs)
-                    elif apply_baseline_correction in ['fit', 'approximate']:
-                        wfs = np.vstack([
-                            fit_block_offsets(
-                                wf, mode=self._apply_baseline_correction,
-                                sampling_rate=sampling_rate, return_trace=True)[1]
-                            for wf in wfs])
+                if apply_baseline_correction == 'median':
+                    wfs = _baseline_correction(wfs)
+                elif apply_baseline_correction in ['fit', 'approximate']:
+                    wfs = np.vstack([
+                        fit_block_offsets(
+                            wf, mode=self._apply_baseline_correction,
+                            sampling_rate=sampling_rate, return_trace=True)[1]
+                        for wf in wfs])
 
+                events_waveforms.append(wfs)
+                if (max_events is not None) and (len(events_waveforms) >= max_events):
+                    self.logger.warning(
+                        f"Number of waveforms {len(events_waveforms)} exceeds max_events. Returning first {max_events} waveforms only."
+                        )
+                    return np.array(events_waveforms)
 
-                    self._events_waveforms.append(wfs)
-
-            self._events_waveforms = np.array(self._events_waveforms)
-
-        return self._events_waveforms.copy()
+        return np.array(events_waveforms)
 
 
     def _check_for_valid_information_in_event_info(self, event_info):
