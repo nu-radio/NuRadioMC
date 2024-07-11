@@ -607,7 +607,7 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
 
 <span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span> <span class="kn">import</span> <span class="n">channelBlockOffsets</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span> <span class="kn">import</span> <span class="n">channelBlockOffsets</span><span class="p">,</span> <span class="n">fit_block_offsets</span>
 
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.event</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.station</span>
@@ -625,9 +625,6 @@
 
 <span class="sd">    Determines baseline in discrete chuncks of &quot;n_bins&quot; with</span>
 <span class="sd">    the function specified (i.e., mean or median).</span>
-
-<span class="sd">    .. Warning:: This function has been deprecated, use :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span>
-<span class="sd">      instead</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -653,10 +650,6 @@
 <span class="sd">    baseline_values: np.array of shape (n_samples // n_bins, n_events, n_channels)</span>
 <span class="sd">        (Only if return_offsets==True) The baseline offsets</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">warnings</span>
-    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-        <span class="s1">&#39;baseline_correction is deprecated, use NuRadioReco.modules.RNO_G.channelBlockOffsetFitter instead&#39;</span><span class="p">,</span>
-        <span class="ne">DeprecationWarning</span><span class="p">)</span>
 
     <span class="c1"># Example: Get baselines in chunks of 128 bins</span>
     <span class="c1"># wfs in (n_events, n_channels, 2048)</span>
@@ -875,15 +868,15 @@
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
 
-<span class="sd">        apply_baseline_correction: &#39;approximate&#39; | &#39;fit&#39; | &#39;none&#39;</span>
-<span class="sd">            Only applies when non-calibrated data are read. Removes the DC (baseline)</span>
-<span class="sd">            block offsets (pedestals).</span>
-<span class="sd">            Options are:</span>
+<span class="sd">        apply_baseline_correction: &#39;fit&#39; | &#39;approximate&#39; | &#39;median&#39; | &#39;none&#39;</span>
+<span class="sd">            Removes the DC (baseline) block offsets (pedestals).</span>
+<span class="sd">            Options are, in order of decreasing precision and increasing performance:</span>
 
-<span class="sd">            * &#39;approximate&#39; (default) - estimate block offsets by looking at the low-pass filtered trace</span>
-<span class="sd">            * &#39;fit&#39; - do a full out-of-band fit to determine the block offsets; for more details,</span>
-<span class="sd">              see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span>
-<span class="sd">            * &#39;none&#39; - do not apply a baseline correction (faster)</span>
+<span class="sd">            * &#39;fit&#39; : do a full out-of-band fit to determine the block offsets; for more details,</span>
+<span class="sd">              see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter` (slow)</span>
+<span class="sd">            * &#39;approximate&#39; : estimate block offsets by looking at the low-pass filtered trace (default)</span>
+<span class="sd">            * &#39;median&#39; : subtract the median of each block (faster)</span>
+<span class="sd">            * &#39;none&#39; : do not apply a baseline correction (fastest)</span>
 
 <span class="sd">        convert_to_voltage: bool</span>
 <span class="sd">            Only applies when non-calibrated data are read. If true, convert ADC to voltage.</span>
@@ -927,13 +920,13 @@
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_read_calibrated_data</span> <span class="o">=</span> <span class="n">read_calibrated_data</span>
-        <span class="n">baseline_correction_valid_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;approximate&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">]</span>
+        <span class="n">baseline_correction_valid_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;approximate&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">apply_baseline_correction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">baseline_correction_valid_options</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Value for apply_baseline_correction (</span><span class="si">{</span><span class="n">apply_baseline_correction</span><span class="si">}</span><span class="s2">) not recognized. &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;Valid options are </span><span class="si">{</span><span class="n">baseline_correction_valid_options</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="o">=</span> <span class="n">apply_baseline_correction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="o">=</span> <span class="n">apply_baseline_correction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_voltage</span> <span class="o">=</span> <span class="n">convert_to_voltage</span>
 
         <span class="c1"># Temporary solution hard-coded values from Cosmin. Only used when uncalibrated data</span>
@@ -1066,7 +1059,8 @@
                     <span class="n">selectors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="k">lambda</span> <span class="n">eventInfo</span><span class="p">:</span> <span class="n">eventInfo</span><span class="o">.</span><span class="n">triggerType</span> <span class="o">==</span> <span class="n">select_trigger</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Add </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">selectors</span><span class="p">)</span><span class="si">}</span><span class="s2"> selector(s)&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span> <span class="o">+=</span> <span class="n">selectors</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span> <span class="o">+=</span> <span class="n">selectors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_waveforms</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span> <span class="c1"># reset cached waveforms</span></div>
 
 
     <span class="k">def</span> <span class="nf">__select_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
@@ -1185,7 +1179,8 @@
 
 
 <div class="viewcode-block" id="readRNOGData.get_events_information"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information">[docs]</a>    <span class="k">def</span> <span class="nf">get_events_information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;station&quot;</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;eventNumber&quot;</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return information of all events from the EventInfo</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return information of events from the EventInfo. Only information of events passing the</span>
+<span class="sd">        selectors, which may have been specified, are returned.</span>
 
 <span class="sd">        This function is useful to make a pre-selection of events before actually reading them in combination with</span>
 <span class="sd">        self.read_event().</span>
@@ -1239,6 +1234,78 @@
                 <span class="n">n_prev</span> <span class="o">+=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">N</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events_information</span></div>
+
+<div class="viewcode-block" id="readRNOGData.get_waveforms"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms">[docs]</a>    <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_waveforms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apply_baseline_correction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_events</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return waveforms of events passing the selectors which may have been specified</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        apply_baseline_correction: str | None</span>
+<span class="sd">            If not None, apply a different baseline correction algorithm than specified in the</span>
+<span class="sd">            `begin` method. Otherwise (default), use the same setting as specified there.</span>
+
+<span class="sd">        max_events : int | None</span>
+<span class="sd">            The maximum number of waveforms to return.</span>
+
+<span class="sd">            If None, return all waveforms in all datasets. Note that this may cause a crash</span>
+<span class="sd">            due to memory overflow if too many waveforms are selected.</span>
+
+<span class="sd">            Default: 1000</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        wfs: np.array</span>
+<span class="sd">            Waveforms of all &quot;selected&quot; events. The wavefroms are either calibrated or not</span>
+<span class="sd">            based on the class config.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">apply_baseline_correction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span>
+
+        <span class="n">events_waveforms</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">:</span>
+            <span class="n">dataset</span><span class="o">.</span><span class="n">setEntries</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">N</span><span class="p">()))</span>
+            <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span> <span class="c1"># we need the sampling rate</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">eventInfo</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sampleRate</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">sampling_rate</span><span class="p">:</span> <span class="c1"># invalid sampling rate - overwrite</span>
+                    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overwrite_sampling_rate</span>
+
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">wfs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">iterate</span><span class="p">(</span>
+                <span class="n">calibrated</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_calibrated_data</span><span class="p">,</span>
+                <span class="n">selectors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_select_events</span><span class="p">)):</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_calibrated_data</span><span class="p">:</span>
+                    <span class="n">wfs</span> <span class="o">=</span> <span class="n">wfs</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># wf stores ADC counts</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_voltage</span><span class="p">:</span>
+                        <span class="c1"># convert adc to voltage</span>
+                        <span class="n">wfs</span> <span class="o">=</span> <span class="n">wfs</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_adc_ref_voltage_range</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_adc_n_bits</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+                    <span class="n">wfs</span> <span class="o">=</span> <span class="n">_baseline_correction</span><span class="p">(</span><span class="n">wfs</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span>
+                    <span class="n">wfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span>
+                        <span class="n">fit_block_offsets</span><span class="p">(</span>
+                            <span class="n">wf</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span><span class="p">,</span>
+                            <span class="n">sampling_rate</span><span class="o">=</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="n">return_trace</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">wf</span> <span class="ow">in</span> <span class="n">wfs</span><span class="p">])</span>
+
+                <span class="n">events_waveforms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wfs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">max_events</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">events_waveforms</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_events</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Number of waveforms </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">events_waveforms</span><span class="p">)</span><span class="si">}</span><span class="s2"> exceeds max_events. Returning first </span><span class="si">{</span><span class="n">max_events</span><span class="si">}</span><span class="s2"> waveforms only.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">events_waveforms</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">events_waveforms</span><span class="p">)</span></div>
 
 
     <span class="k">def</span> <span class="nf">_check_for_valid_information_in_event_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_info</span><span class="p">):</span>
@@ -1307,6 +1374,10 @@
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">()</span>
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">trigger_time</span><span class="p">)</span>
         <span class="n">station</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
+        <span class="n">block_offsets</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+            <span class="n">waveforms</span><span class="p">,</span> <span class="n">block_offsets</span> <span class="o">=</span> <span class="n">_baseline_correction</span><span class="p">(</span><span class="n">waveforms</span><span class="p">,</span> <span class="n">return_offsets</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">wf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">waveforms</span><span class="p">):</span>
             <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
@@ -1322,11 +1393,13 @@
 
             <span class="n">time_offset</span> <span class="o">=</span> <span class="n">get_time_offset</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerType</span><span class="p">)</span>
             <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="o">-</span><span class="n">time_offset</span><span class="p">)</span>  <span class="c1"># relative to event/trigger time</span>
+            <span class="k">if</span> <span class="n">block_offsets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">block_offsets</span><span class="p">,</span> <span class="n">block_offsets</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">channel_id</span><span class="p">])</span>
 
             <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
         <span class="n">evt</span><span class="o">.</span><span class="n">set_station</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_calibrated_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span><span class="o">.</span><span class="n">remove_offsets</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">evt</span>

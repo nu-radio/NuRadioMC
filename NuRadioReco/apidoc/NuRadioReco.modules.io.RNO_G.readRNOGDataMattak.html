@@ -685,9 +685,12 @@ to NuRadioMC <a class="reference internal" href="NuRadioReco.framework.event.htm
 <td><p>Allows to read a specific event identifed by its index</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_events_information</span></code></a>([keys])</p></td>
-<td><p>Return information of all events from the EventInfo</p></td>
+<td><p>Return information of events from the EventInfo.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.run" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_waveforms</span></code></a>([apply_baseline_correction, ...])</p></td>
+<td><p>Return waveforms of events passing the selectors which may have been specified</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.run" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
 <td><p>Loop over all events.</p></td>
 </tr>
 </tbody>
@@ -721,14 +724,14 @@ only an error message is raised). See parameters to configure run selection. (De
 </dd>
 <dt class="field-even">Other Parameters<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>apply_baseline_correction: ‘approximate’ | ‘fit’ | ‘none’</strong></dt><dd><p>Only applies when non-calibrated data are read. Removes the DC (baseline)
-block offsets (pedestals).
-Options are:</p>
+<dt><strong>apply_baseline_correction: ‘fit’ | ‘approximate’ | ‘median’ | ‘none’</strong></dt><dd><p>Removes the DC (baseline) block offsets (pedestals).
+Options are, in order of decreasing precision and increasing performance:</p>
 <ul class="simple">
-<li><p>‘approximate’ (default) - estimate block offsets by looking at the low-pass filtered trace</p></li>
-<li><p>‘fit’ - do a full out-of-band fit to determine the block offsets; for more details,
-see <a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span></code></a></p></li>
-<li><p>‘none’ - do not apply a baseline correction (faster)</p></li>
+<li><p>‘fit’ : do a full out-of-band fit to determine the block offsets; for more details,
+see <a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span></code></a> (slow)</p></li>
+<li><p>‘approximate’ : estimate block offsets by looking at the low-pass filtered trace (default)</p></li>
+<li><p>‘median’ : subtract the median of each block (faster)</p></li>
+<li><p>‘none’ : do not apply a baseline correction (fastest)</p></li>
 </ul>
 </dd>
 <dt><strong>convert_to_voltage: bool</strong></dt><dd><p>Only applies when non-calibrated data are read. If true, convert ADC to voltage.
@@ -787,7 +790,8 @@ Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == “FORCE�
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information">
 <span class="sig-name descname"><span class="pre">get_events_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['station',</span> <span class="pre">'run',</span> <span class="pre">'eventNumber']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_events_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information" title="Permalink to this definition"></a></dt>
-<dd><p>Return information of all events from the EventInfo</p>
+<dd><p>Return information of events from the EventInfo. Only information of events passing the
+selectors, which may have been specified, are returned.</p>
 <p>This function is useful to make a pre-selection of events before actually reading them in combination with
 self.read_event().</p>
 <dl class="field-list simple">
@@ -803,6 +807,33 @@ of the mattak.Dataset.EventInfo class (examples are “station”, “run”, �
 <dd class="field-even"><dl class="simple">
 <dt>data: dict</dt><dd><p>Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries
 them self containing the information specified with “keys” parameter.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms">
+<span class="sig-name descname"><span class="pre">get_waveforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">apply_baseline_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_events</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_waveforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms" title="Permalink to this definition"></a></dt>
+<dd><p>Return waveforms of events passing the selectors which may have been specified</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>apply_baseline_correction: str | None</strong></dt><dd><p>If not None, apply a different baseline correction algorithm than specified in the
+<a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a> method. Otherwise (default), use the same setting as specified there.</p>
+</dd>
+<dt><strong>max_events</strong><span class="classifier">int | None</span></dt><dd><p>The maximum number of waveforms to return.</p>
+<p>If None, return all waveforms in all datasets. Note that this may cause a crash
+due to memory overflow if too many waveforms are selected.</p>
+<p>Default: 1000</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>wfs: np.array</dt><dd><p>Waveforms of all “selected” events. The wavefroms are either calibrated or not
+based on the class config.</p>
 </dd>
 </dl>
 </dd>
