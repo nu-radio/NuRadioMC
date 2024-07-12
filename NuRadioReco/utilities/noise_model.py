@@ -136,7 +136,6 @@ class NoiseModel:
             self.cov_inv = cov_inv
         elif cov_inv is None:
             self.cov_inv = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
-            self.cov_log_det = np.zeros(self.n_antennas)
             for i in range(self.n_antennas):
                 if self.matrix_inversion_method == "pseudo_inv":
                     self.cov_inv[i,:,:] = scp.linalg.pinvh(cov[i,:,:], atol=self.threshold_amplitude)
@@ -147,6 +146,7 @@ class NoiseModel:
         
         # Calculate log-determinant of covariance matrix:
         if not self.ignore_llh_normalization:
+            self.cov_log_det = np.zeros(self.n_antennas)
             for i in range(self.n_antennas):
                 if self.matrix_inversion_method == "pseudo_inv":
                     eigen_values = np.linalg.eigvalsh(cov[i,:,:])
@@ -521,7 +521,7 @@ class NoiseModel:
 
         self._set_covariance_matrices(covariance_matrices, spectra)
 
-    def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx):
+    def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx, frequency_domain=False):
         """
         Calculate Fisher information matrix for a set of parameter values (paramters_x0) which generates a signal using the covariance matrices of the noise. 
 
@@ -533,6 +533,8 @@ class NoiseModel:
                 Parameter values for which to calculate the Fisher information matrix
             dx : list
                 Finite differences to use when calculating derivatives of signal_function with respect to the parameters
+            frequency_domain : bool, optional
+                If True, calculate the Fisher information matrix in the frequency domain.
 
         Returns
         -------
@@ -544,18 +546,26 @@ class NoiseModel:
 
         # Calculate derivatives:
         derivatives = np.zeros([n_parameters, self.n_antennas, self.n_samples])
+        derivatives_fft = np.zeros([n_parameters, self.n_antennas, self.n_frequencies])
+        signal_0 = signal_function(paramters_x0)
         for i in range(n_parameters):
             paramters_x1 = np.copy(paramters_x0)
             paramters_x1[i] = paramters_x0[i] + dx[i]
-            derivatives[i,:,:] = (signal_function(paramters_x1) - signal_function(paramters_x0))/dx[i]
-
+            derivatives[i,:,:] = (signal_function(paramters_x1) - signal_0)/dx[i]
+            if frequency_domain:
+                derivatives_fft[i,:,:] = fft.time2freq(derivatives[i,:,:], self.sampling_rate)
+        
         # Calculate Fisher information matrix
         fisher_information_matrix = np.zeros([n_parameters,n_parameters])
         for i in range(n_parameters):
             for j in range(n_parameters):
                 for k in range(self.n_antennas):
-                    fisher_information_matrix[i,j] += np.matmul(derivatives[i,k,:], np.matmul(self.cov_inv[k,:,:], derivatives[j,k,:]))
-
+                    if not frequency_domain:
+                        fisher_information_matrix[i,j] += np.matmul(derivatives[i,k,:], np.matmul(self.cov_inv[k,:,:], derivatives[j,k,:]))
+                    elif frequency_domain:
+                        integrand = abs(derivatives_fft[i,k,:]*derivatives_fft[j,k,:].conj())/self.noise_psd
+                        fisher_information_matrix[i,j] += 4*np.sum(integrand[self.noise_psd>self.threshold_amplitude]) * (self.frequencies[1]-self.frequencies[0])
+        
         return fisher_information_matrix
 
     ### Plotting: ###
