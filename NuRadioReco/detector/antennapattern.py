@@ -14,6 +14,7 @@ import scipy
 logger = logging.getLogger('NuRadioReco.antennapattern')
 
 path_to_antennamodels = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'AntennaModels')
+path_to_antennamodels = '/pnfs/ifh.de/acs/radio/diskonly/NuRadioMC/AntennaModels'
 
 
 def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
@@ -1038,7 +1039,7 @@ def preprocess_LOFAR_txt(directory, ant='LBA'):
                      frequencies, theta, phi, H_phi, H_theta],
                     fout, protocol=4)
 
-def preprocess_FEKO_mat(path='/lustre/fs22/group/radio/lpyras/antenna_models/SKALA_v4/', polarization='X'):
+def preprocess_FEKO_mat(path, polarization='X'):
     """
     used to convert FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat for the SKALA4 antenna to a pickle file
     The file contains the embedded element simulation of the SKALA4 antenna in the frequency range of 50-350 MHz.
@@ -1067,7 +1068,6 @@ def preprocess_FEKO_mat(path='/lustre/fs22/group/radio/lpyras/antenna_models/SKA
         # use this angles and name SKALA_v4_Ypol to have your channel in north-south orientation
         orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 180 * units.deg 
 
-    path_to_antennamodels = '/lustre/fs22/group/radio/lpyras/antenna_models/SKALA_v4/'
     fname = f'SKALA_v4_{polarization}pol.pkl'
     output_filename = os.path.join(path_to_antennamodels, fname)
 
