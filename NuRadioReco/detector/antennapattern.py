@@ -1061,9 +1061,11 @@ def preprocess_FEKO_mat(path='/lustre/fs22/group/radio/lpyras/antenna_models/SKA
     phis = np.linspace(0, 90, 181) * units.deg
 
     if polarization == 'X':
-        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
+        # use this angles and name SKALA_v4_Xpol to have your channel in east-west orientation
+        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg 
     if polarization == 'Y':
-        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 90 * units.deg, 90 * units.deg, 180 * units.deg
+        # use this angles and name SKALA_v4_Ypol to have your channel in north-south orientation
+        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 180 * units.deg 
 
     path_to_antennamodels = '/lustre/fs22/group/radio/lpyras/antenna_models/SKALA_v4/'
     fname = f'SKALA_v4_{polarization}pol.pkl'
