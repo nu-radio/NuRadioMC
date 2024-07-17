@@ -125,10 +125,8 @@ class stationPulseFinder:
 
         for i, channel_ids in enumerate(channel_ids_per_pol):
             all_spectra = np.array([station.get_channel(channel).get_frequency_spectrum() for channel in channel_ids])
-            all_real_traces = np.array([station.get_channel(channel).get_trace() for channel in channel_ids])#debug
             beamed_fft = mini_beamformer(all_spectra, frequencies, channel_positions, self.direction_cartesian)
             beamed_timeseries = fft.freq2time(beamed_fft, sampling_rate, n=station.get_channel(channel_ids[0]).get_trace().shape[0])
-            optimal_amp = np.sum( [np.max(np.abs(trace)) for trace in all_real_traces] )
 
             analytic_signal = hilbert(beamed_timeseries)
             amplitude_envelope = np.abs(analytic_signal)
@@ -140,35 +138,6 @@ class stationPulseFinder:
             )
 
             values_per_pol.append([np.max(amplitude_envelope), signal_window_start, signal_window_end])
-            #debug:
-            fig = plt.figure(figsize=(14, 9), dpi=150)
-            ax1 = plt.subplot(311)
-            for trace in all_real_traces:
-                ax1.plot(trace, linewidth=1)
-            ax1.axvline(signal_window_start, color='k')
-            ax1.axvline(signal_window_end, color='k')
-            ax1.set_ylabel('raw traces')
-            # ax1.set(xlim=[0, len(all_real_traces[0])])
-            ax2 = plt.subplot(312)
-            ax2.plot(amplitude_envelope, linewidth=1)
-            ax2.axvline(signal_window_start, color='k')
-            ax2.axvline(signal_window_end, color='k')
-            ax2.set_ylabel('beamformed amplitude envelope')
-            # ax2.set(xlim=[0, len(amplitude_envelope)])
-            ax3 = plt.subplot(313)
-            ax3.plot(beamed_timeseries, linewidth=1)
-            ax3.axvline(signal_window_start, color='k')
-            ax3.axvline(signal_window_end, color='k')
-            ax3.set_ylabel('beamformed timeseries')
-            # ax3.set(xlim=[0, len(beamed_timeseries)])
-            for ax in [ax1, ax2, ax3]:
-                # ax.set(xlim=[signal_window_start-100, signal_window_end+100])
-                ax.set(xlim=[33000, 34000])
-
-            plt.xlabel('samples')
-            plt.suptitle(f'Station {station.get_id()}, polarization {i}, optimal amplitude: {optimal_amp}, beamformed amplitude: {np.max(np.abs(beamed_timeseries))}\n{all_real_traces.shape}')
-            plt.show()
-
 
         values_per_pol = np.asarray(values_per_pol)
         dominant = np.argmax(values_per_pol[:, 0])
