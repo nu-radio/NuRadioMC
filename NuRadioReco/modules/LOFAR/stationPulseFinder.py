@@ -64,7 +64,7 @@ class stationPulseFinder:
 
         self.direction_cartesian = None  # The zenith and azimuth pointing towards where to beamform.
 
-    def begin(self, window=500, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
+    def begin(self, window=800, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
         """
         Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
         to use for noise measurements. The function also defines what an acceptable SNR is to consider a
@@ -128,6 +128,7 @@ class stationPulseFinder:
             all_real_traces = np.array([station.get_channel(channel).get_trace() for channel in channel_ids])#debug
             beamed_fft = mini_beamformer(all_spectra, frequencies, channel_positions, self.direction_cartesian)
             beamed_timeseries = fft.freq2time(beamed_fft, sampling_rate, n=station.get_channel(channel_ids[0]).get_trace().shape[0])
+            optimal_amp = np.sum( [np.max(np.abs(trace)) for trace in all_real_traces] )
 
             analytic_signal = hilbert(beamed_timeseries)
             amplitude_envelope = np.abs(analytic_signal)
@@ -165,7 +166,7 @@ class stationPulseFinder:
                 ax.set(xlim=[33000, 34000])
 
             plt.xlabel('samples')
-            plt.suptitle(f'Station {station.get_id()}, polarization {i}')
+            plt.suptitle(f'Station {station.get_id()}, polarization {i}, optimal amplitude: {optimal_amp}, beamformed amplitude: {np.max(np.abs(beamed_timeseries))}\n{all_real_traces.shape}')
             plt.show()
 
 
@@ -337,8 +338,6 @@ class stationPulseFinder:
 
             # there was a bug with the windows for the SNR calculation, where strong signals had low SNR and vice versa. 
             # Since the pulse should be somewhere around the middle of the trace, we use a fixed noise window (without the tapered edges of the trace). 
-            # For the signal window, the whole trace is used since we need the maximum. 
-            # Narrowing this down may increase performance and may be worth looking into in the future.
             self._check_station_triggered(
                 station, 
                 position_array, 
