@@ -262,7 +262,7 @@ class stationPulseFinder:
             The detector related to the event.
         """
         zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
-        azimuth = np.mod( event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth), 2* np.pi )
+        azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
 
         self.direction_cartesian = hp.spherical_to_cartesian(
             zenith, azimuth
@@ -276,8 +276,7 @@ class stationPulseFinder:
             station_even_list = []
             station_odd_list = []
             for channel in station.iter_channels():
-                # if channel.get_id() == channel.get_group_id(): #tested it, does not work
-                if channel.get_id() == int(channel.get_group_id()[1:]): #this works
+                if channel.get_id() == channel.get_group_id(): 
                     station_even_list.append(channel.get_id())
                 else:
                     station_odd_list.append(channel.get_id())
