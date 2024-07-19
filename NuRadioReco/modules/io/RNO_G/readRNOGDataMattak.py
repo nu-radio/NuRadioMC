@@ -851,7 +851,7 @@ class readRNOGData:
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
-        if not self._select_events(event_info, event_index):
+        if not self._select_events(event_info):
             return None
 
         # access data
