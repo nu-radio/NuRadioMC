@@ -5,6 +5,7 @@ import time
 import astropy.time
 import math
 from functools import lru_cache
+from inspect import signature
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import channelBlockOffsets, fit_block_offsets
@@ -588,9 +589,11 @@ class readRNOGData:
         Parameters
         ----------
 
-        keys: str or list(str)
+        keys : str or list(str) or None
             List of the information to receive from each event. Have to match the attributes (member variables)
             of the mattak.Dataset.EventInfo class (examples are "station", "run", "triggerTime", "triggerType", "eventNumber", ...).
+
+            If None, read in all keys present in the EventInfo class.
             (Default: ["station", "run", "eventNumber"])
 
         Returns
@@ -600,6 +603,9 @@ class readRNOGData:
             Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries
             them self containing the information specified with "keys" parameter.
         """
+
+        if keys is None:
+            keys = [k for k in signature(mattak.Dataset.EventInfo).parameters]
 
         if isinstance(keys, str):
             keys = [keys]
