@@ -27,6 +27,7 @@ can then iterate over a channel group, which yields all channels for a given gro
 - The assume_inf and antenna_by_depth Detector keywords are now saved in the nur file, and will be
 loaded again when reading in the Detector from a nur file
 - Added LOFAR coordinates to Detector site coordinates
+- Added up to date in-ice VPol response (RNOG_vpol_v2_5inch_center_n1.75.pkl) sha-1 hash
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
