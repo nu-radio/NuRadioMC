@@ -317,7 +317,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             template_freq_mask = (template_freqs > channel.get_frequencies()[0]) & (template_freqs < (channel.get_frequencies()[-1]))
             fig.append_trace(plotly.graph_objs.Scatter(
                 x=template_freqs[template_freq_mask] / units.MHz,
-                y=np.abs(template_spectrum)[template_freq_mask] / units.mV,
+                y=np.abs(template_spectrum)[template_freq_mask] / (units.mV/units.GHz),
                 line=dict(
                     width=2,
                     dash='dot'
@@ -423,6 +423,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             title='<b>Ch. {}</b><br>voltage [mV]'.format(channel_id)
         )
         fig['layout']['yaxis{:d}'.format(i * 2 + 2)].update(type=yscale)
+        fig['layout']['yaxis{:d}'.format(i * 2 + 2)].update(title='Amplitude [mV/GHz]')
 
         if channel.get_trace() is None:
             continue

@@ -41,7 +41,7 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
         freqs = channel.get_frequencies()
         fig.append_trace(plotly.graph_objs.Scatter(
             x=freqs / units.MHz,
-            y=np.abs(spec) / units.mV,
+            y=np.abs(spec) / (units.mV/units.GHz),
             opacity=0.7,
             marker={
                 'color': colors[i % len(colors)],
@@ -52,5 +52,5 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     fig['layout'].update(default_layout)
     fig['layout']['legend']['uirevision'] = filename
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
-    fig['layout']['yaxis'].update(title='amplitude [mV]', type=yscale)
+    fig['layout']['yaxis'].update(title='amplitude [mV / GHz]', type=yscale)
     return fig
