@@ -79,12 +79,6 @@ layout = [
     [State('user_id', 'children')]
 )
 def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
-    if filename is None or station_id is None:
-        return []
-    user_id = json.loads(juser_id)
-    nurio = provider.get_file_handler(user_id, filename)
-    evt = nurio.get_event_i(evt_counter)
-    station = evt.get_station(station_id)
     options = [
         {'label': 'calibrated trace', 'value': 'trace'},
         {'label': 'cosmic-ray template', 'value': 'crtemplate'},
@@ -92,6 +86,13 @@ def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
         {'label': 'envelope', 'value': 'envelope'},
         {'label': 'from rec. E-field', 'value': 'recefield'}
     ]
+    if filename is None or station_id is None:
+        return options
+
+    user_id = json.loads(juser_id)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(evt_counter)
+    station = evt.get_station(station_id)
     if station.get_sim_station() is not None:
         if len(station.get_sim_station().get_electric_fields()) > 0:
             options.append({'label': 'from sim. E-field', 'value': 'simefield'})
