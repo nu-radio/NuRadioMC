@@ -794,11 +794,12 @@ Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == “FORCE�
 selectors, which may have been specified, are returned.</p>
 <p>This function is useful to make a pre-selection of events before actually reading them in combination with
 self.read_event().</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>keys: str or list(str)</strong></dt><dd><p>List of the information to receive from each event. Have to match the attributes (member variables)
-of the mattak.Dataset.EventInfo class (examples are “station”, “run”, “triggerTime”, “triggerType”, “eventNumber”, …).
+<dd class="field-odd"><dl>
+<dt><strong>keys</strong><span class="classifier">str or list(str) or None</span></dt><dd><p>List of the information to receive from each event. Have to match the attributes (member variables)
+of the mattak.Dataset.EventInfo class (examples are “station”, “run”, “triggerTime”, “triggerType”, “eventNumber”, …).</p>
+<p>If None, read in all keys present in the EventInfo class.
 (Default: [“station”, “run”, “eventNumber”])</p>
 </dd>
 </dl>

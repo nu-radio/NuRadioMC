@@ -605,6 +605,7 @@
 <span class="kn">import</span> <span class="nn">astropy.time</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">signature</span>
 
 <span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span> <span class="kn">import</span> <span class="n">channelBlockOffsets</span><span class="p">,</span> <span class="n">fit_block_offsets</span>
@@ -1188,9 +1189,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        keys: str or list(str)</span>
+<span class="sd">        keys : str or list(str) or None</span>
 <span class="sd">            List of the information to receive from each event. Have to match the attributes (member variables)</span>
 <span class="sd">            of the mattak.Dataset.EventInfo class (examples are &quot;station&quot;, &quot;run&quot;, &quot;triggerTime&quot;, &quot;triggerType&quot;, &quot;eventNumber&quot;, ...).</span>
+
+<span class="sd">            If None, read in all keys present in the EventInfo class.</span>
 <span class="sd">            (Default: [&quot;station&quot;, &quot;run&quot;, &quot;eventNumber&quot;])</span>
 
 <span class="sd">        Returns</span>
@@ -1200,6 +1203,9 @@
 <span class="sd">            Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries</span>
 <span class="sd">            them self containing the information specified with &quot;keys&quot; parameter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">signature</span><span class="p">(</span><span class="n">mattak</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">EventInfo</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">keys</span><span class="p">]</span>
@@ -1451,7 +1457,7 @@
         <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset_for_event</span><span class="p">(</span><span class="n">event_index</span><span class="p">)</span>
         <span class="n">event_info</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">eventInfo</span><span class="p">()</span>  <span class="c1"># returns a single eventInfo</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_events</span><span class="p">(</span><span class="n">event_info</span><span class="p">,</span> <span class="n">event_index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_events</span><span class="p">(</span><span class="n">event_info</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># access data</span>
