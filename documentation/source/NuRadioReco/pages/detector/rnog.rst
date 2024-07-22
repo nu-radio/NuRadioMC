@@ -13,7 +13,7 @@ Database structure
 
 The database is organized in collections. Each collection contains a list of objects which contain our data. The primary collection which contains the `station list`, which lists the deployed stations and their channels, is the called `station_rnog`. The information of the stations and channels positions is organized in separate collections. The response of the different components in a channel's signal chain are stored in other collections. Each component class (i.e. coax cable, fiber, DRAB, IGLU, ...) has its own collection. A schematic of the database structure is shown below.
 
-.. image:: rnog-mongo-database-structure.pdf
+.. image:: rnog-mongo-database-structure.png
   :width: 100%
 
 Signal Chain
