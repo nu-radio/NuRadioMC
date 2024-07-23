@@ -2,7 +2,6 @@ Properties of Detector Description
 =========================================
 This pages documents and defines the properties that are part of the detector description
 
-
 Antenna Table
 -----------------------------
 - position_x: The x position of the antenna feed point relative to the station position

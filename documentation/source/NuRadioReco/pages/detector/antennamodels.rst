@@ -25,20 +25,20 @@ The antenna pickle files contains 9 lists of the following data:
         rotation of the antenna
     - rotation phi: float
         rotation of the antenna
-    - ff: array of floats
-        array of frequencies
-    - theta: float
-        zenith angle of inicdent electric field
-    - phi: float
-        azimuth angle of incident electric field
-    - H_phi: float
-        the complex realized vector effective length of the ePhi polarization component as described in (A.13) of the NuRadioReco paper arxiv:1903.07023
-    - H_theta: float
-        the complex realized vector effective length of the eTheta polarization component as described in (A.13) of the NuRadioReco paper arxiv:1903.07023
+    - freqs: array of floats
+        array of frequencies for which the realized vector effective length is provided
+    - theta: array of floats
+        zenith angles for the realized vector effective length with respect to the antenna
+    - phi: array of floats
+        azimuth angles for the realized vector effective length with respect to the antenna
+    - H_phi: array of floats
+        the complex realized vector effective length of the ePhi polarization component as described in (A.13) of the NuRadioReco paper `arxiv:1903.07023 <https://arxiv.org/abs/1903.07023>`__
+    - H_theta: array of floats
+        the complex realized vector effective length of the eTheta polarization component as described in (A.13) of the NuRadioReco paper `arxiv:1903.07023 <https://arxiv.org/abs/1903.07023>`__
 
-For the antenna orientation and rotation, the conventions are described in `Properties of Detector Description`.
+For the antenna orientation and rotation, the conventions are described in :ref:`Properties of Detector Description <NuRadioReco/pages/detector/detector_database_fields:Properties of Detector Description>`
 
-The calculation of the vector effective length is described in Appendix A.1, A.2 and A.3 of the NuRadioReco paper arxiv:1903.07023.
+The calculation of the vector effective length is described in Appendix A.1, A.2 and A.3 of the NuRadioReco paper `arxiv:1903.07023 <https://arxiv.org/abs/1903.07023>`__.
 
 
 Overview of available Antenna Models
