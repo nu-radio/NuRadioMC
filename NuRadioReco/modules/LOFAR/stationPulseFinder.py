@@ -9,6 +9,9 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
+#for debug:
+import matplotlib.pyplot as plt
+
 
 def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_start=0, noise_end=-1):
     """
@@ -61,7 +64,7 @@ class stationPulseFinder:
 
         self.direction_cartesian = None  # The zenith and azimuth pointing towards where to beamform.
 
-    def begin(self, window=500, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
+    def begin(self, window=800, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
         """
         Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
         to use for noise measurements. The function also defines what an acceptable SNR is to consider a
@@ -120,15 +123,13 @@ class stationPulseFinder:
 
         values_per_pol = []
 
-        for channel_ids in channel_ids_per_pol:
-            all_traces = np.array([station.get_channel(channel).get_frequency_spectrum() for channel in channel_ids])
-
-            beamed_fft = mini_beamformer(all_traces, frequencies, channel_positions, self.direction_cartesian)
-            beamed_timeseries = fft.freq2time(beamed_fft, sampling_rate, n=all_traces.shape[1])
+        for i, channel_ids in enumerate(channel_ids_per_pol):
+            all_spectra = np.array([station.get_channel(channel).get_frequency_spectrum() for channel in channel_ids])
+            beamed_fft = mini_beamformer(all_spectra, frequencies, channel_positions, self.direction_cartesian)
+            beamed_timeseries = fft.freq2time(beamed_fft, sampling_rate, n=station.get_channel(channel_ids[0]).get_trace().shape[0])
 
             analytic_signal = hilbert(beamed_timeseries)
             amplitude_envelope = np.abs(analytic_signal)
-
             signal_window_start = int(
                 np.argmax(amplitude_envelope) - self.__window_size / 2
             )
@@ -166,16 +167,16 @@ class stationPulseFinder:
         if signal_window is None:
             signal_window = [0, -1]
         if noise_window is None:
-            noise_window = [0, -1]
+            noise_window = [10000, 20000]
 
         frequencies = station.get_channel(channel_ids_per_pol[0][0]).get_frequencies()
         sampling_rate = station.get_channel(channel_ids_per_pol[0][0]).get_sampling_rate()
 
         for channel_ids in channel_ids_per_pol:
-            all_traces = np.array([station.get_channel(channel).get_frequency_spectrum() for channel in channel_ids])
+            all_spectra = np.array([station.get_channel(channel).get_frequency_spectrum() for channel in channel_ids])
 
-            beamed_fft = mini_beamformer(all_traces, frequencies, channel_positions, self.direction_cartesian)
-            beamed_timeseries = fft.freq2time(beamed_fft, sampling_rate, n=all_traces.shape[1])
+            beamed_fft = mini_beamformer(all_spectra, frequencies, channel_positions, self.direction_cartesian)
+            beamed_timeseries = fft.freq2time(beamed_fft, sampling_rate, n=station.get_channel(channel_ids[0]).get_trace().shape[0])
 
             snr = find_snr_of_timeseries(beamed_timeseries,
                                          window_start=signal_window[0], window_end=signal_window[1],
@@ -204,7 +205,7 @@ class stationPulseFinder:
         if signal_window is None:
             signal_window = [0, -1]
         if noise_window is None:
-            noise_window = [0, -1]
+            noise_window = [10000, 20000]
 
         good_channels = []
         for channel in station.iter_channels():
@@ -275,7 +276,7 @@ class stationPulseFinder:
             station_even_list = []
             station_odd_list = []
             for channel in station.iter_channels():
-                if channel.get_id() == channel.get_group_id():
+                if channel.get_id() == channel.get_group_id(): 
                     station_even_list.append(channel.get_id())
                 else:
                     station_odd_list.append(channel.get_id())
@@ -303,7 +304,15 @@ class stationPulseFinder:
             signal_window = [int(pulse_window_start), int(pulse_window_end)]
             noise_window = [0, int(pulse_window_start - self.__noise_away_from_pulse)]
 
-            self._check_station_triggered(station, position_array, ant_same_orientation, signal_window, noise_window)
+            # there was a bug with the windows for the SNR calculation, where strong signals had low SNR and vice versa. 
+            # Since the pulse should be somewhere around the middle of the trace, we use a fixed noise window (without the tapered edges of the trace). 
+            self._check_station_triggered(
+                station, 
+                position_array, 
+                ant_same_orientation, 
+                signal_window=signal_window,#[0, -1], 
+                noise_window=[int(1e4), int(2e4)]
+                )
 
     def end(self):
         pass
