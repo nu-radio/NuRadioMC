@@ -4,17 +4,13 @@ import matplotlib.pyplot as plt
 import radiotools.helper as hp
 
 from scipy import constants
-from scipy.signal import hilbert, correlate, correlation_lags
-from scipy.optimize import Bounds, minimize
+from scipy.signal import hilbert
 
 from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.voltageToEfieldConverter import voltageToEfieldConverter
-
-import traceback
+from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
 lightspeed = constants.c / 1.0003 * (units.m / units.s)
 halfpi = np.pi / 2.
@@ -36,7 +32,7 @@ class planeWaveDirectionFitter:
         self.__cr_snr = None
 
 
-    def begin(self, max_iter=10, cr_snr=3, min_amp=0.001, rmsfactor=2.0, assumeHorizontalArray=True, ignoreNonHorizontalArray=True, logger_level=logging.WARNING):
+    def begin(self, max_iter=10, cr_snr=3, min_amp=0.001, rmsfactor=2.0, ignoreNonHorizontalArray=True, window_size=800, debug=False, logger_level=logging.WARNING):
         """
         Set the parameters for the plane wave fit.
 
@@ -50,10 +46,12 @@ class planeWaveDirectionFitter:
             The minimum amplitude a channel should have to be considered having a cosmic ray signal. Set to None if you want to use the SNR instead.
         rmsfactor : float, default=2.0
             How many sigma (times RMS) above the average can a delay deviate from the expected timelag (from latest fit iteration) before it is considered bad and removed as outlier.
-        assumeHorizontalArray: bool, default=True
-            Whether a horizontal antenna array is assumed and whether to use the plane wave fit for a horizontal array (z=0). Recommended to set to True.
         ignoreNonHorizontalArray : bool, default=True
             Set to True when you know the array is non-horizontal (z > 0.5) but want to use the horizontal approximation anyway. Recommended to set to True.
+        window_size : int, default=800
+            The size of the window to use for the pulse finding.
+        debug : bool, default=False
+            Set to True to enable debug plots.
         logger_level : int, default=logging.WARNING
             The logging level to use for the module.
         """
@@ -61,13 +59,71 @@ class planeWaveDirectionFitter:
         self.__cr_snr = cr_snr
         self.__min_amp = min_amp
         self.__rmsfactor = rmsfactor
-        self.__assumeHorizontalArray = assumeHorizontalArray
         self.__ignoreNonHorizontalArray = ignoreNonHorizontalArray
+        self.__window_size = window_size
+        self.__debug = debug
         self.__logger_level = logger_level
         self.logger.setLevel(logger_level)
 
+    def _signal_windows_polarisation(self, station, channel_positions, channel_ids_per_pol, zenith, azimuth):
+        """
+        Considers the channel groups given by `channel_ids_per_pol` one by one and beamforms the traces
+        in the direction of `stationPulseFinder.direction_cartesian`. It then calculates the maximum of the
+        amplitude envelope, and saves the corresponding index with the indices for pulse finding in a tuple,
+        which it returns. From stationPulseFinder.py.
 
-    def _get_timelags(self, station):
+        Parameters
+        ----------
+        station : Station object
+            The station to analyse.
+        channel_positions : np.ndarray
+            The array of channels positions, to be extracted from the detector description.
+        channel_ids_per_pol : list[list]
+            A list of channel IDs grouped per polarisation. The IDs in each sublist will be used together for
+            beamforming in the direction given by `beamform_direction`.
+
+        Returns
+        -------
+        tuple of floats
+            * The index in `channel_ids_per_pol` which contains the strongest signal
+            * The start index of the pulse window
+            * The stop index of the pulse window
+        """
+        direction_cartesian = hp.spherical_to_cartesian(
+            zenith, azimuth
+        )
+
+
+        # Assume all the channels have the same frequency content and sampling rate
+        frequencies = station.get_channel(channel_ids_per_pol[0][0]).get_frequencies()
+        sampling_rate = station.get_channel(channel_ids_per_pol[0][0]).get_sampling_rate()
+
+        values_per_pol = []
+
+        for i, channel_ids in enumerate(channel_ids_per_pol):
+            all_spectra = np.array([station.get_channel(channel).get_frequency_spectrum() for channel in channel_ids])
+            beamed_fft = mini_beamformer(all_spectra, frequencies, channel_positions, direction_cartesian)
+            beamed_timeseries = fft.freq2time(beamed_fft, sampling_rate, n=station.get_channel(channel_ids[0]).get_trace().shape[0])
+
+            analytic_signal = hilbert(beamed_timeseries)
+            amplitude_envelope = np.abs(analytic_signal)
+            signal_window_start = int(
+                np.argmax(amplitude_envelope) - self.__window_size / 2
+            )
+            signal_window_end = int(
+                np.argmax(amplitude_envelope) + self.__window_size / 2
+            )
+
+            values_per_pol.append([np.max(amplitude_envelope), signal_window_start, signal_window_end])
+
+        values_per_pol = np.asarray(values_per_pol)
+        dominant = np.argmax(values_per_pol[:, 0])
+        window_start, window_end = values_per_pol[dominant][1:]
+
+        return int(dominant), int(window_start), int(window_end)
+    
+
+    def _get_timelags(self, station, channel_ids_per_pol, positions, zenith, azimuth):
         """
         Get timing differences between signals in antennas with respect to some reference antenna (here the first one).
 
@@ -76,28 +132,24 @@ class planeWaveDirectionFitter:
         station : Station object
             The station for which to get the time lags.
         """
+        # Get the dominant polarisation and the pulse window
+        dominant_pol, pulse_window_start, pulse_window_end = self._signal_windows_polarisation(
+            station=station,
+            channel_positions=positions,
+            channel_ids_per_pol=channel_ids_per_pol,
+            zenith=zenith,
+            azimuth=azimuth
+        )
+        # Collect the traces
+        traces = [station.get_channel(id).get_trace() for id in channel_ids_per_pol[dominant_pol]]
+        times = station.get_channel(channel_ids_per_pol[dominant_pol][0]).get_times()
 
-        # bug with voltageToEfield converter: trace start times not correct --> manually set trace start times to 0
-        for efield in station.get_electric_fields():
-            efield.set_trace_start_time(0.0)
-
-        # Determine dominant polarisation in Efield by looking for strongest signal in 10 randomly selected traces
-        random_traces = np.random.choice(station.get_electric_fields(), size=10)
-        dominant_pol_traces = []
-        for trace in random_traces:
-            trace_envelope = np.abs(hilbert(trace.get_trace(), axis=0))
-            dominant_pol_traces.append(np.argmax(np.max(trace_envelope, axis=1)))
-        dominant_pol = np.argmax(np.bincount(dominant_pol_traces))
-        self.logger.debug(f"Dominant polarisation is {dominant_pol}")
-
-        # Collect the Efield traces
-        traces = [trace.get_trace()[dominant_pol] for trace in station.get_electric_fields()]
-        times = station.get_electric_fields()[0].get_times()
-
-        # use time of max(abs(hilbert(electric field))) as pulse time
+        # Determine the signal time
         indices_max_trace = []
         for trace in traces:
-            indices_max_trace.append(np.argmax(np.abs(hilbert(trace))))
+            trace[:pulse_window_start] = 0
+            trace[pulse_window_end:] = 0
+            indices_max_trace.append(np.argmax(np.abs(trace)))
         timelags = np.array([times[index] for i, index in enumerate(indices_max_trace)])
         timelags -= timelags[0] # get timelags wrt 1st antenna
 
@@ -166,76 +218,6 @@ class planeWaveDirectionFitter:
         # note: Changed to az = 90_deg - phi
         return (az, el)
 
-    
-    def _directionForNonHorizontalArray(self, positions:np.ndarray, times:np.ndarray, station):
-        """
-        --- adapted from pycrtools.modules.scrfind, extended to non-horizontal array ---
-        Given N antenna positions, and (pulse) arrival times for each antenna,
-        get a direction of arrival aimuthz (az) and elevation (el) assuming a source at infinity (plane wave).
-
-        We find the best-fitting az and el using:
-
-        .. math::
-
-            ct = A x + B y + C z + D
-
-        where t is the array of times; x, y and z are arrays of coordinates of the antennas.
-        A, B and C are coefficients that are given as follows:
-
-        .. math::
-
-            A = \cos(\mathrm{el}) \cos(\mathrm{az})
-
-            B = \cos(\mathrm{el}) \sin(\mathrm{az})
-
-            C = \sin(\mathrm{el})
-
-        The D is the overall time offset in the data, that has to be subtracted out.
-        The optimal value of D has to be determined in the fit process (it's not just the average time, nor the time at antenna 0).
-
-        
-        Parameters
-        ----------
-        positions : np.ndarray
-            Positions (x,y,z) of the antennas (shape: (N_antennas, 3))
-        times : array, float
-            Pulse arrival times for all antennas
-        station : station-object
-            Station for which to fit direction
-
-        Returns
-        -------
-        (az, el) : in radians, and seconds-squared.
-
-        """
-
-        # TODO results not yet compatible with beamformingDirectionFitter_LOFAR
-
-        x = positions[:,0] 
-        y = positions[:,1] 
-        z = positions[:,2] 
-
-        start_zenith = station.get_parameter(stationParameters.zenith) / units.rad
-        start_azimuth = station.get_parameter(stationParameters.azimuth) / units.rad
-
-        def func_to_minimize(params, x, y, z, times):
-            azimuth, zenith, D = params
-            A = - np.sin(zenith) * np.cos(azimuth) # minus sign, since we want the direction of the incoming particle
-            B = - np.sin(zenith) * np.sin(azimuth)
-            C = - np.cos(zenith)
-            return np.sum(np.abs(A * x + B * y + C * z + D - times * lightspeed))
-
-        output = minimize(
-            fun=func_to_minimize, 
-            x0=np.array([start_azimuth, start_zenith, 0.]),
-            bounds=[(0.001, 1.999*np.pi), (0.001, 0.499*np.pi), (-np.inf, np.inf)],
-            args=(x, y, z, times),
-            method='Powell'
-            )
-        az = np.pi/2 - output.x[0]
-        el = np.pi/2 - output.x[1]
-
-        return (az, el)
 
     def _timeDelaysFromDirection(self, positions, direction):
         """
@@ -279,9 +261,9 @@ class planeWaveDirectionFitter:
         detector : Detector object
             The detector for which to run the plane wave fit.
         """
-        converter = voltageToEfieldConverter()
-        logging.getLogger('voltageToEfieldConverter').setLevel(self.__logger_level)
-        converter.begin()
+        # converter = voltageToEfieldConverter()
+        # logging.getLogger('voltageToEfieldConverter').setLevel(self.__logger_level)
+        # converter.begin()
 
         for station in event.get_stations():
             if not station.get_parameter(stationParameters.triggered):
@@ -345,38 +327,16 @@ class planeWaveDirectionFitter:
                 position_array = position_array[mask_good_antennas]
                 good_antennas = good_antennas[mask_good_antennas]
                 mask_good_antennas = np.full(good_antennas.shape[0], True)
-                mask_converter_successful = np.full(good_antennas.shape[0], True)
-
-                # Make sure all the previously calculated Efields are removed
-                station.set_electric_fields([])
-
-                # Unfold antenna response for good antennas
-                for j, ant in enumerate(good_antennas):
-                    try:
-                        converter.run(event, station, detector, use_channels=ant) # TODO: proper elegant solutions
-                    except:
-                        mask_converter_successful[j] = False
-                        traceback.print_exc()
-                
-                # use only those antennas and positions for which the converter did not throw an error:
-                good_antennas = good_antennas[mask_converter_successful]
-                num_good_antennas = good_antennas.shape[0]
-                position_array = position_array[mask_converter_successful]
-
-                if num_good_antennas < 3:
-                    self.logger.error(f"Too few antennas made it past the converter!")
-                    break
 
                 # get timelags
-                times = self._get_timelags(station)
+                channel_ids_per_pol = [[channel_group[0] for channel_group in good_antennas], [channel_group[1] for channel_group in good_antennas]]
+                times = self._get_timelags(station, channel_ids_per_pol, position_array, zenith, azimuth)
 
                 goodpositions = position_array
                 goodtimes = times
 
-                if self.__assumeHorizontalArray:
-                    (az, el) = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
-                else:
-                    (az, el) = self._directionForNonHorizontalArray(goodpositions, goodtimes, station)
+
+                (az, el) = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
 
                 if np.isnan(el) or np.isnan(az):
                     self.logger.warning('Plane wave fit returns NaN. Setting elevation to 0.0')
@@ -432,6 +392,28 @@ class planeWaveDirectionFitter:
                 azimuth = np.mod(90 * units.deg - np.rad2deg(az) * units.deg, 360 * units.deg)
                 zenith = np.mod(90 * units.deg - np.rad2deg(el) * units.deg, 360 * units.deg)
 
+                # debug plots:
+                if self.__debug:
+                    fig = plt.figure(figsize=(15, 5))
+                    ax1 = fig.add_subplot(131)
+                    scatter1 = ax1.scatter(position_array[:,0], position_array[:,1], c=times)
+                    ax1.set_title("Time delays, measured")
+                    cbar1 = fig.colorbar(scatter1)
+                    ax2 = fig.add_subplot(132)
+                    scatter2 = ax2.scatter(position_array[:,0], position_array[:,1], c=expectedDelays)
+                    ax2.set_title("Time delays, expected")
+                    cbar2 = fig.colorbar(scatter2)
+                    ax3 = fig.add_subplot(133)
+                    scatter3 = ax3.scatter(position_array[:,0], position_array[:,1], c=residual_delays)
+                    ax3.set_title("Time delays, residual")
+                    cbar3 = fig.colorbar(scatter3, label='time [ns]')
+                    fig.suptitle(f"Station {station.get_id()}")
+                    for ax in [ax1, ax2, ax3]:
+                        ax.set_xlabel("Easting [m]")
+                    ax1.set_ylabel("Northing [m]")
+                    plt.show()
+                    plt.close(fig)
+
                 # Bookkeeping
                 station.set_parameter(stationParameters.zenith, zenith)
                 station.set_parameter(stationParameters.azimuth, azimuth)
@@ -444,13 +426,10 @@ class planeWaveDirectionFitter:
                     num_good_antennas = len(good_antennas[mask_good_antennas])
                 
 
-
-            # TODO: double-check if following conversions are correct <-- seem to work
-            # Note: seem to be compatible with beamformingDirectionFitter_LOFAR
             azimuth = np.mod(90 * units.deg - np.rad2deg(az) * units.deg, 360 * units.deg)
             zenith = np.mod(90 * units.deg - np.rad2deg(el) * units.deg, 360 * units.deg)
 
-            self.logger.info(f"Azimuth (counterclockwise wrt to East (hopefully)) and zenith for station CS{station.get_id():03d}:")
+            self.logger.info(f"Azimuth (counterclockwise wrt to East) and zenith for station CS{station.get_id():03d}:")
             self.logger.info(azimuth / units.deg, zenith / units.deg)
 
             self.logger.info(f"Azimuth (wrt to North) and elevation for station CS{station.get_id():03d}:")
