@@ -55,7 +55,7 @@ class stationPulseFinder:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger('NuRadioReco.LOFAR.stationPulseFinder')
+        self.logger = logging.getLogger('NuRadioReco.stationPulseFinder')
 
         self.__window_size = None
         self.__noise_away_from_pulse = None
@@ -64,7 +64,7 @@ class stationPulseFinder:
 
         self.direction_cartesian = None  # The zenith and azimuth pointing towards where to beamform.
 
-    def begin(self, window=800, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.NOTSET):
+    def begin(self, window=800, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
         """
         Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
         to use for noise measurements. The function also defines what an acceptable SNR is to consider a
@@ -82,8 +82,8 @@ class stationPulseFinder:
             The minimum SNR a channel should have to be considered having a CR signal.
         good_channels : int, default=6
             The minimum number of good channels a station should have in order be "triggered".
-        logger_level : int, default=logging.NOTSET
-            Use this parameter to override the logging level for this module.
+        logger_level : int, default=logging.WARNING
+            The logging level to use for the module.
         """
         # TODO: find window size used in PyCRTools
         self.__window_size = window
@@ -276,7 +276,7 @@ class stationPulseFinder:
             station_even_list = []
             station_odd_list = []
             for channel in station.iter_channels():
-                if channel.get_id() == channel.get_group_id():
+                if channel.get_id() == channel.get_group_id(): 
                     station_even_list.append(channel.get_id())
                 else:
                     station_odd_list.append(channel.get_id())
@@ -304,13 +304,13 @@ class stationPulseFinder:
             signal_window = [int(pulse_window_start), int(pulse_window_end)]
             noise_window = [0, int(pulse_window_start - self.__noise_away_from_pulse)]
 
-            # there was a bug with the windows for the SNR calculation, where strong signals had low SNR and vice versa.
-            # Since the pulse should be somewhere around the middle of the trace, we use a fixed noise window (without the tapered edges of the trace).
+            # there was a bug with the windows for the SNR calculation, where strong signals had low SNR and vice versa. 
+            # Since the pulse should be somewhere around the middle of the trace, we use a fixed noise window (without the tapered edges of the trace). 
             self._check_station_triggered(
-                station,
-                position_array,
-                ant_same_orientation,
-                signal_window=signal_window,#[0, -1],
+                station, 
+                position_array, 
+                ant_same_orientation, 
+                signal_window=signal_window,#[0, -1], 
                 noise_window=[int(1e4), int(2e4)]
                 )
 
