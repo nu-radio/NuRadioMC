@@ -14,8 +14,6 @@ import scipy
 logger = logging.getLogger('NuRadioReco.antennapattern')
 
 path_to_antennamodels = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'AntennaModels')
-path_to_antennamodels = '/pnfs/ifh.de/acs/radio/diskonly/NuRadioMC/AntennaModels'
-
 
 def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
     """
