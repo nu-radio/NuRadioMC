@@ -78,6 +78,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#points">Points</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#angles">Angles</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#directions">Directions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#electic-fields">Electic Fields</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#units">Units</a></li>
@@ -162,8 +163,9 @@
 <li class="toctree-l4"><a class="reference internal" href="detector_database_fields.html#adc-table">ADC Table</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Antenna Models</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#overview-of-available-antenna-models">Overview of available Antenna Models</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Antenna Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#implemetation-of-antenna-models">Implemetation of Antenna Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#overview-of-available-antenna-models">Overview of available Antenna Models</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#bicone-v8-infair">bicone_v8_InfAir</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bicone-v8-inffirn">bicone_v8_InfFirn</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bicone-v8-inf-n1-32">bicone_v8_inf_n1.32</a></li>
@@ -227,8 +229,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="rnog.html">The RNO-G detector class and database interface</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="rnog.html#detector-time-and-database-time">Detector time and database time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="rnog.html#database-data-structure">Database data structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rnog.html#database-structure">Database structure</a></li>
 <li class="toctree-l4"><a class="reference internal" href="rnog.html#signal-chain">Signal Chain</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rnog.html#response-class">Response class</a></li>
 <li class="toctree-l4"><a class="reference internal" href="rnog.html#detector-class">Detector class</a></li>
 </ul>
 </li>
@@ -604,18 +607,76 @@
              
   <section id="antenna-models">
 <h1>Antenna Models<a class="headerlink" href="#antenna-models" title="Permalink to this heading"></a></h1>
-<section id="overview-of-available-antenna-models">
-<h2>Overview of available Antenna Models<a class="headerlink" href="#overview-of-available-antenna-models" title="Permalink to this heading"></a></h2>
-<p>The following antenna models are available in NuRadioReco.
-The headings are the unique identifiers of the antenna model that need to specified as  <code class="docutils literal notranslate"><span class="pre">antenna_type</span></code> in the detector description.</p>
 <p>All antenna models are stored on a central data server and are downloaded automatically on-demand
 whenever the user requests the antenna model for the first time.</p>
 <p>For developers:
 If you add new an antenna model please add the sha1sum = hashlib.sha1() to this list and send Christian
 the antenna model so that he can put it on our central server.</p>
+</section>
+<section id="implemetation-of-antenna-models">
+<h1>Implemetation of Antenna Models<a class="headerlink" href="#implemetation-of-antenna-models" title="Permalink to this heading"></a></h1>
+<p>The antenna models are accessed in the <em class="xref py py-obj">AntennaPattern</em> class in the <em class="xref py py-obj">nuradioreco.detector.antennapattern.py</em> module.
+Different software packages are used to simulate the antennas, internally, NuRadioReco converts the data to a common pickle format in which they are
+stored.</p>
+<p>The antenna pickle files contains 9 lists of the following data:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>orientation theta: float</dt><dd><p>orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>orientation phi: float</dt><dd><p>orientation of the antenna, as an azimuth angle (counting from East counterclockwise)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>rotation theta: float</dt><dd><p>rotation of the antenna</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>rotation phi: float</dt><dd><p>rotation of the antenna</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>freqs: array of floats</dt><dd><p>array of frequencies for which the realized vector effective length is provided</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>theta: array of floats</dt><dd><p>zenith angles for the realized vector effective length with respect to the antenna</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>phi: array of floats</dt><dd><p>azimuth angles for the realized vector effective length with respect to the antenna</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>H_phi: array of floats</dt><dd><p>the complex realized vector effective length of the ePhi polarization component as described in (A.13) of the NuRadioReco paper <a class="reference external" href="https://arxiv.org/abs/1903.07023">arxiv:1903.07023</a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>H_theta: array of floats</dt><dd><p>the complex realized vector effective length of the eTheta polarization component as described in (A.13) of the NuRadioReco paper <a class="reference external" href="https://arxiv.org/abs/1903.07023">arxiv:1903.07023</a></p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>For the antenna orientation and rotation, the conventions are described in <a class="reference internal" href="detector_database_fields.html#properties-of-detector-description"><span class="std std-ref">Properties of Detector Description</span></a></p>
+<p>The calculation of the vector effective length is described in Appendix A.1, A.2 and A.3 of the NuRadioReco paper <a class="reference external" href="https://arxiv.org/abs/1903.07023">arxiv:1903.07023</a>.</p>
+</section>
+<section id="overview-of-available-antenna-models">
+<h1>Overview of available Antenna Models<a class="headerlink" href="#overview-of-available-antenna-models" title="Permalink to this heading"></a></h1>
+<p>The following antenna models are available in NuRadioReco.
+The headings are the unique identifiers of the antenna model that need to specified as  <code class="docutils literal notranslate"><span class="pre">antenna_type</span></code> in the detector description.</p>
 <p>Inf means usually an infinite medium, firn has a refractive index n = 1.3-1.4. Since this is a bit imprecise
 we changed the naming to the actual refractive index.</p>
-</section>
 <section id="bicone-v8-infair">
 <h2>bicone_v8_InfAir<a class="headerlink" href="#bicone-v8-infair" title="Permalink to this heading"></a></h2>
 <p>WIPL-D simulation of ARA Bicone antenna.

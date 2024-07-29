@@ -78,6 +78,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#points">Points</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#angles">Angles</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#directions">Directions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#electic-fields">Electic Fields</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#units">Units</a></li>
@@ -162,8 +163,9 @@
 <li class="toctree-l4"><a class="reference internal" href="detector_database_fields.html#adc-table">ADC Table</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="antennamodels.html">Antenna Models</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="antennamodels.html#overview-of-available-antenna-models">Overview of available Antenna Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="antennamodels.html">Antenna Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="antennamodels.html#implemetation-of-antenna-models">Implemetation of Antenna Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="antennamodels.html#overview-of-available-antenna-models">Overview of available Antenna Models</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="antennamodels.html#bicone-v8-infair">bicone_v8_InfAir</a></li>
 <li class="toctree-l4"><a class="reference internal" href="antennamodels.html#bicone-v8-inffirn">bicone_v8_InfFirn</a></li>
 <li class="toctree-l4"><a class="reference internal" href="antennamodels.html#bicone-v8-inf-n1-32">bicone_v8_inf_n1.32</a></li>
@@ -227,8 +229,9 @@
 </li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">The RNO-G detector class and database interface</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#detector-time-and-database-time">Detector time and database time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#database-data-structure">Database data structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database-structure">Database structure</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#signal-chain">Signal Chain</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#response-class">Response class</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#detector-class">Detector class</a></li>
 </ul>
 </li>
@@ -609,16 +612,22 @@
 <h2>Detector time and database time<a class="headerlink" href="#detector-time-and-database-time" title="Permalink to this heading"></a></h2>
 <p>To describe the detector at any time we use two different time variables, the <em class="xref py py-obj">detector_time</em> and the <em class="xref py py-obj">database_time</em>. The former is easy to understand, it defines the point in time at which we want to describe the detector (e.g., which station were deployed at that time? Which channels were commissioned and which electronic did those channel use?). The latter might not be immediately intuitive: It is used to define what measurment (or estimate) to use for each detector property. Imagine that you have only a poor estimation of the antenna positions initially due to the lack of a dedicated calibration campaign. However, for the time being this is your <em class="xref py py-obj">primary</em> estimation (or measurement) for this property until you do better. Once you have done some calibration measurements and estimated more accurately the antenna positions, you will add them to the database as new primaries but keep the old values. The <em class="xref py py-obj">database_time</em> will allow you to select the primary measurement, i.e., the best estimation of a certain property at the time you are running your reconstruction or simulation. Hence, by default the <em class="xref py py-obj">database_time</em> will be set to <em class="xref py py-obj">datatime.utcnow()</em>. That means also when you want to reanalyze older data (where at the time the detector was not know that well) you will select the best description of today. However, for special reason it might be interesting to reconstruct old or new data with the detector description known at an earlier point in time, the <em class="xref py py-obj">database_time</em> allows you to do that by specifying it to some value in the past*.</p>
 </section>
-<section id="database-data-structure">
-<h2>Database data structure<a class="headerlink" href="#database-data-structure" title="Permalink to this heading"></a></h2>
-<p>The database is organized in collections. Each collection contains a list of objects which contain our data. The primary collection which describes our detector is the called <em class="xref py py-obj">station_rnog</em>. This collection contains the <em class="xref py py-obj">station list</em> which describes which station are deployed, when they were deployed. Each station has a list of its deployed channels. The information of the stations and channels positions is organized in seperate collections. Also the response of the different components in a channel’s signal chain are stored in other collections.</p>
+<section id="database-structure">
+<h2>Database structure<a class="headerlink" href="#database-structure" title="Permalink to this heading"></a></h2>
+<p>The database is organized in collections. Each collection contains a list of objects which contain our data. The primary collection which contains the <em class="xref py py-obj">station list</em>, which lists the deployed stations and their channels, is the called <em class="xref py py-obj">station_rnog</em>. The information of the stations and channels positions is organized in separate collections. The response of the different components in a channel’s signal chain are stored in other collections. Each component class (i.e. coax cable, fiber, DRAB, IGLU, …) has its own collection. A schematic of the database structure is shown below.</p>
+<a class="reference internal image-reference" href="../../../_images/rnog-mongo-database-structure.png"><img alt="../../../_images/rnog-mongo-database-structure.png" src="../../../_images/rnog-mongo-database-structure.png" style="width: 100%;" /></a>
 </section>
 <section id="signal-chain">
 <h2>Signal Chain<a class="headerlink" href="#signal-chain" title="Permalink to this heading"></a></h2>
-<p>Each channel has a “signal chain” which is basically a list of all the individual reponses which are necessary to describe the entire analog response of this channel. This list is implemented as dictionary, the key of the dictionary is also the name of the collection in which it looks for the specified response (value). The key can have a suffix like <em class="xref py py-obj">_1</em> which allows to specify several response from the same collection to be added to the signal chain.</p>
+<p>Each channel has a “signal chain” which is basically a list of all the individual reponses which are necessary to describe the entire analog response of this channel. This list is implemented as dictionary, the key of the dictionary is also the name of the collection in which it looks for the specified response (value). The key can have a suffix like <em class="xref py py-obj">_x</em>, with <em class="xref py py-obj">x</em> being an integer, which allows to specify several responses from the same collection to be added to the signal chain.</p>
+</section>
+<section id="response-class">
+<h2>Response class<a class="headerlink" href="#response-class" title="Permalink to this heading"></a></h2>
+<p>For the response of a channel the detector returns object of the Response class. This class has implemented operators to apply the response to trace objects. These objects store the time delay (= the group delay at ~ 200MHz) and have removed this time delay from the group delay (= the S21 parameter). The group delay is calculated by the hardware database as read from there. Keep in mind that S21 parameter in the data typically have the full time delay. Only when this data is accesses thought the detector / response class this time delay is removed from the response function.</p>
 </section>
 <section id="detector-class">
 <h2>Detector class<a class="headerlink" href="#detector-class" title="Permalink to this heading"></a></h2>
+<p>Coming soon (Hopefully).</p>
 </section>
 </section>
 
