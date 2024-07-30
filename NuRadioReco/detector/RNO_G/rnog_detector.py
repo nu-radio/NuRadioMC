@@ -160,10 +160,14 @@ class Detector():
         info = f"Query entire detector description at once: {self._query_all}"
 
         info += "\nUsing the following hand-set values:"
+        n = np.amax([len(key) for key in self.__default_values.keys()]) + 3
         for key, value in self.__default_values.items():
-            info += f"\n\t{key:<20}: {value}"
+            info += f"\n\t{key:<{n}}: {value}"
 
         self.logger.info(info)
+
+        self.assume_inf = None  # Compatibility with other detectors classes
+        self.antenna_by_depth = None  # Compatibility with other detectors classes
 
     def export(self, filename, json_kwargs=None):
         """
