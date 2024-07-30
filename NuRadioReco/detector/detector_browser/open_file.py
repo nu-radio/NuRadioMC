@@ -99,10 +99,11 @@ layout = html.Div([
                 html.Div([
                     dcc.Slider(
                         id='detector-time-slider',
-                        value=10000,
+                        value=0,
                         min=0,
-                        max=1551092200,
-                        step=1000
+                        max=1000,
+                        step=1000,
+                        marks = {}
                     )
                 ], style={'flex': '1'}),
                 html.Button(
@@ -342,7 +343,7 @@ def toggle_open_button_active(filename, detector_type, default_station, need_def
 
 @app.callback(
     Output('detector-time-div', 'style'),
-    [Input('load-detector-button', 'n_clicks'),
+    [Input('output-dummy', 'children'),
      Input('file-type-dropdown', 'value')]
 )
 def show_detector_time_slider(load_detector_click, detector_type):
@@ -376,15 +377,16 @@ def set_detector_time_slider(load_detector_click, detector_type):
     detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
     detector = detector_provider.get_detector()
     if detector is None:
-        return None, 0, 1, {}
+        return 0, 0, 1, {}
     if detector_type != 'detector':
-        return None, 0, 1, {}
+        return 0, 0, 1, {}
     unix_times, datetimes = detector_provider.get_time_periods()
     marks = {}
     for i_time, unix_time in enumerate(unix_times):
         datetimes[i_time].format = 'iso'
-        marks[unix_time] = {'label': str(datetimes[i_time].value)}
-    return detector.get_detector_time().unix, np.min(unix_times), np.max(unix_times), marks
+        marks[str(int(unix_time))] = datetimes[i_time].iso.split()[0]
+
+    return int(detector.get_detector_time().unix), int(np.min(unix_times)), int(np.max(unix_times)), marks
 
 
 @app.callback(

@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 from NuRadioReco.utilities import units, bandpass_filter, geometryUtilities
 from NuRadioReco.detector import detector
-from NuRadioReco.modules.base import module
+from NuRadioReco.utilities.logging import setup_logger
 import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.coreas.simulationSelector
 import NuRadioReco.modules.efieldToVoltageConverter
@@ -23,7 +23,7 @@ import NuRadioReco.framework.base_trace
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 import logging
-logger = module.setup_logger(name='NuRadioReco', level=logging.WARNING)
+logger = setup_logger(name='NuRadioReco', level=logging.WARNING)
 
 
 parser = argparse.ArgumentParser(

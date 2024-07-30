@@ -13,7 +13,7 @@ from NuRadioReco.detector.detector_browser.app import app
 argparser = argparse.ArgumentParser(description="Visualization for the detector")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
 argparser.add_argument('--port', default=8081, help="Specify the port the detector browser will run on.")
-argparser.add_argument('--debug', default=False, help="Turn on debug mode")
+argparser.add_argument('--debug', const=True, default=False, action='store_const', help="Turn on debug mode")
 parsed_args = argparser.parse_args()
 data_folder = os.path.dirname(parsed_args.file_location)
 

@@ -23,8 +23,8 @@ import NuRadioReco.modules.ARA.triggerSimulator
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioMC.SignalGen import parametrizations as signalgen
 from NuRadioReco.detector import detector
-from NuRadioReco.modules.base import module
-logger = module.setup_logger(level=logging.DEBUG)
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(level=logging.DEBUG)
 
 
 def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):

@@ -8,6 +8,10 @@ import json
 import os
 import sys
 
+# Setup logging
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
+
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
 from NuRadioMC.utilities import fluxes

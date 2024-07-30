@@ -1,38 +1,47 @@
 name: Unit tests
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      python_version:
+        description: Specify Python version to run tests on
+        type: string
+        required: true
+        default: '3.7'
+      os:
+        description: OS to run tests on
+        type: string
+        default: ubuntu-latest
+  workflow_call:
+    inputs:
+      python_version:
+        description: Specify Python version to run tests on
+        type: string
+        required: true
+        default: '3.7'
+      os:
+        description: OS to run tests on
+        type: string
+        default: ubuntu-latest
+
+env: # set the python_version to 3.7 if the workflow is not triggered by workflow_call or workflow_dispatch
+  PYTHON_VERSION: ${{ inputs.python_version || '3.7' }}
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      runtests: ${{ steps.check.outputs.runtests }}
-    steps:
-    - id: check
-      run: |
-        output='false'
-        if [[ "${{ github.event_name }}" != pull_request ]]
-        then
-          runtests='true'
-        elif [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.event.pull_request.base.repo.full_name }}" ]]
-        then
-          runtests='true'
-        fi
-        echo "runtests=${runtests}" >> $GITHUB_OUTPUT
-
   build:
-    needs: [prepare]
-    if: needs.prepare.outputs.runtests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: ${{ env.PYTHON_VERSION }}
     - name: Cache pip
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         # This path is specific to Ubuntu
         path: ~/.cache/pip
@@ -61,6 +70,17 @@ jobs:
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
+    - name: "Detector"
+      if: always()
+      run: |
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        NuRadioReco/detector/test/tests.sh
+    - name: "RNO-G data reader"
+      if: always()
+      run: |
+        pip install git+https://github.com/RNO-G/mattak.git
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        NuRadioReco/test/RNO_G/test_read_rnog_data.sh
     - name: "Single event test (South Pole)"
       if: always()
       run: |
@@ -104,6 +124,12 @@ jobs:
          export PYTHONPATH=$PWD:$PYTHONPATH
          export GSLDIR=$(gsl-config --prefix)
          python NuRadioMC/SignalProp/examples/ray_tracing_modules.py
+    - name: "Test Birefringence"
+      if: always()
+      run: |
+         export PYTHONPATH=$PWD:$PYTHONPATH
+         export GSLDIR=$(gsl-config --prefix)
+         NuRadioMC/test/SignalProp/run_birefringence_tests.sh
     - name: "Test Veff example"
       if: always()
       run: |
@@ -116,7 +142,7 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
-        NuRadioMC/test/examples/test_emitter_example.sh
+        NuRadioMC/test/examples/test_cal_pulser_example.sh
     - name: "Test radio emitter pulser example"
       if: always()
       run: |

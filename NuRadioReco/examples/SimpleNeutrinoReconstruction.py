@@ -9,8 +9,8 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 
 
 # Logging level
-from NuRadioReco.modules.base import module
-logger = module.setup_logger(level=logging.WARNING)
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(level=logging.WARNING)
 
 # Parse eventfile as argument
 parser = argparse.ArgumentParser(description='NuRadioSim file')
