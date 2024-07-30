@@ -1152,7 +1152,10 @@ class Detector():
         This interface is required by simulation.py. See get_time_delay for description of
         arguments.
         """
-        return self.get_time_delay(station_id, channel_id, cable_only=True, use_stored=use_stored)
+        # FS: For the RNO-G detector description it is not easy to determine the cable delay alone
+        # because it is not clear which reference components may need to be substraced.
+        # However, having the cable delay without amplifiers is anyway weird.
+        return self.get_time_delay(station_id, channel_id, cable_only=False, use_stored=use_stored)
 
     def get_time_delay(self, station_id, channel_id, cable_only=False, use_stored=True):
         """ Return the sum of the time delay of all components in the signal chain calculated from the phase
@@ -1185,20 +1188,20 @@ class Detector():
         time_delay = 0
         for key, value in signal_chain_dict["response_chain"].items():
 
-            if re.search("cable", key) is None and cable_only:
+            if re.search("cable", key) is None and re.search("fiber", key) and cable_only:
                 continue
 
             if use_stored:
-                if "time_delay" not in value or "cable_delay" not in value:
+                if "time_delay" not in value and "cable_delay" not in value:
                     self.logger.warning(
                         f"The signal chain component \"{key}\" of station.channel "
-                        f"{station_id}.{channel_id} has no cable/time delay stored... Skip it")
+                        f"{station_id}.{channel_id} has no cable/time delay stored... (hence return time delay without it)")
                     continue
 
                 try:
-                    time_delay += value["time_delay"]
+                    time_delay += value["weight"] * value["time_delay"]
                 except KeyError:
-                    time_delay += value["cable_delay"]
+                    time_delay += value["weight"] * value["cable_delay"]
 
             else:
                 ydata = [value["mag"], value["phase"]]
