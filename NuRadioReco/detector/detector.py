@@ -1,105 +1,179 @@
-import NuRadioReco.detector.detector_base
-import NuRadioReco.detector.generic_detector
 import json
 import os
+import numpy as np
+import logging
 
-class Detector(object):
-    def __new__(
-            cls,
-            json_filename,
-            source='json',
-            dictionary=None,
-            assume_inf=True,
-            antenna_by_depth=True
-    ):
+from NuRadioReco.detector import detector_base
+from NuRadioReco.detector import generic_detector
+from NuRadioReco.detector.RNO_G import rnog_detector
+
+
+
+def find_path(name):
+    """ Checks for file relative to local folder and detector.py """
+    dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
+    filename = os.path.join(dir_path, name)
+    if os.path.exists(filename):
+        return filename
+    else:
+        # try local folder instead
+        if not os.path.exists(name):
+            raise NameError("Can't locate json database file in: {} or {}".format(filename, name))
+        return name
+
+
+def find_reference_entry(station_dict):
+    """
+    Search for the strings "reference_station" or "reference_channel" in the detector description.
+    This is used to determine whether to use the detector_base or generic_detector class.
+    """
+
+    for station in station_dict['stations']:
+        if 'reference_station' in station_dict['stations'][station]:
+            return True
+
+    for channel in station_dict['channels']:
+        if 'reference_channel' in station_dict['channels'][channel] or 'reference_station' in \
+                station_dict['channels'][channel]:
+            return True
+
+    return False
+
+
+def if_not_None(value, default):
+    """ Return `value` if `value is not None`, otherwise return `default` """
+    return value if value is not None else default
+
+
+def Detector(*args, **kwargs):
         """
-        Initialize the stations detector properties.
-        This method will check if the JSON file containing the detector description is set up to be used by
-        the DetectorBase or GenericDetector class and cause the correct class to be created.
+        This function returns a detector class object. It chooses the correct class based on the "source" argument.
+        The returned object is of one of these classes:
+
+            - kwargs["source'] == "rnog_mongo" -> `NuRadioReco.detector.RNO_G.rnog_detector`
+            - kwargs["source'] == "sql" -> `NuRadioReco.detector.detector_base`
+            - kwargs["source'] == "json" or "dictionary" -> `NuRadioReco.detector.detector_base` or
+                                                            `NuRadioReco.detector.generic_detector`
+
+        For 'kwargs["source'] == "json"', whether to use "detector_base" or "generic_detector"
+        depends on whether a reference station / channel is defined in the json file / dictionary
+        or not.
 
         Parameters
         ----------
-        json_filename : str
-            the path to the json detector description file (if first checks a path relative to this directory, then a
-            path relative to the current working directory of the user)
-            default value is 'ARIANNA/arianna_detector_db.json'
-        source: str
-            'json', 'dictionary' or 'sql
-            default value is 'json'
-            If 'json' is passed, the JSON dictionary at the location specified
-            by json_filename will be used
-            If 'dictionary' is passed, the dictionary specified by the parameter
-            'dictionary' will be used
-            if 'sql' is specified, the file 'detector_sql_auth.json' file needs to be present in this folder that
-            specifies the sql server credentials (see 'detector_sql_auth.json.sample' for an example of the syntax)
-        dictionary: dict
-            If 'dictionary' is passed to the parameter source, the dictionary
-            passed to this parameter will be used for the detector description.
-        assume_inf : Bool
-            Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna
-            madel will be determined by the station geometry.
-        antenna_by_depth: bool (default True)
-            if True the antenna model is determined automatically depending on the depth of the antenna.
-            This is done by appending e.g. '_InfFirn' to the antenna model name.
-            if False, the antenna model as specified in the database is used.
+
+        args: Positional arguments (arguments without keyword)
+            For backwards compatibility, when source is sql | json | dictionary, args are interpreted as follows:
+
+                - json_filename = args[0] only when source == "json")
+                - source = args[1]
+                - dictionary = args[2]
+                - assume_inf = args[3]
+                - antenna_by_depth = args[4]
+
+        kwargs: Optional arguments (arguments with keyword)
+            Keyword arguments passed to detector object. The argument "source" is used to select the
+            correct class (see description above). If no keyword "source" is passed, the default "json"
+            is used.
+
+        Returns
+        -------
+
+        det: NuRadioReco.detector.* (see options above)
+            Detector class object
         """
-        if source == 'json':
-            dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
-            filename = os.path.join(dir_path, json_filename)
-            if not os.path.exists(filename):
-                # try local folder instead
-                filename2 = json_filename
-                if not os.path.exists(filename2):
-                    raise NameError("can't locate json database file {} or {}".format(filename, filename2))
-                filename = filename2
+
+        # Interprete positional arguments (args) for backwards compatibility
+        # when source is sql | json | dictionary
+        # json_filename = args[0] is used below (when source == 'json').
+        if len(args) >= 2:
+            source = args[1].lower()
+        else:
+            source = kwargs.pop("source", "json").lower()
+
+        if len(args) >= 3:
+            dictionary = args[2]
+        else:
+            dictionary = kwargs.pop("dictionary", None)
+
+        if len(args) >= 4:
+            assume_inf = args[3]
+        else:
+            assume_inf = kwargs.pop("assume_inf", None)
+
+        if len(args) >= 5:
+            antenna_by_depth = args[4]
+        else:
+            # None because the default argument for GenericDetector and DetectorBase are different
+            antenna_by_depth = kwargs.pop("antenna_by_depth", None)
+
+        if source == "sql":
+            return detector_base.DetectorBase(
+                json_filename=None, source=source, dictionary=dictionary,
+                assume_inf=if_not_None(assume_inf, True),
+                antenna_by_depth=if_not_None(antenna_by_depth, True))
+
+        elif source == "rnog_mongo":
+            return rnog_detector.Detector(*args, **kwargs)
+
+        elif source == "dictionary":
+
+            if not isinstance(dictionary, dict):
+                raise ValueError("Argument \"dictionary\" is not correct while source=\"dictionary\" is set.")
+
+            station_dict = dictionary
+
+            # in this case, `json_filname` not need and should not be passed twice
+            kwargs.pop("json_filename", None)
+            filename = ''
+
+        elif source == 'json':
+
+            if len(args):
+                json_filename = args[0]  # used to be passed as positional argument
+            elif "json_filename" in kwargs:
+                json_filename = kwargs.pop("json_filename")
+            else:
+                raise ValueError("No possitional arguments and no argument \"json_filename\" "
+                                 "was not passed while source=\"json\" (default) is set.")
+
+            filename = find_path(json_filename)
 
             f = open(filename, 'r')
             station_dict = json.load(f)
-        elif source == 'dictionary':
-            station_dict = dictionary
-            filename = ''
-        elif source == 'sql':   # Only the DetectorBaseClass can handle SQL, so no need to check for reference stations.
-            det = object.__new__(NuRadioReco.detector.detector_base.DetectorBase)
-            det.__init__(
-                json_filename=None,
-                source=source,
-                dictionary=dictionary,
-                assume_inf=assume_inf,
-                antenna_by_depth=antenna_by_depth
-            )
-            return det
-        else:
-            raise ValueError('Source must be either json or dictionary!')
 
-        reference_entry_found = False
-        for station in station_dict['stations']:
-            if 'reference_station' in station_dict['stations'][station].keys():
-                reference_entry_found = True
-                break
-        for channel in station_dict['channels']:
-            if 'reference_channel' in station_dict['channels'][channel].keys() or 'reference_station' in \
-                    station_dict['channels'][channel].keys():
-                reference_entry_found = True
-                break
+        else:
+            raise ValueError(f'Unknown source specifed (\"{source}\"). '
+                             f'Must be one of \"json\", \"sql\", "\dictionary\", \"mongo\"')
+
+        has_reference_entry = find_reference_entry(station_dict)
+
         if source == 'json':
             f.close()
 
-        if reference_entry_found:
-            det = object.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
-            det.__init__(
-                json_filename=filename,
-                source=source,
-                dictionary=dictionary,
-                assume_inf=assume_inf,
-                antenna_by_depth=antenna_by_depth
-            )
+        has_default = np.any([arg in kwargs and kwargs[arg] is not None
+                              for arg in ["default_station", "default_channel", "default_device"]])
+
+        if has_reference_entry or has_default:
+            if has_default:
+                logging.warning(
+                    'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
+                    'channel should be specified in the detector description directly.')
+
+                if "default_station" in kwargs:
+                    logging.info('Default detector station provided (station '
+                                 f'{kwargs["default_station"]}) -> Using generic detector')
+
+            return generic_detector.GenericDetector(
+                json_filename=filename, source=source, dictionary=dictionary,
+                assume_inf=if_not_None(assume_inf, True),
+                antenna_by_depth=if_not_None(antenna_by_depth, False), **kwargs)
         else:
-            det =  object.__new__(NuRadioReco.detector.detector_base.DetectorBase)
-            det.__init__(
-                source=source,
-                json_filename=filename,
-                dictionary=dictionary,
-                assume_inf=assume_inf,
-                antenna_by_depth=antenna_by_depth
-            )
-        return det
+            # Keys might be present (but should be None). Keys are deprecated, keep them for backwards compatibility
+            for key in ["default_station", "default_channel", "default_device"]:
+                kwargs.pop(key, "None")
+
+            return detector_base.DetectorBase(
+                json_filename=filename, source=source, dictionary=dictionary,
+                assume_inf=if_not_None(assume_inf, True),
+                antenna_by_depth=if_not_None(antenna_by_depth, True), **kwargs)

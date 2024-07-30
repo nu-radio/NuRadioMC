@@ -12,9 +12,14 @@ WARNING: This file needs NuRadioMC installed. https://github.com/nu-radio/NuRadi
 
 from __future__ import absolute_import, division, print_function
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.logging import setup_logger
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
 import os
+
+
+logger = setup_logger(name="")
+
 
 z12 = -100 * units.m
 rho = 200 * units.m

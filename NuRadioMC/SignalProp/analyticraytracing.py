@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import copy
-from scipy import optimize, integrate, interpolate
+from scipy import optimize, integrate, interpolate, signal
 import scipy.constants
 from operator import itemgetter
 import NuRadioReco.utilities.geometryUtilities
+
 try:
     from functools import lru_cache
 except ImportError:
@@ -12,11 +13,22 @@ except ImportError:
 
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
+
+from radiotools import helper as hp
+from radiotools import coordinatesystems
+
+from NuRadioMC.utilities import medium
+
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
+from NuRadioReco.framework import base_trace
+
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
+
+from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
 import logging
-logging.basicConfig()
+logger = setup_logger("NuRadioMC.analytic_ray_tracing")
 
 # check if CPP implementation is available
 cpp_available = False
@@ -133,8 +145,7 @@ class ray_tracing_2D(ray_tracing_base):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
         self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
-        self.__logger = logging.getLogger('ray_tracing_2D')
-        self.__logger.setLevel(log_level)
+        self.__logger = setup_logger('NuRadioMC.ray_tracing_2D', log_level)
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
 
@@ -1815,6 +1826,7 @@ class ray_tracing(ray_tracing_base):
                 * self._config['propagation']['attenuate_ice'] = True
                 * self._config['propagation']['focusing_limit'] = 2
                 * self._config['propagation']['focusing'] = False
+                * self._config['propagation']['birefringence'] = False
 
         detector: detector object
         
@@ -1826,8 +1838,7 @@ class ray_tracing(ray_tracing_base):
             default: True if CPP version is available
             
         """
-        self.__logger = logging.getLogger('ray_tracing_analytic')
-        self.__logger.setLevel(log_level)
+        self.__logger = setup_logger('NuRadioMC.ray_tracing_analytic', log_level)
 
         from NuRadioMC.utilities.medium_base import IceModelSimple
         if not isinstance(medium, IceModelSimple):
@@ -1859,6 +1870,7 @@ class ray_tracing(ray_tracing_base):
         self._x1 = None
         self._x2 = None
 
+
     def reset_solutions(self):
         """
         Resets the raytracing solutions back to None. This is useful to do when changing the start and end
@@ -1883,6 +1895,7 @@ class ray_tracing(ray_tracing_base):
         x2: 3dim np.array
             stop point of the ray
         """
+
 
         super().set_start_and_end_point(x1, x2)
 
@@ -1972,10 +1985,406 @@ class ray_tracing(ray_tracing_base):
                                                  reflection=result['reflection'],
                                                  reflection_case=result['reflection_case'])
         path_2d = np.array([xx, np.zeros_like(xx), zz]).T
+
         dP = path_2d - np.array([self._X1[0], 0, self._X1[2]])
         MM = np.matmul(self._R.T, dP.T)
         path = MM.T + self._X1
         return path
+
+    def get_effective_index_birefringence(self, direction, nx, ny, nz):
+
+        """
+        Function to find the analytical solutions for the effective refractive indices. 
+        The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        direction: numpy.array
+            propagation direction of the wave
+        nx: float
+            the index of refraction in the x-direction
+        ny: float
+            the index of refraction in the y-direction
+        nz: float
+            the index of refraction in the z-direction
+
+        Returns
+        -------
+        output format: np.array([n1, n2])
+        meaning: effective refractive indices
+        """
+
+        sx = direction[0]
+        sy = direction[1]
+        sz = direction[2]
+
+        n1 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) / 
+                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2)) 
+                      - np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2) 
+                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2) 
+                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2)) 
+                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) 
+                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2) 
+                                                                    + ny ** 2 * ( - 1 + sz ** 2))) ** 2)))
+        n2 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) / 
+                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2)) 
+                      + np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2) 
+                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2) 
+                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2)) 
+                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) 
+                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2) 
+                                                                    + ny ** 2 * ( - 1 + sz ** 2))) ** 2)))
+
+        return np.array([n1, n2])
+
+    def get_polarization_birefringence_simple(self, n, direction, nx, ny, nz):
+
+        """
+        Function for the normalized e-field vector of a wave for the direction of propagation in cartesian coordinates without special cases.
+        For the function with special cases see get_polarization_birefringence.
+        For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.
+        The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        n: float
+            the effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+        direction: numpy.array
+            propagation direction of the wave
+        nx: float
+            the index of refraction in the x-direction
+        ny: float
+            the index of refraction in the y-direction
+        nz: float
+            the index of refraction in the z-direction
+
+        Returns
+        -------
+        efield : np.ndarray of shape (3,)
+            normalized e-field vector in cartesian coordinates
+        """
+
+        polarization = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
+        polarization = polarization / np.linalg.norm(polarization)
+
+        return polarization
+
+    def get_polarization_birefringence(self, N1, N2, direction, nx, ny, nz):
+
+        """
+        Function for the normalized e-field vector of a wave for the direction of propagation in spherical coordinates with special cases.
+        For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.
+        The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        N1: float
+            the first effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+        N2: float
+            the second effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+        direction: numpy.array
+            propagation direction of the wave
+        nx: float
+            the index of refraction in the x-direction
+        ny: float
+            the index of refraction in the y-direction
+        nz: float
+            the index of refraction in the z-direction
+
+        Returns
+        -------
+        efield : np.ndarray of shape (2, 3)
+            normalized e-field vector in spherical coordinates for both birefringence solutions
+        """
+        
+        narrow_check = 1e-9
+        wide_check = 1e-10
+
+        if (np.isclose(N1, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()) or (np.isclose(N2, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()):
+
+            if (np.isclose(N1, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()) and (np.isclose(N2, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()):
+                self.__logger.warning("warning: Polarization vectors not computable")
+                sky_polarization_1 = np.array([0, 0, 0])
+                sky_polarization_2 = np.array([0, 0, 0])
+            
+            elif np.isclose(N1, nx, rtol=0, atol=wide_check):
+
+                if direction[0] < 0:
+                    sky_polarization_1 = np.array([0, 0, 1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+                else:
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+            elif np.isclose(N1, ny, rtol=0, atol=narrow_check):
+                
+                if direction[1] < 0:
+                    sky_polarization_1 = np.array([0, 0, 1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+                else:
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+            elif np.isclose(N2, ny, rtol=0, atol=narrow_check):
+
+                if direction[1] < 0:
+                    sky_polarization_1 = np.array([0, 1, 0])
+                    sky_polarization_2 = np.array([0, 0, -1])
+
+                else:
+                    sky_polarization_1 = np.array([0, 1, 0])
+                    sky_polarization_2 = np.array([0, 0, 1])
+
+            elif np.isclose(N2, nz, rtol=0, atol=wide_check):
+
+                if direction[2] < 0:
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, -1, 0])
+
+                else:
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+            else:
+                polarization_1 = self.get_polarization_birefringence_simple(N1, direction, nx, ny, nz)
+                polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
+
+                zenith, azimuth = hp.cartesian_to_spherical( * (direction))
+                sky_polarization_1 = self.on_sky_birefringence(zenith, azimuth, polarization_1)
+                sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
+
+        else:
+            polarization_1 = self.get_polarization_birefringence_simple(N1, direction, nx, ny, nz)
+            polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
+
+            zenith, azimuth = hp.cartesian_to_spherical( * (direction))
+            sky_polarization_1 = self.on_sky_birefringence(zenith, azimuth, polarization_1)
+            sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
+
+        return np.vstack((sky_polarization_1, sky_polarization_2))
+    
+    def on_sky_birefringence(self, theta, phi, polarization):
+
+        """
+        Function for the normalized e-field vector from cartesian to spherical coordinates.
+        The function does the same as the following radiotool functions, only faster:             
+        from radiotools import coordinatesystems
+        cs = coordinatesystems.cstrafo(theta, phi)
+        sky = cs.transform_from_ground_to_onsky(p)
+
+        Parameters
+        ----------
+        theta: float
+            zenith angle of the propagation direction
+        phi: float
+            azimuth angle of the propagation direction
+        polarization: np.array([px, py, pz])
+            normalized e-field vector in cartesian coordinates
+
+        Returns
+        -------
+        efield : np.ndarray of shape (3,)
+            normalized e-field vector in spherical coordinates
+        """
+
+        transform = np.array([  [np.sin(theta) * np.cos(phi) , np.sin(theta) * np.sin(phi)   , np.cos(theta)    ], 
+                                [np.cos(theta) * np.cos(phi) , np.cos(theta) * np.sin(phi)   , - np.sin(theta)  ], 
+                                [- np.sin(phi)               , np.cos(phi)                   , 0                ]       ])
+
+        return transform.dot(polarization)
+
+    def get_pulse_propagation_birefringence(self, pulse, samp_rate, i_solution, bire_model = 'southpole_A'):
+        
+        """
+        Function for the time trace propagation according to the polarization change due to birefringence. 
+        The trace propagation is explained in this paper: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        pulse: np.ndarray
+            3d array with the frequency spectrum of np.array([eR, eTheta, ePhi]), usually provided by the apply_propagation_effects function
+        samp_rate: float
+            sampling rate of the time traces
+        i_solution: int
+            choose which ray-tracing solution should be propagated
+        bire_model: string
+            choose the interpolation to fit the measured refractive index data
+            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+
+        Returns
+        -------
+
+        final pulse: numpy.array([eR, eTheta, ePhi])
+            [0] - eR        - final frequency spectrum of the radial component - not altered by the function
+            [1] - eTheta    - final frequency spectrum of the theta component
+            [2] - ePhi      - final frequency spectrum of the phi component
+        """
+
+        t_fast = base_trace.BaseTrace()
+
+        ice_n = self._medium
+        ice_birefringence = medium.get_ice_model('birefringence_medium')
+        ice_birefringence.__init__(bire_model)
+
+        acc = int(self.get_path_length(i_solution) / units.m)
+        path = self.get_path(i_solution, n_points=acc)
+
+        if 'angle_to_iceflow' in self._config['propagation']:
+            rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
+            rot = np.matrix([[np.cos(rotation_angle), -np.sin(rotation_angle)], [np.sin(rotation_angle), np.cos(rotation_angle)]])
+            path[:, :2] = np.swapaxes(np.matmul(rot, np.swapaxes(path[:, :2],0,1)),0,1)
+
+        for i in range(acc - 1):
+
+            refractive_index = ice_n.get_index_of_refraction(path[i])
+            refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
+
+            nx, ny, nz = refractive_index + refractive_index_birefringence - 1.78
+            dD = path[i + 1] - path[i]     
+
+            direction = np.array(dD)
+            len_diff = np.linalg.norm(direction)
+            direction = direction / len_diff
+
+            N_effective = self.get_effective_index_birefringence(direction, nx, ny, nz)
+            sky_polarization = self.get_polarization_birefringence(N_effective[0], N_effective[1], direction, nx, ny, nz)
+
+            t_0, t_1 = len_diff * N_effective / (speed_of_light * units.m / units.ns)
+
+            a, b = sky_polarization[0, 1:]
+            c, d = sky_polarization[1, 1:]
+
+            if np.isclose(a * d - b * c, 0) or np.isnan([a, b, c, d]).any():
+                self.__logger.warning("warning: Polarization vectors similar, R-matrix not invertible, iteration" + str(i))
+                continue
+
+            R = np.matrix([[a, b], [c, d]])
+
+            birefringent_base = R * pulse[1:] 
+
+            t_fast.set_frequency_spectrum(birefringent_base[1], sampling_rate=samp_rate)
+            t_fast.apply_time_shift(t_1 - t_0)
+            birefringent_base[1] = t_fast.get_frequency_spectrum()
+            
+            Rtransp = np.matrix.transpose(R)
+            pulse[1:]  = Rtransp * birefringent_base
+
+        return pulse
+    
+    def get_path_properties_birefringence(self, i_solution, bire_model = 'southpole_A'):
+
+        """
+        Function to extract important information about the birefringent propagation along the path.
+        The important properties include effective refractive indices, polarization eigenvectors, and incremental time delays
+
+        Parameters
+        ----------
+
+        i_solution: int
+            choose which ray-tracing solution should be propagated
+        bire_model: string
+            choose the interpolation to fit the measured refractive index data
+            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+
+        Returns
+        -------
+
+        path_properties: dict
+            a dictionary containing the following keys:
+            
+            * 'path': np.ndarray - propagation path in x, y, z with the same granularity as the nirefringent propagation
+            * 'nominal_refractive_index': np.ndarray - nominal refractive index if only density effects were taken into account
+            * 'refractive_index_x': np.ndarray - refractive index for the x-direction
+            * 'refractive_index_y': np.ndarray - refractive index for the y-direction
+            * 'refractive_index_z': np.ndarray - refractive index for the z-direction
+            * 'first_refractive_index': np.ndarray - effective refractive index of the first birefringent state along the full path
+            * 'second_refractive_index': np.ndarray - effective refractive index of the second birefringent state along the full path
+            * 'first_polarization_vector': np.ndarray - polarization vector of the first birefringent state in spherical coordinates along the full path
+            * 'second_polarization_vector': np.ndarray - polarization vector of the second birefringent state in spherical coordinates along the full path
+            * 'first_time_delay': np.ndarray - incremental time delays of the first birefringent state along the full path
+            * 'second_time_delay': np.ndarray - incremental time delays of the second birefringent state along the full path
+
+        """
+
+        ice_n = self._medium
+        ice_birefringence = medium.get_ice_model('birefringence_medium')
+        ice_birefringence.__init__(bire_model)
+
+        acc = int(self.get_path_length(i_solution) / units.m)
+        path = self.get_path(i_solution, n_points=acc)
+        
+        if 'angle_to_iceflow' in self._config['propagation']:
+            rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
+            rot = np.matrix([[np.cos(rotation_angle), -np.sin(rotation_angle)], [np.sin(rotation_angle), np.cos(rotation_angle)]])
+            path[:, :2] = np.swapaxes(np.matmul(rot, np.swapaxes(path[:, :2],0,1)),0,1)
+
+        n_nominal = np.zeros(acc - 1)
+
+        N1 = np.zeros(acc - 1)
+        N2 = np.zeros(acc - 1)
+
+        Nx = np.zeros(acc - 1)
+        Ny = np.zeros(acc - 1)
+        Nz = np.zeros(acc - 1)
+
+        P1 = np.zeros((acc - 1, 3))
+        P2 = np.zeros((acc - 1, 3))
+
+        T1 = np.zeros(acc - 1)
+        T2 = np.zeros(acc - 1)
+
+        for i in range(acc - 1):
+
+            refractive_index = ice_n.get_index_of_refraction(path[i])
+            refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
+
+            nx, ny, nz = refractive_index + refractive_index_birefringence - 1.78
+            dD = path[i + 1] - path[i]   
+
+            direction = np.array(dD)
+            len_diff = np.linalg.norm(direction)
+            direction = direction / len_diff
+
+            N_effective = self.get_effective_index_birefringence(direction, nx, ny, nz)
+            sky_polarization = self.get_polarization_birefringence(N_effective[0], N_effective[1], direction, nx, ny, nz)
+
+            t_0, t_1 = len_diff * N_effective / (speed_of_light * units.m / units.ns)
+            n_nominal[i] = refractive_index
+
+            Nx[i] = refractive_index_birefringence[0]
+            Ny[i] = refractive_index_birefringence[1]
+            Nz[i] = refractive_index_birefringence[2]
+
+            N1[i] = N_effective[0]
+            N2[i] = N_effective[1]
+
+            P1[i] = sky_polarization[0]
+            P2[i] = sky_polarization[1]
+
+            T1[i] = t_0
+            T2[i] = t_1
+
+        path_properties = {}
+
+        path_properties['path'] = path[1:]
+        path_properties['nominal_refractive_index'] = n_nominal
+
+        path_properties['refractive_index_x'] = Nx
+        path_properties['refractive_index_y'] = Ny
+        path_properties['refractive_index_z'] = Nz
+
+        path_properties['first_refractive_index'] = N1
+        path_properties['second_refractive_index'] = N2
+
+        path_properties['first_polarization_vector'] = P1
+        path_properties['second_polarization_vector'] = P2
+
+        path_properties['first_time_delay'] = T1
+        path_properties['second_time_delay'] = T2
+
+        return path_properties
 
     def get_launch_vector(self, iS):
         """
@@ -2305,7 +2714,10 @@ class ray_tracing(ray_tracing_base):
         efield: ElectricField object
             The modified ElectricField object
         """
+        s_rate = efield.get_sampling_rate()
         spec = efield.get_frequency_spectrum()
+
+        
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
             if self._max_detector_frequency is None:
@@ -2366,7 +2778,21 @@ class ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
             spec[1:] *= focusing
+        
+        # apply the birefringence effect
+        if self._config['propagation']['birefringence']:
+            bire_model = self._config['propagation']['birefringence_model']
 
+            if self._config['propagation']['birefringence_propagation'] == 'analytical':
+                spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution, bire_model = bire_model)
+
+            elif self._config['propagation']['birefringence_propagation'] == 'numerical':
+                from NuRadioMC.SignalProp import radioproparaytracing
+                launch_v = self.get_launch_vector(i_solution)
+                radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
+                radiopropa_rays.set_start_and_end_point(self._X1, self._X2)
+                spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate) #, bire_model = bire_model --> has to be implemented
+                
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
 
@@ -2385,5 +2811,8 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['attenuate_ice'] = True
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
+            self._config['propagation']['birefringence'] = False
+            
+
         else:
             self._config = config

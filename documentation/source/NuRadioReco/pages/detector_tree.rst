@@ -7,3 +7,4 @@ Detector Description
    detector/detector
    detector/detector_database_fields
    detector/antennamodels
+   detector/rnog
