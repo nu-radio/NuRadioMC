@@ -595,7 +595,9 @@ class Detector():
             Dictionary of channel parameters
         """
         self.get_signal_chain_response(station_id, channel_id)  # this adds `total_response` to dict
-        return self.__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True)
+        channel_data = copy.deepcopy(self.__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True))
+        channel_data.update(self.__default_values)
+        return channel_data
 
     @_check_detector_time
     def get_station(self, station_id):
