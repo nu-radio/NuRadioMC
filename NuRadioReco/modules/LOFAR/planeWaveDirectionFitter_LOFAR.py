@@ -36,6 +36,13 @@ class planeWaveDirectionFitter:
         self.logger = logging.getLogger("NuRadioReco.planeWaveDirectionFitter")
 
         self.__cr_snr = None
+        self.__logger_level = None
+        self.__debug = None
+        self.__window_size = None
+        self.__ignoreNonHorizontalArray = None
+        self.__rmsfactor = None
+        self.__min_amp = None
+        self.__max_iter = None
 
 
     def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, force_horizontal_array=True, window_size=800,
@@ -167,7 +174,7 @@ class planeWaveDirectionFitter:
         return timelags - timelags[0]
 
     @staticmethod
-    def _directionForHorizontalArray(positions: np.ndarray, times: np.ndarray, ignoreZCoordinate=False):
+    def _directionForHorizontalArray(positions: np.ndarray, times: np.ndarray, ignore_z_coordinate=False):
         """
         --- adapted from pycrtools.modules.scrfind ---
         Given N antenna positions, and (pulse) arrival times for each antenna,
@@ -183,7 +190,8 @@ class planeWaveDirectionFitter:
 
         where t is the array of times; x and y are arrays of coordinates of the antennas.
         The C is the overall time offset in the data, that has to be subtracted out.
-        The optimal value of C has to be determined in the fit process (it's not just the average time, nor the time at antenna 0).
+        The optimal value of C has to be determined in the fit process (it's not just the average time,
+        nor the time at antenna 0).
 
         This is done using :mod:`numpy.linalg.lstsq`.
 
@@ -216,13 +224,12 @@ class planeWaveDirectionFitter:
 
         # now a crude test for nonzero z-input, |z| > 0.5
         z = positions[:, 2]
-        if not ignoreZCoordinate and max(abs(z)) > 0.5:
+        if not ignore_z_coordinate and max(abs(z)) > 0.5:
             raise ValueError("Input values of z are nonzero ( > 0.5) !")
-            return (-1, -1)
 
         M = np.vstack([x, y, np.ones(len(x))]).T  # says the linalg.lstsq doc
 
-        (A, B, C) = np.linalg.lstsq(M, lightspeed * (times), rcond=None)[0]
+        A, B, C = np.linalg.lstsq(M, lightspeed * times, rcond=None)[0]
 
         el = np.arccos(np.sqrt(A * A + B * B))
         az = halfpi - np.arctan2(-B, -A)  # note minus sign as we want the direction of the _incoming_ vector (from the sky, not towards it)
@@ -278,7 +285,9 @@ class planeWaveDirectionFitter:
 
         for station in event.get_stations():
             if not station.get_parameter(stationParameters.triggered):
+                self.logger.debug(f"Station CS{station.get_id():03d} did not trigger, skipping...")
                 continue
+            self.logger.debug(f"Running over station CS{station.get_id():03d}")
 
             # get LORA inital guess for the direction
             zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
@@ -347,7 +356,7 @@ class planeWaveDirectionFitter:
                 goodpositions = position_array
                 goodtimes = times
 
-                (az, el) = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
+                az, el = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
 
                 if np.isnan(el) or np.isnan(az):
                     self.logger.warning('Plane wave fit returns NaN. Setting elevation to 0.0')
@@ -358,7 +367,7 @@ class planeWaveDirectionFitter:
 
                 # get residuals
                 expectedDelays = self._timeDelaysFromDirection(goodpositions, (az, el))
-                expectedDelays -= expectedDelays[0]  #get delays wrt 1st antenna
+                expectedDelays -= expectedDelays[0]  # get delays wrt 1st antenna
 
                 residual_delays = goodtimes - expectedDelays
 
@@ -370,23 +379,23 @@ class planeWaveDirectionFitter:
                     hist, edges = np.histogram(residual_delays, bins=bins)
 
                     max_time = np.argmax(hist)
-                    self.logger.info(f"histogram filled: {hist}")
-                    self.logger.info(f"edges: {edges}")
+                    self.logger.debug(f"histogram filled: {hist}")
+                    self.logger.debug(f"edges: {edges}")
                     # fix for first and last bin
-                    self.logger.info(f"maximum at: {max_time}")
+                    self.logger.debug(f"maximum at: {max_time}")
                     try:
                         upper = edges[max_time + 2]
                     except:
                         upper = edges[edges.shape[0] - 1]
-                        self.logger.info(f"upper exception")
+                        self.logger.debug(f"upper exception")
                     try:
                         lower = edges[max_time]
 
                     except:
-                        self.logger.info(f"lower exception")
+                        self.logger.debug(f"lower exception")
                         lower = edges[0]
 
-                    self.logger.info(f"selecting between lower {lower} and upper {upper}")
+                    self.logger.debug(f"selecting between lower {lower} and upper {upper}")
                     mask_good_antennas = (residual_delays > lower) & (residual_delays < upper)
                 else:
                     # remove > k-sigma outliers and iterate
@@ -395,10 +404,10 @@ class planeWaveDirectionFitter:
                     mask_good_antennas = abs(residual_delays - np.mean(residual_delays)) < k * spread
                     # gives subset of 'good_antennas' that is 'good' after this iteration
 
-                self.logger.info(f"station {station.get_id()}:")
-                self.logger.info(f"iteration {niter:d}:")
-                self.logger.info(f'az = {np.rad2deg(az):.3f}, el = {np.rad2deg(el):.3f}')
-                self.logger.info(f'number of good antennas = {num_good_antennas:d}')
+                self.logger.debug(f"station {station.get_id()}:")
+                self.logger.debug(f"iteration {niter:d}:")
+                self.logger.debug(f'az = {np.rad2deg(az):.3f}, el = {np.rad2deg(el):.3f}')
+                self.logger.debug(f'number of good antennas = {num_good_antennas:d}')
 
                 azimuth = np.mod(90 * units.deg - az * units.rad, 360 * units.deg)
                 zenith = np.mod(90 * units.deg - el * units.rad, 360 * units.deg)
@@ -438,11 +447,11 @@ class planeWaveDirectionFitter:
             azimuth = station.get_parameter(stationParameters.azimuth)
             zenith = station.get_parameter(stationParameters.zenith)
 
-            self.logger.info(f"Azimuth (counterclockwise wrt to East) and zenith for station CS{station.get_id():03d}:")
-            self.logger.info(azimuth / units.deg, zenith / units.deg)
+            self.logger.status(f"Azimuth (counterclockwise wrt to East) and zenith for station CS{station.get_id():03d}:")
+            self.logger.status(f"{azimuth / units.deg}, {zenith / units.deg}")
 
-            self.logger.info(f"Azimuth (wrt to North) and elevation for station CS{station.get_id():03d}:")
-            self.logger.info((90 - azimuth / units.deg, 90 - zenith / units.deg))
+            self.logger.status(f"Azimuth (wrt to North) and elevation for station CS{station.get_id():03d}:")
+            self.logger.status(f"{90 - azimuth / units.deg}, {90 - zenith / units.deg}")
 
             station.set_parameter(stationParameters.cr_zenith, zenith)
             station.set_parameter(stationParameters.cr_azimuth, azimuth)
