@@ -1156,20 +1156,6 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">shower_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;shower type </span><span class="si">{}</span><span class="s2"> not present in library. Available shower types are </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shower_type</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 
-        <span class="c1"># Due to the oscillatory nature of the ARZ integral, some numerical instabilities arise</span>
-        <span class="c1">#  for angles near the axis and near 90 degrees. This creates some waveforms with large</span>
-        <span class="c1"># spikes due to numerical errors, while the real electric field should be much smaller</span>
-        <span class="c1"># than near the Cherenkov cone due to the loss of coherence. Since incoherent events</span>
-        <span class="c1"># should not trigger, we return an empty trace for angular differences &gt; 20 degrees.</span>
-        <span class="n">cherenkov_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">n_index</span><span class="p">)</span>
-
-        <span class="c1"># we always need to generate a random shower realization. The second ray tracing solution might be closer</span>
-        <span class="c1"># to the cherenkov angle, but NuRadioMC will reuse the shower realization of the first ray tracing solution.</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">theta</span> <span class="o">-</span> <span class="n">cherenkov_angle</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maximum_angle</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;viewing angle </span><span class="si">{</span><span class="n">theta</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">deg is more than </span><span class="si">{</span><span class="n">maximum_angle</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">deg away from the cherenkov cone. Returning zero trace.&quot;</span><span class="p">)</span>
-            <span class="n">empty_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">empty_trace</span>
-
         <span class="c1"># determine closes available energy in shower library</span>
         <span class="k">if</span> <span class="n">profile_depth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="p">[</span><span class="n">shower_type</span><span class="p">]])</span>
@@ -1206,6 +1192,20 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;using provided charge-excess profile, shower_energy and iN will be ignored.&quot;</span><span class="p">)</span>
 
         <span class="n">xmax</span> <span class="o">=</span> <span class="n">profile_depth</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">profile_ce</span><span class="p">)]</span>
+
+        <span class="c1"># Due to the oscillatory nature of the ARZ integral, some numerical instabilities arise</span>
+        <span class="c1">#  for angles near the axis and near 90 degrees. This creates some waveforms with large</span>
+        <span class="c1"># spikes due to numerical errors, while the real electric field should be much smaller</span>
+        <span class="c1"># than near the Cherenkov cone due to the loss of coherence. Since incoherent events</span>
+        <span class="c1"># should not trigger, we return an empty trace for angular differences &gt; 20 degrees.</span>
+        <span class="n">cherenkov_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">n_index</span><span class="p">)</span>
+
+        <span class="c1"># we always need to generate a random shower realization. The second ray tracing solution might be closer</span>
+        <span class="c1"># to the Cherenkov angle, but NuRadioMC will reuse the shower realization of the first ray tracing solution.</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">theta</span> <span class="o">-</span> <span class="n">cherenkov_angle</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maximum_angle</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;viewing angle </span><span class="si">{</span><span class="n">theta</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">deg is more than </span><span class="si">{</span><span class="n">maximum_angle</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">deg away from the Cherenkov cone. Returning zero trace.&quot;</span><span class="p">)</span>
+            <span class="n">empty_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">empty_trace</span>
 
         <span class="c1"># get the appropriate model parameters</span>
         <span class="k">if</span> <span class="n">shower_type</span> <span class="o">==</span> <span class="s2">&quot;HAD&quot;</span><span class="p">:</span>
