@@ -153,7 +153,8 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
                 evt, station_copy, det, requested_channels=deep_trigger_channels, vrms=vrms_input_to_adc, digitize_trace=True
             )
 
-            pa_sampling_rate = station_copy.get_channel(deep_trigger_channels[0]).get_sampling_rate()
+            pa_channel = det.get_channel(station_copy.get_id(), deep_trigger_channels[0])
+            pa_sampling_rate = pa_channel["trigger_adc_sampling_frequency"] * units.GHz
 
             for thresh_key in high_low_trigger_thresholds.keys():
                 threshold = high_low_trigger_thresholds[thresh_key]
