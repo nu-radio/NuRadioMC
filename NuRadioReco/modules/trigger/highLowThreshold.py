@@ -182,15 +182,16 @@ class triggerSimulator:
                 trace = np.array(channel.get_trace())
 
                 if use_digitization:
-                    trace = ADC.get_digital_trace(station, det, channel,
+                    trace, trigger_sampling_rate = ADC.get_digital_trace(station, det, channel,
                                                   Vrms=Vrms,
                                                   trigger_adc=trigger_adc,
                                                   clock_offset=clock_offset,
-                                                  return_sampling_frequency=False,
+                                                  return_sampling_frequency=True,
                                                   adc_type='perfect_floor_comparator',
                                                   adc_output=adc_output,
                                                   trigger_filter=None)
-
+                    # overwrite the dt defined for the original trace by the digitized one
+                    dt = 1. / trigger_sampling_rate
                 if(isinstance(threshold_high, dict)):
                     threshold_high_tmp = threshold_high[channel_id]
                 else:
