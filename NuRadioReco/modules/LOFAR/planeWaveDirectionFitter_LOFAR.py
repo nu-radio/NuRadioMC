@@ -32,7 +32,7 @@ class planeWaveDirectionFitter:
         self.__cr_snr = None
 
 
-    def begin(self, max_iter=10, cr_snr=3, min_amp=0.001, rmsfactor=2.0, ignoreNonHorizontalArray=True, window_size=800, debug=False, logger_level=logging.WARNING):
+    def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, ignoreNonHorizontalArray=True, window_size=800, debug=False, logger_level=logging.WARNING):
         """
         Set the parameters for the plane wave fit.
 
