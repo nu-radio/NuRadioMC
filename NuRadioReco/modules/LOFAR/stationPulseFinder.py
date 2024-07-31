@@ -244,7 +244,7 @@ class stationPulseFinder:
 
             self.logger.debug(f'Station {station.get_id()} has {len(good_channels_station)} good antennas')
             if len(good_channels_station) < self.__min_good_channels:
-                self.logger.warning(f'There are only {len(good_channels_station)} antennas '
+                self.logger.warning(f'Station {station.get_id()} has only {len(good_channels_station)} antennas '
                                     f'with an SNR higher than {self.__snr_cr}, while there '
                                     f'are at least {self.__min_good_channels} required')
                 station.set_parameter(stationParameters.triggered, False)  # stop from further processing
@@ -302,16 +302,17 @@ class stationPulseFinder:
 
             # Check if the station has a strong enough signal
             signal_window = [int(pulse_window_start), int(pulse_window_end)]
-            noise_window = [0, int(pulse_window_start - self.__noise_away_from_pulse)]
+            noise_window = [int(1e4), int(2e4)]
 
             # there was a bug with the windows for the SNR calculation, where strong signals had low SNR and vice versa. 
-            # Since the pulse should be somewhere around the middle of the trace, we use a fixed noise window (without the tapered edges of the trace). 
+            # Since the pulse should be somewhere around the middle of the trace,
+            # we use a fixed noise window (without the tapered edges of the trace).
             self._check_station_triggered(
                 station, 
                 position_array, 
                 ant_same_orientation, 
-                signal_window=signal_window,#[0, -1], 
-                noise_window=[int(1e4), int(2e4)]
+                signal_window=signal_window,
+                noise_window=noise_window
                 )
 
     def end(self):
