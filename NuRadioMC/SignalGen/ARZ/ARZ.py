@@ -553,20 +553,6 @@ class ARZ(object):
         if not shower_type in self._library.keys():
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
 
-        # Due to the oscillatory nature of the ARZ integral, some numerical instabilities arise
-        #  for angles near the axis and near 90 degrees. This creates some waveforms with large
-        # spikes due to numerical errors, while the real electric field should be much smaller
-        # than near the Cherenkov cone due to the loss of coherence. Since incoherent events
-        # should not trigger, we return an empty trace for angular differences > 20 degrees.
-        cherenkov_angle = np.arccos(1 / n_index)
-
-        # we always need to generate a random shower realization. The second ray tracing solution might be closer
-        # to the cherenkov angle, but NuRadioMC will reuse the shower realization of the first ray tracing solution.
-        if np.abs(theta - cherenkov_angle) > maximum_angle:
-            logger.info(f"viewing angle {theta/units.deg:.1f}deg is more than {maximum_angle/units.deg:.1f}deg away from the cherenkov cone. Returning zero trace.")
-            empty_trace = np.zeros((3, N))
-            return empty_trace
-
         # determine closes available energy in shower library
         if profile_depth is None:
             energies = np.array([*self._library[shower_type]])
@@ -603,6 +589,20 @@ class ARZ(object):
             logger.info("using provided charge-excess profile, shower_energy and iN will be ignored.")
 
         xmax = profile_depth[np.argmax(profile_ce)]
+
+        # Due to the oscillatory nature of the ARZ integral, some numerical instabilities arise
+        #  for angles near the axis and near 90 degrees. This creates some waveforms with large
+        # spikes due to numerical errors, while the real electric field should be much smaller
+        # than near the Cherenkov cone due to the loss of coherence. Since incoherent events
+        # should not trigger, we return an empty trace for angular differences > 20 degrees.
+        cherenkov_angle = np.arccos(1 / n_index)
+
+        # we always need to generate a random shower realization. The second ray tracing solution might be closer
+        # to the Cherenkov angle, but NuRadioMC will reuse the shower realization of the first ray tracing solution.
+        if np.abs(theta - cherenkov_angle) > maximum_angle:
+            logger.info(f"viewing angle {theta/units.deg:.1f}deg is more than {maximum_angle/units.deg:.1f}deg away from the Cherenkov cone. Returning zero trace.")
+            empty_trace = np.zeros((3, N))
+            return empty_trace
 
         # get the appropriate model parameters
         if shower_type == "HAD":
