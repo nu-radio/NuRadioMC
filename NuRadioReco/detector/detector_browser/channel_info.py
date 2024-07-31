@@ -46,7 +46,10 @@ def update_channel_info_table(station_id, channel_id):
             className='custom-table-header'
         )
     ]
+    # for dicts do only display which keys are contained
     for key, value in channel_info.items():
+        if isinstance(value, dict):
+            value = ", ".join([str(k) for k in value.keys()])
         table_rows.append(html.Div([
             html.Div(key, className='custom-table-title'),
             html.Div(value, className='custom-table-cell')

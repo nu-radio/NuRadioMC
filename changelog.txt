@@ -4,6 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 2.3.0-dev
 new features:
+- Enhanced detector_browser to allow display RNO-G database detector
 - Added download utility unifying download of antenna models/proposal tables/shower
 library with possibility to add/change fallback-server(s). Added Chicago
 server as fallback.
