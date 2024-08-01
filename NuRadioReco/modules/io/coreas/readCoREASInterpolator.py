@@ -198,8 +198,7 @@ class readCoREASInterpolator:
                             )
                         timeseries = timeseries.T
                         timeseries = np.vstack([np.zeros_like(timeseries[0]), *timeseries]) # add r polarization back to trace, as zeroes
-                    efields[group_id] = self.cs.transform_from_onsky_to_ground(
-                        timeseries)
+                    efields[group_id] = timeseries
                     trace_start[group_id] = trace_start_time * units.s
 
 
