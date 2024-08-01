@@ -44,6 +44,27 @@ class triggerTimeAdjuster:
         self.__pre_trigger_time = pre_trigger_time
         self.__sampling_rate_warning_issued = False
 
+    def get_pre_trigger_time(self, trigger_name, channel_id):
+        """ Get the pre_trigger_time for a given trigger_name and channel_id """
+        if isinstance(self.__pre_trigger_time, float):
+            return self.__pre_trigger_time
+
+        pre_trigger_time = self.__pre_trigger_time
+        while isinstance(pre_trigger_time, dict):
+            if trigger_name in pre_trigger_time: # keys are different triggers
+                pre_trigger_time = pre_trigger_time[trigger_name]
+            elif channel_id in pre_trigger_time: # keys are channel_ids
+                pre_trigger_time = pre_trigger_time[channel_id]
+            else:
+                logger.error(
+                    'pre_trigger_time was specified as a dictionary, '
+                    f'but neither the trigger_name {trigger_name} '
+                    f'nor the channel id {channel_id} are present as keys'
+                    )
+                raise KeyError
+
+        return pre_trigger_time
+
     @register_run()
     def run(self, event, station, detector, mode='sim_to_data'):
         """
@@ -123,19 +144,9 @@ class triggerTimeAdjuster:
                         channel_id = channel.get_id()
                         trigger_name = trigger.get_name()
 
-                        if isinstance(self.__pre_trigger_time, dict):
-                            if trigger_name not in self.__pre_trigger_time or channel_id not in self.__pre_trigger_time[trigger_name]:
-                                logger.error(
-                                    'pre_trigger_time was specified as a dictionary, '
-                                    f'but the trigger_name {trigger_name} or channel id {channel_id} '
-                                    'are not present as keys')
-                                raise KeyError
-
-                            pre_trigger_time = self.__pre_trigger_time[trigger_name][channel_id]
-                        else:
-                            pre_trigger_time = self.__pre_trigger_time
-
+                        pre_trigger_time = self.get_pre_trigger_time(trigger_name, channel_id)
                         samples_before_trigger = int(pre_trigger_time * sampling_rate)
+
                         cut_samples_beginning = 0
                         if samples_before_trigger < trigger_time_sample:
                             cut_samples_beginning = trigger_time_sample - samples_before_trigger
