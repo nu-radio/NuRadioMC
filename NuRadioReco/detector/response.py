@@ -237,6 +237,26 @@ class Response:
         """ Get list of the names of all individual responses """
         return self.__names
 
+    def remove(self, name):
+        """
+        Remove a component response from the response object.
+
+        Parameters
+        ----------
+
+        name: str
+            Name of the component to remove
+        """
+        if name not in self.get_names():
+            raise ValueError(f"Component {name} not found in response. Options are: {self.get_names()}")
+
+        idx = self.__names.index(name)
+        self.__names.pop(idx)
+        self.__gains.pop(idx)
+        self.__phases.pop(idx)
+        self.__weights.pop(idx)
+        self.__time_delays.pop(idx)
+
     def __mul__(self, other):
         """
         Define multiplication operator for
