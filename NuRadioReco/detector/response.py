@@ -113,7 +113,7 @@ class Response:
             raise KeyError
 
         # Remove the average group delay from response
-        if remove_time_delay:
+        if remove_time_delay and time_delay:
             self.logger.debug(f"Remove a time delay of {time_delay:.2f} ns from {name}")
             y_phase_orig = np.copy(np.unwrap(y_phase))
             _response = subtract_time_delay_from_response(self.__frequency, gain, y_phase, time_delay)
@@ -324,24 +324,32 @@ class Response:
         else:
             ax = ax1
 
-        for gain, weight, name in zip(self.__gains, self.__weights, self.__names):
+        for gain, weight, name, td in zip(self.__gains, self.__weights, self.__names, self.__time_delays):
             _gain = gain(freqs)
 
             name = name.replace("_", " ")
             ls = "-" if weight == 1 else "--"
 
+            if name.startswith("golden"):
+                name = name.replace("golden downhole components", "ref. comp.")
+
+            if name.endswith(" "):
+                name = name[:-1]
+
+            label = f"{name:<25} : {weight:<3} | {td:.1f}ns"
             if in_dB:
                 mask = _gain > 0  # to avoid RunTime warning
-                ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), ls=ls, label=name + f": {weight}", **plt_kwargs)
+                ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), lw=1, ls=ls, label=label, **plt_kwargs)
             else:
-                ax.plot(freqs / units.MHz, _gain, label=name + f": {weight}", ls=ls, **plt_kwargs)
+                ax.plot(freqs / units.MHz, _gain, label=label, lw=1, ls=ls, **plt_kwargs)
 
         _gain = np.abs(self(freqs))
+        label = f"total: {np.sum(self.__time_delays):.1f}ns"
         if in_dB:
             mask = _gain > 0  # to avoid RunTime warning
-            ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), color="k", label="total", **plt_kwargs)
+            ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), color="k", label=label, **plt_kwargs)
         else:
-            ax.plot(freqs / units.MHz, _gain, color="k", label="total", **plt_kwargs)
+            ax.plot(freqs / units.MHz, _gain, color="k", label=label, **plt_kwargs)
 
         ax.set_xlabel("frequency / MHz")
         if in_dB:
@@ -350,7 +358,7 @@ class Response:
             ax.set_ylabel("gain")
             ax.set_yscale("log")
 
-        ax.legend()
+        ax.legend(fontsize="x-small")
         ax.grid()
 
         if show:
