@@ -98,6 +98,9 @@ def rolled_sum_slicing(traces, rolling):
         1D array of summed traces
     """
 
+    if rolling[0]:
+        raise RuntimeError(f"Cannot have a roll value of {rolling[0]}!=0 for channel 0")
+
     # assume first trace always has no rolling
     sumtr = traces[0].copy()
     for i in range(1, len(traces)):
