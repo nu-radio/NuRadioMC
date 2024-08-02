@@ -94,9 +94,8 @@ class triggerSimulator:
         self.begin()
 
     def begin(self, log_level=None):
-        if(log_level is not None):
+        if log_level is not None:
             logger.setLevel(log_level)
-        return
 
     @register_run()
     def run(self, evt, station, det,
@@ -157,63 +156,78 @@ class triggerSimulator:
             * 'counts' to store the ADC output in ADC counts
         """
         t = time.time()
-        sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
 
         if use_digitization:
-            ADC = analogToDigitalConverter()
+            adcConverter = analogToDigitalConverter()
 
         channels_that_passed_trigger = []
         if not set_not_triggered:
             triggerd_bins_channels = []
-            dt = 1. / sampling_rate
+
             if triggered_channels is None:
                 for channel in station.iter_channels():
                     channel_trace_start_time = channel.get_trace_start_time()
                     break
             else:
                 channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+
             for channel in station.iter_channels():
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:
                     continue
+
                 if channel.get_trace_start_time() != channel_trace_start_time:
                     logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
 
+                dt = 1. / channel.get_sampling_rate()
                 trace = np.array(channel.get_trace())
 
                 if use_digitization:
-                    trace, trigger_sampling_rate = ADC.get_digital_trace(station, det, channel,
-                                                  Vrms=Vrms,
-                                                  trigger_adc=trigger_adc,
-                                                  clock_offset=clock_offset,
-                                                  return_sampling_frequency=True,
-                                                  adc_type='perfect_floor_comparator',
-                                                  adc_output=adc_output,
-                                                  trigger_filter=None)
+                    trace, trigger_sampling_rate = adcConverter.get_digital_trace(
+                        station, det, channel,
+                        Vrms=Vrms,
+                        trigger_adc=trigger_adc,
+                        clock_offset=clock_offset,
+                        return_sampling_frequency=True,
+                        adc_type='perfect_floor_comparator',
+                        adc_output=adc_output,
+                        trigger_filter=None
+                    )
+
                     # overwrite the dt defined for the original trace by the digitized one
                     dt = 1. / trigger_sampling_rate
-                if(isinstance(threshold_high, dict)):
+
+                if isinstance(threshold_high, dict):
                     threshold_high_tmp = threshold_high[channel_id]
                 else:
                     threshold_high_tmp = threshold_high
-                if(isinstance(threshold_low, dict)):
+
+                if isinstance(threshold_low, dict):
                     threshold_low_tmp = threshold_low[channel_id]
                 else:
                     threshold_low_tmp = threshold_low
-                triggerd_bins = get_high_low_triggers(trace, threshold_high_tmp, threshold_low_tmp,
-                                                      high_low_window, dt)
-                if True in triggerd_bins:
+
+                triggerd_bins = get_high_low_triggers(
+                    trace, threshold_high_tmp, threshold_low_tmp, high_low_window, dt)
+
+                if np.any(triggerd_bins):
                     channels_that_passed_trigger.append(channel.get_id())
+
                 triggerd_bins_channels.append(triggerd_bins)
                 logger.debug("channel {}, len(triggerd_bins) = {}".format(channel_id, len(triggerd_bins)))
 
-            has_triggered, triggered_bins, triggered_times = get_majority_logic(
-                triggerd_bins_channels, number_concidences, coinc_window, dt)
+            if len(triggerd_bins_channels):
+                has_triggered, triggered_bins, triggered_times = get_majority_logic(
+                    triggerd_bins_channels, number_concidences, coinc_window, dt)
+            else:
+                has_triggered = False
             # set maximum signal aplitude
             max_signal = 0
-            if(has_triggered):
+
+            if has_triggered:
                 for channel in station.iter_channels():
                     max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
+
                 station.set_parameter(stnp.channels_max_amplitude, max_signal)
         else:
             logger.info("set_not_triggered flag True, setting triggered to False.")
@@ -222,13 +236,15 @@ class triggerSimulator:
         trigger = HighLowTrigger(trigger_name, threshold_high, threshold_low, high_low_window,
                                  coinc_window, channels=triggered_channels, number_of_coincidences=number_concidences)
         trigger.set_triggered_channels(channels_that_passed_trigger)
+
         if not has_triggered:
             trigger.set_triggered(False)
             logger.info("Station has NOT passed trigger")
         else:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time) #trigger_time= time from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction
-            trigger.set_trigger_times(triggered_times+channel_trace_start_time)
+            # trigger_time= time from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction
+            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time)
+            trigger.set_trigger_times(triggered_times + channel_trace_start_time)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns".format(
                 trigger.get_trigger_time() / units.ns))
 
