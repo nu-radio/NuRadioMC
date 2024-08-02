@@ -155,8 +155,6 @@ class efieldToVoltageConverter():
                 # in a measurement, all channels have the same physical start time
                 # so we need to create one long trace that can hold all the different channel times
                 # to achieve a good time resolution, we upsample the trace first.
-                new_efield = NuRadioReco.framework.base_trace.BaseTrace()  # create new data structure with new efield length
-                new_efield.set_trace(copy.copy(electric_field.get_trace()), electric_field.get_sampling_rate())
                 new_trace = np.zeros((3, trace_length_samples))
 
                 # calculate the start bin
@@ -170,8 +168,13 @@ class efieldToVoltageConverter():
 
                     start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift
                     start_bin = int(round(start_time / time_resolution))
+
+                    # calculate error by using discret bins
                     time_remainder = start_time - start_bin * time_resolution
                     self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
+
+                    new_efield = NuRadioReco.framework.base_trace.BaseTrace()  # create new data structure with new efield length
+                    new_efield.set_trace(copy.copy(electric_field.get_trace()), electric_field.get_sampling_rate())
                     new_efield.apply_time_shift(time_remainder)
 
                     tr = new_efield.get_trace()
@@ -183,11 +186,13 @@ class efieldToVoltageConverter():
                         self.logger.warning("electric field trace extends beyond the end of the trace and will be cut.")
                         stop_bin = np.shape(new_trace)[-1]
                         tr = np.atleast_2d(tr)[:, :stop_bin-start_bin]
+
                     if start_bin < 0:
                         # ensure new efield does not extend beyond start of trace although this should not happen
                         self.logger.warning("electric field trace extends beyond the beginning of the trace and will be cut.")
                         tr = np.atleast_2d(tr)[:, -start_bin:]
                         start_bin = 0
+
                     new_trace[:, start_bin:stop_bin] = tr
 
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
@@ -220,10 +225,13 @@ class efieldToVoltageConverter():
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
                 if self.__debug:
-                    axes[1].plot(trace_object.get_times(), fft.freq2time(voltage_fft, electric_field.get_sampling_rate()), label="{}, zen = {:.0f}deg".format(electric_field[efp.ray_path_type], zenith / units.deg))
+                    axes[1].plot(
+                        trace_object.get_times(), fft.freq2time(voltage_fft, electric_field.get_sampling_rate()),
+                        label="{}, zen = {:.0f}deg".format(electric_field[efp.ray_path_type], zenith / units.deg))
 
                 if 'amp' in self.__uncertainty:
                     voltage_fft *= np.random.normal(1, self.__uncertainty['amp'][channel_id])
+
                 if 'sys_amp' in self.__uncertainty:
                     voltage_fft *= self.__uncertainty['sys_amp'][channel_id]
 
