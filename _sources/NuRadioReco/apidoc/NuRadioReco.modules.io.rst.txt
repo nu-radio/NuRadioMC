@@ -14,7 +14,6 @@ Subpackages
 
    NuRadioReco.modules.io.LOFAR
    NuRadioReco.modules.io.RNO_G
-   NuRadioReco.modules.io.araroot
    NuRadioReco.modules.io.coreas
    NuRadioReco.modules.io.snowshovel
 
