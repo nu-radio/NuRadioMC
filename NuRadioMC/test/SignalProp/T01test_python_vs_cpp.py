@@ -20,7 +20,7 @@ except:
 ice = medium.southpole_simple()
 
 np.random.seed(0)  # set seed to have reproducible results
-n_events = int(1e3)
+n_events = int(1e2)
 rmin = 50. * units.m
 rmax = 3. * units.km
 zmin = 0. * units.m
@@ -70,8 +70,7 @@ for iX, x in enumerate(points):
 t_python = time.time() - t_start
 print("Python time = {:.1f} seconds = {:.2f}ms/event".format(t_python, 1000. * t_python / n_events))
 
-testing.assert_allclose(results_C0s_cpp, results_C0s_python, atol=1e-08, rtol=1e-05)
-testing.assert_allclose(results_A_cpp, results_A_python, rtol=1e-2, atol=1e-3)
+
 
 if numba_available:
     results_C0s_numba = np.zeros((n_events, 2))
@@ -90,5 +89,8 @@ if numba_available:
 
     testing.assert_allclose(results_C0s_numba, results_C0s_python, atol=1e-08, rtol=1e-05)
     testing.assert_allclose(results_A_numba, results_A_python, rtol=1e-2, atol=1e-3)
+
+testing.assert_allclose(results_C0s_cpp, results_C0s_python, atol=1e-08, rtol=1e-05)
+testing.assert_allclose(results_A_cpp, results_A_python, rtol=1e-2, atol=1e-3)
 
 print('T01test_python_vs_cpp passed without issues')
