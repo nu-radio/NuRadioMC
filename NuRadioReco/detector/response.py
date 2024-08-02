@@ -85,7 +85,7 @@ class Response:
 
         self._sanity_check = True # Tmp
 
-        if self._station_id is None or self._channel_id is None:
+        if self._station_id is None or self._channel_id is None and self._station_id != -1:
             self.logger.error(f"Station and channel id were not defined for response {name}. Please do that.")
 
         self.__frequency = np.array(frequency) * units.GHz
@@ -267,7 +267,8 @@ class Response:
         if isinstance(other, Response):
             self = copy.deepcopy(self)
             if self._station_id != other._station_id or \
-                self._channel_id != other._channel_id:
+                self._channel_id != other._channel_id and self._station_id != -1:
+                # station_id == -1 is a special case to all non-station specific responses
                 self.logger.error("It looks like you are combining responses from "
                                   f"two different channels: {self._station_id}.{self._channel_id} "
                                   f" vs {other._station_id}.{other._channel_id} (station_id.channel_id)")
