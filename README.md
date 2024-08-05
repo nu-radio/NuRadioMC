@@ -35,6 +35,9 @@ Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contri
 ## Publications builing up on NuRadioMC/Reco
 NuRadioMC is used in an increasing number of studies. To get an overview for what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
+* M. Mukhopadhyay, K. Kotera, S. Wissel, K. Murase, S. Kimura, "Ultrahigh-energy neutrino searches using next-generation gravitational wave detectors at radio neutrino detectors: GRAND, IceCube-Gen2 Radio, and RNO-G", arXiv:2406.19440
+* A. Coleman, O. Ericsson, C. Glaser, and M. Bustamante, "Flavor composition of ultrahigh-energy cosmic neutrinos: Measurement forecasts for in-ice radio-based EeV neutrino telescopes", [Phys. Rev. D 110, 023044 (2024)](https://doi.org/10.1103/PhysRevD.110.023044)
+* RNO-G collaboration, "Solar flare observations with the Radio Neutrino Observatory Greenland (RNO-G)", [Astroparticle Physics (in press) (2024)](https://doi.org/10.1016/j.astropartphys.2024.103024)
 * V. Valera, M. Bustamante, O. Mena, "Joint measurement of the ultra-high-energy neutrino spectrum and cross section", [arXiv:2308.07709](https://arxiv.org/abs/2308.07709)
 * IceCube-Gen2 collaboration, [IceCube-Gen2 Technical Design Report](https://icecube-gen2.wisc.edu/science/publications/TDR)
 * ARIANNA collaboration (A. Anker et al.), "Developing New Analysis Tools for Near Surface Radio-based Neutrino Detectors", [arXiv:2307.07188](https://arxiv.org/abs/2307.07188)
