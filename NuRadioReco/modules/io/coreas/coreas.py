@@ -5,6 +5,7 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems
 from NuRadioReco.utilities import units
 import NuRadioReco.framework.sim_station
+import NuRadioReco.framework.event
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.radio_shower
@@ -207,7 +208,7 @@ def read_CORSIKA7(input_file, declination=None):
     if 'highlevel' in corsika.keys():
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
 
-    sim_station = NuRadioReco.framework.sim_station.SimStation(0)
+    sim_station = NuRadioReco.framework.sim_station.SimStation(0) # set sim station id to 0
     sim_station.set_parameter(stnp.azimuth, azimuth)
     sim_station.set_parameter(stnp.zenith, zenith)
     sim_station.set_parameter(stnp.cr_energy, energy)
@@ -232,7 +233,7 @@ def read_CORSIKA7(input_file, declination=None):
         sim_station.add_electric_field(electric_field)
 
     evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
-    stn = NuRadioReco.framework.station.Station(0)
+    stn = NuRadioReco.framework.station.Station(0) # set station id to 0
     stn.set_sim_station(sim_station)
     evt.set_station(stn)
     evt.add_sim_shower(sim_shower)
@@ -266,9 +267,10 @@ def plot_footprint_onsky(sim_station, fig=None, ax=None):
     return fig, ax
 
 
-
 def make_sim_station(station_id, corsika, weight=None):
     """
+    deprecated as it uses coreas hdf5 file as input, use set_sim_station() instead.
+
     creates an NuRadioReco sim station with the information from the coreas hdf5 file.
     To add an electric field the function add_electric_field_to_sim_station() has to be used.
 
@@ -286,7 +288,7 @@ def make_sim_station(station_id, corsika, weight=None):
     sim_station: sim station
         simulated station object
     """
-
+    logger.warning("make_sim_station() is deprecated, use set_sim_station() instead.")
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
     sim_station.set_parameter(stnp.azimuth, azimuth)
@@ -306,8 +308,54 @@ def make_sim_station(station_id, corsika, weight=None):
     sim_station.set_simulation_weight(weight)
     return sim_station
 
+def set_sim_station(station_id, evt, weight=None):
+    """
+    creates an NuRadioReco sim station with the information from an event object created with e.g. read_CORSIKA7().
+    An weight per station can be added.
+    To add an electric field the function add_electric_field_to_sim_station() has to be used.
+
+    Parameters
+    ----------
+    station_id : station id
+        the id of the station to create
+    evt : Event object
+        event object containing the CoREAS output, e.g. created with read_CORSIKA7()
+    weight : weight of individual station
+        weight corresponds to area covered by station
+
+    Returns
+    -------
+    sim_station: sim station
+        simulated station object
+    """
+    input_sta = evt.get_station(station_id=0) # read_coreas has only station id 0
+    input_sim_station = input_sta.get_sim_station()
+
+
+    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+    sim_station.set_parameter(stnp.azimuth, input_sim_station.get_parameter(stnp.azimuth))
+    sim_station.set_parameter(stnp.zenith, input_sim_station.get_parameter(stnp.zenith))
+    sim_station.set_parameter(stnp.cr_energy, input_sim_station.get_parameter(stnp.cr_energy))
+    sim_station.set_parameter(stnp.cr_xmax, input_sim_station.get_parameter(stnp.cr_xmax))
+    magnetic_field_vector = input_sim_station.get_magnetic_field_vector()
+    sim_station.set_magnetic_field_vector(magnetic_field_vector)
+    try:
+        sim_station.set_parameter(stnp.cr_energy_em, input_sim_station.get_parameter(stnp.cr_energy_em))
+    except:
+        global warning_printed_coreas_py
+        if(not warning_printed_coreas_py):
+            logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
+            warning_printed_coreas_py = True
+    if input_sim_station.is_cosmic_ray():
+        sim_station.set_is_cosmic_ray()
+
+    sim_station.set_simulation_weight(weight)
+    return sim_station
+
 def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
     """
+    deprecated as it uses coreas hdf5 file as input, use set_sim_shower instead
+
     creates an NuRadioReco sim shower from the coreas hdf5 file, the core positions are set such that the detector station is on top of
     each coreas observer position
 
@@ -324,6 +372,8 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
     sim_shower: sim shower
         simulated shower object
     """
+    logger.warning("make_sim_shower() is deprecated, use set_sim_shower() instead.")
+
     sim_shower = NuRadioReco.framework.radio_shower.RadioShower()
 
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
@@ -364,6 +414,42 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
 
     return sim_shower
 
+def set_sim_shower(evt, detector=None, station_id=None):
+    """
+    creates an NuRadioReco sim shower from an event object created with e.g. read_CORSIKA7(), the core positions are set such that the detector station is on top of
+    each coreas observer position
+
+    Parameters
+    ----------
+    evt : Event object
+        event object containing the CoREAS output, e.g. created with read_CORSIKA7()
+    detector : detector object
+    station_id : station id of the station relativ to which the shower core is given
+
+    Returns
+    -------
+    sim_shower: sim shower
+        simulated shower object
+    """
+    input_shower = evt.get_first_sim_shower()
+    sim_shower = copy.copy(input_shower)
+
+    efields = evt.get_station(0).get_sim_station().get_electric_fields()
+
+    # We can only set the shower core relative to the station if we know its position
+    if efields is not None and detector is not None and station_id is not None:
+        efield_pos = []
+        for efield in efields:
+            efield_pos.append(efield.get_position())
+        efield_pos = np.array(efield_pos)
+        station_position = detector.get_absolute_position(station_id)
+        core_position = (-efield_pos + station_position)
+        core_position[2] = 0
+        sim_shower.set_parameter(shp.core, core_position)
+
+    return sim_shower
+
+
 def add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_times, zenith, azimuth, sampling_rate, fluence=None):
     """
     adds an electric field trace to an existing sim station
@@ -403,7 +489,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     Parameters
     ----------
     positions : list
-        station position with [x, y, z]
+        station position with [x, y, z] on ground
     zenith : float
         zenith angle of the shower
     azimuth : float
