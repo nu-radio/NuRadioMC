@@ -65,7 +65,14 @@ class ray_tracing_base:
         self._max_detector_frequency = None
         if self._detector is not None:
             for station_id in self._detector.get_station_ids():
-                sampling_frequency = self._detector.get_sampling_frequency(station_id, 0)
+                channel_id_1st = self._detector.get_channel_ids(station_id)[0]
+                sampling_frequency = self._detector.get_sampling_frequency(station_id, channel_id_1st)
+                for channel_id in self._detector.get_channel_ids(station_id):
+                    if self._detector.get_sampling_frequency(station_id, channel_id) != sampling_frequency:
+                        self.__logger.warning(f"Different channels have different sampling frequencies. Channel {channel_id} has sampling frequency" \
+                                               f"{self._detector.get_sampling_frequency(station_id, channel_id)/units.GHz:.1f}." \
+                                                f"Using the sampoing frequency of the first channel with id {channel_id_1st} with {sampling_frequency/units.GHz:.1f} GHz." \
+                                                    "to calculate the maximum relevant frequency for calculating signal attenuation.")
                 if self._max_detector_frequency is None or sampling_frequency * .5 > self._max_detector_frequency:
                     self._max_detector_frequency = sampling_frequency * .5
 

@@ -9,7 +9,8 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
 import logging
-logger = logging.getLogger('channelSignalReconstructor')
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger('NuRadioReco.channelSignalReconstructor')
 
 
 class channelSignalReconstructor:
@@ -99,7 +100,10 @@ class channelSignalReconstructor:
 
         # Various definitions
         noise_int = np.sum(np.square(trace[noise_window_mask]))
-        noise_int *= (self.__signal_window_length) / float(noise_window_length)
+        if(noise_window_length > 0):
+            noise_int *= (self.__signal_window_length) / float(noise_window_length)
+        else:
+            logger.warning(f"Noise window length is zero. This likely indicates that the tracelength is too small. Noise quantities can not be calcualted.")
 
         if stored_noise:
             # we use the RMS from forced triggers
@@ -120,9 +124,9 @@ class channelSignalReconstructor:
         SNR = {}
         if (noise_rms == 0) or (noise_int == 0):
             logger.info("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to infinity.")
-            SNR['peak_2_peak_amplitude'] = np.infty
-            SNR['peak_amplitude'] = np.infty
-            SNR['integrated_power'] = np.infty
+            SNR['peak_2_peak_amplitude'] =  np.inf
+            SNR['peak_amplitude'] =  np.inf
+            SNR['integrated_power'] =  np.inf
         else:
 
             SNR['integrated_power'] = np.sum(np.square(trace[signal_window_mask])) - noise_int
