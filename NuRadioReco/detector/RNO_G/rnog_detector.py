@@ -600,7 +600,14 @@ class Detector():
         """
         self.get_signal_chain_response(station_id, channel_id)  # this adds `total_response` to dict
         channel_data = copy.deepcopy(self.__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True))
-        channel_data.update(self.__default_values)
+
+        for key in self.__default_values:
+
+            if isinstance(self.__default_values[key], dict):
+                channel_data[key] = self.__default_values[key][channel_id]
+            else:
+                channel_data[key] = self.__default_values[key]
+
         return channel_data
 
     @_check_detector_time
@@ -1124,25 +1131,11 @@ class Detector():
 
     def get_noise_temperature(self, station_id, channel_id):
         """ Get noise temperture per station / channel """
-        noise_temperature = self.__default_values["noise_temperature"]
-        if isinstance(noise_temperature, float):
-            self.logger.warn(
-                f"Return a hard-coded value for the noise temperature of {noise_temperature / units.kelvin} K. "
-                "This information is not (yet) implemented in the DB.")
-            return noise_temperature
-        elif isinstance(noise_temperature, dict):
-            self.logger.warn(
-                f"Return a hard-coded value for the noise temperature of {noise_temperature / units.kelvin} K for channel {channel_id}. "
-                "This information is not (yet) implemented in the DB.")
-            return noise_temperature[channel_id]
-        else:
-            raise ValueError("Unkown type for hard-coded value")
+        noise_temperature = self.get_channel(station_id, channel_id)["noise_temperature"]
+        return noise_temperature
 
     def is_channel_noiseless(self, station_id, channel_id):
-        is_noiseless = self.__default_values["is_noiseless"]
-        self.logger.warn(
-            f"Return a hard-coded value for \"is_noiseless\" of {is_noiseless} for all stations / channels. "
-            "This information is not (yet) implemented in the DB.")
+        is_noiseless = self.get_channel(station_id, channel_id)["is_noiseless"]
         return is_noiseless
 
 
