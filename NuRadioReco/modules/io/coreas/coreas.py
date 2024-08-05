@@ -743,6 +743,9 @@ class coreasInterpolator:
         -------
         efield_interp : float
             interpolated efield value or efield of clostest observer
+
+        trace_start_time : float
+            start time of the trace
         """
         logger.debug(f"get interpolated efield for antenna position {position_on_ground} on ground and core position {core}")
         antenna_position = copy.copy(position_on_ground)
@@ -762,20 +765,22 @@ class coreasInterpolator:
             if self.efield_interpolator == -1:
                 efield = self.get_closest_observer_efield(antenna_pos_vBvvB)
                 efield_interp = efield
+                trace_start_time = None
+
             else:
-                efield_interp = self.efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1],
+                efield_interp, trace_start_time, abs_spectrum, phasespectrum = self.efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1],
                                                 lowfreq=self.interp_lowfreq/units.MHz,
                                                 highfreq=self.interp_highfreq/units.MHz,
                                                 filter_up_to_cutoff=False,
                                                 account_for_timing=True,
                                                 pulse_centered=True,
                                                 const_time_offset=20.0e-9,
-                                                full_output=False)
+                                                full_output=True)
 
         #check if interpolation is within expected range
         if np.max(np.abs(efield_interp)) > self.max_coreas_efield:
             logger.warning(f'interpolated efield {np.max(np.abs(efield_interp)):.2f} is larger than the maximum coreas efield {self.max_coreas_efield:.2f}')
-        return efield_interp
+        return efield_interp, trace_start_time
 
 
     def get_interp_fluence_value(self, position_on_ground, core):
