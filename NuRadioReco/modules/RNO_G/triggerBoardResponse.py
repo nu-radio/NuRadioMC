@@ -23,6 +23,7 @@ class triggerBoardResponse:
         logger.setLevel(log_level)
         self.logger = logger
         self.__t = 0
+        self.__channel_offset = 0
         self.begin()
 
     def begin(self, adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage"):
@@ -145,7 +146,7 @@ class triggerBoardResponse:
         self.logger.debug("Applying gain at ADC level")
 
         for channel_id in trigger_channels:
-            det_channel = det.get_channel(station.get_id(), channel_id)
+            det_channel = det.get_channel(station.get_id(), channel_id - self.__channel_offset)
 
             noise_bits = det_channel["trigger_adc_noise_nbits"]
             total_bits = det_channel["trigger_adc_nbits"]
@@ -204,12 +205,13 @@ class triggerBoardResponse:
 
         for det_channel in station.iter_channels():
             channel_id = det_channel.get_id()
-            det_channel = det.get_channel(station_id, channel_id)
 
             # If specifying the exact channels to consider, demand
             # that this ID is in the list
-            if len(requested_channels) and not channel_id in requested_channels:
+            if len(requested_channels) and channel_id not in requested_channels:
                 continue
+
+            det_channel = det.get_channel(station_id, channel_id - self.__channel_offset)
 
             keep = True
             for field in self._mandatory_fields:
@@ -227,8 +229,8 @@ class triggerBoardResponse:
                 name = det_channel["trigger_amp_type"]
                 msg = f'Channel {channel_id} has `trigger_amp_type` of "{name}", but a `trigger_amp_type` of'
                 msg += f' "{trigger_amp_response_name}" was already found in the detector file. This module is not meant'
-                msg += f" to work with mixed values of `trigger_amp_type`. Either unify the `trigger_amp_type` or supply"
-                msg += f' a group of channels to consider using the "requested_channels" option of this module'
+                msg += " to work with mixed values of `trigger_amp_type`. Either unify the `trigger_amp_type` or supply"
+                msg += ' a group of channels to consider using the "requested_channels" option of this module'
                 raise RuntimeError(msg)
 
             trigger_amp_response_name = det_channel["trigger_amp_type"]
@@ -269,12 +271,13 @@ class triggerBoardResponse:
                 clock_offset=self._clock_offset,
                 adc_output=self._adc_output,
                 return_sampling_frequency=True,
+                channel_id=channel_id - self.__channel_offset,
             )
 
             channel.set_trace(digitized_trace, adc_sampling_frequency)
 
     @register_run()
-    def run(self, evt, station, det, requested_channels=[], vrms=None, apply_adc_gain=True, digitize_trace=True):
+    def run(self, evt, station, det, requested_channels=[], vrms=None, apply_adc_gain=True, digitize_trace=True, channel_offset=0):
         """
         Applies the additional filters on the trigger board and performs a gain amplification
         to get the correct number of trigger bits.
@@ -299,6 +302,9 @@ class triggerBoardResponse:
             Apply the gain shift to achieve the specified level of noise bits
         digitize_trace : bool (default: True)
             Apply the quantization to the voltages (uses `analogToDigitalConverter` to do so)
+        channel_offset : int (default: 0)
+            The offset to apply to the channel IDs when requesting the detector description. This is
+            necessary if you have created a copy of the original channel and changed the ID.
 
         Returns
         -------
@@ -307,7 +313,8 @@ class triggerBoardResponse:
 
         """
 
-        self.logger.debug(f"Applying the RNO-G trigger board response")
+        self.logger.debug("Applying the RNO-G trigger board response")
+        self.__channel_offset = channel_offset
 
         trigger_channels, trigger_amp_response = self.get_trigger_values(station, det, requested_channels)
         self.apply_trigger_filter(station, trigger_channels, trigger_amp_response)
