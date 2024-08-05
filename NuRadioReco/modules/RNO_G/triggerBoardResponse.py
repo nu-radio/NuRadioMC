@@ -301,7 +301,7 @@ class triggerBoardResponse:
         apply_adc_gain : bool (default: True)
             Apply the gain shift to achieve the specified level of noise bits
         digitize_trace : bool (default: True)
-            Apply the quantization to the voltages (uses `analogToDigitalConverter` to do so)
+            Apply the quantization to the voltages (uses `NuRadioReco.modules.analogToDigitalConverter` to do so)
         channel_offset : int (default: 0)
             The offset to apply to the channel IDs when requesting the detector description. This is
             necessary if you have created a copy of the original channel and changed the ID.
