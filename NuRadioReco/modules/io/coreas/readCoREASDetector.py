@@ -194,13 +194,13 @@ class readCoREASDetector():
                     channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
                     antenna_position_rel = detector.get_relative_position(station_id, channel_ids_for_group_id[0])
                     antenna_position = det_station_position + antenna_position_rel
-                    res_efield = self.coreasInterpolator.get_interp_efield_value(antenna_position, core)
+                    res_efield, res_trace_start_time = self.coreasInterpolator.get_interp_efield_value(antenna_position, core)
                     smooth_res_efield = apply_hanning(res_efield)
                     if smooth_res_efield is None:
                         smooth_res_efield = self.coreasInterpolator.get_empty_efield()
                     electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids_for_group_id)
                     electric_field.set_trace(smooth_res_efield.T, self.coreasInterpolator.get_sampling_rate())
-                    electric_field.set_trace_start_time(0)  # TODO: set this correctly. 
+                    electric_field.set_trace_start_time(res_trace_start_time)
                     electric_field.set_parameter(efp.ray_path_type, 'direct')
                     electric_field.set_parameter(efp.zenith, sim_shower[shp.zenith])
                     electric_field.set_parameter(efp.azimuth, sim_shower[shp.azimuth])
