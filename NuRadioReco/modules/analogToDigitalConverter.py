@@ -238,7 +238,7 @@ class analogToDigitalConverter:
         """
 
         station_id = station.get_id()
-        if channel_id is None and trigger_adc:
+        if channel_id is None or not trigger_adc:
             channel_id = channel.get_id()
 
         det_channel = det.get_channel(station_id, channel_id)
