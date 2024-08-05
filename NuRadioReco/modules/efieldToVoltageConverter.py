@@ -39,7 +39,7 @@ class efieldToVoltageConverter():
         self.begin()
 
 
-    def begin(self, debug=False, uncertainty={},
+    def begin(self, debug=False, uncertainty=None,
               time_resolution=0.1 * units.ns,
               pre_pulse_time=200 * units.ns,
               post_pulse_time=200 * units.ns
@@ -76,7 +76,7 @@ class efieldToVoltageConverter():
         self.__max_upsampling_factor = 5000
 
         # some uncertainties are systematic, fix them here
-        self.__uncertainty = uncertainty
+        self.__uncertainty = uncertainty or {}
         for key in ['sys_dx', 'sys_dy', 'sys_dz']:
             if key in self.__uncertainty:
                 self.__uncertainty[key] = np.random.normal(0, self.__uncertainty[key])
