@@ -219,9 +219,12 @@ class Response:
 
             # to avoid RunTime warning and NANs in total reponse
             if weight == -1:
-                _gain = np.where(_gain > 0, _gain, 1)
-
-            response *= (_gain * np.exp(1j * phase(freq / units.GHz))) ** weight
+                mask = _gain > 0
+                tmp_response = np.zeros_like(freq, dtype=np.complex128)
+                tmp_response[mask] = (_gain[mask] * np.exp(1j * phase(freq[mask] / units.GHz))) ** weight
+                response *= tmp_response
+            else:
+                response *= (_gain * np.exp(1j * phase(freq / units.GHz))) ** weight
 
         if np.allclose(response, np.ones_like(freq, dtype=np.complex128)):
             if component_names is not None:
