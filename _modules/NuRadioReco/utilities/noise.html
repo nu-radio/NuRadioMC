@@ -701,14 +701,14 @@
 <span class="sd">        1D array of summed traces</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="k">if</span> <span class="n">rolling</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot have a roll value of </span><span class="si">{</span><span class="n">rolling</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">!=0 for channel 0&quot;</span><span class="p">)</span>
+
     <span class="c1"># assume first trace always has no rolling</span>
     <span class="n">sumtr</span> <span class="o">=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">)):</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">rolling</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">sumtr</span><span class="p">[:</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="o">+=</span> <span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">r</span><span class="p">:]</span>
-            <span class="n">sumtr</span><span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="n">r</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">sumtr</span><span class="p">[:</span><span class="n">r</span><span class="p">]</span> <span class="o">+=</span> <span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="n">r</span><span class="p">:]</span>
             <span class="n">sumtr</span><span class="p">[</span><span class="n">r</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="o">-</span><span class="n">r</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -934,7 +934,8 @@
             <span class="n">delays</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">delays</span><span class="p">)</span>
 
             <span class="n">roll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">delays</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">[</span><span class="n">iBeam</span><span class="p">]</span> <span class="o">=</span> <span class="n">roll</span>
+            <span class="c1"># subtract off the delay of antenna 0 because `rolled_sum_slicing` assumes this is the case</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">[</span><span class="n">iBeam</span><span class="p">]</span> <span class="o">=</span> <span class="n">roll</span> <span class="o">-</span> <span class="n">roll</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span> <span class="o">=</span> <span class="n">Vrms</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
