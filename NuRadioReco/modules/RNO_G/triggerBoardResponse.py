@@ -145,12 +145,16 @@ class triggerBoardResponse:
 
         self.logger.debug("Applying gain at ADC level")
 
-        for channel_id in trigger_channels:
+        if not hasattr(avg_vrms, "__len__"):
+            avg_vrms = np.full_like(trigger_channels, avg_vrms)
+
+        vrms_after_gain = []
+        for channel_id, vrms in zip(trigger_channels, avg_vrms):
             det_channel = det.get_channel(station.get_id(), channel_id - self.__channel_offset)
 
             noise_bits = det_channel["trigger_adc_noise_nbits"]
             total_bits = det_channel["trigger_adc_nbits"]
-            volts_per_adc = self._adc_input_range / 2**total_bits
+            volts_per_adc = self._adc_input_range / 2 ** total_bits
             ideal_vrms = volts_per_adc * (2 ** (noise_bits - 1) - 1)
 
             msg = f"\t Ch: {channel_id}\t Target Vrms: {ideal_vrms / units.mV:0.3f} mV"
@@ -159,19 +163,19 @@ class triggerBoardResponse:
 
             # find the ADC gain from the possible values that makes the realized
             # vrms as-close-to-yet-smaller-than the ideal value
-            amplified_vrms_values = avg_vrms * self._triggerBoardAmplifications
+            amplified_vrms_values = vrms * self._triggerBoardAmplifications
             mask = amplified_vrms_values > ideal_vrms
             gain_to_use = self._triggerBoardAmplifications[mask][0]
-            vrms_after_gain = amplified_vrms_values[mask][0]
+            vrms_after_gain.append(amplified_vrms_values[mask][0])
 
             channel = station.get_channel(channel_id)
+            self.logger.debug(f"\t Ch: {channel_id}\t Actuall Vrms: {np.std(channel.get_trace() * gain_to_use) / units.mV:0.3f} mV")
             channel.set_trace(channel.get_trace() * gain_to_use, channel.get_sampling_rate())
+            self.logger.debug(f"\t Used Vrms: {vrms_after_gain[-1] / units.mV:0.3f} mV" + f"\tADC Gain {gain_to_use}")
+            eff_noise_bits = np.log2(vrms_after_gain[-1] / volts_per_adc) + 1
+            self.logger.debug(f"\t Eff noise bits: {eff_noise_bits:0.2f}\tRequested: {noise_bits}")
 
-        self.logger.debug(f"\t Used Vrms: {vrms_after_gain / units.mV:0.3f} mV" + f"\tADC Gain {gain_to_use}")
-        eff_noise_bits = np.log2(vrms_after_gain / volts_per_adc) + 1
-        self.logger.debug(f"\t Eff noise bits: {eff_noise_bits:0.2f}\tRequested: {noise_bits}")
-
-        return vrms_after_gain, ideal_vrms
+        return np.array(vrms_after_gain), ideal_vrms
 
     def get_trigger_values(self, station, det, requested_channels=[]):
         """
