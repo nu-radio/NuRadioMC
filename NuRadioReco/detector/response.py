@@ -219,7 +219,7 @@ class Response:
 
             # to avoid RunTime warning and NANs in total reponse
             if weight == -1:
-                _gain = np.where(_gain > 0, _gain, 1e-6)
+                _gain = np.where(_gain > 0, _gain, 1)
 
             response *= (_gain * np.exp(1j * phase(freq / units.GHz))) ** weight
 
