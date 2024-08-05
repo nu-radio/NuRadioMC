@@ -3,6 +3,9 @@ import NuRadioMC.SignalProp.analyticraytracing
 import NuRadioMC.utilities.medium
 import pickle
 import argparse
+import logging
+
+logger = logging.getLogger('NuRadioReco.create_lookup_table')
 
 parser = argparse.ArgumentParser(description='Create lookup tables for vertex reconstructor')
 parser.add_argument(
@@ -61,6 +64,12 @@ parser.add_argument(
 
 if __name__ == "__main__":
     args = parser.parse_args()
+    antenna_depth = args.antenna_depth
+
+    if antenna_depth != np.round(antenna_depth, 3):
+        logger.warning(
+            'Antenna depth specified to more than mm precision. Rounding to nearest mm.')
+        antenna_depth = np.round(antenna_depth, 3)
 
     x_pos = np.arange(args.r_min, args.r_max, args.d_r)
     z_pos = np.arange(-args.z_min, -args.z_max, args.d_z)
@@ -68,7 +77,7 @@ if __name__ == "__main__":
     ice = NuRadioMC.utilities.medium.get_ice_model(args.ice_model)
     ray_tracing = NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D(ice)
     channel_types = [{
-        'name': 'antenna_{}'.format(args.antenna_depth),
+        'name': 'antenna_{:.3f}'.format(args.antenna_depth),
         'z': -1. * args.antenna_depth
     }]
 
@@ -100,5 +109,5 @@ if __name__ == "__main__":
             'R': travel_times_R,
         }
 
-    with open('{}/lookup_table_{:.0f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
+    with open('{}/lookup_table_{:.3f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
         pickle.dump(lookup_table, f)
