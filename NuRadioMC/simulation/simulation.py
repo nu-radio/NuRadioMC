@@ -374,7 +374,8 @@ class simulation:
                                   f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
                                   f'max. filter amplification = {max_amplification:.2e} -> Vrms = '
                                   f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz -> Vrms = '
-                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV -> efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
+                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV -> efield Vrms = '
+                                  f'{self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
 
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
 
@@ -750,14 +751,14 @@ class simulation:
                             if pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']:
                                 sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                                 R = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
-                                T = sg_pre['travel_times'][self._shower_index, channel_id, iS]
+                                wave_propagation_time = sg_pre['travel_times'][self._shower_index, channel_id, iS]
                             else:
                                 R = self._raytracer.get_path_length(iS)  # calculate path length
-                                T = self._raytracer.get_travel_time(iS)  # calculate travel time
-                                if R is None or T is None:
+                                wave_propagation_time = self._raytracer.get_travel_time(iS)  # calculate travel time
+                                if R is None or wave_propagation_time is None:
                                     continue
                             sg['travel_distances'][iSh, channel_id, iS] = R
-                            sg['travel_times'][iSh, channel_id, iS] = T
+                            sg['travel_times'][iSh, channel_id, iS] = wave_propagation_time
                             self._launch_vector = self._raytracer.get_launch_vector(iS)
                             receive_vector = self._raytracer.get_receive_vector(iS)
                             # save receive vector
@@ -894,9 +895,9 @@ class simulation:
                             # Trace start time is equal to the interaction time relative to the first
                             # interaction plus the wave travel time.
                             if hasattr(self, '_vertex_time'):
-                                trace_start_time = self._vertex_time + T
+                                trace_start_time = self._vertex_time + wave_propagation_time
                             else:
-                                trace_start_time = T
+                                trace_start_time = wave_propagation_time
 
                             # We shift the trace start time so that the trace time matches the propagation time.
                             # The centre of the trace corresponds to the instant when the signal from the shower
@@ -948,6 +949,7 @@ class simulation:
                         tmp_index = np.argwhere(event_indices == self._get_shower_index(channel.get_shower_id()))[0]
                         sg['max_amp_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
                         sg['time_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
+
                 start_times = []
                 channel_identifiers = []
                 for channel in self._sim_station.iter_channels():
@@ -1031,6 +1033,7 @@ class simulation:
                         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
                         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
                         # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
+
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
 
                         if self._is_simulate_noise():
@@ -1038,14 +1041,21 @@ class simulation:
                             channel_ids = self._det.get_channel_ids(self._station.get_id())
                             Vrms = {}
                             for channel_id in channel_ids:
+                                if self._det.is_channel_noiseless(self._station.get_id(), channel_id):
+                                    if channel_id not in self._noiseless_channels[self._station_id]:
+                                        self._noiseless_channels[self._station_id].append(channel_id)
+                                    continue
+
                                 norm = self._integrated_channel_response[self._station.get_id()][channel_id]
                                 Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
+
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                                          max_freq=max_freq, type='rayleigh', excluded_channels=self._noiseless_channels[station_id])
 
                         self._detector_simulation_filter_amp(self._evt, self._station, self._det)
 
                         self._detector_simulation_trigger(self._evt, self._station, self._det)
+
                     if not self._station.has_triggered():
                         continue
 
