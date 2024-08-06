@@ -2,12 +2,8 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.modules.io.coreas import coreas
-from NuRadioReco.utilities import units
-from radiotools import coordinatesystems
-import h5py
 import numpy as np
 import time
-import re
 import os
 import logging
 logger = logging.getLogger('readCoREASShower')
@@ -63,58 +59,57 @@ class readCoREASShower:
             t = time.time()
             t_per_event = time.time()
 
-            filesize = os.path.getsize(
-                self.__input_files[self.__current_input_file])
+            filename = self.__input_files[self.__current_input_file]
+            filesize = os.path.getsize(filename)
             if filesize < 18456 * 2:  # based on the observation that a file with such a small filesize is corrupt
                 logger.warning(
-                    "file {} seems to be corrupt, skipping to next file".format(
-                        self.__input_files[self.__current_input_file]
-                    )
-                )
+                    "file {} seems to be corrupt, skipping to next file".format(filename))
                 self.__current_input_file += 1
                 continue
 
             logger.info('Reading %s ...' %
                         self.__input_files[self.__current_input_file])
 
-            corsika = h5py.File(
-                self.__input_files[self.__current_input_file], "r")
-            logger.info("using coreas simulation {} with E={:2g} theta = {:.0f}".format(
-                self.__input_files[self.__current_input_file], corsika['inputs'].attrs["ERANGE"][0] * units.GeV,
-                corsika['inputs'].attrs["THETAP"][0]))
-
-            f_coreas = corsika["CoREAS"]
+            corsika_evt = coreas.read_CORSIKA7(self.__input_files[self.__current_input_file])
 
             if self.__ascending_run_and_event_number:
                 evt = NuRadioReco.framework.event.Event(self.__ascending_run_and_event_number,
                                                         self.__ascending_run_and_event_number)
                 self.__ascending_run_and_event_number += 1
             else:
-                evt = NuRadioReco.framework.event.Event(
-                    corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
-
-            evt.__event_time = f_coreas.attrs["GPSSecs"]
+                evt = NuRadioReco.framework.event.Event(corsika_evt.get_run_number, corsika_evt.get_id)
 
             # create sim shower, no core is set since no external detector description is given
-            sim_shower = coreas.make_sim_shower(corsika)
-            sim_shower.set_parameter(shp.core, np.array(
-                [0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))  # set core
+            sim_shower = coreas.create_sim_shower(corsika_evt)
+            evt.__event_time = sim_shower.get_parameter(shp.coreas_GPSSecs)
+
+            sim_shower.set_parameter(shp.core, np.array([0, 0, sim_shower.get_parameter(shp.core_coordinate_vertical)]))  # set core to 0,0 and vertical coordinate
             evt.add_sim_shower(sim_shower)
 
-            # initialize coordinate transformation
-            cs = coordinatesystems.cstrafo(sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
-                                           magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
-
             # add simulated pulses as sim station
-            for idx, (name, observer) in enumerate(f_coreas['observers'].items()):
-                # returns proper station id if possible
-                # TODO I dont understand this fuction
-                station_id = antenna_id(name, idx)
+            corsika_efields = corsika_evt.get_station(0).get_sim_station().get_electric_fields()
+            for station_id, corsika_efield in enumerate(corsika_efields):
 
                 station = NuRadioReco.framework.station.Station(station_id)
-                sim_station = coreas.make_sim_station(station_id, corsika)
-                efield, efield_times = coreas.convert_obs_to_nuradio_efield(observer, sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
-                                           magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector), prepend_zeros=True)
+                sim_station = coreas.create_sim_station(station_id, corsika_evt)
+                efield_trace = corsika_efield.get_trace()
+                efield_sampling_rate = efield_trace.get_sampling_rate()
+                efield_times = corsika_efield.get_times()
+
+                prepend_zeros = True # prepend zeros to not have the pulse directly at the start, heritage from old code
+                if prepend_zeros:
+                    n_samples_prepend = efield_trace.shape[1]
+                    efield_cor = np.zeros((3, n_samples_prepend + efield_trace.shape[1]))
+                    efield_cor[0] = np.append(np.zeros(n_samples_prepend), efield_trace[0])
+                    efield_cor[1] = np.append(np.zeros(n_samples_prepend), efield_trace[1])
+                    efield_cor[2] = np.append(np.zeros(n_samples_prepend), efield_trace[2])
+
+                    efield_times_cor = np.arange(0, n_samples_prepend + efield_trace.shape[1]) / efield_sampling_rate
+
+                else:
+                    efield_cor = efield_trace
+                    efield_times_cor = efield_times
+
                 if self.__det is None:
                     channel_ids = [0]
                 else:
@@ -123,29 +118,26 @@ class readCoREASShower:
                     else:
                         channel_ids = self.__det.get_channel_ids(self.__det.get_reference_station_ids()[0])
 
-                coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_times, corsika)
+                coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield_cor, efield_times_cor, sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth), efield_sampling_rate)
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
                 
                 if self.__det is not None:
-                    position = observer.attrs['position']
-                    antenna_position = coreas.convert_obs_positions_to_nuradio_on_ground(position, sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
-                                           magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
+                    efield_pos = corsika_efield.get_position()
 
-                    
                     if not self.__det.has_station(station_id):
                         self.__det.add_generic_station({
                             'station_id': station_id,
-                            'pos_easting': antenna_position[0],
-                            'pos_northing': antenna_position[1],
-                            'pos_altitude': antenna_position[2],
+                            'pos_easting': efield_pos[0],
+                            'pos_northing': efield_pos[1],
+                            'pos_altitude': efield_pos[2],
                             'reference_station': self.__det.get_reference_station_ids()[0]
                         })
                     else:
                         self.__det.add_station_properties_for_event({
-                            'pos_easting': antenna_position[0],
-                            'pos_northing': antenna_position[1],
-                            'pos_altitude': antenna_position[2]
+                            'pos_easting': efield_pos[0],
+                            'pos_northing': efield_pos[1],
+                            'pos_altitude': efield_pos[2]
                         }, station_id, evt.get_run_number(), evt.get_id())
 
             self.__t_per_event += time.time() - t_per_event
@@ -168,16 +160,3 @@ class readCoREASShower:
         logger.info("per event {}".format(
             timedelta(seconds=self.__t_per_event)))
         return dt
-
-
-def antenna_id(antenna_name, default_id):
-    """
-    This function parses the antenna names given in a CoREAS simulation and tries to find an ID
-    It can be extended to other name patterns
-    """
-
-    if re.match("AERA_", antenna_name):
-        new_id = int(antenna_name.strip("AERA_"))
-        return new_id
-    else:
-        return default_id

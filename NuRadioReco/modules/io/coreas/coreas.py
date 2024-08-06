@@ -207,6 +207,8 @@ def read_CORSIKA7(input_file, declination=None):
         sim_shower.set_parameter(shp.atmospheric_model, corsika["inputs"].attrs["ATMOD"])
     if 'highlevel' in corsika.keys():
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
+    sim_shower.set_parameter(shp.core_coordinate_vertical, corsika['CoREAS'].attrs["CoreCoordinateVertical"] / 100)
+    sim_shower.set_parameter(shp.coreas_GPSSecs, corsika['CoREAS'].attrs["GPSSecs"])
 
     sim_station = NuRadioReco.framework.sim_station.SimStation(0) # set sim station id to 0
     sim_station.set_parameter(stnp.azimuth, azimuth)
@@ -308,7 +310,7 @@ def make_sim_station(station_id, corsika, weight=None):
     sim_station.set_simulation_weight(weight)
     return sim_station
 
-def set_sim_station(station_id, evt, weight=None):
+def create_sim_station(station_id, evt, weight=None):
     """
     creates an NuRadioReco sim station with the information from an event object created with e.g. read_CORSIKA7().
     An weight per station can be added.
@@ -328,25 +330,25 @@ def set_sim_station(station_id, evt, weight=None):
     sim_station: sim station
         simulated station object
     """
-    input_sta = evt.get_station(station_id=0) # read_coreas has only station id 0
-    input_sim_station = input_sta.get_sim_station()
+    coreas_sta = evt.get_station(station_id=0) # read_coreas has only station id 0
+    coreas_sim_station = coreas_sta.get_sim_station()
 
 
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
-    sim_station.set_parameter(stnp.azimuth, input_sim_station.get_parameter(stnp.azimuth))
-    sim_station.set_parameter(stnp.zenith, input_sim_station.get_parameter(stnp.zenith))
-    sim_station.set_parameter(stnp.cr_energy, input_sim_station.get_parameter(stnp.cr_energy))
-    sim_station.set_parameter(stnp.cr_xmax, input_sim_station.get_parameter(stnp.cr_xmax))
-    magnetic_field_vector = input_sim_station.get_magnetic_field_vector()
+    sim_station.set_parameter(stnp.azimuth, coreas_sim_station.get_parameter(stnp.azimuth))
+    sim_station.set_parameter(stnp.zenith, coreas_sim_station.get_parameter(stnp.zenith))
+    sim_station.set_parameter(stnp.cr_energy, coreas_sim_station.get_parameter(stnp.cr_energy))
+    sim_station.set_parameter(stnp.cr_xmax, coreas_sim_station.get_parameter(stnp.cr_xmax))
+    magnetic_field_vector = coreas_sim_station.get_magnetic_field_vector()
     sim_station.set_magnetic_field_vector(magnetic_field_vector)
     try:
-        sim_station.set_parameter(stnp.cr_energy_em, input_sim_station.get_parameter(stnp.cr_energy_em))
+        sim_station.set_parameter(stnp.cr_energy_em, coreas_sim_station.get_parameter(stnp.cr_energy_em))
     except:
         global warning_printed_coreas_py
         if(not warning_printed_coreas_py):
             logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
             warning_printed_coreas_py = True
-    if input_sim_station.is_cosmic_ray():
+    if coreas_sim_station.is_cosmic_ray():
         sim_station.set_is_cosmic_ray()
 
     sim_station.set_simulation_weight(weight)
@@ -414,7 +416,7 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
 
     return sim_shower
 
-def set_sim_shower(evt, detector=None, station_id=None):
+def create_sim_shower(evt, detector=None, station_id=None):
     """
     creates an NuRadioReco sim shower from an event object created with e.g. read_CORSIKA7(), the core positions are set such that the detector station is on top of
     each coreas observer position
@@ -431,8 +433,7 @@ def set_sim_shower(evt, detector=None, station_id=None):
     sim_shower: sim shower
         simulated shower object
     """
-    input_shower = evt.get_first_sim_shower()
-    sim_shower = copy.copy(input_shower)
+    sim_shower = copy.copy(evt.get_first_sim_shower())
 
     efields = evt.get_station(0).get_sim_station().get_electric_fields()
 
