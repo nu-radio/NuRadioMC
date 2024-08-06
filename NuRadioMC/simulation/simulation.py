@@ -898,14 +898,14 @@ class simulation:
                             # Trace start time is equal to the interaction time relative to the first
                             # interaction plus the wave travel time.
                             if hasattr(self, '_vertex_time'):
-                                trace_start_time = self._vertex_time + T
+                                trace_start_time = self._vertex_time + wave_propagation_time
                             else:
-                                trace_start_time = T
+                                trace_start_time = wave_propagation_time
 
                             # We shift the trace start time so that the trace time matches the propagation time.
                             # The centre of the trace corresponds to the instant when the signal from the shower
                             # vertex arrives at the observer. The next line makes sure that the centre time
-                            # of the trace is equal to vertex_time + T (wave propagation time)
+                            # of the trace is equal to vertex_time + wave_propagation_time (wave propagation time)
                             trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
 
                             electric_field.set_trace_start_time(trace_start_time)
