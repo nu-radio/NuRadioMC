@@ -747,17 +747,21 @@ class simulation:
                             if np.abs(delta_Cs[iS]) > self._cfg['speedup']['delta_C_cut']:
                                 logger.debug('delta_C too large, ray tracing solution unlikely to be observed, skipping event')
                                 continue
+
                             if pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']:
                                 sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
-                                R = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
-                                T = sg_pre['travel_times'][self._shower_index, channel_id, iS]
+
+                                wave_propagation_distance = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
+                                wave_propagation_time = sg_pre['travel_times'][self._shower_index, channel_id, iS]
                             else:
-                                R = self._raytracer.get_path_length(iS)  # calculate path length
-                                T = self._raytracer.get_travel_time(iS)  # calculate travel time
-                                if R is None or T is None:
+                                wave_propagation_distance = self._raytracer.get_path_length(iS)  # calculate path length
+                                wave_propagation_time = self._raytracer.get_travel_time(iS)  # calculate travel time
+                                if wave_propagation_distance is None or wave_propagation_time is None:
                                     continue
-                            sg['travel_distances'][iSh, channel_id, iS] = R
-                            sg['travel_times'][iSh, channel_id, iS] = T
+
+                            sg['travel_distances'][iSh, channel_id, iS] = wave_propagation_distance
+                            sg['travel_times'][iSh, channel_id, iS] = wave_propagation_time
+
                             self._launch_vector = self._raytracer.get_launch_vector(iS)
                             receive_vector = self._raytracer.get_receive_vector(iS)
                             # save receive vector
@@ -788,7 +792,7 @@ class simulation:
                                             logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
 
                                 spectrum, additional_output = askaryan.get_frequency_spectrum(self._fin['shower_energies'][self._shower_index], viewing_angles[iS],
-                                                self._n_samples, self._dt, self._fin['shower_type'][self._shower_index], n_index, R,
+                                                self._n_samples, self._dt, self._fin['shower_type'][self._shower_index], n_index, wave_propagation_distance,
                                                 self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
                                 # save shower realization to SimShower and hdf5 file
                                 if self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]:
@@ -866,8 +870,8 @@ class simulation:
                                     ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
                                     eR = np.zeros_like(eTheta)
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
-                                eTheta *= 1 / R
-                                ePhi *= 1 / R
+                                eTheta *= 1 / wave_propagation_distance
+                                ePhi *= 1 / wave_propagation_distance
                             else:
                                 logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
                                 raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
@@ -880,7 +884,7 @@ class simulation:
                                 ax2.set_ylabel("amplitude [$\mu$V/m]")
                                 fig.tight_layout()
                                 fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
-                                    self._fin['shower_energies'][self._shower_index], viewing_angles[iS], R))
+                                    self._fin['shower_energies'][self._shower_index], viewing_angles[iS], wave_propagation_distance))
                                 fig.subplots_adjust(top=0.9)
                                 plt.show()
 
@@ -909,6 +913,7 @@ class simulation:
                             electric_field[efp.zenith] = zenith
                             electric_field[efp.ray_path_type] = propagation.solution_types[self._raytracer.get_solution_type(iS)]
                             electric_field[efp.nu_vertex_distance] = sg['travel_distances'][iSh, channel_id, iS]
+                            electric_field[efp.nu_vertex_propagation_time] = sg['travel_times'][iSh, channel_id, iS]
                             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
                             self._sim_station.add_electric_field(electric_field)
 
