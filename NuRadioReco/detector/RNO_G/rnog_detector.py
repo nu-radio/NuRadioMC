@@ -37,6 +37,9 @@ def _keys_not_in_dict(d, keys):
 
     Returns False if d["key1"]["key2"] exsits, True otherwise.
     """
+    if isinstance(keys, str):
+        keys = [keys]
+
     d_tmp = d
     for key in keys:
         try:
@@ -59,7 +62,7 @@ def _check_detector_time(method):
 
 
 class Detector():
-    def __init__(self, database_connection='RNOG_test_public', log_level=logging.INFO, over_write_handset_values={},
+    def __init__(self, database_connection='RNOG_test_public', log_level=logging.INFO, over_write_handset_values=None,
                  database_time=None, always_query_entire_description=True, detector_file=None,
                  select_stations=None, create_new=False):
         """
@@ -75,8 +78,10 @@ class Detector():
             Other options are: `logging.WARNING`, `logging.DEBUG`, ...
 
         over_write_handset_values : dict (Default: {})
-            Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
-            (Default: {}, the acutally default values for the parameters in question are defined below)
+            Overwrite the default values for (channel) parameters which are not (yet) implemented in the database.
+            You can not specify keys which already exist in the database. If the value is a dict it should be contain
+            a value for each channel_id (key). (Default: None, the acutally default values for the parameters in question
+            are defined below)
 
         database_time : `datetime.datetime` or `astropy.time.Time`
             Set database time which is used to select the primary measurement. By default (= None) the database time
@@ -98,11 +103,11 @@ class Detector():
             new connection. Set to True to create a new database connection.
         """
 
-        self.logger = logging.getLogger("NuRadioReco.RNOGdetector")
+        self.logger = logging.getLogger("NuRadioReco.RNOGDetector")
         self.__log_level = log_level
         self.logger.setLevel(self.__log_level)
 
-        # Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.
+        # Define default values for parameter not (yet) implemented in DB.
         self.__default_values = {
             "noise_temperature": 300 * units.kelvin,
             "is_noiseless": False,
@@ -599,9 +604,13 @@ class Detector():
             Dictionary of channel parameters
         """
         self.get_signal_chain_response(station_id, channel_id)  # this adds `total_response` to dict
-        channel_data = copy.deepcopy(self.__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True))
+        # Since we are not actually overwritting existing values we can use a shallow copy
+        channel_data = copy.copy(self.__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True))
 
         for key in self.__default_values:
+
+            if key in channel_data:
+                raise ValueError(f"{key} already in channel data. You can not update this in the this detector class. Use the ModDetector class.")
 
             if isinstance(self.__default_values[key], dict):
                 channel_data[key] = self.__default_values[key][channel_id]
@@ -1099,17 +1108,20 @@ class Detector():
         return int(self.__buffered_stations[station_id]['number_of_samples'])
 
 
-    def get_sampling_frequency(self, station_id, channel_id):
+    def get_sampling_frequency(self, station_id, channel_id=None):
         """ Get sampling frequency per station / channel
 
         All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep
-        it here for consistency with outer detector classes.
+        it here for consistency with other detector classes.
 
         Parameters
         ----------
 
         station_id: int
             Station id
+
+        channel_id: int (default: None)
+            Not Used!
 
         Returns
         -------
