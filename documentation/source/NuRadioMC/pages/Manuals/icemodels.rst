@@ -222,7 +222,7 @@ There is an option to use RadioPropa `(birefringence branch) <https://github.com
 
 Currently, the RadioPropa implementation of birefringence only supports the birefringence-ice-model ``southpole_A``.
 
-Using specific birefrigence models
+Using specific birefringence models
 __________________________________
 Birefringence is an optional setting in a NuRadioMC simulation. To use it in a simulation the following lines should be added to the config file:
 
