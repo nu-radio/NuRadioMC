@@ -158,6 +158,12 @@ class Event:
 
         return self.__stations[station_id]
 
+    def set_event_time(self, event_time):
+        self.__event_time = event_time
+
+    def get_event_time(self):
+        return self.__event_time
+
     def get_stations(self):
         for station in itervalues(self.__stations):
             yield station
@@ -232,7 +238,7 @@ class Event:
         if len(self.__particles) == 0:
             return None
 
-        return self.get_particle(0)
+        return next(iter(self.__particles.values()))
 
     def get_parent(self, particle_or_shower):
         """
@@ -376,8 +382,9 @@ class Event:
         """
         Get an iterator over all simulated showers in the event
         """
-        for shower in self.__sim_showers.values():
-            yield shower
+        return self.__sim_showers.values()
+        # for shower in self.__sim_showers.values():
+        #     yield shower
 
     def get_sim_shower(self, shower_id):
         """

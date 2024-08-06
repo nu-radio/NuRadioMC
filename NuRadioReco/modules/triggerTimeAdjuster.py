@@ -93,6 +93,16 @@ class triggerTimeAdjuster:
             only this trigger is considered.
 
         """
+        counter = 0
+        for i, (name, instance, kwargs) in enumerate(event.iter_modules(station.get_id())):
+            if name == 'triggerTimeAdjuster':
+                if(kwargs['mode'] == mode):
+                    counter += 1
+        if counter > 1:
+            logger.warning('triggerTimeAdjuster was called twice with the same mode. This is likely a mistake. The module will not be applied again.')
+            return 0
+
+
         if mode == 'sim_to_data':
             trigger = None
             if self.__trigger_name is not None:
@@ -117,6 +127,9 @@ class triggerTimeAdjuster:
                 store_pre_trigger_time = {} # we also want to save the used pre_trigger_time
                 for channel in station.iter_channels():
                     trigger_time_channel = trigger_time - channel.get_trace_start_time()
+                    # if trigger_time_channel == 0:
+                    #     logger.warning(f"the trigger time is equal to the trace start time for channel {channel.get_id()}. This is likely because this module was already run on this station. The trace will not be changed.")
+                    #     continue
 
                     trace = channel.get_trace()
                     trace_length = len(trace)

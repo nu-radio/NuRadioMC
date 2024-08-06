@@ -18,6 +18,37 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         self.__magnetic_field_vector = None
         self.__simulation_weight = None
         self.__channels = collections.OrderedDict()
+        self.__candidate = None
+
+    def set_candidate(self, candidate_status):
+            """
+            Set the candidate for the simulation station. True means the station is a candidate for producing a trigger.
+
+            Parameters
+            ----------
+            candidate_status : bool
+                If the station is a candidate for producing a trigger.
+
+            Returns
+            -------
+            None
+            """
+            if not isinstance(candidate_status, bool) and candidate_status is not None:
+                raise ValueError("The candidate_status must be a bool or None.")
+            self.__candidate = candidate_status
+
+    def is_candidate(self):
+        """
+        Returns whether the station is a candidate for producing a trigger.
+
+        Returns
+        -------
+        bool
+            True if the station is a candidate for producing a trigger, False otherwise.
+        """
+        if self.__candidate is None:
+            raise ValueError("The candidate status has not been set.")
+        return self.__candidate
 
     def get_magnetic_field_vector(self):
         return self.__magnetic_field_vector
@@ -129,3 +160,24 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
                 channel = NuRadioReco.framework.sim_channel.SimChannel(0, 0, 0)
                 channel.deserialize(channel_pkl)
                 self.add_channel(channel)
+
+    def __add__(self, x):
+        """
+        adds a SimStation object to another SimStation object
+        WARNING: Only channel and efield objects are added but no other meta information
+        """
+        if not isinstance(x, SimStation):
+            raise AttributeError("Can only add SimStation to SimStation")
+        if self.get_id() != x.get_id():
+            raise AttributeError("Can only add SimStations with the same ID")
+        channel_ids = self.get_channel_ids()
+        for channel in x.iter_channels():
+            if channel.get_unique_identifier() in channel_ids:
+                raise AttributeError(f"Channel with ID {channel.get_unique_identifier()} already present in SimStation")
+            self.add_channel(channel)
+        efield_ids = self.get_electric_field_ids()
+        for efield in x.get_electric_fields():
+            if efield.get_unique_identifier() in efield_ids:
+                raise AttributeError(f"Electric field with unique identifier {efield.get_unique_identifier()} already present in SimStation")
+            self.add_electric_field(efield)
+        return self

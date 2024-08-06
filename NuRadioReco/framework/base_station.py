@@ -198,6 +198,16 @@ class BaseStation():
     def get_electric_fields(self):
         return self._electric_fields
 
+    def get_electric_field_ids(self):
+        """
+        returns a list with the electric field IDs of all simElectricFields of the simStation
+        """
+        efield_ids = []
+        for efield in self._electric_fields:
+            efield_ids.append(efield.get_unique_identifier())
+        efield_ids.sort()
+        return efield_ids
+
     def add_electric_field(self, electric_field):
         self._electric_fields.append(electric_field)
 
@@ -322,3 +332,19 @@ class BaseStation():
                 self.set_station_time(data['_station_time'])
 
         self._particle_type = data['_particle_type']
+
+
+    def __add__(self, x):
+        if not isinstance(x, BaseStation):
+            raise AttributeError("Can only add BaseStation to BaseStation")
+        if self.get_id() != x.get_id():
+            raise AttributeError("Can only add BaseStations with the same ID")
+        for trigger in x.get_triggers().values():
+            self.set_trigger(trigger)
+        for efield in x.get_electric_fields():
+            self.add_electric_field(efield)
+        for key, value in x.get_parameters().items():
+            self.set_parameter(key, value)
+        for key, value in x.get_ARIANNA_parameters().items():
+            self.set_ARIANNA_parameter(key, value)
+        return self
