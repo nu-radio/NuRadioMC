@@ -1,10 +1,9 @@
 from NuRadioReco.modules.base.module import register_run
-import h5py
 import numpy as np
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 from NuRadioReco.modules.io.coreas import coreas
-from NuRadioReco.utilities import units
+from NuRadioReco.framework.parameters import stationParameters as stnp
 import logging
 logger = logging.getLogger('readCoREASStation')
 
@@ -44,42 +43,60 @@ class readCoREASStation:
         """
         for input_file in self.__input_files:
             self.__current_event = 0
-            with h5py.File(input_file, "r") as corsika:
-                zenith, azimuth, magnetic_field_vector = coreas.get_angles(corsika)
-                obs_positions_geo = []
-                for i, (name, observer) in enumerate(corsika['CoREAS']['observers'].items()):
-                    obs_positions_geo.append(coreas.convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector))
-                obs_positions_geo = np.array(obs_positions_geo)
-                weights = coreas.calculate_simulation_weights(obs_positions_geo, zenith, azimuth, debug=self.__debug)
-                if self.__debug:
-                    import matplotlib.pyplot as plt
-                    fig, ax = plt.subplots()
-                    im = ax.scatter(obs_positions_geo[:, 0], obs_positions_geo[:, 1], c=weights)
-                    fig.colorbar(im, ax=ax).set_label(label=r'Area $[m^2]$')
-                    plt.xlabel('East [m]')
-                    plt.ylabel('West [m]')
-                    plt.title('Final weighting')
-                    plt.gca().set_aspect('equal')
-                    plt.show()
 
-                for i, (name, observer) in enumerate(corsika['CoREAS']['observers'].items()):
-                    evt = NuRadioReco.framework.event.Event(self.__current_input_file, self.__current_event)  # create empty event
-                    station = NuRadioReco.framework.station.Station(self.__station_id)
-                    sim_station = coreas.make_sim_station(
-                        self.__station_id,
-                        corsika,
-                        weights[i]
-                    )
+            corsika_evt = coreas.read_CORSIKA7(input_file)
+            coreas_sim_station = corsika_evt.get_station(0).get_sim_station()
+            corsika_efields = coreas_sim_station.get_electric_fields()
 
-                    channel_ids = detector.get_channel_ids(self.__station_id)
-                    efield, efield_times = coreas.convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vector, prepend_zeros=True)
-                    coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_times, corsika)
-                    station.set_sim_station(sim_station)
-                    sim_shower = coreas.make_sim_shower(corsika, observer, detector, self.__station_id)
-                    evt.add_sim_shower(sim_shower)
-                    evt.set_station(station)
-                    self.__current_event += 1
-                    yield evt
+            efield_pos = []
+            for corsika_efield in corsika_efields:
+                efield_pos.append(corsika_efield.get_position())
+            efield_pos = np.array(efield_pos)
+
+            weights = coreas.calculate_simulation_weights(efield_pos, coreas_sim_station.get_parameter(stnp.zenith), coreas_sim_station.get_parameter(stnp.azimuth), debug=self.__debug)
+            if self.__debug:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots()
+                im = ax.scatter(efield_pos[:, 0], efield_pos[:, 1], c=weights)
+                fig.colorbar(im, ax=ax).set_label(label=r'Area $[m^2]$')
+                plt.xlabel('East [m]')
+                plt.ylabel('West [m]')
+                plt.title('Final weighting')
+                plt.gca().set_aspect('equal')
+                plt.show()
+
+            # make one event for each observer with differen core position (set in create_sim_shower)
+            for i, corsika_efield in enumerate(corsika_efields):
+                evt = NuRadioReco.framework.event.Event(self.__current_input_file, self.__current_event)  # create empty event
+                station = NuRadioReco.framework.station.Station(self.__station_id)
+                sim_station = coreas.create_sim_station(self.__station_id, corsika_evt, weights[i])
+
+                channel_ids = detector.get_channel_ids(self.__station_id)
+                efield_trace = corsika_efield.get_trace()
+                efield_sampling_rate = efield_trace.get_sampling_rate()
+                efield_times = corsika_efield.get_times()
+
+                prepend_zeros = True # prepend zeros to not have the pulse directly at the start, heritage from old code
+                if prepend_zeros:
+                    n_samples_prepend = efield_trace.shape[1]
+                    efield_cor = np.zeros((3, n_samples_prepend + efield_trace.shape[1]))
+                    efield_cor[0] = np.append(np.zeros(n_samples_prepend), efield_trace[0])
+                    efield_cor[1] = np.append(np.zeros(n_samples_prepend), efield_trace[1])
+                    efield_cor[2] = np.append(np.zeros(n_samples_prepend), efield_trace[2])
+
+                    efield_times_cor = np.arange(0, n_samples_prepend + efield_trace.shape[1]) / efield_sampling_rate
+
+                else:
+                    efield_cor = efield_trace
+                    efield_times_cor = efield_times
+
+                coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield_cor, efield_times_cor, sim_station.get_parameter(stnp.zenith), sim_station.get_parameter(stnp.azimuth), efield_sampling_rate)
+                station.set_sim_station(sim_station)
+                sim_shower = coreas.create_sim_shower(corsika_evt, detector, self.__station_id)
+                evt.add_sim_shower(sim_shower)
+                evt.set_station(station)
+                self.__current_event += 1
+                yield evt
             self.__current_input_file += 1
 
     def end(self):
