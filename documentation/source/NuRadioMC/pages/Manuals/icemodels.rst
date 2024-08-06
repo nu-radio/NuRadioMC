@@ -2,7 +2,7 @@ Ice and attenuation models
 ================================
 
 Ice model implementation
-________________________
+------------------------
 Ice models are the object in NuRadioMC that holds all the information of the ice needed to calculate the trajectory, namely: the refractive index at all the relevant points in space, boundary conditions and other special features that determine the ice medium. It can be found in the **utilities** module under ``medium.py`` and ``medium_base.py``.
 
 The IceModel and IceModel_Simple class
@@ -107,7 +107,7 @@ An example of the implementation of a non-simple model if given by ``greenland_f
 
 
 Available models in NuRadioMC
-_____________________________
+-----------------------------
 
 Simple ice models
 _________________
@@ -150,7 +150,7 @@ Both the ice model and the attenuation model can be specified in the config file
             attenuation_model: GL1
 
 Example script
-______________
+--------------
 The following snippet shows how the ice properties can be retrieved from NuRadioMC for an independent analysis.
 
     .. code-block:: Python
@@ -174,7 +174,7 @@ The following snippet shows how the ice properties can be retrieved from NuRadio
         attenuation_length = attenuation.get_attenuation_length(depth, frequency, attenuation_model)
 
 Birefringence Ice Models
-________________________
+------------------------
 
 Birefringence is an optional propagation setting in NuRadioMC which allows to simulate radio pulses propagating in anisotropic ice. The details about how the calculations in the propagation work can be found here `(Heyer & Glaser, 2023) <https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y>`__. When using birefringence several options exist about what birefringence-ice-model to propagate in and what propagation code should be used for the propagation.
 
