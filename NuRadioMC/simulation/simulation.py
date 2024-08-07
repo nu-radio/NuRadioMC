@@ -1102,7 +1102,10 @@ class simulation:
         if 'write_mode' in kwargs:
             logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
 
-        self.__trigger_channels = trigger_channels
+        self.__trigger_channel_ids = trigger_channels
+        if(self.__trigger_channel_ids is None):
+            logger.warning("No trigger channels specified. All channels will be simulated even if they don't contribute to any trigger. This can be inefficient. \
+                           Processing time can be saved by specifying the trigger channels.")
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
@@ -1452,11 +1455,11 @@ class simulation:
                 # we allow to first only simualte trigger channels. As the trigger channels might be different per station,
                 # we need to determine the channels to simulate first per station
                 channel_ids = self._det.get_channel_ids(sid)
-                if self.__trigger_channels is not None:
-                    if isinstance(self.__trigger_channels, dict):
-                        channel_ids = self.__trigger_channels[sid]
+                if self.__trigger_channel_ids is not None:
+                    if isinstance(self.__trigger_channel_ids, dict):
+                        channel_ids = self.__trigger_channel_ids[sid]
                     else:
-                        channel_ids = self.__trigger_channels
+                        channel_ids = self.__trigger_channel_ids
 
                 # loop over all trigger channels
                 candidate_station = False
@@ -1508,7 +1511,7 @@ class simulation:
                     station = evt.get_station()
                     apply_det_response(evt, self._det, self._config, self.detector_simulation_filter_amp,
                                        bool(self._config['noise']),
-                                       self._Vrms_efield_per_channel, self._integrated_channel_response,
+                                       self._Vrms_per_channel, self._integrated_channel_response,
                                        self._noiseless_channels,
                                        time_logger=self.__time_logger,
                                        channel_ids=channel_ids,
@@ -1566,6 +1569,9 @@ class simulation:
                             trigger_time = None
                             pre_trigger_time = None
                             for trigger in evt.get_station().get_triggers().values():
+                                # we need to select the trigger that was used to determine the readout window, which is the one that has the
+                                # `pre_trigger_times` set. All other triggers will return None. We can double check that by testing that the
+                                #  trigger_time is the same as start time as the trace
                                 if trigger.get_pre_trigger_times() is not None:
                                     pre_trigger_time = trigger.get_pre_trigger_times()
                                     trigger_time = trigger.get_trigger_time()
@@ -1585,6 +1591,7 @@ class simulation:
                                 t1_readout = t0_readout + self._det.get_number_of_samples(sid, sim_channel.get_id()) * self._det.get_sampling_frequency(sid, sim_channel.get_id())
 
                                 # determine if the two intervals have any overlap
+                                # TODO: Is the readout window set correctly? Shouldn't the channel be read out from t0_readout to t1_readout?
                                 if max(t0, t0_readout) < min(t1, t1_readout):
                                     tmp_channel = NuRadioReco.framework.channel.Channel(sim_channel.get_id())
                                     tmp_channel.set_trace(sim_channel.get_trace(), sim_channel.get_sampling_rate())
@@ -1609,7 +1616,17 @@ class simulation:
                         for channel_id in non_trigger_channels:
                             if channel_id in self._noiseless_channels[sid]:
                                 continue
-                            channel = station.get_channel(channel_id)
+                            # we might not have a channel object in case there was no ray tracing solution to this channel, or if the timing did not match
+                            # the readout window. In this case we need to create a channel object and add it to the station
+                            if station.has_channel(channel_id):
+                                channel = station.get_channel(channel_id)
+                            else:
+                                channel = NuRadioReco.framework.channel.Channel(channel_id)
+                                channel.set_trace(np.zeros(self._det.get_number_of_samples(sid, channel_id)), 1. / (self._config['sampling_rate']))
+                                # we need to use any other channel to get the correct trace_start_time. All channels have the same start time at the end
+                                # of the simulation.
+                                channel.set_trace_start_time(station.get_channel(station.get_channel_ids()[0]).get_trace_start_time())
+                                station.add_channel(channel)
                             # logger.status(f"norm  = {norm}, Vrms = {Vrms[channel_id]}, max_freq = {max_freq}")
                             ff = channel.get_frequencies()
                             filt = np.ones_like(ff, dtype=complex)
