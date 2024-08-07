@@ -1567,6 +1567,9 @@ class simulation:
                             trigger_time = None
                             pre_trigger_time = None
                             for trigger in evt.get_station().get_triggers().values():
+                                # we need to select the trigger that was used to determine the readout window, which is the one that has the
+                                # `pre_trigger_times` set. All other triggers will return None. We can double check that by testing that the
+                                #  trigger_time is the same as start time as the trace
                                 if trigger.get_pre_trigger_times() is not None:
                                     pre_trigger_time = trigger.get_pre_trigger_times()
                                     trigger_time = trigger.get_trigger_time()
