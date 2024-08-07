@@ -1614,7 +1614,17 @@ class simulation:
                         for channel_id in non_trigger_channels:
                             if channel_id in self._noiseless_channels[sid]:
                                 continue
-                            channel = station.get_channel(channel_id)
+                            # we might not have a channel object in case there was no ray tracing solution to this channel, or if the timing did not match
+                            # the readout window. In this case we need to create a channel object and add it to the station
+                            if station.has_channel(channel_id):
+                                channel = station.get_channel(channel_id)
+                            else:
+                                channel = NuRadioReco.framework.channel.Channel(channel_id)
+                                channel.set_trace(np.zeros(self._det.get_number_of_samples(sid, channel_id)), 1. / (self._config['sampling_rate']))
+                                # we need to use any other channel to get the correct trace_start_time. All channels have the same start time at the end
+                                # of the simulation.
+                                channel.set_trace_start_time(station.get_channel(station.get_channel_ids()[0]).get_trace_start_time())
+                                station.add_channel(channel)
                             # logger.status(f"norm  = {norm}, Vrms = {Vrms[channel_id]}, max_freq = {max_freq}")
                             ff = channel.get_frequencies()
                             filt = np.ones_like(ff, dtype=complex)
