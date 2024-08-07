@@ -1102,7 +1102,10 @@ class simulation:
         if 'write_mode' in kwargs:
             logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
 
-        self.__trigger_channels = trigger_channels
+        self.__trigger_channel_ids = trigger_channels
+        if(self.__trigger_channel_ids is None):
+            logger.warning("No trigger channels specified. All channels will be simulated even if they don't contribute to any trigger. This can be inefficient. \
+                           Processing time can be saved by specifying the trigger channels.")
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
@@ -1451,11 +1454,11 @@ class simulation:
                 # we allow to first only simualte trigger channels. As the trigger channels might be different per station, 
                 # we need to determine the channels to simulate first per station
                 channel_ids = self._det.get_channel_ids(sid)
-                if self.__trigger_channels is not None:
-                    if isinstance(self.__trigger_channels, dict):
-                        channel_ids = self.__trigger_channels[sid]
+                if self.__trigger_channel_ids is not None:
+                    if isinstance(self.__trigger_channel_ids, dict):
+                        channel_ids = self.__trigger_channel_ids[sid]
                     else:
-                        channel_ids = self.__trigger_channels
+                        channel_ids = self.__trigger_channel_ids
 
                 # loop over all trigger channels
                 candidate_station = False
@@ -1506,7 +1509,7 @@ class simulation:
                     station = evt.get_station()
                     apply_det_response(evt, self._det, self._config, self.detector_simulation_filter_amp,
                                        bool(self._config['noise']),
-                                       self._Vrms_efield_per_channel, self._integrated_channel_response,
+                                       self._Vrms_per_channel, self._integrated_channel_response,
                                        self._noiseless_channels, 
                                        time_logger=self.__time_logger,
                                        channel_ids=channel_ids,
