@@ -281,7 +281,8 @@ class triggerBoardResponse:
             channel.set_trace(digitized_trace, adc_sampling_frequency)
 
     @register_run()
-    def run(self, evt, station, det, requested_channels=[], vrms=None, apply_adc_gain=True, digitize_trace=True, channel_offset=0):
+    def run(self, evt, station, det, requested_channels=[], vrms=None, apply_adc_gain=True,
+            digitize_trace=True, channel_offset=0, do_apply_trigger_filter=True):
         """
         Applies the additional filters on the trigger board and performs a gain amplification
         to get the correct number of trigger bits.
@@ -309,6 +310,9 @@ class triggerBoardResponse:
         channel_offset : int (default: 0)
             The offset to apply to the channel IDs when requesting the detector description. This is
             necessary if you have created a copy of the original channel and changed the ID.
+        do_apply_trigger_filter : bool (default: True)
+            Apply the trigger filter to the waveforms. The response might already be ablied as part of the
+            detector simulation, in which case this should be set to `False`.
 
         Returns
         -------
@@ -320,8 +324,11 @@ class triggerBoardResponse:
         self.logger.debug("Applying the RNO-G trigger board response")
         self.__channel_offset = channel_offset
 
-        trigger_channels, trigger_amp_response = self.get_trigger_values(station, det, requested_channels)
-        self.apply_trigger_filter(station, trigger_channels, trigger_amp_response)
+        if do_apply_trigger_filter:
+            trigger_channels, trigger_amp_response = self.get_trigger_values(station, det, requested_channels)
+            self.apply_trigger_filter(station, trigger_channels, trigger_amp_response)
+        else:
+            trigger_channels = requested_channels
 
         if vrms is None:
             vrms = self.get_avg_vrms(station, trigger_channels)
