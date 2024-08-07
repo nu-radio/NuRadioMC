@@ -230,7 +230,7 @@ class planeWaveDirectionFitter:
 
         A, B, C = np.linalg.lstsq(M, lightspeed * times, rcond=None)[0]
 
-        el = np.arccos(np.sqrt(A * A + B * B))
+        el = np.arccos(np.sqrt(A * A + B * B))  # TODO: this can result in RuntimeWarning - why?
         az = halfpi - np.arctan2(-B, -A)  # note minus sign as we want the direction of the _incoming_ vector (from the sky, not towards it)
         # note: Changed to az = 90_deg - phi
         return az, el
@@ -357,7 +357,7 @@ class planeWaveDirectionFitter:
 
                 if np.isnan(el) or np.isnan(az):
                     self.logger.warning('Plane wave fit returns NaN. Setting elevation to 0.0')
-                    el = np.deg2rad(40)
+                    el = np.deg2rad(40)  # TODO: why is the value 40 if the statement says 0.0?
                     fit_failed = True
                 else:
                     fit_failed = False
