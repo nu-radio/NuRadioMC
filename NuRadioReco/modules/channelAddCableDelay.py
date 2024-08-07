@@ -26,7 +26,7 @@ class channelAddCableDelay:
         """
         for channel in station.iter_channels():
             cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-            self.logger.debug(f"Channel {channel.get_id()}: {mode} {cable_delay / units.ns} ns")
+            self.logger.debug(f"Channel {channel.get_id()}: {mode} {cable_delay / units.ns:.2f} ns")
 
             if mode == 'add':
                 channel.add_trace_start_time(cable_delay)
