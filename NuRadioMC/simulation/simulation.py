@@ -1589,6 +1589,7 @@ class simulation:
                                 t1_readout = t0_readout + self._det.get_number_of_samples(sid, sim_channel.get_id()) * self._det.get_sampling_frequency(sid, sim_channel.get_id())
 
                                 # determine if the two intervals have any overlap
+                                # TODO: Is the readout window set correctly? Shouldn't the channel be read out from t0_readout to t1_readout?
                                 if max(t0, t0_readout) < min(t1, t1_readout):
                                     tmp_channel = NuRadioReco.framework.channel.Channel(sim_channel.get_id())
                                     tmp_channel.set_trace(sim_channel.get_trace(), sim_channel.get_sampling_rate())
