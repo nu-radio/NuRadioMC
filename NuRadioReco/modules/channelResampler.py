@@ -16,7 +16,7 @@ class channelResampler:
     @register_run()
     def run(self, evt, station, det, sampling_rate=None):
         """
-        Run the channelResampler
+        Resample channel traces.
 
         Parameters
         ----------
@@ -24,8 +24,8 @@ class channelResampler:
         evt, station, det
             Event, Station, Detector
         sampling_rate: float (Default: None)
-            In units 1/time provides the desired sampling rate of the data.
-
+            In units `1 / time` provides the desired sampling rate of the data.
+            If None, take sampling rate from detector description.
         """
         for channel in station.iter_channels():
             if sampling_rate is None:
