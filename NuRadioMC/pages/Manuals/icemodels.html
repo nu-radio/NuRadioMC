@@ -555,7 +555,7 @@
 <li class="toctree-l5"><a class="reference internal" href="#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
 <li class="toctree-l5"><a class="reference internal" href="#ice-flow-direction">Ice-Flow Direction</a></li>
 <li class="toctree-l5"><a class="reference internal" href="#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#id1">Using specific models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#using-specific-birefringence-models">Using specific birefringence models</a></li>
 </ul>
 </li>
 </ul>
@@ -718,8 +718,8 @@
 <h3>Simple ice models<a class="headerlink" href="#simple-ice-models" title="Permalink to this heading"></a></h3>
 <p>In the table below we can find the different parameters for the simple ice refractive index models available in NuRadioMC.</p>
 <blockquote>
-<div><table class="docutils align-default" id="id2">
-<caption><span class="caption-text">Simple Ice Models</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
+<div><table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Simple Ice Models</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p><span class="math notranslate nohighlight">\(n_{ice}\)</span></p></th>
@@ -829,8 +829,8 @@
 <p>The anisotropy of the ice in Greenland was published here: <a class="reference external" href="https://arxiv.org/abs/2212.10285">(RNO-G, 2022)</a></p>
 <p>To use these ice models in NuRadioMC the measurement data was interpolated using splines. As the measurements don’t extend from the ice surface to bedrock or to account for measurement uncertainties, there is some freedom in how to interpolate the data. Different interpolations are indexed via capital letters, <code class="docutils literal notranslate"><span class="pre">A</span></code> always denoting the most reasonable interpolation. The files <code class="docutils literal notranslate"><span class="pre">NuRadioMC/utilities/birefringence_models/IceModel_interpolation_southpole.py</span></code> and <code class="docutils literal notranslate"><span class="pre">NuRadioMC/utilities/birefringence_models/IceModel_interpolation_greenland.py</span></code> can be used to adjust the interpolation method and come up with new ice models.</p>
 <blockquote>
-<div><table class="docutils align-default" id="id3">
-<caption><span class="caption-text">South Pole Birefringence Ice Models</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
+<div><table class="docutils align-default" id="id2">
+<caption><span class="caption-text">South Pole Birefringence Ice Models</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p>description</p></th>
@@ -854,8 +854,8 @@
 </tr>
 </tbody>
 </table>
-<table class="docutils align-default" id="id4">
-<caption><span class="caption-text">Greenland Birefringence Ice Models</span><a class="headerlink" href="#id4" title="Permalink to this table"></a></caption>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Greenland Birefringence Ice Models</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p>description</p></th>
@@ -885,8 +885,8 @@
 <p>There is an option to use RadioPropa <a class="reference external" href="https://github.com/nu-radio/RadioPropa/tree/birefrigence">(birefringence branch)</a>  to speed up the pulse propagation. If both the ray tracing and the birefringence pulse propagation should be handled by the analytical ray tracer, use <code class="docutils literal notranslate"><span class="pre">analytical</span></code> in the config file. If the ray tracing should be handled by the analytical ray tracer but the birefringence pulse propagation by RadioPropa, use <code class="docutils literal notranslate"><span class="pre">numerical</span></code> in the config file. There is also the option to handle everything in RadioPropa.</p>
 <p>Currently, the RadioPropa implementation of birefringence only supports the birefringence-ice-model <code class="docutils literal notranslate"><span class="pre">southpole_A</span></code>.</p>
 </section>
-<section id="id1">
-<h3>Using specific models<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<section id="using-specific-birefringence-models">
+<h3>Using specific birefringence models<a class="headerlink" href="#using-specific-birefringence-models" title="Permalink to this heading"></a></h3>
 <p>Birefringence is an optional setting in a NuRadioMC simulation. To use it in a simulation the following lines should be added to the config file:</p>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span>

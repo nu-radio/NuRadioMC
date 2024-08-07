@@ -551,7 +551,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#using-specific-birefringence-models">Using specific birefringence models</a></li>
 </ul>
 </li>
 </ul>
@@ -627,7 +627,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    amplitude : float </span>
+<span class="sd">    amplitude : float</span>
 <span class="sd">        strength of a pulse</span>
 <span class="sd">    N : int</span>
 <span class="sd">        number of samples in the time domain</span>
@@ -635,7 +635,7 @@
 <span class="sd">        time bin width, i.e. the inverse of the sampling rate</span>
 <span class="sd">    model: string</span>
 <span class="sd">        specifies the signal model</span>
-<span class="sd">        If the model string starts with &quot;efield_&quot;, the function provides the three dimensional electric field emitted</span>
+<span class="sd">        If the model string starts with &quot;efield&quot;, the function provides the three dimensional electric field emitted</span>
 <span class="sd">        by the pulser/antena combination normalized to a distance of 1m.</span>
 <span class="sd">        If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain</span>
 <span class="sd">        the emitted electric field. This is automatically done in a NuRadioMC simulation).</span>
@@ -651,7 +651,7 @@
 <span class="sd">          calibration campaigns from 2018 and 2019.</span>
 <span class="sd">          The `launch_vector` needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,</span>
 <span class="sd">          doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.</span>
-<span class="sd">          the `amplitude` is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an </span>
+<span class="sd">          the `amplitude` is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an</span>
 <span class="sd">          amplitude of 10 will return 10 times the measured efield amplitude, etc.</span>
 <span class="sd">          Use kwarg `iN` to select a specific pulse from the 10 available pulses. The default is a random selection.</span>
 <span class="sd">        * efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg `polarization` needs</span>
@@ -675,7 +675,7 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    time trace: 1d or 2d array, shape (N) or (3, N) for efield</span>
+<span class="sd">    time trace: 1d or 2d array, shape (N) or (3, N) for `NuRadioReco.framework.electric_field`</span>
 <span class="sd">        the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</span>
 <span class="sd">    additional information: dict</span>
 <span class="sd">        only available if `full_output` enabled</span>
@@ -853,7 +853,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    amplitude : float </span>
+<span class="sd">    amplitude : float</span>
 <span class="sd">        strength of a pulse</span>
 <span class="sd">    N : int</span>
 <span class="sd">        number of samples in the time domain</span>
@@ -861,10 +861,10 @@
 <span class="sd">        time bin width, i.e. the inverse of the sampling rate</span>
 <span class="sd">    model: string</span>
 <span class="sd">        specifies the signal model</span>
-<span class="sd">        If the model string starts with &quot;efield_&quot;, the function provides the three dimensional electric field emitted</span>
-<span class="sd">        by the pulser/antena combination normalized to a distance of 1m. </span>
+<span class="sd">        If the model string starts with &quot;efield&quot;, the function provides the three dimensional electric field emitted</span>
+<span class="sd">        by the pulser/antena combination normalized to a distance of 1m.</span>
 <span class="sd">        If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain</span>
-<span class="sd">        the emitted electric field. This is automatically done in a NuRadioMC simulation).  </span>
+<span class="sd">        the emitted electric field. This is automatically done in a NuRadioMC simulation).</span>
 
 <span class="sd">        * delta_pulse: a simple signal model of a delta pulse emitter</span>
 <span class="sd">        * cw : a sinusoidal wave of given frequency</span>
@@ -888,7 +888,7 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    time trace: 1d or 2d array, shape (N) or (3, N) for efield</span>
+<span class="sd">    time trace: 1d or 2d array, shape (N) or (3, N) for `NuRadioReco.framework.electric_field`</span>
 <span class="sd">        the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</span>
 <span class="sd">    additional information: dict</span>
 <span class="sd">        only available if `full_output` enabled</span>

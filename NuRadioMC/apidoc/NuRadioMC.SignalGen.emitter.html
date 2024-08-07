@@ -554,7 +554,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/icemodels.html#available-birefringence-ice-models">Available Birefringence Ice Models</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/icemodels.html#ice-flow-direction">Ice-Flow Direction</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/icemodels.html#available-birefringence-propagation-options">Available Birefringence Propagation Options</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/icemodels.html#id1">Using specific models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/icemodels.html#using-specific-birefringence-models">Using specific birefringence models</a></li>
 </ul>
 </li>
 </ul>
@@ -627,7 +627,7 @@ to be known by the user.</p>
 <dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
 </dd>
 <dt><strong>model: string</strong></dt><dd><p>specifies the signal model
-If the model string starts with “<a href="#id1"><span class="problematic" id="id2">efield_</span></a>”, the function provides the three dimensional electric field emitted
+If the model string starts with “efield”, the function provides the three dimensional electric field emitted
 by the pulser/antena combination normalized to a distance of 1m.
 If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain
 the emitted electric field. This is automatically done in a NuRadioMC simulation).</p>
@@ -643,7 +643,7 @@ the emitted electric field. This is automatically done in a NuRadioMC simulation
 calibration campaigns from 2018 and 2019.
 The <em class="xref py py-obj">launch_vector</em> needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
 doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.
-the <em class="xref py py-obj">amplitude</em> is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an 
+the <em class="xref py py-obj">amplitude</em> is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an
 amplitude of 10 will return 10 times the measured efield amplitude, etc.
 Use kwarg <em class="xref py py-obj">iN</em> to select a specific pulse from the 10 available pulses. The default is a random selection.</p></li>
 <li><p>efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg <em class="xref py py-obj">polarization</em> needs
@@ -669,7 +669,7 @@ and A_phi = sqrt(polarization).</p></li>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>time trace: 1d or 2d array, shape (N) or (3, N) for efield</dt><dd><p>the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</p>
+<dt>time trace: 1d or 2d array, shape (N) or (3, N) for <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#module-NuRadioReco.framework.electric_field" title="NuRadioReco.framework.electric_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.electric_field</span></code></a></dt><dd><p>the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</p>
 </dd>
 <dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
 </dd>
@@ -692,8 +692,8 @@ and A_phi = sqrt(polarization).</p></li>
 <dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
 </dd>
 <dt><strong>model: string</strong></dt><dd><p>specifies the signal model
-If the model string starts with “<a href="#id3"><span class="problematic" id="id4">efield_</span></a>”, the function provides the three dimensional electric field emitted
-by the pulser/antena combination normalized to a distance of 1m. 
+If the model string starts with “efield”, the function provides the three dimensional electric field emitted
+by the pulser/antena combination normalized to a distance of 1m.
 If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain
 the emitted electric field. This is automatically done in a NuRadioMC simulation).</p>
 <ul class="simple">
@@ -722,7 +722,7 @@ the emitted electric field. This is automatically done in a NuRadioMC simulation
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>time trace: 1d or 2d array, shape (N) or (3, N) for efield</dt><dd><p>the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</p>
+<dt>time trace: 1d or 2d array, shape (N) or (3, N) for <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#module-NuRadioReco.framework.electric_field" title="NuRadioReco.framework.electric_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.electric_field</span></code></a></dt><dd><p>the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</p>
 </dd>
 <dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
 </dd>
