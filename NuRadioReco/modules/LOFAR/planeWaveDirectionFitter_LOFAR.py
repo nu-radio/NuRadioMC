@@ -1,5 +1,5 @@
 """
-This modules has been adapted from pycrtools.modules.tasks.directionfitplanewave and
+This module has been adapted from pycrtools.modules.tasks.directionfitplanewave and
 NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR
 
 .. moduleauthor:: Philipp Laub <philipp.laub@fau.de>
@@ -43,7 +43,6 @@ class planeWaveDirectionFitter:
         self.__rmsfactor = None
         self.__min_amp = None
         self.__max_iter = None
-
 
     def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, force_horizontal_array=True, window_size=800,
               debug=False, logger_level=logging.WARNING):
@@ -159,7 +158,7 @@ class planeWaveDirectionFitter:
             azimuth=azimuth
         )
         # Collect the traces
-        traces = [station.get_channel(id).get_trace() for id in channel_ids_per_pol[dominant_pol]]
+        traces = [station.get_channel(channel_id).get_trace() for channel_id in channel_ids_per_pol[dominant_pol]]
         times = station.get_channel(channel_ids_per_pol[dominant_pol][0]).get_times()
 
         # Determine the signal time
@@ -175,7 +174,7 @@ class planeWaveDirectionFitter:
 
     @staticmethod
     def _directionForHorizontalArray(positions: np.ndarray, times: np.ndarray, ignore_z_coordinate=False):
-        """
+        r"""
         --- adapted from pycrtools.modules.scrfind ---
         Given N antenna positions, and (pulse) arrival times for each antenna,
         get a direction of arrival (az, el) assuming a source at infinity (plane wave).
@@ -333,7 +332,6 @@ class planeWaveDirectionFitter:
             # iteratively do the plane wave fit and remove outliers (controlled by rmsfactor)
             # until the number of good antennas remains constant
             niter = 0
-            fit_failed = False
 
             while niter < self.__max_iter:  # TODO: maybe add additional condition?
                 niter += 1
@@ -341,7 +339,6 @@ class planeWaveDirectionFitter:
                 if num_good_antennas < 4:
                     self.logger.warning(f"Only {num_good_antennas:d} good antennas remaining!")
                     self.logger.error(f"Too few good antennas for direction fit!")
-                    fit_failed = True
                     break
 
                 # update arrays to use only previously found "good" antennas:
@@ -373,7 +370,7 @@ class planeWaveDirectionFitter:
 
                 if fit_failed:
                     bins = int((residual_delays.max() - residual_delays.min()) * lightspeed / (
-                                position_array[:, 0].max() - position_array[:, 0].min()))
+                            position_array[:, 0].max() - position_array[:, 0].min()))
                     if bins < 1:
                         bins = 1
                     hist, edges = np.histogram(residual_delays, bins=bins)
@@ -383,15 +380,16 @@ class planeWaveDirectionFitter:
                     self.logger.debug(f"edges: {edges}")
                     # fix for first and last bin
                     self.logger.debug(f"maximum at: {max_time}")
+
                     try:
                         upper = edges[max_time + 2]
-                    except:
+                    except IndexError:
                         upper = edges[edges.shape[0] - 1]
                         self.logger.debug(f"upper exception")
+
                     try:
                         lower = edges[max_time]
-
-                    except:
+                    except IndexError:
                         self.logger.debug(f"lower exception")
                         lower = edges[0]
 
@@ -447,7 +445,8 @@ class planeWaveDirectionFitter:
             azimuth = station.get_parameter(stationParameters.azimuth)
             zenith = station.get_parameter(stationParameters.zenith)
 
-            self.logger.status(f"Azimuth (counterclockwise wrt to East) and zenith for station CS{station.get_id():03d}:")
+            self.logger.status(
+                f"Azimuth (counterclockwise wrt to East) and zenith for station CS{station.get_id():03d}:")
             self.logger.status(f"{azimuth / units.deg}, {zenith / units.deg}")
 
             self.logger.status(f"Azimuth (wrt to North) and elevation for station CS{station.get_id():03d}:")
