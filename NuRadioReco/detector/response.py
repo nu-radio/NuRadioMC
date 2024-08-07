@@ -269,8 +269,8 @@ class Response:
 
         if isinstance(other, Response):
             self = copy.deepcopy(self)
-            if self._station_id != other._station_id or \
-                self._channel_id != other._channel_id and self._station_id != -1:
+            if (self._station_id != other._station_id or
+                self._channel_id != other._channel_id) and (other._station_id != -1 and self._station_id != -1):
                 # station_id == -1 is a special case to all non-station specific responses
                 self.logger.error("It looks like you are combining responses from "
                                   f"two different channels: {self._station_id}.{self._channel_id} "
@@ -314,9 +314,9 @@ class Response:
         return self.__mul__(other)
 
     def __str__(self):
-        ampl = 20 * np.log10(np.abs(self(0.5 * units.GHz)))
+        ampl = 20 * np.log10(np.abs(self(np.array([0.15, 0.5]) * units.GHz)))
         return "Response of " + ", ".join([f"{name} ({weight})" for name, weight in zip(self.get_names(), self.__weights)]) \
-            + f": |R(0.5 GHz)| = {ampl:.2f} dB (amplitude) ({np.sum(self.__time_delays):.2f} ns)"
+            + f": |R([0.15, 0.5] GHz)| = [{ampl[0]:.2f}, {ampl[1]:.2f}] dB (amplitude) ({np.sum(self.__time_delays):.2f} ns)"
 
     def plot(self, ax1=None, show=False, in_dB=True, plt_kwargs={}):
         import matplotlib.pyplot as plt
