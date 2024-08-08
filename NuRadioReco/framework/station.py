@@ -30,10 +30,11 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         return self.__sim_station is not None
 
     def iter_channels(self, use_channels=None):
-        for channel_id, channel in iteritems(self.__channels):
-            if(use_channels is None):
+        if use_channels is None:
+            for channel_id, channel in self.__channels.items():
                 yield channel
-            else:
+        else:
+            for channel_id, channel in self.__channels.items():
                 if channel_id in use_channels:
                     yield channel
 
@@ -42,7 +43,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def iter_channel_group(self, channel_group_id):
         found_channel_group = False
-        for channel_id, channel in iteritems(self.__channels):
+        for channel_id, channel in self.__channels.items():
             if(channel.get_group_id() == channel_group_id):
                 found_channel_group = True
                 yield channel
