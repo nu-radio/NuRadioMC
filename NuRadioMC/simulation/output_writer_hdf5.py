@@ -118,7 +118,7 @@ class outputWriterHDF5:
                     tmp_keys = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"]]
                     for (key_cp, key_hdf5) in tmp_keys:
                         channel_values = []
-                        for channel in stn.iter_channels():
+                        for channel in stn.iter_channels(sorted=True):
                             channel_values.append(channel[key_cp])
                         if key_hdf5 not in self._mout_groups_attributes[sid]:
                             self._mout_groups_attributes[sid][key_hdf5] = np.array(channel_values)
@@ -211,7 +211,7 @@ class outputWriterHDF5:
                 self.__add_parameter(sg, 'event_ids', evt.get_id())
                 maximum_amplitudes = []
                 maximum_amplitudes_envelope = []
-                for channel in stn.iter_channels():
+                for channel in stn.iter_channels(sorted=True):
                     maximum_amplitudes.append(channel[chp.maximum_amplitude])
                     maximum_amplitudes_envelope.append(channel[chp.maximum_amplitude_envelope])
                 self.__add_parameter(sg, 'maximum_amplitudes', maximum_amplitudes)
@@ -269,7 +269,7 @@ class outputWriterHDF5:
                         # tracing solution and a strong enough Askaryan signal. But we want to loop over all 
                         # channels of the station, because we want to save the data for all channels, not only
                         # the ones that have a signal. This also preserves the order of the channels.
-                        for iCh, channel in enumerate(stn.iter_channels()):
+                        for iCh, channel in enumerate(stn.iter_channels(sorted=True)):
                             for efield in stn.get_sim_station().get_electric_fields_for_channels([channel.get_id()]):
                                 if efield.get_shower_id() == shower.get_id():
                                     iS = efield.get_ray_tracing_solution_id()
