@@ -42,8 +42,10 @@ class ModDetector(Detector):
     def modify_channel_description(self, station_id, channel_id, keys, value):
         """
         This function allows you to replace/modifty the description of a channel.
+
         Parameters
         ----------
+
         station_id: int
             The station id
         channel_id: int
@@ -105,6 +107,7 @@ class ModDetector(Detector):
 
         Parameters
         ----------
+
         station_id: int
             The station id
         keys: list of str
