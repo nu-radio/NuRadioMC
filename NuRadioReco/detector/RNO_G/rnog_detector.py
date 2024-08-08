@@ -160,6 +160,7 @@ class Detector():
             self._import_from_file(detector_file)
 
         # Allow overwriting the hard-coded values
+        over_write_handset_values = over_write_handset_values or {}
         self.__default_values.update(over_write_handset_values)
 
         info = f"Query entire detector description at once: {self._query_all}"
