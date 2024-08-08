@@ -275,6 +275,7 @@ def calculate_sim_efield(showers, sid, cid,
                 #     continue
             sim_station.add_electric_field(electric_field)
             logger.debug(f"Added electric field to SimStation for shower {shower.get_id()} and station {sid}, channel {cid} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
+
     return sim_station
 
 def calculate_sim_efield_for_emitter(emitters, sid, cid,
@@ -576,6 +577,7 @@ def apply_det_response(evt, det, config,
             for channel_id in det.get_channel_ids(station.get_id()):
                 norm = integrated_channel_response[station.get_id()][channel_id]
                 Vrms[channel_id] = Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
+
             channelGenericNoiseAdder.run(evt, station, det, amplitude=Vrms, min_freq=0 * units.MHz,
                                             max_freq=max_freq, type='rayleigh',
                                             excluded_channels=noiseless_channels[station.get_id()])
@@ -1377,6 +1379,7 @@ class simulation:
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
             logger.status("terminating simulation")
             return 0
+
         logger.status("Starting NuRadioMC simulation")
         self.__time_logger.reset_times()
 
@@ -1527,7 +1530,12 @@ class simulation:
                     triggerTimeAdjuster.run(evt, station, self._det)
                     evt_group_triggered = True
                     output_buffer[sid][evt.get_id()] = evt
+
                 # end event loop
+
+                if not evt_group_triggered:
+                    continue
+
                 # now simulate non-trigger channels
                 # we loop through all non-trigger channels and simulate the electric fields for all showers.
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
@@ -1557,6 +1565,7 @@ class simulation:
 
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
+                        print("applying sim detector response for ch %d" % channel_id)
                         apply_det_response_sim(sim_station, self._det, self._config, self.detector_simulation_filter_amp,
                                             event_time=self._evt_time, time_logger=self.__time_logger,
                                             detector_simulation_part1=self.detector_simulation_part1)
@@ -1639,6 +1648,7 @@ class simulation:
                             # from NuRadioReco.utilities import fft
                             # logger.warning(f"adding noise to channel {channel.get_id()} with Vrms = {Vrms[channel_id]/units.mV:.4f}mV, realized noise Vrms = {np.std(fft.freq2time(noise, 1/dt))/units.mV:.4f}mV")
                             channel.set_frequency_spectrum(channel.get_frequency_spectrum() + noise, channel.get_sampling_rate())
+
                     channelSignalReconstructor.run(evt, station, self._det)
                     # save RMS and bandwidth to channel object
                     evt.set_generator_info(genattrs.Vrms, self._Vrms)
@@ -1664,9 +1674,11 @@ class simulation:
                             eventWriter.run(evt, self._det, mode=output_mode)
                         else:
                             eventWriter.run(evt, mode=output_mode)
+
                     remove_all_traces(evt)  # remove all traces to save memory
-                if(evt_group_triggered):
-                    self._output_writer_hdf5.add_event_group(output_buffer)
+
+                print("Write triggered EventGroup to output file")
+                self._output_writer_hdf5.add_event_group(output_buffer)
 
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.end()
