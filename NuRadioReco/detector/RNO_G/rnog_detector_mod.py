@@ -8,11 +8,16 @@ from NuRadioReco.detector.RNO_G.rnog_detector import \
 def replace_value_in_dict(d, keys, value):
     """
     Replaces the value of a nested dict entry.
-    Example:
+
+    Examples
+    --------
+
+    .. code-block::
+
         d = {1: {2: {3: 1, 4: 2}}}
         replace_value_in_dict(d, [1, 2, 4], 14)
-        print(d)
-        # {1: {2: {3: 1, 4: 14}}}
+        print(d) # {1: {2: {3: 1, 4: 14}}}
+
     """
     if isinstance(keys, str):
         keys = [keys]
@@ -95,24 +100,25 @@ class ModDetector(Detector):
 
 
     def modify_station_description(self, station_id, keys, value):
-            """
-            This function allows you to replace/modifty the description of a channel.
-            Parameters
-            ----------
-            station_id: int
-                The station id
-            keys: list of str
-                The list of keys of the corresponding part of the description to be changed
-            value: various types
-                The value of the description to be changed
-            """
-            station_data = self.get_station(station_id)
+        """
+        This function allows you to replace/modifty the description of a channel.
 
-            if _keys_not_in_dict(station_data, keys):  # to simplify the code here all keys have to exist already
-                raise KeyError(
-                    f"Could not find {keys} for station {station_id}.")
+        Parameters
+        ----------
+        station_id: int
+            The station id
+        keys: list of str
+            The list of keys of the corresponding part of the description to be changed
+        value: various types
+            The value of the description to be changed
+        """
+        station_data = self.get_station(station_id)
 
-            replace_value_in_dict(station_data, keys, value)
+        if _keys_not_in_dict(station_data, keys):  # to simplify the code here all keys have to exist already
+            raise KeyError(
+                f"Could not find {keys} for station {station_id}.")
+
+        replace_value_in_dict(station_data, keys, value)
 
 
     def export(self, filename, json_kwargs=None):
