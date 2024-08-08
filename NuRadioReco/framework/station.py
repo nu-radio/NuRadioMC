@@ -29,14 +29,18 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def has_sim_station(self):
         return self.__sim_station is not None
 
-    def iter_channels(self, use_channels=None):
-        if use_channels is None:
-            for channel_id, channel in self.__channels.items():
-                yield channel
-        else:
-            for channel_id, channel in self.__channels.items():
-                if channel_id in use_channels:
-                    yield channel
+    def iter_channels(self, use_channels=None, sorted=False):
+        channel_ids = self.get_channel_ids()
+
+        if use_channels is not None:
+            channel_ids = [channel_id for channel_id in use_channels if channel_id in channel_ids]
+
+        if sorted:
+            channel_ids.sort()
+
+        for channel_id in channel_ids:
+            yield self.get_channel(channel_id)
+
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
