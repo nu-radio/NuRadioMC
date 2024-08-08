@@ -39,8 +39,8 @@ class outputWriterHDF5:
         # self._n_showers = len(self._fin['shower_ids'])
 
         # self._hdf5_keys = ['event_group_ids', 'xx', 'yy', 'zz', 'vertex_times',
-        #                    'azimuths', 'zemiths', 'energies', 
-        #                    'shower_energies', ''n_interaction',
+        #                    'azimuths', 'zemiths', 'energies',
+        # #                    'shower_energies', ''n_interaction',
         #                    'shower_ids', 'event_ids', 'triggered', 'n_samples',
         #                    'dt', 'Tnoise', 'Vrms', 'bandwidth', 'trigger_names']
 
@@ -100,8 +100,8 @@ class outputWriterHDF5:
 
 
 
-        # first add atributes to the output file. Attributes of all events should be the same, 
-        # raising an error if not. 
+        # first add atributes to the output file. Attributes of all events should be the same,
+        # raising an error if not.
         trigger_names = []
         extent_array_by = 0
         for sid in event_buffer:
@@ -120,10 +120,14 @@ class outputWriterHDF5:
                         channel_values = []
                         for channel in stn.iter_channels():
                             channel_values.append(channel[key_cp])
+                        sort = np.argsort(stn.get_channel_ids())
+                        channel_values = np.array(channel_values)[sort]
+
                         if key_hdf5 not in self._mout_groups_attributes[sid]:
-                            self._mout_groups_attributes[sid][key_hdf5] = np.array(channel_values)
+                            self._mout_groups_attributes[sid][key_hdf5] = channel_values
                         else:
-                            assert all(np.atleast_1d(self._mout_groups_attributes[sid][key_hdf5] == np.array(channel_values))), f"station {sid} key {key_hdf5} is {self._mout_groups_attributes[sid][key_hdf5]}, but current channel is {np.array(channel_values)}"
+                            print(key_hdf5, channel_values, self._mout_groups_attributes[sid][key_hdf5])
+                            assert all(np.atleast_1d(self._mout_groups_attributes[sid][key_hdf5] == channel_values)), f"station {sid} key {key_hdf5} is {self._mout_groups_attributes[sid][key_hdf5]}, but current channel is {np.array(channel_values)}"
                     for trigger in stn.get_triggers().values():
                         if trigger.get_name() not in trigger_names:
                             trigger_names.append(trigger.get_name())
@@ -185,7 +189,7 @@ class outputWriterHDF5:
                             self.__first_event = False
                 else:  # emitters have different properties, so we need to treat them differently than showers
                     for emitter in evt.get_sim_emitters():
-                        if not emitter.get_id() in shower_ids:  # the key "shower_ids" is also used for emitters and identifies the emitter id. This is done because it is the only way to have the same input files for both shower/particle and emitter simulations. 
+                        if not emitter.get_id() in shower_ids:  # the key "shower_ids" is also used for emitters and identifies the emitter id. This is done because it is the only way to have the same input files for both shower/particle and emitter simulations.
                             logger.debug(f"adding shower {emitter.get_id()} to output file")
                             # shower ids might not be in increasing order. We need to sort the hdf5 output later
                             shower_ids.append(emitter.get_id())
@@ -205,7 +209,7 @@ class outputWriterHDF5:
 
                             self.__first_event = False
                 # now save station data
-                stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash. 
+                stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash.
                 sg = self._mout_groups[sid]
                 self.__add_parameter(sg, 'event_group_ids', evt.get_run_number())
                 self.__add_parameter(sg, 'event_ids', evt.get_id())
@@ -232,8 +236,8 @@ class outputWriterHDF5:
 
                 self.__add_parameter(sg, 'triggered', stn.has_triggered())
 
-                # depending on the simulation mode we have either showers or emitters but we can 
-                # treat them the same way as long as we only call common member functions such as 
+                # depending on the simulation mode we have either showers or emitters but we can
+                # treat them the same way as long as we only call common member functions such as
                 # `get_id()`
                 iterable = None
                 if self._particle_mode:
@@ -250,9 +254,9 @@ class outputWriterHDF5:
                         # we need to save data per shower, channel and ray tracing solution. Due to the simple table structure
                         # of the hdf5 files we need to preserve the ordering of the showers and channels. As the order in the
                         # NuRadio data structure is different, we need to go through some effort to get the right order.
-                        # The shower ids will be sorted at the very end. 
-                        # The channel ids already have the correct ordering. 
-                        # The ray tracing solutions are also ordered, because the efield object contains the correct ray tracing solution id. 
+                        # The shower ids will be sorted at the very end.
+                        # The channel ids already have the correct ordering.
+                        # The ray tracing solutions are also ordered, because the efield object contains the correct ray tracing solution id.
                         channel_rt_data = {}
                         keys_channel_rt_data = ['travel_times', 'travel_distances']
                         if self._mout_attributes['config']['speedup']['amp_per_ray_solution']:
@@ -266,7 +270,7 @@ class outputWriterHDF5:
                         # important: we need to loop over the channels of the station object, not
                         # the channels present in the sim_station object. This is because the sim
                         # channel object only contains the channels that have a signal, i.e., a ray
-                        # tracing solution and a strong enough Askaryan signal. But we want to loop over all 
+                        # tracing solution and a strong enough Askaryan signal. But we want to loop over all
                         # channels of the station, because we want to save the data for all channels, not only
                         # the ones that have a signal. This also preserves the order of the channels.
                         for iCh, channel in enumerate(stn.iter_channels()):
@@ -310,9 +314,9 @@ class outputWriterHDF5:
             trigger_times = np.ones((len(shower_ids_stn), len(self._mout_attributes['trigger_names'])), dtype=float) * np.nan
             for eid in event_buffer[sid]:
                 evt = event_buffer[sid][eid]
-                stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash. 
-                # depending on the simulation mode we have either showers or emitters but we can 
-                # treat them the same way as long as we only call common member functions such as 
+                stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash.
+                # depending on the simulation mode we have either showers or emitters but we can
+                # treat them the same way as long as we only call common member functions such as
                 # `get_id()`
                 iterable = None
                 if self._particle_mode:
@@ -372,7 +376,7 @@ class outputWriterHDF5:
 
         if self._particle_mode:
             # we also want to save the first interaction even if it didn't contribute to any trigger
-            # this is important to know the initial neutrino properties (only relevant for the simulation of 
+            # this is important to know the initial neutrino properties (only relevant for the simulation of
             # secondary interactions)
             stn_buffer = event_buffer[self._station_ids[0]]
             evt = stn_buffer[list(stn_buffer.keys())[0]]
@@ -513,7 +517,7 @@ class outputWriterHDF5:
             float: The calculated effective volume (Veff)
         """
         # calculate effective
-        try: # sometimes not all relevant attributes are set, e.g. for emitter simulations. 
+        try: # sometimes not all relevant attributes are set, e.g. for emitter simulations.
             triggered = remove_duplicate_triggers(self._mout['triggered'], self._mout['event_group_ids'])
             n_triggered = np.sum(triggered)
             n_triggered_weighted = np.sum(np.array(self._mout['weights'])[triggered])
