@@ -107,7 +107,6 @@ class ModDetector(Detector):
                 The value of the description to be changed
             """
             station_data = self.get_station(station_id)
-            print(station_data.keys(), keys)
 
             if _keys_not_in_dict(station_data, keys):  # to simplify the code here all keys have to exist already
                 raise KeyError(
