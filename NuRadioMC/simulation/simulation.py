@@ -3,7 +3,6 @@ import collections
 import datetime
 import logging
 import warnings
-import time
 import copy
 import yaml
 import numpy as np
@@ -1561,49 +1560,69 @@ class simulation:
                         logger.debug(f"adding sim_station to station {sid} for event group {event_group.get_run_number()}, channel {channel_id}")
                         station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
                         for evt in output_buffer[sid].values():
+                            # we need to use any existing channel to get the correct trace_start_time. All channels have the same start time at the end
+                            # of the simulation.
                             trace_start_time = evt.get_station().get_channel(channel_ids[0]).get_trace_start_time()
-                            # determine the trigger that was used to determine the readout window
-                            trigger_name = None
-                            trigger_time = None
-                            pre_trigger_time = None
-                            for trigger in evt.get_station().get_triggers().values():
-                                # we need to select the trigger that was used to determine the readout window, which is the one that has the
-                                # `pre_trigger_times` set. All other triggers will return None. We can double check that by testing that the
-                                #  trigger_time is the same as start time as the trace
-                                if trigger.get_pre_trigger_times() is not None:
-                                    pre_trigger_time = trigger.get_pre_trigger_times()
-                                    trigger_time = trigger.get_trigger_time()
-                                    trigger_name = trigger.get_name()
-                                    break
+                            # # determine the trigger that was used to determine the readout window
+                            # trigger_name = None
+                            # trigger_time = None
+                            # pre_trigger_time = None
+                            # for trigger in evt.get_station().get_triggers().values():
+                            #     # we need to select the trigger that was used to determine the readout window, which is the one that has the
+                            #     # `pre_trigger_times` set. All other triggers will return None. We can double check that by testing that the
+                            #     #  trigger_time is the same as start time as the trace
+                            #     if trigger.get_pre_trigger_times() is not None:
+                            #         pre_trigger_time = trigger.get_pre_trigger_times()
+                            #         trigger_time = trigger.get_trigger_time()
+                            #         trigger_name = trigger.get_name()
+                            #         break
 
-                            assert(trigger_time is not None)
-                            assert(trigger_name is not None)
-                            assert(trace_start_time == trigger_time)
+                            # assert(trigger_time is not None)
+                            # assert(trigger_name is not None)
+                            # assert(trace_start_time == trigger_time)
 
                             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
                                 tt = sim_channel.get_times()
                                 t0 = tt[0]
                                 t1 = tt[-1]
-                                pre_trigger_time = triggerTimeAdjuster.get_pre_trigger_times(sim_channel.get_id())
-                                t0_readout = trigger_time - pre_trigger_time
+                                t0_readout = trace_start_time
                                 t1_readout = t0_readout + self._det.get_number_of_samples(sid, sim_channel.get_id()) * self._det.get_sampling_frequency(sid, sim_channel.get_id())
 
-                                # determine if the two intervals have any overlap
-                                # TODO: Is the readout window set correctly? Shouldn't the channel be read out from t0_readout to t1_readout?
+                                if not station.has_channel(sim_channel.get_id()):
+                                    # add empty channel with the correct length and time if it doesn't exist yet.
+                                    channel = NuRadioReco.framework.channel.Channel(channel_id)
+                                    channel.set_trace(np.zeros(self._det.get_number_of_samples(sid, channel_id)), 1. / (self._config['sampling_rate']))
+                                    channel.set_trace_start_time(trace_start_time)
+                                    station.add_channel(channel)
+
+                                # determine if the two intervals have any overlap, if yes, add the signal to the existing empty trace
                                 if max(t0, t0_readout) < min(t1, t1_readout):
+                                    # we need to create a new Channel object in which we copy the SimChannel trace. This is necessary because
+                                    # Channel and SimChannel are different objects and a SimChannel can't be added to a Channel. 
                                     tmp_channel = NuRadioReco.framework.channel.Channel(sim_channel.get_id())
                                     tmp_channel.set_trace(sim_channel.get_trace(), sim_channel.get_sampling_rate())
                                     tmp_channel.set_trace_start_time(sim_channel.get_trace_start_time())
-                                    if(station.has_channel(sim_channel.get_id())):
-                                        channel = station.get_channel(sim_channel.get_id())
-                                        # logger.status(f"channel type {type(channel)}, sim_channel type {type(sim_channel)}")
-                                        combined_trace = channel + tmp_channel
-                                        channel.set_trace(combined_trace.get_trace(), combined_trace.get_sampling_rate())
-                                        channel.set_trace_start_time(combined_trace.get_trace_start_time())
 
-                                        # logger.status(f"channel type {type(channel)}")
-                                    else:
-                                        station.add_channel(tmp_channel)
+                                    channel = station.get_channel(sim_channel.get_id())  # important to get the channel (again) to have a reference to the correct object
+
+                                    assert(tmp_channel.get_sampling_rate() == channel.get_sampling_rate())
+
+                                    # we need to identify the overlapping time interval and only add this to channel
+                                    # to achieve time accuracy, we need to shift `tmp_channel` using the Fourier shift theorem.
+                                    time_offset = np.abs(tmp_channel.get_trace_start_time() - channel.get_trace_start_time())
+                                    i_start = int(round(time_offset * channel.get_sampling_rate()))
+                                    residual_time_offset = time_offset - i_start / channel.get_sampling_rate()
+                                    tmp_channel.apply_time_shift(-residual_time_offset)  # we only shift the residual time offset that is left after the integer shift
+                                    # determine the indices for both traces
+                                    i_min = max(0, i_start)
+                                    i_min_tmp = max(0, -i_start)
+                                    i_max = min(len(channel.get_trace()), len(tmp_channel.get_trace()) + i_min - i_min_tmp)
+                                    i_max_tmp = i_min_tmp + i_max - i_min
+                                    channel_trace = channel.get_trace()
+                                    tmp_channel_trace = tmp_channel.get_trace()
+                                    channel_trace[i_min:i_max] += tmp_channel_trace[i_min_tmp:i_max_tmp]
+                                    # logger.status(f"channel type {type(channel)}, sim_channel type {type(sim_channel)}")
+                                    channel.set_trace(channel_trace.get_trace(), channel.get_sampling_rate())
 
                 for evt in output_buffer[sid].values():
                     # the only thing left is to add noise to the non-trigger traces
