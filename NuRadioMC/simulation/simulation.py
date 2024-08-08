@@ -1591,7 +1591,8 @@ class simulation:
                                 if not station.has_channel(sim_channel.get_id()):
                                     # add empty channel with the correct length and time if it doesn't exist yet.
                                     channel = NuRadioReco.framework.channel.Channel(channel_id)
-                                    channel.set_trace(np.zeros(self._det.get_number_of_samples(sid, channel_id)), 1. / (self._config['sampling_rate']))
+                                    n_samples = int(round(self._det.get_number_of_samples(sid, channel_id)) * self._config['sampling_rate'] / self._det.get_sampling_frequency(sid, sim_channel.get_id()))
+                                    channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
                                     channel.set_trace_start_time(trace_start_time)
                                     station.add_channel(channel)
 
@@ -1622,7 +1623,7 @@ class simulation:
                                     tmp_channel_trace = tmp_channel.get_trace()
                                     channel_trace[i_min:i_max] += tmp_channel_trace[i_min_tmp:i_max_tmp]
                                     # logger.status(f"channel type {type(channel)}, sim_channel type {type(sim_channel)}")
-                                    channel.set_trace(channel_trace.get_trace(), channel.get_sampling_rate())
+                                    channel.set_trace(channel_trace, channel.get_sampling_rate())
 
                 for evt in output_buffer[sid].values():
                     # the only thing left is to add noise to the non-trigger traces
@@ -1639,7 +1640,8 @@ class simulation:
                                 channel = station.get_channel(channel_id)
                             else:
                                 channel = NuRadioReco.framework.channel.Channel(channel_id)
-                                channel.set_trace(np.zeros(self._det.get_number_of_samples(sid, channel_id)), 1. / (self._config['sampling_rate']))
+                                n_samples = int(round(self._det.get_number_of_samples(sid, channel_id)) * self._config['sampling_rate'] / self._det.get_sampling_frequency(sid, channel_id))
+                                channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
                                 # we need to use any other channel to get the correct trace_start_time. All channels have the same start time at the end
                                 # of the simulation.
                                 channel.set_trace_start_time(station.get_channel(station.get_channel_ids()[0]).get_trace_start_time())
