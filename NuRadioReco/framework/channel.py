@@ -20,13 +20,31 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
             the id of the channel
         channel_group_id: int (default None)
             optionally, several channels can belong to a "channel group". Use case is to identify
-            the channels of a single dual or triple polarized antenna as common in air shower arrays. 
-        
+            the channels of a single dual or triple polarized antenna as common in air shower arrays.
+
         """
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         self._parameters = {}
         self._id = channel_id
         self._group_id = channel_group_id
+        self.__additional_channels = []
+
+    def add_additional_channel(self, channel):
+        if not isinstance(channel, Channel):
+            logger.error("channel needs to be of type NuRadioReco.framework.Channel")
+            raise ValueError("channel needs to be of type NuRadioReco.framework.Channel")
+
+        if channel.get_id() != self.get_id():
+            logger.error(f"channel id of additional channel {channel.get_id()} is different from the channel id {self.get_id()}")
+            raise ValueError(f"channel id of additional channel {channel.get_id()} is different from the channel id {self.get_id()}")
+
+        self.__additional_channels.append(channel)
+
+    def get_additional_channels(self, get_first=False):
+        if get_first:
+            return self.__additional_channels[0]
+
+        return self.__additional_channels
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.channelParameters):
@@ -57,7 +75,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
 
     def get_id(self):
         return self._id
-    
+
     def get_group_id(self):
         """
         channel group id
