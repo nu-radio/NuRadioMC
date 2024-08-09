@@ -175,7 +175,7 @@ class Detector():
         self.assume_inf = None  # Compatibility with other detectors classes
         self.antenna_by_depth = None  # Compatibility with other detectors classes
 
-    def export(self, filename, json_kwargs=None):
+    def export(self, filename, json_kwargs=None, additional_data=None):
         """
         Export the buffered detector description.
 
@@ -187,6 +187,9 @@ class Detector():
 
         json_kwargs: dict
             Arguments passed to json.dumps(..). (Default: None -> dict(indent=0, default=_json_serial))
+
+        additional_data: dict (Default: None)
+            If specified the content of this dict will be added to the exported detector description.
         """
 
         periods = {}
@@ -201,10 +204,11 @@ class Detector():
             if idx == 0 or idx == len(self._time_periods_per_station[station_id]["modification_timestamps"]):
                 self.logger.error("You try to export a decomissioned station")
 
-            periods[station_id] = {"modification_timestamps":
-                                   [self._time_periods_per_station[station_id]["modification_timestamps"][idx - 1],
-                                    self._time_periods_per_station[station_id]["modification_timestamps"][idx]]
-                                   }
+            periods[station_id] = {
+                "modification_timestamps":
+                    [self._time_periods_per_station[station_id]["modification_timestamps"][idx - 1],
+                    self._time_periods_per_station[station_id]["modification_timestamps"][idx]]
+            }
 
         export_dict = {
             "version": 1,
@@ -212,6 +216,9 @@ class Detector():
             "periods": periods,
             "default_values": self.__default_values
         }
+
+        if additional_data is not None:
+            export_dict["additional_data"] = additional_data
 
         if not filename.endswith(".xz"):
             if not filename.endswith(".json"):
@@ -269,6 +276,7 @@ class Detector():
 
         if "version" in import_dict and import_dict["version"] == 1:
             self.__buffered_stations = {}
+            self.additional_data = import_dict.get("additional_data", None)
 
             # need to convert station/channel id keys back to integers
             for station_id, station_data in import_dict["data"].items():
