@@ -30,12 +30,12 @@ class triggerTimeAdjuster:
             If a name is given, corresponding trigger module must be run beforehand.
             If the trigger does not exist or did not trigger, this module will do nothing
         pre_trigger_time: float or dict
-            Amount of time that should be stored in the channel trace before the trigger. 
-            If the channel trace is long enough, it will be cut accordingly. 
+            Amount of time that should be stored in the channel trace before the trigger.
+            If the channel trace is long enough, it will be cut accordingly.
             Otherwise, it will be rolled.
 
             If given as a float, the same ``pre_trigger_time`` will be used for all channels.
-            If a dict, the keys should be ``channel_id``, and the values the ``pre_trigger_time`` 
+            If a dict, the keys should be ``channel_id``, and the values the ``pre_trigger_time``
             to use for each channel. Alternatively, the keys should be the ``trigger_name``,
             and the values either a float or a dictionary with (``channel_id``, ``pre_trigger_time``)
             pairs.
@@ -63,7 +63,7 @@ class triggerTimeAdjuster:
         Run the trigger time adjuster.
 
         This module can be used either to 'cut' the simulated traces into
-        the appropriate readout windows, or to adjust the trace start times 
+        the appropriate readout windows, or to adjust the trace start times
         of simulated / real data to account for the different trigger readout
         delays.
 
@@ -83,7 +83,7 @@ class triggerTimeAdjuster:
 
             If the ``trigger_name`` was specified in the ``begin`` function,
             only this trigger is considered.
-        
+
         """
         counter = 0
         for i, (name, instance, kwargs) in enumerate(event.iter_modules(station.get_id())):
@@ -177,14 +177,14 @@ class triggerTimeAdjuster:
                         # shift trace to be in the correct location for cutting
                         trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
                         channel.set_trace(trace, channel.get_sampling_rate())
-                        channel.set_trace_start_time(trigger_time)
+                        channel.set_trace_start_time(trigger_time - pre_trigger_time)
                         store_pre_trigger_time[channel_id] = pre_trigger_time
                         # channel.set_trace_start_time(channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate())
                         # logger.debug(f"setting trace start time to {channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate():.0f} = {channel.get_trace_start_time():.0f} + {rel_station_time_samples / channel.get_sampling_rate():.0f}")
-                
+
                 # store the used pre_trigger_times
                 trigger.set_pre_trigger_times(store_pre_trigger_time)
-            
+
             else:
                 logger.debug('Trigger {} has not triggered. Channel timings will not be changed.'.format(self.__trigger_name))
         elif mode == 'data_to_sim':
