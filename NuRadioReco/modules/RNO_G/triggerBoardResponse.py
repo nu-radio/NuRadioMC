@@ -162,11 +162,15 @@ class triggerBoardResponse:
             self.logger.debug(msg)
 
             # find the ADC gain from the possible values that makes the realized
-            # vrms as-close-to-yet-smaller-than the ideal value
+            # vrms closest-to-but-greater-than the ideal value
             amplified_vrms_values = vrms * self._triggerBoardAmplifications
             mask = amplified_vrms_values > ideal_vrms
-            gain_to_use = self._triggerBoardAmplifications[mask][0]
-            vrms_after_gain.append(amplified_vrms_values[mask][0])
+            if np.any(mask):
+                gain_to_use = self._triggerBoardAmplifications[mask][0]
+                vrms_after_gain.append(amplified_vrms_values[mask][0])
+            else:
+                gain_to_use = self._triggerBoardAmplifications[-1]
+                vrms_after_gain.append(amplified_vrms_values[-1])
 
             channel = station.get_channel(channel_id)
             self.logger.debug(f"\t Ch: {channel_id}\t Actuall Vrms: {np.std(channel.get_trace() * gain_to_use) / units.mV:0.3f} mV")
