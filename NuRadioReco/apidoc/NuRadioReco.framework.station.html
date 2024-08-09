@@ -619,35 +619,38 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_ARIANNA_parameter" title="NuRadioReco.framework.station.Station.get_ARIANNA_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ARIANNA_parameter</span></code></a>(key)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time</span></code></a>([format])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_first_trigger" title="NuRadioReco.framework.station.Station.get_first_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_trigger</span></code></a>()</p></td>
+<td><p>Returns the first trigger.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time</span></code></a>([format])</p></td>
 <td><p>Returns a astropy.time.Time object</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_station_time_dict" title="NuRadioReco.framework.station.Station.get_station_time_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time_dict</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_station_time_dict" title="NuRadioReco.framework.station.Station.get_station_time_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time_dict</span></code></a>()</p></td>
 <td><p>Return the station time as dict {value, format}.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_triggers" title="NuRadioReco.framework.station.Station.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
-<td><p>returns a dictionary of the triggers.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_triggers" title="NuRadioReco.framework.station.Station.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
+<td><p>Returns a dictionary of the triggers.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.has_trigger" title="NuRadioReco.framework.station.Station.has_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trigger</span></code></a>(trigger_name)</p></td>
-<td><p>checks if station has a trigger with a certain name</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.has_trigger" title="NuRadioReco.framework.station.Station.has_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trigger</span></code></a>(trigger_name)</p></td>
+<td><p>Checks if station has a trigger with a certain name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.has_triggered" title="NuRadioReco.framework.station.Station.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
-<td><p>convenience function.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.has_triggered" title="NuRadioReco.framework.station.Station.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
+<td><p>Checks if the station has triggered.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.remove_channel" title="NuRadioReco.framework.station.Station.remove_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.remove_channel" title="NuRadioReco.framework.station.Station.remove_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_channel</span></code></a>(channel_id)</p></td>
 <td><p>Removes a channel from the station by deleting is from the channels dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_is_cosmic_ray" title="NuRadioReco.framework.station.Station.set_is_cosmic_ray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_is_cosmic_ray" title="NuRadioReco.framework.station.Station.set_is_cosmic_ray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code></a>()</p></td>
 <td><p>set station type to cosmic rays (relevant e.g.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_is_neutrino" title="NuRadioReco.framework.station.Station.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_is_neutrino" title="NuRadioReco.framework.station.Station.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
 <td><p>set station type to neutrino</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_station_time" title="NuRadioReco.framework.station.Station.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_station_time" title="NuRadioReco.framework.station.Station.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
 <td><p>Set the (absolute) time for the station (stored as astropy.time.Time).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_triggered" title="NuRadioReco.framework.station.Station.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
-<td><p>convenience function to set a simple trigger.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_triggered" title="NuRadioReco.framework.station.Station.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<td><p>Convenience function to set a simple trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -876,6 +879,12 @@ should be the id of the Channel, but supplying the Channel object itself is also
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.get_first_trigger">
+<span class="sig-name descname"><span class="pre">get_first_trigger</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.get_first_trigger" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the first trigger. Returns None if no trigger is present.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.get_id">
 <span class="sig-name descname"><span class="pre">get_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.get_id" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -928,7 +937,7 @@ should be the id of the Channel, but supplying the Channel object itself is also
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.get_triggers">
 <span class="sig-name descname"><span class="pre">get_triggers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.get_triggers" title="Permalink to this definition"></a></dt>
-<dd><p>returns a dictionary of the triggers. key is the trigger name, value is a trigger object</p>
+<dd><p>Returns a dictionary of the triggers. key is the trigger name, value is a trigger object</p>
 </dd></dl>
 
 <dl class="py method">
@@ -944,7 +953,8 @@ should be the id of the Channel, but supplying the Channel object itself is also
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.has_trigger">
 <span class="sig-name descname"><span class="pre">has_trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.has_trigger" title="Permalink to this definition"></a></dt>
-<dd><p>checks if station has a trigger with a certain name</p>
+<dd><p>Checks if station has a trigger with a certain name.
+WARNING: This function does not check if the trigger has triggered.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -959,7 +969,7 @@ should be the id of the Channel, but supplying the Channel object itself is also
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.has_triggered">
 <span class="sig-name descname"><span class="pre">has_triggered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.has_triggered" title="Permalink to this definition"></a></dt>
-<dd><p>convenience function.</p>
+<dd><p>Checks if the station has triggered. If trigger_name is set, check if the trigger with that name has triggered.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1054,7 +1064,7 @@ Not related to the event._event_time.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.set_triggered">
 <span class="sig-name descname"><span class="pre">set_triggered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.set_triggered" title="Permalink to this definition"></a></dt>
-<dd><p>convenience function to set a simple trigger. The recommended interface is to set triggers through the
+<dd><p>Convenience function to set a simple trigger. The recommended interface is to set triggers through the
 set_trigger() interface.</p>
 </dd></dl>
 

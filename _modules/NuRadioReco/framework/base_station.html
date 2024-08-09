@@ -738,13 +738,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BaseStation.get_trigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">get_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;trigger with name </span><span class="si">{}</span><span class="s2"> not present&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
+<div class="viewcode-block" id="BaseStation.get_first_trigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_first_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">get_first_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the first trigger. Returns None if no trigger is present.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">min_trigger_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">trig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">trig</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()</span> <span class="ow">and</span> <span class="n">trig</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">min_trigger_time</span><span class="p">:</span>
+                <span class="n">min_trigger_time</span> <span class="o">=</span> <span class="n">trig</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span>
+                <span class="n">min_trig</span> <span class="o">=</span> <span class="n">trig</span>
+
+        <span class="k">return</span> <span class="n">min_trig</span></div>
+
 <div class="viewcode-block" id="BaseStation.has_trigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.has_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">has_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        checks if station has a trigger with a certain name</span>
+<span class="sd">        Checks if station has a trigger with a certain name.</span>
+<span class="sd">        WARNING: This function does not check if the trigger has triggered.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -757,21 +773,21 @@
 
 <div class="viewcode-block" id="BaseStation.get_triggers"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_triggers">[docs]</a>    <span class="k">def</span> <span class="nf">get_triggers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns a dictionary of the triggers. key is the trigger name, value is a trigger object</span>
+<span class="sd">        Returns a dictionary of the triggers. key is the trigger name, value is a trigger object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span></div>
 
 <div class="viewcode-block" id="BaseStation.set_trigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">set_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;station has already a trigger with name </span><span class="si">{}</span><span class="s2">. The previous trigger will be overridden!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()))</span>
+                <span class="sa">f</span><span class="s2">&quot;Station has already a trigger with name </span><span class="si">{</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">. The previous trigger will be overridden!&quot;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">[</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()]</span> <span class="o">=</span> <span class="n">trigger</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="n">trigger</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span></div>
 
 <div class="viewcode-block" id="BaseStation.has_triggered"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.has_triggered">[docs]</a>    <span class="k">def</span> <span class="nf">has_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        convenience function.</span>
+<span class="sd">        Checks if the station has triggered. If trigger_name is set, check if the trigger with that name has triggered.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -780,17 +796,17 @@
 <span class="sd">                       it returns True if any of those triggers triggered</span>
 <span class="sd">            * if trigger name is set: return if the trigger with name &#39;trigger_name&#39; has a trigger</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">trigger_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">trigger_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trigger</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">)</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BaseStation.set_triggered"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_triggered">[docs]</a>    <span class="k">def</span> <span class="nf">set_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        convenience function to set a simple trigger. The recommended interface is to set triggers through the</span>
+<span class="sd">        Convenience function to set a simple trigger. The recommended interface is to set triggers through the</span>
 <span class="sd">        set_trigger() interface.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;more then one trigger were set. Request is ambiguous&quot;</span><span class="p">)</span>
         <span class="n">trigger</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="n">triggered</span><span class="p">)</span>
@@ -808,7 +824,7 @@
 <div class="viewcode-block" id="BaseStation.get_electric_fields_for_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_electric_fields_for_channels">[docs]</a>    <span class="k">def</span> <span class="nf">get_electric_fields_for_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ray_path_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">e_field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_electric_fields</span><span class="p">:</span>
             <span class="n">channel_ids2</span> <span class="o">=</span> <span class="n">channel_ids</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">channel_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">channel_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">channel_ids2</span> <span class="o">=</span> <span class="n">e_field</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">e_field</span><span class="o">.</span><span class="n">has_channel_ids</span><span class="p">(</span><span class="n">channel_ids2</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">ray_path_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
