@@ -12,29 +12,9 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.voltageToEfieldConverter import voltageToEfieldConverter
-from NuRadioReco.modules.LOFAR.beamforming_utilities import beamformer
+from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
 lightspeed = constants.c * units.m / units.s
-
-
-def geometric_delays(ant_positions, sky):
-    """
-    Returns geometric delays in a matrix.
-
-    Parameters
-    ----------
-    ant_positions : np.ndarray
-        The antenna positions to use, formatted as a (nr_of_ant, 3) shaped array.
-    sky : np.ndarray
-        The unit vector pointing to the arrival direction, in cartesian coordinates.
-
-    Returns
-    -------
-    delays : np.ndarray
-    """
-    delays = np.dot(ant_positions, sky)
-    delays /= -1 * lightspeed
-    return delays
 
 
 class beamformingDirectionFitter:
@@ -96,10 +76,7 @@ class beamformingDirectionFitter:
             theta = direction[0]
             phi = direction[1]
             my_direction_cartesian = hp.spherical_to_cartesian(theta, phi)
-
-            my_delays = geometric_delays(ant_positions, my_direction_cartesian)
-
-            my_out = beamformer(fft_traces, freq, my_delays)
+            my_out = mini_beamformer(fft_traces, freq, ant_positions, my_direction_cartesian)
             timeseries = fft.freq2time(my_out, 200 * units.MHz)
 
             return -100 * np.max(timeseries ** 2)
@@ -131,8 +108,7 @@ class beamformingDirectionFitter:
 
         direction_cartesian = hp.spherical_to_cartesian(*fit_direction)
 
-        delays = geometric_delays(ant_positions, direction_cartesian)
-        out = beamformer(fft_traces, freq, delays)
+        out = mini_beamformer(fft_traces, freq, ant_positions, direction_cartesian)
 
         return fit_direction, out
 

@@ -9,9 +9,6 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
-#for debug:
-import matplotlib.pyplot as plt
-
 
 def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_start=0, noise_end=-1):
     """
@@ -64,7 +61,7 @@ class stationPulseFinder:
 
         self.direction_cartesian = None  # The zenith and azimuth pointing towards where to beamform.
 
-    def begin(self, window=800, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
+    def begin(self, window=256, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
         """
         Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
         to use for noise measurements. The function also defines what an acceptable SNR is to consider a
@@ -73,7 +70,7 @@ class stationPulseFinder:
 
         Parameters
         ----------
-        window : int, default=500
+        window : int, default=256
             Size of the window to look for pulse
         noise_window : int, default=10000
             The trace used for noise characterisation goes from sample 0 to the start of the pulse searching
@@ -283,7 +280,9 @@ class stationPulseFinder:
 
             # Find the antenna positions by only looking at the channels from a given polarisation
             position_array = [
-                detector.get_absolute_position(station_id) +
+                # detector.get_absolute_position(station_id) +    
+                # only use the relative position since the absolute position would introduce a time shift 
+                # in the beamformed timeseries which would lead to a time shift in the signal window.
                 detector.get_relative_position(station_id, channel_id)
                 for channel_id in station_even_list
             ]
@@ -302,11 +301,10 @@ class stationPulseFinder:
 
             # Check if the station has a strong enough signal
             signal_window = [int(pulse_window_start), int(pulse_window_end)]
+            # we use a fixed noise window (without the tapered edges of the trace, which would blow up the SNR):
             noise_window = [int(1e4), int(2e4)]
 
-            # there was a bug with the windows for the SNR calculation, where strong signals had low SNR and vice versa. 
-            # Since the pulse should be somewhere around the middle of the trace,
-            # we use a fixed noise window (without the tapered edges of the trace).
+
             self._check_station_triggered(
                 station, 
                 position_array, 
