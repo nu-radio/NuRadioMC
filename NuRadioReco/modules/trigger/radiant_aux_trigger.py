@@ -25,7 +25,7 @@ class triggerSimulator:
 
     def begin(self):
         return
-    
+
     def get_filtered_trace_trigger(self, trace):
         """
         filters the trace in the frequency band according to the bandpass filter (80-200MHz) implemented in the trigger path of the radiant surface channels.
@@ -76,7 +76,7 @@ class triggerSimulator:
         noise = self.get_power_int_trace(trace[10:noise_samples], int_window)
         threshold = threshold_sigma * np.std(noise)
         return threshold
-        
+
     def get_power_int_trace(self, trace, int_window):
         """
         calculats a power integration over a given time window
@@ -132,7 +132,7 @@ class triggerSimulator:
         Simulates the radiant auxiliar trigger based on a schottky diode. The parametrization is based on lab measurments of the full radiant board and fitted with a tanh function.
         The trigger is applied to the channels specified in triggered_channels. The coincidence window indicates the time within different channels should have triggered, 
         in order to trigger the station. The number of coincidences specifies the number of channels that need to have triggered within the coincidence window.
-        
+
         Parameters
         ----------
         evt: Event
@@ -155,7 +155,7 @@ class triggerSimulator:
         considered_channels = copy.copy(triggered_channels)
         if triggered_channels is None:
             considered_channels = list(station.get_channel_ids())
-        
+
         self.sampling_rate = station.get_channel(considered_channels[0]).get_sampling_rate()
         dt = 1. / self.sampling_rate
 
@@ -177,7 +177,7 @@ class triggerSimulator:
 
             if np.any(triggered_bins):
                 channels_that_passed_trigger.append(channel.get_id())
-                
+
         has_triggered, triggered_bins, triggered_times = get_majority_logic(triggered_bins_channels,
                                                                             number_coincidences, coinc_window, dt)
         trigger = RadiantAUXTrigger(trigger_name, threshold_sigma, int_window, number_coincidences, coinc_window, considered_channels)

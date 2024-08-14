@@ -399,7 +399,7 @@ class RadiantAUXTrigger(Trigger):
     def __init__(self, name, threshold_sigma=30, int_window=11*units.ns, number_of_coincidences=2, channel_coincidence_window=60*units.ns, channels=None):
         """
         initialize trigger class
-        
+
         Parameters
         ----------
         name: string
