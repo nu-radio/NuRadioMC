@@ -85,7 +85,7 @@ class triggerSimulator:
         ----------
         trace: array of floats
             the trace
-        window: float
+        int_window: float
             the integration windown in ns
 
         Returns
@@ -107,9 +107,9 @@ class triggerSimulator:
         ----------
         trace: array of floats
             the signal trace
-        threshold: float
+        threshold_sigma: float
             the threshold as a factor of rms noise
-        window: float
+        int_window: float
             the integration window in ns
 
         Returns
@@ -141,12 +141,16 @@ class triggerSimulator:
             Station to run the module on
         det: Detector
             The detector description
+        threshold_sigma: float
+            the threshold as a factor of rms noise
+        int_window: float
+            the integration window in ns
+        coinc_window: float
+            time window in which number_coincidences channels need to trigger
         number_coincidences: int
             number of channels that are required in coincidence to trigger a station
         triggered_channels: array of ints or None
             channels ids that are triggered on, if None trigger will run on all channels
-        coinc_window: float
-            time window in which number_coincidences channels need to trigger
         trigger_name: string
             a unique name of this particular trigger
         """
