@@ -225,17 +225,17 @@ def get_y_turn( C_0, x1, n_ice, b, delta_n, z_0):
     y_turn = get_y(gamma_turn[0], C_0, C_1, n_ice, b, z_0) 
     return y_turn
 
-def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=None, reflection=0, reflection_case=2):
+def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=(-1.0,-1.0), reflection=0, reflection_case=2):
     """
     calculates the difference in the y position between the analytic ray tracing path
     specified by C_0 at the position x2
     """
     C_0_first = C_0
 
-    if C0range is None:
-        C0range = [1. / n_ice, np.inf]
+    if C0range[0] == -1.0 and C0range[1] == -1.0:
+        C0range = (1. / n_ice, np.inf)
     else:
-        C0range = [float(C0range[0]), float(C0range[1])]
+        C0range = (float(C0range[0]), float(C0range[1]))
     Corange_array = np.array(C0range ,  dtype=np.float64)
     if((C_0_first < Corange_array[0]) or(C_0_first > Corange_array[1])):
         return -np.inf
@@ -282,8 +282,6 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
         diff = (x2[0] - y2_fit)
         #if(hasattr(diff, '__len__')):
         #    diff = diff[0]
-        if(hasattr(x2[0], '__len__')):
-            x2[0] = x2[0][0]
 
         return diff
     else:
@@ -302,7 +300,7 @@ def obj_delta_y_square( logC_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflectio
     objective function to find solution for C0
     """
     C_0 = get_C0_from_log(logC_0[0], n_ice)
-    return get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, None, reflection=reflection, reflection_case=reflection_case) ** 2
+    return get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, (-1.0,-1.0), reflection=reflection, reflection_case=reflection_case) ** 2
 
 def get_reflection_point(C_0, C_1, n_ice, medium_reflection, b, z_0, delta_n):
     """
@@ -1207,7 +1205,7 @@ class ray_tracing_2D(ray_tracing_base):
         result is signed! (important to use a root finder)
         """
         C_0 = get_C0_from_log(logC_0,self.medium.n_ice)
-        return get_delta_y(C_0, np.array(x1), np.array(x2),self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, self.reflection, None, reflection, reflection_case)
+        return get_delta_y(C_0, np.array(x1), np.array(x2),self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, self.reflection, (-1.0,-1.0), reflection, reflection_case)
 
     def determine_solution_type(self, x1, x2, C_0):
         """ returns the type of the solution
