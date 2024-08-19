@@ -205,7 +205,7 @@ def get_y_with_z_mirror(z, C_0, n_ice, b, delta_n, z_0, C_1=0.0):
 #        res[~mask] = 2 * y_turn - get_y(gamma, C_0, C_1, n_ice, b, z_0)
 #        zs[~mask] = 2 * z_turn - z[~mask]
 
-        return np.array([res, zs])
+#        return np.array([res, zs])
 
 def get_y_turn( C_0, x1, n_ice, b, delta_n, z_0):
     """
