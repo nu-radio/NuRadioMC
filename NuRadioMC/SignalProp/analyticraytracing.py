@@ -187,23 +187,23 @@ def get_y_with_z_mirror(z, C_0, n_ice, b, delta_n, z_0, C_1=0.0):
     c = n_ice ** 2 - C_0 ** -2
     gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
     y_turn = get_y(gamma_turn, C_0, C_1, n_ice, b, z_0)
-    if(not hasattr(z, '__len__')):
-        if(z < z_turn):
-            gamma = get_gamma(np.array([1])*z, delta_n, z_0)
-            return get_y(gamma, C_0, C_1, n_ice, b, z_0)
-        else:
-            gamma = get_gamma(2 * z_turn - z, delta_n, z_0)
-            return 2 * y_turn - get_y(gamma, C_0, C_1, n_ice, b, z_0)
+    if(z < z_turn):
+        gamma = get_gamma(np.array([1])*z, delta_n, z_0)
+        return get_y(gamma, C_0, C_1, n_ice, b, z_0)
     else:
-        mask = z < z_turn
-        res = np.zeros_like(z)
-        zs = np.zeros_like(z)
-        gamma = get_gamma(z[mask], delta_n, z_0)
-        zs[mask] = z[mask]
-        res[mask] = get_y(gamma, C_0, C_1, n_ice, b, z_0)
-        gamma = get_gamma(2 * z_turn - z[~mask], delta_n, z_0)
-        res[~mask] = 2 * y_turn - get_y(gamma, C_0, C_1, n_ice, b, z_0)
-        zs[~mask] = 2 * z_turn - z[~mask]
+        gamma = get_gamma(2 * z_turn - z, delta_n, z_0)
+        return 2 * y_turn - get_y(gamma, C_0, C_1, n_ice, b, z_0)
+## Used in case of an array being passed as z 
+#    else:
+#        mask = z < z_turn
+#        res = np.zeros_like(z)
+#        zs = np.zeros_like(z)
+#        gamma = get_gamma(z[mask], delta_n, z_0)
+#        zs[mask] = z[mask]
+#        res[mask] = get_y(gamma, C_0, C_1, n_ice, b, z_0)
+#        gamma = get_gamma(2 * z_turn - z[~mask], delta_n, z_0)
+#        res[~mask] = 2 * y_turn - get_y(gamma, C_0, C_1, n_ice, b, z_0)
+#        zs[~mask] = 2 * z_turn - z[~mask]
 
         return np.array([res, zs])
 
