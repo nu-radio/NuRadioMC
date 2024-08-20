@@ -30,6 +30,23 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         return self.__sim_station is not None
 
     def iter_channels(self, use_channels=None, sorted=False):
+        """
+        Iterates over all channels of the station. If `use_channels` is not None, only the channels with the ids in
+        `use_channels` are iterated over. If `sorted` is True, the channels are iterated over in ascending order of their
+        ids.
+
+        Parameters
+        ----------
+        use_channels : list of int, optional
+            List of channel ids to iterate over. If None, all channels are iterated over.
+        sorted : bool, optional
+            If True, the channels are iterated over in ascending order of their ids.
+
+        Yields
+        ------
+        NuRadioReco.framework.channel.Channel
+            The next channel in the iteration.
+        """
         channel_ids = self.get_channel_ids()
 
         if use_channels is not None:
@@ -40,7 +57,6 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
         for channel_id in channel_ids:
             yield self.get_channel(channel_id)
-
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
