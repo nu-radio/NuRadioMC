@@ -220,14 +220,16 @@ def merge2(filenames, output_filename):
 
 if __name__ == "__main__":
     """
-    merges multiple hdf5 output files into one single files.
-    The merger module automatically keeps track of the total number
-    of simulated events (which are needed to correctly calculate the effective volume).
+    Merges multiple hdf5 files into one single file. Keeps automatically track of the total number
+    of simulated events across all input files (which is necessary to correctly calculate the effective volume).
 
-    The script expects that the folder structure is
+    If a single path is passed as argument the script interprets it as root directory and expects the following folder structure:
     ../output/energy/*.hdf5.part????
+    The output file path is automatically determined.
 
-    Optional log level setting to either set DEBUG, INFO, or WARNING to the readout. Example: add --loglevel DEBUG when calling script to set loglevel to DEBUG. 
+    If multiple paths are passed, the first one is taken as output file path. The following paths are taken as input.
+
+    Optional log level setting to either set DEBUG, INFO, or WARNING to the readout. Example: add --loglevel DEBUG when calling script to set loglevel to DEBUG.
     """
     parser = argparse.ArgumentParser(description='Merge hdf5 files')
     parser.add_argument('files', nargs='+', help='input file or files')
@@ -239,9 +241,7 @@ if __name__ == "__main__":
         log_val = eval(f'logging.{args.loglevel}')
         logger.setLevel(log_val)
 
-    if(len(args.files) < 1):
-        print("usage: python merge_hdf5.py /path/to/simulation/output/folder\nor python merge_hdf5.py outputfilename input1 input2 ...")
-    elif(len(args.files) == 1):
+    if len(args.files) == 1:
         filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
         filenames = np.append(filenames, glob.glob("{}/*/*.hdf5.part??????".format(args.files[0])))
         filenames = sorted(filenames)
@@ -283,7 +283,7 @@ if __name__ == "__main__":
             with Pool(args.cores) as p:
                 p.map(tmp, input_args)
 
-    elif(len(args.files) > 1):
+    else:
         output_filename = args.files[0]
         if(os.path.exists(output_filename)):
             logger.error('file {} already exists, skipping'.format(output_filename))
