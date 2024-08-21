@@ -242,20 +242,13 @@ if __name__ == "__main__":
         logger.setLevel(log_val)
 
     if len(args.files) == 1:
-        filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
-        filenames = np.append(filenames, glob.glob("{}/*/*.hdf5.part??????".format(args.files[0])))
-        filenames = sorted(filenames)
-        filenames2 = []
-        for i, filename in enumerate(filenames):
-            filename, ext = os.path.splitext(filename)
-            if(ext != '.hdf5'):
-                if(filename not in filenames2):
-                    d = os.path.split(filename)
-                    a, b = os.path.split(d[0])
-                    filenames2.append(filename)
-
+        root_directory = args.files[0]
+        if not os.path.isdir(root_directory):
+            sys.exit(f"{root_directory} is not a directory.")
+        
+        filenames = np.unique(glob.glob(f"{root_directory}/*/*.hdf5.part*"))
         input_args = []
-        for filename in sorted(filenames2):
+        for filename in sorted(filenames):
             if(os.path.splitext(filename)[1] == '.hdf5'):
                 d = os.path.split(filename)
                 a, b = os.path.split(d[0])
@@ -263,13 +256,12 @@ if __name__ == "__main__":
                 if(os.path.exists(output_filename)):
                     logger.error('file {} already exists, skipping'.format(output_filename))
                 else:
-                    #                 try:
-                    input_files = np.array(sorted(glob.glob(filename + '.part????')))
-                    input_files = np.append(input_files, np.array(sorted(glob.glob(filename + '.part??????'))))
+                    input_files = np.array(sorted(glob.glob(filename + '.part*')))
                     mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=bool)
                     if(np.sum(~mask)):
                         logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
                     input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
+        
         if(args.cores == 1):
             for i in range(len(input_args)):
                 merge2(input_args[i]['filenames'], input_args[i]['output_filename'])
