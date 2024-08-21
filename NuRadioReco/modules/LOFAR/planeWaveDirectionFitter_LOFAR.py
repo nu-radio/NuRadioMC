@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import radiotools.helper as hp
 
 from scipy import constants
-from scipy.signal import hilbert
+from scipy.signal import resample
 
 from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
@@ -81,65 +81,7 @@ class planeWaveDirectionFitter:
         self.__logger_level = logger_level
         self.logger.setLevel(logger_level)
 
-    def _signal_windows_polarisation(self, station, channel_positions, channel_ids_per_pol, zenith, azimuth):
-        """
-        Considers the channel groups given by `channel_ids_per_pol` one by one and beamforms the traces
-        in the direction of `stationPulseFinder.direction_cartesian`. It then calculates the maximum of the
-        amplitude envelope, and saves the corresponding index with the indices for pulse finding in a tuple,
-        which it returns. From stationPulseFinder.py.
-
-        Parameters
-        ----------
-        station : Station object
-            The station to analyse.
-        channel_positions : np.ndarray
-            The array of channels positions, to be extracted from the detector description.
-        channel_ids_per_pol : list[list]
-            A list of channel IDs grouped per polarisation. The IDs in each sublist will be used together for
-            beamforming in the direction given by `beamform_direction`.
-
-        Returns
-        -------
-        tuple of floats
-            * The index in `channel_ids_per_pol` which contains the strongest signal
-            * The start index of the pulse window
-            * The stop index of the pulse window
-        """
-        direction_cartesian = hp.spherical_to_cartesian(
-            zenith, azimuth
-        )
-
-        # Assume all the channels have the same frequency content and sampling rate
-        frequencies = station.get_channel(channel_ids_per_pol[0][0]).get_frequencies()
-        sampling_rate = station.get_channel(channel_ids_per_pol[0][0]).get_sampling_rate()
-
-        values_per_pol = []
-
-        for i, channel_ids in enumerate(channel_ids_per_pol):
-            all_spectra = np.array([station.get_channel(channel).get_frequency_spectrum() for channel in channel_ids])
-            beamed_fft = mini_beamformer(all_spectra, frequencies, channel_positions, direction_cartesian)
-            beamed_timeseries = fft.freq2time(
-                beamed_fft, sampling_rate, n=station.get_channel(channel_ids[0]).get_trace().shape[0]
-            )
-
-            analytic_signal = hilbert(beamed_timeseries)
-            amplitude_envelope = np.abs(analytic_signal)
-            signal_window_start = int(
-                np.argmax(amplitude_envelope) - self.__window_size / 2
-            )
-            signal_window_end = int(
-                np.argmax(amplitude_envelope) + self.__window_size / 2
-            )
-
-            values_per_pol.append([np.max(amplitude_envelope), signal_window_start, signal_window_end])
-
-        values_per_pol = np.asarray(values_per_pol)
-        dominant = np.argmax(values_per_pol[:, 0])
-        window_start, window_end = values_per_pol[dominant][1:]
-
-        return int(dominant), int(window_start), int(window_end)
-
-    def _get_timelags(self, station, channel_ids_per_pol, positions, zenith, azimuth):
+    def _get_timelags(self, station, channel_ids_dominant_pol, resample_factor=16):
         """
         Get timing differences between signals in antennas with respect to some reference antenna (the first one
         in the list of ids). The peak is determined using the Hilbert envelope after resampling the trace with
@@ -159,23 +101,12 @@ class planeWaveDirectionFitter:
         timelags : list of float
             The timelags (in internal units) for each channel in the list, with respect to the first one
         """
-        # Get the dominant polarisation and the pulse window
-        dominant_pol, pulse_window_start, pulse_window_end = self._signal_windows_polarisation(
-            station=station,
-            channel_positions=positions,
-            channel_ids_per_pol=channel_ids_per_pol,
-            zenith=zenith,
-            azimuth=azimuth
-        )
-        # Collect the traces
-        traces = [station.get_channel(channel_id).get_trace() for channel_id in channel_ids_per_pol[dominant_pol]]
-        times = station.get_channel(channel_ids_per_pol[dominant_pol][0]).get_times()
 
         if self.__debug:
-            fig = plt.figure(figsize=(10,5))
-            for trace in traces:
-                plt.plot(trace)
-            #mark the signal window:
+            fig = plt.figure(figsize=(10, 5))
+            for channel in station.iter_channels(use_channels=channel_ids_dominant_pol):
+                plt.plot(channel.get_trace())
+            # mark the signal window:
             plt.axvline(pulse_window_start, color='r')
             plt.axvline(pulse_window_end, color='r')
             plt.xlim(pulse_window_start-500, pulse_window_end+500)
@@ -185,15 +116,19 @@ class planeWaveDirectionFitter:
             plt.show()
 
         # Determine the signal time
-        indices_max_trace = []
-        for trace in traces:
-            trace[:pulse_window_start] = 0
-            trace[pulse_window_end:] = 0
-            indices_max_trace.append(np.argmax(np.abs(trace)))
-        timelags = np.array([times[index] for i, index in enumerate(indices_max_trace)])
+        timelags = []
+        for channel in station.iter_channels(use_channels=channel_ids_dominant_pol):
+            pulse_window_start, pulse_window_end = channel.get_parameter(channelParameters.signal_regions)
+            resampled_window = resample(channel.get_trace()[pulse_window_start:pulse_window_end],
+                                        (pulse_window_end - pulse_window_start) * resample_factor)
+            resampled_max = np.argmax(resampled_window)
+            resampled_max_time = resampled_max / channel.get_sampling_rate() / resample_factor
+            window_start_time = pulse_window_start / channel.get_sampling_rate()
+            timelags.append(window_start_time + resampled_max_time)
+
         timelags -= timelags[0]  # get timelags wrt 1st antenna
 
-        return timelags - timelags[0]
+        return timelags
 
     @staticmethod
     def _directionForHorizontalArray(positions: np.ndarray, times: np.ndarray, ignore_z_coordinate=False):
@@ -313,38 +248,47 @@ class planeWaveDirectionFitter:
                 continue
             self.logger.debug(f"Running over station CS{station.get_id():03d}")
 
-            # get LORA inital guess for the direction
+            # Get the dominant polarisation as calculated by stationPulseFinder
+            dominant_orientation = station.get_parameter(stationParameters.cr_dominant_polarisation)
+
+            # get LORA initial guess for the direction
             zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
             azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
 
             # Get all group IDs which are still present in the station
-            station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
-
+            station_channel_ids = set([channel.get_id() for channel in station.iter_channels()])
+            channel_ids_per_pol = detector.get_parallel_channels(station.get_id())
+            if np.all(detector.get_antenna_orientation(station.get_id(), channel_ids_per_pol[0][0]) == dominant_orientation):
+                dominant_pol_channel_ids = channel_ids_per_pol[0]
+            else:
+                dominant_pol_channel_ids = channel_ids_per_pol[1]
             # collect the positions of 'good' antennas
             position_array = []
             good_antennas = []
-            for group_id in station_channel_group_ids:
-                channels = [channel for channel in station.iter_channel_group(group_id)]
+            for channel_id in dominant_pol_channel_ids:
+                if channel_id not in station_channel_ids:
+                    # Channel is no longer present in Station
+                    continue
+
+                channel = station.get_channel(channel_id)
 
                 good_amp = False
                 good_snr = False
-                # Only use channels with acceptable amplitude (if desired)
-                if self.__min_amp is not None:
-                    for channel in channels:
-                        if np.max(np.abs(channel.get_trace())) >= self.__min_amp:
-                            good_amp = True
+
+                if self.__min_amp is not None:  # Only use channels with acceptable amplitude (if desired)
+                    if np.max(np.abs(channel.get_trace())) >= self.__min_amp:
+                        good_amp = True
                 else:  # Only use channels with acceptable SNR
-                    for channel in channels:
-                        if channel.get_parameter(channelParameters.SNR) > self.__cr_snr:
-                            good_snr = True
+                    if channel.get_parameter(channelParameters.SNR) > self.__cr_snr:
+                        good_snr = True
 
                 if good_snr or good_amp:
                     position_array.append(
                         # detector.get_absolute_position(station.get_id()) +
-                        detector.get_relative_position(station.get_id(), channels[0].get_id())
+                        detector.get_relative_position(station.get_id(), channel.get_id())
                     )  # positions are the same for every polarization, array of [easting, northing, altitude] ([x, y, z])
 
-                    good_antennas.append((channels[0].get_id(), channels[1].get_id()))
+                    good_antennas.append(list(station.iter_channel_group(channel.get_group_id())))
 
             station.set_parameter(stationParameters.zenith, zenith)
             station.set_parameter(stationParameters.azimuth, azimuth)
@@ -371,9 +315,7 @@ class planeWaveDirectionFitter:
                 good_antennas = good_antennas[mask_good_antennas]
 
                 # get timelags
-                channel_ids_per_pol = [[channel_group[0] for channel_group in good_antennas],
-                                       [channel_group[1] for channel_group in good_antennas]]
-                times = self._get_timelags(station, channel_ids_per_pol, position_array, zenith, azimuth)
+                times = self._get_timelags(station, dominant_pol_channel_ids[mask_good_antennas])
 
                 goodpositions = position_array
                 goodtimes = times
