@@ -117,7 +117,8 @@ class planeWaveDirectionFitter:
 
         # Determine the signal time
         timelags = []
-        for channel in station.iter_channels(use_channels=channel_ids_dominant_pol):
+        for channel_id in channel_ids_dominant_pol:
+            channel = station.get_channel(channel_id)
             pulse_window_start, pulse_window_end = channel.get_parameter(channelParameters.signal_regions)
             resampled_window = resample(channel.get_trace()[pulse_window_start:pulse_window_end],
                                         (pulse_window_end - pulse_window_start) * resample_factor)
