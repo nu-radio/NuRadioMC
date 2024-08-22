@@ -248,55 +248,45 @@ class planeWaveDirectionFitter:
                 continue
             self.logger.debug(f"Running over station CS{station.get_id():03d}")
 
-            # Get the dominant polarisation as calculated by stationPulseFinder
-            dominant_orientation = station.get_parameter(stationParameters.cr_dominant_polarisation)
-
             # get LORA initial guess for the direction
             zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
             azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
 
             # Get all group IDs which are still present in the station
-            station_channel_ids = set([channel.get_id() for channel in station.iter_channels()])
-            channel_ids_per_pol = detector.get_parallel_channels(station.get_id())
-            if np.all(detector.get_antenna_orientation(station.get_id(), channel_ids_per_pol[0][0]) == dominant_orientation):
-                dominant_pol_channel_ids = channel_ids_per_pol[0]
-            else:
-                dominant_pol_channel_ids = channel_ids_per_pol[1]
-            # collect the positions of 'good' antennas
-            position_array = []
-            good_antennas = []
-            for channel_id in dominant_pol_channel_ids:
-                if channel_id not in station_channel_ids:
-                    # Channel is no longer present in Station
-                    continue
+            station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
 
-                channel = station.get_channel(channel_id)
+            # Get the dominant polarisation orientation as calculated by stationPulseFinder
+            dominant_orientation = station.get_parameter(stationParameters.cr_dominant_polarisation)
 
-                good_amp = False
-                good_snr = False
+            # Collect the positions of 'good' antennas
+            good_channel_pair_ids = np.zeros((len(station_channel_group_ids), 2), dtype=int)
+            relative_position_array = np.zeros((len(station_channel_group_ids), 3))
+            good_amp_or_snr = np.zeros(len(station_channel_group_ids), dtype=bool)
+            for ind, channel_group_id in enumerate(station_channel_group_ids):
+                relative_position_array[ind] = detector.get_relative_position(station.get_id(), channel_group_id)
+                for channel in station.iter_channel_group(channel_group_id):
+                    if np.all(detector.get_antenna_orientation(station.get_id(), channel.get_id()) == dominant_orientation):
+                        good_channel_pair_ids[ind, 0] = channel.get_id()
+                    else:
+                        good_channel_pair_ids[ind, 1] = channel.get_id()
 
-                if self.__min_amp is not None:  # Only use channels with acceptable amplitude (if desired)
-                    if np.max(np.abs(channel.get_trace())) >= self.__min_amp:
-                        good_amp = True
-                else:  # Only use channels with acceptable SNR
+                # Check if dominant channel has acceptable SNR or acceptable amplitude (if desired)
+                channel = station.get_channel(good_channel_pair_ids[ind, 0])
+                if self.__min_amp is None:
                     if channel.get_parameter(channelParameters.SNR) > self.__cr_snr:
-                        good_snr = True
-
-                if good_snr or good_amp:
-                    position_array.append(
-                        # detector.get_absolute_position(station.get_id()) +
-                        detector.get_relative_position(station.get_id(), channel.get_id())
-                    )  # positions are the same for every polarization, array of [easting, northing, altitude] ([x, y, z])
-
-                    good_antennas.append(list(station.iter_channel_group(channel.get_group_id())))
+                        good_amp_or_snr[ind] = True
+                else:
+                    if np.max(np.abs(channel.get_trace())) >= self.__min_amp:
+                        good_amp_or_snr[ind] = True
 
             station.set_parameter(stationParameters.zenith, zenith)
             station.set_parameter(stationParameters.azimuth, azimuth)
 
-            good_antennas = np.array(good_antennas, dtype=object)
-            mask_good_antennas = np.full(good_antennas.shape[0], True)
-            num_good_antennas = good_antennas.shape[0]
-            position_array = np.array(position_array)
+            num_good_antennas = np.sum(good_amp_or_snr)
+            mask_good_antennas = np.full(num_good_antennas, True)
+
+            good_antennas = good_channel_pair_ids[good_amp_or_snr]
+            position_array = relative_position_array[good_amp_or_snr]
 
             # iteratively do the plane wave fit and remove outliers (controlled by rmsfactor)
             # until the number of good antennas remains constant
@@ -314,8 +304,8 @@ class planeWaveDirectionFitter:
                 position_array = position_array[mask_good_antennas]
                 good_antennas = good_antennas[mask_good_antennas]
 
-                # get timelags
-                times = self._get_timelags(station, dominant_pol_channel_ids[mask_good_antennas])
+                # get time lags from the dominant antennas only
+                times = self._get_timelags(station, good_antennas[:, 0])
 
                 goodpositions = position_array
                 goodtimes = times
