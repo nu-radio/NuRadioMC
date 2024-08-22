@@ -17,7 +17,7 @@ from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
+from NuRadioReco.modules.LOFAR.beamforming_utilities import geometric_delay_far_field
 
 lightspeed = constants.c / 1.0003 * (units.m / units.s)
 
@@ -196,37 +196,6 @@ class planeWaveDirectionFitter:
         
         return np.mod(zenith * units.rad, 360 * units.deg), np.mod(azimuth * units.rad, 360 * units.deg)
 
-    @staticmethod
-    def _timeDelaysFromDirection(positions, direction):
-        """
-        --- adapted from pycrtools.modules.scrfind ---
-        Get time delays for antennas at given position for a given direction.
-        Time delays come out as an np-array.
-
-        Required arguments:
-
-        =========== =================================================
-        Parameter   Description
-        =========== =================================================
-        *positions* ``(np-array x1, y1, z1, x2, y2, z2, ...)``
-        *direction* (azimuth, zenith) in radians.
-        =========== =================================================
-        """
-        # convert position array into shape used by original implementation:
-        positions = np.copy(positions).flatten()
-        n = int(len(positions) / 3)
-        azimuth = direction[0]  
-        zenith = direction[1]  
-
-        cartesianDirection = np.array([np.sin(zenith) * np.cos(azimuth), np.sin(zenith) * np.sin(azimuth), np.cos(zenith)])
-        timeDelays = np.zeros(n)
-        for i in range(n):
-            thisPosition = positions[3 * i:3 * (i + 1)]
-            # note the minus sign! Signal vector points down from the sky.
-            timeDelays[i] = - (1 / lightspeed) * np.dot(cartesianDirection, thisPosition)
-
-        return timeDelays
-
     @register_run()
     def run(self, event, detector):
         """
@@ -313,20 +282,16 @@ class planeWaveDirectionFitter:
 
                 zenith, azimuth = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
 
-                if np.isnan(zenith) or np.isnan(azimuth):
-                    self.logger.warning('Plane wave fit returns NaN.')
-                    break
-                    fit_failed = True
-                else:
-                    fit_failed = False
-
                 # get residuals
-                expectedDelays = self._timeDelaysFromDirection(goodpositions, (azimuth, zenith))
+                expectedDelays = geometric_delay_far_field(
+                    goodpositions, hp.spherical_to_cartesian(zenith / units.rad, azimuth / units.rad)
+                )
                 expectedDelays -= expectedDelays[0]  # get delays wrt 1st antenna
 
                 residual_delays = goodtimes - expectedDelays
 
-                if fit_failed:
+                if np.isnan(zenith) or np.isnan(azimuth):
+                    self.logger.warning('Plane wave fit returns NaN.')
                     bins = int((residual_delays.max() - residual_delays.min()) * lightspeed / (
                             position_array[:, 0].max() - position_array[:, 0].min()))
                     if bins < 1:
