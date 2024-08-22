@@ -38,7 +38,7 @@ class planeWaveDirectionFitter:
         self.__logger_level = None
         self.__debug = None
         self.__window_size = None
-        self.__ignoreNonHorizontalArray = None
+        self.__ignore_non_horizontal_array = None
         self.__rmsfactor = None
         self.__min_amp = None
         self.__max_iter = None
@@ -75,7 +75,7 @@ class planeWaveDirectionFitter:
         self.__cr_snr = cr_snr
         self.__min_amp = min_amp
         self.__rmsfactor = rmsfactor
-        self.__ignoreNonHorizontalArray = force_horizontal_array
+        self.__ignore_non_horizontal_array = force_horizontal_array
         self.__window_size = window_size
         self.__debug = debug
         self.__logger_level = logger_level
@@ -98,7 +98,7 @@ class planeWaveDirectionFitter:
 
         Returns
         -------
-        timelags : list of float
+        timelags : np.ndarray
             The timelags (in internal units) for each channel in the list, with respect to the first one
         """
 
@@ -129,10 +129,10 @@ class planeWaveDirectionFitter:
 
         timelags -= timelags[0]  # get timelags wrt 1st antenna
 
-        return timelags
+        return np.asarray(timelags)
 
     @staticmethod
-    def _directionForHorizontalArray(positions: np.ndarray, times: np.ndarray, ignore_z_coordinate=False):
+    def _direction_horizontal_array(positions: np.ndarray, times: np.ndarray, ignore_z_coordinate=False):
         r"""
         --- adapted from pycrtools.modules.scrfind ---
         Given N antenna positions, and (pulse) arrival times for each antenna,
@@ -280,7 +280,8 @@ class planeWaveDirectionFitter:
                 goodpositions = position_array
                 goodtimes = times
 
-                zenith, azimuth = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
+                zenith, azimuth = self._direction_horizontal_array(goodpositions, goodtimes,
+                                                                   self.__ignore_non_horizontal_array)
 
                 # get residuals
                 expectedDelays = geometric_delay_far_field(
