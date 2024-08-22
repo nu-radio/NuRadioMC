@@ -141,12 +141,23 @@ class planeWaveDirectionFitter:
 
     def _get_timelags(self, station, channel_ids_per_pol, positions, zenith, azimuth):
         """
-        Get timing differences between signals in antennas with respect to some reference antenna (here the first one).
+        Get timing differences between signals in antennas with respect to some reference antenna (the first one
+        in the list of ids). The peak is determined using the Hilbert envelope after resampling the trace with
+        `resample_factor`.
 
         Parameters
         ----------
         station : Station object
-            The station for which to get the time lags.
+            The station for which to get the time lags
+        channel_ids_dominant_pol : list of int
+            The list of channel ids to calculate the time lags for (usually the dominant polarisation)
+        resample_factor : int, default=16
+            The resample factor to use when calculating the peak
+
+        Returns
+        -------
+        timelags : list of float
+            The timelags (in internal units) for each channel in the list, with respect to the first one
         """
         # Get the dominant polarisation and the pulse window
         dominant_pol, pulse_window_start, pulse_window_end = self._signal_windows_polarisation(
