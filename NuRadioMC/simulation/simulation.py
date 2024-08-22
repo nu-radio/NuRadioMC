@@ -1611,7 +1611,7 @@ class simulation:
                                     # Channel and SimChannel are different objects and a SimChannel can't be added to a Channel.
                                     tmp_channel = NuRadioReco.framework.channel.Channel(sim_channel.get_id())
                                     tmp_channel.set_trace(sim_channel.get_trace(), sim_channel.get_sampling_rate())
-                                    tmp_channel.set_trace_start_time(sim_channel.get_trace_start_time())
+                                    tmp_channel.set_trace_start_time(sim_channel.get_trace_start_time() - 55 * units.ns)
 
                                     channel = station.get_channel(sim_channel.get_id())  # important to get the channel (again) to have a reference to the correct object
 
@@ -1622,6 +1622,7 @@ class simulation:
                                     time_offset = np.abs(tmp_channel.get_trace_start_time() - channel.get_trace_start_time())
                                     i_start = int(round(time_offset * channel.get_sampling_rate()))
                                     residual_time_offset = time_offset - i_start / channel.get_sampling_rate()
+                                    print(f"residual_time_offset = {residual_time_offset}")
                                     tmp_channel.apply_time_shift(-residual_time_offset)  # we only shift the residual time offset that is left after the integer shift
                                     # determine the indices for both traces
                                     i_min = max(0, i_start)
