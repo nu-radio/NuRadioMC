@@ -38,7 +38,7 @@ class mySimulation(simulation.simulation):
         highLowThreshold.run(evt, station, det,
                                     threshold_high=4 * self._Vrms,
                                     threshold_low=-4 * self._Vrms,
-                                    triggered_channels=[8, 1, 2, 3],  # select the LPDA channels
+                                    triggered_channels=[8, 9, 2, 3],  # select the LPDA channels
                                     number_concidences=2,  # 2/4 majority logic
                                     trigger_name='LPDA_2of4_4.1sigma')
 
@@ -71,7 +71,6 @@ if __name__ == "__main__":
                                 detectorfile=args.detectordescription,
                                 outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                                 config_file=args.config,
-                                file_overwrite=True,
-                                trigger_channels=[8,9,2,3])
+                                file_overwrite=True)
     sim.run()
 
