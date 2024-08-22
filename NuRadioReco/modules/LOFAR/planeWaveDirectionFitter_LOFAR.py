@@ -20,7 +20,6 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
 lightspeed = constants.c / 1.0003 * (units.m / units.s)
-halfpi = np.pi / 2.
 
 
 def normalize(arr):
@@ -44,7 +43,7 @@ class planeWaveDirectionFitter:
         self.__min_amp = None
         self.__max_iter = None
 
-    def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, force_horizontal_array=True, window_size=800,
+    def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, force_horizontal_array=True, window_size=256,
               debug=False, logger_level=logging.WARNING):
         """
         Set the parameters for the plane wave fit.
@@ -65,7 +64,7 @@ class planeWaveDirectionFitter:
         force_horizontal_array : bool, default=True
             Set to True when you know the array is non-horizontal (z > 0.5) but want to use the
             horizontal approximation anyway. Recommended to set to True.
-        window_size : int, default=800
+        window_size : int, default=256
             The size of the window to use for the pulse finding.
         debug : bool, default=False
             Set to True to enable debug plots.
@@ -161,6 +160,19 @@ class planeWaveDirectionFitter:
         traces = [station.get_channel(channel_id).get_trace() for channel_id in channel_ids_per_pol[dominant_pol]]
         times = station.get_channel(channel_ids_per_pol[dominant_pol][0]).get_times()
 
+        if self.__debug:
+            fig = plt.figure(figsize=(10,5))
+            for trace in traces:
+                plt.plot(trace)
+            #mark the signal window:
+            plt.axvline(pulse_window_start, color='r')
+            plt.axvline(pulse_window_end, color='r')
+            plt.xlim(pulse_window_start-500, pulse_window_end+500)
+            plt.xlabel('index')
+            plt.ylabel('amplitude')
+            plt.title('Traces station %d' % station.get_id())
+            plt.show()
+
         # Determine the signal time
         indices_max_trace = []
         for trace in traces:
@@ -177,7 +189,7 @@ class planeWaveDirectionFitter:
         r"""
         --- adapted from pycrtools.modules.scrfind ---
         Given N antenna positions, and (pulse) arrival times for each antenna,
-        get a direction of arrival (az, el) assuming a source at infinity (plane wave).
+        get a direction of arrival (azimuth, zenith) assuming a source at infinity (plane wave).
 
         Here, we find the direction assuming all antennas are placed in the z=0 plane.
         If all antennas are co-planar, the best-fitting solution can be found using a 2D-linear fit.
@@ -194,13 +206,13 @@ class planeWaveDirectionFitter:
 
         This is done using :mod:`numpy.linalg.lstsq`.
 
-        The (az, el) follows from:
+        The (azimuth, zenith) follows from:
 
         .. math::
 
-            A = \cos(\mathrm{el}) \cos(\mathrm{az})
+            A = \sin(\mathrm{zenith}) \cos(\mathrm{azimuth})
 
-            B = \cos(\mathrm{el}) \sin(\mathrm{az})
+            B = \sin(\mathrm{zenith}) \sin(\mathrm{azimuth})
 
         
         Parameters
@@ -208,12 +220,14 @@ class planeWaveDirectionFitter:
         positions : np.ndarray
             Positions (x,y,z) of the antennas (shape: (N_antennas, 3))
         times : array, float
-            Pulse arrival times for all antennas
+            Measured pulse arrival times for all antennas
 
         Returns
         -------
-        (az, el) : in radians, and seconds-squared.
-
+        zenith : float
+            Zenith in the [0, 2pi] interval (given in internal units)
+        azimuth : float
+            Azimuth in the [0, 2pi] interval (given in internal units)
         """
 
         # make x, y arrays out of the input position array
@@ -230,10 +244,10 @@ class planeWaveDirectionFitter:
 
         A, B, C = np.linalg.lstsq(M, lightspeed * times, rcond=None)[0]
 
-        el = np.arccos(np.sqrt(A * A + B * B))  # TODO: this can result in RuntimeWarning - why?
-        az = halfpi - np.arctan2(-B, -A)  # note minus sign as we want the direction of the _incoming_ vector (from the sky, not towards it)
-        # note: Changed to az = 90_deg - phi
-        return az, el
+        zenith = np.arcsin(np.sqrt(A**2 + B**2))  # TODO: this can result in RuntimeWarning - why?
+        azimuth = np.arctan2(-B, -A)  # note minus sign as we want the direction of the _incoming_ vector (from the sky, not towards it)
+        
+        return np.mod(zenith * units.rad, 360 * units.deg), np.mod(azimuth * units.rad, 360 * units.deg)
 
     @staticmethod
     def _timeDelaysFromDirection(positions, direction):
@@ -248,16 +262,16 @@ class planeWaveDirectionFitter:
         Parameter   Description
         =========== =================================================
         *positions* ``(np-array x1, y1, z1, x2, y2, z2, ...)``
-        *direction* (az, el) in radians.
+        *direction* (azimuth, zenith) in radians.
         =========== =================================================
         """
         # convert position array into shape used by original implementation:
         positions = np.copy(positions).flatten()
         n = int(len(positions) / 3)
-        phi = np.pi / 2 - direction[0]  # warning, 90 degree? -- Changed to az = 90_deg - phi
-        theta = np.pi / 2 - direction[1]  # theta as in standard spherical coords, while el=90 means zenith...
+        azimuth = direction[0]  
+        zenith = direction[1]  
 
-        cartesianDirection = np.array([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
+        cartesianDirection = np.array([np.sin(zenith) * np.cos(azimuth), np.sin(zenith) * np.sin(azimuth), np.cos(zenith)])
         timeDelays = np.zeros(n)
         for i in range(n):
             thisPosition = positions[3 * i:3 * (i + 1)]
@@ -315,7 +329,7 @@ class planeWaveDirectionFitter:
 
                 if good_snr or good_amp:
                     position_array.append(
-                        detector.get_absolute_position(station.get_id()) +
+                        # detector.get_absolute_position(station.get_id()) +
                         detector.get_relative_position(station.get_id(), channels[0].get_id())
                     )  # positions are the same for every polarization, array of [easting, northing, altitude] ([x, y, z])
 
@@ -353,17 +367,17 @@ class planeWaveDirectionFitter:
                 goodpositions = position_array
                 goodtimes = times
 
-                az, el = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
+                zenith, azimuth = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
 
-                if np.isnan(el) or np.isnan(az):
-                    self.logger.warning('Plane wave fit returns NaN. Setting elevation to 0.0')
-                    el = np.deg2rad(40)  # TODO: why is the value 40 if the statement says 0.0?
+                if np.isnan(zenith) or np.isnan(azimuth):
+                    self.logger.warning('Plane wave fit returns NaN.')
+                    break
                     fit_failed = True
                 else:
                     fit_failed = False
 
                 # get residuals
-                expectedDelays = self._timeDelaysFromDirection(goodpositions, (az, el))
+                expectedDelays = self._timeDelaysFromDirection(goodpositions, (azimuth, zenith))
                 expectedDelays -= expectedDelays[0]  # get delays wrt 1st antenna
 
                 residual_delays = goodtimes - expectedDelays
@@ -404,11 +418,9 @@ class planeWaveDirectionFitter:
 
                 self.logger.debug(f"station {station.get_id()}:")
                 self.logger.debug(f"iteration {niter:d}:")
-                self.logger.debug(f'az = {np.rad2deg(az):.3f}, el = {np.rad2deg(el):.3f}')
+                self.logger.debug(f'azimuth = {np.rad2deg(azimuth):.3f}, zenith = {np.rad2deg(zenith):.3f}')
                 self.logger.debug(f'number of good antennas = {num_good_antennas:d}')
 
-                azimuth = np.mod(90 * units.deg - az * units.rad, 360 * units.deg)
-                zenith = np.mod(90 * units.deg - el * units.rad, 360 * units.deg)
 
                 # debug plots:
                 if self.__debug:
@@ -449,7 +461,7 @@ class planeWaveDirectionFitter:
                 f"Azimuth (counterclockwise wrt to East) and zenith for station CS{station.get_id():03d}:")
             self.logger.status(f"{azimuth / units.deg}, {zenith / units.deg}")
 
-            self.logger.status(f"Azimuth (wrt to North) and elevation for station CS{station.get_id():03d}:")
+            self.logger.status(f"Azimuth (clockwise wrt to North) and elevation for station CS{station.get_id():03d}:")
             self.logger.status(f"{90 - azimuth / units.deg}, {90 - zenith / units.deg}")
 
             station.set_parameter(stationParameters.cr_zenith, zenith)
