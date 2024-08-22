@@ -220,12 +220,14 @@ class planeWaveDirectionFitter:
         positions : np.ndarray
             Positions (x,y,z) of the antennas (shape: (N_antennas, 3))
         times : array, float
-            Pulse arrival times for all antennas
+            Measured pulse arrival times for all antennas
 
         Returns
         -------
-        (azimuth, zenith) : in radians.
-
+        zenith : float
+            Zenith in the [0, 2pi] interval (given in internal units)
+        azimuth : float
+            Azimuth in the [0, 2pi] interval (given in internal units)
         """
 
         # make x, y arrays out of the input position array
@@ -245,7 +247,7 @@ class planeWaveDirectionFitter:
         zenith = np.arcsin(np.sqrt(A**2 + B**2))  # TODO: this can result in RuntimeWarning - why?
         azimuth = np.arctan2(-B, -A)  # note minus sign as we want the direction of the _incoming_ vector (from the sky, not towards it)
         
-        return azimuth, zenith
+        return np.mod(zenith * units.rad, 360 * units.deg), np.mod(azimuth * units.rad, 360 * units.deg)
 
     @staticmethod
     def _timeDelaysFromDirection(positions, direction):
@@ -365,9 +367,7 @@ class planeWaveDirectionFitter:
                 goodpositions = position_array
                 goodtimes = times
 
-                azimuth, zenith = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
-                azimuth = np.mod(azimuth * units.rad, 360 * units.deg)
-                zenith = np.mod(zenith * units.rad, 360 * units.deg)
+                zenith, azimuth = self._directionForHorizontalArray(goodpositions, goodtimes, self.__ignoreNonHorizontalArray)
 
                 if np.isnan(zenith) or np.isnan(azimuth):
                     self.logger.warning('Plane wave fit returns NaN.')
