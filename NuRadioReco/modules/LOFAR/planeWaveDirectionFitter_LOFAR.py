@@ -10,20 +10,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import radiotools.helper as hp
 
-from scipy import constants
 from scipy.signal import resample
 
-from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.LOFAR.beamforming_utilities import geometric_delay_far_field
-
-lightspeed = constants.c / 1.0003 * (units.m / units.s)
-
-
-def normalize(arr):
-    return arr / np.abs(arr)
+from NuRadioReco.modules.LOFAR.beamforming_utilities import geometric_delay_far_field, lightspeed
 
 
 class planeWaveDirectionFitter:
@@ -165,7 +157,6 @@ class planeWaveDirectionFitter:
         """
 
         # make x, y arrays out of the input position array
-        #    N = len(positions)
         x = positions[:, 0]
         y = positions[:, 1]
 
