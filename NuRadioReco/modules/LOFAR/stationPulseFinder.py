@@ -12,46 +12,45 @@ from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
 def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_start=0, noise_end=-1,
                            resample_factor=1, full_output=False):
-    """
-    Return the signal-to-noise ratio (SNR) of a given time trace. The additional parameters allow to
-    select a window where the signal is and a separate window where there is only noise.
+    r"""
+    Return the signal-to-noise ratio (SNR) of a given time trace, defined as
+
+    ..math ::
+        \frac{max( | Hilbert(timeseries[window]) | )}{ RMS( Hilbert(timeseries[noise]) ) }
+
+    The signal window and noise window are controlled through the extra parameters to the function.
 
     Parameters
     ----------
-    timeseries: list or np.ndarray
+    timeseries: array-like
         The time trace
     window_start : int
     window_end : int
-        We look for the peak inside the array `timeseries[window_start:window_end]`
+        We look for the peak inside the resampled array `timeseries[window_start:window_end]`
     noise_start : int
     noise_end : int
         The array `timeseries[noise_start:noise_end]` is used to calculate the noise level
-    resample_factor : int
+    resample_factor : int, default=1
         Factor with which the timeseries will be resampled, needs to be integer > 0
-    full_output : bool
+    full_output : bool, default=False
+        If True, also the peak of the envelope and RMS are returned
 
     Returns
     -------
     The SNR of the time trace
     """
-    resampled_signal = resample(timeseries, len(timeseries) * resample_factor)
-    analytic_signal = hilbert(resampled_signal)
+    resampled_window = resample(timeseries[window_start:window_end], (window_end - window_start) * resample_factor)
+    analytic_signal = hilbert(resampled_window)
     amplitude_envelope = np.abs(analytic_signal)
 
-    # Adjust window indices with resample_factor
-    window_start *= resample_factor
-    window_end *= resample_factor
-    noise_start *= resample_factor
-    noise_end *= resample_factor
+    peak = np.max(
+        amplitude_envelope
+    )
 
     rms = np.sqrt(
         np.mean(
-            amplitude_envelope[noise_start:noise_end] ** 2
+            np.abs(hilbert(timeseries[noise_start:noise_end])) ** 2
         )
-    )
-
-    peak = np.max(
-        amplitude_envelope[window_start:window_end]
     )
 
     if full_output:
