@@ -274,7 +274,7 @@ class readRNOGData:
             Options are, in order of decreasing precision and increasing performance:
 
             * 'fit' : do a full out-of-band fit to determine the block offsets; for more details,
-              see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter` (slow)
+            see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter` (slow)
             * 'approximate' : estimate block offsets by looking at the low-pass filtered trace (default)
             * 'median' : subtract the median of each block (faster)
             * 'none' : do not apply a baseline correction (fastest)
@@ -352,9 +352,10 @@ class readRNOGData:
             self._time_high = None
 
         if select_runs and self.__run_table is not None:
-            self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
-                                 f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
-                                 f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
+            self.logger.info(
+                "\n\tSelect runs with type: {}".format(", ".join(run_types)) +
+                f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
+                f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
         self._selectors = []
         self.add_selectors(self._check_for_valid_information_in_event_info)
@@ -420,8 +421,9 @@ class readRNOGData:
         self._n_events_total = np.sum(self.__n_events_per_dataset)
         self._time_begin = time.time() - t0
 
-        self.logger.info(f"{self._n_events_total} events in {len(self._datasets)} runs/datasets "
-                         f"have been found using the {self._datasets[0].backend} Mattak backend.")
+        self.logger.info(
+            f"{self._n_events_total} events in {len(self._datasets)} runs/datasets "
+            f"have been found using the {self._datasets[0].backend} Mattak backend.")
 
         if not self._n_events_total:
             err = "No runs have been selected. Abort ..."
@@ -571,8 +573,9 @@ class readRNOGData:
         if self._selectors is not None:
             for selector in self._selectors:
                 if not selector(evtinfo):
-                    self.logger.debug(f"Event {self._event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
-                                      f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
+                    self.logger.debug(
+                        f"Event {self._event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
+                        f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
                     self.__skipped += 1
                     return False
 
@@ -642,7 +645,7 @@ class readRNOGData:
         return self._events_information
 
     @lru_cache(maxsize=1)
-    def get_waveforms(self, apply_baseline_correction=None, max_events=1000):
+    def get_waveforms(self, apply_baseline_correction=None, max_events=1000, overwrite_skip_incomplete=None):
         """ Return waveforms of events passing the selectors which may have been specified
 
         Parameters
@@ -660,6 +663,9 @@ class readRNOGData:
 
             Default: 1000
 
+        overwrite_skip_incomplete : bool | None
+            If not `None` overwrite the argument `skip_incomplete` passed to the mattak dataset.
+
         Returns
         -------
 
@@ -674,7 +680,7 @@ class readRNOGData:
         events_waveforms = []
 
         for dataset in self._datasets:
-            dataset.setEntries((0, dataset.N()))
+            dataset.setEntries((0, max_events or dataset.N()))
             if apply_baseline_correction in ['fit', 'approximate']: # we need the sampling rate
                 try:
                     sampling_rate = dataset.eventInfo()[0].sampleRate
@@ -685,7 +691,8 @@ class readRNOGData:
 
             for idx, (_, wfs) in enumerate(dataset.iterate(
                 calibrated=self._read_calibrated_data,
-                selectors=self._select_events)):
+                selectors=self._select_events,
+                overwrite_skip_incomplete=overwrite_skip_incomplete)):
 
                 if self._read_calibrated_data:
                     wfs = wfs * units.mV
@@ -731,16 +738,18 @@ class readRNOGData:
         """
 
         if math.isinf(event_info.triggerTime):
-            self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                                     "has inf trigger time. Skip event...")
+            self.logger.error(
+                f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                "has inf trigger time. Skip event...")
             self.__invalid += 1
             return False
 
 
         if (event_info.sampleRate == 0 or event_info.sampleRate is None) and self._overwrite_sampling_rate is None:
-            self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                              f"has a sampling rate of {event_info.sampleRate} GHz. Event is skipped ... "
-                              f"You can avoid this by setting 'overwrite_sampling_rate' in the begin() method.")
+            self.logger.error(
+                f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                f"has a sampling rate of {event_info.sampleRate} GHz. Event is skipped ... "
+                f"You can avoid this by setting 'overwrite_sampling_rate' in the begin() method.")
             self.__invalid += 1
             return False
 
@@ -826,9 +835,10 @@ class readRNOGData:
             dataset.setEntries((0, dataset.N()))
 
             # read all event infos of the entire dataset (= run)
-            for evtinfo, wf in dataset.iterate(calibrated=self._read_calibrated_data,
-                                               selectors=self._select_events,
-                                               max_entries_in_mem=self._max_in_mem):
+            for evtinfo, wf in dataset.iterate(
+                    calibrated=self._read_calibrated_data,
+                    selectors=self._select_events,
+                    max_entries_in_mem=self._max_in_mem):
 
                 evt = self._get_event(evtinfo, wf)
 
