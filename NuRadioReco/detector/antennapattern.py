@@ -1054,11 +1054,11 @@ def preprocess_FEKO_mat(path, polarization='X'):
 
     input_file = os.path.join(path, f'FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat')
     data = scipy.io.loadmat(input_file)
-    Ephi = data['Ephi'] # 721 x 181 x 301 (theta, phi, freq)
+    Ephi = data['Ephi'] # 721 x 181 x 301 (Phi, theta, freq)
     Etheta = data['Etheta'] # 721 x 181 x 301
     freqs_unique = np.linspace(50, 350, 301) * units.MHz
-    thetas_unique = np.linspace(0, 360, 721) * units.deg
-    phis_unique = np.linspace(0, 90, 181) * units.deg
+    phis_unique = np.linspace(0, 360, 721) * units.deg
+    thetas_unique = np.linspace(0, 90, 181) * units.deg
 
 
     freqs = []
@@ -1072,8 +1072,8 @@ def preprocess_FEKO_mat(path, polarization='X'):
                 freqs.append(freq)
                 thetas.append(theta)
                 phis.append(phi)
-                Ephis.append(Ephi[iTheta, iPhi, iFreq])
-                Ethetas.append(Etheta[iTheta, iPhi, iFreq])
+                Ephis.append(Ephi[iPhi, iTheta, iFreq])
+                Ethetas.append(Etheta[iPhi, iTheta, iFreq])
     freqs = np.array(freqs)
     thetas = np.array(thetas)
     phis = np.array(phis)
@@ -1082,13 +1082,13 @@ def preprocess_FEKO_mat(path, polarization='X'):
 
     if polarization == 'X':
         # use this angles and name SKALA_v4_Xpol to have your channel in east-west orientation
-        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg 
+        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 0 * units.deg 
     if polarization == 'Y':
         # use this angles and name SKALA_v4_Ypol to have your channel in north-south orientation
-        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 180 * units.deg 
+        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg 
 
-    fname = f'SKALA_v4_{polarization}pol.pkl'
-    output_filename = os.path.join(path_to_antennamodels, fname)
+    fname = f'SKALA_v4_{polarization}pol'
+    output_filename = "{}.pkl".format(os.path.join(path_to_antennamodels, fname, fname))
 
     directory = os.path.dirname(output_filename)
     if not os.path.exists(directory):
@@ -1208,8 +1208,8 @@ class AntennaPatternBase:
         # As the theta and phi angles are differently defined in WIPLD and ARIANNA, also the orientation of the
         # eTheta and ePhi unit vectors are different.
         cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
-        print('Vtheta_raw',Vtheta_raw.dtype)
-        print('Vtheta_raw.shape[0])', Vtheta_raw)
+        # print('Vtheta_raw',Vtheta_raw.dtype)
+        # print('Vtheta_raw.shape[0])', Vtheta_raw)
         V_xyz_raw = cstrans.transform_from_onsky_to_ground(
             np.array([np.zeros(Vtheta_raw.shape[0]), Vtheta_raw, Vphi_raw]))
         rot = self._get_antenna_rotation(orientation_theta, orientation_phi, rotation_theta, rotation_phi)
