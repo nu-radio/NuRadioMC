@@ -245,7 +245,8 @@ class readRNOGData:
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
             overwrite_sampling_rate=None,
-            max_in_mem=256):
+            max_in_mem=256,
+            check_trigger_time=True):
         """
         Parameters
         ----------
@@ -269,7 +270,7 @@ class readRNOGData:
         Other Parameters
         ----------------
 
-        apply_baseline_correction: 'fit' | 'approximate' | 'median' | 'none'
+        apply_baseline_correction: 'fit' | 'approximate' | 'median' | 'none' (Default: 'approximate')
             Removes the DC (baseline) block offsets (pedestals).
             Options are, in order of decreasing precision and increasing performance:
 
@@ -279,17 +280,15 @@ class readRNOGData:
             * 'median' : subtract the median of each block (faster)
             * 'none' : do not apply a baseline correction (fastest)
 
-        convert_to_voltage: bool
+        convert_to_voltage: bool (Default: True)
             Only applies when non-calibrated data are read. If true, convert ADC to voltage.
-            (Default: True)
 
-        selectors: list of lambdas
+        selectors: list of lambdas (Default: [])
             List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
-            (Default: [])
 
-        run_types: list
-            Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: ['physics'])
+        run_types: list(str) (Default: ['physics'])
+            Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used.
 
         run_time_range: tuple
             Specify a time range to select runs (it is sufficient that runs cover the time range partially).
@@ -297,25 +296,28 @@ class readRNOGData:
             which means that the lower or upper bound is unconstrained. If run_time_range is None no time selection is
             applied. (Default: None)
 
-        max_trigger_rate: float
+        max_trigger_rate: float (Default: 0 Hz -> n0 cut)
             Used to select/reject runs from information in the RNO-G RunTable. Maximum allowed trigger rate (per run) in Hz.
-            If 0, no cut is applied. (Default: 1 Hz)
+            If 0, no cut is applied.
 
-        mattak_kwargs: dict
-            Dictionary of arguments for mattak.Dataset.Dataset. (Default: {})
+        mattak_kwargs: dict (Default: {})
+            Dictionary of arguments for mattak.Dataset.Dataset.
             Example: Select a mattak "backend". Options are "auto", "pyroot", "uproot". If "auto" is selected,
             pyroot is used if available otherwise a "fallback" to uproot is used. (Default: "auto")
 
-        overwrite_sampling_rate: float
+        overwrite_sampling_rate: float (Default: None)
             Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo
             (i.e., stored in the mattak files) only when the stored sampling rate is invalid (i.e. 0 or None).
-            If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
+            If None, nothing is overwritten and the sampling rate from the mattak file is used.
             NOTE: This option might be necessary when old mattak files are read which have this not set.
 
-        max_in_mem: int
+        max_in_mem: int (default: 256)
             Set the maximum number of events that can be stored in memory. The datareader will divide
             the data in batches based on this number.
             NOTE: This is only relevant for the mattak uproot backend
+
+        check_trigger_time : bool (default: True)
+            If True, check if the trigger time is valid (i.e., not inf). If not valid, skip the event.
         """
 
         t0 = time.time()
@@ -336,6 +338,7 @@ class readRNOGData:
         self._adc_n_bits = 12
 
         self._overwrite_sampling_rate = overwrite_sampling_rate
+        self._check_trigger_time = check_trigger_time
 
         # set max wavform array size that can be loaded in memory
         self._max_in_mem = max_in_mem
@@ -382,7 +385,7 @@ class readRNOGData:
         self.__n_runs = 0
 
         # Set verbose for mattak
-        verbose = mattak_kwargs.pop("verbose", self.logger.level >= logging.DEBUG)
+        verbose = mattak_kwargs.pop("verbose", self.logger.level < logging.INFO)
 
         for dir_file in dirs_files:
 
@@ -645,7 +648,7 @@ class readRNOGData:
         return self._events_information
 
     @lru_cache(maxsize=1)
-    def get_waveforms(self, apply_baseline_correction=None, max_events=1000, overwrite_skip_incomplete=None):
+    def get_waveforms(self, apply_baseline_correction=None, max_events=1000, override_skip_incomplete=None):
         """ Return waveforms of events passing the selectors which may have been specified
 
         Parameters
@@ -663,7 +666,7 @@ class readRNOGData:
 
             Default: 1000
 
-        overwrite_skip_incomplete : bool | None
+        override_skip_incomplete : bool | None
             If not `None` overwrite the argument `skip_incomplete` passed to the mattak dataset.
 
         Returns
@@ -692,7 +695,7 @@ class readRNOGData:
             for idx, (_, wfs) in enumerate(dataset.iterate(
                 calibrated=self._read_calibrated_data,
                 selectors=self._select_events,
-                overwrite_skip_incomplete=overwrite_skip_incomplete)):
+                override_skip_incomplete=override_skip_incomplete)):
 
                 if self._read_calibrated_data:
                     wfs = wfs * units.mV
@@ -737,7 +740,7 @@ class readRNOGData:
             Returns True if all information valid, false otherwise
         """
 
-        if math.isinf(event_info.triggerTime):
+        if self._check_trigger_time and math.isinf(event_info.triggerTime):
             self.logger.error(
                 f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
                 "has inf trigger time. Skip event...")
