@@ -15,13 +15,6 @@ class NuRadioLogger(logging.Logger):
         # Add STATUS as the level name, to be used in message formatting
         logging.addLevelName(LOGGING_STATUS, "STATUS")
 
-    def addHandler(self, hdlr: logging.Handler):
-        # Ensure that the logger level is always lower than the lowest handler
-        if hdlr.level < self.level:
-            self.setLevel(hdlr.level)
-
-        super().addHandler(hdlr)
-
     def status(self, message, *args, **kwargs):
         if self.isEnabledFor(LOGGING_STATUS):
             self._log(LOGGING_STATUS, message, args, **kwargs)
@@ -86,7 +79,7 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
 def setup_logger(name="NuRadioReco", level=None):
     """
     Set up the parent logger which all module loggers should pass their logs on to. If this one already
-    exists, nothing is done and the logger is returned as is. Otherwise a single new `logging.StreamHandler()`
+    exists, nothing is done and the logger is returned as is. Otherwise, a single new `logging.StreamHandler()`
     with a custom formatter is added.
 
     Parameters
@@ -95,6 +88,11 @@ def setup_logger(name="NuRadioReco", level=None):
         The name of the base logger
     level : int, default=25
         The logging level to use for the base logger
+
+    Notes
+    -----
+    This function is only meant to be called once, on import. It is part of the `init` scripts, so you
+    should not need to call this function explicitly.
     """
     logger = logging.getLogger(name)
 
@@ -104,24 +102,36 @@ def setup_logger(name="NuRadioReco", level=None):
         return logger
     logger.propagate = False
 
-    # Create a StreamHandler with correct level and format
+    # Create a StreamHandler with fancy formatter
     handler = logging.StreamHandler()
+    handler.setFormatter(get_fancy_formatter())
+    handler.setLevel(1)  # we want the handler to be accepting all records from child loggers
+
+    # Then add our custom handler to the logger
+    logger.addHandler(handler)
+
+    # Finally, set the logging level
+    if level is not None:
+        logger.setLevel(level=level)
+    else:
+        logger.setLevel(LOGGING_STATUS)
+
+    return logger
+
+
+def get_fancy_formatter():
+    """
+    Returns the formatter used in the NuRadio logger.
+
+    Returns
+    -------
+    formatter : logging.Formatter
+    """
     formatter = logging.Formatter(
         '\033[33;20m%(levelname)s - \033[93m%(asctime)s - \033[32m%(name)s - \033[0m%(message)s',
         datefmt="%Y %b %d @ %H:%M:%S UTC%z"
     )
-    handler.setFormatter(formatter)
-
-    if level is not None:
-        handler.setLevel(level=level)
-    else:
-        handler.setLevel(LOGGING_STATUS)
-
-    # Then add our custom handler to the logger
-    logger.setLevel(50)  # will get adjusted when adding handler
-    logger.addHandler(handler)
-
-    return logger
+    return formatter
 
 
 def set_general_log_level(level):
