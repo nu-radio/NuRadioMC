@@ -384,7 +384,7 @@ class readRNOGData:
         self.__skipped_runs = 0
         self.__n_runs = 0
 
-        # Set verbose for mattak
+        # Set verbose for mattak: DEBUG = 10, INFO = 20, WARNING = 30 ...
         verbose = mattak_kwargs.pop("verbose", self.logger.level < logging.INFO)
 
         for dir_file in dirs_files:
