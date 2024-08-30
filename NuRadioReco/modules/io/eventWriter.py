@@ -186,6 +186,10 @@ class eventWriter:
         is_generic_detector = isinstance(det, generic_detector.GenericDetector)
         det_dict = {
             "generic_detector": is_generic_detector,
+            "detector_parameters": {
+                "assume_inf": det.assume_inf,
+                "antenna_by_depth": det.antenna_by_depth
+            },
             "channels": {},
             "stations": {}
         }
