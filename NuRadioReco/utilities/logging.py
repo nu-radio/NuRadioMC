@@ -9,7 +9,7 @@ class NuRadioLogger(logging.Logger):
     which has level=`LOGGING_STATUS` as defined in `logging.py` (as of February 2024, its value is 25).
     The associated `status()` call is also implemented.
     """
-    def __init__(self, name="NuRadioReco"):
+    def __init__(self, name):
         super().__init__(name)
 
         # Add STATUS as the level name, to be used in message formatting
@@ -96,7 +96,7 @@ def setup_logger(name="NuRadioReco", level=None):
     """
     logger = logging.getLogger(name)
 
-    if logger.hasHandlers():
+    if len(logger.handlers) > 0:  # method hasHandlers() also checks parents -> ends up at root logger
         # Don't change the logger if it already exists
         logger.warning(f"Logger {name} already has handlers. Not changing anything, returning the existing logger...")
         return logger
