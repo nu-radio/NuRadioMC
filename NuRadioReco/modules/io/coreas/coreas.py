@@ -17,6 +17,7 @@ import cr_pulse_interpolator.signal_interpolation_fourier
 import logging
 import copy
 import h5py
+
 logger = logging.getLogger('NuRadioReco.coreas')
 logger.setLevel(logging.INFO)
 
@@ -24,20 +25,23 @@ warning_printed_coreas_py = False
 
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
+
 def get_angles(corsika, declination):
     """
     Converting angles in corsika coordinates to local coordinates. 
     
-    Corsika positiv x-axis points to the magnetic north, NuRadio coordinates positiv x-axis points to the geographic east.
-    Corsika positiv y-axis points to the west, NuRadio coordinates positiv y-axis points to the geographic north.
+    Corsika positive x-axis points to the magnetic north, NRR coordinates positive x-axis points to the geographic east.
+    Corsika positive y-axis points to the west, NRR coordinates positive y-axis points to the geographic north.
     Corsika z-axis points upwards, NuRadio z-axis points upwards.
 
-    Corsikas zenith angle of a particle trajectory is defined between the particle momentum vector and the negativ z-axis, meaning that
-    the particle is described in the direction where it is going to. The azimuthal angle is described between the positive x-axis and 
-    the horizontal component of the particle momentum vector (i.e. with respect to the magnetic north) proceeding counterclockwise. 
+    Corsika's zenith angle of a particle trajectory is defined between the particle momentum vector and the negative
+    z-axis, meaning that the particle is described in the direction where it is going to. The azimuthal angle is
+    described between the positive x-axis and the horizontal component of the particle momentum vector
+    (i.e. with respect to the magnetic north) proceeding counterclockwise.
     
-    NuRadio describes the particle zenith and azimuthal angle in the direction where the particle is coming from. 
-    Therefore the zenith angle is the same, but the azimuthal angle has to be shifted by 180 + 90 degrees. The north has to be shifted by 90 degrees plus difference in geomagetic and magnetic north.
+    NRR describes the particle zenith and azimuthal angle in the direction where the particle is coming from.
+    Therefore the zenith angle is the same, but the azimuthal angle has to be shifted by 180 + 90 degrees.
+    The north has to be shifted by 90 degrees plus difference between geomagetic and magnetic north.
 
 
     Parameters
@@ -48,7 +52,8 @@ def get_angles(corsika, declination):
         declination of the magnetic field
     """
     zenith = np.deg2rad(corsika['inputs'].attrs["THETAP"][0])
-    azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]) + declination)  # TODO: check if sign of declination is correct is correct
+    azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(
+        corsika['inputs'].attrs["PHIP"][0]) + declination)  # TODO: check if sign of declination is correct is correct
 
     Bx, Bz = corsika['inputs'].attrs["MAGNET"]
     B_inclination = np.arctan2(Bz, Bx)
@@ -56,9 +61,11 @@ def get_angles(corsika, declination):
     B_strength = (Bx ** 2 + Bz ** 2) ** 0.5 * units.micro * units.tesla
 
     # in local coordinates north is + 90 deg
-    magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, declination + np.pi * 0.5)  # TODO: check if sign of declination is correct is correct
+    magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination,
+                                                                   declination + np.pi * 0.5)  # TODO: check if sign of declination is correct is correct
 
     return zenith, azimuth, magnetic_field_vector
+
 
 def get_geomagnetic_angle(zenith, azimuth, magnetic_field_vector):
     """
@@ -80,9 +87,11 @@ def get_geomagnetic_angle(zenith, azimuth, magnetic_field_vector):
     geomagnetic_angle = hp.get_angle(magnetic_field_vector, shower_axis_vector)
     return geomagnetic_angle
 
+
 def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vector, prepend_zeros=False):
     """
-    converts the electric field from the coreas observer to NuRadio units and spherical coordinated eR, eTheta, ePhi (on sky)
+    Converts the electric field from the coreas observer to NuRadio units and
+    spherical coordinated eR, eTheta, ePhi (on sky)
 
     Parameters
     ----------
@@ -98,16 +107,16 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     """
     cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector)
 
-    efield = np.array([observer[()][:,0]*units.second,
-                        -observer[()][:,2]*conversion_fieldstrength_cgs_to_SI,
-                        observer[()][:,1]*conversion_fieldstrength_cgs_to_SI,
-                        observer[()][:,3]*conversion_fieldstrength_cgs_to_SI])
-    
-    efield_times = efield[0,:]
-    efield_geo = cs.transform_from_magnetic_to_geographic(efield[1:,:])
+    efield = np.array([observer[()][:, 0] * units.second,
+                       -observer[()][:, 2] * conversion_fieldstrength_cgs_to_SI,
+                       observer[()][:, 1] * conversion_fieldstrength_cgs_to_SI,
+                       observer[()][:, 3] * conversion_fieldstrength_cgs_to_SI])
+
+    efield_times = efield[0, :]
+    efield_geo = cs.transform_from_magnetic_to_geographic(efield[1:, :])
     # convert coreas efield to NuRadio spherical coordinated eR, eTheta, ePhi (on sky)
     efield_on_sky = cs.transform_from_ground_to_onsky(efield_geo)
-    
+
     if prepend_zeros:
         # prepend trace with zeros to not have the pulse directly at the start
         n_samples_prepend = efield_on_sky.shape[1]
@@ -117,8 +126,9 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
         efield[2] = np.append(np.zeros(n_samples_prepend), efield_on_sky[2])
     else:
         efield = efield_on_sky
-    
+
     return efield.T, efield_times
+
 
 def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector):
     """
@@ -146,7 +156,8 @@ def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnet
     obs_positions_geo = cs.transform_from_magnetic_to_geographic(obs_positions.T)
 
     return obs_positions_geo
-            
+
+
 def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field_vector):
     """
     Converts observer positions from the corsika file to NuRadio units in the (vxB, vxvxB) shower plane.
@@ -166,11 +177,14 @@ def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field
     
     """
     cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector)
+
     obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector)
+
     # transforms the coreas observer positions into the vxB, vxvxB shower plane
     obs_positions_vxB_vxvxB = cs.transform_to_vxB_vxvxB(obs_positions_geo).T
 
     return obs_positions_vxB_vxvxB
+
 
 def read_CORSIKA7(input_file, declination=None):
     """
@@ -181,13 +195,14 @@ def read_CORSIKA7(input_file, declination=None):
     input_file : string
         path to the corsika hdf5 file
     """
-    if(declination is None):
+    if (declination is None):
         declination = 0
-        logger.warning("No declination given, assuming 0 degree. This might need to incorrect electric field polarizations.")
+        logger.warning(
+            "No declination given, assuming 0 degree. This might need to incorrect electric field polarizations.")
     corsika = h5py.File(input_file, "r")
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     zenith, azimuth, magnetic_field_vector = get_angles(corsika, declination)
-    
+
     sim_shower = NuRadioReco.framework.radio_shower.RadioShower()
     sim_shower.set_parameter(shp.zenith, zenith)
     sim_shower.set_parameter(shp.azimuth, azimuth)
@@ -210,7 +225,7 @@ def read_CORSIKA7(input_file, declination=None):
     sim_shower.set_parameter(shp.core_coordinate_vertical, corsika['CoREAS'].attrs["CoreCoordinateVertical"] / 100)
     sim_shower.set_parameter(shp.coreas_GPSSecs, corsika['CoREAS'].attrs["GPSSecs"])
 
-    sim_station = NuRadioReco.framework.sim_station.SimStation(0) # set sim station id to 0
+    sim_station = NuRadioReco.framework.sim_station.SimStation(0)  # set sim station id to 0
     sim_station.set_parameter(stnp.azimuth, azimuth)
     sim_station.set_parameter(stnp.zenith, zenith)
     sim_station.set_parameter(stnp.cr_energy, energy)
@@ -235,12 +250,13 @@ def read_CORSIKA7(input_file, declination=None):
         sim_station.add_electric_field(electric_field)
 
     evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
-    stn = NuRadioReco.framework.station.Station(0) # set station id to 0
+    stn = NuRadioReco.framework.station.Station(0)  # set station id to 0
     stn.set_sim_station(sim_station)
     evt.set_station(stn)
     evt.add_sim_shower(sim_shower)
     corsika.close()
     return evt
+
 
 def plot_footprint_onsky(sim_station, fig=None, ax=None):
     """
@@ -303,12 +319,14 @@ def make_sim_station(station_id, corsika, weight=None):
         sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
     except:
         global warning_printed_coreas_py
-        if(not warning_printed_coreas_py):
-            logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
+        if (not warning_printed_coreas_py):
+            logger.warning(
+                "No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
             warning_printed_coreas_py = True
     sim_station.set_is_cosmic_ray()
     sim_station.set_simulation_weight(weight)
     return sim_station
+
 
 def create_sim_station(station_id, evt, weight=None):
     """
@@ -330,9 +348,8 @@ def create_sim_station(station_id, evt, weight=None):
     sim_station: sim station
         simulated station object
     """
-    coreas_sta = evt.get_station(station_id=0) # read_coreas has only station id 0
+    coreas_sta = evt.get_station(station_id=0)  # read_coreas has only station id 0
     coreas_sim_station = coreas_sta.get_sim_station()
-
 
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
     sim_station.set_parameter(stnp.azimuth, coreas_sim_station.get_parameter(stnp.azimuth))
@@ -345,14 +362,16 @@ def create_sim_station(station_id, evt, weight=None):
         sim_station.set_parameter(stnp.cr_energy_em, coreas_sim_station.get_parameter(stnp.cr_energy_em))
     except:
         global warning_printed_coreas_py
-        if(not warning_printed_coreas_py):
-            logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
+        if (not warning_printed_coreas_py):
+            logger.warning(
+                "No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
             warning_printed_coreas_py = True
     if coreas_sim_station.is_cosmic_ray():
         sim_station.set_is_cosmic_ray()
 
     sim_station.set_simulation_weight(weight)
     return sim_station
+
 
 def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
     """
@@ -410,15 +429,18 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
     except:
         global warning_printed_coreas_py
-        if(not warning_printed_coreas_py):
-            logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
+        if (not warning_printed_coreas_py):
+            logger.warning(
+                "No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
             warning_printed_coreas_py = True
 
     return sim_shower
 
+
 def create_sim_shower(evt, detector=None, station_id=None):
     """
-    creates an NuRadioReco sim shower from an event object created with e.g. read_CORSIKA7(), the core positions are set such that the detector station is on top of
+    creates an NuRadioReco sim shower from an event object created with e.g. read_CORSIKA7(),
+    the core positions are set such that the detector station is on top of
     each coreas observer position
 
     Parameters
@@ -426,7 +448,8 @@ def create_sim_shower(evt, detector=None, station_id=None):
     evt : Event object
         event object containing the CoREAS output, e.g. created with read_CORSIKA7()
     detector : detector object
-    station_id : station id of the station relativ to which the shower core is given
+    station_id : int
+        station id of the station relative to which the shower core is given
 
     Returns
     -------
@@ -451,7 +474,8 @@ def create_sim_shower(evt, detector=None, station_id=None):
     return sim_shower
 
 
-def add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_times, zenith, azimuth, sampling_rate, fluence=None):
+def add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_times, zenith, azimuth, sampling_rate,
+                                      fluence=None):
     """
     adds an electric field trace to an existing sim station
 
@@ -470,7 +494,7 @@ def add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_t
     """
     if type(channel_ids) is not list:
         channel_ids = [channel_ids]
-    
+
     electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids)
     electric_field.set_trace(efield, sampling_rate)
     electric_field.set_trace_start_time(efield_times[0])
@@ -480,6 +504,7 @@ def add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_t
     if fluence is not None:
         electric_field.set_parameter(efp.signal_energy_fluence, fluence)
     sim_station.add_electric_field(electric_field)
+
 
 def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debug=False):
     """
@@ -510,7 +535,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
 
     positions = np.array(positions)
     cs = coordinatesystems.cstrafo(zenith=zenith, azimuth=azimuth, magnetic_field_vector=None,
-                                                   site=site)
+                                   site=site)
     x_trafo_from_shower = cs.transform_from_vxB_vxvxB(station_position=np.array([1, 0, 0]))
     y_trafo_from_shower = cs.transform_from_vxB_vxvxB(station_position=np.array([0, 1, 0]))
     z_trafo_from_shower = cs.transform_from_vxB_vxvxB(station_position=np.array([0, 0, 1]))
@@ -533,17 +558,15 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     for p in range(0, weights.shape[0]):  # loop over all observer positions
         vertices_shower_2d = vor.vertices[vor.regions[vor.point_region[p]]]
 
-        # x_vertice_ground = x_trafo_from_shower[0] * x_vertice_shower + y_trafo_from_shower[0] * y_vertice_shower + z_trafo_from_shower[0] * z_vertice_shower
-        # y_vertice_ground = x_trafo_from_shower[1] * x_vertice_shower + y_trafo_from_shower[1] * y_vertice_shower + z_trafo_from_shower[1] * z_vertice_shower
-        # z_vertice_ground = x_trafo_from_shower[2] * x_vertice_shower + y_trafo_from_shower[2] * y_vertice_shower + z_trafo_from_shower[2] * z_vertice_shower
-
         x_vertice_shower = vertices_shower_2d[:, 0]
         y_vertice_shower = vertices_shower_2d[:, 1]
-        z_vertice_shower = -(x_trafo_from_shower[2] * x_vertice_shower + y_trafo_from_shower[2] * y_vertice_shower) / z_trafo_from_shower[2]
+        z_vertice_shower = -(
+                x_trafo_from_shower[2] * x_vertice_shower + y_trafo_from_shower[2] * y_vertice_shower
+        ) / z_trafo_from_shower[2]
 
         vertices_shower_3d = []
-        for iter in range(len(x_vertice_shower)):
-            vertices_shower_3d.append([x_vertice_shower[iter], y_vertice_shower[iter], z_vertice_shower[iter]])
+        for iter_nr in range(len(x_vertice_shower)):
+            vertices_shower_3d.append([x_vertice_shower[iter_nr], y_vertice_shower[iter_nr], z_vertice_shower[iter_nr]])
         vertices_shower_3d = np.array(vertices_shower_3d)
         vertices_ground = cs.transform_from_vxB_vxvxB(station_position=vertices_shower_3d)
 
@@ -586,6 +609,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
 
     return weights
 
+
 class coreasInterpolator:
     """
     The functions in this class are used to interpolate the fluence and signal shape from coreas files
@@ -597,6 +621,7 @@ class coreasInterpolator:
     """
 
     def __init__(self, corsika_evt):
+        self.sampling_rate = None
         self.electric_field_on_sky = None
         self.efield_times = None
         self.obs_positions_geo = None
@@ -609,11 +634,16 @@ class coreasInterpolator:
         self.corsika_evt = corsika_evt
         self.sim_station = corsika_evt.get_station(0).get_sim_station()
         self.shower = corsika_evt.get_first_sim_shower()  # there should only be one simulated shower
-        self.star_shape_initilized = False
-        self.efield_interpolator_initilized = False
-        self.fluence_interpolator_initilized = False
+        self.star_shape_initialized = False
+        self.efield_interpolator_initialized = False
+        self.fluence_interpolator_initialized = False
         self.zenith = self.shower.get_parameter(shp.zenith)
         self.azimuth = self.shower.get_parameter(shp.azimuth)
+
+        self.interp_lowfreq = None
+        self.interp_highfreq = None
+        self.efield_interpolator = None
+        self.fluence_interpolator = None
 
         self.cs = coordinatesystems.cstrafo(self.zenith, self.azimuth, self.shower[shp.magnetic_field_vector])
 
@@ -643,34 +673,38 @@ class coreasInterpolator:
         self.obs_positions_vxB_vxvxB = np.array(obs_positions_onsky)
 
         self.max_coreas_efield = np.max(np.abs(self.electric_field_on_sky))
-        self.empty_efield = np.zeros_like(self.electric_field_on_sky[0,:,:])
+        self.empty_efield = np.zeros_like(self.electric_field_on_sky[0, :, :])
 
         self.star_radius = np.max(np.linalg.norm(self.obs_positions_vxB_vxvxB[:, :-1], axis=-1))
         self.geo_star_radius = np.max(np.linalg.norm(self.obs_positions_geo[:-1, :], axis=0))
-        logger.info(f'Initialize star shape pattern for interpolation. The shower arrives at zenith={self.zenith/units.deg:.0f}deg, azimuth={self.azimuth/units.deg:.0f}deg with radius {self.star_radius:.0f}m in the shower plane and {self.geo_star_radius:.0f}m on ground. ')
-        self.star_shape_initilized = True
+        logger.info(
+            f'Initialize star shape pattern for interpolation. '
+            f'The shower arrives at zenith={self.zenith / units.deg:.0f}deg, '
+            f'azimuth={self.azimuth / units.deg:.0f}deg with radius {self.star_radius:.0f}m in the shower plane '
+            f'and {self.geo_star_radius:.0f}m on ground. ')
+        self.star_shape_initialized = True
 
     def get_sampling_rate(self):
         """
         returns the sampling rate of the electric field
         """
         return self.sampling_rate
-    
+
     def get_empty_efield(self):
         """
         returns the an array of zeros in the shape of the electric field on the sky
         """
-        if not self.star_shape_initilized:
+        if not self.star_shape_initialized:
             logger.error('interpolator not initialized, call initialize_star_shape first')
             return None
         else:
             return self.empty_efield
-    
+
     def get_max_efield(self):
         """
         returns the maximum value of the electric field provided by coreas
         """
-        if not self.star_shape_initilized:
+        if not self.star_shape_initialized:
             logger.error('interpolator not initialized, call initialize_star_shape first')
             return None
         else:
@@ -680,7 +714,7 @@ class coreasInterpolator:
         """
         returns the maximal radius of the star shape pattern in the shower plane
         """
-        if not self.star_shape_initilized:
+        if not self.star_shape_initialized:
             logger.error('interpolator not initialized, call initialize_star_shape first')
             return None
         else:
@@ -690,7 +724,7 @@ class coreasInterpolator:
         """
         returns the maximal radius of the star shape pattern on ground
         """
-        if not self.star_shape_initilized:
+        if not self.star_shape_initialized:
             logger.error('interpolator not initialized, call initialize_star_shape first')
             return None
         else:
@@ -698,8 +732,8 @@ class coreasInterpolator:
 
     def initialize_efield_interpolator(self, interp_lowfreq, interp_highfreq):
         """
-        initilized the efield interpolator object. The efield will be interpolated in the shower plane for geometrical reasons.
-        If the geomagnetic angle is smaller than 15deg, no interpolator object is returned.
+        Initialises the efield interpolator object. The efield will be interpolated in the shower plane for
+        geometrical reasons. If the geomagnetic angle is smaller than 15deg, no interpolator object is returned.
 
         Parameters
         ----------
@@ -713,24 +747,30 @@ class coreasInterpolator:
         efield_interpolator : interpolator object
 
         """
-        self.efield_interpolator_initilized = True
+        self.efield_interpolator_initialized = True
         self.interp_lowfreq = interp_lowfreq
         self.interp_highfreq = interp_highfreq
 
         geomagnetic_angle = get_geomagnetic_angle(self.zenith, self.azimuth, self.shower[shp.magnetic_field_vector])
 
-        if geomagnetic_angle < 15*units.deg:
-            logger.warning(f'geomagnetic angle is {geomagnetic_angle/units.deg:.2f} deg, which is smaller than 15deg, which is the lower limit for the signal interpolation. The closest obersever is used instead.')
+        if geomagnetic_angle < 15 * units.deg:
+            logger.warning(
+                f'geomagnetic angle is {geomagnetic_angle / units.deg:.2f} deg, '
+                f'which is smaller than 15deg, which is the lower limit for the signal interpolation. '
+                f'The closest obersever is used instead.')
             self.efield_interpolator = -1
         else:
-            logger.info(f'electric field interpolation with lowfreq {interp_lowfreq/units.MHz} MHz and highfreq {interp_highfreq/units.MHz} MHz')
+            logger.info(
+                f'electric field interpolation with lowfreq {interp_lowfreq / units.MHz} MHz '
+                f'and highfreq {interp_highfreq / units.MHz} MHz')
+
             self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
                 self.obs_positions_vxB_vxvxB[:, 0],
                 self.obs_positions_vxB_vxvxB[:, 1],
                 self.electric_field_on_sky,
-                lowfreq=(interp_lowfreq-0.01)/units.MHz,
-                highfreq=(interp_highfreq+0.01)/units.MHz,
-                sampling_period=1/self.sampling_rate/units.s,  # interpolator module wants sampling period in seconds
+                lowfreq=(interp_lowfreq - 0.01) / units.MHz,
+                highfreq=(interp_highfreq + 0.01) / units.MHz,
+                sampling_period=1 / self.sampling_rate / units.s,  # interpolator wants sampling period in seconds
                 phase_method="phasor",
                 radial_method='cubic',
                 upsample_factor=5,
@@ -750,24 +790,29 @@ class coreasInterpolator:
             quantity to interpolate, e.g. efp.signal_energy_fluence
             The quantity needs to be available as parameter in the electric field object!!! You might
             need to run the electricFieldSignalReconstructor. The default is efp.signal_energy_fluence.
+
         Returns
         -------
         fluence_interpolator : interpolator object
         """
-        zz = [np.sum(efield[quantity]) for efield in self.sim_station.get_electric_fields()]  # the fluence is calculated per polarization, so we need to sum them up
-        self.fluence_interpolator_initilized = True
+        fluence_per_position = [
+            np.sum(efield[quantity]) for efield in self.sim_station.get_electric_fields()
+        ]  # the fluence is calculated per polarization, so we need to sum them up
 
         logger.info(f'fluence interpolation')
         self.fluence_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
             self.obs_positions_vxB_vxvxB[:, 0],
             self.obs_positions_vxB_vxvxB[:, 1],
-            zz
+            fluence_per_position
         )
+        self.fluence_interpolator_initialized = True
+
         if debug:
             max_efield = []
-            for i in range(len(self.electric_field_on_sky[:,0,1])):
-                max_efield.append(np.max(np.abs(self.electric_field_on_sky[i,:,:])))
-            plt.scatter(self.obs_positions_vxB_vxvxB[:,0], self.obs_positions_vxB_vxvxB[:,1], c=max_efield, cmap='viridis', marker='o', edgecolors='k')
+            for i in range(len(self.electric_field_on_sky[:, 0, 1])):
+                max_efield.append(np.max(np.abs(self.electric_field_on_sky[i, :, :])))
+            plt.scatter(self.obs_positions_vxB_vxvxB[:, 0], self.obs_positions_vxB_vxvxB[:, 1], c=max_efield,
+                        cmap='viridis', marker='o', edgecolors='k')
             cbar = plt.colorbar()
             cbar.set_label('max amplitude')
             plt.xlabel('v x B [m]')
@@ -789,14 +834,13 @@ class coreasInterpolator:
         save_file_path : str
             if provided, figure will be stored there
         """
-        
 
         # Make color plot of f(x, y), using a meshgrid
         ti = np.linspace(-radius, radius, 500)
         XI, YI = np.meshgrid(ti, ti)
 
-        ### Get interpolated values at each grid point, calling the instance of interp2d_fourier
-        ZI =  self.fluence_interpolator(XI, YI)
+        # Get interpolated values at each grid point, calling the instance of interp2d_fourier
+        ZI = self.fluence_interpolator(XI, YI)
 
         # And plot it
         maxp = np.max(ZI)
@@ -815,8 +859,9 @@ class coreasInterpolator:
 
     def get_interp_efield_value(self, position_on_ground, core):
         """
-        Accesses the interpolated electric field given the position of the detector on ground. For the interpolation, the pulse will be
-        projected in the shower plane. If the geomagnetic angle is smaller than 15deg, the electric field of the closest observer position is returned.
+        Accesses the interpolated electric field given the position of the detector on ground. For the interpolation,
+        the pulse will be projected in the shower plane. If the geomagnetic angle is smaller than 15deg, the electric
+        field of the closest observer position is returned.
 
         Parameters
         ----------
@@ -834,10 +879,13 @@ class coreasInterpolator:
         trace_start_time : float
             start time of the trace
         """
-        logger.debug(f"get interpolated efield for antenna position {position_on_ground} on ground and core position {core}")
+        logger.debug(
+            f"get interpolated efield for antenna position {position_on_ground} on ground and core position {core}")
         antenna_position = copy.copy(position_on_ground)
-        #core and antenna need to be in the same z plane
+
+        # core and antenna need to be in the same z plane
         antenna_position[2] = core[2]
+
         # transform antenna position into shower plane with respect to core position, core position is set to 0,0 in shower plane
         antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(antenna_position, core=core)
         logger.debug(f"antenna position in shower plane {antenna_pos_vBvvB}")
@@ -847,7 +895,10 @@ class coreasInterpolator:
         # interpolate electric field at antenna position in shower plane which are inside star pattern
         if dcore_vBvvB > self.star_radius:
             efield_interp = self.empty_efield
-            logger.debug(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, set efield and fluence to zero')
+            logger.debug(
+                f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern '
+                f'with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, '
+                f'set efield to zero')
         else:
             if self.efield_interpolator == -1:
                 efield = self.get_closest_observer_efield(antenna_pos_vBvvB)
@@ -855,20 +906,23 @@ class coreasInterpolator:
                 trace_start_time = None
 
             else:
-                efield_interp, trace_start_time, abs_spectrum, phasespectrum = self.efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1],
-                                                lowfreq=self.interp_lowfreq/units.MHz,
-                                                highfreq=self.interp_highfreq/units.MHz,
-                                                filter_up_to_cutoff=False,
-                                                account_for_timing=True,
-                                                pulse_centered=True,
-                                                const_time_offset=20.0e-9,
-                                                full_output=True)
+                efield_interp, trace_start_time, abs_spectrum, phasespectrum = self.efield_interpolator(
+                    antenna_pos_vBvvB[0], antenna_pos_vBvvB[1],
+                    lowfreq=self.interp_lowfreq / units.MHz,
+                    highfreq=self.interp_highfreq / units.MHz,
+                    filter_up_to_cutoff=False,
+                    account_for_timing=True,
+                    pulse_centered=True,
+                    const_time_offset=20.0e-9,
+                    full_output=True)
 
         #check if interpolation is within expected range
         if np.max(np.abs(efield_interp)) > self.max_coreas_efield:
-            logger.warning(f'interpolated efield {np.max(np.abs(efield_interp)):.2f} is larger than the maximum coreas efield {self.max_coreas_efield:.2f}')
-        return efield_interp, trace_start_time
+            logger.warning(
+                f'interpolated efield {np.max(np.abs(efield_interp)):.2f} is larger than '
+                f'the maximum coreas efield {self.max_coreas_efield:.2f}')
 
+        return efield_interp, trace_start_time
 
     def get_interp_fluence_value(self, position_on_ground, core):
         """
@@ -889,8 +943,10 @@ class coreasInterpolator:
         """
         antenna_position = position_on_ground
         z_plane = core[2]
+
         #core and antenna need to be in the same z plane
         antenna_position[2] = z_plane
+
         # transform antenna position into shower plane with respect to core position, core position is set to 0,0 in shower plane
         antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(antenna_position, core=core)
 
@@ -899,18 +955,18 @@ class coreasInterpolator:
         # interpolate electric field at antenna position in shower plane which are inside star pattern
         if dcore_vBvvB > self.star_radius:
             fluence_interp = 0
-            logger.debug(f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, set efield and fluence to zero')
+            logger.debug(
+                f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern '
+                f'with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, '
+                f'fluence to zero')
         else:
             fluence_interp = self.fluence_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1])
 
-        # #check if interpolation is within expected range
-        # if np.max(np.abs(fluence_interp)) > self.max_coreas_efield:
-        #     logger.warning(f'interpolated fluence {np.max(np.abs(fluence_interp)):.2f} is larger than the maximum coreas efield {self.max_coreas_efield:.2f}')
         return fluence_interp
 
-
     def get_closest_observer_efield(self, antenna_pos_vBvvB):
-        """returns the electric field of the closest observer position for an antenna position in the shower plane.
+        """
+        Returns the electric field of the closest observer position for an antenna position in the shower plane.
 
         Parameters
         ----------
@@ -923,9 +979,9 @@ class coreasInterpolator:
             electric field
 
         """
-        distances = np.linalg.norm(antenna_pos_vBvvB[:2] - self.obs_positions_vBvvB[:,:2], axis=1)
+        distances = np.linalg.norm(antenna_pos_vBvvB[:2] - self.obs_positions_vBvvB[:, :2], axis=1)
         index = np.argmin(distances)
         distance = distances[index]
-        efield = self.electric_field_on_sky[index,:,:]
+        efield = self.electric_field_on_sky[index, :, :]
         logger.info(f'antenna position with distance {distance:.2f} to closest observer is used')
         return efield
