@@ -2,26 +2,21 @@ from datetime import timedelta
 import logging
 import os
 import time
-import h5py
 import numpy as np
-from radiotools import coordinatesystems as cstrafo
-import cr_pulse_interpolator.interpolation_fourier
-import matplotlib.pyplot as plt
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.modules.io.coreas
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.signal_processing import half_hann_window
 from collections import defaultdict
-from scipy.signal.windows import hann
 
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
+
 
 def get_random_core_positions(xmin, xmax, ymin, ymax, n_cores, seed=None):
     """
@@ -51,13 +46,15 @@ def get_random_core_positions(xmin, xmax, ymin, ymax, n_cores, seed=None):
 
     # generate core positions randomly within a rectangle
     cores = np.array([random_generator.uniform(xmin, xmax, n_cores),
-                    random_generator.uniform(ymin, ymax, n_cores),
-                    np.zeros(n_cores)]).T
+                      random_generator.uniform(ymin, ymax, n_cores),
+                      np.zeros(n_cores)]).T
     return cores
+
 
 def apply_hanning(efields):
     """
-    Apply a half hann window to the electric field in the time domain. This smoothens the edges to avoid ringing effects.
+    Apply a half-Hann window to the electric field in the time domain. This smoothens the edges
+    to avoid ringing effects.
 
     Parameters
     ----------
@@ -74,8 +71,9 @@ def apply_hanning(efields):
         smoothed_trace = np.zeros_like(efields)
         filter = half_hann_window(efields.shape[0], half_percent=0.1)
         for pol in range(efields.shape[1]):
-            smoothed_trace[:,pol] = efields[:,pol] * filter
+            smoothed_trace[:, pol] = efields[:, pol] * filter
         return smoothed_trace
+
 
 def select_channels_per_station(det, station_id, requested_channel_ids):
     """
@@ -88,7 +86,7 @@ def select_channels_per_station(det, station_id, requested_channel_ids):
         The detector object that contains the station
     station_id : int
         The station id to select channels from
-    requested_channel_ids : list
+    requested_channel_ids : list of int
         List of requested channel ids
 
     Returns
@@ -104,13 +102,15 @@ def select_channels_per_station(det, station_id, requested_channel_ids):
     return channel_ids
 
 
-class readCoREASDetector():
+class readCoREASDetector:
     """
     Use this as default when reading CoREAS files and combining them with a detector.
 
-    This model reads the electric fields of a CoREAS file with a star shaped pattern and foldes them with it given detector. 
-    The electric field of the star shaped pattern is interpolated at the detector positions. If the angle between magnetic field 
-    and shower direction are below about 15 deg, the interpolation is no longer reliable and the closest observer is used instead.
+    This module reads the electric fields of a CoREAS file with a star shaped pattern and
+    folds them with a given detector.
+    The electric field of the star shaped pattern is interpolated to the detector positions.
+    If the angle between magnetic field and shower direction are below about 15 deg,
+    the interpolation is no longer reliable and the closest observer is used instead.
     """
 
     def __init__(self):
@@ -120,33 +120,45 @@ class readCoREASDetector():
         self.__corsika_evt = None
         self.__interp_lowfreq = None
         self.__interp_highfreq = None
+
+        self.coreas_interpolator = None
+
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
-    def begin(self, input_file, interp_lowfreq=30*units.MHz, interp_highfreq=1000*units.MHz, log_level=logging.INFO):
+    def begin(self, input_file, interp_lowfreq=30 * units.MHz, interp_highfreq=1000 * units.MHz,
+              log_level=logging.INFO):
         """
         begin method, initialize readCoREASDetector module
 
         Parameters
         ----------
-        input_files: str
+        input_file: str
             coreas hdf5 file
-        interp_lowfreq: float (default = 30 MHz)
-            lower frequency for the bandpass filter in interpolation, should be broader than the sensetivity band of the detector
-        interp_highfreq: float (default = 1000 MHz)
-            higher frequency for the bandpass filter in interpolation,  should be broader than the sensetivity band of the detector
+        interp_lowfreq: float, default=30 * units.MHz
+            lower frequency for the bandpass filter in interpolation,
+            should be broader than the sensitivity band of the detector
+        interp_highfreq: float, default=1000 * units.MHz
+            higher frequency for the bandpass filter in interpolation,
+            should be broader than the sensitivity band of the detector
         """
         self.logger.setLevel(log_level)
+
         filesize = os.path.getsize(input_file)
-        if(filesize < 18456 * 2):  # based on the observation that a file with such a small filesize is corrupt
+        if filesize < 18456 * 2:  # based on the observation that a file with such a small filesize is corrupt
             self.logger.warning("file {} seems to be corrupt".format(input_file))
+
         self.__corsika_evt = coreas.read_CORSIKA7(input_file)
-        self.logger.info(f"using coreas simulation {input_file} with E={self.__corsika_evt.get_first_sim_shower().get_parameter(shp.energy):.2g}eV, zenith angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.zenith) / units.deg:.0f}deg")
+        self.logger.info(
+            f"using coreas simulation {input_file} with "
+            f"E={self.__corsika_evt.get_first_sim_shower().get_parameter(shp.energy):.2g}eV, "
+            f"zenith angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.zenith) / units.deg:.0f}deg"
+        )
 
         self.__interp_lowfreq = interp_lowfreq
         self.__interp_highfreq = interp_highfreq
 
-        self.coreasInterpolator = coreas.coreasInterpolator(self.__corsika_evt)
-        self.coreasInterpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
+        self.coreas_interpolator = coreas.coreasInterpolator(self.__corsika_evt)
+        self.coreas_interpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
 
     @register_run()
     def run(self, detector, core_position_list=[], selected_station_ids=[], selected_channel_ids=[]):
@@ -161,7 +173,6 @@ class readCoREASDetector():
             logging.info(f"using all station ids in detector description: {selected_station_ids}")
         else:
             logging.info(f"using selected station ids: {selected_station_ids}")
-
 
         t = time.time()
         t_per_event = time.time()
@@ -194,12 +205,13 @@ class readCoREASDetector():
                     channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
                     antenna_position_rel = detector.get_relative_position(station_id, channel_ids_for_group_id[0])
                     antenna_position = det_station_position + antenna_position_rel
-                    res_efield, res_trace_start_time = self.coreasInterpolator.get_interp_efield_value(antenna_position, core)
+                    res_efield, res_trace_start_time = self.coreas_interpolator.get_interp_efield_value(antenna_position,
+                                                                                                        core)
                     smooth_res_efield = apply_hanning(res_efield)
                     if smooth_res_efield is None:
-                        smooth_res_efield = self.coreasInterpolator.get_empty_efield()
+                        smooth_res_efield = self.coreas_interpolator.get_empty_efield()
                     electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids_for_group_id)
-                    electric_field.set_trace(smooth_res_efield.T, self.coreasInterpolator.get_sampling_rate())
+                    electric_field.set_trace(smooth_res_efield.T, self.coreas_interpolator.get_sampling_rate())
                     electric_field.set_trace_start_time(res_trace_start_time)
                     electric_field.set_parameter(efp.ray_path_type, 'direct')
                     electric_field.set_parameter(efp.zenith, sim_shower[shp.zenith])
