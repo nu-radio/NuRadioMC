@@ -5,7 +5,9 @@ from NuRadioReco.framework.trigger import HighLowTrigger
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('HighLowTriggerSimulator')
+
+
+logger = logging.getLogger('NuRadioReco.HighLowTriggerSimulator')
 
 
 def get_high_low_triggers(trace, high_threshold, low_threshold,
