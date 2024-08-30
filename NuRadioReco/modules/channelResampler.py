@@ -8,43 +8,30 @@ class channelResampler:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger('NuRadioReco.channelResampler')
-        self.__debug = None
-        self.__max_upsampling_factor = None
-        self.begin()
+        pass
 
-    def begin(self, debug=False, log_level=logging.WARNING):
-        self.__max_upsampling_factor = 5000
-        self.__debug = debug
-        self.logger.setLevel(log_level)
-
-        """
-        Begin the channelResampler
-
-        Parameters
-        ----------
-
-        __debug: bool
-            Debug switch
-
-        """
+    def begin(self):
+        pass
 
     @register_run()
-    def run(self, evt, station, det, sampling_rate):
+    def run(self, evt, station, det, sampling_rate=None):
         """
-        Run the channelResampler
+        Resample channel traces.
 
         Parameters
         ----------
 
         evt, station, det
             Event, Station, Detector
-        sampling_rate: float
-            In units 1/time provides the desired sampling rate of the data.
-
+        sampling_rate: float (Default: None)
+            In units '1 / time' provides the desired sampling rate of the data.
+            If None, take sampling rate from detector description.
         """
         for channel in station.iter_channels():
-            channel.resample(sampling_rate)
+            if sampling_rate is None:
+                channel.resample(det.get_sampling_frequency(station.get_id(), channel.get_id()))
+            else:
+                channel.resample(sampling_rate)
 
     def end(self):
         pass
