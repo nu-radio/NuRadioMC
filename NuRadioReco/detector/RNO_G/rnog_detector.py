@@ -1223,7 +1223,7 @@ class Detector():
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
-                time_delay += response._get_time_delay()
+                time_delay += response._calculate_time_delay()
 
         return time_delay
 
