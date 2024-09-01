@@ -1205,6 +1205,7 @@ class Detector():
             if re.search("cable", key) is None and re.search("fiber", key) and cable_only:
                 continue
 
+            weight = value.get("weight", 1)
             if use_stored:
                 if "time_delay" not in value and "cable_delay" not in value:
                     self.logger.warning(
@@ -1213,9 +1214,9 @@ class Detector():
                     continue
 
                 try:
-                    time_delay += value["weight"] * value["time_delay"]
+                    time_delay += weight * value["time_delay"]
                 except KeyError:
-                    time_delay += value["weight"] * value["cable_delay"]
+                    time_delay += weight * value["cable_delay"]
 
             else:
                 ydata = [value["mag"], value["phase"]]
@@ -1223,7 +1224,7 @@ class Detector():
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
-                time_delay += response._calculate_time_delay()
+                time_delay += weight * response._calculate_time_delay()
 
         return time_delay
 
