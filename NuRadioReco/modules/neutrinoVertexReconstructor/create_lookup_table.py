@@ -75,7 +75,9 @@ if __name__ == "__main__":
     z_pos = np.arange(-args.z_min, -args.z_max, args.d_z)
 
     ice = NuRadioMC.utilities.medium.get_ice_model(args.ice_model)
-    ray_tracing = NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D(ice)
+    # ray_tracing = NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D(ice)
+    ray_tracing = NuRadioMC.SignalProp.analyticraytracing.ray_tracing(
+        ice, config={'propagation':dict(attenuate_ice=False, focusing=False, birefringence=False, focusing_limit=2)})
     channel_types = [{
         'name': 'antenna_{:.3f}'.format(args.antenna_depth),
         'z': -1. * args.antenna_depth
@@ -97,13 +99,20 @@ if __name__ == "__main__":
         travel_times_R = np.zeros((len(x_pos), len(z_pos)))
         for i_x, xx in enumerate(x_pos):
             for i_z, zz in enumerate(z_pos):
-                z_coords = sorted([zz, channel_type['z']]) # ensures that x2 is always higher up than x1
-                solutions = ray_tracing.find_solutions([-xx, z_coords[0]], [0, z_coords[1]])
-                for iS, solution in enumerate(solutions):
+                ray_tracing.set_start_and_end_point([-xx, 0, zz], [0, 0, channel_type['z']])
+                ray_tracing.find_solutions()
+                for iS in range(ray_tracing.get_number_of_solutions()):
                     if iS == 0:
-                        travel_times_D[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
+                        travel_times_D[i_x][i_z] = ray_tracing.get_travel_time(iS, analytic=True)
                     elif iS == 1:
-                        travel_times_R[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
+                        travel_times_R[i_x][i_z] = ray_tracing.get_travel_time(iS, analytic=True)
+                # z_coords = sorted([zz, channel_type['z']]) # ensures that x2 is always higher up than x1
+                # solutions = ray_tracing.find_solutions([-xx, z_coords[0]], [0, z_coords[1]])
+                # for iS, solution in enumerate(solutions):
+                #     if iS == 0:
+                #         travel_times_D[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
+                #     elif iS == 1:
+                #         travel_times_R[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
         lookup_table[channel_type['name']] = {
             'D': travel_times_D,
             'R': travel_times_R,

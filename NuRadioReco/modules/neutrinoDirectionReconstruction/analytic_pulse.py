@@ -15,6 +15,7 @@ from radiotools import helper as hp
 import numpy as np
 import logging
 import copy
+from inspect import signature
 
 logger = logging.getLogger("analytic_pulse")
 logger.setLevel(logging.INFO)
@@ -134,21 +135,27 @@ class simulation():
 			The propagation config to use for the reconstruction (usually the same 
 			as used for the simulation, if applicable).
 		
-		
 		Other Parameters
 		----------------
 		shift_for_xmax : bool, default: False
 			If True, shift the viewing angle by an energy-dependent parametrization
 			for the expected distance between neutrino vertex and shower maximum for 
 			hadronic showers.
-		ice_model : string | medium.IceModel instance | None (default)
+		systematics : dict | None, default: None
+			If not None, modify the used antenna responses. The dictionary should
+			have the following form::
+
+				{"antenna response": {
+                    "gain": (...) # array with len(use_channels) (factor to mulitply VEL with),
+                    "phase": (...) # array with shift in frequency in MHz, array of len(use_channels)
+                }}
+
+		ice_model : string | `medium.IceModel` instance | None (default)
 			If not None, use this ice model rather than the one specified in the
 			``propagation_config``
 		att_model : string | None (default)
 			If not None, use this attenuation model rather than the one specified
 			in ``propagation_config``
-		
-		
 		"""
 
 		self._systematics = systematics
@@ -189,7 +196,7 @@ class simulation():
 			else:
 				filter_response_1 = bandpass_filter.get_filter_response(self._ff, [passband_i[0], 1150*units.MHz], 'butter', 8)
 				filter_response_2 = bandpass_filter.get_filter_response(self._ff, [0*units.MHz, passband_i[1]], 'butter', 10)
-				self._h[channel_id] = filter_response_1 * filter_response_2 
+				self._h[channel_id] = filter_response_1 * filter_response_2
 
 		self._amp = {}
 		for channel_id in use_channels:

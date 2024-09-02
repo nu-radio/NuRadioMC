@@ -11,7 +11,6 @@ from NuRadioReco.utilities import trace_utilities, fft, bandpass_filter
 import radiotools.helper as hp
 import scipy.optimize
 import scipy.ndimage
-# import scipy.interpolate
 import logging
 import pickle
 import os
@@ -167,10 +166,16 @@ class neutrino3DVertexReconstructor:
             IDs of the channels to be used for the reconstruction
         detector: Detector or GenericDetector
             Detector description for the detector used in the reconstruction
-        template: BaseTrace object or object of child class
+        template: BaseTrace object | array of float | dict
             An electric field to be used to calculate the template which are correlated
             with the channel traces in order to determine the timing difference between
-            channels
+            channels. This is convolved with the antenna and signal chain response before
+            performing the correlation.
+
+            Alternatively, one can provide an array of floats, or a dictionary where the keys
+            are channel ids and the values are arrays of floats to be used as templates for each channel.
+            In this case no antenna or amplifier response is applied to the templates. Note that in this case
+            the `sampling rate` needs to be specified explicitly.
         distances_2d: array of float
             The minimum and maximum horizontal distance from the station in which to search
             If not specified, will look between 100 - 3000 m
@@ -178,26 +183,33 @@ class neutrino3DVertexReconstructor:
             The minimum and maximum azimuth angle in which to search. If not specified,
             use [0, 2*np.pi]
 
-            This can be used to do a 2D search (fitting azimuth only, e.g. if all antennas share the same x,y coordinates)
-            by passing [0,0].
+            .. Note:: This can be used to do a 2D search (fitting azimuth only, e.g. if all antennas share the same x,y coordinates)
+              by passing ``[0,0]``.
         passband: array of float
             Lower and upper bounds off the bandpass filter that is applied to the channel
             waveform and the template before the correlations are determined. This filter
             does not affect the voltages stored in the channels.
         min_antenna_distance: float
             Minimum distance two antennas need to have to be used as a pair in the reconstruction
-        use_maximum_filter: bool, default False
-            if True, use a maximum filter to avoid missing maxima in the correlation
-            due to the finite grid spacing.
         resolution_target: float, default 0.1 * units.deg
             The target resolution of the search grid; optimization will terminate once
             this has been reached.
+
+        Other Parameters
+        ----------------
+        use_maximum_filter: bool, default False
+            if True, use a maximum filter to avoid missing maxima in the correlation
+            due to the finite grid spacing.
+        sampling_rate : float, default None
+            If not providing an `NuRadioReco.framework.electric_field` object as the template,
+            the sampling rate needs to be explicitly specified.
         debug_folder: string
             Path to the folder in which debug plots should be saved if the debug=True option
             is picked in the run() method.
         debug_formats: string | list (default: '.png')
             The format(s) to use to save the debug plots. Include '.pickle' to save
             plots in pickle (reopenable / editable in future Python sessions) format
+
 
         """
 
@@ -670,6 +682,10 @@ class neutrino3DVertexReconstructor:
                 phi_sim, theta_sim, distance_sim = np.nan * np.zeros(3)
 
             if debug:
+                # plt.plot(distances_3d, np.max(combined_correlations, axis=1))
+                # plt.xscale('log')
+                # plt.show()
+
                 self.__draw_correlation_map_polar(
                     event, thetaphi, mean_corr,
                     thetaphi_sim = [theta_sim, phi_sim],
