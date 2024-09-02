@@ -3253,7 +3253,7 @@
       "ant_rotation_theta": 90.0,
       "ant_position_x": -51.74498926313953,
       "ant_position_y": 29.063846909018764,
-      "ant_position_z": -0.5,
+      "ant_position_z": -5.6,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "device_id": 2,
