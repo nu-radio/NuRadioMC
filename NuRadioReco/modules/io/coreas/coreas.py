@@ -90,13 +90,21 @@ def get_geomagnetic_angle(zenith, azimuth, magnetic_field_vector):
 
 def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vector, prepend_zeros=False):
     """
-    Converts the electric field from the coreas observer to NuRadio units and
+    Converts the electric field from one coreas observer to NuRadio units and
     spherical coordinated eR, eTheta, ePhi (on sky)
 
     Parameters
     ----------
     observer : value
-        observer as in the hdf5 file object, e.g. corsika['CoREAS']['observers'].values()
+        observer as in the hdf5 file object, e.g. corsika['CoREAS']['observers'].values()[i]
+    zenith : float
+        zenith angle in radians from corsika file, e.g. use get_angles()
+    azimuth : float
+        azimuth angle in radians from corsika file, e.g. use get_angles()
+    magnetic_field_vector : np.array (3)
+        magnetic field vector from corsika file, e.g. use get_angles()
+    prepend_zeros : bool
+        if True, the trace is prepended with zeros to not have the pulse directly at the start
     
     Returns
     -------
@@ -107,10 +115,10 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     """
     cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector)
 
-    efield = np.array([observer[()][:, 0] * units.second,
-                       -observer[()][:, 2] * conversion_fieldstrength_cgs_to_SI,
-                       observer[()][:, 1] * conversion_fieldstrength_cgs_to_SI,
-                       observer[()][:, 3] * conversion_fieldstrength_cgs_to_SI])
+    efield = np.array([observer[:, 0] * units.second,
+                       -observer[:, 2] * conversion_fieldstrength_cgs_to_SI,
+                       observer[:, 1] * conversion_fieldstrength_cgs_to_SI,
+                       observer[:, 3] * conversion_fieldstrength_cgs_to_SI])
 
     efield_times = efield[0, :]
     efield_geo = cs.transform_from_magnetic_to_geographic(efield[1:, :])
@@ -130,9 +138,9 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     return efield.T, efield_times
 
 
-def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector):
+def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector, z_coord=0):
     """
-    Converts observer positions from the corsika observer to NuRadio units on ground.
+    Converts one observer positions from the corsika observer to NuRadio units on ground.
     coreas: x-axis pointing to the magnetic north, the positive y-axis to the west, and the z-axis upwards.
     NuRadio: x-axis pointing to the east, the positive y-axis geographical north, and the z-axis upwards.
     NuRadio_x = -coreas_y, NuRadio_y = coreas_x, NuRadio_z = coreas_z and then correct for mag north
@@ -140,7 +148,13 @@ def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnet
     Parameters
     ----------
     observer : value
-        observer as in the hdf5 file object, e.g. corsika['CoREAS']['observers'].values()
+        observer as in the hdf5 file object, e.g. corsika['CoREAS']['observers'].values()[i]
+    zenith : float
+        zenith angle in radians from corsika file, e.g. use get_angles()
+    azimuth : float
+        azimuth angle in radians from corsika file, e.g. use get_angles()
+    magnetic_field_vector : np.array (3)
+        magnetic field vector from corsika file, e.g. use get_angles()
   
     Returns
     -------
@@ -150,7 +164,7 @@ def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnet
     """
     cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector)
 
-    obs_positions = np.array([-observer.attrs['position'][1], observer.attrs['position'][0], 0]) * units.cm
+    obs_positions = np.array([-observer.attrs['position'][1], observer.attrs['position'][0], z_coord]) * units.cm
 
     # second to last dimension has to be 3 for the transformation
     obs_positions_geo = cs.transform_from_magnetic_to_geographic(obs_positions.T)
@@ -160,7 +174,7 @@ def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnet
 
 def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field_vector):
     """
-    Converts observer positions from the corsika file to NuRadio units in the (vxB, vxvxB) shower plane.
+    Converts one observer positions from the corsika file to NuRadio units in the (vxB, vxvxB) shower plane.
     coreas: x-axis pointing to the magnetic north, the positive y-axis to the west, and the z-axis upwards.
     NuRadio: x-axis pointing to the east, the positive y-axis geographical north, and the z-axis upwards.
     NuRadio_x = -coreas_y, NuRadio_y = coreas_x, NuRadio_z = coreas_z and then correct for mag north
@@ -168,7 +182,13 @@ def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field
     Parameters
     ----------
     observer : value
-        observer as in the hdf5 file object, e.g. corsika['CoREAS']['observers'].values()
+        observer as in the hdf5 file object, e.g. corsika['CoREAS']['observers'].values()[i]
+    zenith : float
+        zenith angle in radians from corsika file, e.g. use get_angles()
+    azimuth : float
+        azimuth angle in radians from corsika file, e.g. use get_angles()
+    magnetic_field_vector : np.array (3)
+        magnetic field vector from corsika file, e.g. use get_angles()
   
     Returns
     -------
@@ -194,6 +214,11 @@ def read_CORSIKA7(input_file, declination=None):
     ----------
     input_file : string
         path to the corsika hdf5 file
+
+    Returns
+    -------
+    evt : event object
+        event object containing the corsika information
     """
     if (declination is None):
         declination = 0
@@ -306,7 +331,7 @@ def make_sim_station(station_id, corsika, weight=None):
     sim_station: sim station
         simulated station object
     """
-    logger.warning("make_sim_station() is deprecated, use set_sim_station() instead.")
+    logger.warning("make_sim_station() is deprecated, use create_sim_station() instead.")
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
     sim_station.set_parameter(stnp.azimuth, azimuth)
@@ -489,8 +514,14 @@ def add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_t
         efield with three polarizations (r, theta, phi) for channel
     efield_times : 1d array (n_samples)
         time array for efield
-    corsika : hdf5 file object
-        the open hdf5 file object of the corsika hdf5 file
+    zenith : float
+        zenith angle in radians
+    azimuth : float
+        azimuth angle in radians
+    sampling_rate : float
+        sampling rate of the efield
+    fluence : float
+        inserted fluence of the signal, if None, the fluence is not set
     """
     if type(channel_ids) is not list:
         channel_ids = [channel_ids]
@@ -564,10 +595,8 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
                 x_trafo_from_shower[2] * x_vertice_shower + y_trafo_from_shower[2] * y_vertice_shower
         ) / z_trafo_from_shower[2]
 
-        vertices_shower_3d = []
-        for iter_nr in range(len(x_vertice_shower)):
-            vertices_shower_3d.append([x_vertice_shower[iter_nr], y_vertice_shower[iter_nr], z_vertice_shower[iter_nr]])
-        vertices_shower_3d = np.array(vertices_shower_3d)
+        vertices_shower_3d = np.column_stack((x_vertice_shower, y_vertice_shower, z_vertice_shower))
+
         vertices_ground = cs.transform_from_vxB_vxvxB(station_position=vertices_shower_3d)
 
         n_arms = 8  # mask last observer position of each arm
@@ -831,8 +860,11 @@ class coreasInterpolator:
         radius : float
             radius around shower core which should be plotted
 
-        save_file_path : str
-            if provided, figure will be stored there
+        Returns
+        -------
+        fig : figure object
+
+        ax : axis object
         """
 
         # Make color plot of f(x, y), using a meshgrid
@@ -895,6 +927,7 @@ class coreasInterpolator:
         # interpolate electric field at antenna position in shower plane which are inside star pattern
         if dcore_vBvvB > self.star_radius:
             efield_interp = self.empty_efield
+            trace_start_time = None
             logger.debug(
                 f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern '
                 f'with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, '
@@ -913,7 +946,6 @@ class coreasInterpolator:
                     filter_up_to_cutoff=False,
                     account_for_timing=True,
                     pulse_centered=True,
-                    const_time_offset=20.0e-9,
                     full_output=True)
 
         #check if interpolation is within expected range
@@ -975,7 +1007,7 @@ class coreasInterpolator:
 
         Returns
         -------
-        efield : float
+        efield : array of floats
             electric field
 
         """

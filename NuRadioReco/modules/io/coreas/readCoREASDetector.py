@@ -106,9 +106,8 @@ class readCoREASDetector:
     """
     Use this as default when reading CoREAS files and combining them with a detector.
 
-    This module reads the electric fields of a CoREAS file with a star shaped pattern and
-    folds them with a given detector.
-    The electric field of the star shaped pattern is interpolated to the detector positions.
+    This module reads the electric fields of a CoREAS file with a star shaped pattern of observers.
+    The electric field is then interpolated at the positions of the antennas or stations of a detector.
     If the angle between magnetic field and shower direction are below about 15 deg,
     the interpolation is no longer reliable and the closest observer is used instead.
     """
@@ -140,6 +139,8 @@ class readCoREASDetector:
         interp_highfreq: float, default=1000 * units.MHz
             higher frequency for the bandpass filter in interpolation,
             should be broader than the sensitivity band of the detector
+        log_level: default=logging.INFO
+            log level for the logger
         """
         self.logger.setLevel(log_level)
 
@@ -161,14 +162,25 @@ class readCoREASDetector:
         self.coreas_interpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
 
     @register_run()
-    def run(self, detector, core_position_list=[], selected_station_ids=[], selected_channel_ids=[]):
+    def run(self, detector, core_position_list, selected_station_ids=None, selected_channel_ids=None):
         """
+        run method, get interpolated electric fields for the given detector and core positions and set them in the event.
+        The trace is smoothed with a half-Hann window to avoid ringing effects. When using short traces, this might have
+        a significant effect on the result.
+
         Parameters
         ----------
         detector: Detector object
             Detector description of the detector that shall be simulated
+        core_position_list: list of array (n_cores, 3)
+            list of core positions in the format [[x1, y1, z1], [x2, y2, z2], ...]
+        selected_station_ids: list of int
+            list of station ids to simulate
+        selected_channel_ids: list of int
+            list of channel ids to simulate
         """
-        if len(selected_station_ids) == 0:
+
+        if selected_station_ids is None:
             selected_station_ids = detector.get_station_ids()
             logging.info(f"using all station ids in detector description: {selected_station_ids}")
         else:
@@ -198,7 +210,7 @@ class readCoREASDetector:
 
                 det_station_position = detector.get_absolute_position(station_id)
                 channel_ids_in_station = detector.get_channel_ids(station_id)
-                if len(selected_channel_ids) == 0:
+                if selected_channel_ids is None:
                     selected_channel_ids = channel_ids_in_station
                 channel_ids_dict = select_channels_per_station(detector, station_id, selected_channel_ids)
                 for ch_g_ids in channel_ids_dict.keys():
