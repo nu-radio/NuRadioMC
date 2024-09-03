@@ -18,11 +18,9 @@ import NuRadioMC.utilities.medium
 import NuRadioMC.SignalGen.askaryan
 import NuRadioReco.framework.base_trace
 import os
-import sys
 import time
 import yaml
 import argparse
-from scipy import constants
 from radiotools import helper as hp
 
 stnp = parameters.stationParameters
@@ -51,10 +49,20 @@ plt.rc('xtick', direction='in', top=True)
 plt.rc('ytick', direction='in', right=True)
 
 if __name__ == "__main__":
+
+    # Because some antennas are treated differently in the reconstruction,
+    # we need to manually specify:
+    # 1. the list of all antennas to use;
+    # 2. the list of all hpol antennas;
+    # 3. the list of phased array channels;
+    # 4. the phased array cluster, i.e. the phased-array plus nearest hpol channel(s)
+    # IMPORTANT! These channel ids are of course DIFFERENT for different detectors,
+    # and should be adjusted accordingly by the user!
     channel_dict = {}
-    channel_dict['PA_ids_baseline'] = np.array([0,1,2,3])
-    channel_dict['vpol_ids_baseline'] = np.array([0,1,2,3,4,5,6,9,10,12,13])
-    channel_dict['hpol_ids_baseline'] = np.array([7,8,11,14])
+    channel_dict['all'] = np.arange(15)
+    channel_dict['hpol_channels'] = np.array([7,8,11,14])
+    channel_dict['phased_array'] = np.array([0,1,2,3])
+    channel_dict['phased_array_cluster'] = np.array([0,1,2,3,7,8])
 
     argparser = argparse.ArgumentParser(
         "Reconstruction",
@@ -69,37 +77,23 @@ if __name__ == "__main__":
     argparser.add_argument("--direction", "-d", action='store_true', help="Reconstruct neutrino direction.")
     argparser.add_argument("--save_nur", action='store_true', help="Store nur output file")
     argparser.add_argument("--debug", action='store_true', help="Create debug plots")
-
     argparser.add_argument(
         "--run", "-r", type=int, nargs="+", help="Run numbers to reconstruct. If not specified, reconstruction is performed for all runs in the input .nur file")
-    # argparser.add_argument("--overwrite", "-o", action='store_true', help="Rerun existing files if direction reco is missing")
-    # argparser.add_argument("--hard-overwrite", "-O", action='store_true', help="Overwrite existing results files")
+
     args = argparser.parse_args()
 
-    # overwrite = int(args.overwrite) + 2 * int(args.hard_overwrite)
     run_vertex_reco = args.vertex
     run_direction_reco = args.direction
 
-
+    # load settings to use in reconstruction
     with open('./input/config_reconstruction.yaml') as f:
-        cfg = yaml.load(f, yaml.FullLoader)
+        reco_config = yaml.load(f, yaml.FullLoader)
+    # propagation config (used in direction reconstruction)
+    with open("./input/config_RNOG.yaml", 'r') as f:
+        prop_config = yaml.load(f, Loader=yaml.FullLoader)
 
-    vertex_reco_settings = cfg['vertex']
-    direction_reco_settings = cfg['direction']
-
-    # reconstruction settings
-    # sys.path.append(args.output_path)
-    # from reco_cfg import config as cfg
-
-    # debug_vertex = cfg["debug_vertex"]
-    # debug_direction = cfg["debug_direction"]
-    # noise_level_before_amp = cfg["noise_level_before_amp"]
-    # save_nur_output = cfg["save_nur_output"]
-    # restricted_input = cfg["restricted_input"]
-    # add_noise = cfg["add_noise"]
-    # add_noise_only = cfg["add_noise_only"]
-    # no_sim_station = cfg["no_sim_station"]
-    # apply_bandpass_filters = cfg["apply_bandpass_filters"]
+    vertex_reco_settings = reco_config['vertex']
+    direction_reco_settings = reco_config['direction']
 
     eventreader = eventReader.eventReader()
     eventreader.begin(args.filename)
@@ -120,7 +114,7 @@ if __name__ == "__main__":
     # for the vertex reconstruction, we need an electric field template
     n_samples = 1024
     viewing_angle = 1.5 * units.deg
-    sampling_rate = cfg['sampling_rate'] #
+    sampling_rate = reco_config['sampling_rate']
     ice = NuRadioMC.utilities.medium.get_ice_model('greenland_simple')
     ior = ice.get_index_of_refraction([0, 0, -1. * units.km])
     cherenkov_angle = np.arccos(1. / ior)
@@ -139,6 +133,7 @@ if __name__ == "__main__":
     efield_template.set_frequency_spectrum(efield_spec, sampling_rate)
 
     # the template for the direction reconstruction should be convolved with the detector response
+    # TODO: make the raytypeselecter do this?
     vpol_antenna = antenna_provider.load_antenna_pattern(det.get_antenna_model(station_id, 0))
     antenna_response = vpol_antenna.get_antenna_response_vectorized(
         efield_template.get_frequencies(),
@@ -147,11 +142,8 @@ if __name__ == "__main__":
         *det.get_antenna_orientation(station_id, 0)
     )['theta']
     amp_response = det.get_amplifier_response(station_id, 0, efield_template.get_frequencies())
-    filt = bandpassfilter.get_filter(
-        efield_template.get_frequencies(), None, None, None,
-        passband=cfg['direction']['passband'], filter_type='butterabs', order=10)
 
-    direction_pulse_template = fft.freq2time(efield_spec * antenna_response * amp_response * filt, sampling_rate)
+    direction_pulse_template = fft.freq2time(efield_spec * antenna_response * amp_response, sampling_rate)
 
     # initialize vertex reconstructor
     vertex3d = neutrino3DVertexReconstructor.neutrino3DVertexReconstructor(args.lookup_table_path)
@@ -165,72 +157,32 @@ if __name__ == "__main__":
         results = dict()
         particle = evt.get_primary()
         E_nu = particle.get_parameter(pap.energy)
-        # csv_filename = "{}_{:06d}_{:02d}.csv".format(file_id, run_number, evt.get_id())
-        output_csv_dir = args.output_path
-        if not os.path.exists(output_csv_dir):
-            os.makedirs(output_csv_dir)
-            subprocess.run(["mkdir", output_csv_dir])
-        # df = pd.DataFrame(
-        #     columns=[
-        #         'E_nu', 'E_sh', 'file_id', 'run_number', 'event_id', 'weight',
-        #         'zenith_sim', 'azimuth_sim', 'x_sim', 'y_sim', 'z_sim',
-        #         'zenith', 'azimuth', 'x', 'y', 'z', 'E', 'vw_sim','pol_sim', 'vw', 'pol',
-        #         "corr_fit", "corr_sim", "corr_max", "corr_dnr_max", "ray_type","ray_type_sim", 
-        #         "chi2_sim", "chi2_fit", "dof", "fit_channels", 'ch_Vpol', 'ch_Vpol_sim', 'shower_type'], dtype=object)
+        output_path = args.output_path
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+            subprocess.run(["mkdir", output_path])
         event_id = evt.get_id()
         weight = particle.get_parameter(pap.weight)
         zenith_sim = particle.get_parameter(pap.zenith)
         azimuth_sim = particle.get_parameter(pap.azimuth)
-        x_sim, y_sim, z_sim = particle.get_parameter(pap.vertex)
+        x_sim = particle.get_parameter(pap.vertex)
         E_sh = evt.get_first_sim_shower().get_parameter(shp.energy)
 
-        data = [E_nu, E_sh, file_id, run_number, event_id, weight, zenith_sim, azimuth_sim, x_sim, y_sim, z_sim]
+        data = [E_nu, E_sh, file_id, run_number, event_id, weight, zenith_sim, azimuth_sim, x_sim]
         for key, value in zip(['E_nu', 'E_sh', 'file_id', 'run_number', 'event_id', 'weight',
-                'zenith_sim', 'azimuth_sim', 'x_sim', 'y_sim', 'z_sim',], data):
+                'zenith_sim', 'azimuth_sim', 'x_sim',], data):
             results[key] = value 
-        # results[,'E_nu':'z_sim'] = data
-
-        # csv_path = os.path.join(output_csv_dir, csv_filename)
-        # if os.path.exists(csv_path) and (overwrite < 1):
-        #     logger.warning("File {} exists, skipping...".format(csv_path))
-        #     continue
-        # elif os.path.exists(csv_path):
-        #     df = pd.read_csv(csv_path, index_col=0)
-        #     df.reset_index(drop=True, inplace=True)
-        # if (not np.isnan(df.loc[0,'zenith'])) and (overwrite < 2):
-        #     logger.info(f"Reconstruction already completed for run {run_number}, skipping...")
-        #     continue
-
-        # run_vertex_reco = args.vertex & (np.isnan(df.loc[0, 'x']) or (overwrite > 1))
-        # run_direction_reco = args.direction & (np.isnan(df.loc[0, 'zenith']) or (overwrite > 1))
 
         logger.info("Starting reconstruction for run {}".format(run_number))
 
         station = evt.get_station(station_id)
         sim_station = station.get_sim_station()
-
-
-        # if add_noise: # if the simulations were run without noise, we may want to add noise here
-        #     #TODO - make sure min_freq, max_freq are  correct!
-        #     for channel in station.iter_channels():
-        #         noise_fft = noiseadder.bandlimited_noise(
-        #             min_freq=0.001, max_freq=1.2*units.GHz, n_samples=channel.get_number_of_samples(),
-        #             sampling_rate=channel.get_sampling_rate(), amplitude=noise_level_before_amp,
-        #             type='rayleigh', time_domain=False,
-        #             )
-        #         amp_response = det.get_amplifier_response(station_id, channel.get_id(), channel.get_frequencies())
-        #         channel.set_frequency_spectrum(
-        #             channel.get_frequency_spectrum() + noise_fft * amp_response, channel.get_sampling_rate()
-        #         )
-
-        # if add_noise_only and save_nur_output:
-        #     eventwriter.run(evt)
-        #     continue
-
         station.set_is_neutrino()
 
         resampler.begin()
         resampler.run(evt, station, det, sampling_rate=sampling_rate)
+        if sim_station is not None:
+            resampler.run(evt, sim_station, det, sampling_rate=sampling_rate)
         cabledelayadder.run(evt, station, det, mode='subtract')
         # same treatment for sim_station - useful for debugging
         if station.has_sim_station():
@@ -240,13 +192,18 @@ if __name__ == "__main__":
 
         t0 = time.time()
         ### vertex reconstruction
-        vertex_channels = channel_dict['vpol_ids_baseline']
+
+        # we only use the vpol channels in the vertex reconstruction
+        vertex_channels = [
+            channel_id for channel_id in channel_dict['all']
+            if channel_id not in channel_dict['hpol_channels']
+            ]
 
         if run_vertex_reco:
             vertex3d.begin(
                 station_id, vertex_channels, det, template=efield_template,
-                debug_folder=output_csv_dir,
-                **cfg['vertex']
+                debug_folder=output_path,
+                **reco_config['vertex']
             )
 
             vertex3d.run(evt, station, det, debug=args.debug)
@@ -255,19 +212,14 @@ if __name__ == "__main__":
 
             reco_vertex = station.get_parameter(stnp.nu_vertex)
             sim_vertex = sim_shower.get_parameter(shp.vertex)
-            try:
-                corr = station.get_parameter(stnp.vertex_correlation_sums)
-                # df.loc[0, "corr_fit":"corr_dnr_max"] = corr
-                results['corr_fit'] = corr[0]
-                results['corr_dnr_max'] = corr[1]
-            except KeyError:
-                pass
+
             logger.debug("sim_vertex: {}".format(sim_shower.get_parameter(shp.vertex)))
             logger.debug("reco vertex: {}".format(station.get_parameter(stnp.nu_vertex)))
-        else:
+        else: # we are not running the vertex reconstruction, and instead use the simulated vertex - useful if only testing the direction reconstruction
             sim_shower = evt.get_first_sim_shower()
             logger.warning("!!! Setting reconstructed vertex to simulated vertex!!!")
-            ### shift to xmax
+
+            # shift to xmax
             def get_xmax(energy):
                 return 0.25 * np.log(energy) - 2.78
 
@@ -278,100 +230,68 @@ if __name__ == "__main__":
             station.set_parameter(stnp.nu_vertex, vertex_sim) ### FOR DEBUGGING ONLY!
             # sim_shower.set_parameter(shp.vertex, xmax_sim)
         results['x'] = station.get_parameter(stnp.nu_vertex)
-        # df.loc[0, 'x':'z'] = station.get_parameter(stnp.nu_vertex)
-        # # export to csv
-        # df.to_csv(csv_path)
         t1 = time.time()
 
 
         ### Direction reconstruction
         if run_direction_reco:
-            with open("./input/config_RNOG.yaml", 'r') as f: #TODO: fix hardcoding
-                prop_config = yaml.load(f, Loader=yaml.FullLoader)
-            passband = cfg['direction']['passband']
+            passband = reco_config['direction']['passband']
+            Hpol = channel_dict['hpol_channels']
 
-            # compute Vrms for direction reconstructor:
-            # noise_level = noise_level_before_amp # T = 300, bandwidth = 973.92 MHz # should be 14.2 for 2 GHz / 15.8 for 2.4
-            ff = np.linspace(0, 2*units.GHz, 1000)
-            amp_response = det.get_amplifier_response(station_id, channel_id=4, frequencies=ff)
-            # filt = bandpassfilter.get_filter(
-            #     ff, station_id, channel_id=4, det=det,
-            #     passband=passband, filter_type='butterabs', order=10)
-            ### currently use two separate bandpass filters in analytic_pulse
-            filt1 = bandpassfilter.get_filter(
-                ff, station_id, None, None,
-                passband=[passband[0], 1150*units.MHz], filter_type='butter', order=8
-            )
-            filt2 = bandpassfilter.get_filter(
-                ff, station_id, None, None,
-                passband=[0, passband[1]], filter_type='butter', order=10
-            )
-            filt = filt1 * filt2
-            bandwidth_filt = np.trapz(np.abs(amp_response * filt)**2, ff)
-            Vrms_lowBW = (300 * 50 * constants.k * bandwidth_filt / units.Hz) ** 0.5
-            print("Vrms: {:.3f} uV".format(Vrms_lowBW / units.microvolt))
-            noise_level = Vrms_lowBW
+            raytypeselecter.begin(debug=args.debug, debugplots_path=output_path)
 
-            Hpol = channel_dict['hpol_ids_baseline']
-
-            # if apply_bandpass_filters: # if the data has already been bandpass filtered, don't rerun this
-            bandpassfilter.run(evt, station, det, passband = [passband[0], 1150*units.MHz], filter_type = 'butter', order = 8)
-            bandpassfilter.run(evt, station, det, passband = [0, passband[1]], filter_type = 'butter', order = 10)
-            if sim_station is not None:
-                bandpassfilter.run(evt, sim_station, det, passband = [passband[0], 1150*units.MHz], filter_type = 'butter', order = 8)
-                bandpassfilter.run(evt, sim_station, det, passband = [0, passband[1]], filter_type = 'butter', order = 10)
-
-            shower_ids = [sh.get_id() for sh in evt.get_sim_showers()]
-            raytypeselecter.begin(debug=args.debug, debugplots_path=output_csv_dir)
+            # TODO This needs some tidying up still...
+            # The reference channel used to determine the pulse position by the ray type selecter
+            # should be the phased array channel closest to the hpol channel, because this will
+            # be used to infer the pulse arrival time in the hpol. However, in some rare geometries
+            # only some of the phased-array channels actually get a signal from the neutrino vertex,
+            # which raises an UnboundLocalError. In this case, we start with the lowest phased-array channel
+            # instead
             try:
                 raytypeselecter.run(
-                    evt, station, det, noise_rms=noise_level, use_channels=channel_dict['PA_ids_baseline'][::-1],
-                    sim = False, template = direction_pulse_template, icemodel='greenland_simple', att_model='GL1',
+                    evt, station, det, vrms=None, use_channels=channel_dict['phased_array'][::-1], # using the top phased-array channel as reference channel
+                    sim = False, template = direction_pulse_template,
+                    ice_model=prop_config['propagation']['ice_model'], attenuation_model=prop_config['propagation']['attenuation_model'],
                     )
-                ch_Vpol_rec = 3
+                reference_vpol = channel_dict['phased_array'][-1]
             except UnboundLocalError: # no RT solutions for given channel:
                 raytypeselecter.run(
-                    evt, station, det, noise_rms=noise_level, use_channels=channel_dict['PA_ids_baseline'],
-                    sim = False, template = direction_pulse_template, icemodel='greenland_simple', att_model='GL1',
+                    evt, station, det, vrms=None, use_channels=channel_dict['phased_array'], # using the bottom phased-array channel as reference channel
+                    sim = False, template = direction_pulse_template,
+                    ice_model=prop_config['propagation']['ice_model'], attenuation_model=prop_config['propagation']['attenuation_model'],
                     )
-                ch_Vpol_rec = 0
+                reference_vpol = channel_dict['phased_array'][0]
             
-            ### this helps keep debug plots happy
-            try:
-                raytypeselecter.run(
-                    evt, station, det, noise_rms=noise_level, use_channels=channel_dict['PA_ids_baseline'][::-1],
-                    sim = True, template = direction_pulse_template, icemodel='greenland_simple', att_model='GL1',
-                    )
-                ch_Vpol_sim = 3
-            except UnboundLocalError:
-                raytypeselecter.run(
-                    evt, station, det, noise_rms=noise_level, use_channels=channel_dict['PA_ids_baseline'],
-                    sim = True, template = direction_pulse_template, icemodel='greenland_simple', att_model='GL1',
-                    )
-                ch_Vpol_sim = 0
+            # to keep some debug plots happy, one can either re-run the raytypeselecter using sim=True, or manually set the missing parameters
+            station.set_parameter(stnp.raytype_sim, station[stnp.raytype])
+            station.set_parameter(stnp.pulse_position_sim, station[stnp.pulse_position])
+            # try:
+            #     raytypeselecter.run(
+            #         evt, station, det, vrms=None, use_channels=channel_dict['phased_array'][::-1],
+            #         sim = True, template = direction_pulse_template,
+            #         ice_model=prop_config['propagation']['ice_model'], attenuation_model=prop_config['propagation']['attenuation_model'],
+            #         )
+            # except UnboundLocalError:
+            #     raytypeselecter.run(
+            #         evt, station, det, vrms=None, use_channels=channel_dict['phased_array'],
+            #         sim = True, template = direction_pulse_template,
+            #         ice_model=prop_config['propagation']['ice_model'], attenuation_model=prop_config['propagation']['attenuation_model'],
+            #         )
+
             results['ray_type'] = station.get_parameter(stnp.raytype)
             results['ray_type_sim'] = station.get_parameter(stnp.raytype_sim)
-            results['ch_Vpol'] = ch_Vpol_rec
-            results['ch_Vpol_sim'] = ch_Vpol_sim
-            if ch_Vpol_sim < ch_Vpol_rec: # we'll get errors from the sim station ray tracing
-                station.set_sim_station(None)
+            results['ch_Vpol'] = reference_vpol
 
-            use_channels = np.arange(15)
-
-            # use_channels = reco_channels
-            print("Direction reconstruction using {} channels:".format(len(use_channels)), use_channels)
-            PA_cluster_channels = np.concatenate([channel_dict['PA_ids_baseline'], [7,8]]) # PA + adjacent Hpols
 
             neutrinodirectionreconstructor.begin(
-                evt, station, det, use_channels=use_channels,
-                reference_vpol=ch_Vpol_rec,
-                reference_hpol=np.min(Hpol),
-                pa_cluster_channels=PA_cluster_channels,
-                sim=False, template=False, hpol_channels=Hpol,
+                evt, station, det, use_channels=channel_dict['all'],
+                reference_vpol=reference_vpol,
+                pa_cluster_channels=channel_dict['phased_array_cluster'],
+                hpol_channels=channel_dict['hpol_channels'],
                 propagation_config=prop_config,
-                vrms=noise_level,
-                **cfg['direction'],
-                debug_folder = output_csv_dir,
+                vrms=None,
+                **reco_config['direction'],
+                debug_folder = output_path,
                 debug_formats=['.pdf']
             )
             try:
@@ -386,13 +306,8 @@ if __name__ == "__main__":
                 results['viewing_angle'] = station.get_parameter(stnp.viewing_angle)
                 pol_rec = station.get_parameter(stnp.polarization)
                 results['polarization_angle'] = np.arctan2(pol_rec[2], pol_rec[1])
-                # chi2_list = station[stnp.chi2]
-                # chi2_sim = chi2_list[0]
-                # chi2_fit = chi2_list[1]
-                # results['chi2_sim'] = chi2_sim
                 results['chi2_fit'] = station[stnp.chi2]['chi2']
                 results['shower_type'] = station.get_parameter(stnp.shower_type)
-                # results['fit_channels'] = str(station.get_parameter(stnp.direction_fit_pulses)) # need to convert back to dict!
 
                 additional_output = station.get_parameter(stnp.nu_reco_additional_output)
                 for key in additional_output:
@@ -414,8 +329,7 @@ if __name__ == "__main__":
         t2 = time.time()
 
         print("Took {:.0f} s ({:.0f} s vertex fit / {:.0f} s direction reco)".format(t2-t0, t1-t0, t2-t1))
-        # import NuRadioReco.utilities.yamlConfig
-        # NuRadioReco.utilities.yamlConfig.save(results, './reconstruction_results.yaml', overwrite=True)
+
         import pickle
         with open('./reconstruction_results.p', 'wb') as f:
             pickle.dump(results, f)

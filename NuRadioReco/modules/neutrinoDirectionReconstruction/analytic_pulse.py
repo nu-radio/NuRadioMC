@@ -100,7 +100,7 @@ class simulation():
 	def begin(
 			self, det, station, use_channels, raytypesolution,
 			reference_channel, passband = None,
-			ice_model=None, att_model = None, askaryan_model = 'Alvarez2009',
+			ice_model=None, attenuation_model = None, askaryan_model = 'Alvarez2009',
 			propagation_module="analytic", propagation_config=None,
 			shift_for_xmax=False, systematics = None):
 		""" 
@@ -153,7 +153,7 @@ class simulation():
 		ice_model : string | `medium.IceModel` instance | None (default)
 			If not None, use this ice model rather than the one specified in the
 			``propagation_config``
-		att_model : string | None (default)
+		attenuation_model : string | None (default)
 			If not None, use this attenuation model rather than the one specified
 			in ``propagation_config``
 		"""
@@ -175,9 +175,9 @@ class simulation():
 			self._ice_model = medium.get_ice_model(ice_model)
 		else:
 			self._ice_model = ice_model
-		if att_model is None:
-			att_model = propagation_config['propagation']['attenuation_model']
-		self._att_model = att_model
+		if attenuation_model is None:
+			attenuation_model = propagation_config['propagation']['attenuation_model']
+		self._attenuation_model = attenuation_model
 		self._askaryan_model = askaryan_model
 		self._prop = propagation.get_propagation_module(propagation_module)
 		self._prop_config = propagation_config
@@ -194,9 +194,9 @@ class simulation():
 			if passband_i is None:
 				self._h[channel_id] = 1
 			else:
-				filter_response_1 = bandpass_filter.get_filter_response(self._ff, [passband_i[0], 1150*units.MHz], 'butter', 8)
-				filter_response_2 = bandpass_filter.get_filter_response(self._ff, [0*units.MHz, passband_i[1]], 'butter', 10)
-				self._h[channel_id] = filter_response_1 * filter_response_2
+				# filter_response_1 = bandpass_filter.get_filter_response(self._ff, [passband_i[0], 1150*units.MHz], 'butter', 8)
+				# filter_response_2 = bandpass_filter.get_filter_response(self._ff, [0*units.MHz, passband_i[1]], 'butter', 10)
+				self._h[channel_id] = bandpass_filter.get_filter_response(self._ff, passband_i, 'butterabs', 10) #filter_response_1 * filter_response_2
 
 		self._amp = {}
 		for channel_id in use_channels:
@@ -223,7 +223,7 @@ class simulation():
 
 	@lru_cache(maxsize=128)
 	def _raytracer(self, x1_x, x1_y, x1_z, x2_x, x2_y, x2_z):
-		r = self._prop(self._ice_model, self._att_model, config=self._prop_config)
+		r = self._prop(self._ice_model, self._attenuation_model, config=self._prop_config)
 		r.set_start_and_end_point([x1_x, x1_y, x1_z], [x2_x, x2_y, x2_z])
 		r.find_solutions()
 		return copy.deepcopy(r)
@@ -284,7 +284,7 @@ class simulation():
 			viewing_angles = []
 			chid = self._ch_Vpol
 			x2 = det.get_relative_position(station.get_id(), chid) + det.get_absolute_position(station.get_id())
-			# r = prop( ice, self._att_model, config=self._prop_config)
+			# r = prop( ice, self._attenuation_model, config=self._prop_config)
 			# r.set_start_and_end_point(vertex, x2)
 
 			# r.find_solutions()
@@ -300,7 +300,7 @@ class simulation():
 				# logger.debug("Obtaining ray tracing info for channel {}".format(channel_id))
 				raytracing[channel_id] = {}
 				x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
-				# r = prop( ice,self._att_model, config=self._prop_config)
+				# r = prop( ice,self._attenuation_model, config=self._prop_config)
 				# r.set_start_and_end_point(vertex, x2)
 				# r.find_solutions()
 				r = self._raytracer(*vertex, *x2)

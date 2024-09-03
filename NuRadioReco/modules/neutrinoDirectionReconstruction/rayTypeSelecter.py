@@ -36,9 +36,9 @@ class rayTypeSelecter:
         pass
 
     def run(
-            self, event, station, det, use_channels, noise_rms,
-            template, icemodel = 'greenland_simple', raytracing_method = 'analytic',
-            att_model = 'GL1', sim = False, shower_id = None,):
+            self, event, station, det, use_channels, vrms,
+            template, ice_model = 'greenland_simple', raytracing_method = 'analytic',
+            attenuation_model = 'GL1', sim = False, shower_id = None,):
         """
         Finds the pulse position of the triggered pulse in the phased array and returns the raytype of the pulse
 
@@ -52,17 +52,21 @@ class rayTypeSelecter:
             The detector description
         use_channels: list
             List of phased array channels used for the pulse selection
-        noise_rms: float
+        vrms: float | dict | None
             RMS of the noise. This is used to define the SNR of the pulses
-            in different channels.
+            in different channels. Can either be given as a single value
+            for all channels, or as a dictionary where the keys are the channel_ids
+
+            Can be set to ``None``; in this case, the vrms is estimated from the detector amplifier response,
+            assuming a noise temperature of 300 K.
         template: array
             Neutrino voltage template. This is used to find the pulse in the
             phased array by correlation
-        icemodel: str, default: 'greenland_simple'
+        ice_model: str, default: 'greenland_simple'
             Icemodel used for the propagation. Default = 'greenland_simple'
         raytracing_method: str, default 'analytic'
             Method used for the raytracing. Default = 'analytic'
-        att_model: str, default 'GL1'
+        attenuation_model: str, default 'GL1'
             Attenuation model used for the raytracing
         sim: Boolean
             True if simulated event is used. Default = False.
@@ -80,13 +84,24 @@ class rayTypeSelecter:
         debug = self.__debug
         debugplots_path = self.__debugplots_path
 
-        if isinstance(icemodel, str):
-            ice = medium.get_ice_model(icemodel)
+        if isinstance(ice_model, str):
+            ice = medium.get_ice_model(ice_model)
         else:
-            ice = icemodel
+            ice = ice_model
         prop = propagation.get_propagation_module(raytracing_method)
         sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate() ## assume same for all channels
         station_id = station.get_id()
+
+        if vrms is None: # compute vrms from noise temperature
+            vrms = {}
+            ff = np.linspace(0, 5*units.GHz, 8192)
+            for channel_id in station.get_channel_ids():
+                amp_response = det.get_amplifier_response(station_id, channel_id=channel_id, frequencies=ff)
+                effective_bandwidth = np.trapz(np.abs(amp_response)**2, ff)
+                vrms[channel_id] = (300 * 50 * scipy.constants.k * effective_bandwidth / units.Hz) ** 0.5 # assuming a noise temperature of 300 K
+
+        if not isinstance(vrms, dict):
+            vrms = {channel_id : vrms for channel_id in station.get_channel_ids()}
 
         if sim:
             if shower_id is not None:
@@ -119,7 +134,7 @@ class rayTypeSelecter:
             for channel_id in use_channels:
                 channel = station.get_channel(channel_id)
                 x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
-                r = prop( ice, att_model)
+                r = prop(ice, attenuation_model)
                 r.set_start_and_end_point(vertex, x2)
                 r.find_solutions()
                 for iS in range(r.get_number_of_solutions()):
@@ -218,8 +233,10 @@ class rayTypeSelecter:
         position_pulse = pos_max[np.argmax(max_totalcorr)]
         logger.debug(f"position pulse {position_pulse}")
         #print("time position pulse", station.get_channel(use_channels[0]).get_times()[position_pulse])
-        if not sim: station.set_parameter(stnp.pulse_position, position_pulse)
-        if sim: station.set_parameter(stnp.pulse_position_sim, position_pulse)
+        if not sim:
+            station.set_parameter(stnp.pulse_position, position_pulse)
+        else:
+            station.set_parameter(stnp.pulse_position_sim, position_pulse)
 
         if debug:
             fig, axs = plt.subplots(station.get_number_of_channels(), sharex = True, figsize = (5, station.get_number_of_channels() * 1.25))
@@ -229,7 +246,7 @@ class rayTypeSelecter:
 
         x2 = det.get_relative_position(station_id, use_channels[0]) + det.get_absolute_position(station_id)
         trace_start_time_ref = station.get_channel(use_channels[0]).get_trace_start_time()
-        r = prop(ice, att_model)
+        r = prop(ice, attenuation_model)
         r.set_start_and_end_point(vertex, x2)
         r.find_solutions()
         for iS in range(r.get_number_of_solutions()):
@@ -237,12 +254,13 @@ class rayTypeSelecter:
 
                 T_reference = r.get_travel_time(iS)
 
-        for ich, channel in enumerate(station.iter_channels()):
-           # channel = station.get_channel(channelid)
+        # for ich, channel in enumerate(station.iter_channels()):
+        for ich, channel_id in enumerate(vrms.keys()): # only estimate / plot pulse positions for channels with known vrms
+            channel = station.get_channel(channel_id)
             channel_id = channel.get_id()
             x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
             trace_start_time_channel = channel.get_trace_start_time()
-            r = prop( ice, att_model)
+            r = prop( ice, attenuation_model)
             r.set_start_and_end_point(vertex, x2)
             r.find_solutions()
            # print("channel id {}, number of solutions {}".format(channel_id, r.get_number_of_solutions()))
@@ -280,22 +298,23 @@ class rayTypeSelecter:
                 if debug:
                     plot_pulse_time = trace_start_time_channel + k / sampling_rate
                     axs[ich].plot(channel.get_times(), channel.get_trace(), color = 'blue')
-                    axs[ich].set_xlabel("time [ns]")
                     if sim:
                         for sim_ch in station.get_sim_station().get_channels_by_channel_id(channel_id):
                             axs[ich].plot(sim_ch.get_times(), sim_ch.get_trace(), color = 'orange')
                     axs[ich].axvline(plot_pulse_time -300 / sampling_rate, color = 'grey')
                     axs[ich].axvline(plot_pulse_time +500 / sampling_rate, color = 'grey')
-                    if ((np.max(pulse_window) - np.min(pulse_window))/(2*noise_rms) > 3.5):
+                    if ((np.max(pulse_window) - np.min(pulse_window))/(2*vrms[channel_id]) > 3.5):
                         axs[ich].axvline(plot_pulse_time, color = 'green')
                     else:
                         axs[ich].axvline(plot_pulse_time, color = 'red')
                     axs[ich].set_title("channel {}".format(channel_id))
-                if ((np.max(pulse_window) - np.min(pulse_window))/(2*noise_rms) > 3.5):
+
+                if ((np.max(pulse_window) - np.min(pulse_window))/(2*vrms[channel_id]) > 3.5):
                     channels_pulses.append(channel.get_id())
 
 
         if debug:
+            axs[-1].set_xlabel("time [ns]")
             fig.tight_layout()
             fig.savefig("{}/{}_{}_pulse_window.pdf".format(debugplots_path, run_number, event_id))
             plt.close(fig)
