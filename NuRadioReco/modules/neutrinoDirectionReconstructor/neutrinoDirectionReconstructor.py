@@ -5,7 +5,7 @@ import numpy as np
 from NuRadioReco.utilities import fft
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.modules.neutrinoDirectionReconstruction import analytic_pulse
+from NuRadioReco.modules.neutrinoDirectionReconstructor import analytic_pulse
 from NuRadioMC.utilities import medium
 from scipy import signal, constants, optimize
 from scipy.spatial.transform import Rotation

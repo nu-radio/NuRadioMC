@@ -12,7 +12,7 @@ from NuRadioReco.modules import channelAddCableDelay
 import numpy as np
 import pandas as pd
 from NuRadioReco.modules.neutrinoVertexReconstructor import neutrino3DVertexReconstructor
-from NuRadioReco.modules.neutrinoDirectionReconstruction import rayTypeSelecter, neutrinoDirectionReconstructor
+from NuRadioReco.modules.neutrinoDirectionReconstructor import rayTypeSelecter, neutrinoDirectionReconstructor
 from NuRadioReco.modules import channelBandPassFilter, channelResampler, channelGenericNoiseAdder
 import NuRadioMC.utilities.medium
 import NuRadioMC.SignalGen.askaryan

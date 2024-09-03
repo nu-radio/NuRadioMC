@@ -1,3 +1,8 @@
+"""
+Module to create (simulated)
+
+"""
+
 from functools import lru_cache
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.SignalGen import askaryan as signalgen
@@ -19,9 +24,6 @@ from inspect import signature
 
 logger = logging.getLogger("analytic_pulse")
 logger.setLevel(logging.INFO)
-
-from NuRadioReco.detector import antennapattern
-eventreader = NuRadioReco.modules.io.eventReader.eventReader()
 
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
