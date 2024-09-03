@@ -174,7 +174,7 @@ class Response:
                         f'{datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S")}_debug.png', transparent=False)
             plt.close()
 
-    def __call__(self, freq, component_name=None):
+    def __call__(self, freq, component_names=None, blacklist=True):
         """
         Returns the complex response for a given frequency.
 
@@ -184,17 +184,36 @@ class Response:
         freq: list(float)
             The frequencies for which to get the response.
 
+        component_names: list(str) or None (Default: None)
+            Only return the (combined) response of components selected by their names.
+            List of names to consider or not to consider (depends on `blacklist`).
+            `None` mean no selection.
+
+        blacklist: bool (Default: True)
+            If True (and `component_names is not None`), ignore components selected with `component_names`.
+            If False, only consider components selected with `component_names`.
+
         Returns
+        -------
 
         response: np.array(np.complex128)
             The complex response at the desired frequencies
         """
         response = np.ones_like(freq, dtype=np.complex128)
 
+        if component_names is not None:
+            if isinstance(component_names, str):
+                component_names = [component_names]
+
         for gain, phase, weight, name in zip(self.__gains, self.__phases, self.__weights, self.__names):
 
-            if component_name is not None and component_name != name:
-                continue
+            if component_names is not None:
+                if blacklist:
+                    if name in component_names:  # if name in blacklist skip
+                        continue
+                else:
+                    if name not in component_names:  # if name *not* in whitelist skip
+                        continue
 
             _gain = gain(freq / units.GHz)
 
@@ -205,9 +224,9 @@ class Response:
             response *= (_gain * np.exp(1j * phase(freq / units.GHz))) ** weight
 
         if np.allclose(response, np.ones_like(freq, dtype=np.complex128)):
-            if component_name is not None:
+            if component_names is not None:
                 raise ValueError("Returned response is equal to 1. "
-                                f"Did you requested a non-existing component ({component_name})? "
+                                f"Did you requested a non-existing component ({component_names})? "
                                 f"Options are: {self.__names}")
             else:
                 self.logger.warning("Returned response is equal to 1.")

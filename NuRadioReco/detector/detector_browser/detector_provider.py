@@ -3,7 +3,8 @@ import NuRadioReco.detector.detector
 import NuRadioReco.detector.generic_detector
 import NuRadioReco.modules.io.NuRadioRecoio
 import NuRadioReco.utilities.metaclasses
-
+import datetime
+import logging
 
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class DetectorProvider(object):
@@ -47,9 +48,18 @@ class DetectorProvider(object):
             ID of the channel to be set as default channel
         """
         import NuRadioReco.detector.generic_detector
-        self.__detector = NuRadioReco.detector.generic_detector.GenericDetector.__new__(
-            NuRadioReco.detector.generic_detector.GenericDetector, filename, default_station, 
-            default_channel, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
+        self.__detector = NuRadioReco.detector.generic_detector.GenericDetector(
+            filename, default_station, default_channel, assume_inf=assume_inf,
+            antenna_by_depth=antenna_by_depth, create_new=True)
+
+    def set_rnog_detector(self):
+        """
+        Creates an RNO-G Database Detector object that can be provided to the functions
+        """
+        self.__detector = NuRadioReco.detector.detector.Detector(source="rnog_mongo", log_level=logging.ERROR, always_query_entire_description=False,
+                            database_connection='RNOG_public')
+        # use the latest state of the detector
+        # self.__detector.update(datetime.datetime.now())
 
     def set_event_file(self, filename):
         """

@@ -106,7 +106,7 @@ class electricFieldParameters(Enum):
     reflection_coefficient_phi = 15  #: for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
     cr_spectrum_quadratic_term = 16  #: result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
     energy_fluence_ratios = 17   #: Ratios of the energy fluences in different passbands
-
+    nu_vertex_propagation_time = 18  #: the time it takes for the signal to propagate from the vertex to the channel
 
 class ARIANNAParameters(Enum):  #: this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  #: the start time of a sequence

@@ -61,7 +61,7 @@ def _check_detector_time(method):
 class Detector():
     def __init__(self, database_connection='RNOG_test_public', log_level=logging.INFO, over_write_handset_values={},
                  database_time=None, always_query_entire_description=True, detector_file=None,
-                 select_stations=None):
+                 select_stations=None, create_new=False):
         """
 
         Parameters
@@ -78,7 +78,7 @@ class Detector():
             Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
             (Default: {}, the acutally default values for the parameters in question are defined below)
 
-        database_time : `datetime.datetime` or ``astropy.time.Time``
+        database_time : `datetime.datetime` or `astropy.time.Time`
             Set database time which is used to select the primary measurement. By default (= None) the database time
             is set to now (time the code is running) to select the measurement which is now primary.
 
@@ -92,6 +92,10 @@ class Detector():
             Select a station or list of stations using their station ids for which the describtion is provided.
             This is useful for example in simulations when one wants to simulate only one station. The default None
             means to descibe all commissioned stations.
+
+        create_new : bool (Default: False)
+            If False, and a database already exists, the existing database will be used rather than initializing a
+            new connection. Set to True to create a new database connection.
         """
 
         self.logger = logging.getLogger("NuRadioReco.RNOGdetector")
@@ -113,7 +117,7 @@ class Detector():
         if detector_file is None:
             self._det_imported_from_file = False
 
-            self.__db = Database(database_connection=database_connection)
+            self.__db = Database(database_connection=database_connection, create_new=create_new)
             if database_time is not None:
                 self.__db.set_database_time(database_time)
 
