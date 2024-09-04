@@ -19,7 +19,7 @@ description = "A Monte Carlo simulation package for radio neutrino detectors and
 # classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
 
 [tool.poetry.dependencies]
-numpy = "*"
+numpy = "<2"
 scipy = "*"
 tinydb = ">=4.1.1"
 tinydb-serialization = ">=2.1"
