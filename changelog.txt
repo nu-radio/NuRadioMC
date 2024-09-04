@@ -2,6 +2,11 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 2.2.2
+bugfixes:
+- replace deprecated import of scipy window in antennapattern
+- pin numpy<2 as .nur files generated with numpy 2.* cannot be read in with earlier versions of numpy.
+
 version 2.2.1
 bugfixes:
 - readRNOGDataMattak: fix bug where .root files would not be found if they are passed as relative paths (instead of absolute paths or folder)
