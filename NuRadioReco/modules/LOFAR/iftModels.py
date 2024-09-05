@@ -102,9 +102,9 @@ class EFieldModel(jft.Model):
 
     def __init__(
         self,
-        times: npt.NDArray[np.float_],
+        times: npt.NDArray[np.float64],
         params_alpha: dict = {"a_min": -2.5, "a_max": -2},
-        params_f12: dict = {"mean": 100.0, "std": 0.35},
+        params_f12: dict = {"mean": np.log(100.0), "std": 0.35},
         params_b1: dict = {"mean": 0.07, "std": 0.012},
         params_b2: dict = {"mean": -6.59, "std": 0.5},
         params_s: dict = {"mean": 1.0, "std": 0.4}, 
@@ -313,7 +313,7 @@ class AntennaResponse(jft.Model):
     
 
     eFieldModel: EFieldModel = dataclasses.field(metadata=dict(static=False))
-    response: npt.NDArray[np.float_] = dataclasses.field(metadata=dict(static=False))
+    response: npt.NDArray[np.float64] = dataclasses.field(metadata=dict(static=False))
 
     def __init__(self, eFieldModel: EFieldModel, response: npt.NDArray = None):
 
@@ -559,8 +559,8 @@ def stationary_noise(trace, time_cut = 0.25, variance_cut = 1E-4, debug=False):
             The standard deviation of the input trace.
         """
         
-        v: npt.NDArray[np.float_]
-        U: npt.NDArray[np.float_]
+        v: npt.NDArray[np.float64]
+        U: npt.NDArray[np.float64]
         sig: float
         def __init__(self, v, U, sig):
             self.v = v
