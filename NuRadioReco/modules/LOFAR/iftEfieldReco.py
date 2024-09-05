@@ -14,6 +14,7 @@ from NuRadioReco.detector.LOFAR import analog_components
 from . import iftModels as models
 import nifty8.re as jft # type: ignore
 import numpy as np
+import scipy
 
 from jax import random, vmap # type: ignore
 import matplotlib.pyplot as plt
@@ -121,7 +122,7 @@ class iftEfieldReco:
         self.antenna_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
     @register_run()
-    def run(self, evt, station, det, debug=False):
+    def run(self, evt, station, det, debug=True):
         """
         Performs computation for voltage trace to electric field per channel.
 
@@ -148,7 +149,15 @@ class iftEfieldReco:
         if station.get_sim_station() is not None and station.get_sim_station().has_parameter(stationParameters.zenith):
             zenith = station.get_sim_station()[stationParameters.zenith]
             azimuth = station.get_sim_station()[stationParameters.azimuth]
+            self.logger.info("This seems to be a simulation. Welcome to MonteCarlo dreamland!")
             self.sim = True
+            sim_station = station.get_sim_station()
+            efield = [field for field in sim_station.get_electric_fields() if
+                  np.max(np.abs(field.get_trace())) >= 1.0e-10]
+
+            sim_channels = [field.get_channel_ids() for field in sim_station.get_electric_fields()]
+
+
         else:
             self.logger.debug("Using reconstructed angles as no simulation present")
             zenith = evt.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith) / units.deg
@@ -156,19 +165,27 @@ class iftEfieldReco:
 
 
         # Calculate phi polarization # TODO improve direction fitting somehow
-        phi_pol = {"mean": phi_pol_calc(zenith, azimuth), "std": 0.9}
+        phi_pol = {"mean": phi_pol_calc(zenith, azimuth), "std": 0.5}
 
-        for iCh, channel in enumerate(station.iter_channels()): # TODO loop only over non-empty channels
+        if self.sim==True:
+            channels = sim_channels
+            e_index = 0
+        else:
+            channels = station.iter_channels()
+
+        for iCh, channel in enumerate(channels): # TODO loop only over non-empty channels
 
             # get channel ids and channel group ID. Check whether current channel ID and group ID match, and if not, skip iteration.
             # for E-Field reconstruction, we need two channels within one channel group which correspond to the same E-Field
 
+            if self.sim==True:
+                channel = channel[0]
+
+            channel = station.get_channel(channel)
             channel_id = channel.get_id()
             channel_id_odd = channel_id + 1
             channel_group_id = channel.get_group_id()
             
-            if channel_group_id[0] == "a":
-                channel_group_id = channel_group_id[1:]
 
             if str(channel_group_id) != str(channel_id):
                 print("Channel group ID does not match channel ID")
@@ -187,14 +204,45 @@ class iftEfieldReco:
             time0 = channel.get_times()
             time1 = channel_odd.get_times()
 
+            if self.sim==True and debug==True:
+                
+                import matplotlib.pyplot as plt
+                plt.plot(time0, trace0, 'b-', label='trace X')
+                efield_channels = efield[iCh]
+                efield_trace = efield_channels.get_trace()
+                efield_times = efield_channels.get_times()
+                efield_times = efield_times + time0[len(time0)//2] - efield_times[len(efield_times)//2]
+
+                plt.plot(time1, trace1, 'g-', label='trace Y')
+                plt.plot(time0, trace0, 'b-', label='trace X')
+                plt.plot(efield_times, efield_trace[1], 'r-', label='efield Theta')
+                plt.plot(efield_times, efield_trace[2], 'y-', label='efield Phi')
+                plt.legend()
+                plt.show()
+
+                efield_spec = efield_channels.get_frequency_spectrum()
+                efield_freqs = efield_channels.get_frequencies()
+                plt.plot(efield_freqs, np.abs(efield_spec[1]), 'r-', label='efield Theta')
+                plt.plot(efield_freqs, np.abs(efield_spec[2]), 'y-', label='efield Phi')
+                plt.xlim(0.03,0.08)
+                plt.legend()
+                plt.show()
+
+
+                
+
             assert np.allclose(time0, time1)
             dt = time0[1:] - time0[:-1]
             assert np.allclose(dt, dt[0]*np.ones_like(dt))
 
             # find pulse as maximum of trace TODO implement more sophisticated pulse finding
 
-            pulse_max = np.max(trace0)-50
-            pulse_max_ind = np.argmax(trace0)-int(50/dt[0])
+            #apply hilbert envelope to pulse to find maximum
+
+            trace_hilbert = np.abs(scipy.signal.hilbert(trace0))
+            pulse_max = np.max(trace_hilbert)
+
+            pulse_max_ind = np.argmax(trace_hilbert)#-int(50/dt[0])
             pulse_len = 200
             start_time = time0[pulse_max_ind - int(pulse_len/4)]
             end_time = time0[pulse_max_ind + int(3*pulse_len/4)]
@@ -207,6 +255,7 @@ class iftEfieldReco:
             data1, noise1 = models.process_trace(
                 trace0, time0, start_time=start_time, end_time=end_time, cut_fraq=0.1
             )
+
             data = np.stack([data0, data1], axis=-1)
             noise = np.stack([noise0, noise1], axis=-1)
             time = np.arange(data.shape[0]) * dt[0] + start_time
@@ -215,7 +264,7 @@ class iftEfieldReco:
             nCov = models.stationary_noise(noise, debug=debug)
 
             # initialise prior parameters
-            mt0 = -0.0062834 * (pulse_max - 85) - 2.6
+            mt0 = -0.0062834 * (pulse_max - 85)# - 2.6
             m_phi = {"mean": mt0, "std": 2}
 
             # generate signal model
@@ -254,45 +303,11 @@ class iftEfieldReco:
 
             system_res[:, 1, 0] = antenna_response["theta"] * system_response
             system_res[:, 1, 1] = antenna_response["phi"] * system_response
-
-                
-            """         
-            if debug==True:
-
-                import matplotlib.pyplot as plt
-
-                fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-                ax.plot(signal.freqs, np.abs(system_res[:, 0, 0]), label="X theta pol")
-                ax.plot(signal.freqs, np.abs(system_res[:, 0, 1]), label="X phi pol")
-                ax.plot(signal.freqs, np.abs(system_res[:, 1, 0]), label="Y theta pol")
-                ax.plot(signal.freqs, np.abs(system_res[:, 1, 1]), label="Y phi pol")
-                ax.set_yscale("log")
-                ax.set_xlabel("Frequency (MHz)")
-                ax.set_ylabel("Amplitude")
-                ax.set_title("System Response")
-                ax.legend()
-                plt.show()
-            
-            """
-
+ 
             signal_response = models.AntennaResponse(signal, system_res)
-
-
 
             seed = 42
             key = random.PRNGKey(seed)
-
-
-            if self.sim==True:
-                # Create synthetic data # TODO write full simulation code
-                key, subkey = random.split(key)
-                pos_truth = jft.random_like(subkey, signal_response.domain)
-                signal_response_truth = signal_response(pos_truth)
-                key, subkey = random.split(key)
-                noise_truth = nCov.amp() @ jft.random_like(subkey, signal_response.target)
-                mock_data = signal_response_truth + noise_truth  
-                plt.plot(signal_response_truth[:,0], 'k-', label='signal response truth')
-                plt.plot(mock_data[:,0], 'b-', label='mock data')
 
 
             # construct likelihood
@@ -310,7 +325,7 @@ class iftEfieldReco:
             n_vi_iterations = 15
             delta = 1e-5
             absdelta = delta * problem_size
-            n_samples = 4
+            n_samples = 6
 
             key, k_i, k_o = random.split(key, 3)
             # NOTE, changing the number of samples always triggers a resampling even if
@@ -354,7 +369,7 @@ class iftEfieldReco:
                 resume=False,
             )
 
-            # get results: denoised voltage traces, electric field traces, and frequency traces
+            # get results: voltage traces, electric field traces, and frequency traces
             post_sr_mean_response, post_sr_std_response = jft.mean_and_std(
                 tuple(signal_response(s) for s in samples), correct_bias=True
             ) 
@@ -366,12 +381,12 @@ class iftEfieldReco:
             ) 
 
             # convert to correct units TODO check whether this is really correct
-            post_sr_mean_response = post_sr_mean_response *1000 * units.V / units.m
-            post_sr_std_response = post_sr_std_response *1000 * units.V / units.m
-            post_sr_mean = post_sr_mean *1000 * units.V / units.m
-            post_sr_std = post_sr_std *1000 * units.V / units.m
-            post_sr_mean_freq = post_sr_mean_freq * 1000 * units.V / units.m
-            post_sr_std_freq = post_sr_std_freq * 1000 * units.V / units.m   
+            post_sr_mean_response = post_sr_mean_response * units.V / units.m
+            post_sr_std_response = post_sr_std_response * units.V / units.m
+            post_sr_mean = post_sr_mean * units.V / units.m
+            post_sr_std = post_sr_std * units.V / units.m
+            post_sr_mean_freq = post_sr_mean_freq * units.V / units.m
+            post_sr_std_freq = post_sr_std_freq * units.V / units.m   
 
             # reconstruct efield with original trace size, apply hanning filter to prevent windowing effects
             rec_efield = np.zeros((3,len(trace0)), dtype=np.complex128)
@@ -399,10 +414,6 @@ class iftEfieldReco:
             # set efield in odd channel
             efield_odd = NuRadioReco.framework.electric_field.ElectricField([channel_id_odd])
             efield_odd.set_trace(rec_efield, sampling_rate)
-
-
-
-
 
             if debug==True:
 
@@ -463,17 +474,3 @@ class iftEfieldReco:
 
     def end(self):
         pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
