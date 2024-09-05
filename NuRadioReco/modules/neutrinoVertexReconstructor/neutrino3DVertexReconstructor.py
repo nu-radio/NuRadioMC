@@ -285,6 +285,13 @@ class neutrino3DVertexReconstructor:
         if debug:
             plt.close('all')
             fig1 = plt.figure(figsize=(12, (len(self.__channel_pairs) + len(self.__channel_pairs) % 2)))
+
+        sim_vertex = None
+        for sim_shower in event.get_sim_showers():
+            sim_vertex = sim_shower.get_parameter(shp.vertex) - det.get_absolute_position(self.__station_id)
+            break
+
+
         self.__pair_correlations = np.zeros((len(self.__channel_pairs), station.get_channel(self.__channel_ids[0]).get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1))
         # compute pair correlations
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
@@ -648,27 +655,20 @@ class neutrino3DVertexReconstructor:
             vertex_y = y_coords[i_max_dnr]
             vertex_z = z_coords[i_max_dnr]
             fit_vertex = np.array([vertex_x, vertex_y, vertex_z])
-            station.set_parameter(stnp.nu_vertex, fit_vertex)
+            station.set_parameter(stnp.nu_vertex, fit_vertex + det.get_absolute_position(self.__station_id))
 
-            sim_vertex = None
-            for sim_shower in event.get_sim_showers():
-                sim_vertex = sim_shower.get_parameter(shp.vertex)
-                fit_correlation = combined_correlations[i_max_dnr]
-                # get correlation for true vertex position
-                # sim_correlation = -self.__full_correlation_for_pos(sim_vertex)
+            # some debug output
+            fit_correlation = combined_correlations[i_max_dnr]
+            # get correlation for true vertex position
+            # sim_correlation = -self.__full_correlation_for_pos(sim_vertex)
+            if sim_vertex is not None:
                 logger.debug(f"Sim vertex: ({sim_vertex[0]:.1f}, {sim_vertex[1]:.1f}, {sim_vertex[2]:.1f})")
-                logger.debug(f"Fit vertex: ({vertex_x:.1f}, {vertex_y:.1f}, {vertex_z:.1f})")
-                # logger.debug(f"Sim correlation: {sim_correlation:.3g}")
-                logger.debug(f"Fit correlation: {fit_correlation:.3g}")
-                max_pair_correlations = np.sum(np.max(self.__pair_correlations, axis=1))
-                max_dnr_correlations = np.sum(np.max(self.__self_correlations, axis=1))
-                logger.debug(f"Maximum correlation: {max_pair_correlations+max_dnr_correlations:.3g} ({max_pair_correlations:.3g} + {max_dnr_correlations:.3g} DnR)")
-                # fit_correlation = -self.__full_correlation_for_pos(fit_vertex)
-                # logger.debug(f"Fit correlation (?): {fit_correlation:.3g}")
-                # if sim_correlation > 1.01 * fit_correlation:
-                #     logger.warning(
-                #         f"Correlation for simulated vertex ({sim_correlation:.3g}) higher than fit ({fit_correlation:.3g})!")
-                break
+            logger.debug(f"Fit vertex: ({vertex_x:.1f}, {vertex_y:.1f}, {vertex_z:.1f})")
+            # logger.debug(f"Sim correlation: {sim_correlation:.3g}")
+            logger.debug(f"Fit correlation: {fit_correlation:.3g}")
+            max_pair_correlations = np.sum(np.max(self.__pair_correlations, axis=1))
+            max_dnr_correlations = np.sum(np.max(self.__self_correlations, axis=1))
+            logger.debug(f"Maximum correlation: {max_pair_correlations+max_dnr_correlations:.3g} ({max_pair_correlations:.3g} + {max_dnr_correlations:.3g} DnR)")
 
 
             phi_fit = np.arctan2(vertex_y, vertex_x) % (2*np.pi)
@@ -1049,10 +1049,10 @@ class neutrino3DVertexReconstructor:
         ylims = ax.get_ylim()
 
         if not fit is None:
-            logger.debug(f"Fit: ({fit[0]:.0f}, {fit[1]/units.deg:.2f}, {fit[2]/units.deg:.2f})")
+            # logger.debug(f"Fit: ({fit[0]:.0f}, {fit[1]/units.deg:.2f}, {fit[2]/units.deg:.2f})")
             ax.plot(fit[0], fit[2]/units.deg, marker='s', mfc='none', color='black', ms=10, label='fit', ls='')
         if not sim is None:
-            logger.debug(f"Sim: ({sim[0]:.0f}, {sim[1]/units.deg:.2f}, {sim[2]/units.deg:.2f})")
+            # logger.debug(f"Sim: ({sim[0]:.0f}, {sim[1]/units.deg:.2f}, {sim[2]/units.deg:.2f})")
             ax.plot(sim[0], sim[2]/units.deg, marker='o', mfc='none', color='red', ms=10, label='sim', ls='')
         ax.set_ylim(ylims)
         ax.set_xlabel('distance [m]')
