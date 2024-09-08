@@ -432,7 +432,6 @@ class ray_tracing_2D(ray_tracing_base):
             self._use_optimized_calculation = overwrite_speedup
         self.use_cpp = use_cpp
         if compile_numba:
-            self.use_cpp = False
             if numba_available:
                 global get_reflection_point,obj_delta_y_square,get_delta_y
                 global get_y_turn, get_y_with_z_mirror,get_turning_point
@@ -451,6 +450,7 @@ class ray_tracing_2D(ray_tracing_base):
                     get_C0_from_log = jit(get_C0_from_log, nopython=True, cache=True)
                     get_z_unmirrored = jit(get_z_unmirrored, nopython=True, cache=True)
                     n = jit(n, nopython=True, cache=True)
+                    self.use_cpp = False
                 except:
                     compile_numba = False
 
