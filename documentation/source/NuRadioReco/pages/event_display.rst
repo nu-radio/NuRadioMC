@@ -21,3 +21,6 @@ file you want to see.
 Alternatively, you can use the file ``NuRadioViewer`` in the ``eventbrowser`` directory.
 Add the directory to your system ``$PATH`` and you can open the eventbrowser by
 typing ``NuRadioViewer filename.nur``.
+
+If you want templates to show up in the Event Display,
+you need to set up an environment variable ``NURADIORECOTEMPLATES`` and have it point to the template directory.

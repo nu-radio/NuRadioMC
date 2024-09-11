@@ -213,8 +213,11 @@ class readRNOGData:
                         self.logger.warn("No connect to RunTable database could be established. "
                                         "Runs can not be filtered.")
                 except ImportError:
-                    self.logger.warn("Import of run table failed. Runs can not be filtered.! \n"
-                            "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
+                    self.logger.warn(
+                        "import run_table failed. You can still use readRNOGData, but runs can not be filtered. "
+                        "To install the run table, run\n\n"
+                        "\tpip install git+ssh://git@github.com/RNO-G/rnog-runtable.git\n"
+                    )
             else:
                 # some users may mistakenly try to pass the .root files to __init__
                 # we check for this and raise a (hopefully) helpful error message
