@@ -170,17 +170,17 @@ Dependencies are also maintained in ``pyproject.toml``. To update the dependenci
   under ``[tool.poetry.dependencies]``. Acceptable version specifications are ``"4.1.1"`` (4.1.1 only),
   ``">=4.1.1"`` (4.1.1 or greater), or ``"*"`` (any version). Please do not use poetry-specific version
   specifiers like ``^`` or ``~``.
-* If you are adding an **optional** dependency, add your dependency under ``[tool.poetry.dev-dependencies]``.
+* If you are adding an **optional** dependency, you can specify this by adding ``optional=true``.
   Additionally, please name the feature that requires this dependency, and add it under ``[tool.poetry.extras]``.
   E.g. in order to generate the documentation, we require ``Sphinx``, ``sphinx-rtd-theme`` and ``numpydoc`` to be installed.
   This is specified in ``pyproject.toml`` as follows:
 
   .. code-block::
 
-    [tool.poetry.dev-dependencies]
-    Sphinx = "*"
-    sphinx-rtd-theme = "*"
-    numpydoc = "*"
+    [tool.poetry.dependencies]
+    Sphinx = {version = "*", optional = true}
+    sphinx-rtd-theme = {version = "*", optional = true}
+    numpydoc = {version = "*", optional = true}
 
     [tool.poetry.extras]
     documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
