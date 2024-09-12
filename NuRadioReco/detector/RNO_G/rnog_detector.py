@@ -63,6 +63,7 @@ class Detector():
                  database_time=None, always_query_entire_description=False, detector_file=None,
                  select_stations=None, create_new=False):
         """
+        The RNO-G detector description.
 
         Parameters
         ----------
@@ -97,6 +98,12 @@ class Detector():
         create_new : bool (Default: False)
             If False, and a database already exists, the existing database will be used rather than initializing a
             new connection. Set to True to create a new database connection.
+
+        Notes
+        -----
+        For more information about ``Detector`` objects in NuRadioMC, see
+        https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/detector_tree.html
+
         """
 
         self.logger = logging.getLogger("NuRadioReco.RNOGdetector")
