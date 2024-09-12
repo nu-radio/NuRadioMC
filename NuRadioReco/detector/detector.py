@@ -52,12 +52,12 @@ def Detector(*args, **kwargs):
         It chooses the correct class based on the "source" argument.
         The returned object is of one of these classes:
 
-            - kwargs["source'] == "rnog_mongo" -> `NuRadioReco.detector.RNO_G.rnog_detector`
-            - kwargs["source'] == "sql" -> `NuRadioReco.detector.detector_base`
-            - kwargs["source'] == "json" or "dictionary" -> `NuRadioReco.detector.detector_base` or
-                                                            `NuRadioReco.detector.generic_detector`
+            - kwargs["source"] == "rnog_mongo" -> `NuRadioReco.detector.RNO_G.rnog_detector`
+            - kwargs["source"] == "sql" -> `NuRadioReco.detector.detector_base`
+            - kwargs["source"] == "json" or "dictionary" -> `NuRadioReco.detector.detector_base` or
+              `NuRadioReco.detector.generic_detector`
 
-        For 'kwargs["source'] == "json"', whether to use "detector_base" or "generic_detector"
+        For 'kwargs["source"] == "json"', whether to use "detector_base" or "generic_detector"
         depends on whether a reference station / channel is defined in the json file / dictionary
         or not.
 
