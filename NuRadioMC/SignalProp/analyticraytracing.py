@@ -62,8 +62,6 @@ speed_of_light = scipy.constants.c * units.m / units.s
 Models in the following list will use the speed-optimized algorithm to calculate the attenuation along the path.
 Can be overwritten by init.
 """
-speedup_attenuation_models = ["GL3"]
-
 
 def get_n_steps(x1, x2, dx):
     """ Returns number of segments necessary for width to be approx dx """
@@ -127,8 +125,8 @@ class ray_tracing_2D(ray_tracing_base):
             The signal attenuation is calculated using a numerical integration
             along the ray path. This calculation can be computational inefficient depending on the details of 
             the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss
-            of some accuracy, See PR #507. This optimization is used for all ice models listed in 
-            speedup_attenuation_models (i.e., "GL3"). With this argument you can explicitly activate or deactivate
+            of some accuracy, See PR #507. This optimization is used for all ice models.
+            With this argument you can explicitly activate or deactivate
             (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
             listed in speedup_attenuation_models)
         use_cpp: bool
@@ -149,8 +147,9 @@ class ray_tracing_2D(ray_tracing_base):
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
 
-        self._use_optimized_calculation = self.attenuation_model in speedup_attenuation_models
-        if overwrite_speedup is not None:
+        if overwrite_speedup is None:
+            self._use_optimized_calculation = True
+        else:
             self._use_optimized_calculation = overwrite_speedup
         self.use_cpp = use_cpp
 
