@@ -108,6 +108,26 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
             if channel.get_ray_tracing_solution_id() == ray_tracing_id:
                 yield channel
 
+    def __add__(self, x):
+        """
+        adds a SimStation object to another SimStation object
+        WARNING: Only channel and efield objects are added but no other meta information
+        """
+        if not isinstance(x, SimStation):
+            raise AttributeError("Can only add SimStation to SimStation")
+        if self.get_id() != x.get_id():
+            raise AttributeError("Can only add SimStations with the same ID")
+        for channel in x.iter_channels():
+            if channel.get_unique_identifier() in self.__channels:
+                raise AttributeError(f"Channel with ID {channel.get_unique_identifier()} already present in SimStation")
+            self.add_channel(channel)
+        efield_ids = self.get_electric_field_ids()
+        for efield in x.get_electric_fields():
+            if efield.get_unique_identifier() in efield_ids:
+                raise AttributeError(f"Electric field with unique identifier {efield.get_unique_identifier()} already present in SimStation")
+            self.add_electric_field(efield)
+        return self
+
     def serialize(self, save_channel_traces, save_efield_traces):
         base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, save_efield_traces=save_efield_traces)
         channels_pkl = []

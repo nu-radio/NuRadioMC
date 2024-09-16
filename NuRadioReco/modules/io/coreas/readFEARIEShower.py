@@ -1,19 +1,26 @@
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
-from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.framework.parameters import showerParameters as shp, electricFieldParameters as efp
+from NuRadioMC.SignalProp import propagation
+from NuRadioMC.utilities import medium
+
+from matplotlib import pyplot as plt
+
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
-from radiotools import coordinatesystems
+from radiotools import coordinatesystems, helper as hp
+
 import h5py
 import numpy as np
 import time
 import re
 import os
 import logging
-logger = logging.getLogger('readCoREASShower')
+import sys
+logger = logging.getLogger('readFEARIEShower')
 
 
-class readCoREASShower:
+class readFEARIEShower:
 
     def __init__(self):
         self.__t = 0
@@ -28,7 +35,7 @@ class readCoREASShower:
         """
         begin method
 
-        initialize readCoREASShower module
+        initialize readFEARIEShower module
 
         Parameters
         ----------
@@ -102,30 +109,81 @@ class readCoREASShower:
             evt.add_sim_shower(sim_shower)
 
             # initialize coordinate transformation
-            cs = coordinatesystems.cstrafo(sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
-                                           magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
+            cs = coordinatesystems.cstrafo(
+                sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
+                magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
+
+            debug_plot_ice = False
+            debug_plot_air = False
+
+            prop = propagation.get_propagation_module("analytic")
+            ref_index_model = 'greenland_simple'
+            ice = medium.get_ice_model(ref_index_model)
+            # This function creates a ray tracing instance refracted index, attenuation model,
+            # number of frequencies # used for integrating the attenuation and interpolate afterwards,
+            # and the number of allowed reflections.
+            rays = prop(ice, "GL1",
+                        n_frequencies_integration=25,
+                        n_reflections=0, use_cpp=False)  # use_ccp has to be False to have air-ice tracing
+
+            # Position relative to shower core (at z=0)
+            position_of_xmax = sim_shower.get_axis() * sim_shower.get_parameter(shp.distance_shower_maximum_geometric)
 
             # add simulated pulses as sim station
-            for idx, (name, observer) in enumerate(f_coreas['observers'].items()):
+            for idx, ((name_air, observer_air), (name_ice, observer_ice)) in enumerate(zip(f_coreas['observers'].items(), f_coreas['observers_geant'].items())):
+                assert name_air == name_ice, "observer names do not match"
+
                 # returns proper station id if possible
-                station_id = antenna_id(name, idx)
+                station_id = antenna_id(name_air, idx)
 
-                station = NuRadioReco.framework.station.Station(station_id)
-                if self.__det is None:
-                    sim_station = coreas.make_sim_station(
-                        station_id, corsika, observer, channel_ids=[0, 1, 2])
-                else:
-                    sim_station = coreas.make_sim_station(
-                        station_id, corsika, observer,
-                        channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
+                sim_station_air = coreas.make_sim_station(
+                    station_id, corsika, observer_air, channel_ids=[0, 1, 2])
 
-                station.set_sim_station(sim_station)
-                evt.set_station(station)
+                sim_station_ice = coreas.make_sim_station(
+                    station_id, corsika, observer_ice, channel_ids=[0, 1, 2])
+
+                # within the NuRadio CS where the ice is at z=0
+                shower_inice_position = np.array([0, 0, -2]) * units.m
+
+                assert np.all(observer_air.attrs['position'] == observer_ice.attrs['position']), "observer positions do not match"
+
+                position = observer_ice.attrs['position']
+                antenna_position = np.array([-position[1], position[0], position[2]])# * units.cm
+                antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
+
+                # convert antenna position from z above sea level to z above ice (i.e. ice surface is at z=0)
+                antenna_position_in_ice = antenna_position - sim_shower.get_parameter(shp.core)
+
+                # find ray tracing solution for in-ice signal
+                rays.set_start_and_end_point(shower_inice_position, antenna_position_in_ice)
+                rays.find_solutions()
+
+                if rays.get_number_of_solutions() and debug_plot_ice:
+                    debug_plot(rays)
+
+                efields = sim_station_ice.get_electric_fields()
+                assert len(efields) == 1, "Not exactly one electric field found"
+                efield = efields[0]
+                efield._shower_id = 1  # set shower id to 1 of in-ice emission
+                add_signal_directio_to_electric_field(efield, rays)
+
+                # find ray tracing solution for in-air signal
+                rays.set_start_and_end_point(antenna_position_in_ice, position_of_xmax)
+                rays.find_solutions()
+
+                if rays.get_number_of_solutions() and debug_plot_air:
+                    debug_plot(rays)
+
+                efields = sim_station_air.get_electric_fields()
+                assert len(efields) == 1, "Not exactly one electric field found"
+                efield = efields[0]
+                efield._shower_id = 0  # set shower id to 0 of in-air emission
+                add_signal_directio_to_electric_field(efield, rays)
+
+                # This merges the air and ice station into one station which holds the electric fields from ice and air emission
+                sim_station = sim_station_air + sim_station_ice
 
                 if self.__det is not None:
-                    position = observer.attrs['position']
-                    antenna_position = np.array([-position[1], position[0], position[2]]) * units.cm
-                    antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
 
                     if not self.__det.has_station(station_id):
                         self.__det.add_generic_station({
@@ -141,6 +199,10 @@ class readCoREASShower:
                             'pos_northing': antenna_position[1],
                             'pos_altitude': antenna_position[2]
                         }, station_id, evt.get_run_number(), evt.get_id())
+
+                station = NuRadioReco.framework.station.Station(station_id)
+                station.set_sim_station(sim_station)
+                evt.set_station(station)
 
             self.__t_per_event += time.time() - t_per_event
             self.__t += time.time() - t
@@ -175,3 +237,46 @@ def antenna_id(antenna_name, default_id):
         return new_id
     else:
         return default_id
+
+
+def debug_plot(rays):
+    fig, ax = plt.subplots(1, 1)
+    for i_solution in range(rays.get_number_of_solutions()):
+
+        solution_int = rays.get_solution_type(i_solution)
+        solution_type = propagation.solution_types[solution_int]
+
+        path = rays.get_path(i_solution)
+        # We can calculate the azimuthal angle phi to rotate the
+        # 3D path into the 2D plane of the points. This is only
+        # necessary if we are not working in the y=0 plane
+        launch_vector = rays.get_launch_vector(i_solution)
+        phi = np.arctan(launch_vector[1]/launch_vector[0])
+        ax.plot(
+            path[:, 0] / np.cos(phi), path[:, 2],
+            label=solution_type
+        )
+
+    ax.legend()
+    ax.set_xlabel('xy [m]')
+    ax.set_ylabel('z [m]')
+    plt.show()
+
+
+def add_signal_directio_to_electric_field(efield, rays):
+    if rays.get_number_of_solutions():
+
+        # We can also get the 3D receiving vector at the observer position, for instance
+        receive_vector = rays.get_receive_vector(0)  # HACK: For the moment we only take the first solution
+        efield._ray_tracing_id = 0
+
+        zenith = hp.get_angle(receive_vector, np.array([0, 0, 1]))
+        azimuth = np.arctan2(receive_vector[0], receive_vector[1])
+
+        efield.set_parameter(efp.zenith, zenith)
+        efield.set_parameter(efp.azimuth, azimuth)
+
+    else:
+        # For those no ray tracing solution was found, we set the zenith and azimuth to None
+        efield.set_parameter(efp.zenith, None)
+        efield.set_parameter(efp.azimuth, None)

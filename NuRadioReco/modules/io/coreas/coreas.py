@@ -185,13 +185,15 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     sim_station.set_parameter(stnp.cr_energy, energy)
     sim_station.set_magnetic_field_vector(magnetic_field_vector)
     sim_station.set_parameter(stnp.cr_xmax, corsika['CoREAS'].attrs['DepthOfShowerMaximum'])
+
     try:
         sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
-    except:
+    except KeyError:
         global warning_printed_coreas_py
-        if(not warning_printed_coreas_py):
+        if not warning_printed_coreas_py:
             logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
             warning_printed_coreas_py = True
+
     sim_station.set_is_cosmic_ray()
     sim_station.set_simulation_weight(weight)
     return sim_station
@@ -236,7 +238,11 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
         sim_shower.set_parameter(shp.core, core_position)
 
     sim_shower.set_parameter(shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2)
-    sim_shower.set_parameter(shp.refractive_index_at_ground, corsika['CoREAS'].attrs["GroundLevelRefractiveIndex"])
+    try:
+        sim_shower.set_parameter(shp.refractive_index_at_ground, corsika['CoREAS'].attrs["GroundLevelRefractiveIndex"])
+    except KeyError:
+        pass
+
     sim_shower.set_parameter(shp.magnetic_field_rotation,
                              corsika['CoREAS'].attrs["RotationAngleForMagfieldDeclination"] * units.degree)
     sim_shower.set_parameter(shp.distance_shower_maximum_geometric,
@@ -249,9 +255,9 @@ def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
 
     try:
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
-    except:
+    except KeyError:
         global warning_printed_coreas_py
-        if(not warning_printed_coreas_py):
+        if not warning_printed_coreas_py:
             logger.warning("No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
             warning_printed_coreas_py = True
 
