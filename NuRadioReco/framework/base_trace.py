@@ -359,5 +359,7 @@ class BaseTrace:
                 self._frequency_spectrum = self._frequency_spectrum / x
                 return self
             raise ValueError('Cant divide baseTrace by number because no value is set for trace.')
+        elif isinstance(x, NuRadioReco.detector.response.Response):
+            return x / self # operation is defined in detector response. This way both channel / response and resposne/channel yield same results
         else:
             raise TypeError('Division of baseTrace object with object of type {} is not defined'.format(type(x)))

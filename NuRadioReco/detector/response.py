@@ -205,7 +205,7 @@ class Response:
             if isinstance(component_names, str):
                 component_names = [component_names]
 
-        for gain, phase, weight, name in zip(self.__gains, self.__phases, self.__weights, self.__names):
+        for gain, phase, weight, name in zip(self.__gains, self.__phases, self.__weights, self.__names):            
 
             if component_names is not None:
                 if blacklist:
@@ -216,7 +216,6 @@ class Response:
                         continue
 
             _gain = gain(freq / units.GHz)
-
             # to avoid RunTime warning and NANs in total reponse
             if weight == -1:
                 _gain = np.where(_gain > 0, _gain, 1e-6)
@@ -271,6 +270,7 @@ class Response:
 
             spec = other.get_frequency_spectrum()
             freqs = other.get_frequencies()
+
             spec *= self(freqs)  # __call__
             other.add_trace_start_time(np.sum(self.__time_delays))
             other.set_frequency_spectrum(spec, sampling_rate="same")
@@ -284,6 +284,41 @@ class Response:
 
         else:
             raise TypeError(f"Response multiplied with unknown type: {type(other)}")
+
+    def __truediv__(self, other):
+        """
+        Define multiplication operator for
+            - Objects of type NuRadioReco.framework.base_trace
+        """
+        if isinstance(other, Response):
+            raise TypeError("Dividing two responses is, as of yet, undefined. Only the devision of response and trace is defined")
+
+        elif isinstance(other, NuRadioReco.framework.base_trace.BaseTrace):
+            other = copy.copy(other)
+            if self._sanity_check:
+                trace_length = other.get_number_of_samples() / other.get_sampling_rate()
+                time_delay = self._calculate_time_delay()
+                if time_delay > trace_length / 2:
+                    self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
+                                        f"{time_delay:.2f} vs {trace_length:.2f}")
+            freqs = other.get_frequencies()
+            spec = other.get_frequency_spectrum()
+            res = self(freqs)
+            mask = np.where(res != 0)
+            spec[mask] /= res[mask]
+            other.add_trace_start_time(np.sum(self.__time_delays))
+            other.set_frequency_spectrum(spec, sampling_rate="same")
+            return other
+
+        elif isinstance(other, np.ndarray):
+            raise TypeError("You try to divide a `Response` object with a numpy array, "
+                            "only `BaseTrace` is allowed. "
+                            "Did you call `get_trace()` or `get_frequency_spectrum()` on `BaseTrace`?")
+        else:
+            raise TypeError(f"Response multiplied with unknown type: {type(other)}")
+
+        return other
+
 
     def __rmul__(self, other):
         """ Same as mul """

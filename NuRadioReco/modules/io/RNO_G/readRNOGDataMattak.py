@@ -751,7 +751,7 @@ class readRNOGData:
 
                 self.__counter += 1
                 yield evt
-                
+
 
     def get_event_by_index(self, event_index):
         """ Allows to read a specific event identifed by its index
@@ -775,7 +775,7 @@ class readRNOGData:
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
-        if not self._select_events(event_info, event_index):
+        if not self._select_events(event_info):
             return None
 
         # access data
