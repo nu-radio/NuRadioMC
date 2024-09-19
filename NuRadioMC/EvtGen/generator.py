@@ -13,22 +13,10 @@ from NuRadioReco.utilities import units, version, particle_names
 from NuRadioMC.utilities import inelasticities
 from NuRadioMC.simulation.simulation import pretty_time_delta
 
-STATUS = 31
 
-
-class NuRadioMCLogger(logging.Logger):
-
-    def status(self, msg, *args, **kwargs):
-        if self.isEnabledFor(STATUS):
-            self._log(STATUS, msg, args, **kwargs)
-
-
-logging.setLoggerClass(NuRadioMCLogger)
-logging.addLevelName(STATUS, 'STATUS')
-logger = logging.getLogger("NuRadioMC-EvtGen")
-assert isinstance(logger, NuRadioMCLogger)
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
+logger = logging.getLogger("NuRadioMC.EvtGen")
 logger.setLevel(logging.INFO)
+
 
 VERSION_MAJOR = 3
 VERSION_MINOR = 0

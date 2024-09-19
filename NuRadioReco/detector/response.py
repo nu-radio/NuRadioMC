@@ -6,6 +6,7 @@ from scipy import interpolate
 import numpy as np
 import logging
 import datetime
+import copy
 
 
 class Response:
@@ -113,8 +114,9 @@ class Response:
 
         # Remove the average group delay from response
         if remove_time_delay:
+            self.logger.debug(f"Remove a time delay of {time_delay:.2f} ns from {name}")
             y_phase_orig = np.copy(np.unwrap(y_phase))
-            _response = gain * np.exp(1j * (y_phase + 2 * np.pi * time_delay * self.__frequency))
+            _response = subtract_time_delay_from_response(self.__frequency, gain, y_phase, time_delay)
             y_phase = np.angle(_response)
         else:
             time_delay = 0  # set time_delay to 0 if group delay is not removed
@@ -127,9 +129,15 @@ class Response:
         self.__phases = [interpolate.interp1d(
             self.__frequency, y_phase, kind="linear", bounds_error=False, fill_value=0)]
 
+        if weight not in [-1, 1]:
+            err = f"Only a response weight of [-1, 1] is allowed (value is {weight})."
+            self.logger.error(err)
+            raise ValueError(err)
+
         self.__weights = [weight]
         self.__time_delays = [weight * time_delay]
 
+        # Debug plotting
         if debug_plot:
             from matplotlib import pyplot as plt
             fig, axs = plt.subplots(3, 1, sharex=True)
@@ -166,7 +174,7 @@ class Response:
                         f'{datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S")}_debug.png', transparent=False)
             plt.close()
 
-    def __call__(self, freq, component_name=None):
+    def __call__(self, freq, component_names=None, blacklist=True):
         """
         Returns the complex response for a given frequency.
 
@@ -176,17 +184,36 @@ class Response:
         freq: list(float)
             The frequencies for which to get the response.
 
+        component_names: list(str) or None (Default: None)
+            Only return the (combined) response of components selected by their names.
+            List of names to consider or not to consider (depends on `blacklist`).
+            `None` mean no selection.
+
+        blacklist: bool (Default: True)
+            If True (and `component_names is not None`), ignore components selected with `component_names`.
+            If False, only consider components selected with `component_names`.
+
         Returns
+        -------
 
         response: np.array(np.complex128)
             The complex response at the desired frequencies
         """
         response = np.ones_like(freq, dtype=np.complex128)
 
+        if component_names is not None:
+            if isinstance(component_names, str):
+                component_names = [component_names]
+
         for gain, phase, weight, name in zip(self.__gains, self.__phases, self.__weights, self.__names):
 
-            if component_name is not None and component_name != name:
-                continue
+            if component_names is not None:
+                if blacklist:
+                    if name in component_names:  # if name in blacklist skip
+                        continue
+                else:
+                    if name not in component_names:  # if name *not* in whitelist skip
+                        continue
 
             _gain = gain(freq / units.GHz)
 
@@ -197,9 +224,9 @@ class Response:
             response *= (_gain * np.exp(1j * phase(freq / units.GHz))) ** weight
 
         if np.allclose(response, np.ones_like(freq, dtype=np.complex128)):
-            if component_name is not None:
+            if component_names is not None:
                 raise ValueError("Returned response is equal to 1. "
-                                f"Did you requested a non-existing component ({component_name})? "
+                                f"Did you requested a non-existing component ({component_names})? "
                                 f"Options are: {self.__names}")
             else:
                 self.logger.warning("Returned response is equal to 1.")
@@ -218,6 +245,7 @@ class Response:
         """
 
         if isinstance(other, Response):
+            self = copy.deepcopy(self)
             if self._station_id != other._station_id or \
                 self._channel_id != other._channel_id:
                 self.logger.error("It looks like you are combining responses from "
@@ -233,7 +261,7 @@ class Response:
             return self
 
         elif isinstance(other, NuRadioReco.framework.base_trace.BaseTrace):
-
+            other = copy.copy(other)
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
                 time_delay = self._calculate_time_delay()
@@ -246,6 +274,7 @@ class Response:
             spec *= self(freqs)  # __call__
             other.add_trace_start_time(np.sum(self.__time_delays))
             other.set_frequency_spectrum(spec, sampling_rate="same")
+
             return other
 
         elif isinstance(other, np.ndarray):
@@ -352,3 +381,47 @@ class Response:
                                 f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
 
         return time_delay1
+
+
+def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=None):
+    """
+    Remove a constant time delay from a complex response function
+
+    Parameters
+    ----------
+
+    frequencies : array of floats
+        Corresponding frequencies
+
+    resp : array of (complex) floats
+        Complex response function (if `phase is None`), Real gain of a complex response
+        function (if `phase is not None`).
+
+    phase : array of floats
+        Phase of the complex response function (optional). (Default: None)
+
+    time_delay : float
+        Time delay to be removed
+
+    Returns
+    -------
+
+    resp: array of complex floats
+        Corrected response function
+    """
+    resp = np.copy(resp)
+
+    if phase is not None:
+        phase = np.copy(phase)
+        gain = resp
+        phase = np.unwrap(phase)  # double helps more
+    else:
+        gain = np.abs(resp)
+        phase = np.unwrap(np.angle(resp))
+
+    if time_delay is None:
+        raise ValueError("You have to specify a time delay")
+
+    resp = gain * np.exp(1j * (phase + 2 * np.pi * time_delay * frequencies))
+
+    return resp

@@ -61,7 +61,7 @@ def _check_detector_time(method):
 class Detector():
     def __init__(self, database_connection='RNOG_test_public', log_level=logging.INFO, over_write_handset_values={},
                  database_time=None, always_query_entire_description=True, detector_file=None,
-                 select_stations=None):
+                 select_stations=None, create_new=False):
         """
 
         Parameters
@@ -71,13 +71,14 @@ class Detector():
             Allows to specify database connection. Passed to mongo-db interface.
 
         log_level : `logging.LOG_LEVEL` (Default: logging.INFO)
-            Defines verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...
+            Defines verbosity level of logger. Propagates through to Response class logger.
+            Other options are: `logging.WARNING`, `logging.DEBUG`, ...
 
         over_write_handset_values : dict (Default: {})
             Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
             (Default: {}, the acutally default values for the parameters in question are defined below)
 
-        database_time : `datetime.datetime` or ``astropy.time.Time``
+        database_time : `datetime.datetime` or `astropy.time.Time`
             Set database time which is used to select the primary measurement. By default (= None) the database time
             is set to now (time the code is running) to select the measurement which is now primary.
 
@@ -91,10 +92,15 @@ class Detector():
             Select a station or list of stations using their station ids for which the describtion is provided.
             This is useful for example in simulations when one wants to simulate only one station. The default None
             means to descibe all commissioned stations.
+
+        create_new : bool (Default: False)
+            If False, and a database already exists, the existing database will be used rather than initializing a
+            new connection. Set to True to create a new database connection.
         """
 
         self.logger = logging.getLogger("NuRadioReco.RNOGdetector")
-        self.logger.setLevel(log_level)
+        self.__log_level = log_level
+        self.logger.setLevel(self.__log_level)
 
         # Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.
         self.__default_values = {
@@ -111,7 +117,7 @@ class Detector():
         if detector_file is None:
             self._det_imported_from_file = False
 
-            self.__db = Database(database_connection=database_connection)
+            self.__db = Database(database_connection=database_connection, create_new=create_new)
             if database_time is not None:
                 self.__db.set_database_time(database_time)
 
@@ -840,7 +846,8 @@ class Detector():
                 ydata = [value["mag"], value["phase"]]
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
                                     time_delay=time_delay, weight=weight, name=key,
-                                    station_id=station_id, channel_id=channel_id)
+                                    station_id=station_id, channel_id=channel_id,
+                                    log_level=self.__log_level)
 
 
                 responses.append(response)
@@ -1190,7 +1197,8 @@ class Detector():
             else:
                 ydata = [value["mag"], value["phase"]]
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
-                                    name=key, station_id=station_id, channel_id=channel_id)
+                                    name=key, station_id=station_id, channel_id=channel_id,
+                                    log_level=self.__log_level)
 
                 time_delay += response._get_time_delay()
 

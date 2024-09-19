@@ -17,11 +17,11 @@ import NuRadioReco.modules.electricFieldSignalReconstructor
 import NuRadioReco.modules.voltageToAnalyticEfieldConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.io.eventWriter
-from NuRadioReco.modules.base import module
+from NuRadioReco.utilities.logging import setup_logger
 
 # Logging level
 import logging
-logger = module.setup_logger(level=logging.INFO)
+logger = setup_logger(level=logging.INFO)
 
 plt.switch_backend('agg')
 

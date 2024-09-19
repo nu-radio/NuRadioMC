@@ -27,8 +27,8 @@ import NuRadioReco.modules.io.eventWriter
 
 # Logging level
 import logging
-from NuRadioReco.modules.base import module
-logger = module.setup_logger(name='NuRadioReco', level=logging.WARNING)
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name='NuRadioReco', level=logging.WARNING)
 
 matplotlib.use('agg')
 plt.switch_backend('agg')

@@ -4,6 +4,10 @@ import os
 from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import generate_surface_muons
 
+# Setup logging
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
+
 volume = {
 'fiducial_rmin':0 * units.km,
 'fiducial_rmax': 4 * units.km,

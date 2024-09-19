@@ -9,12 +9,12 @@ import numpy as np
 import scipy
 from scipy import constants
 import matplotlib.pyplot as plt
-import logging
 import copy
 import yaml
 
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runMB")
+# Setup logging
+from NuRadioReco.utilities.logging import setup_logger
+logger = setup_logger(name="")
 
 # 4 channel, 2x sampling, fft upsampling, 16 ns window
 # 100 Hz -> 30.85

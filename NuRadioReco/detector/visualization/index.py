@@ -6,9 +6,9 @@ import dash
 from flask import Flask
 from NuRadioReco.detector import detector
 import logging
-from NuRadioReco.modules.base import module
+from NuRadioReco.utilities.logging import setup_logger
 
-logger = module.setup_logger(level=logging.INFO)
+logger = setup_logger(level=logging.INFO)
 
 det = detector.Detector(source='sql')
 
