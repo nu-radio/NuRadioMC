@@ -60,7 +60,20 @@ class readFEARIEShower:
 
         self.__ascending_run_and_event_number = 1 if set_ascending_run_and_event_number else 0
 
-    def run(self):
+        prop = propagation.get_propagation_module("analytic")
+        ref_index_model = 'greenland_simple'
+        ice = medium.get_ice_model(ref_index_model)
+
+        # This function creates a ray tracing instance refracted index, attenuation model,
+        # number of frequencies # used for integrating the attenuation and interpolate afterwards,
+        # and the number of allowed reflections.
+
+        self._rays = prop(ice, "GL1",
+                    n_frequencies_integration=25,
+                    n_reflections=0, use_cpp=False)  # use_ccp has to be False to have air-ice tracing
+
+
+    def run(self, depth=None):
         """
         Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.
         A detector description is not needed to run this module. If a genericDetector is passed to the begin method,
@@ -116,22 +129,22 @@ class readFEARIEShower:
             debug_plot_ice = False
             debug_plot_air = False
 
-            prop = propagation.get_propagation_module("analytic")
-            ref_index_model = 'greenland_simple'
-            ice = medium.get_ice_model(ref_index_model)
-            # This function creates a ray tracing instance refracted index, attenuation model,
-            # number of frequencies # used for integrating the attenuation and interpolate afterwards,
-            # and the number of allowed reflections.
-            rays = prop(ice, "GL1",
-                        n_frequencies_integration=25,
-                        n_reflections=0, use_cpp=False)  # use_ccp has to be False to have air-ice tracing
-
             # Position relative to shower core (at z=0)
             position_of_xmax = sim_shower.get_axis() * sim_shower.get_parameter(shp.distance_shower_maximum_geometric)
 
             # add simulated pulses as sim station
             for idx, ((name_air, observer_air), (name_ice, observer_ice)) in enumerate(zip(f_coreas['observers'].items(), f_coreas['observers_geant'].items())):
                 assert name_air == name_ice, "observer names do not match"
+                assert np.all(observer_air.attrs['position'] == observer_ice.attrs['position']), "observer positions do not match"
+
+                if depth is not None:
+                    antenna_depth = sim_shower.get_parameter(shp.core)[2] - observer_ice.attrs['position'][2] # * units.cm
+
+                    if depth < 0:
+                        raise ValueError("Depth is positivly defined, you can not select antennas which are above the ice.")
+
+                    if antenna_depth != depth:
+                        continue
 
                 # returns proper station id if possible
                 station_id = antenna_id(name_air, idx)
@@ -145,8 +158,6 @@ class readFEARIEShower:
                 # within the NuRadio CS where the ice is at z=0
                 shower_inice_position = np.array([0, 0, -2]) * units.m
 
-                assert np.all(observer_air.attrs['position'] == observer_ice.attrs['position']), "observer positions do not match"
-
                 position = observer_ice.attrs['position']
                 antenna_position = np.array([-position[1], position[0], position[2]])# * units.cm
                 antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
@@ -155,32 +166,39 @@ class readFEARIEShower:
                 antenna_position_in_ice = antenna_position - sim_shower.get_parameter(shp.core)
 
                 # find ray tracing solution for in-ice signal
-                rays.set_start_and_end_point(shower_inice_position, antenna_position_in_ice)
-                rays.find_solutions()
+                self._rays.set_start_and_end_point(shower_inice_position, antenna_position_in_ice)
+                self._rays.find_solutions()
 
-                if rays.get_number_of_solutions() and debug_plot_ice:
-                    debug_plot(rays)
+                if self._rays.get_number_of_solutions() and debug_plot_ice:
+                    debug_plot(self._rays)
 
                 efields = sim_station_ice.get_electric_fields()
                 assert len(efields) == 1, "Not exactly one electric field found"
                 efield = efields[0]
                 efield._shower_id = 1  # set shower id to 1 of in-ice emission
-                add_signal_directio_to_electric_field(efield, rays)
+                add_signal_directio_to_electric_field(efield, self._rays)
 
                 # find ray tracing solution for in-air signal
-                rays.set_start_and_end_point(antenna_position_in_ice, position_of_xmax)
-                rays.find_solutions()
-
-                if rays.get_number_of_solutions() and debug_plot_air:
-                    debug_plot(rays)
-
                 efields = sim_station_air.get_electric_fields()
                 assert len(efields) == 1, "Not exactly one electric field found"
                 efield = efields[0]
                 efield._shower_id = 0  # set shower id to 0 of in-air emission
-                add_signal_directio_to_electric_field(efield, rays)
 
-                # This merges the air and ice station into one station which holds the electric fields from ice and air emission
+                if antenna_position_in_ice[2] < 0:
+                    self._rays.set_start_and_end_point(position_of_xmax, antenna_position_in_ice)
+                    self._rays.find_solutions()
+
+                    if self._rays.get_number_of_solutions() and debug_plot_air:
+                        debug_plot(self._rays)
+
+                    add_signal_directio_to_electric_field(efield, self._rays)
+                else:
+                    # antennas at the ice surface maintain the same direction as the shower axis
+                    # (zenith, azimuth) (set in make_sim_station)
+                    efield._ray_tracing_id = 0
+
+                # This merges the air and ice station into one station which holds the electric
+                # fields from ice and air emission
                 sim_station = sim_station_air + sim_station_ice
 
                 if self.__det is not None:
@@ -271,7 +289,7 @@ def add_signal_directio_to_electric_field(efield, rays):
         efield._ray_tracing_id = 0
 
         zenith = hp.get_angle(receive_vector, np.array([0, 0, 1]))
-        azimuth = np.arctan2(receive_vector[0], receive_vector[1])
+        azimuth = np.arctan2(receive_vector[1], receive_vector[0])
 
         efield.set_parameter(efp.zenith, zenith)
         efield.set_parameter(efp.azimuth, azimuth)

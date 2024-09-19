@@ -33,5 +33,5 @@ args = parser.parse_args()
 readFEARIEShower = NuRadioReco.modules.io.coreas.readFEARIEShower.readFEARIEShower()
 readFEARIEShower.begin(args.inputfilename)
 
-for event in readFEARIEShower.run():
+for event in readFEARIEShower.run(depth=100):
     print('Event {} {}'.format(event.get_run_number(), event.get_id()))
