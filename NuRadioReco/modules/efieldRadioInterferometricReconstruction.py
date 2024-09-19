@@ -454,7 +454,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             traces, times, station_positions,
             shower_axis_inital, core, depth, cs,
             shower_axis_mc, core_mc,
-            relative=False, initial_grid_spacing=100, centered_around_truth=True,
+            relative=False, initial_grid_spacing=60, centered_around_truth=True,
             cross_section_size=1000, deg_resolution=np.deg2rad(0.005)):
         """
         Sampling the "cross section", i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere.
@@ -489,20 +489,28 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         core_mc : np.array(3,)
 
-        relative : bool
-            False
+        relative : bool (Default: False)
+            If True, the size of the search grid is relative to the distance between the MC axis and the inital guess axis.
+            The search grid will by a 20 x 20 and just include the MC axis. It is made sure that the MC axis is not at a
+            grid point. If False, see `centered_around_truth`.
 
-        initial_grid_spacing : int
-            100
+        initial_grid_spacing : double
+            Initial spacing of your grid points in meters. (Default: 60m)
 
-        centered_around_truth : bool
-            True
+        centered_around_truth : bool (Default: True)
+            Only used when `relative == False`. If True, the search grid will be constructed around the MC axis. The size
+            and spacing between grid points is determined by `cross_section_size` and `initial_grid_spacing`. If False,
+            the search grid is constructed around the inital guess axis. It ensured that the MC-axis is within the search grid.
+            that means the grid size might be abitrary large (which makes the reconstruction very slow) if the inital axis is far off
+            the MC axis.
 
-        cross_section_size : int
-            1000
+        cross_section_size : float
+            (Only used when `centered_around_truth == True`.) Side length on the 2-d planes (slice) along which the maximum around
+            the initial axis is sampled in meters. (Default: 1000m)
 
         deg_resolution : float
-            np.deg2rad(0.005))
+            Target spacing for the grid spacing in terms of opening angle. Unit is radiants.
+            Defines the stopping condition for the iterations. (Default: np.deg2rad(0.005))
 
         Returns
         -------
@@ -530,10 +538,9 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         dr_ref_target = np.tan(deg_resolution) * dist
         if relative:
             # ensure that true xmax is within the search grid but not on a grid point
-            xlims = (
-                np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[0])
-            ylims = (
-                np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[1])
+            xlims = (np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[0])
+            ylims = (np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[1])
+
             xs = np.linspace(*xlims, 20)
             ys = np.linspace(*ylims, 20)
 

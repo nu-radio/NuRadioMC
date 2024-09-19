@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function
 import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
+import NuRadioReco.framework.emitter
+import NuRadioReco.framework.sim_emitter
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.parameters as parameters
@@ -21,6 +23,7 @@ class Event:
         self.__stations = collections.OrderedDict()
         self.__radio_showers = collections.OrderedDict()
         self.__sim_showers = collections.OrderedDict()
+        self.__sim_emitters = collections.OrderedDict()
         self.__event_time = 0
         self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
         self._generator_info = {} # copies over the relevant information on event generation from the input file attributes
@@ -416,6 +419,69 @@ class Event:
         else:
             return len(self.__sim_showers) > 0
 
+    def add_sim_emitter(self, sim_emitter):
+        """
+        Add a simulated emitter to the event
+
+        Parameters
+        ----------
+        sim_emitter: SimEmitter object
+            The emitter to be added to the event
+        """
+        if not isinstance(sim_emitter, NuRadioReco.framework.sim_emitter.SimEmitter):
+            raise AttributeError(f"emitter needs to be of type NuRadioReco.framework.sim_emitter.SimEmitter but is of type {type(sim_emitter)}")
+        if(sim_emitter.get_id() in self.__sim_emitters):
+            logger.error(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
+            raise AttributeError(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
+        self.__sim_emitters[sim_emitter.get_id()] = sim_emitter
+
+    def get_sim_emitters(self):
+        """
+        Get an iterator over all simulated emitters in the event
+        """
+        for emitter in self.__sim_emitters.values():
+            yield emitter
+
+    def get_sim_emitter(self, emitter_id):
+        """
+        returns a specific emitter identified by its unique id
+        """
+        if(emitter_id not in self.__sim_emitters):
+            raise AttributeError(f"sim emitter with id {emitter_id} not present")
+        return self.__sim_emitters[emitter_id]
+
+    def get_first_sim_emitter(self, ids=None):
+        """
+        Returns only the first sim emitter stored in the event. Useful in cases
+        when there is only one emitter in the event.
+
+        Parameters
+        ----------
+        station_ids: list of integers
+            A list of station IDs. The first emitter that is associated with
+            all stations in the list is returned
+        """
+        if len(self.__sim_emitters) == 0:
+            return None
+        if ids is None:
+            emitter_ids = list(self.__sim_emitters.keys())
+            return self.__sim_emitters[emitter_ids[0]]
+        for emitter in self.__sim_emitters:
+            if emitter.has_station_ids(ids):
+                return emitter
+        return None
+
+    def has_sim_emitter(self, emitter_id=None):
+        """
+        Returns true if at least one simulated emitter is stored in the event
+
+        If emitter_id is given, it checks if this particular emitter exists
+        """
+        if(emitter_id is None):
+            return emitter_id in self.__sim_emitters.keys()
+        else:
+            return len(self.__sim_emitters) > 0
+
     def get_hybrid_information(self):
         """
         Get information about hybrid detector data stored in the event.
@@ -436,6 +502,7 @@ class Event:
 
         showers_pkl = [shower.serialize() for shower in self.get_showers()]
         sim_showers_pkl = [shower.serialize() for shower in self.get_sim_showers()]
+        sim_emitters_pkl = [emitter.serialize() for emitter in self.get_sim_emitters()]
         particles_pkl = [particle.serialize() for particle in self.get_particles()]
 
         hybrid_info = self.__hybrid_information.serialize()
@@ -463,6 +530,7 @@ class Event:
                 'stations': stations_pkl,
                 'showers': showers_pkl,
                 'sim_showers': sim_showers_pkl,
+                'sim_emitters': sim_emitters_pkl,
                 'particles': particles_pkl,
                 'hybrid_info': hybrid_info,
                 'generator_info': self._generator_info,
@@ -488,6 +556,11 @@ class Event:
                 shower = NuRadioReco.framework.radio_shower.RadioShower(None)
                 shower.deserialize(shower_pkl)
                 self.add_sim_shower(shower)
+        if 'sim_emitters' in data.keys():
+            for emmitter_pkl in data['sim_emitters']:
+                emitter = NuRadioReco.framework.sim_emitter.SimEmitter(None)
+                emitter.deserialize(emmitter_pkl)
+                self.add_sim_emitter(emitter)
         if 'particles' in data.keys():
             for particle_pkl in data['particles']:
                 particle = NuRadioReco.framework.particle.Particle(None)
