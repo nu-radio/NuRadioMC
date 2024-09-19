@@ -641,6 +641,9 @@
 
 <span class="sd">    Returns False if d[&quot;key1&quot;][&quot;key2&quot;] exsits, True otherwise.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">keys</span><span class="p">]</span>
+
     <span class="n">d_tmp</span> <span class="o">=</span> <span class="n">d</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -663,7 +666,7 @@
 
 
 <div class="viewcode-block" id="Detector"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector">[docs]</a><span class="k">class</span> <span class="nc">Detector</span><span class="p">():</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s1">&#39;RNOG_test_public&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">over_write_handset_values</span><span class="o">=</span><span class="p">{},</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s1">&#39;RNOG_test_public&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">over_write_handset_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">database_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detector_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">select_stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create_new</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -679,8 +682,10 @@
 <span class="sd">            Other options are: `logging.WARNING`, `logging.DEBUG`, ...</span>
 
 <span class="sd">        over_write_handset_values : dict (Default: {})</span>
-<span class="sd">            Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.</span>
-<span class="sd">            (Default: {}, the acutally default values for the parameters in question are defined below)</span>
+<span class="sd">            Overwrite the default values for (channel) parameters which are not (yet) implemented in the database.</span>
+<span class="sd">            You can not specify keys which already exist in the database. If the value is a dict it should be contain</span>
+<span class="sd">            a value for each channel_id (key). (Default: None, the acutally default values for the parameters in question</span>
+<span class="sd">            are defined below)</span>
 
 <span class="sd">        database_time : `datetime.datetime` or `astropy.time.Time`</span>
 <span class="sd">            Set database time which is used to select the primary measurement. By default (= None) the database time</span>
@@ -702,11 +707,11 @@
 <span class="sd">            new connection. Set to True to create a new database connection.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.RNOGdetector&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.RNOGDetector&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span> <span class="o">=</span> <span class="n">log_level</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span><span class="p">)</span>
 
-        <span class="c1"># Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.</span>
+        <span class="c1"># Define default values for parameter not (yet) implemented in DB.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;noise_temperature&quot;</span><span class="p">:</span> <span class="mi">300</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">,</span>
             <span class="s2">&quot;is_noiseless&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -759,17 +764,22 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_import_from_file</span><span class="p">(</span><span class="n">detector_file</span><span class="p">)</span>
 
         <span class="c1"># Allow overwriting the hard-coded values</span>
+        <span class="n">over_write_handset_values</span> <span class="o">=</span> <span class="n">over_write_handset_values</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">over_write_handset_values</span><span class="p">)</span>
 
         <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Query entire detector description at once: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_query_all</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="n">info</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Using the following hand-set values:&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span> <span class="o">+</span> <span class="mi">3</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="si">{</span><span class="n">key</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="si">{</span><span class="n">key</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">n</span><span class="si">}}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Detector.export"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">json_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assume_inf</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Compatibility with other detectors classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">antenna_by_depth</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Compatibility with other detectors classes</span>
+
+<div class="viewcode-block" id="Detector.export"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">json_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">additional_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Export the buffered detector description.</span>
 
@@ -781,6 +791,9 @@
 
 <span class="sd">        json_kwargs: dict</span>
 <span class="sd">            Arguments passed to json.dumps(..). (Default: None -&gt; dict(indent=0, default=_json_serial))</span>
+
+<span class="sd">        additional_data: dict (Default: None)</span>
+<span class="sd">            If specified the content of this dict will be added to the exported detector description.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">periods</span> <span class="o">=</span> <span class="p">{}</span>
@@ -795,10 +808,11 @@
             <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">idx</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_periods_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;modification_timestamps&quot;</span><span class="p">]):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;You try to export a decomissioned station&quot;</span><span class="p">)</span>
 
-            <span class="n">periods</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;modification_timestamps&quot;</span><span class="p">:</span>
-                                   <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_periods_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;modification_timestamps&quot;</span><span class="p">][</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
-                                    <span class="bp">self</span><span class="o">.</span><span class="n">_time_periods_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;modification_timestamps&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]]</span>
-                                   <span class="p">}</span>
+            <span class="n">periods</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;modification_timestamps&quot;</span><span class="p">:</span>
+                    <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_periods_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;modification_timestamps&quot;</span><span class="p">][</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_time_periods_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;modification_timestamps&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]]</span>
+            <span class="p">}</span>
 
         <span class="n">export_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
@@ -806,6 +820,9 @@
             <span class="s2">&quot;periods&quot;</span><span class="p">:</span> <span class="n">periods</span><span class="p">,</span>
             <span class="s2">&quot;default_values&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span>
         <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">additional_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">export_dict</span><span class="p">[</span><span class="s2">&quot;additional_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">additional_data</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.xz&quot;</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.json&quot;</span><span class="p">):</span>
@@ -863,6 +880,7 @@
 
         <span class="k">if</span> <span class="s2">&quot;version&quot;</span> <span class="ow">in</span> <span class="n">import_dict</span> <span class="ow">and</span> <span class="n">import_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">additional_data</span> <span class="o">=</span> <span class="n">import_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;additional_data&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
             <span class="c1"># need to convert station/channel id keys back to integers</span>
             <span class="k">for</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">station_data</span> <span class="ow">in</span> <span class="n">import_dict</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1199,7 +1217,20 @@
 <span class="sd">            Dictionary of channel parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>  <span class="c1"># this adds `total_response` to dict</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">with_position</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_signal_chain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+        <span class="c1"># Since we are not actually overwritting existing values we can use a shallow copy</span>
+        <span class="n">channel_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">with_position</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_signal_chain</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">channel_data</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> already in channel data. You can not update this in the this detector class. Use the ModDetector class.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">channel_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">channel_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">channel_data</span></div>
 
 <div class="viewcode-block" id="Detector.get_station"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station">[docs]</a>    <span class="nd">@_check_detector_time</span>
     <span class="k">def</span> <span class="nf">get_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
@@ -1690,17 +1721,20 @@
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s1">&#39;number_of_samples&#39;</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="Detector.get_sampling_frequency"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency">[docs]</a>    <span class="k">def</span> <span class="nf">get_sampling_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+<div class="viewcode-block" id="Detector.get_sampling_frequency"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency">[docs]</a>    <span class="k">def</span> <span class="nf">get_sampling_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get sampling frequency per station / channel</span>
 
 <span class="sd">        All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep</span>
-<span class="sd">        it here for consistency with outer detector classes.</span>
+<span class="sd">        it here for consistency with other detector classes.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
 <span class="sd">        station_id: int</span>
 <span class="sd">            Station id</span>
+
+<span class="sd">        channel_id: int (default: None)</span>
+<span class="sd">            Not Used!</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1722,25 +1756,11 @@
 
 <div class="viewcode-block" id="Detector.get_noise_temperature"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_noise_temperature">[docs]</a>    <span class="k">def</span> <span class="nf">get_noise_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get noise temperture per station / channel &quot;&quot;&quot;</span>
-        <span class="n">noise_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="p">[</span><span class="s2">&quot;noise_temperature&quot;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">noise_temperature</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Return a hard-coded value for the noise temperature of </span><span class="si">{</span><span class="n">noise_temperature</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="si">}</span><span class="s2"> K. &quot;</span>
-                <span class="s2">&quot;This information is not (yet) implemented in the DB.&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">noise_temperature</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">noise_temperature</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Return a hard-coded value for the noise temperature of </span><span class="si">{</span><span class="n">noise_temperature</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="si">}</span><span class="s2"> K for channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">. &quot;</span>
-                <span class="s2">&quot;This information is not (yet) implemented in the DB.&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">noise_temperature</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unkown type for hard-coded value&quot;</span><span class="p">)</span></div>
+        <span class="n">noise_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)[</span><span class="s2">&quot;noise_temperature&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">noise_temperature</span></div>
 
 <div class="viewcode-block" id="Detector.is_channel_noiseless"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.is_channel_noiseless">[docs]</a>    <span class="k">def</span> <span class="nf">is_channel_noiseless</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
-        <span class="n">is_noiseless</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="p">[</span><span class="s2">&quot;is_noiseless&quot;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Return a hard-coded value for </span><span class="se">\&quot;</span><span class="s2">is_noiseless</span><span class="se">\&quot;</span><span class="s2"> of </span><span class="si">{</span><span class="n">is_noiseless</span><span class="si">}</span><span class="s2"> for all stations / channels. &quot;</span>
-            <span class="s2">&quot;This information is not (yet) implemented in the DB.&quot;</span><span class="p">)</span>
+        <span class="n">is_noiseless</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)[</span><span class="s2">&quot;is_noiseless&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">is_noiseless</span></div>
 
 
@@ -1750,7 +1770,10 @@
 <span class="sd">        This interface is required by simulation.py. See get_time_delay for description of</span>
 <span class="sd">        arguments.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">cable_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="n">use_stored</span><span class="p">)</span></div>
+        <span class="c1"># FS: For the RNO-G detector description it is not easy to determine the cable delay alone</span>
+        <span class="c1"># because it is not clear which reference components may need to be substraced.</span>
+        <span class="c1"># However, having the cable delay without amplifiers is anyway weird.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">cable_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="n">use_stored</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Detector.get_time_delay"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay">[docs]</a>    <span class="k">def</span> <span class="nf">get_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">cable_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Return the sum of the time delay of all components in the signal chain calculated from the phase</span>
@@ -1783,20 +1806,21 @@
         <span class="n">time_delay</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;response_chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
 
-            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;cable&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cable_only</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;cable&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;fiber&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cable_only</span><span class="p">:</span>
                 <span class="k">continue</span>
 
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">use_stored</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">&quot;time_delay&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">or</span> <span class="s2">&quot;cable_delay&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;time_delay&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s2">&quot;cable_delay&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;The signal chain component </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> of station.channel &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> has no cable/time delay stored... Skip it&quot;</span><span class="p">)</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> has no cable/time delay stored... (hence return time delay without it)&quot;</span><span class="p">)</span>
                     <span class="k">continue</span>
 
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">time_delay</span> <span class="o">+=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">]</span>
+                    <span class="n">time_delay</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">]</span>
                 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                    <span class="n">time_delay</span> <span class="o">+=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;cable_delay&quot;</span><span class="p">]</span>
+                    <span class="n">time_delay</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;cable_delay&quot;</span><span class="p">]</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">ydata</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]]</span>
@@ -1804,7 +1828,7 @@
                                     <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
                                     <span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span><span class="p">)</span>
 
-                <span class="n">time_delay</span> <span class="o">+=</span> <span class="n">response</span><span class="o">.</span><span class="n">_get_time_delay</span><span class="p">()</span>
+                <span class="n">time_delay</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">response</span><span class="o">.</span><span class="n">_calculate_time_delay</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">time_delay</span></div>
 

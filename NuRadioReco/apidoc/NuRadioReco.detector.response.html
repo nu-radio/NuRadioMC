@@ -639,6 +639,9 @@ response of several components into one response by multiplying them.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get_time_delay" title="NuRadioReco.detector.response.Response.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>()</p></td>
 <td><p>Get time delay from DB</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.remove" title="NuRadioReco.detector.response.Response.remove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove</span></code></a>(name)</p></td>
+<td><p>Remove a component response from the response object.</p></td>
+</tr>
 </tbody>
 </table>
 <table class="docutils align-default">
@@ -692,6 +695,9 @@ reponse while a value of -1 means to divide by this reponse.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get_time_delay" title="NuRadioReco.detector.response.Response.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>()</p></td>
 <td><p>Get time delay from DB</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.remove" title="NuRadioReco.detector.response.Response.remove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove</span></code></a>(name)</p></td>
+<td><p>Remove a component response from the response object.</p></td>
+</tr>
 </tbody>
 </table>
 <table class="docutils align-default">
@@ -705,6 +711,20 @@ reponse while a value of -1 means to divide by this reponse.</p>
 <dt class="sig sig-object py" id="NuRadioReco.detector.response.Response.get_names">
 <span class="sig-name descname"><span class="pre">get_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response.get_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response.get_names" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of the names of all individual responses</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.response.Response.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response.remove" title="Permalink to this definition"></a></dt>
+<dd><p>Remove a component response from the response object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: str</strong></dt><dd><p>Name of the component to remove</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
