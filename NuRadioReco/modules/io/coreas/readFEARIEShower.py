@@ -73,7 +73,7 @@ class readFEARIEShower:
                     n_reflections=0, use_cpp=False)  # use_ccp has to be False to have air-ice tracing
 
 
-    def run(self, depth=None):
+    def run(self, depth=None, skip_in_ice_pulses_with_no_solution=True):
         """
         Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.
         A detector description is not needed to run this module. If a genericDetector is passed to the begin method,
@@ -168,20 +168,22 @@ class readFEARIEShower:
                 # find ray tracing solution for in-ice signal
                 self._rays.set_start_and_end_point(shower_inice_position, antenna_position_in_ice)
                 self._rays.find_solutions()
-
+                has_in_ice_solution = self._rays.get_number_of_solutions() > 0
                 if self._rays.get_number_of_solutions() and debug_plot_ice:
                     debug_plot(self._rays)
 
                 efields = sim_station_ice.get_electric_fields()
                 assert len(efields) == 1, "Not exactly one electric field found"
                 efield = efields[0]
+                efield.set_position(antenna_position)
                 efield._shower_id = 1  # set shower id to 1 of in-ice emission
-                add_signal_directio_to_electric_field(efield, self._rays)
+                add_signal_direction_to_electric_field(efield, self._rays, sim_shower)
 
                 # find ray tracing solution for in-air signal
                 efields = sim_station_air.get_electric_fields()
                 assert len(efields) == 1, "Not exactly one electric field found"
                 efield = efields[0]
+                efield.set_position(antenna_position)
                 efield._shower_id = 0  # set shower id to 0 of in-air emission
 
                 if antenna_position_in_ice[2] < 0:
@@ -191,15 +193,18 @@ class readFEARIEShower:
                     if self._rays.get_number_of_solutions() and debug_plot_air:
                         debug_plot(self._rays)
 
-                    add_signal_directio_to_electric_field(efield, self._rays)
+                    add_signal_direction_to_electric_field(efield, self._rays, sim_shower)
                 else:
                     # antennas at the ice surface maintain the same direction as the shower axis
                     # (zenith, azimuth) (set in make_sim_station)
                     efield._ray_tracing_id = 0
 
-                # This merges the air and ice station into one station which holds the electric
-                # fields from ice and air emission
-                sim_station = sim_station_air + sim_station_ice
+                if skip_in_ice_pulses_with_no_solution and not has_in_ice_solution:
+                    sim_station = sim_station_air
+                else:
+                    # This merges the air and ice station into one station which holds the electric
+                    # fields from ice and air emission
+                    sim_station = sim_station_air + sim_station_ice
 
                 if self.__det is not None:
 
@@ -281,7 +286,7 @@ def debug_plot(rays):
     plt.show()
 
 
-def add_signal_directio_to_electric_field(efield, rays):
+def add_signal_direction_to_electric_field(efield, rays, sim_shower):
     if rays.get_number_of_solutions():
 
         # We can also get the 3D receiving vector at the observer position, for instance
@@ -293,6 +298,18 @@ def add_signal_directio_to_electric_field(efield, rays):
 
         efield.set_parameter(efp.zenith, zenith)
         efield.set_parameter(efp.azimuth, azimuth)
+
+        # Rotate efield traces back to on ground CS with air shower direction
+        cs = sim_shower.get_coordinatesystem()
+        efield_traces = efield.get_trace()
+        efield_traces = cs.transform_from_onsky_to_ground(efield_traces)
+
+        # Rotate efield traces back to on sky CS with (new) signal direction
+        cs_new = coordinatesystems.cstrafo(
+            zenith, azimuth,
+            sim_shower.get_parameter(shp.magnetic_field_vector))
+        efield_traces = cs_new.transform_from_ground_to_onsky(efield_traces)
+        efield.set_trace(efield_traces, sampling_rate="same")
 
     else:
         # For those no ray tracing solution was found, we set the zenith and azimuth to None
