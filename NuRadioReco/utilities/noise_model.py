@@ -28,8 +28,8 @@ class NoiseModel:
             inverse by setting this parameter to "regular_inv", which works for full rank matrices and sometimes for
             lower rank matrices (see increase_cov_diagonal).
         threshold_amplitude : float, optional
-            Below this threshold the frequency amplitudes of the spectra is considered zero. Also used as the threshold 
-            for the eigenvalues when calculating the pseudo-inverse and pseudo-determinant.
+            Fraction of the maximum amplitude in the spectra below which the frequency amplitudes are considered zero.
+            Also used as the threshold for the eigenvalues when calculating the pseudo-inverse and pseudo-determinant.
         increase_cov_diagonal : float, optional
             Only used if matrix_inversion_method is "regular_inv". Calculating the inverse of a (covariance) matrix is 
             numerically unstable, and it does not exist if the matrix is not full rank. By adding a small component to the 
@@ -41,7 +41,7 @@ class NoiseModel:
             the distribution cancels out and can just be set to 1. This speeds up initializing the class/covariance matrices.
     """
 
-    def __init__(self, n_antennas, n_samples, sampling_rate, matrix_inversion_method="pseudo_inv", threshold_amplitude=1e-12, increase_cov_diagonal=0, ignore_llh_normalization=True):
+    def __init__(self, n_antennas, n_samples, sampling_rate, matrix_inversion_method="pseudo_inv", threshold_amplitude=1e-3, increase_cov_diagonal=0, ignore_llh_normalization=True):
         self.n_antennas = n_antennas
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
@@ -138,7 +138,8 @@ class NoiseModel:
             self.cov_inv = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
             for i in range(self.n_antennas):
                 if self.matrix_inversion_method == "pseudo_inv":
-                    self.cov_inv[i,:,:] = scp.linalg.pinvh(cov[i,:,:], atol=self.threshold_amplitude)
+                    estimated_eigenvalues = spectra[i,:]**2 / (2 * self.n_samples * (1/self.sampling_rate)**2)
+                    self.cov_inv[i,:,:] = scp.linalg.pinvh(cov[i,:,:], atol = np.max(estimated_eigenvalues) * self.threshold_amplitude**2)
                 elif self.matrix_inversion_method == "regular_inv":
                     self.cov_inv[i,:,:] = np.linalg.inv(cov[i,:,:] + np.diag(np.ones(self.n_samples) * cov[i,0,0] * self.increase_cov_diagonal))
                 else:
@@ -150,7 +151,7 @@ class NoiseModel:
             for i in range(self.n_antennas):
                 if self.matrix_inversion_method == "pseudo_inv":
                     eigen_values = np.linalg.eigvalsh(cov[i,:,:])
-                    self.cov_log_det[i] = np.sum(np.log(eigen_values[eigen_values > self.threshold_amplitude]))
+                    self.cov_log_det[i] = np.sum(np.log(eigen_values[eigen_values > np.max(eigen_values) * self.threshold_amplitude**2]))
                 elif self.matrix_inversion_method == "regular_inv":
                     self.cov_log_det[i] = np.linalg.det(cov[i,:,:])
         else:
@@ -210,8 +211,8 @@ class NoiseModel:
         covariance_matrices_inverse = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
 
         for i in range(self.n_antennas):
-            active_amplitudes = amplitudes[i, amplitudes[i,:] > self.threshold_amplitude]
-            active_frequencies = self.frequencies[amplitudes[i,:]  > self.threshold_amplitude]
+            active_amplitudes = amplitudes[i, amplitudes[i,:] > np.max(amplitudes) * self.threshold_amplitude]
+            active_frequencies = self.frequencies[amplitudes[i,:]  > np.max(amplitudes) * self.threshold_amplitude]
 
             # Calculate first row of covariance matrix:
             covariance_one_row = np.zeros(self.n_samples)
@@ -220,7 +221,7 @@ class NoiseModel:
                 covariance_one_row +=  2 * active_amplitudes[j]**2 * np.cos(2*np.pi * active_frequencies[j] * self.t_array ) / self.n_samples
                 covariance_inverse_one_row += 2 * (1/active_amplitudes[j]**2) * np.cos(2*np.pi * active_frequencies[j] * self.t_array) / self.n_samples
 
-            # Construct covariances matrix and its incerse assuming they are circulant:
+            # Construct covariances matrix and its inverse assuming they are circulant:
             for j in range(self.n_samples):
                 covariance_matrices[i,:,j] = np.roll(covariance_one_row, j)
                 covariance_matrices_inverse[i,:,j] = np.roll(covariance_inverse_one_row, j)
@@ -321,9 +322,9 @@ class NoiseModel:
         """
         n = self.n_samples
         term_1 = -0.5 * n * np.log(2*np.pi)
-        term_2 = -0.5 * np.sum(np.log(noise_psd[noise_psd>self.threshold_amplitude])) #-0.5 * self.cov_log_det[0]
+        term_2 = -0.5 * np.sum(np.log(noise_psd[noise_psd > np.max(noise_psd) * self.threshold_amplitude**2])) #-0.5 * self.cov_log_det[0]
         integrand = abs(x_minus_mu_fft*x_minus_mu_fft.conj())/noise_psd
-        term_3 = -0.5 * 4*np.sum(integrand[noise_psd>self.threshold_amplitude]) * (self.frequencies[1]-self.frequencies[0])
+        term_3 = -0.5 * 4*np.sum(integrand[noise_psd > np.max(noise_psd) * self.threshold_amplitude**2]) * (self.frequencies[1]-self.frequencies[0])
         return term_1 + term_2 + term_3
 
     def calculate_delta_llh(self, data, signal=None, frequency_domain=False):
@@ -563,8 +564,8 @@ class NoiseModel:
                     if not frequency_domain:
                         fisher_information_matrix[i,j] += np.matmul(derivatives[i,k,:], np.matmul(self.cov_inv[k,:,:], derivatives[j,k,:]))
                     elif frequency_domain:
-                        integrand = abs(derivatives_fft[i,k,:]*derivatives_fft[j,k,:].conj())/self.noise_psd
-                        fisher_information_matrix[i,j] += 4*np.sum(integrand[self.noise_psd>self.threshold_amplitude]) * (self.frequencies[1]-self.frequencies[0])
+                        integrand = np.real(derivatives_fft[i,k,:]*derivatives_fft[j,k,:].conj())/self.noise_psd
+                        fisher_information_matrix[i,j] += 4*np.sum(integrand[self.noise_psd > np.max(self.noise_psd) * self.threshold_amplitude**2]) * (self.frequencies[1]-self.frequencies[0]) # Maybe wrong by a factor
         
         return fisher_information_matrix
 
