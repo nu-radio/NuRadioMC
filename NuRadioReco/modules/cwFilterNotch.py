@@ -9,7 +9,7 @@ functions should work on a per event basis to comply with the iteration methods 
 """
 
 
-def find_frequency_peaks(trace : np.ndarray, threshold = 4):
+def find_frequency_peaks_from_trace(trace : np.ndarray, fs : float = 3.2e9 * units.Hz, threshold = 4):
     """
     Function fo find the frequency peaks in the real fourier transform of the input trace,
 
@@ -17,26 +17,51 @@ def find_frequency_peaks(trace : np.ndarray, threshold = 4):
     ----------
     trace : np.ndarray
         waveform (shape: [24,2048])
-    threshold: int, default = 4
+    fs: float, default = 3.2e9 Hz
+        sampling frequency of the RNO-G DAQ, (input should be taking from the channel object)
+    threshold : int, default = 4
         threshold for peak definition. A peak is defined as a point in the frequency spectrum
         that exceeds threshold * rms(real fourier transform)
     
     Returns
     -------
-    freq: np.ndarray
+    freq_peaks : np.ndarray
         frequencies at which a peak was found
     """
-    fs = 3.2e9 * units.Hz
     freq = np.fft.rfftfreq(2048, d = 1/fs)
     ft = fft.time2freq(trace, fs)
     
-    rms = np.sqrt(np.mean(np.abs(ft)**2))
-    peak_idxs = np.where(np.abs(ft) > threshold * rms)[0]
+    freq_peaks = find_frequency_peaks(freq, ft, fs = fs, threshold = threshold)
+
+    return freq_peaks
+
+def find_frequency_peaks(freq: np.ndarray, spectrum : np.ndarray, threshold = 4):
+    """
+    Function fo find the frequency peaks in the real fourier transform of the input trace,
+
+    Parameters
+    ----------
+    freq : np.ndarray
+        frequencies of a NuRadio rime trace
+    spectrum : np.ndarray
+        spectrum of a NuRadio time trace
+    threshold : int, default = 4
+        threshold for peak definition. A peak is defined as a point in the frequency spectrum
+        that exceeds threshold * rms(real fourier transform)
+    
+    Returns
+    -------
+    freq : np.ndarray
+        frequencies at which a peak was found
+    """
+    
+    rms = np.sqrt(np.mean(np.abs(spectrum)**2))
+    peak_idxs = np.where(np.abs(spectrum) > threshold * rms)[0]
 
     return freq[peak_idxs]
 
 
-def filter_cws(trace, Q = 1e3, threshold = 4, fs = 3.2e9 * units.Hz):
+def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs = 3.2e9 * units.Hz, quality_factor = 1e3, threshold = 4):
     """
     Function that applies a notch filter at the frequency peaks of a given time trace
     using the scipy library
@@ -45,19 +70,24 @@ def filter_cws(trace, Q = 1e3, threshold = 4, fs = 3.2e9 * units.Hz):
     ----------
     trace : np.ndarray
         waveform (shape: [24,2048])
-    Q: int, default = 1000
+    freq : np.ndarray
+        frequency of the trace's real fourier transform
+    spectrum:
+        the trace's real fourier transform
+    fs : float, default = 3.2e9 Hz
+        sampling frequency of the RNO-G DAQ
+    quality_factor : int, default = 1000
         quality factor of the notch filter, defined as the ratio f0/bw, where f0 is the centre frequency
         and bw the bandwidth of the filter at (f0,-3 dB)
-    threshold: int, default = 4
+    threshold : int, default = 4
         threshold for peak definition. A peak is defined as a point in the frequency spectrum
         that exceeds threshold * rms(real fourier transform)
-    fs: float, default = 3.2e9 Hz
-        sampling frequency of the RNO-G DAQ
+
     """
-    freqs = find_frequency_peaks(trace, threshold=threshold)
+    freqs = find_frequency_peaks(freq, spectrum, fs= fs, threshold=threshold)
 
     if len(freqs) !=0:
-        notch_filters = [signal.iirnotch(freq, Q, fs = fs) for freq in freqs]
+        notch_filters = [signal.iirnotch(freq, quality_factor, fs = fs) for freq in freqs]
         trace_notched = signal.filtfilt(notch_filters[0][0], notch_filters[0][1], trace)
         for notch in notch_filters[1:]:
             trace_notched = signal.filtfilt(notch[0], notch[1], trace_notched)
@@ -128,16 +158,18 @@ class cwFilterNotch():
     def __init__(self):
         pass
 
-    def begin(self, Q = 1e3, threshold = 4, fs = 3.2e9 * units.Hz):
-        self.Q = Q
+    def begin(self, quality_factor = 1e3, threshold = 4):
+        self.quality_factor = quality_factor
         self.threshold = threshold
-        self._fs = fs
 
     def run(self, event, station, det):
         for channel in station.iter_channels():
+            fs = channel.get_sampling_rate()
+            freq =  channel.get_frequencies()
+            spectrum = channel.get_frequency_spectrum()
             trace = channel.get_trace()
-            trace_fil = filter_cws(trace, Q = self.Q, threshold = self.threshold, fs = self._fs)
-            channel.set_trace(trace_fil, self._fs)
+            trace_fil = filter_cws(trace, freq, spectrum, quality_factor = self.quality_factor, threshold = self.threshold, fs = fs)
+            channel.set_trace(trace_fil, fs)
         
 # Standard test for people playing around with module settings, applies the module as one would in a data reading pipelin
 # using one event in RNO_G_DATA (choose station and run) as a test
@@ -153,7 +185,7 @@ if __name__ == "__main__":
     parser.add_argument("--station", type = int, default = 24)
     parser.add_argument("--run", type = int, default = 1)
 
-    parser.add_argument("--Q", type = int, default = 1e3)
+    parser.add_argument("--quality_factor", type = int, default = 1e3)
     parser.add_argument("--threshold", type = int, default = 4)
     parser.add_argument("--fs", type = float, default = 3.2e9 * units.Hz)
     
@@ -172,7 +204,7 @@ if __name__ == "__main__":
                       mattak_kwargs = dict(backend = "uproot"))
 
     cwFilterNotch = cwFilterNotch()
-    cwFilterNotch.begin(Q = args.Q, threshold = args.threshold, fs = args.fs)
+    cwFilterNotch.begin(quality_factor = args.quality_factor, threshold = args.threshold)
 
     for event in rnog_reader.run():
         station_id = event.get_station_ids()[0]
