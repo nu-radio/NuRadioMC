@@ -5,6 +5,7 @@ try:
 except ImportError:
     import pickle
 import numpy as np
+from NuRadioReco.utilities import units
 
 
 def deserialize(triggers_pkl):
@@ -39,7 +40,7 @@ class Trigger:
     base class to store different triggers
     """
 
-    def __init__(self, name, channels=None, trigger_type='default'):
+    def __init__(self, name, channels=None, trigger_type='default', pre_trigger_times=55 * units.ns):
         """
         initialize trigger class
 
@@ -51,6 +52,12 @@ class Trigger:
             the channels that are involved in the trigger
         trigger_type: string
             the trigger type
+        pre_trigger_times: float or dict of floats
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+
         """
         self._name = name
         self._channels = channels
@@ -59,7 +66,7 @@ class Trigger:
         self._trigger_times = None
         self._trigger_type = trigger_type
         self._triggered_channels = []
-        self._pre_trigger_times = None
+        self._pre_trigger_times = pre_trigger_times
 
     def has_triggered(self):
         """
@@ -129,9 +136,11 @@ class Trigger:
 
         Parameters
         ----------
-        pre_trigger_times: dict
-            keys are the channel_ids, and the value is the pre_trigger_time between the 
+        pre_trigger_times: float or dict
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
             start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
         """
         self._pre_trigger_times = pre_trigger_times
 
@@ -143,11 +152,11 @@ class Trigger:
 
         Returns
         -------
-        pre_trigger_times: dict | None
-            If this trigger has been used to set the readout windows, returns a
-            dictionary where the keys are the channel ids and the values are the
-            time between the start of the channel trace and the trigger time. Otherwise,
-            returns None
+        pre_trigger_times: dict | float
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
 
         """
 
@@ -176,7 +185,7 @@ class Trigger:
 class SimpleThresholdTrigger(Trigger):
 
     def __init__(self, name, threshold, channels=None, number_of_coincidences=1,
-                 channel_coincidence_window=None):
+                 channel_coincidence_window=None, pre_trigger_times=55 * units.ns):
         """
         initialize trigger class
 
@@ -195,7 +204,7 @@ class SimpleThresholdTrigger(Trigger):
         channel_coincidence_window: float or None (default)
             the coincidence time between triggers of different channels
         """
-        Trigger.__init__(self, name, channels, 'simple_threshold')
+        Trigger.__init__(self, name, channels, 'simple_threshold', pre_trigger_times=pre_trigger_times)
         self._threshold = threshold
         self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
@@ -205,7 +214,7 @@ class EnvelopePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold_factor, power_mean, power_std,
                  triggered_channels=None, phasing_angles=None, trigger_delays=None,
-                 output_passband=(None, None)):
+                 output_passband=(None, None), pre_trigger_times=55 * units.ns):
         """
         initialize trigger class
 
@@ -233,7 +242,7 @@ class EnvelopePhasedTrigger(Trigger):
             Frequencies for a 6th-order Butterworth filter to be applied after
             the diode filtering.
         """
-        Trigger.__init__(self, name, triggered_channels, 'envelope_phased')
+        Trigger.__init__(self, name, triggered_channels, 'envelope_phased', pre_trigger_times=pre_trigger_times)
         self._triggered_channels = triggered_channels
         self._phasing_angles = phasing_angles
         self._threshold_factor = threshold_factor
@@ -249,7 +258,7 @@ class SimplePhasedTrigger(Trigger):
                  primary_angles=None, secondary_angles=None,
                  trigger_delays=None, sec_trigger_delays=None,
                  window_size=None, step_size=None,
-                 maximum_amps=None
+                 maximum_amps=None, pre_trigger_times=55 * units.ns
                 ):
         """
         initialize trigger class
@@ -282,7 +291,7 @@ class SimplePhasedTrigger(Trigger):
         maximum_amps: list of floats (length equal to that of `phasing_angles`)
             the maximum value of all the integration windows for each of the phased waveforms
         """
-        Trigger.__init__(self, name, channels, 'simple_phased')
+        Trigger.__init__(self, name, channels, 'simple_phased', pre_trigger_times=pre_trigger_times))
         self._primary_channels = channels
         self._primary_angles = primary_angles
         self._secondary_channels = secondary_channels
@@ -298,7 +307,7 @@ class SimplePhasedTrigger(Trigger):
 class HighLowTrigger(Trigger):
 
     def __init__(self, name, threshold_high, threshold_low, high_low_window,
-                 channel_coincidence_window, channels=None, number_of_coincidences=1):
+                 channel_coincidence_window, channels=None, number_of_coincidences=1, pre_trigger_times=55 * units.ns):
         """
         initialize trigger class
 
@@ -321,7 +330,7 @@ class HighLowTrigger(Trigger):
             the number of channels that need to fulfill the trigger condition
             default: 1
         """
-        Trigger.__init__(self, name, channels, 'high_low')
+        Trigger.__init__(self, name, channels, 'high_low', pre_trigger_times=pre_trigger_times))
         self._number_of_coincidences = number_of_coincidences
         self._threshold_high = threshold_high
         self._threshold_low = threshold_low
@@ -332,7 +341,7 @@ class HighLowTrigger(Trigger):
 class IntegratedPowerTrigger(Trigger):
 
     def __init__(self, name, threshold, channel_coincidence_window, channels=None, number_of_coincidences=1,
-                 power_mean=None, power_std=None, integration_window=None):
+                 power_mean=None, power_std=None, integration_window=None, pre_trigger_times=55 * units.ns):
         """
         initialize trigger class
 
@@ -351,7 +360,7 @@ class IntegratedPowerTrigger(Trigger):
             the number of channels that need to fulfill the trigger condition
             default: 1
         """
-        Trigger.__init__(self, name, channels, 'int_power')
+        Trigger.__init__(self, name, channels, 'int_power', pre_trigger_times=pre_trigger_times)
         self._number_of_coincidences = number_of_coincidences
         self._threshold = threshold
         self._coinc_window = channel_coincidence_window
@@ -363,7 +372,7 @@ class IntegratedPowerTrigger(Trigger):
 class EnvelopeTrigger(Trigger):
 
     def __init__(self, name, passband, order, threshold, number_of_coincidences=2,
-                 channel_coincidence_window=None, channels=None):
+                 channel_coincidence_window=None, channels=None, pre_trigger_times=55 * units.ns):
         """
         initialize trigger class
 
@@ -386,7 +395,7 @@ class EnvelopeTrigger(Trigger):
         channel_coincidence_window: float or None (default)
             the coincidence time between triggers of different channels
         """
-        Trigger.__init__(self, name, channels, 'envelope_trigger')
+        Trigger.__init__(self, name, channels, 'envelope_trigger', pre_trigger_times=pre_trigger_times)
         self._passband = passband
         self._order = order
         self._threshold = threshold
@@ -396,7 +405,7 @@ class EnvelopeTrigger(Trigger):
 class RNOGSurfaceTrigger(Trigger):
     from NuRadioReco.utilities import units
     def __init__(self, name, threshold, number_of_coincidences=1,
-                 channel_coincidence_window=60*units.ns, channels=[13, 16, 19], temperature=250*units.kelvin, Vbias=2*units.volt):
+                 channel_coincidence_window=60*units.ns, channels=[13, 16, 19], temperature=250*units.kelvin, Vbias=2*units.volt, pre_trigger_times=55 * units.ns):
         """
         initialize trigger class
 
@@ -419,7 +428,7 @@ class RNOGSurfaceTrigger(Trigger):
         Vbias: float
             bias voltage on the trigger board
         """
-        Trigger.__init__(self, name, channels, 'rnog_surface_trigger')
+        Trigger.__init__(self, name, channels, 'rnog_surface_trigger', pre_trigger_times=pre_trigger_times)
         self._threshold = threshold
         self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
