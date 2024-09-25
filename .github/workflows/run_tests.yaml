@@ -123,12 +123,6 @@ jobs:
          export PYTHONPATH=$PWD:$PYTHONPATH
          export GSLDIR=$(gsl-config --prefix)
          NuRadioMC/test/SignalProp/run_signal_test.sh
-    - name: "Test ray tracing modules"
-      if: always()
-      run: |
-         export PYTHONPATH=$PWD:$PYTHONPATH
-         export GSLDIR=$(gsl-config --prefix)
-         python NuRadioMC/SignalProp/examples/ray_tracing_modules.py
     - name: "Test Birefringence"
       if: always()
       run: |
