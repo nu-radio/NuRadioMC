@@ -84,7 +84,7 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs 
         that exceeds threshold * rms(real fourier transform)
 
     """
-    freqs = find_frequency_peaks(freq, spectrum, fs= fs, threshold=threshold)
+    freqs = find_frequency_peaks(freq, spectrum, threshold = threshold)
 
     if len(freqs) !=0:
         notch_filters = [signal.iirnotch(freq, quality_factor, fs = fs) for freq in freqs]
@@ -150,7 +150,7 @@ def plot_ft(channel, ax, label = None, plot_kwargs = dict()):
     ax.legend(loc = legendloc)
 
 
-class cwFilterNotch():
+class channelCWNotchFilter():
     """
     cwFilter class to apply the module as defined by NuRadio module syntax,
     using notch filters from the scipy library
@@ -171,7 +171,7 @@ class cwFilterNotch():
             trace_fil = filter_cws(trace, freq, spectrum, quality_factor = self.quality_factor, threshold = self.threshold, fs = fs)
             channel.set_trace(trace_fil, fs)
         
-# Standard test for people playing around with module settings, applies the module as one would in a data reading pipelin
+# Standard test for people playing around with module settings, applies the module as one would in a data reading pipeline
 # using one event in RNO_G_DATA (choose station and run) as a test
 if __name__ == "__main__":
     import os
@@ -203,8 +203,8 @@ if __name__ == "__main__":
                       convert_to_voltage = True,                    # linear voltage calibration
                       mattak_kwargs = dict(backend = "uproot"))
 
-    cwFilterNotch = cwFilterNotch()
-    cwFilterNotch.begin(quality_factor = args.quality_factor, threshold = args.threshold)
+    channelCWNotchFilter = channelCWNotchFilter()
+    channelCWNotchFilter.begin(quality_factor = args.quality_factor, threshold = args.threshold)
 
     for event in rnog_reader.run():
         station_id = event.get_station_ids()[0]
@@ -213,14 +213,15 @@ if __name__ == "__main__":
         fig, axs = plt.subplots(1, 2, figsize = (14, 6))
         plot_trace(station.get_channel(0), axs[0], label = "before")
         plot_ft(station.get_channel(0), axs[1], label = "before")
-        cwFilterNotch.run(event, station, det = 0)
+        channelCWNotchFilter.run(event, station, det = 0)
         plot_trace(station.get_channel(0), axs[0], label = "after")
         plot_ft(station.get_channel(0), axs[1], label = "after")
         
         if args.save_dir is None:
-            fig_dir = os.path.abspath("{__file__}/../test")
+            fig_dir = os.path.abspath(f"{__file__}/../../test")
         else:
             fig_dir = args.save_dir
+
 
         fig.savefig(f"{fig_dir}/test_cw_filter", bbox_inches = "tight")
         break
