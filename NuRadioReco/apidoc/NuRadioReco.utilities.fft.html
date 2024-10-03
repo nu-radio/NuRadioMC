@@ -631,9 +631,31 @@ this is in contrast to another common convention where the Fourier transform des
 <strong>power</strong> spectral density. One should keep this in mind especially when working with e.g. noise temperatures
 which are defined using the latter convention.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.fft.freqs">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.fft.</span></span><span class="sig-name descname"><span class="pre">freqs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/fft.html#freqs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.fft.freqs" title="Permalink to this definition"></a></dt>
+<dd><p>Returns frequency bins for FFT.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>num_samples: int</strong></dt><dd><p>The number of sample in the time domain</p>
+</dd>
+<dt><strong>sampling_rate: float</strong></dt><dd><p>Sampling rate of the trace</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>frequencies: np.array</dt><dd><p>Frequency binning</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.fft.time2freq">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.fft.</span></span><span class="sig-name descname"><span class="pre">time2freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/fft.html#time2freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.fft.time2freq" title="Permalink to this definition"></a></dt>
-<dd><p>performs forward FFT with correct normalization that conserves the power</p>
+<dd><p>Performs forward FFT with correct normalization that conserves the power.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -643,13 +665,19 @@ which are defined using the latter convention.</p>
 </dd>
 </dl>
 </dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>spec: np.array</dt><dd><p>Frequency spectrum</p>
+</dd>
+</dl>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.fft.freq2time">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.fft.</span></span><span class="sig-name descname"><span class="pre">freq2time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/fft.html#freq2time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.fft.freq2time" title="Permalink to this definition"></a></dt>
-<dd><p>performs backward FFT with correct normalization that conserves the power</p>
+<dd><p>Performs backward FFT with correct normalization that conserves the power.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -658,6 +686,12 @@ which are defined using the latter convention.</p>
 <dt><strong>sampling_rate: float</strong></dt><dd><p>sampling rate of the spectrum</p>
 </dd>
 <dt><strong>n: int</strong></dt><dd><p>the number of sample in the time domain (relevant if time trace has an odd number of samples)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>trace: np.array</dt><dd><p>Time series/trace</p>
 </dd>
 </dl>
 </dd>
