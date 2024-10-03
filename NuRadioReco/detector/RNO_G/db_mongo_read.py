@@ -299,9 +299,7 @@ class Database(object):
         commissioned_info = copy.deepcopy(stations_for_buffer)
         for key in ['channels', 'devices']:
             for entry in stations_for_buffer[0][key]:
-                if entry['commission_time'] <= detector_time and entry['decommission_time'] >= detector_time:
-                    pass
-                else:
+                if not entry['commission_time'] <= detector_time <= entry['decommission_time']:
                     commissioned_info[0][key].remove(entry)
 
         # transform the output of db.aggregate to a dict
