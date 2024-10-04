@@ -146,7 +146,7 @@ class triggerBoardResponse:
         self.logger.debug("Applying gain at ADC level")
 
         if not hasattr(avg_vrms, "__len__"):
-            avg_vrms = np.full_like(trigger_channels, avg_vrms)
+            avg_vrms = np.full_like(trigger_channels, avg_vrms, dtype=float)
 
         vrms_after_gain = []
         for channel_id, vrms in zip(trigger_channels, avg_vrms):
