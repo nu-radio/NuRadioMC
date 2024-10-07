@@ -78,7 +78,8 @@ class Response:
 
         attenuator_in_dB : float (Default: 0)
             Allows to add an additional attenuation/gain to the response. This is useful to simulate or correct of the
-            the effect of an attenuator. The value is in dB. (Default: 0 -> no attenuation)
+            the effect of an attenuator. The value is in dB. A value of 10dB will increase the response by 10 dB.
+            (Default: 0 -> no attenuation)
         """
         self.logger = logging.getLogger("NuRadioReco.Response")
         self.logger.setLevel(log_level)
@@ -128,7 +129,7 @@ class Response:
         y_phase = np.unwrap(y_phase)
 
         if attenuator_in_dB:
-            gain = gain * 10 ** (-attenuator_in_dB / 20)
+            gain = gain * 10 ** (attenuator_in_dB / 20)
 
         self.__gains = [interpolate.interp1d(
             self.__frequency, gain, kind="linear", bounds_error=False, fill_value=0)]
