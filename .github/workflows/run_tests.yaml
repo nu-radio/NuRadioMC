@@ -112,6 +112,12 @@ jobs:
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/SignalGen/test_build.sh
+    - name: "Validate separate trigger channels"
+      if: always()
+      run: |
+        export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        NuRadioMC/test/SingleEvents/validate_separate_trigger_channels.sh
     - name: "Signal propagation tests"
       if: always()
       run: |
