@@ -56,7 +56,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/introduction.html">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#requirements">Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#development-version">Development version</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/installation.html#pythonpath">PYTHONPATH</a></li>
 </ul>
@@ -610,41 +610,20 @@
   <section id="module-NuRadioReco.detector.detector">
 <span id="nuradioreco-detector-detector-module"></span><h1>NuRadioReco.detector.detector module<a class="headerlink" href="#module-NuRadioReco.detector.detector" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector.find_path">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector.</span></span><span class="sig-name descname"><span class="pre">find_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector.html#find_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector.find_path" title="Permalink to this definition"></a></dt>
-<dd><p>Checks for file relative to local folder and detector.py</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector.find_reference_entry">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector.</span></span><span class="sig-name descname"><span class="pre">find_reference_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector.html#find_reference_entry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector.find_reference_entry" title="Permalink to this definition"></a></dt>
-<dd><p>Search for the strings “reference_station” or “reference_channel” in the detector description.
-This is used to determine whether to use the detector_base or generic_detector class.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector.if_not_None">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector.</span></span><span class="sig-name descname"><span class="pre">if_not_None</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector.html#if_not_None"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector.if_not_None" title="Permalink to this definition"></a></dt>
-<dd><p>Return <em class="xref py py-obj">value</em> if <em class="xref py py-obj">value is not None</em>, otherwise return <em class="xref py py-obj">default</em></p>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.detector.detector.Detector">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector.</span></span><span class="sig-name descname"><span class="pre">Detector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector.html#Detector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector.Detector" title="Permalink to this definition"></a></dt>
-<dd><p>This function returns a detector class object. It chooses the correct class based on the “source” argument.
+<dd><p>This function returns a detector class object.</p>
+<p>It chooses the correct class based on the “source” argument.
 The returned object is of one of these classes:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>kwargs[“source’] == “rnog_mongo” -&gt; <a class="reference internal" href="NuRadioReco.detector.RNO_G.rnog_detector.html#module-NuRadioReco.detector.RNO_G.rnog_detector" title="NuRadioReco.detector.RNO_G.rnog_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector</span></code></a></p></li>
-<li><p>kwargs[“source’] == “sql” -&gt; <a class="reference internal" href="NuRadioReco.detector.detector_base.html#module-NuRadioReco.detector.detector_base" title="NuRadioReco.detector.detector_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.detector_base</span></code></a></p></li>
-<li><dl class="simple">
-<dt>kwargs[“source’] == “json” or “dictionary” -&gt; <a class="reference internal" href="NuRadioReco.detector.detector_base.html#module-NuRadioReco.detector.detector_base" title="NuRadioReco.detector.detector_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.detector_base</span></code></a> or</dt><dd><p><a class="reference internal" href="NuRadioReco.detector.generic_detector.html#module-NuRadioReco.detector.generic_detector" title="NuRadioReco.detector.generic_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.generic_detector</span></code></a></p>
-</dd>
-</dl>
-</li>
+<li><p>kwargs[“source”] == “rnog_mongo” -&gt; <a class="reference internal" href="NuRadioReco.detector.RNO_G.rnog_detector.html#module-NuRadioReco.detector.RNO_G.rnog_detector" title="NuRadioReco.detector.RNO_G.rnog_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector</span></code></a></p></li>
+<li><p>kwargs[“source”] == “sql” -&gt; <a class="reference internal" href="NuRadioReco.detector.detector_base.html#module-NuRadioReco.detector.detector_base" title="NuRadioReco.detector.detector_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.detector_base</span></code></a></p></li>
+<li><p>kwargs[“source”] == “json” or “dictionary” -&gt; <a class="reference internal" href="NuRadioReco.detector.detector_base.html#module-NuRadioReco.detector.detector_base" title="NuRadioReco.detector.detector_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.detector_base</span></code></a> or
+<a class="reference internal" href="NuRadioReco.detector.generic_detector.html#module-NuRadioReco.detector.generic_detector" title="NuRadioReco.detector.generic_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.generic_detector</span></code></a></p></li>
 </ul>
 </div></blockquote>
-<p>For ‘kwargs[“source’] == “json”’, whether to use “detector_base” or “generic_detector”
+<p>For ‘kwargs[“source”] == “json”’, whether to use “detector_base” or “generic_detector”
 depends on whether a reference station / channel is defined in the json file / dictionary
 or not.</p>
 <dl class="field-list">

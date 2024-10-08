@@ -56,7 +56,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/introduction.html">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#requirements">Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#development-version">Development version</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/installation.html#pythonpath">PYTHONPATH</a></li>
 </ul>
@@ -615,6 +615,10 @@ There are two classes that provide this functionality: The
 <a class="reference internal" href="../../apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector" title="NuRadioReco.detector.generic_detector.GenericDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericDetector</span></code></a>.
 Both are used very similarly, with the <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> being more for
 simulation studies.</p>
+<p>For the RNO-G experiment, there is an additional detector class
+<a class="reference internal" href="../../apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#module-NuRadioReco.detector.RNO_G.rnog_detector" title="NuRadioReco.detector.RNO_G.rnog_detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">rnog_detector</span></code></a>.
+Some more details about this detector class and its implementation are given
+<a class="reference internal" href="rnog.html"><span class="doc">here</span></a>.</p>
 <section id="the-detector-class">
 <h2>The Detector Class<a class="headerlink" href="#the-detector-class" title="Permalink to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">Detector</span></code> class provides easy access to information about a given detector.
@@ -626,9 +630,11 @@ via the <code class="docutils literal notranslate"><span class="pre">update</spa
 at  specific time.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector</span>
 <span class="kn">import</span> <span class="nn">astropy.time</span>
+
 <span class="n">det</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="s1">&#39;path/to/json/file&#39;</span><span class="p">)</span>
 <span class="n">detector_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="s1">&#39;2018-01-01 20:00:00&#39;</span><span class="p">)</span>
-<span class="n">det</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">detector_time</span><span class="p">)</span>
+<span class="n">det</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">detector_time</span><span class="p">)</span> <span class="c1"># set the detector to the state it was in at detector_time</span>
+
 <span class="n">station_position</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_absolute_position</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
 </div>

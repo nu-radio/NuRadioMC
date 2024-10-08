@@ -56,7 +56,7 @@
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#requirements">Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#development-version">Development version</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#pythonpath">PYTHONPATH</a></li>
 </ul>
@@ -613,7 +613,7 @@
 If you are using Windows, consider installing the <a class="reference external" href="https://docs.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux</a>.</p>
 </section>
 <section id="installation-using-pip">
-<h2>Installation using Pip<a class="headerlink" href="#installation-using-pip" title="Permalink to this heading"></a></h2>
+<h2>Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code><a class="headerlink" href="#installation-using-pip" title="Permalink to this heading"></a></h2>
 <p>As of version <code class="docutils literal notranslate"><span class="pre">2.0.0</span></code>, <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code> is now a subpackage of <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code>. Both <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> and <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code> can therefore be installed
 using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
 <blockquote>
@@ -630,7 +630,11 @@ The pip installation will also install all core dependencies.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.</p>
+<p>This is the release version of NuRadioMC. If you want the latest (development) version, use</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">nu</span><span class="o">-</span><span class="n">radio</span><span class="o">/</span><span class="n">NuRadioMC</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>instead, or install it manually (see below).</p>
 </div>
 </section>
 <section id="development-version">
@@ -733,7 +737,7 @@ tinydb version 4.1.1 or newer is required.</p>
 <ul class="simple">
 <li><p>uproot to open RNO-G root files:</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">uproot</span><span class="o">==</span><span class="m">4</span>.1.1<span class="w"> </span><span class="s1">&#39;awkward&lt;2&#39;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>uproot<span class="w"> </span>awkward
 </pre></div>
 </div>
 <ul>

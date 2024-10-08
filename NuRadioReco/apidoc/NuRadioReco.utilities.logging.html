@@ -56,7 +56,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/introduction.html">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#requirements">Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#development-version">Development version</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/installation.html#pythonpath">PYTHONPATH</a></li>
 </ul>
@@ -612,16 +612,16 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.addLoggingLevel">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">addLoggingLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">levelName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levelNum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#addLoggingLevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.addLoggingLevel" title="Permalink to this definition"></a></dt>
-<dd><p>Comprehensively adds a new logging level to the <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module and the
+<dd><p>Comprehensively adds a new logging level to the <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module and the
 currently configured logging class.</p>
-<p><em class="xref py py-obj">levelName</em> becomes an attribute of the <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module with the value
-<em class="xref py py-obj">levelNum</em>. <em class="xref py py-obj">methodName</em> becomes a convenience method for both <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a>
+<p><em class="xref py py-obj">levelName</em> becomes an attribute of the <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module with the value
+<em class="xref py py-obj">levelNum</em>. <em class="xref py py-obj">methodName</em> becomes a convenience method for both <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a>
 itself and the class returned by <em class="xref py py-obj">logging.getLoggerClass()</em> (usually just
-<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.Logger</span></code></a>). If <em class="xref py py-obj">methodName</em> is not specified, <em class="xref py py-obj">levelName.lower()</em> is
+<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.Logger</span></code></a>). If <em class="xref py py-obj">methodName</em> is not specified, <em class="xref py py-obj">levelName.lower()</em> is
 used.</p>
 <p>To avoid accidental clobberings of existing attributes, this method will
 raise an <em class="xref py py-obj">AttributeError</em> if the level name is already an attribute of the
-<a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module or if the method name is already present</p>
+<a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module or if the method name is already present</p>
 <p class="rubric">Notes</p>
 <p>This function was taken from
 <a class="reference external" href="https://stackoverflow.com/questions/2183233/how-to-add-a-custom-loglevel-to-pythons-logging-facility/35804945#35804945">this answer</a></p>

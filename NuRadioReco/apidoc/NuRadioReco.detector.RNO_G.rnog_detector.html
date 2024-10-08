@@ -56,7 +56,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/introduction.html">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#requirements">Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#development-version">Development version</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/installation.html#pythonpath">PYTHONPATH</a></li>
 </ul>
@@ -612,25 +612,27 @@
 <span id="nuradioreco-detector-rno-g-rnog-detector-module"></span><h1>NuRadioReco.detector.RNO_G.rnog_detector module<a class="headerlink" href="#module-NuRadioReco.detector.RNO_G.rnog_detector" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector.</span></span><span class="sig-name descname"><span class="pre">Detector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database_connection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RNOG_test_public'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">over_write_handset_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">always_query_entire_description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_new</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector.</span></span><span class="sig-name descname"><span class="pre">Detector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database_connection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RNOG_public'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">over_write_handset_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">always_query_entire_description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_new</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The RNO-G detector description.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>database_connection</strong><span class="classifier">str (Default: ‘RNOG_test_public’)</span></dt><dd><p>Allows to specify database connection. Passed to mongo-db interface.</p>
+<dt><strong>database_connection</strong><span class="classifier">str (Default: ‘RNOG_public’)</span></dt><dd><p>Allows to specify database connection. Passed to mongo-db interface.</p>
 </dd>
 <dt><strong>log_level</strong><span class="classifier"><em class="xref py py-obj">logging.LOG_LEVEL</em> (Default: logging.INFO)</span></dt><dd><p>Defines verbosity level of logger. Propagates through to Response class logger.
-Other options are: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.WARNING" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.WARNING</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.DEBUG" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.DEBUG</span></code></a>, …</p>
+Other options are: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.WARNING" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.WARNING</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.DEBUG" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.DEBUG</span></code></a>, …</p>
 </dd>
 <dt><strong>over_write_handset_values</strong><span class="classifier">dict (Default: {})</span></dt><dd><p>Overwrite the default values for (channel) parameters which are not (yet) implemented in the database.
 You can not specify keys which already exist in the database. If the value is a dict it should be contain
 a value for each channel_id (key). (Default: None, the acutally default values for the parameters in question
 are defined below)</p>
 </dd>
-<dt><strong>database_time</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> or <a class="reference external" href="https://docs.astropy.org/en/stable/api/astropy.time.Time.html#astropy.time.Time" title="(in Astropy v6.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropy.time.Time</span></code></a></span></dt><dd><p>Set database time which is used to select the primary measurement. By default (= None) the database time
+<dt><strong>database_time</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> or <a class="reference external" href="https://docs.astropy.org/en/stable/api/astropy.time.Time.html#astropy.time.Time" title="(in Astropy v6.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropy.time.Time</span></code></a></span></dt><dd><p>Set database time which is used to select the primary measurement. By default (= None) the database time
 is set to now (time the code is running) to select the measurement which is now primary.</p>
 </dd>
-<dt><strong>always_query_entire_description</strong><span class="classifier">bool (Default: True)</span></dt><dd><p>If True, query the entire detector describtion all at once when calling Detector.update(…) (if necessary).</p>
+<dt><strong>always_query_entire_description</strong><span class="classifier">bool (Default: False)</span></dt><dd><p>If True, query the entire detector describtion all at once when calling Detector.update(…) (if necessary).
+This value is currently set to <code class="docutils literal notranslate"><span class="pre">False</span></code> by default to avoid errors due to missing information in the database.</p>
 </dd>
 <dt><strong>detector_file</strong><span class="classifier">str</span></dt><dd><p>File to import detector description instead of querying from DB. (Default: None -&gt; query from DB)</p>
 </dd>
@@ -644,6 +646,9 @@ new connection. Set to True to create a new database connection.</p>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>For more information about <code class="docutils literal notranslate"><span class="pre">Detector</span></code> objects in NuRadioMC, see
+<a class="reference external" href="https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/detector_tree.html">https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/detector_tree.html</a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -657,7 +662,7 @@ new connection. Set to True to create a new database connection.</p>
 <td><p>Get the absolute position of a specific station (relative to site)</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a>(station_id, ...)</p></td>
-<td><p>Returns the complex response function (for the passed frequencies) for the entire signal chain of a channel.</p></td>
+<td><p>Returns the complex response function for the entire signal chain of a channel.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_model" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_model</span></code></a>(station_id, channel_id[, ...])</p></td>
 <td><p><dl class="field-list simple">
@@ -793,7 +798,7 @@ new connection. Set to True to create a new database connection.</p>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt>time: <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></dt><dd><p>Detector time</p>
+<dt>time: <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></dt><dd><p>Detector time</p>
 </dd>
 </dl>
 </dd>
@@ -1002,9 +1007,11 @@ chain of the channel</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response">
 <span class="sig-name descname"><span class="pre">get_amplifier_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_amplifier_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the complex response function (for the passed frequencies)
-for the entire signal chain of a channel. I.e., this includes not
-only the (main) amplifier but also cables and other components.</p>
+<dd><p>Returns the complex response function for the entire signal chain of a channel.</p>
+<p>This includes not only the (main) amplifier but also cables and other components.
+Note that while group delays are appropriately accounted for, an overall time delay
+(mostly due to cable delay) has been removed and is instead accounted for by
+<a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1023,6 +1030,12 @@ only the (main) amplifier but also cables and other components.</p>
 </dl>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a></dt><dd></dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1262,8 +1275,8 @@ it here for consistency with other detector classes.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay">
 <span class="sig-name descname"><span class="pre">get_cable_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_cable_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="Permalink to this definition"></a></dt>
-<dd><p>Return the cable delay of a signal chain as stored in the detector description.
-This interface is required by simulation.py. See get_time_delay for description of
+<dd><p>Return the cable delay of a signal chain as stored in the detector description.</p>
+<p>This interface is required by simulation.py. See <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a> for description of
 arguments.</p>
 </dd></dl>
 

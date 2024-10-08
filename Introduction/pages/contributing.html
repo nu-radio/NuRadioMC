@@ -56,7 +56,7 @@
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="installation.html#development-version">Development version</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="installation.html#pythonpath">PYTHONPATH</a></li>
 </ul>
@@ -650,13 +650,14 @@ on your local machine).</p>
 </div>
 <p>Once you are ready for your code to be merged into <code class="docutils literal notranslate"><span class="pre">develop</span></code> (for features and hotfixes) and/or
 <code class="docutils literal notranslate"><span class="pre">master</span></code> (for hotfixes only), you should <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/pulls">create a pull request</a>.</p>
-<p>Before you make a pull request, make that your code:</p>
+<p>Before you make a pull request, make sure that your code:</p>
 <ul class="simple">
 <li><p>is correct - it should fix bugs, not introduce more of them!</p></li>
 <li><p>is clearly documented - functions should have
 <a class="reference internal" href="#writing-docstrings"><span class="std std-ref">correctly written docstrings</span></a>
 , and comments where appropriate.</p></li>
-<li><p>is reflected both in the <strong>changelog</strong> and by an appropriate update of the
+<li><p>is reflected in the <strong>changelog</strong></p></li>
+<li><p>(<strong>Only for a new release to</strong> <code class="docutils literal notranslate"><span class="pre">master</span></code>) appropriately updates the
 <a class="reference internal" href="#update-the-version-number-dependencies"><span class="std std-ref">version number</span></a>.</p></li>
 </ul>
 <p>You will only be able to merge your pull request once:</p>
@@ -750,7 +751,9 @@ open the <code class="docutils literal notranslate"><span class="pre">pyproject.
 </pre></div>
 </div>
 <p>We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, i.e. MAJOR.MINOR.PATCH.
-Dependencies are also maintained in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>. To update the dependencies:</p>
+The <code class="docutils literal notranslate"><span class="pre">develop</span></code> version additionally has the suffix <code class="docutils literal notranslate"><span class="pre">-dev</span></code>, which gets dropped for full releases on <code class="docutils literal notranslate"><span class="pre">master</span></code>.
+The version number should be updated before and after making a release to <code class="docutils literal notranslate"><span class="pre">master</span></code>.</p>
+<p>Dependencies are also maintained in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>. To update the dependencies:</p>
 <ul>
 <li><p>If you are adding a <strong>core</strong> dependency, first ensure that the core developers agree!
 Then add your dependency (e.g. <code class="docutils literal notranslate"><span class="pre">numpy</span></code>)</p>

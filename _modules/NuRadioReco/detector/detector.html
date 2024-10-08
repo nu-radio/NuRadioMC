@@ -53,7 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/introduction.html">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#requirements">Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#development-version">Development version</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/installation.html#pythonpath">PYTHONPATH</a></li>
 </ul>
@@ -613,7 +613,7 @@
 
 
 
-<div class="viewcode-block" id="find_path"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.find_path">[docs]</a><span class="k">def</span> <span class="nf">find_path</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_find_path</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Checks for file relative to local folder and detector.py &quot;&quot;&quot;</span>
     <span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>  <span class="c1"># get the directory of this file</span>
     <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dir_path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
@@ -623,10 +623,10 @@
         <span class="c1"># try local folder instead</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t locate json database file in: </span><span class="si">{}</span><span class="s2"> or </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">name</span></div>
+        <span class="k">return</span> <span class="n">name</span>
 
 
-<div class="viewcode-block" id="find_reference_entry"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.find_reference_entry">[docs]</a><span class="k">def</span> <span class="nf">find_reference_entry</span><span class="p">(</span><span class="n">station_dict</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_find_reference_entry</span><span class="p">(</span><span class="n">station_dict</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Search for the strings &quot;reference_station&quot; or &quot;reference_channel&quot; in the detector description.</span>
 <span class="sd">    This is used to determine whether to use the detector_base or generic_detector class.</span>
@@ -641,25 +641,27 @@
                 <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="n">channel</span><span class="p">]:</span>
             <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">return</span> <span class="kc">False</span></div>
+    <span class="k">return</span> <span class="kc">False</span>
 
 
-<div class="viewcode-block" id="if_not_None"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.if_not_None">[docs]</a><span class="k">def</span> <span class="nf">if_not_None</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_if_not_None</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Return `value` if `value is not None`, otherwise return `default` &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default</span></div>
+    <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default</span>
 
 
 <div class="viewcode-block" id="Detector"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.Detector">[docs]</a><span class="k">def</span> <span class="nf">Detector</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This function returns a detector class object. It chooses the correct class based on the &quot;source&quot; argument.</span>
+<span class="sd">        This function returns a detector class object.</span>
+
+<span class="sd">        It chooses the correct class based on the &quot;source&quot; argument.</span>
 <span class="sd">        The returned object is of one of these classes:</span>
 
-<span class="sd">            - kwargs[&quot;source&#39;] == &quot;rnog_mongo&quot; -&gt; `NuRadioReco.detector.RNO_G.rnog_detector`</span>
-<span class="sd">            - kwargs[&quot;source&#39;] == &quot;sql&quot; -&gt; `NuRadioReco.detector.detector_base`</span>
-<span class="sd">            - kwargs[&quot;source&#39;] == &quot;json&quot; or &quot;dictionary&quot; -&gt; `NuRadioReco.detector.detector_base` or</span>
-<span class="sd">                                                            `NuRadioReco.detector.generic_detector`</span>
+<span class="sd">            - kwargs[&quot;source&quot;] == &quot;rnog_mongo&quot; -&gt; `NuRadioReco.detector.RNO_G.rnog_detector`</span>
+<span class="sd">            - kwargs[&quot;source&quot;] == &quot;sql&quot; -&gt; `NuRadioReco.detector.detector_base`</span>
+<span class="sd">            - kwargs[&quot;source&quot;] == &quot;json&quot; or &quot;dictionary&quot; -&gt; `NuRadioReco.detector.detector_base` or</span>
+<span class="sd">              `NuRadioReco.detector.generic_detector`</span>
 
-<span class="sd">        For &#39;kwargs[&quot;source&#39;] == &quot;json&quot;&#39;, whether to use &quot;detector_base&quot; or &quot;generic_detector&quot;</span>
+<span class="sd">        For &#39;kwargs[&quot;source&quot;] == &quot;json&quot;&#39;, whether to use &quot;detector_base&quot; or &quot;generic_detector&quot;</span>
 <span class="sd">        depends on whether a reference station / channel is defined in the json file / dictionary</span>
 <span class="sd">        or not.</span>
 
@@ -714,8 +716,8 @@
         <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;sql&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">detector_base</span><span class="o">.</span><span class="n">DetectorBase</span><span class="p">(</span>
                 <span class="n">json_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span>
-                <span class="n">assume_inf</span><span class="o">=</span><span class="n">if_not_None</span><span class="p">(</span><span class="n">assume_inf</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-                <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">if_not_None</span><span class="p">(</span><span class="n">antenna_by_depth</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+                <span class="n">assume_inf</span><span class="o">=</span><span class="n">_if_not_None</span><span class="p">(</span><span class="n">assume_inf</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">_if_not_None</span><span class="p">(</span><span class="n">antenna_by_depth</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
 
         <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;rnog_mongo&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -741,7 +743,7 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No possitional arguments and no argument </span><span class="se">\&quot;</span><span class="s2">json_filename</span><span class="se">\&quot;</span><span class="s2"> &quot;</span>
                                  <span class="s2">&quot;was not passed while source=</span><span class="se">\&quot;</span><span class="s2">json</span><span class="se">\&quot;</span><span class="s2"> (default) is set.&quot;</span><span class="p">)</span>
 
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">find_path</span><span class="p">(</span><span class="n">json_filename</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">_find_path</span><span class="p">(</span><span class="n">json_filename</span><span class="p">)</span>
 
             <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
             <span class="n">station_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
@@ -750,7 +752,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unknown source specifed (</span><span class="se">\&quot;</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="se">\&quot;</span><span class="s1">). &#39;</span>
                              <span class="sa">f</span><span class="s1">&#39;Must be one of </span><span class="se">\&quot;</span><span class="s1">json</span><span class="se">\&quot;</span><span class="s1">, </span><span class="se">\&quot;</span><span class="s1">sql</span><span class="se">\&quot;</span><span class="s1">, &quot;\dictionary</span><span class="se">\&quot;</span><span class="s1">, </span><span class="se">\&quot;</span><span class="s1">mongo</span><span class="se">\&quot;</span><span class="s1">&#39;</span><span class="p">)</span>
 
-        <span class="n">has_reference_entry</span> <span class="o">=</span> <span class="n">find_reference_entry</span><span class="p">(</span><span class="n">station_dict</span><span class="p">)</span>
+        <span class="n">has_reference_entry</span> <span class="o">=</span> <span class="n">_find_reference_entry</span><span class="p">(</span><span class="n">station_dict</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -770,8 +772,8 @@
 
             <span class="k">return</span> <span class="n">generic_detector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">(</span>
                 <span class="n">json_filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span>
-                <span class="n">assume_inf</span><span class="o">=</span><span class="n">if_not_None</span><span class="p">(</span><span class="n">assume_inf</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-                <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">if_not_None</span><span class="p">(</span><span class="n">antenna_by_depth</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">assume_inf</span><span class="o">=</span><span class="n">_if_not_None</span><span class="p">(</span><span class="n">assume_inf</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">_if_not_None</span><span class="p">(</span><span class="n">antenna_by_depth</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Keys might be present (but should be None). Keys are deprecated, keep them for backwards compatibility</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;default_station&quot;</span><span class="p">,</span> <span class="s2">&quot;default_channel&quot;</span><span class="p">,</span> <span class="s2">&quot;default_device&quot;</span><span class="p">]:</span>
@@ -779,8 +781,8 @@
 
             <span class="k">return</span> <span class="n">detector_base</span><span class="o">.</span><span class="n">DetectorBase</span><span class="p">(</span>
                 <span class="n">json_filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span>
-                <span class="n">assume_inf</span><span class="o">=</span><span class="n">if_not_None</span><span class="p">(</span><span class="n">assume_inf</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-                <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">if_not_None</span><span class="p">(</span><span class="n">antenna_by_depth</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+                <span class="n">assume_inf</span><span class="o">=</span><span class="n">_if_not_None</span><span class="p">(</span><span class="n">assume_inf</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">_if_not_None</span><span class="p">(</span><span class="n">antenna_by_depth</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

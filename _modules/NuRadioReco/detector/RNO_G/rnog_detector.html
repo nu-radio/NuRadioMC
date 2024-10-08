@@ -53,7 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../Introduction/pages/introduction.html">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../Introduction/pages/installation.html#requirements">Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../Introduction/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../Introduction/pages/installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../Introduction/pages/installation.html#development-version">Development version</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../../Introduction/pages/installation.html#pythonpath">PYTHONPATH</a></li>
 </ul>
@@ -666,15 +666,16 @@
 
 
 <div class="viewcode-block" id="Detector"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector">[docs]</a><span class="k">class</span> <span class="nc">Detector</span><span class="p">():</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s1">&#39;RNOG_test_public&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">over_write_handset_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">database_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detector_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s1">&#39;RNOG_public&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">over_write_handset_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">database_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">detector_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">select_stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create_new</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The RNO-G detector description.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        database_connection : str (Default: &#39;RNOG_test_public&#39;)</span>
+<span class="sd">        database_connection : str (Default: &#39;RNOG_public&#39;)</span>
 <span class="sd">            Allows to specify database connection. Passed to mongo-db interface.</span>
 
 <span class="sd">        log_level : `logging.LOG_LEVEL` (Default: logging.INFO)</span>
@@ -691,8 +692,9 @@
 <span class="sd">            Set database time which is used to select the primary measurement. By default (= None) the database time</span>
 <span class="sd">            is set to now (time the code is running) to select the measurement which is now primary.</span>
 
-<span class="sd">        always_query_entire_description : bool (Default: True)</span>
+<span class="sd">        always_query_entire_description : bool (Default: False)</span>
 <span class="sd">            If True, query the entire detector describtion all at once when calling Detector.update(...) (if necessary).</span>
+<span class="sd">            This value is currently set to ``False`` by default to avoid errors due to missing information in the database.</span>
 
 <span class="sd">        detector_file : str</span>
 <span class="sd">            File to import detector description instead of querying from DB. (Default: None -&gt; query from DB)</span>
@@ -705,6 +707,12 @@
 <span class="sd">        create_new : bool (Default: False)</span>
 <span class="sd">            If False, and a database already exists, the existing database will be used rather than initializing a</span>
 <span class="sd">            new connection. Set to True to create a new database connection.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        For more information about ``Detector`` objects in NuRadioMC, see</span>
+<span class="sd">        https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/detector_tree.html</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.RNOGDetector&quot;</span><span class="p">)</span>
@@ -1390,9 +1398,12 @@
 <div class="viewcode-block" id="Detector.get_amplifier_response"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response">[docs]</a>    <span class="nd">@_check_detector_time</span>
     <span class="k">def</span> <span class="nf">get_amplifier_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the complex response function (for the passed frequencies)</span>
-<span class="sd">        for the entire signal chain of a channel. I.e., this includes not</span>
-<span class="sd">        only the (main) amplifier but also cables and other components.</span>
+<span class="sd">        Returns the complex response function for the entire signal chain of a channel.</span>
+
+<span class="sd">        This includes not only the (main) amplifier but also cables and other components.</span>
+<span class="sd">        Note that while group delays are appropriately accounted for, an overall time delay</span>
+<span class="sd">        (mostly due to cable delay) has been removed and is instead accounted for by</span>
+<span class="sd">        `get_time_delay`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1411,6 +1422,11 @@
 
 <span class="sd">        response: array of complex floats</span>
 <span class="sd">            Complex response function</span>
+
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_time_delay</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">response_func</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span></div>
@@ -1767,7 +1783,8 @@
 <div class="viewcode-block" id="Detector.get_cable_delay"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay">[docs]</a>    <span class="k">def</span> <span class="nf">get_cable_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the cable delay of a signal chain as stored in the detector description.</span>
-<span class="sd">        This interface is required by simulation.py. See get_time_delay for description of</span>
+
+<span class="sd">        This interface is required by simulation.py. See `get_time_delay` for description of</span>
 <span class="sd">        arguments.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># FS: For the RNO-G detector description it is not easy to determine the cable delay alone</span>
@@ -1776,7 +1793,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">cable_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="n">use_stored</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Detector.get_time_delay"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay">[docs]</a>    <span class="k">def</span> <span class="nf">get_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">cable_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return the sum of the time delay of all components in the signal chain calculated from the phase</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the sum of the time delay of all components in the signal chain calculated from the phase</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
