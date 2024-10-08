@@ -69,7 +69,7 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=
     Parameters
     ----------
     trace : np.ndarray
-        Waveform (shape: [24,2048])
+        waveform (shape: [2048])
     freq : np.ndarray
         Frequency of the trace's real fourier transform
     spectrum:
