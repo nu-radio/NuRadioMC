@@ -9,14 +9,14 @@ on peaks in frequency spectrum
 """
 
 
-def find_frequency_peaks_from_trace(trace : np.ndarray, fs : float, nr_samples : int, threshold=4):
+def find_frequency_peaks_from_trace(trace : np.ndarray, fs : float, threshold=4):
     """
     Function fo find the frequency peaks in the real fourier transform of the input trace,
 
     Parameters
     ----------
     trace : np.ndarray
-        waveform (shape: [24,2048])
+        waveform (shape: [2048])
     fs: float,
         sampling frequency , (input should be taking from the channel object)
     nr_samples : int
@@ -30,10 +30,10 @@ def find_frequency_peaks_from_trace(trace : np.ndarray, fs : float, nr_samples :
     freq_peaks : np.ndarray
         frequencies at which a peak was found
     """
-    freq = np.fft.rfftfreq(nr_samples, d = 1/fs)
+    freq = np.fft.rfftfreq(len(trace), d=1/fs)
     ft = fft.time2freq(trace, fs)
     
-    freq_peaks = find_frequency_peaks(freq, ft, fs = fs, threshold = threshold)
+    freq_peaks = find_frequency_peaks(freq, ft, fs=fs, threshold=threshold)
 
     return freq_peaks
 
