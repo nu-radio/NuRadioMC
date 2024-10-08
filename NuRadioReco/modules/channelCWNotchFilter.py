@@ -9,26 +9,24 @@ on peaks in frequency spectrum
 """
 
 
-def find_frequency_peaks_from_trace(trace : np.ndarray, fs : float, threshold=4):
+def find_frequency_peaks_from_trace(trace : np.ndarray, fs : float, threshold : float = 4):
     """
-    Function fo find the frequency peaks in the real fourier transform of the input trace,
+    Function fo find the frequency peaks in the real fourier transform of the input trace.
 
     Parameters
     ----------
     trace : np.ndarray
-        waveform (shape: [2048])
-    fs: float,
-        sampling frequency , (input should be taking from the channel object)
-    nr_samples : int
-        number of samples in a time trace
-    threshold, default = 4
-        threshold for peak definition. A peak is defined as a point in the frequency spectrum
+        Waveform 
+    fs : float
+        Sampling frequency, (input should be taking from the channel object)
+    threshold : float, default = 4
+        Threshold for peak definition. A peak is defined as a point in the frequency spectrum
         that exceeds threshold * rms(real fourier transform)
     
     Returns
     -------
     freq_peaks : np.ndarray
-        frequencies at which a peak was found
+        Frequencies at which a peak was found
     """
     freq = np.fft.rfftfreq(len(trace), d=1/fs)
     ft = fft.time2freq(trace, fs)
@@ -37,24 +35,24 @@ def find_frequency_peaks_from_trace(trace : np.ndarray, fs : float, threshold=4)
 
     return freq_peaks
 
-def find_frequency_peaks(freq: np.ndarray, spectrum : np.ndarray, threshold=4):
+def find_frequency_peaks(freq: np.ndarray, spectrum : np.ndarray, threshold : float = 4):
     """
-    Function fo find the frequency peaks in the real fourier transform of the input trace,
+    Function fo find the frequency peaks in the real fourier transform of the input trace.
 
     Parameters
     ----------
     freq : np.ndarray
-        frequencies of a NuRadio time trace
+        Frequencies of a NuRadio time trace
     spectrum : np.ndarray
-        spectrum of a NuRadio time trace
-    threshold, default = 4
-        threshold for peak definition. A peak is defined as a point in the frequency spectrum
+        Spectrum of a NuRadio time trace
+    threshold : float, default = 4
+        Threshold for peak definition. A peak is defined as a point in the frequency spectrum
         that exceeds threshold * rms(real fourier transform)
     
     Returns
     -------
     freq : np.ndarray
-        frequencies at which a peak was found
+        Frequencies at which a peak was found
     """
     
     rms = np.sqrt(np.mean(np.abs(spectrum)**2))
@@ -71,9 +69,9 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=
     Parameters
     ----------
     trace : np.ndarray
-        waveform (shape: [24,2048])
+        Waveform (shape: [24,2048])
     freq : np.ndarray
-        frequency of the trace's real fourier transform
+        Frequency of the trace's real fourier transform
     spectrum:
         the trace's real fourier transform
     fs : float, default = 3.2e9 Hz
