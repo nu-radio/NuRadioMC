@@ -89,27 +89,14 @@ def download_proposal_tables(config_file, tables_path=None):
         tables_path = proposal_func._ProposalFunctions__tables_path
 
     # does not exist yet -> download file
-    import requests
+    from NuRadioReco.utilities.dataservers import download_from_dataserver
     proposal_version = proposal.__version__
-    URL = f'https://rnog-data.zeuthen.desy.de/proposal_tables/v{proposal_version}/{get_compiler()}/{config_file}.tar.gz'
+    remote_path = f'proposal_tables/v{proposal_version}/{get_compiler()}/{config_file}.tar.gz'
+    target_path = f"{tables_path}/{config_file}.tar.gz"
 
-    folder = tables_path #os.path.dirname(tables_path)
-    if not os.path.exists(folder):
-        os.makedirs(folder)
     logger.warning(
-        "downloading pre-calculated proposal tables for {} from {}. This can take a while...".format(config_file, URL))
-    r = requests.get(URL)
-    if r.status_code != requests.codes.ok:
-        logger.error("error in download of proposal tables")
-        raise IOError
-
-    with open(f"{tables_path}/{config_file}.tar.gz", "wb") as code:
-        code.write(r.content)
-    logger.warning("...download finished.")
-    logger.warning(f"...unpacking archive to {tables_path}")
-    shutil.unpack_archive(f"{tables_path}/{config_file}.tar.gz", tables_path)
-    os.remove(f"{tables_path}/{config_file}.tar.gz")
-
+        "downloading pre-calculated proposal tables for {}. This can take a while...".format(config_file))
+    download_from_dataserver(remote_path, target_path, unpack_tarball=True)
 
 
 if __name__ == "__main__":

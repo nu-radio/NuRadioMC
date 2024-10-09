@@ -2,11 +2,11 @@ Ice and attenuation models
 ================================
 
 Ice model implementation
-------------------------------
-Ice models are the object in NuRadioMC that holds all the information of the ice needed to calculate the trajectory, namely: the refractive index at all the relevant points in space, boundary conditions and other special features that determine the ice medium. It can be found in the **utilities** module under ``medium.py`` and ``medium_base.py``. 
+------------------------
+Ice models are the object in NuRadioMC that holds all the information of the ice needed to calculate the trajectory, namely: the refractive index at all the relevant points in space, boundary conditions and other special features that determine the ice medium. It can be found in the **utilities** module under ``medium.py`` and ``medium_base.py``.
 
 The IceModel and IceModel_Simple class
-_______________________________________
+______________________________________
 ``medium_base.py`` holds the framework of which all the specific ice models depends. The most basic class of ice models is the ``IceModel`` from which all final models should inherit directly or via some daughter classes. It represents a planar medium with a top and bottom boundary and in between a refractive index. A reflective bottom layer may be added as well.
 
     .. code-block:: Python
@@ -45,15 +45,15 @@ where z is the depth and :math:`n_{ice}`, :math:`\Delta_n`, `math:`z_0` are the 
                 # from C. Deaconu, fit to data from Hawley '08, Alley '88
                 # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
                 super().__init__(
-                    z_bottom = -3000*units.meter, 
-                    n_ice = 1.78, 
-                    z_0 = 37.25*units.meter, 
+                    z_bottom = -3000*units.meter,
+                    n_ice = 1.78,
+                    z_0 = 37.25*units.meter,
                     delta_n = 0.51)
 
 RadioPropaIceWrapper
-_____________________
+____________________
 The analytic ray tracer can only handle simple ice models. For other models you need the RadioPropa ray tracer. However, for this to work, the model needs a translation into proper RadioPropa object. To facilitate this, the ``RadioPropaIceWrapper`` class is defined in ``medium_base.py``. This class hold the index of refraction as a RadioPropa scalar field and the boundary conditions and special features in the relevant RadioPropa modules.
-    
+
     .. code-block:: Python
 
         class RadioPropaIceWrapper():
@@ -67,8 +67,8 @@ The analytic ray tracer can only handle simple ice models. For other models you 
 
                 """
                 here stands some code handling the first modules like air boundary and bottom boundary etc.
-                """    
-                 
+                """
+
             def get_modules(self):
                 return self.__modules
 
@@ -88,7 +88,7 @@ The analytic ray tracer can only handle simple ice models. For other models you 
                 return self.__scalar_field
 
 The most important point is that the index of refraction has to be translated in a RadioPropa scalar field. For simple ice models all this is is handled automatically but for other models one needs to implement specific scalar field of the ice models in RadioPropa (``IceModel.h`` and ``IceModel.cpp``). To access the RadioPropaIceWrapper object from the ice model, an extra function is implemented in the ``IceModel`` that is inherited by all the daughter classes but should be adapted to the specific implemented ice models. For the ``IceModel_Simpe`` class this is already implemented and this is handled automatically when defining a new simple ice model.
-    
+
     .. code-block:: Python
 
         import radiopropa as RP
@@ -97,8 +97,8 @@ The most important point is that the index of refraction has to be translated in
             ...
 
             def get_ice_model_radiopropa(self):
-                scalar_field = RP.IceModel_Simple(z_surface=self.z_airBoundary*RP.meter/units.meter, 
-                                                 n_ice=self.n_ice, delta_n=self.delta_n, 
+                scalar_field = RP.IceModel_Simple(z_surface=self.z_airBoundary*RP.meter/units.meter,
+                                                 n_ice=self.n_ice, delta_n=self.delta_n,
                                                  z_0=self.z_0*RP.meter/units.meter,
                                                  z_shift=self.z_shift*RP.meter/units.meter)
                 return RadioPropaIceWrapper(self,scalar_field)
@@ -107,11 +107,11 @@ An example of the implementation of a non-simple model if given by ``greenland_f
 
 
 Available models in NuRadioMC
----------------------------------
+-----------------------------
 
 Simple ice models
-____________________
-In the table below we can find the different parameters for the simple ice refractive index models available in NuRadioMC. 
+_________________
+In the table below we can find the different parameters for the simple ice refractive index models available in NuRadioMC.
 
     .. csv-table:: Simple Ice Models
         :header: "Name", ":math:`n_{ice}`", ":math:`\Delta_n`", ":math:`z_0$ [m]`"
@@ -123,15 +123,15 @@ In the table below we can find the different parameters for the simple ice refra
         `mooresbay_simple_2 <https://iopscience.iop.org/article/10.1088/1475-7516/2018/07/055>`__ (MB2), 1.78, 0.481, 37
         `greenland_simple <https://www.cambridge.org/core/journals/journal-of-glaciology/article/rapid-techniques-for-determining-annual-accumulation-applied-at-summit-greenland/96F86ED8AC87EB6B578E5021229CB37B>`__, 1.78, 0.51, 37.25
 
-The models ``mooresbay_simple`` and ``mooresbay_simple_2`` also contain a reflective layer at -576 m with a reflection coefficient of 0.82, mimicking the bottom layer of Ross Ice Shelf, in Antarctica. 
+The models ``mooresbay_simple`` and ``mooresbay_simple_2`` also contain a reflective layer at -576 m with a reflection coefficient of 0.82, mimicking the bottom layer of Ross Ice Shelf, in Antarctica.
 
 
 RadioPropa ice models
-______________________
+_____________________
 Besides the simple ice models above, there is also one other ice model implemented: `greenland_firn <https://arxiv.org/abs/1805.12576>`__
 
 Attenuation model
-___________________
+_________________
 NuRadioMC has also three attenuation models available. These models provide attenuation lengths that are depth- and frequency-dependent.
 
   * `GL1 <https://www.cambridge.org/core/journals/journal-of-glaciology/article/an-in-situ-measurement-of-the-radiofrequency-attenuation-in-ice-at-summit-station-greenland/69FBB917D29DD43EE4DCDCC3EC21EA9F>`__, for Greenland.
@@ -140,7 +140,7 @@ NuRadioMC has also three attenuation models available. These models provide atte
 
 
 Using specific models
-_______________________
+_____________________
 Both the ice model and the attenuation model can be specified in the config file. As an example, if we want to use the ``greenland_simple`` ice model together with the GL1 attenuation, we have to write on the yaml configuration file:
 
     .. code-block:: yaml
@@ -150,7 +150,7 @@ Both the ice model and the attenuation model can be specified in the config file
             attenuation_model: GL1
 
 Example script
--------------------
+--------------
 The following snippet shows how the ice properties can be retrieved from NuRadioMC for an independent analysis.
 
     .. code-block:: Python
@@ -174,20 +174,20 @@ The following snippet shows how the ice properties can be retrieved from NuRadio
         attenuation_length = attenuation.get_attenuation_length(depth, frequency, attenuation_model)
 
 Birefringence Ice Models
-----------------------------
+------------------------
 
-Birefringence is an optional propagation setting in NuRadioMC which allows to simulate radio pulses propagating in anisotropic ice. The details about how the calculations in the propagation work can be found here `(Heyer & Glaser, 2023) <https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y>`__. When using birefringence several options exist about what birefringence-ice-model to propagate in and what propagation code should be used for the propagation. 
+Birefringence is an optional propagation setting in NuRadioMC which allows to simulate radio pulses propagating in anisotropic ice. The details about how the calculations in the propagation work can be found here `(Heyer & Glaser, 2023) <https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y>`__. When using birefringence several options exist about what birefringence-ice-model to propagate in and what propagation code should be used for the propagation.
 
 There are several example scripts available demonstrating all available (``NuRadioMC/SignalProp/examples/birefringence_examples``) functions when dealing with birefringent ice. Check read_me.txt for a more detailed description of the examples and data used.
 
 .. warning:: Using this code assumes that the ice flow points in the positive x-direction. Therefore, a rotation of the detector geometry into this coordinate system might be necessary. This rotation can be done by either changing the source/antenna positions or by using the 'angle_to_iceflow' parameter in the config file.
 
 Available Birefringence Ice Models
-_____________________________________
+__________________________________
 
-The anisotropy of the ice at the South Pole was published here: `(Jordan et al., 2020) <https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39>`__ 
+The anisotropy of the ice at the South Pole was published here: `(Jordan et al., 2020) <https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39>`__
 
-The anisotropy of the ice in Greenland was published here: `(RNO-G, 2022) <https://arxiv.org/abs/2212.10285>`__ 
+The anisotropy of the ice in Greenland was published here: `(RNO-G, 2022) <https://arxiv.org/abs/2212.10285>`__
 
 To use these ice models in NuRadioMC the measurement data was interpolated using splines. As the measurements don't extend from the ice surface to bedrock or to account for measurement uncertainties, there is some freedom in how to interpolate the data. Different interpolations are indexed via capital letters, ``A`` always denoting the most reasonable interpolation. The files ``NuRadioMC/utilities/birefringence_models/IceModel_interpolation_southpole.py`` and ``NuRadioMC/utilities/birefringence_models/IceModel_interpolation_greenland.py`` can be used to adjust the interpolation method and come up with new ice models.
 
@@ -208,28 +208,28 @@ To use these ice models in NuRadioMC the measurement data was interpolated using
         greenland_B, assumes ny and nx to be the same value at the average of the two
         greenland_C, assumes ny and nx to diverge more than the data indicates
 
-Ice-Flow Direction 
-____________________
+Ice-Flow Direction
+__________________
 
-As birefringence acts in a very specific coordinate system defined by the flow of the ice, one has to be careful when defining source and antenna locations. The standard code assumes an ice flow in the x-direction. In NuRadioMC this corresponds to the east-direction. When defining a detector geometry in terms of northing and easting the angle between the ice-flow direction and the easting direction can be passed by using the ``angle_to_iceflow`` parameter in the config file. The angle is passed in degrees. 
+As birefringence acts in a very specific coordinate system defined by the flow of the ice, one has to be careful when defining source and antenna locations. The standard code assumes an ice flow in the x-direction. In NuRadioMC this corresponds to the east-direction. When defining a detector geometry in terms of northing and easting the angle between the ice-flow direction and the easting direction can be passed by using the ``angle_to_iceflow`` parameter in the config file. The angle is passed in degrees.
 
 For the South Pole this angle is measured to be -131 degrees with an uncertainty of 2 degrees `(Jordan et al., 2020) <https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39>`__. For Greenland this angle is measured to be roughly 180 degrees `(Hawley et al., 2020) <https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2020GL088864>`__.
 
-Available Birefringence Propagation Options 
-______________________________________________
+Available Birefringence Propagation Options
+___________________________________________
 
 There is an option to use RadioPropa `(birefringence branch) <https://github.com/nu-radio/RadioPropa/tree/birefrigence>`__  to speed up the pulse propagation. If both the ray tracing and the birefringence pulse propagation should be handled by the analytical ray tracer, use ``analytical`` in the config file. If the ray tracing should be handled by the analytical ray tracer but the birefringence pulse propagation by RadioPropa, use ``numerical`` in the config file. There is also the option to handle everything in RadioPropa.
 
 Currently, the RadioPropa implementation of birefringence only supports the birefringence-ice-model ``southpole_A``.
 
-Using specific models 
-_______________________
+Using specific birefringence models
+___________________________________
 Birefringence is an optional setting in a NuRadioMC simulation. To use it in a simulation the following lines should be added to the config file:
 
     .. code-block:: yaml
 
         propagation:
-            birefringence: True  
-            birefringence_propagation: 'analytical'  
+            birefringence: True
+            birefringence_propagation: 'analytical'
             birefringence_model: 'southpole_A'
             angle_to_iceflow: -131
