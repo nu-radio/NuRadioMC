@@ -606,7 +606,8 @@ class DetectorBase(object):
             'auger': (-35.10, -69.55),
             'mooresbay': (-78.74, 165.09),
             'southpole': (-90., 0.),
-            'summit': (72.57, -38.46)
+            'summit': (72.57, -38.46),
+            'lofar': (52.92, 6.87)
         }
         site = self.get_site(station_id)
         if site in sites.keys():
@@ -950,7 +951,7 @@ class DetectorBase(object):
 
     def get_channel_group_id(self, station_id, channel_id):
         """
-        returns the group ID of a channel
+        returns the group ID of a channel. If the channel has no group ID, the channel ID is returned.
 
         Parameters
         ----------
@@ -965,11 +966,11 @@ class DetectorBase(object):
             the channel group ID
         """
         res = self.__get_channel(station_id, channel_id)
-        if 'channel_group_id' not in res.keys():
-            logger.warning(
-                'Channel group ID not set for channel {} in station {}, returning -1'.format(
+        if 'channel_group_id' not in res:
+            logger.info(
+                'Channel group ID not set for channel {} in station {}, returning channel_id'.format(
                     channel_id, station_id))
-            return -1
+            return channel_id
         else:
             return res['channel_group_id']
 
