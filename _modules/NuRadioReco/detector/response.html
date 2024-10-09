@@ -638,7 +638,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_unit</span><span class="p">,</span> <span class="n">time_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">name</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">remove_time_delay</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+                 <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">attenuator_in_dB</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -679,6 +679,11 @@
 
 <span class="sd">        log_level : `logging.LOG_LEVEL` (Default: logging.INFO)</span>
 <span class="sd">            Defines verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...</span>
+
+<span class="sd">        attenuator_in_dB : float (Default: 0)</span>
+<span class="sd">            Allows to add an additional attenuation/gain to the response. This is useful to simulate or correct of the</span>
+<span class="sd">            the effect of an attenuator. The value is in dB. A value of 10dB will increase the response by 10 dB.</span>
+<span class="sd">            (Default: 0 -&gt; no attenuation)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.Response&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
@@ -726,6 +731,9 @@
             <span class="n">time_delay</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># set time_delay to 0 if group delay is not removed</span>
 
         <span class="n">y_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">y_phase</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">attenuator_in_dB</span><span class="p">:</span>
+            <span class="n">gain</span> <span class="o">=</span> <span class="n">gain</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">attenuator_in_dB</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__gains</span> <span class="o">=</span> <span class="p">[</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
