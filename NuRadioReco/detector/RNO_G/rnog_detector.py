@@ -861,14 +861,16 @@ class Detector():
             is_equal = False
             if "drab_board" in components and "iglu_board" in components:
 
-                is_equal = np.allclose(measurement_components_dic["drab_board"]["mag"],
-                                       measurement_components_dic["iglu_board"]["mag"])
+                is_equal = np.allclose(
+                    measurement_components_dic["drab_board"]["mag"],
+                    measurement_components_dic["iglu_board"]["mag"])
 
                 if is_equal:
-                    self.logger.warn(f"Station.channel {station_id}.{channel_id}: Currently both, "
-                                      "iglu and drab board are configured in the signal chain but their "
-                                      "responses are the same (because we measure them together in the lab). "
-                                      "Skip the drab board response.")
+                    self.logger.warn(
+                        f"Station.channel {station_id}.{channel_id}: Currently both, "
+                        "iglu and drab board are configured in the signal chain but their "
+                        "responses are the same (because we measure them together in the lab). "
+                        "Skip the drab board response.")
 
             responses = []
             for key, value in measurement_components_dic.items():
@@ -880,6 +882,8 @@ class Detector():
                 if "weight" not in value:
                     self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
                 weight = value.get("weight", 1)
+
+                attenuator = value.get("attenuator", 0)
 
                 if "time_delay" in value:
                     time_delay = value["time_delay"]
@@ -894,8 +898,8 @@ class Detector():
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
                                     time_delay=time_delay, weight=weight, name=key,
                                     station_id=station_id, channel_id=channel_id,
-                                    log_level=self.__log_level)
-
+                                    log_level=self.__log_level,
+                                    attenuator_in_dB=attenuator)
 
                 responses.append(response)
 
