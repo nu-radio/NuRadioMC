@@ -13,7 +13,7 @@ try:
 except ImportError:
     radiopropa_is_imported = False
 
-logger = logging.getLogger('ice_model')
+logger = logging.getLogger('NuRadioMC.ice_model')
 
 class IceModel():
     """
