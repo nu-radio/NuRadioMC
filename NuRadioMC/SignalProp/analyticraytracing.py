@@ -101,7 +101,7 @@ def get_z_deep(ice_params):
 class ray_tracing_2D(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model="SP1",
-                 log_level=logging.WARNING,
+                 log_level=logging.NOTSET,
                  n_frequencies_integration=25,
                  use_optimized_start_values=False,
                  overwrite_speedup=None,
@@ -116,7 +116,7 @@ class ray_tracing_2D(ray_tracing_base):
         attenuation_model: string
             specifies which attenuation model to use (default 'SP1')
         log_level: logging.loglevel object
-            controls verbosity (default WARNING)
+            Overrides verbosity (default NOTSET)
         n_frequencies_integration: int
             specifies for how many frequencies the signal attenuation is being calculated
         use_optimized_start_value: bool
@@ -1782,7 +1782,7 @@ class ray_tracing(ray_tracing_base):
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
 
-    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.NOTSET,
                  n_frequencies_integration=100, n_reflections=0, config=None,
                  detector=None, ray_tracing_2D_kwards={},
                  use_cpp=cpp_available):
@@ -1808,7 +1808,7 @@ class ray_tracing(ray_tracing_base):
             * logging.INFO
             * logging.DEBUG
 
-            default is WARNING
+            default is NOTSET (global control)
         
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation

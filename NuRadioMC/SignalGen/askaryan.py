@@ -3,14 +3,9 @@ import numpy as np
 from NuRadioReco.utilities import units, fft
 from NuRadioMC.SignalGen import parametrizations as par
 import logging
-logger = logging.getLogger("SignalGen.askaryan")
+logger = logging.getLogger("NuRadioMC.SignalGen.askaryan")
 
-
-def set_log_level(level):
-    logger.setLevel(level)
-    par.set_log_level(level)
-
-
+<
 def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_factor=None, interp_factor2=None,
                    same_shower=False, seed=None, full_output=False, **kwargs):
     """
