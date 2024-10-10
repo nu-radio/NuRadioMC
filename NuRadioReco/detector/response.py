@@ -34,7 +34,7 @@ class Response:
     def __init__(self, frequency, y, y_unit, time_delay=0, weight=1,
                  name="default", station_id=None, channel_id=None,
                  remove_time_delay=True, debug_plot=False,
-                 log_level=logging.INFO):
+                 log_level=logging.NOTSET):
         """
         Parameters
         ----------
@@ -73,8 +73,8 @@ class Response:
         debug_plot : bool (Default: False)
             If True, produce a debug plot
 
-        log_level : `logging.LOG_LEVEL` (Default: logging.INFO)
-            Defines verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...
+        log_level : `logging.LOG_LEVEL` (Default: logging.NOTSET)
+            Overrides verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...
         """
         self.logger = logging.getLogger("NuRadioReco.Response")
         self.logger.setLevel(log_level)

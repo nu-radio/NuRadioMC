@@ -59,7 +59,7 @@ def _check_detector_time(method):
 
 
 class Detector():
-    def __init__(self, database_connection='RNOG_test_public', log_level=logging.INFO, over_write_handset_values={},
+    def __init__(self, database_connection='RNOG_test_public', log_level=logging.NOTSET, over_write_handset_values={},
                  database_time=None, always_query_entire_description=True, detector_file=None,
                  select_stations=None, create_new=False):
         """
@@ -70,8 +70,8 @@ class Detector():
         database_connection : str (Default: 'RNOG_test_public')
             Allows to specify database connection. Passed to mongo-db interface.
 
-        log_level : `logging.LOG_LEVEL` (Default: logging.INFO)
-            Defines verbosity level of logger. Propagates through to Response class logger.
+        log_level : `logging.LOG_LEVEL` (Default: logging.NOTSET)
+            Overrides verbosity level of logger. Propagates through to Response class logger.
             Other options are: `logging.WARNING`, `logging.DEBUG`, ...
 
         over_write_handset_values : dict (Default: {})
