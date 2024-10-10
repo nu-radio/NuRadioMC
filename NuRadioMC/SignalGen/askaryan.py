@@ -5,7 +5,7 @@ from NuRadioMC.SignalGen import parametrizations as par
 import logging
 logger = logging.getLogger("NuRadioMC.SignalGen.askaryan")
 
-<
+
 def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_factor=None, interp_factor2=None,
                    same_shower=False, seed=None, full_output=False, **kwargs):
     """
