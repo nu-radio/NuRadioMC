@@ -9,7 +9,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import logging
-logger = logging.getLogger('efieldTimeDirectionFitter')
+logger = logging.getLogger('NuRadioReco.efieldTimeDirectionFitter')
 
 
 class efieldTimeDirectionFitter:

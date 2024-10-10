@@ -19,8 +19,8 @@ from NuRadioMC.utilities.medium import southpole_2015
 from NuRadioReco.utilities import units
 import logging
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('raytracing')
+logger = logging.getLogger('NuRadioMC.raytracing')
+logger.setLevel(logging.INFO)
 
 model = 'X'
 

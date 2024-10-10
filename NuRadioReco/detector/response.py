@@ -34,7 +34,7 @@ class Response:
     def __init__(self, frequency, y, y_unit, time_delay=0, weight=1,
                  name="default", station_id=None, channel_id=None,
                  remove_time_delay=True, debug_plot=False,
-                 log_level=logging.INFO, attenuator_in_dB=0):
+                 log_level=logging.NOTSET, attenuator_in_dB=0):
         """
         Parameters
         ----------
@@ -73,13 +73,13 @@ class Response:
         debug_plot : bool (Default: False)
             If True, produce a debug plot
 
-        log_level : `logging.LOG_LEVEL` (Default: logging.INFO)
-            Defines verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...
-
         attenuator_in_dB : float (Default: 0)
             Allows to add an additional attenuation/gain to the response. This is useful to simulate or correct of the
             the effect of an attenuator. The value is in dB. A value of 10dB will increase the response by 10 dB.
             (Default: 0 -> no attenuation)
+
+        log_level : `logging.LOG_LEVEL` (Default: logging.NOTSET)
+            Overrides verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...
         """
         self.logger = logging.getLogger("NuRadioReco.Response")
         self.logger.setLevel(log_level)

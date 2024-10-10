@@ -15,7 +15,7 @@ class ray_tracing_base:
     """
 
 
-    def __init__(self, medium, attenuation_model=None, log_level=logging.WARNING, 
+    def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None, 
                  detector=None, ray_tracing_2D_kwards={}):
         """
@@ -35,7 +35,7 @@ class ray_tracing_base:
             * logging.INFO
             * logging.DEBUG
 
-            default is WARNING
+            default is NOTSET (ie global control)
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
@@ -48,7 +48,7 @@ class ray_tracing_base:
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
         """
-        self.__logger = logging.getLogger('ray_tracing_base')
+        self.__logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_base')
         self.__logger.setLevel(log_level)
 
         self._medium = medium

@@ -26,9 +26,8 @@ from NuRadioReco.framework import base_trace
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 
-from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
 import logging
-logger = setup_logger("NuRadioMC.analytic_ray_tracing")
+logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
 # check if CPP implementation is available
 cpp_available = False
@@ -102,7 +101,7 @@ def get_z_deep(ice_params):
 class ray_tracing_2D(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model="SP1",
-                 log_level=logging.WARNING,
+                 log_level=logging.NOTSET,
                  n_frequencies_integration=25,
                  use_optimized_start_values=False,
                  overwrite_speedup=None,
@@ -117,7 +116,7 @@ class ray_tracing_2D(ray_tracing_base):
         attenuation_model: string
             specifies which attenuation model to use (default 'SP1')
         log_level: logging.loglevel object
-            controls verbosity (default WARNING)
+            Overrides verbosity (default NOTSET)
         n_frequencies_integration: int
             specifies for how many frequencies the signal attenuation is being calculated
         use_optimized_start_value: bool
@@ -145,7 +144,8 @@ class ray_tracing_2D(ray_tracing_base):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
         self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
-        self.__logger = setup_logger('NuRadioMC.ray_tracing_2D', log_level)
+        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
+        self.__logger.setLevel(log_level)
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
 
@@ -1782,7 +1782,7 @@ class ray_tracing(ray_tracing_base):
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
 
-    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.NOTSET,
                  n_frequencies_integration=100, n_reflections=0, config=None,
                  detector=None, ray_tracing_2D_kwards={},
                  use_cpp=cpp_available):
@@ -1808,7 +1808,7 @@ class ray_tracing(ray_tracing_base):
             * logging.INFO
             * logging.DEBUG
 
-            default is WARNING
+            default is NOTSET (global control)
         
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
@@ -1838,7 +1838,8 @@ class ray_tracing(ray_tracing_base):
             default: True if CPP version is available
             
         """
-        self.__logger = setup_logger('NuRadioMC.ray_tracing_analytic', log_level)
+        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_analytic')
+        self.__logger.setLevel(log_level)
 
         from NuRadioMC.utilities.medium_base import IceModelSimple
         if not isinstance(medium, IceModelSimple):

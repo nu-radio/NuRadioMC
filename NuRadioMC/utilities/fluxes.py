@@ -3,7 +3,7 @@ import scipy.constants
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import cross_sections
 import logging
-logger = logging.getLogger('fluxes')
+logger = logging.getLogger('NuRadioMC.fluxes')
 
 
 def get_limit_from_aeff(energy, aeff,

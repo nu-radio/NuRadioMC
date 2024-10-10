@@ -17,7 +17,7 @@ class simulationSelector:
     def __init__(self):
         self.__t = 0
         self.begin()
-        self.logger = logging.getLogger('NuRadioReco.simulationSelector')
+        self.logger = logging.getLogger('NuRadioReco.coreas.simulationSelector')
 
     def begin(self, debug=False):
         pass
