@@ -25,8 +25,7 @@ import NuRadioReco.modules.io.eventWriter
 
 # Logging
 import logging
-logger = logging.getLogger("NuRadioReco.FullReconstruction")
-logger.setLevel(logging.DEBUG)  # Let parent logger decide logging level
+logger = logging.getLogger("NuRadioReco.FullReconstruction")  # Logging level is globally controlled
 
 plt.switch_backend('agg')
 

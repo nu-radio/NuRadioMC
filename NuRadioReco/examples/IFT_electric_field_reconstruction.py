@@ -24,9 +24,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 # Logging
 import logging
-logger = logging.getLogger("NuRadioReco.IFT_field_reconstruction")
-logger.setLevel(logging.DEBUG)  # Let parent logger decide logging level
-
+logger = logging.getLogger("NuRadioReco.IFT_field_reconstruction")   # Logging level is globally controlled
 
 parser = argparse.ArgumentParser(
     'Example script for an electric field reconstruction'

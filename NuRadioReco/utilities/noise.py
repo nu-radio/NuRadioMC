@@ -231,7 +231,7 @@ class thermalNoiseGeneratorPhasedArray():
 
     def __init__(self, detector_filename, station_id, triggered_channels,
                  Vrms, threshold, ref_index,
-                 noise_type="rayleigh", log_level=logging.WARNING,
+                 noise_type="rayleigh", log_level=logging.NOTSET,
                  pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None,
                  upsampling=2, window_length=16 * units.ns, step_size=8 * units.ns,
                  main_low_angle=np.deg2rad(-59.54968597864437), 

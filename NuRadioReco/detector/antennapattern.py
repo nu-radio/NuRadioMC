@@ -1544,7 +1544,7 @@ class AntennaPatternProvider(object):
             AntennaPatternProvider.__instance = object.__new__(cls)
         return AntennaPatternProvider.__instance
 
-    def __init__(self, log_level=logging.WARNING):
+    def __init__(self, log_level=logging.NOTSET):
         """
         Provider class for antenna pattern. The usage of antenna pattern through this class ensures
         that an antenna pattern is loaded only once into memory which takes a significant time and occupies a
