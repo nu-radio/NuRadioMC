@@ -291,7 +291,7 @@ class SimplePhasedTrigger(Trigger):
         maximum_amps: list of floats (length equal to that of `phasing_angles`)
             the maximum value of all the integration windows for each of the phased waveforms
         """
-        Trigger.__init__(self, name, channels, 'simple_phased', pre_trigger_times=pre_trigger_times))
+        Trigger.__init__(self, name, channels, 'simple_phased', pre_trigger_times=pre_trigger_times)
         self._primary_channels = channels
         self._primary_angles = primary_angles
         self._secondary_channels = secondary_channels
@@ -330,7 +330,7 @@ class HighLowTrigger(Trigger):
             the number of channels that need to fulfill the trigger condition
             default: 1
         """
-        Trigger.__init__(self, name, channels, 'high_low', pre_trigger_times=pre_trigger_times))
+        Trigger.__init__(self, name, channels, 'high_low', pre_trigger_times=pre_trigger_times)
         self._number_of_coincidences = number_of_coincidences
         self._threshold_high = threshold_high
         self._threshold_low = threshold_low

@@ -1605,35 +1605,9 @@ class simulation:
                                     channel.set_trace_start_time(trace_start_time)
                                     station.add_channel(channel)
 
-                                # determine if the two intervals have any overlap, if yes, add the signal to the existing empty trace
-                                if max(t0, t0_readout) < min(t1, t1_readout):
-                                    # we need to create a new Channel object in which we copy the SimChannel trace. This is necessary because
-                                    # Channel and SimChannel are different objects and a SimChannel can't be added to a Channel.
-                                    tmp_channel = NuRadioReco.framework.channel.Channel(sim_channel.get_id())
-                                    tmp_channel.set_trace(sim_channel.get_trace(), sim_channel.get_sampling_rate())
-                                    tmp_channel.set_trace_start_time(sim_channel.get_trace_start_time() - 55 * units.ns)
-
-                                    channel = station.get_channel(sim_channel.get_id())  # important to get the channel (again) to have a reference to the correct object
-
-                                    assert(tmp_channel.get_sampling_rate() == channel.get_sampling_rate())
-
-                                    # we need to identify the overlapping time interval and only add this to channel
-                                    # to achieve time accuracy, we need to shift `tmp_channel` using the Fourier shift theorem.
-                                    time_offset = np.abs(tmp_channel.get_trace_start_time() - channel.get_trace_start_time())
-                                    i_start = int(round(time_offset * channel.get_sampling_rate()))
-                                    residual_time_offset = time_offset - i_start / channel.get_sampling_rate()
-                                    print(f"residual_time_offset = {residual_time_offset}")
-                                    tmp_channel.apply_time_shift(-residual_time_offset)  # we only shift the residual time offset that is left after the integer shift
-                                    # determine the indices for both traces
-                                    i_min = max(0, i_start)
-                                    i_min_tmp = max(0, -i_start)
-                                    i_max = min(len(channel.get_trace()), len(tmp_channel.get_trace()) + i_min - i_min_tmp)
-                                    i_max_tmp = i_min_tmp + i_max - i_min
-                                    channel_trace = channel.get_trace()
-                                    tmp_channel_trace = tmp_channel.get_trace()
-                                    channel_trace[i_min:i_max] += tmp_channel_trace[i_min_tmp:i_max_tmp]
-                                    # logger.status(f"channel type {type(channel)}, sim_channel type {type(sim_channel)}")
-                                    channel.set_trace(channel_trace, channel.get_sampling_rate())
+                                # Add the sim_channel to the station channel:
+                                channel = station.get_channel(sim_channel.get_id())
+                                channel.add_to_trace(sim_channel)
 
                 for evt in output_buffer[sid].values():
                     # the only thing left is to add noise to the non-trigger traces
