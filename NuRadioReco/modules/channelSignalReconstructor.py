@@ -18,7 +18,7 @@ class channelSignalReconstructor:
 
     """
 
-    def __init__(self, log_level=logging.WARNING):
+    def __init__(self, log_level=logging.NOTSET):
         self.__t = 0
         logger.setLevel(log_level)
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal

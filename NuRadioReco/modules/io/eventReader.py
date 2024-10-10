@@ -10,7 +10,7 @@ class eventReader:
     read events from file
     """
 
-    def begin(self, filename, read_detector=False, log_level=logging.WARNING):
+    def begin(self, filename, read_detector=False, log_level=logging.NOTSET):
         """
         Setup function for the eventReader module
 

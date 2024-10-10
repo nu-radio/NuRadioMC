@@ -66,15 +66,15 @@ class stationGalacticCalibrator:
 
         self.begin()
 
-    def begin(self, logger_level=logging.WARNING):
+    def begin(self, logger_level=logging.NOTSET):
         """
         Loads the experimental parameters (such as longitude and latitude) as well as the Galactic calibration
         curves and Fourier coefficients from the directory `NuRadioReco/utilities/data/`.
 
         Parameters
         ----------
-        logger_level : int, default=logging.WARNING
-            The logging level to use for the module.
+        logger_level : int, default=logging.NOTSET
+            Use this parameter to override the logging level for this module.
         """
         self.logger.setLevel(logger_level)
 

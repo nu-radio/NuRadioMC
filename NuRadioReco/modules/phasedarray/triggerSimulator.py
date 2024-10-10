@@ -27,7 +27,7 @@ class triggerSimulator:
     See https://arxiv.org/pdf/1809.04573.pdf
     """
 
-    def __init__(self, log_level=logging.WARNING):
+    def __init__(self, log_level=logging.NOTSET):
         self.__t = 0
         self.__pre_trigger_time = None
         self.__debug = None

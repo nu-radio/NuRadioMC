@@ -54,7 +54,7 @@ class eventWriter:
         self.__header_written = True
 
     def begin(self, filename, max_file_size=1024, check_for_duplicates=False, events_per_file=None,
-              log_level=logging.WARNING):
+              log_level=logging.NOTSET):
         """
         begin method
 
@@ -71,8 +71,8 @@ class eventWriter:
             Maximum number of events to be written into the same file. After more than events_per_file have been written
             into the same file, the output will be split into another file. If max_file_size and events_per_file are
             both set, the file will be split whenever any of the two conditions is fullfilled.
-        log_level: int
-            The logging level to use.
+        log_level: int, default=logging.NOTSET
+            Use this to override the logging level for this module.
         """
         logger.setLevel(log_level)
         if filename.endswith(".nur"):

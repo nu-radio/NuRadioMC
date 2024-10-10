@@ -156,7 +156,7 @@ def _convert_to_astropy_time(t):
 
 class readRNOGData:
 
-    def __init__(self, run_table_path=None, load_run_table=True, log_level=logging.INFO):
+    def __init__(self, run_table_path=None, load_run_table=True, log_level=logging.NOTSET):
         """
         Reader for RNO-G ``.root`` files
 
@@ -175,7 +175,7 @@ class readRNOGData:
 
         log_level: enum
             Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
-            (Default: logging.INFO)
+            (Default: logging.NOTSET, ie adhere to general log level)
 
         Examples
         --------
