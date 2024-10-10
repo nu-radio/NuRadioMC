@@ -94,9 +94,8 @@ class triggerSimulator:
         self.__t = 0
         self.begin()
 
-    def begin(self, log_level=None):
-        if(log_level is not None):
-            logger.setLevel(log_level)
+    def begin(self, log_level=logging.NOTSET):
+        logger.setLevel(log_level)
         return
 
     @register_run()

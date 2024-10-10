@@ -14,7 +14,7 @@ class triggerTimeAdjuster:
     If no trigger exists, nothing is done.
     """
 
-    def __init__(self, log_level=logging.WARNING):
+    def __init__(self, log_level=logging.NOTSET):
         logger.setLevel(log_level)
         self.__trigger_name = None
         self.__pre_trigger_time = None

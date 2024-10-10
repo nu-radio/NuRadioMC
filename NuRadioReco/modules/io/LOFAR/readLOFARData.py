@@ -368,7 +368,7 @@ class readLOFARData:
         """
         return self.__stations.copy()
 
-    def begin(self, event_id, logger_level=logging.WARNING):
+    def begin(self, event_id, logger_level=logging.NOTSET):
         """
         Prepare the reader to ingest the event with ID `event_id`. This resets the internal representation of the
         stations as well as the event ID. The timestamps are read from the LORA JSON file corresponding to the event.
@@ -379,8 +379,8 @@ class readLOFARData:
         ----------
         event_id: int
             The ID of the event to load.
-        logger_level : int, default=logging.WARNING
-            The logging level to use for the module.
+        logger_level : int, default=logging.NOTSET
+            Use this parameter to override the logging level for this module.
         """
         self.logger.setLevel(logger_level)
 

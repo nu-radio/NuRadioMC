@@ -26,9 +26,8 @@ class correlationDirectionFitter:
         self.__debug = None
         self.begin()
 
-    def begin(self, debug=False, log_level=None):
-        if(log_level is not None):
-            self.logger.setLevel(log_level)
+    def begin(self, debug=False, log_level=logging.NOTSET):
+        self.logger.setLevel(log_level)
         self.__debug = debug
 
     @register_run()
