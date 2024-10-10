@@ -31,6 +31,8 @@ import healpy
 import astropy.coordinates
 import astropy.units
 
+logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
+
 
 class channelGalacticNoiseAdder:
     """
@@ -80,7 +82,7 @@ class channelGalacticNoiseAdder:
             12 * n_side ** 2, so a larger value for n_side will result better accuracy
             but also greatly increase computing time.
         freq_range: array of len=2, default: [30, 80] * units.MHZ
-            The sky brightness temperature will be evaluated for the frequencies 
+            The sky brightness temperature will be evaluated for the frequencies
             within this limit. Brightness temperature for frequencies in between are
             calculated by interpolation the log10 of the temperature
             The interpolation_frequencies have to cover the entire passband

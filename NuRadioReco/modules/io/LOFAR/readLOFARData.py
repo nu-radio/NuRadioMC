@@ -21,7 +21,8 @@ from NuRadioReco.framework.parameters import stationParameters, showerParameters
 import NuRadioReco.modules.io.LOFAR.rawTBBio as rawTBBio
 import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as rawTBBio_metadata
 
-logger = logging.getLogger('NuRadioReco.readLOFARData')
+
+logger = logging.getLogger('NuRadioReco.LOFAR.readLOFARData')
 
 
 def get_metadata(filenames, metadata_dir):
@@ -173,7 +174,7 @@ def tbbID_to_nrrID(channel_id, mode):
     As of February 2024, this function only supports "LBA_INNER" and "LBA_OUTER" as possible antenna modes.
     Note that the antenna mode is always converted to lowercase, so the comparison is case-insensitive (i.e.
     "LBA_inner" and "LBA_INNER" are both recognised as the same antenna set).
-    
+
     Parameters
     ----------
     channel_id: str or int
@@ -217,7 +218,7 @@ def nrrID_to_tbbID(channel_id):
     This function does the opposite of :func:`tbbID_to_nrrID` . It returns the TBB channel ID given a NRR channel ID.
     Following the convention used in the LOFAR detector description as of February 2024, this simply replaces the
     fourth element of the channelID with a "0".
-    
+
     Parameters
     ------------
     channel_id: str or int
@@ -392,7 +393,7 @@ class readLOFARData:
     """
 
     def __init__(self, restricted_station_set=None, tbb_directory=None, json_directory=None, metadata_directory=None):
-        self.logger = logging.getLogger('NuRadioReco.readLOFARData')
+        self.logger = logger  # logging.getLogger('NuRadioReco.readLOFARData')
 
         self.tbb_dir = '/vol/astro5/lofar/astro3/vhecr/lora_triggered/data/' if tbb_directory is None else tbb_directory
         self.json_dir = '/vol/astro7/lofar/kratos_files/json' if json_directory is None else json_directory
@@ -503,7 +504,7 @@ class readLOFARData:
 
         return station_calibration_delays
 
-    def begin(self, event_id, logger_level=logging.WARNING):
+    def begin(self, event_id, logger_level=logging.NOTSET):
         """
         Prepare the reader to ingest the event with ID `event_id`. This resets the internal representation of the
         stations as well as the event ID. The timestamps are read from the LORA JSON file corresponding to the event.
@@ -514,8 +515,8 @@ class readLOFARData:
         ----------
         event_id: int
             The ID of the event to load.
-        logger_level : int, default=logging.WARNING
-            The logging level to use for the module.
+        logger_level : int, default=logging.NOTSET
+            Use this parameter to override the logging level for this module.
         """
         self.logger.setLevel(logger_level)
 
@@ -579,7 +580,7 @@ class readLOFARData:
     def run(self, detector, trace_length=65536):
         """
         Runs the reader with the provided detector. For every station that has files associated with it, a Station
-        object is created together with its channels (pulled from the detector description, depending on the antenna 
+        object is created together with its channels (pulled from the detector description, depending on the antenna
         set (LBA_OUTER/INNER)). Every channel also gets a group ID which is retrieved from the Detector description.
         For LOFAR we use the integer value of the even dipole number, so channels '001000000' and '001000001',
         which are the two dipoles composing one physical antenna, both get group ID 1000000.
@@ -602,7 +603,7 @@ class readLOFARData:
         # Add HybridShower to HybridInformation
         evt.get_hybrid_information().add_hybrid_shower(self.__hybrid_shower)
 
-        # update the detector to the event time 
+        # update the detector to the event time
         time = Time(self.__lora_timestamp, format='unix')
         detector.update(time)
 

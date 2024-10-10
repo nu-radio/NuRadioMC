@@ -10,7 +10,7 @@ from NuRadioReco.modules.io.LOFAR.readLOFARData import tbbID_to_nrrID, nrrID_to_
 from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.utilities import units
 
-logger = logging.getLogger('NuRadioReco.stationRFIFilter')
+logger = logging.getLogger('NuRadioReco.LOFAR.stationRFIFilter')
 
 def num_double_zeros(data, threshold=None, ave_shift=False):
     """if data is a numpy array, give number of points that have  zero preceded by a zero"""
@@ -163,10 +163,10 @@ def FindRFI_LOFAR(
     antenna_ids = tbb_file.get_antenna_names()
     antenna_ids = [id for id in antenna_ids if id not in flagged_antenna_ids]
     if pol is not None:
-        antenna_ids = [id for id in antenna_ids if int(id) % 2 == pol] # do one polarization 
+        antenna_ids = [id for id in antenna_ids if int(id) % 2 == pol] # do one polarization
     num_antennas = len(antenna_ids)
     #logger.info(antenna_ids)
-    
+
     # step one: find which blocks are good, and find average power
     oneAnt_data = np.zeros(rfi_cleaning_trace_length, dtype=np.double)  # initialize at zero
 
@@ -310,7 +310,7 @@ def FindRFI_LOFAR(
         if np.min(num_processed_blocks[antenna_is_good]) == num_blocks:
             break
 
-    logger.info(f"{num_blocks} analyzed blocks, {np.sum(antenna_is_good)} analyzed antennas out of {len(antenna_is_good)}") 
+    logger.info(f"{num_blocks} analyzed blocks, {np.sum(antenna_is_good)} analyzed antennas out of {len(antenna_is_good)}")
 
     # Get only good antennas
     antenna_is_good[
@@ -433,7 +433,8 @@ class stationRFIFilter:
     def metadata_dir(self, new_dir):
         self.__metadata_dir = new_dir
 
-    def begin(self, rfi_cleaning_trace_length=65536, reader=None, do_polarizations_apart=False, logger_level=logging.WARNING):
+    def begin(self, rfi_cleaning_trace_length=65536, reader=None, do_polarizations_apart=False,
+              logger_level=logging.NOTSET):
         """
         Set the variables used for RFI detection. The `reader` object can be used to retrieve the filenames associated
         with the loaded stations, as well as the metadata directory.
@@ -444,8 +445,8 @@ class stationRFIFilter:
             The number of samples to use per block to construct the frequency spectrum.
         reader : readLOFARData object, default=None
             If provided, the reader will be used to set the metadata directory and find the TBB files paths.
-        logger_level : int, default=logging.WARNING
-            The logging level to use for the module.
+        logger_level : int, default=logging.NOTSET
+            Use this parameter to override the logging level for this module.
 
         Notes
         -----
@@ -523,19 +524,19 @@ class stationRFIFilter:
 
                 # Extract the necessary information from FindRFI
                 dirty_channels_0 = packet0['dirty_channels']
-                dirty_channels_1 = packet1['dirty_channels']           
+                dirty_channels_1 = packet1['dirty_channels']
 
                 dirty_channels = list(set(dirty_channels_0) | set(dirty_channels_1))
-                packet = packet0 
-                packet['antenna_names'].extend(packet1['antenna_names']) 
+                packet = packet0
+                packet['antenna_names'].extend(packet1['antenna_names'])
                 packet['cleaned_power'] = np.concatenate( (packet['cleaned_power'], packet1['cleaned_power'])  )
-                
+
 
             station.set_parameter(stationParameters.dirty_fft_channels, dirty_channels)
 
             # implement outlier detection in cleaned power
-            antenna_ids = np.array(packet['antenna_names']) 
-            cleaned_power = packet['cleaned_power'] 
+            antenna_ids = np.array(packet['antenna_names'])
+            cleaned_power = packet['cleaned_power']
             median_dipole_power = np.median(cleaned_power)
             bad_dipole_indices = np.where(
                 np.logical_or(

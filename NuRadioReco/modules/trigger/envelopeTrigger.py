@@ -8,7 +8,7 @@ from NuRadioReco.framework.trigger import EnvelopeTrigger
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 
-logger = logging.getLogger('envelopeTrigger')
+logger = logging.getLogger('NuRadioReco.envelopeTrigger')
 
 
 def get_envelope_triggers(trace, threshold):  # define trigger constraint for each channel
@@ -137,7 +137,6 @@ class triggerSimulator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

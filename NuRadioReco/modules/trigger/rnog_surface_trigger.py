@@ -10,7 +10,7 @@ import copy
 import time
 import logging
 
-logger = logging.getLogger('rnog_surface_trigger')
+logger = logging.getLogger('NuRadioReco.rnog_surface_trigger')
 
 def schottky_diode(trace, threshold, temperature=250*units.kelvin, Vbias=2*units.volt):
     '''
@@ -196,7 +196,6 @@ class triggerSimulator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

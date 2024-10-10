@@ -1,6 +1,13 @@
 """ NuRadioMC: Simulating the radio emission of neutrinos from interaction to detector"""
 
 import os
+import logging
+
+from NuRadioReco.utilities.logging import NuRadioLogger, setup_logger
+
+logging.setLoggerClass(NuRadioLogger)
+setup_logger(name="NuRadioMC")
+
 try:
     import importlib.metadata as importlib_metadata
 except ModuleNotFoundError:
