@@ -154,7 +154,6 @@ class readCoREASShower:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         logger.info("\tcreate event structure {}".format(
