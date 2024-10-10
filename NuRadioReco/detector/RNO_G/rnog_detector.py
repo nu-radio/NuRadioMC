@@ -37,6 +37,9 @@ def _keys_not_in_dict(d, keys):
 
     Returns False if d["key1"]["key2"] exsits, True otherwise.
     """
+    if isinstance(keys, str):
+        keys = [keys]
+
     d_tmp = d
     for key in keys:
         try:
@@ -59,15 +62,16 @@ def _check_detector_time(method):
 
 
 class Detector():
-    def __init__(self, database_connection='RNOG_test_public', log_level=logging.NOTSET, over_write_handset_values={},
-                 database_time=None, always_query_entire_description=True, detector_file=None,
+    def __init__(self, database_connection='RNOG_public', log_level=logging.NOTSET, over_write_handset_values=None,
+                 database_time=None, always_query_entire_description=False, detector_file=None,
                  select_stations=None, create_new=False):
         """
+        The RNO-G detector description.
 
         Parameters
         ----------
 
-        database_connection : str (Default: 'RNOG_test_public')
+        database_connection : str (Default: 'RNOG_public')
             Allows to specify database connection. Passed to mongo-db interface.
 
         log_level : `logging.LOG_LEVEL` (Default: logging.NOTSET)
@@ -75,15 +79,18 @@ class Detector():
             Other options are: `logging.WARNING`, `logging.DEBUG`, ...
 
         over_write_handset_values : dict (Default: {})
-            Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
-            (Default: {}, the acutally default values for the parameters in question are defined below)
+            Overwrite the default values for (channel) parameters which are not (yet) implemented in the database.
+            You can not specify keys which already exist in the database. If the value is a dict it should be contain
+            a value for each channel_id (key). (Default: None, the acutally default values for the parameters in question
+            are defined below)
 
         database_time : `datetime.datetime` or `astropy.time.Time`
             Set database time which is used to select the primary measurement. By default (= None) the database time
             is set to now (time the code is running) to select the measurement which is now primary.
 
-        always_query_entire_description : bool (Default: True)
+        always_query_entire_description : bool (Default: False)
             If True, query the entire detector describtion all at once when calling Detector.update(...) (if necessary).
+            This value is currently set to ``False`` by default to avoid errors due to missing information in the database.
 
         detector_file : str
             File to import detector description instead of querying from DB. (Default: None -> query from DB)
@@ -96,13 +103,19 @@ class Detector():
         create_new : bool (Default: False)
             If False, and a database already exists, the existing database will be used rather than initializing a
             new connection. Set to True to create a new database connection.
+
+        Notes
+        -----
+        For more information about ``Detector`` objects in NuRadioMC, see
+        https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/detector_tree.html
+
         """
 
-        self.logger = logging.getLogger("NuRadioReco.RNOGdetector")
+        self.logger = logging.getLogger("NuRadioReco.RNOGDetector")
         self.__log_level = log_level
         self.logger.setLevel(self.__log_level)
 
-        # Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.
+        # Define default values for parameter not (yet) implemented in DB.
         self.__default_values = {
             "noise_temperature": 300 * units.kelvin,
             "is_noiseless": False,
@@ -155,17 +168,22 @@ class Detector():
             self._import_from_file(detector_file)
 
         # Allow overwriting the hard-coded values
+        over_write_handset_values = over_write_handset_values or {}
         self.__default_values.update(over_write_handset_values)
 
         info = f"Query entire detector description at once: {self._query_all}"
 
         info += "\nUsing the following hand-set values:"
+        n = np.amax([len(key) for key in self.__default_values.keys()]) + 3
         for key, value in self.__default_values.items():
-            info += f"\n\t{key:<20}: {value}"
+            info += f"\n\t{key:<{n}}: {value}"
 
         self.logger.info(info)
 
-    def export(self, filename, json_kwargs=None):
+        self.assume_inf = None  # Compatibility with other detectors classes
+        self.antenna_by_depth = None  # Compatibility with other detectors classes
+
+    def export(self, filename, json_kwargs=None, additional_data=None):
         """
         Export the buffered detector description.
 
@@ -177,6 +195,9 @@ class Detector():
 
         json_kwargs: dict
             Arguments passed to json.dumps(..). (Default: None -> dict(indent=0, default=_json_serial))
+
+        additional_data: dict (Default: None)
+            If specified the content of this dict will be added to the exported detector description.
         """
 
         periods = {}
@@ -191,10 +212,11 @@ class Detector():
             if idx == 0 or idx == len(self._time_periods_per_station[station_id]["modification_timestamps"]):
                 self.logger.error("You try to export a decomissioned station")
 
-            periods[station_id] = {"modification_timestamps":
-                                   [self._time_periods_per_station[station_id]["modification_timestamps"][idx - 1],
-                                    self._time_periods_per_station[station_id]["modification_timestamps"][idx]]
-                                   }
+            periods[station_id] = {
+                "modification_timestamps":
+                    [self._time_periods_per_station[station_id]["modification_timestamps"][idx - 1],
+                    self._time_periods_per_station[station_id]["modification_timestamps"][idx]]
+            }
 
         export_dict = {
             "version": 1,
@@ -202,6 +224,9 @@ class Detector():
             "periods": periods,
             "default_values": self.__default_values
         }
+
+        if additional_data is not None:
+            export_dict["additional_data"] = additional_data
 
         if not filename.endswith(".xz"):
             if not filename.endswith(".json"):
@@ -259,6 +284,7 @@ class Detector():
 
         if "version" in import_dict and import_dict["version"] == 1:
             self.__buffered_stations = {}
+            self.additional_data = import_dict.get("additional_data", None)
 
             # need to convert station/channel id keys back to integers
             for station_id, station_data in import_dict["data"].items():
@@ -595,7 +621,20 @@ class Detector():
             Dictionary of channel parameters
         """
         self.get_signal_chain_response(station_id, channel_id)  # this adds `total_response` to dict
-        return self.__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True)
+        # Since we are not actually overwritting existing values we can use a shallow copy
+        channel_data = copy.copy(self.__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True))
+
+        for key in self.__default_values:
+
+            if key in channel_data:
+                raise ValueError(f"{key} already in channel data. You can not update this in the this detector class. Use the ModDetector class.")
+
+            if isinstance(self.__default_values[key], dict):
+                channel_data[key] = self.__default_values[key][channel_id]
+            else:
+                channel_data[key] = self.__default_values[key]
+
+        return channel_data
 
     @_check_detector_time
     def get_station(self, station_id):
@@ -755,9 +794,12 @@ class Detector():
     @_check_detector_time
     def get_amplifier_response(self, station_id, channel_id, frequencies):
         """
-        Returns the complex response function (for the passed frequencies)
-        for the entire signal chain of a channel. I.e., this includes not
-        only the (main) amplifier but also cables and other components.
+        Returns the complex response function for the entire signal chain of a channel.
+
+        This includes not only the (main) amplifier but also cables and other components.
+        Note that while group delays are appropriately accounted for, an overall time delay
+        (mostly due to cable delay) has been removed and is instead accounted for by
+        `get_time_delay`.
 
         Parameters
         ----------
@@ -776,6 +818,11 @@ class Detector():
 
         response: array of complex floats
             Complex response function
+
+
+        See Also
+        --------
+        get_time_delay
         """
         response_func = self.get_signal_chain_response(station_id, channel_id)
         return response_func(frequencies)
@@ -814,14 +861,16 @@ class Detector():
             is_equal = False
             if "drab_board" in components and "iglu_board" in components:
 
-                is_equal = np.allclose(measurement_components_dic["drab_board"]["mag"],
-                                       measurement_components_dic["iglu_board"]["mag"])
+                is_equal = np.allclose(
+                    measurement_components_dic["drab_board"]["mag"],
+                    measurement_components_dic["iglu_board"]["mag"])
 
                 if is_equal:
-                    self.logger.warn(f"Station.channel {station_id}.{channel_id}: Currently both, "
-                                      "iglu and drab board are configured in the signal chain but their "
-                                      "responses are the same (because we measure them together in the lab). "
-                                      "Skip the drab board response.")
+                    self.logger.warn(
+                        f"Station.channel {station_id}.{channel_id}: Currently both, "
+                        "iglu and drab board are configured in the signal chain but their "
+                        "responses are the same (because we measure them together in the lab). "
+                        "Skip the drab board response.")
 
             responses = []
             for key, value in measurement_components_dic.items():
@@ -833,6 +882,8 @@ class Detector():
                 if "weight" not in value:
                     self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
                 weight = value.get("weight", 1)
+
+                attenuator = value.get("attenuator", 0)
 
                 if "time_delay" in value:
                     time_delay = value["time_delay"]
@@ -847,8 +898,8 @@ class Detector():
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
                                     time_delay=time_delay, weight=weight, name=key,
                                     station_id=station_id, channel_id=channel_id,
-                                    log_level=self.__log_level)
-
+                                    log_level=self.__log_level,
+                                    attenuator_in_dB=attenuator)
 
                 responses.append(response)
 
@@ -1086,17 +1137,20 @@ class Detector():
         return int(self.__buffered_stations[station_id]['number_of_samples'])
 
 
-    def get_sampling_frequency(self, station_id, channel_id):
+    def get_sampling_frequency(self, station_id, channel_id=None):
         """ Get sampling frequency per station / channel
 
         All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep
-        it here for consistency with outer detector classes.
+        it here for consistency with other detector classes.
 
         Parameters
         ----------
 
         station_id: int
             Station id
+
+        channel_id: int (default: None)
+            Not Used!
 
         Returns
         -------
@@ -1118,38 +1172,29 @@ class Detector():
 
     def get_noise_temperature(self, station_id, channel_id):
         """ Get noise temperture per station / channel """
-        noise_temperature = self.__default_values["noise_temperature"]
-        if isinstance(noise_temperature, float):
-            self.logger.warn(
-                f"Return a hard-coded value for the noise temperature of {noise_temperature / units.kelvin} K. "
-                "This information is not (yet) implemented in the DB.")
-            return noise_temperature
-        elif isinstance(noise_temperature, dict):
-            self.logger.warn(
-                f"Return a hard-coded value for the noise temperature of {noise_temperature / units.kelvin} K for channel {channel_id}. "
-                "This information is not (yet) implemented in the DB.")
-            return noise_temperature[channel_id]
-        else:
-            raise ValueError("Unkown type for hard-coded value")
+        noise_temperature = self.get_channel(station_id, channel_id)["noise_temperature"]
+        return noise_temperature
 
     def is_channel_noiseless(self, station_id, channel_id):
-        is_noiseless = self.__default_values["is_noiseless"]
-        self.logger.warn(
-            f"Return a hard-coded value for \"is_noiseless\" of {is_noiseless} for all stations / channels. "
-            "This information is not (yet) implemented in the DB.")
+        is_noiseless = self.get_channel(station_id, channel_id)["is_noiseless"]
         return is_noiseless
 
 
     def get_cable_delay(self, station_id, channel_id, use_stored=True):
         """
         Return the cable delay of a signal chain as stored in the detector description.
-        This interface is required by simulation.py. See get_time_delay for description of
+
+        This interface is required by simulation.py. See `get_time_delay` for description of
         arguments.
         """
-        return self.get_time_delay(station_id, channel_id, cable_only=True, use_stored=use_stored)
+        # FS: For the RNO-G detector description it is not easy to determine the cable delay alone
+        # because it is not clear which reference components may need to be substraced.
+        # However, having the cable delay without amplifiers is anyway weird.
+        return self.get_time_delay(station_id, channel_id, cable_only=False, use_stored=use_stored)
 
     def get_time_delay(self, station_id, channel_id, cable_only=False, use_stored=True):
-        """ Return the sum of the time delay of all components in the signal chain calculated from the phase
+        """
+        Return the sum of the time delay of all components in the signal chain calculated from the phase
 
         Parameters
         ----------
@@ -1179,20 +1224,21 @@ class Detector():
         time_delay = 0
         for key, value in signal_chain_dict["response_chain"].items():
 
-            if re.search("cable", key) is None and cable_only:
+            if re.search("cable", key) is None and re.search("fiber", key) and cable_only:
                 continue
 
+            weight = value.get("weight", 1)
             if use_stored:
-                if "time_delay" not in value or "cable_delay" not in value:
+                if "time_delay" not in value and "cable_delay" not in value:
                     self.logger.warning(
                         f"The signal chain component \"{key}\" of station.channel "
-                        f"{station_id}.{channel_id} has no cable/time delay stored... Skip it")
+                        f"{station_id}.{channel_id} has no cable/time delay stored... (hence return time delay without it)")
                     continue
 
                 try:
-                    time_delay += value["time_delay"]
+                    time_delay += weight * value["time_delay"]
                 except KeyError:
-                    time_delay += value["cable_delay"]
+                    time_delay += weight * value["cable_delay"]
 
             else:
                 ydata = [value["mag"], value["phase"]]
@@ -1200,7 +1246,7 @@ class Detector():
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
-                time_delay += response._get_time_delay()
+                time_delay += weight * response._calculate_time_delay()
 
         return time_delay
 
