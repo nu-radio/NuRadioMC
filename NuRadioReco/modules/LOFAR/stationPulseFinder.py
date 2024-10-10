@@ -52,7 +52,7 @@ class stationPulseFinder:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger('NuRadioReco.stationPulseFinder')
+        self.logger = logging.getLogger('NuRadioReco.LOFAR.stationPulseFinder')
 
         self.__window_size = None
         self.__noise_away_from_pulse = None

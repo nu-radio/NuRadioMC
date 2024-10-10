@@ -10,7 +10,7 @@ import copy
 import time
 import logging
 
-logger = logging.getLogger('rnog_surface_trigger')
+logger = logging.getLogger('NuRadioReco.rnog_surface_trigger')
 
 def schottky_diode(trace, threshold, temperature=250*units.kelvin, Vbias=2*units.volt):
     '''

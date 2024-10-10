@@ -1,7 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 import time
 import logging
-logger = logging.getLogger('efieldAirToIcePropagator')
+logger = logging.getLogger('NuRadioReco.efieldAirToIcePropagator')
 
 
 class efieldAirToIcePropagator:

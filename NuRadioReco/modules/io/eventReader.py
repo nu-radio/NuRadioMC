@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io import NuRadioRecoio
 import logging
-logger = logging.getLogger('eventReader')
+logger = logging.getLogger('NuRadioReco.eventReader')
 
 
 class eventReader:

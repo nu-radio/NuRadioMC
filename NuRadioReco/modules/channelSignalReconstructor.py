@@ -9,7 +9,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
 import logging
-logger = logging.getLogger('channelSignalReconstructor')
+logger = logging.getLogger('NuRadioReco.channelSignalReconstructor')
 
 
 class channelSignalReconstructor:

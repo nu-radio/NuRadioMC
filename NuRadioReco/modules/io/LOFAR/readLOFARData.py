@@ -20,7 +20,7 @@ import NuRadioReco.modules.io.LOFAR.rawTBBio as rawTBBio
 import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as rawTBBio_metadata
 
 
-logger = logging.getLogger('NuRadioReco.readLOFARData')
+logger = logging.getLogger('NuRadioReco.LOFAR.readLOFARData')
 
 
 def get_metadata(filenames, metadata_dir):
@@ -287,7 +287,7 @@ class readLOFARData:
         The path to the directory containing the LOFAR metadata (antenna positions and timing calibrations).
     """
     def __init__(self, restricted_station_set=None, tbb_directory=None, json_directory=None, metadata_directory=None):
-        self.logger = logging.getLogger('NuRadioReco.readLOFARData')
+        self.logger = logger  # logging.getLogger('NuRadioReco.readLOFARData')
 
         self.tbb_dir = '/vol/astro3/lofar/vhecr/lora_triggered/data/' if tbb_directory is None else tbb_directory
         self.json_dir = '/vol/astro7/lofar/kratos_files/json' if json_directory is None else json_directory

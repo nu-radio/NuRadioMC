@@ -56,7 +56,7 @@ class stationGalacticCalibrator:
     `paper <https://arxiv.org/pdf/1903.05988.pdf>`_ .
     """
     def __init__(self, experiment='LOFAR_LBA'):
-        self.logger = logging.getLogger('NuRadioReco.stationGalacticCalibrator')
+        self.logger = logging.getLogger('NuRadioReco.LOFAR.stationGalacticCalibrator')
 
         self.__experiment = experiment
 

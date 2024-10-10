@@ -8,7 +8,7 @@ import scipy
 import numpy as np
 from scipy import constants
 
-logger = logging.getLogger('phasedTriggerSimulator')
+logger = logging.getLogger('NuRadioReco.phasedTriggerSimulator')
 
 cspeed = constants.c * units.m / units.s
 

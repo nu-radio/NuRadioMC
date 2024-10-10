@@ -5,7 +5,7 @@ import logging
 from NuRadioReco.framework.trigger import IntegratedPowerTrigger
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
 
-logger = logging.getLogger('ARAtriggerSimulator')
+logger = logging.getLogger('NuRadioReco.ARA.triggerSimulator')
 
 
 class triggerSimulator:

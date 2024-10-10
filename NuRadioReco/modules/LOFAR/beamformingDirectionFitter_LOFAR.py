@@ -44,7 +44,7 @@ class beamformingDirectionFitter:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger("NuRadioReco.beamFormingDirectionFitter")
+        self.logger = logging.getLogger("NuRadioReco.LOFAR.beamFormingDirectionFitter")
 
         self.__max_iter = None
         self.__cr_snr = None

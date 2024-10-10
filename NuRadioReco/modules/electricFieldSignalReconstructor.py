@@ -10,7 +10,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import logging
-logger = logging.getLogger('stationSignalReconstructor')
+logger = logging.getLogger('NuRadioReco.stationSignalReconstructor')
 
 
 class electricFieldSignalReconstructor:
