@@ -2,7 +2,7 @@ from subprocess import Popen, PIPE
 import os
 import re
 import logging
-logger = logging.getLogger("utilities.version")
+logger = logging.getLogger("NuRadioReco.utilities.version")
 logging.basicConfig()
 
 

@@ -194,7 +194,7 @@ class readRNOGData:
                 pass
 
         """
-        self.logger = logging.getLogger('NuRadioReco.readRNOGData')
+        self.logger = logging.getLogger('NuRadioReco.RNOG.readRNOGData')
         self.logger.setLevel(log_level)
 
         self._blockoffsetfitter = channelBlockOffsets()

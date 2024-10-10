@@ -7,7 +7,7 @@ import time
 import logging
 from scipy import signal
 from NuRadioReco.utilities import fft
-logger = logging.getLogger('calculateAmplitudePerRaySolution')
+logger = logging.getLogger('NuRadioReco.calculateAmplitudePerRaySolution')
 
 
 class calculateAmplitudePerRaySolution:

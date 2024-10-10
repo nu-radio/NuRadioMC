@@ -10,7 +10,7 @@ import time
 import re
 import os
 import logging
-logger = logging.getLogger('readCoREASShower')
+logger = logging.getLogger('NuRadioReco.coreas.readCoREASShower')
 
 
 class readCoREASShower:

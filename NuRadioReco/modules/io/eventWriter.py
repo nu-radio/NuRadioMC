@@ -5,7 +5,7 @@ from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
 import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.detector import generic_detector
-logger = logging.getLogger("eventWriter")
+logger = logging.getLogger("NuRadioReco.eventWriter")
 
 
 def get_header(evt):

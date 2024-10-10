@@ -4,7 +4,7 @@ import numpy as np
 import time
 import logging
 
-logger = logging.getLogger("hardwareResponseIncorporator")
+logger = logging.getLogger("NuRadioReco.ARA.hardwareResponseIncorporator")
 
 
 class hardwareResponseIncorporator:

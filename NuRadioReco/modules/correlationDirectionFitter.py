@@ -22,7 +22,7 @@ class correlationDirectionFitter:
         self.__azimuth = []
         self.__delta_zenith = []
         self.__delta_azimuth = []
-        self.logger = logging.getLogger('correlationDirectionFitter')
+        self.logger = logging.getLogger('NuRadioReco.correlationDirectionFitter')
         self.__debug = None
         self.begin()
 

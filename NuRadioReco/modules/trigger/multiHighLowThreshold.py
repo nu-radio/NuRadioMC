@@ -6,7 +6,7 @@ from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('multiHighLowTrigger')
+logger = logging.getLogger('NuRadioReco.multiHighLowTrigger')
 
 
 def get_high_triggers(trace, threshold):

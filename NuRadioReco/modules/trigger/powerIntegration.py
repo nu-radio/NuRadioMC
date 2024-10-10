@@ -6,7 +6,7 @@ from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('powerIntegrationTrigger')
+logger = logging.getLogger('NuRadioReco.powerIntegrationTrigger')
 
 
 def get_power_int_triggers(trace, threshold, window=10 * units.ns, dt=1 * units.ns, full_output=False):

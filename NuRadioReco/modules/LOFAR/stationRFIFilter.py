@@ -9,7 +9,7 @@ from NuRadioReco.modules.io.LOFAR.rawTBBio import MultiFile_Dal1
 from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.utilities import units
 
-logger = logging.getLogger('NuRadioReco.stationRFIFilter')
+logger = logging.getLogger('NuRadioReco.LOFAR.stationRFIFilter')
 
 
 def num_double_zeros(data, threshold=None, ave_shift=False):
