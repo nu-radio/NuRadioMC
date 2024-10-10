@@ -426,6 +426,12 @@ class TBBData_Dal1:
         initial_point = self.sample_offsets[antenna_index] + start_index
         final_point = initial_point + num_points
 
+        if final_point > len(self.file[self.stationKey][antenna_ID]):
+            raise IndexError(
+                "Data point", final_point,
+                "is off end of file with length", len(self.file[self.stationKey][antenna_ID]),
+            )
+
         return self.file[self.stationKey][antenna_ID][initial_point:final_point]
 
 
@@ -697,19 +703,19 @@ class MultiFile_Dal1:
         odd_delays = all_antenna_calibrations[1::2]
         odd_offset = odd_delays - even_delays
         median_odd_offset = np.median(odd_offset)
-        if verbose:
-            print("median offset is:", median_odd_offset)
+        logger.info("median offset is:", median_odd_offset)
+
         below_tolerance = np.abs(odd_offset - median_odd_offset) < tolerance
-        if verbose:
-            print(
-                np.sum(below_tolerance),
-                "antennas below tolerance.",
-                len(below_tolerance) - np.sum(below_tolerance),
-                "above.",
-            )
+        logger.info(
+            np.sum(below_tolerance),
+            "antennas below tolerance.",
+            len(below_tolerance) - np.sum(below_tolerance),
+            "above.",
+        )
+
         ave_best_offset = np.average(odd_offset[below_tolerance])
-        if verbose:
-            print("average of below-tolerance offset is:", ave_best_offset)
+        logger.info("average of below-tolerance offset is:", ave_best_offset)
+
         self.set_odd_polarization_delay(-ave_best_offset)
 
         above_tolerance = np.zeros(len(all_antenna_calibrations), dtype=bool)
@@ -960,11 +966,9 @@ class MultiFile_Dal1:
         antenna_ID = self.dipoleNames[antenna_index]
 
         if final_point > len(TBB_file.file[TBB_file.stationKey][antenna_ID]):
-            print(
-                "WARNING! data point",
-                final_point,
-                "is off end of file",
-                len(TBB_file.file[TBB_file.stationKey][antenna_ID]),
+            raise IndexError(
+                "Data point", final_point,
+                "is off end of file with length", len(TBB_file.file[TBB_file.stationKey][antenna_ID]),
             )
 
         return TBB_file.file[TBB_file.stationKey][antenna_ID][initial_point:final_point]
