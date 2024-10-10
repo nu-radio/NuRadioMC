@@ -47,7 +47,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
     that have only changing refractive index in z. More information on RadioPropa and
     how to install it can be found at https://github.com/nu-radio/RadioPropa"""
 
-    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.NOTSET,
                  n_frequencies_integration=100, n_reflections=0, config=None, detector=None):
 
         """
@@ -67,7 +67,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             * logging.INFO
             * logging.DEBUG
 
-            default is WARNING
+            default is NOTSET (follow global log level)
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
@@ -88,7 +88,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 config['propagation']['radiopropa']['iter_steps_zenith'] = [.5, .05, .005]
         detector: detector object
         """
-        self.__logger = logging.getLogger('radiopropa_ray_tracing')
+        self.__logger = logging.getLogger('NuRadioMC.SignalProp.radiopropa_ray_tracing')
         self.__logger.setLevel(log_level)
 
         try:
