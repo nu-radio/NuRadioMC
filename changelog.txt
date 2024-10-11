@@ -32,6 +32,8 @@ loaded again when reading in the Detector from a nur file
 - Implemented mattak dataset iterator in readRNOGDataMattak.run()
 - Fixed bug in phased-array noise generation script where the sign of the time delays was being ignored
 for the phasing_mode == "slice"
+- Improved logging: created NuRadioLogger class which is now used by default, the NRR and NRMC loggers
+are created automatically when importing the packages, and a new STATUS logging level was added.
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
