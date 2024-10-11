@@ -12,7 +12,6 @@ import NuRadioReco.utilities.metaclasses
 import astropy.time
 
 import logging
-logging.basicConfig()
 logger = logging.getLogger("NuRadioReco.MongoDBRead")
 logger.setLevel(logging.INFO)
 
