@@ -32,6 +32,7 @@ loaded again when reading in the Detector from a nur file
 - Implemented mattak dataset iterator in readRNOGDataMattak.run()
 - Fixed bug in phased-array noise generation script where the sign of the time delays was being ignored
 for the phasing_mode == "slice"
+- Add new cw filter module to NuRadioReco using notch filters on peaks in the frequency spectrum
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
