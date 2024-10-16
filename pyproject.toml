@@ -56,6 +56,7 @@ crflux = "*"
 pandas = "*"
 mattak = {git = "https://github.com/RNO-G/mattak"}
 runtable = {git = "ssh://git@github.com/RNO-G/rnog-runtable.git"}
+cr-pulse-interpolator = {git = "https://github.com/nu-radio/cr-pulse-interpolator"}
 
 [tool.poetry.extras]
 documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
@@ -64,3 +65,4 @@ galacticnoise = ['pygdsm']
 ift_reco = ['nifty5', 'pypocketfft']
 muon_flux_calc = ['MCEq', 'crflux']
 RNO_G_DATA = ["mattak", "runtable", "pandas"]
+cr_interpolator = ['cr-pulse-interpolator']

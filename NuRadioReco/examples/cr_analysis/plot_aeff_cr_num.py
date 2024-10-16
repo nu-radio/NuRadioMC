@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
 import NuRadioReco.utilities.cr_flux as hcr
 
-filename = 'results/air_shower/dict_air_shower_pb_80_180_e7_z9_d2_4000.json'
+filename = ''
 
 with open(filename, 'r') as fp:
     data = json.load(fp)
@@ -18,17 +18,6 @@ trigger_effective_area = np.array(data['trigger_effective_area'])
 trigger_effective_area_err = np.array(data['trigger_effective_area_err'])
 trigger_weight = np.array(data['triggered_trigger_weight'])
 
-### choose only some energy and zenith bins for plotting
-chosen_energy_bins = [0, -1]
-chosen_zenith_bins = [0, 8]
-
-trigger_effective_area = trigger_effective_area[chosen_energy_bins[0]:chosen_energy_bins[1],chosen_zenith_bins[0]:chosen_zenith_bins[1]]
-trigger_effective_area_err = trigger_effective_area_err[chosen_energy_bins[0]:chosen_energy_bins[1],chosen_zenith_bins[0]:chosen_zenith_bins[1]]
-trigger_weight = trigger_weight[chosen_energy_bins[0]:chosen_energy_bins[1],chosen_zenith_bins[0]:chosen_zenith_bins[1]]
-energy_bins_low = energy_bins_low[chosen_energy_bins[0]:chosen_energy_bins[1]]
-energy_bins_high = energy_bins_high[chosen_energy_bins[0]:chosen_energy_bins[1]]
-zenith_bins_low = zenith_bins_low[chosen_zenith_bins[0]:chosen_zenith_bins[1]]
-zenith_bins_high = zenith_bins_high[chosen_zenith_bins[0]:chosen_zenith_bins[1]]
 
 steradian = []
 weight_det = []
