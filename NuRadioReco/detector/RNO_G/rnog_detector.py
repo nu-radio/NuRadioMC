@@ -1203,23 +1203,24 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
-        if use_stored and not cable_only:
+        if use_stored:
             resp = self.get_signal_chain_response(station_id, channel_id)
-            return resp.get_time_delay()
-        elif use_stored and cable_only:
-            time_delays = resp.get_time_delays()
-            names = resp.get_names()
-            time_delay = 0
-            for name, dt in zip(names, time_delays):
-                if re.search("cable", name) is None and re.search("fiber", name):
-                    continue
-                time_delay += dt
-            return time_delay
+            if not cable_only:
+                return resp.get_time_delay()
+            else:
+                time_delays = resp.get_time_delays()
+                names = resp.get_names()
+                time_delay = 0
+                for name, dt in zip(names, time_delays):
+                    if re.search("cable", name) is None and re.search("fiber", name) is None:
+                        continue
+                    time_delay += dt
+                return time_delay
         else:
             time_delay = 0
             for key, value in signal_chain_dict["response_chain"].items():
 
-                if re.search("cable", key) is None and re.search("fiber", key) and cable_only:
+                if re.search("cable", key) is None and re.search("fiber", key) is None and cable_only:
                     continue
 
                 ydata = [value["mag"], value["phase"]]
