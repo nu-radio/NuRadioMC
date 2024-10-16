@@ -805,8 +805,15 @@
                                 <span class="n">err</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Station time not stored as dict or astropy.time.Time: (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
                                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
                                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
-
-                            <span class="n">station_time</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="s1">&#39;isot&#39;</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">station_time</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="s1">&#39;isot&#39;</span>
+                            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                                <span class="k">try</span><span class="p">:</span>
+                                    <span class="n">station_time</span><span class="o">.</span><span class="n">precision</span> <span class="o">=</span> <span class="n">station_time</span><span class="o">.</span><span class="n">_time</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span>
+                                    <span class="n">station_time</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="s1">&#39;isot&#39;</span>
+                                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;setting format to &#39;isot&#39; resulted in error.&quot;</span><span class="p">)</span>
+                                    <span class="k">pass</span>
 
                         <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">station_time</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
