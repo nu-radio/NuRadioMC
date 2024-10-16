@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+import time
 import numpy as np
 from scipy import signal
 from NuRadioReco.utilities import units
@@ -87,10 +90,9 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=
     freqs = find_frequency_peaks(freq, spectrum, threshold=threshold)
 
     if len(freqs):
-        notch_filters = [signal.iirnotch(freq, quality_factor, fs = fs) for freq in freqs]
-        trace_notched = signal.filtfilt(notch_filters[0][0], notch_filters[0][1], trace)
-        for notch in notch_filters[1:]:
-            trace_notched = signal.filtfilt(notch[0], notch[1], trace_notched)
+        notch_filters = np.array([signal.iirnotch(freq, quality_factor, fs = fs) for freq in freqs]).reshape(-1, 6)
+        logging.debug(f"Shape of notch filters for one channel is: {notch_filters.shape}")
+        trace_notched = signal.sosfiltfilt(notch_filters, trace, padtype = None)
         return trace_notched
 
     return trace
@@ -183,6 +185,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="%(prog)s", usage="cw filter test")
     parser.add_argument("--station", type=int, default=24)
+    parser.add_argument("--channel", type = int, default = 0)
     parser.add_argument("--run", type=int, default=1)
 
     parser.add_argument("--quality_factor", type=int, default=1e3)
@@ -200,7 +203,8 @@ if __name__ == "__main__":
 
     root_dirs = f"{data_dir}/station{args.station}/run{args.run}"
     rnog_reader.begin(root_dirs,
-                      convert_to_voltage=True,                    # linear voltage calibration
+                      # linear voltage calibration
+                      convert_to_voltage=True,
                       mattak_kwargs=dict(backend="uproot"))
 
     channelCWNotchFilter = channelCWNotchFilter()
@@ -211,11 +215,13 @@ if __name__ == "__main__":
         station = event.get_station(station_id)
 
         fig, axs = plt.subplots(1, 2, figsize=(14, 6))
-        plot_trace(station.get_channel(0), axs[0], label="before")
-        plot_ft(station.get_channel(0), axs[1], label="before")
+        plot_trace(station.get_channel(args.channel), axs[0], label="before")
+        plot_ft(station.get_channel(args.channel), axs[1], label="before")
+        t0 = time.time()
         channelCWNotchFilter.run(event, station, det=0)
-        plot_trace(station.get_channel(0), axs[0], label="after")
-        plot_ft(station.get_channel(0), axs[1], label="after")
+        logger.debug(f"Filter took {time.time() - t0} s to run.")
+        plot_trace(station.get_channel(args.channel), axs[0], label="after")
+        plot_ft(station.get_channel(args.channel), axs[1], label="after")
         
         if args.save_dir is None:
             fig_dir = os.path.abspath(f"{__file__}/../../test")
@@ -224,4 +230,4 @@ if __name__ == "__main__":
 
 
         fig.savefig(f"{fig_dir}/test_cw_filter", bbox_inches="tight")
-        break
+        break   
