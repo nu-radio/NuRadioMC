@@ -15,8 +15,7 @@ try:
 except ImportError:
     numba_available = False
 
-logger = logging.getLogger("SignalGen.ARZ")
-logging.basicConfig()
+logger = logging.getLogger("NuRadioMC.SignalGen.ARZ")
 # logger.setLevel(logging.INFO)
 
 ######################

@@ -14,7 +14,7 @@ except ImportError:
 import logging
 import collections
 
-logger = logging.getLogger('BaseStation')
+logger = logging.getLogger('NuRadioReco.BaseStation')
 
 
 class BaseStation():
