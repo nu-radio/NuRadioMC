@@ -630,9 +630,8 @@
 <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.propagation_base_class</span> <span class="kn">import</span> <span class="n">ray_tracing_base</span>
 <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.propagation</span> <span class="kn">import</span> <span class="n">solution_types</span><span class="p">,</span> <span class="n">solution_types_revert</span>
 
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities.logging</span> <span class="kn">import</span> <span class="n">LOGGING_STATUS</span><span class="p">,</span> <span class="n">setup_logger</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.analytic_ray_tracing&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.analytic_ray_tracing&quot;</span><span class="p">)</span>
 
 <span class="c1"># check if CPP implementation is available</span>
 <span class="n">cpp_available</span> <span class="o">=</span> <span class="kc">False</span>
@@ -706,7 +705,7 @@
 <div class="viewcode-block" id="ray_tracing_2D"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D">[docs]</a><span class="k">class</span> <span class="nc">ray_tracing_2D</span><span class="p">(</span><span class="n">ray_tracing_base</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span>
-                 <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+                 <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
                  <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
                  <span class="n">use_optimized_start_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">overwrite_speedup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -721,7 +720,7 @@
 <span class="sd">        attenuation_model: string</span>
 <span class="sd">            specifies which attenuation model to use (default &#39;SP1&#39;)</span>
 <span class="sd">        log_level: logging.loglevel object</span>
-<span class="sd">            controls verbosity (default WARNING)</span>
+<span class="sd">            Overrides verbosity (default NOTSET)</span>
 <span class="sd">        n_frequencies_integration: int</span>
 <span class="sd">            specifies for how many frequencies the signal attenuation is being calculated</span>
 <span class="sd">        use_optimized_start_value: bool</span>
@@ -749,7 +748,8 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;attenuation model </span><span class="si">{}</span><span class="s2"> is not implemented&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model_int</span> <span class="o">=</span> <span class="n">attenuation_util</span><span class="o">.</span><span class="n">model_to_int</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__b</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">n_ice</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ray_tracing_2D&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ray_tracing_2D&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_frequencies_integration</span> <span class="o">=</span> <span class="n">n_frequencies_integration</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__use_optimized_start_values</span> <span class="o">=</span> <span class="n">use_optimized_start_values</span>
 
@@ -2386,7 +2386,7 @@
 <span class="sd">    ray tracing solutions in 3D for two arbitrary points x1 and x2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
                  <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ray_tracing_2D_kwards</span><span class="o">=</span><span class="p">{},</span>
                  <span class="n">use_cpp</span><span class="o">=</span><span class="n">cpp_available</span><span class="p">):</span>
@@ -2412,7 +2412,7 @@
 <span class="sd">            * logging.INFO</span>
 <span class="sd">            * logging.DEBUG</span>
 
-<span class="sd">            default is WARNING</span>
+<span class="sd">            default is NOTSET (global control)</span>
 <span class="sd">        </span>
 <span class="sd">        n_frequencies_integration: int</span>
 <span class="sd">            the number of frequencies for which the frequency dependent attenuation</span>
@@ -2442,7 +2442,8 @@
 <span class="sd">            default: True if CPP version is available</span>
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ray_tracing_analytic&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ray_tracing_analytic&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="kn">from</span> <span class="nn">NuRadioMC.utilities.medium_base</span> <span class="kn">import</span> <span class="n">IceModelSimple</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">medium</span><span class="p">,</span> <span class="n">IceModelSimple</span><span class="p">):</span>

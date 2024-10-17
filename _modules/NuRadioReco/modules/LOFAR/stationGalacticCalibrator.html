@@ -660,7 +660,7 @@
 <span class="sd">    `paper &lt;https://arxiv.org/pdf/1903.05988.pdf&gt;`_ .</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="o">=</span><span class="s1">&#39;LOFAR_LBA&#39;</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.stationGalacticCalibrator&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.LOFAR.stationGalacticCalibrator&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__experiment</span> <span class="o">=</span> <span class="n">experiment</span>
 
@@ -670,15 +670,15 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
-<div class="viewcode-block" id="stationGalacticCalibrator.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationGalacticCalibrator.html#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
+<div class="viewcode-block" id="stationGalacticCalibrator.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationGalacticCalibrator.html#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads the experimental parameters (such as longitude and latitude) as well as the Galactic calibration</span>
 <span class="sd">        curves and Fourier coefficients from the directory `NuRadioReco/utilities/data/`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        logger_level : int, default=logging.WARNING</span>
-<span class="sd">            The logging level to use for the module.</span>
+<span class="sd">        logger_level : int, default=logging.NOTSET</span>
+<span class="sd">            Use this parameter to override the logging level for this module.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logger_level</span><span class="p">)</span>
 

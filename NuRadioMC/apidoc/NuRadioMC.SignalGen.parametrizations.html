@@ -609,10 +609,15 @@
              
   <section id="module-NuRadioMC.SignalGen.parametrizations">
 <span id="nuradiomc-signalgen-parametrizations-module"></span><h1>NuRadioMC.SignalGen.parametrizations module<a class="headerlink" href="#module-NuRadioMC.SignalGen.parametrizations" title="Permalink to this heading"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.SignalGen.parametrizations.set_log_level">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.parametrizations.</span></span><span class="sig-name descname"><span class="pre">set_log_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/parametrizations.html#set_log_level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.parametrizations.set_log_level" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dl class="py data">
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.parametrizations.logger">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.parametrizations.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NuRadioLogger</span> <span class="pre">NuRadioMC.SignalGen.parametrizations</span> <span class="pre">(STATUS)&gt;</span></em><a class="headerlink" href="#NuRadioMC.SignalGen.parametrizations.logger" title="Permalink to this definition"></a></dt>
+<dd><p>Analytic parametrizations of the radio pulse produced by an in-ice particle shower.</p>
+<p>Generic functions to provide the frequency spectrum and the pulse in the time domain
+are defined. All models/parametrizations should be added to each of these functions,
+such that different parametrizations can be exchanged by just modifying the ‘model’
+argument of the respective function.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.SignalGen.parametrizations.get_parametrizations">

@@ -656,7 +656,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.stationPulseFinder&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.LOFAR.stationPulseFinder&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__window_size</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_away_from_pulse</span> <span class="o">=</span> <span class="kc">None</span>
@@ -665,7 +665,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">direction_cartesian</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># The zenith and azimuth pointing towards where to beamform.</span>
 
-<div class="viewcode-block" id="stationPulseFinder.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationPulseFinder.html#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">noise_window</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">cr_snr</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">good_channels</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
+<div class="viewcode-block" id="stationPulseFinder.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationPulseFinder.html#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">noise_window</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">cr_snr</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">good_channels</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the window size to use for pulse finding, as well as the number of samples away from the pulse</span>
 <span class="sd">        to use for noise measurements. The function also defines what an acceptable SNR is to consider a</span>
@@ -683,8 +683,8 @@
 <span class="sd">            The minimum SNR a channel should have to be considered having a CR signal.</span>
 <span class="sd">        good_channels : int, default=6</span>
 <span class="sd">            The minimum number of good channels a station should have in order be &quot;triggered&quot;.</span>
-<span class="sd">        logger_level : int, default=logging.WARNING</span>
-<span class="sd">            The logging level to use for the module.</span>
+<span class="sd">        logger_level : int, default=logging.NOTSET</span>
+<span class="sd">            Use this parameter to override the logging level for this module.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: find window size used in PyCRTools</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__window_size</span> <span class="o">=</span> <span class="n">window</span>

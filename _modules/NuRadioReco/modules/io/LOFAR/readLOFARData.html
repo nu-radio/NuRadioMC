@@ -624,7 +624,7 @@
 <span class="kn">import</span> <span class="nn">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata</span> <span class="k">as</span> <span class="nn">rawTBBio_metadata</span>
 
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.readLOFARData&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.LOFAR.readLOFARData&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_metadata"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.get_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">metadata_dir</span><span class="p">):</span>
@@ -891,7 +891,7 @@
 <span class="sd">        The path to the directory containing the LOFAR metadata (antenna positions and timing calibrations).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">restricted_station_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tbb_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.readLOFARData&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>  <span class="c1"># logging.getLogger(&#39;NuRadioReco.readLOFARData&#39;)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">tbb_dir</span> <span class="o">=</span> <span class="s1">&#39;/vol/astro3/lofar/vhecr/lora_triggered/data/&#39;</span> <span class="k">if</span> <span class="n">tbb_directory</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">tbb_directory</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">json_dir</span> <span class="o">=</span> <span class="s1">&#39;/vol/astro7/lofar/kratos_files/json&#39;</span> <span class="k">if</span> <span class="n">json_directory</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">json_directory</span>
@@ -972,7 +972,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="readLOFARData.begin"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_id</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
+<div class="viewcode-block" id="readLOFARData.begin"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_id</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Prepare the reader to ingest the event with ID `event_id`. This resets the internal representation of the</span>
 <span class="sd">        stations as well as the event ID. The timestamps are read from the LORA JSON file corresponding to the event.</span>
@@ -983,8 +983,8 @@
 <span class="sd">        ----------</span>
 <span class="sd">        event_id: int</span>
 <span class="sd">            The ID of the event to load.</span>
-<span class="sd">        logger_level : int, default=logging.WARNING</span>
-<span class="sd">            The logging level to use for the module.</span>
+<span class="sd">        logger_level : int, default=logging.NOTSET</span>
+<span class="sd">            Use this parameter to override the logging level for this module.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logger_level</span><span class="p">)</span>
 

@@ -623,7 +623,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filenames</span><span class="p">,</span> <span class="n">parse_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parse_detector</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fail_on_version_mismatch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                  <span class="n">fail_on_minor_version_mismatch</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">max_open_files</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mi">104857600</span><span class="p">):</span>
+                 <span class="n">max_open_files</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mi">104857600</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize NuRadioReco io</span>
 
@@ -643,8 +643,8 @@
 <span class="sd">            Controls if the module should try to read files with a different minor version</span>
 <span class="sd">        max_open_files: int</span>
 <span class="sd">            the maximum number of files that remain open simultaneously</span>
-<span class="sd">        log_level: None or log level</span>
-<span class="sd">            the log level of this class</span>
+<span class="sd">        log_level: int, default=logging.NOTSET</span>
+<span class="sd">            Override the log level of this class</span>
 <span class="sd">        buffer_size: int</span>
 <span class="sd">            the size of the read buffer in bytes (default 100MB)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -655,8 +655,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.NuRadioRecoio&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;initializing NuRadioRecoio with file </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filenames</span><span class="p">))</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">log_level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="c1"># Initialize attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filenames</span> <span class="o">=</span> <span class="kc">None</span>

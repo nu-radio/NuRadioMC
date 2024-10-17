@@ -820,7 +820,7 @@
 <span class="sd">    not be used from the outside to avoid mismatching units.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">upper_energy_limit</span><span class="o">=</span><span class="mf">1e14</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MeV</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">upper_energy_limit</span><span class="o">=</span><span class="mf">1e14</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MeV</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -836,6 +836,7 @@
 <span class="sd">            -&#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
 <span class="sd">            same as SouthPole but with a 3 km deep ice layer.</span>
 <span class="sd">        log_level: logging level</span>
+<span class="sd">            Override the global logging level</span>
 <span class="sd">        tables_path: path</span>
 <span class="sd">            Path to PROPOSAL tables. Should be set to a path where PROPOSAL tables exist, or</span>
 <span class="sd">            where PROPOSAL tables can be saved. This avoids that PROPOSAL has to regenerate</span>
@@ -853,7 +854,7 @@
 <span class="sd">            For more details, check the documentation for the</span>
 <span class="sd">            :class:`Singleton metaclass &lt;NuRadioReco.utilities.metaclasses.Singleton&gt;`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;proposal&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.proposal&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;initializing proposal interface class&quot;</span><span class="p">)</span>
 

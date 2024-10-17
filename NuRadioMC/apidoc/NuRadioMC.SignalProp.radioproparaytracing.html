@@ -611,9 +611,9 @@
 <span id="nuradiomc-signalprop-radioproparaytracing-module"></span><h1>NuRadioMC.SignalProp.radioproparaytracing module<a class="headerlink" href="#module-NuRadioMC.SignalProp.radioproparaytracing" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.radioproparaytracing.</span></span><span class="sig-name descname"><span class="pre">radiopropa_ray_tracing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reflections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.radioproparaytracing.</span></span><span class="sig-name descname"><span class="pre">radiopropa_ray_tracing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reflections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base" title="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ray_tracing_base</span></code></a></p>
-<p>Numerical raytracing using Radiopropa. Currently this only works for icemodels 
+<p>Numerical raytracing using Radiopropa. Currently this only works for icemodels
 that have only changing refractive index in z. More information on RadioPropa and
 how to install it can be found at <a class="reference external" href="https://github.com/nu-radio/RadioPropa">https://github.com/nu-radio/RadioPropa</a></p>
 <p class="rubric">Methods</p>
@@ -635,10 +635,10 @@ how to install it can be found at <a class="reference external" href="https://gi
 <td><p>Function that returns the configuration currently used by the raytracer</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_path_length" title="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_correction_path_length</span></code></a>(iS)</p></td>
-<td><p>calculates the correction of the path length of solution iS  due to the sphere around the channel</p></td>
+<td><p>calculates the correction of the path length of solution iS due to the sphere around the channel</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_travel_time" title="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_correction_travel_time</span></code></a>(iS)</p></td>
-<td><p>calculates the correction of the travel time of solution iS  due to the sphere around the channel</p></td>
+<td><p>calculates the correction of the travel time of solution iS due to the sphere around the channel</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_focusing" title="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit])</p></td>
 <td><p>calculate the focusing effect in the medium</p></td>
@@ -766,7 +766,7 @@ how to install it can be found at <a class="reference external" href="https://gi
 <li><p>logging.INFO</p></li>
 <li><p>logging.DEBUG</p></li>
 </ul>
-<p>default is WARNING</p>
+<p>default is NOTSET (follow global log level)</p>
 </dd>
 <dt><strong>n_frequencies_integration: int</strong></dt><dd><p>the number of frequencies for which the frequency dependent attenuation
 length is being calculated. The attenuation length for all other frequencies
@@ -811,10 +811,10 @@ config[‘propagation’][‘radiopropa’][‘iter_steps_zenith’] = [.5, .05,
 <td><p>Function that returns the configuration currently used by the raytracer</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_path_length" title="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_correction_path_length</span></code></a>(iS)</p></td>
-<td><p>calculates the correction of the path length of solution iS  due to the sphere around the channel</p></td>
+<td><p>calculates the correction of the path length of solution iS due to the sphere around the channel</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_travel_time" title="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_correction_travel_time</span></code></a>(iS)</p></td>
-<td><p>calculates the correction of the travel time of solution iS  due to the sphere around the channel</p></td>
+<td><p>calculates the correction of the travel time of solution iS due to the sphere around the channel</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_focusing" title="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit])</p></td>
 <td><p>calculate the focusing effect in the medium</p></td>
@@ -930,7 +930,7 @@ config[‘propagation’][‘radiopropa’][‘iter_steps_zenith’] = [.5, .05,
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.reset_solutions">
 <span class="sig-name descname"><span class="pre">reset_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.reset_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.reset_solutions" title="Permalink to this definition"></a></dt>
-<dd><p>Resets the raytracing solutions back to None. This is useful to do 
+<dd><p>Resets the raytracing solutions back to None. This is useful to do
 in the loop before a new raytracing is prepared.</p>
 </dd></dl>
 
@@ -1013,7 +1013,7 @@ sphere_size depending on the horizontal distance of the event</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_cut_viewing_angle">
 <span class="sig-name descname"><span class="pre">set_cut_viewing_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cut</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.set_cut_viewing_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_cut_viewing_angle" title="Permalink to this definition"></a></dt>
-<dd><p>Set a cut on the viewing angle around the cherenkov angle. Rays with a viewing 
+<dd><p>Set a cut on the viewing angle around the cherenkov angle. Rays with a viewing
 angle out of this range will be to dim and won’t be seen –&gt; limiting computing time</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1055,7 +1055,7 @@ of n_reflections of the bottom</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.raytracer_birefringence">
 <span class="sig-name descname"><span class="pre">raytracer_birefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">launch_v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bire_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'A'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.raytracer_birefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.raytracer_birefringence" title="Permalink to this definition"></a></dt>
-<dd><p>Function for the time trace propagation according to the polarization change due to birefringence. 
+<dd><p>Function for the time trace propagation according to the polarization change due to birefringence.
 The trace propagation is explained in this paper: <a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</a>
 RadioPropa propagates an electric field through the correct solution of the ray path. To use add to the config.yaml file:
 propagation:
@@ -1164,7 +1164,7 @@ if none, the original calculated path is returned</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the solution type, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the solution type,
 counting starts at zero</p>
 </dd>
 </dl>
@@ -1185,7 +1185,7 @@ counting starts at zero</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector,
 counting starts at zero</p>
 </dd>
 <dt><strong>ref_index_model:</strong></dt><dd><p>choose the ice model for the analytic ray tracer
@@ -1209,7 +1209,7 @@ southpole_2015</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector,
 counting starts at zero</p>
 </dd>
 </dl>
@@ -1230,7 +1230,7 @@ counting starts at zero</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the receive vector, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the receive vector,
 counting starts at zero</p>
 </dd>
 </dl>
@@ -1251,7 +1251,7 @@ counting starts at zero</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the reflection angle, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the reflection angle,
 counting starts at zero</p>
 </dd>
 </dl>
@@ -1268,12 +1268,12 @@ counting starts at zero</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_path_length">
 <span class="sig-name descname"><span class="pre">get_correction_path_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_correction_path_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_path_length" title="Permalink to this definition"></a></dt>
-<dd><p>calculates the correction of the path length of solution iS 
+<dd><p>calculates the correction of the path length of solution iS
 due to the sphere around the channel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the path length correction, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the path length correction,
 counting starts at zero</p>
 </dd>
 </dl>
@@ -1290,12 +1290,12 @@ counting starts at zero</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_travel_time">
 <span class="sig-name descname"><span class="pre">get_correction_travel_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_correction_travel_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_correction_travel_time" title="Permalink to this definition"></a></dt>
-<dd><p>calculates the correction of the travel time of solution iS 
+<dd><p>calculates the correction of the travel time of solution iS
 due to the sphere around the channel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the travel time correction, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the travel time correction,
 counting starts at zero</p>
 </dd>
 </dl>
@@ -1316,7 +1316,7 @@ counting starts at zero</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the path length, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the path length,
 counting starts at zero</p>
 </dd>
 </dl>
@@ -1337,7 +1337,7 @@ counting starts at zero</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the travel time, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the travel time,
 counting starts at zero</p>
 </dd>
 </dl>
@@ -1382,7 +1382,7 @@ calculation is the frequency interval visible by the detector, hence a finer cal
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the attenuation, 
+<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the attenuation,
 counting starts at zero</p>
 </dd>
 <dt><strong>frequency: array of floats</strong></dt><dd><p>the frequencies for which the attenuation is calculated</p>
@@ -1549,7 +1549,7 @@ pair of start and end points</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.use_optional_function">
 <span class="sig-name descname"><span class="pre">use_optional_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.use_optional_function" title="Permalink to this definition"></a></dt>
-<dd><p>Use optional function which may be different for each ray tracer. 
+<dd><p>Use optional function which may be different for each ray tracer.
 If the name of the function is not present for the ray tracer this function does nothing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

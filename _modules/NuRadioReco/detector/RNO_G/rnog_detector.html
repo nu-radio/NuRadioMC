@@ -666,7 +666,7 @@
 
 
 <div class="viewcode-block" id="Detector"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector">[docs]</a><span class="k">class</span> <span class="nc">Detector</span><span class="p">():</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s1">&#39;RNOG_public&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">over_write_handset_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s1">&#39;RNOG_public&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">over_write_handset_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">database_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">detector_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">select_stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create_new</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -678,8 +678,8 @@
 <span class="sd">        database_connection : str (Default: &#39;RNOG_public&#39;)</span>
 <span class="sd">            Allows to specify database connection. Passed to mongo-db interface.</span>
 
-<span class="sd">        log_level : `logging.LOG_LEVEL` (Default: logging.INFO)</span>
-<span class="sd">            Defines verbosity level of logger. Propagates through to Response class logger.</span>
+<span class="sd">        log_level : `logging.LOG_LEVEL` (Default: logging.NOTSET)</span>
+<span class="sd">            Overrides verbosity level of logger. Propagates through to Response class logger.</span>
 <span class="sd">            Other options are: `logging.WARNING`, `logging.DEBUG`, ...</span>
 
 <span class="sd">        over_write_handset_values : dict (Default: {})</span>

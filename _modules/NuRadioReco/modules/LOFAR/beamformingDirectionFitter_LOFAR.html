@@ -648,12 +648,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.beamFormingDirectionFitter&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.LOFAR.beamFormingDirectionFitter&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_iter</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cr_snr</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="beamformingDirectionFitter.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.beamformingDirectionFitter.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">,</span> <span class="n">cr_snr</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
+<div class="viewcode-block" id="beamformingDirectionFitter.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.beamformingDirectionFitter.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">,</span> <span class="n">cr_snr</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the values for the fitting procedures.</span>
 
@@ -663,8 +663,8 @@
 <span class="sd">            The maximum number of iterations to use during the fitting procedure</span>
 <span class="sd">        cr_snr : float, default=3</span>
 <span class="sd">            The minimum SNR a channel should have to be considered having a CR signal.</span>
-<span class="sd">        logger_level : int, default=logging.WARNING</span>
-<span class="sd">            The logging level to use for the module.</span>
+<span class="sd">        logger_level : int, default=logging.NOTSET</span>
+<span class="sd">            Use this parameter to override the logging level for this module.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cr_snr</span> <span class="o">=</span> <span class="n">cr_snr</span>

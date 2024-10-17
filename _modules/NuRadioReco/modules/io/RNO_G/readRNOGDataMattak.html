@@ -760,7 +760,7 @@
 
 <div class="viewcode-block" id="readRNOGData"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData">[docs]</a><span class="k">class</span> <span class="nc">readRNOGData</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_table_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load_run_table</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_table_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load_run_table</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reader for RNO-G ``.root`` files</span>
 
@@ -779,7 +779,7 @@
 
 <span class="sd">        log_level: enum</span>
 <span class="sd">            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).</span>
-<span class="sd">            (Default: logging.INFO)</span>
+<span class="sd">            (Default: logging.NOTSET, ie adhere to general log level)</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -798,7 +798,7 @@
 <span class="sd">                pass</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.readRNOGData&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.RNOG.readRNOGData&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="o">=</span> <span class="n">channelBlockOffsets</span><span class="p">()</span>

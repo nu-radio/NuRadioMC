@@ -631,7 +631,7 @@
 
 <div class="viewcode-block" id="channelMeasuredNoiseAdder.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_pattern</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> 
               <span class="n">random_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
-              <span class="n">draw_noise_statistics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">channel_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> 
+              <span class="n">draw_noise_statistics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">channel_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
               <span class="n">restrict_station_id</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_noise_resampling</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
               <span class="n">baseline_substraction</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allowed_triggers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;FORCE&quot;</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -670,8 +670,8 @@
 <span class="sd">            ids of the MC station to the channel ids of the noise data</span>
 <span class="sd">            Default is None which is 1-to-1 mapping</span>
 <span class="sd">        </span>
-<span class="sd">        log_level: loggging log level</span>
-<span class="sd">            the log level, default logging.WARNING</span>
+<span class="sd">        log_level: logging log level</span>
+<span class="sd">            the log level, default logging.NOTSET (adhere to global logging level)</span>
 <span class="sd">        </span>
 <span class="sd">        baseline_substraction: boolean</span>
 <span class="sd">            Option to subtract mean from trace. Set mean_opt=False to remove mean subtraction from trace.</span>

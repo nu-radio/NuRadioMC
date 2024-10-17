@@ -609,7 +609,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.detector</span> <span class="kn">import</span> <span class="n">generic_detector</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;eventWriter&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.eventWriter&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_header"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.get_header">[docs]</a><span class="k">def</span> <span class="nf">get_header</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
@@ -658,7 +658,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__header_written</span> <span class="o">=</span> <span class="kc">True</span>
 
 <div class="viewcode-block" id="eventWriter.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.eventWriter.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">max_file_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">check_for_duplicates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">events_per_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-              <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
+              <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        begin method</span>
 
@@ -675,8 +675,8 @@
 <span class="sd">            Maximum number of events to be written into the same file. After more than events_per_file have been written</span>
 <span class="sd">            into the same file, the output will be split into another file. If max_file_size and events_per_file are</span>
 <span class="sd">            both set, the file will be split whenever any of the two conditions is fullfilled.</span>
-<span class="sd">        log_level: int</span>
-<span class="sd">            The logging level to use.</span>
+<span class="sd">        log_level: int, default=logging.NOTSET</span>
+<span class="sd">            Use this to override the logging level for this module.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nur&quot;</span><span class="p">):</span>

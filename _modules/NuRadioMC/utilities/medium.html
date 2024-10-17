@@ -608,8 +608,6 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">logger</span>
 
@@ -621,13 +619,13 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">1) When implementing a new model it should at least inherit from</span>
-<span class="sd">&#39;IceModel&#39; from the module &#39;medium_base&#39;. Overwrite all the function. </span>
-<span class="sd">Inheritance from daughter classes like &#39;IceModelSimple&#39; is also </span>
+<span class="sd">&#39;IceModel&#39; from the module &#39;medium_base&#39;. Overwrite all the function.</span>
+<span class="sd">Inheritance from daughter classes like &#39;IceModelSimple&#39; is also</span>
 <span class="sd">possible and overwriting functions may not be needed in this case.</span>
 
 <span class="sd">2) When implementing a new model and using the radiopropa numerical</span>
 <span class="sd">tracer, do not forget to implement scalar field of the refractive index</span>
-<span class="sd">also in the c++ code of radiopropa for a fast simulation. Implement the </span>
+<span class="sd">also in the c++ code of radiopropa for a fast simulation. Implement the</span>
 <span class="sd">model in IceModel.cpp and IceModel.h. Then edit the function to get the</span>
 <span class="sd">radiopropa ice model, so it can be used in NuRadioMC. For example</span>
 
@@ -641,8 +639,8 @@
 <span class="sd">the c++ implemented model (e.g. green_firn model)</span>
 
 
-<span class="sd">4) If you want to adjust (add, replace, remove) predefined modules </span>
-<span class="sd">in the a RadioPropaIceWrapper object, you can do this by redefining the </span>
+<span class="sd">4) If you want to adjust (add, replace, remove) predefined modules</span>
+<span class="sd">in the a RadioPropaIceWrapper object, you can do this by redefining the</span>
 <span class="sd">&#39;get_ice_model_radiopropa()&#39; in your IceModel object. For exemple</span>
 
 <span class="sd">        def get_ice_model_radiopropa(self):</span>
@@ -659,9 +657,9 @@
         <span class="c1"># from https://doi.org/10.1088/1475-7516/2018/07/055 RICE2014/SP model</span>
         <span class="c1"># define model parameters (RICE 2014/southpole)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
-            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span> 
-            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">71.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">71.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.426</span><span class="p">,</span>
             <span class="p">)</span></div>
 
@@ -670,9 +668,9 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
-            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span> 
-            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">77.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">77.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.423</span><span class="p">,</span>
             <span class="p">)</span></div>
 
@@ -681,9 +679,9 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># define model parameters (SPICE 2015/southpole)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
-            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span> 
-            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">75.75757575757576</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">75.75757575757576</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.43</span><span class="p">,</span>
             <span class="p">)</span></div>
 
@@ -693,9 +691,9 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># define model parameters (ARA/southpole) -&gt; https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
-            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span> 
-            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">49.5049505</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">49.5049505</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.454</span><span class="p">,</span>
             <span class="p">)</span></div>
 
@@ -712,15 +710,15 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># from https://doi.org/10.1088/1475-7516/2018/07/055 MB1 model</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span> 
-            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">34.5</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">34.5</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.46</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="c1"># from https://doi.org/10.3189/2015JoG14J214</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_reflective_bottom</span><span class="p">(</span> 
-            <span class="n">refl_z</span> <span class="o">=</span> <span class="o">-</span><span class="mi">576</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> 
-            <span class="n">refl_coef</span> <span class="o">=</span> <span class="mf">0.82</span><span class="p">,</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_reflective_bottom</span><span class="p">(</span>
+            <span class="n">refl_z</span> <span class="o">=</span> <span class="o">-</span><span class="mi">576</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
+            <span class="n">refl_coef</span> <span class="o">=</span> <span class="mf">0.82</span><span class="p">,</span>
             <span class="n">refl_phase_shift</span> <span class="o">=</span> <span class="mi">180</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
             <span class="p">)</span></div>
 
@@ -729,15 +727,15 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>\
         <span class="c1"># from https://doi.org/10.1088/1475-7516/2018/07/055 MB2 model</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span> 
-            <span class="n">z_0</span> <span class="o">=</span> <span class="mi">37</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mi">37</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.481</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="c1"># from https://doi.org/10.3189/2015JoG14J214</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_reflective_bottom</span><span class="p">(</span> 
-            <span class="n">refl_z</span> <span class="o">=</span> <span class="o">-</span><span class="mi">576</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> 
-            <span class="n">refl_coef</span> <span class="o">=</span> <span class="mf">0.82</span><span class="p">,</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_reflective_bottom</span><span class="p">(</span>
+            <span class="n">refl_z</span> <span class="o">=</span> <span class="o">-</span><span class="mi">576</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
+            <span class="n">refl_coef</span> <span class="o">=</span> <span class="mf">0.82</span><span class="p">,</span>
             <span class="n">refl_phase_shift</span> <span class="o">=</span> <span class="mi">180</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
             <span class="p">)</span></div>
 
@@ -747,9 +745,9 @@
         <span class="c1"># from C. Deaconu, fit to data from Hawley &#39;08, Alley &#39;88</span>
         <span class="c1"># rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3000</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
-            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span> 
-            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">37.25</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3000</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">37.25</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.51</span><span class="p">,</span>
             <span class="p">)</span></div>
 
@@ -778,7 +776,7 @@
 <span class="sd">        z_bottom:  float, NuRadio length units</span>
 <span class="sd">                   z coordinate of the bedrock/bottom of the glacier.</span>
 <span class="sd">        z_firn:  float, NuRadio length units</span>
-<span class="sd">                 z coordinate of the transition from the upper </span>
+<span class="sd">                 z coordinate of the transition from the upper</span>
 <span class="sd">                 exponential profile to the lower one</span>
 
 <span class="sd">        The following parameters can be found without (lower)</span>
@@ -805,13 +803,13 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_scalarfield</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Firn</span><span class="p">(</span>
             <span class="n">z_surface</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
-            <span class="n">z_firn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_firn</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
-            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>  
-            <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.310</span><span class="p">,</span>  
+            <span class="n">z_firn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_firn</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.310</span><span class="p">,</span>
             <span class="n">z_0</span> <span class="o">=</span> <span class="mf">40.9</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">z_shift</span> <span class="o">=</span> <span class="o">-</span><span class="mf">14.9</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">n_ice_firn</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
-            <span class="n">delta_n_firn</span> <span class="o">=</span> <span class="mf">0.502</span><span class="p">,</span> 
+            <span class="n">delta_n_firn</span> <span class="o">=</span> <span class="mf">0.502</span><span class="p">,</span>
             <span class="n">z_0_firn</span> <span class="o">=</span> <span class="mf">30.8</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">z_shift_firn</span> <span class="o">=</span> <span class="mf">0.</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="p">)</span>
@@ -874,14 +872,14 @@
         <span class="n">pos</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">position</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scalarfield</span><span class="o">.</span><span class="n">getGradient</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span></div>
 
-    
+
     <span class="k">def</span> <span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Computes a default object holding the radiopropa scalarfield and necessary radiopropa </span>
-<span class="sd">        moduldes that define the medium in radiopropa. It uses the parameters of the medium </span>
-<span class="sd">        object to contruct the scalar field (using the firn ice model implementation </span>
-<span class="sd">        in radiopropa) and some modules (like a discontinuity object for the air boundary). </span>
-<span class="sd">        </span>
+<span class="sd">        Computes a default object holding the radiopropa scalarfield and necessary radiopropa</span>
+<span class="sd">        moduldes that define the medium in radiopropa. It uses the parameters of the medium</span>
+<span class="sd">        object to contruct the scalar field (using the firn ice model implementation</span>
+<span class="sd">        in radiopropa) and some modules (like a discontinuity object for the air boundary).</span>
+
 <span class="sd">        Overwrites function of the mother class</span>
 
 <span class="sd">        Returns</span>
@@ -894,14 +892,14 @@
 <div class="viewcode-block" id="greenland_perturbation"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation">[docs]</a><span class="k">class</span> <span class="nc">greenland_perturbation</span><span class="p">(</span><span class="n">greenland_firn</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">greenland_firn</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        
+
     <span class="k">def</span> <span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">discontinuity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Computes a default object holding the radiopropa scalarfield and necessary radiopropa </span>
-<span class="sd">        moduldes that define the medium in radiopropa. It uses the parameters of the medium </span>
+<span class="sd">        Computes a default object holding the radiopropa scalarfield and necessary radiopropa</span>
+<span class="sd">        moduldes that define the medium in radiopropa. It uses the parameters of the medium</span>
 <span class="sd">        object to contruct some modules using the default computation of the firn model.</span>
 <span class="sd">        An additional module for the perturbation layer is then added to the object.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Overwrites function of the mother class</span>
 
 <span class="sd">        Returns</span>
@@ -922,9 +920,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z_bottom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">z_bottom</span> <span class="o">=</span> <span class="n">z_bottom</span><span class="p">,</span> 
-            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span> 
-            <span class="n">z_0</span> <span class="o">=</span> <span class="mi">1</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+            <span class="n">z_bottom</span> <span class="o">=</span> <span class="n">z_bottom</span><span class="p">,</span>
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mi">1</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
             <span class="n">delta_n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
             <span class="p">)</span></div>
 

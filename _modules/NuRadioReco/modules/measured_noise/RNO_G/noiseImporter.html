@@ -625,7 +625,7 @@
 <div class="viewcode-block" id="noiseImporter.begin"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.RNO_G.noiseImporter.html#NuRadioReco.modules.measured_noise.RNO_G.noiseImporter.noiseImporter.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise_folders</span><span class="p">,</span> <span class="n">file_pattern</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
               <span class="n">match_station_id</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">station_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">channel_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scramble_noise_file_order</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-              <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reader_kwargs</span><span class="o">=</span><span class="p">{}):</span>
+              <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reader_kwargs</span><span class="o">=</span><span class="p">{}):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
@@ -651,8 +651,8 @@
 <span class="sd">        scramble_noise_file_order: bool</span>
 <span class="sd">            If True, randomize the order of noise files before reading them. (Default: True)</span>
 <span class="sd">        </span>
-<span class="sd">        log_level: loggging log level</span>
-<span class="sd">            The log level to controll verbosity. (Default: logging.INFO)</span>
+<span class="sd">        log_level: logging log level</span>
+<span class="sd">            Override he log level to control verbosity. (Default: logging.NOTSET, ie follow general log level)</span>
 <span class="sd">            </span>
 <span class="sd">        random_seed: int</span>
 <span class="sd">            Seed for the random number generator. (Default: None, no fixed seed).</span>

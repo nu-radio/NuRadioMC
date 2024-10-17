@@ -607,7 +607,6 @@
 <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.propagation</span> <span class="kn">import</span> <span class="n">solution_types</span><span class="p">,</span> <span class="n">solution_types_revert</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Structure of a ray-tracing module. For documentation and development purposes.</span>
@@ -619,8 +618,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> 
-                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
+                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ray_tracing_2D_kwards</span><span class="o">=</span><span class="p">{}):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        class initilization</span>
@@ -639,7 +638,7 @@
 <span class="sd">            * logging.INFO</span>
 <span class="sd">            * logging.DEBUG</span>
 
-<span class="sd">            default is WARNING</span>
+<span class="sd">            default is NOTSET (ie global control)</span>
 <span class="sd">        n_frequencies_integration: int</span>
 <span class="sd">            the number of frequencies for which the frequency dependent attenuation</span>
 <span class="sd">            length is being calculated. The attenuation length for all other frequencies</span>
@@ -652,7 +651,7 @@
 <span class="sd">        ray_tracing_2D_kwards: dict</span>
 <span class="sd">            Additional arguments which are passed to ray_tracing_2D</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ray_tracing_base&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.SignalProp.ray_tracing_base&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span> <span class="o">=</span> <span class="n">medium</span>
@@ -692,7 +691,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        x1: np.array of shape (3,), default unit</span>
 <span class="sd">            start point of the ray</span>
-<span class="sd">        x2: np.array of shape (3,), default unit </span>
+<span class="sd">        x2: np.array of shape (3,), default unit</span>
 <span class="sd">            stop point of the ray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset_solutions</span><span class="p">()</span>
@@ -707,7 +706,7 @@
 
 <div class="viewcode-block" id="ray_tracing_base.use_optional_function"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.use_optional_function">[docs]</a>    <span class="k">def</span> <span class="nf">use_optional_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Use optional function which may be different for each ray tracer. </span>
+<span class="sd">        Use optional function which may be different for each ray tracer.</span>
 <span class="sd">        If the name of the function is not present for the ray tracer this function does nothing.</span>
 
 <span class="sd">        Parameters</span>
@@ -723,10 +722,10 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        .. code-block::</span>
-<span class="sd">        </span>
+
 <span class="sd">            use_optional_function(&#39;set_shower_axis&#39;,np.array([0,0,1]))</span>
 <span class="sd">            use_optional_function(&#39;set_iterative_sphere_sizes&#39;,sphere_sizes=np.aray([3,1,.5]))</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">function_name</span><span class="p">):</span>
             <span class="k">pass</span>

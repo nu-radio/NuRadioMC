@@ -612,6 +612,8 @@
 <span class="kn">from</span> <span class="nn">NuRadioReco.detector.RNO_G</span> <span class="kn">import</span> <span class="n">rnog_detector</span>
 
 
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.detector&quot;</span><span class="p">)</span>
+
 
 <span class="k">def</span> <span class="nf">_find_path</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Checks for file relative to local folder and detector.py &quot;&quot;&quot;</span>
@@ -762,13 +764,14 @@
 
         <span class="k">if</span> <span class="n">has_reference_entry</span> <span class="ow">or</span> <span class="n">has_default</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">has_default</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s1">&#39;Deprecation warning: Passing the default detector station is deprecated. Default stations and default&#39;</span>
-                    <span class="s1">&#39;channel should be specified in the detector description directly.&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;Deprecation warning: Passing the default detector station is deprecated. Default stations &#39;</span>
+                    <span class="s1">&#39;and default channel should be specified in the detector description directly.&#39;</span>
+                <span class="p">)</span>
 
                 <span class="k">if</span> <span class="s2">&quot;default_station&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Default detector station provided (station &#39;</span>
-                                 <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;default_station&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">) -&gt; Using generic detector&#39;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Default detector station provided (station &#39;</span>
+                                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;default_station&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">) -&gt; Using generic detector&#39;</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">generic_detector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">(</span>
                 <span class="n">json_filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span>
