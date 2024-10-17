@@ -6,7 +6,7 @@ from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('multiHighLowTrigger')
+logger = logging.getLogger('NuRadioReco.multiHighLowTrigger')
 
 
 def get_high_triggers(trace, threshold):
@@ -186,7 +186,6 @@ class triggerSimulator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

@@ -11,9 +11,7 @@ import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
-#logging.basicConfig(level=logging.WARNING)
-logging.basicConfig(level=logging.ERROR)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("NuRadioMC.runstrawman")
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()

@@ -8,7 +8,7 @@ from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverte
 import numpy as np
 from scipy import constants
 import logging
-logger = logging.getLogger('phasedTriggerSimulator')
+logger = logging.getLogger('NuRadioReco.phasedTriggerSimulator')
 
 cspeed = constants.c * units.m / units.s
 
