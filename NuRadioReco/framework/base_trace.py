@@ -17,16 +17,30 @@ logger = logging.getLogger("NuRadioReco.BaseTrace")
 
 class BaseTrace:
 
-    def __init__(self):
+    def __init__(self, trace=None, sampling_rate=None, trace_start_time=0):
+        """
+        Initialize the BaseTrace object.
+
+        Parameters
+        ----------
+        trace : np.array of floats (default: None)
+            The time trace. Can also be set later with the `set_trace` method.
+        sampling_rate : float (default: None)
+            The sampling rate of the trace, i.e., the inverse of the bin width.
+        trace_start_time : float (default: 0)
+            The start time of the trace.
+        """
         self._sampling_rate = None
         self._time_trace = None
         self._frequency_spectrum = None
         self.__time_domain_up_to_date = True
-        self._trace_start_time = 0
+        self._trace_start_time = trace_start_time
+        if trace is not None:
+            self.set_trace(trace, sampling_rate)
 
     def get_trace(self):
         """
-        returns the time trace.
+        Returns the time trace.
 
         If the frequency spectrum was modified before,
         an ifft is performed automatically to have the time domain representation
@@ -72,7 +86,7 @@ class BaseTrace:
 
     def set_trace(self, trace, sampling_rate):
         """
-        Sets the time trace
+        Sets the time trace.
 
         Parameters
         ----------
@@ -84,8 +98,9 @@ class BaseTrace:
         """
         if trace is not None:
             if trace.shape[trace.ndim - 1] % 2 != 0:
-                raise ValueError(f'Attempted to set trace with an uneven number ({trace.shape[trace.ndim - 1]}) '
-                                 'of samples. Only traces with an even number of samples are allowed.')
+                raise ValueError(
+                    f'Attempted to set trace with an uneven number ({trace.shape[trace.ndim - 1]}) '
+                    'of samples. Only traces with an even number of samples are allowed.')
         self.__time_domain_up_to_date = True
         self._time_trace = np.copy(trace)
 
@@ -93,8 +108,8 @@ class BaseTrace:
 
         if isinstance(sampling_rate, str) and sampling_rate.lower() == "same":
             if self._sampling_rate is None:
-                raise ValueError("You specified to keep the sampling rate "
-                                 "but no value have been set previously.")
+                raise ValueError(
+                    "You specified to keep the sampling rate but no value have been set previously.")
                 pass  # keep value of self._sampling_rate
         elif sampling_rate is not None:
             self._sampling_rate = sampling_rate
@@ -103,7 +118,7 @@ class BaseTrace:
 
     def set_frequency_spectrum(self, frequency_spectrum, sampling_rate):
         """
-        Sets the frequency spectrum
+        Sets the frequency spectrum.
 
         Parameters
         ----------
@@ -119,8 +134,8 @@ class BaseTrace:
 
         if isinstance(sampling_rate, str) and sampling_rate.lower() == "same":
             if self._sampling_rate is None:
-                raise ValueError("You specified to keep the sampling rate "
-                                 "but no value have been set previously.")
+                raise ValueError(
+                    "You specified to keep the sampling rate but no value have been set previously.")
             pass  # keep value of self._sampling_rate
         elif sampling_rate is not None:
             self._sampling_rate = sampling_rate
@@ -129,7 +144,7 @@ class BaseTrace:
 
     def get_sampling_rate(self):
         """
-        returns the sampling rate of the trace
+        Returns the sampling rate of the trace.
 
         Returns
         -------
@@ -142,7 +157,7 @@ class BaseTrace:
         try:
             length = self.get_number_of_samples()
             times = np.arange(0, length / self._sampling_rate - 0.1 / self._sampling_rate,
-                              1. / self._sampling_rate) + self._trace_start_time
+                1. / self._sampling_rate) + self._trace_start_time
             if len(times) != length:
                 err = ("time array does not have the same length as the trace. "
                     f"n_samples = {length:d}, sampling rate = {self._sampling_rate:.5g}")
@@ -177,7 +192,7 @@ class BaseTrace:
 
     def get_number_of_samples(self):
         """
-        returns the number of samples in the time domain
+        Returns the number of samples in the time domain.
 
         Returns
         -------
