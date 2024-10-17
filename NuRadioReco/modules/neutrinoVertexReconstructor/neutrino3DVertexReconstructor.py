@@ -472,6 +472,7 @@ class neutrino3DVertexReconstructor:
         phi_start = self.__azimuths_2d[0]
         phi_stop = self.__azimuths_2d[-1]
         thetaphi_mask = None
+        correlation_xz = None # used for debug plot only
         n_distance_steps = 100
         i_iteration = 1
         while self._dTheta_current > self._dTheta_goal:
@@ -598,7 +599,8 @@ class neutrino3DVertexReconstructor:
             ])
             xyz = xyz.transpose(1,0,2)
 
-            xyz[2] -= 5 * units.m # we start slightly below the surface
+            self.__depth_offset = 0.5 * units.m
+            xyz[2] -= self.__depth_offset # we start slightly below the surface
 
             x_coords, y_coords, z_coords = xyz
 
@@ -672,20 +674,16 @@ class neutrino3DVertexReconstructor:
 
 
             phi_fit = np.arctan2(vertex_y, vertex_x) % (2*np.pi)
-            theta_fit = np.pi/2 - np.arctan2(vertex_z + 5 * units.m, np.linalg.norm([vertex_x, vertex_y]))
-            distance_fit = np.linalg.norm([vertex_x, vertex_y, vertex_z]) # due to the 5 m offset, this is not entirely consistent - maybe fix? #TODO
+            theta_fit = np.pi/2 - np.arctan2(vertex_z + self.__depth_offset, np.linalg.norm([vertex_x, vertex_y]))
+            distance_fit = np.linalg.norm([vertex_x, vertex_y, vertex_z]) # due to the depth_offset, this is not entirely consistent - maybe fix? #TODO
             if sim_vertex is not None:
                 phi_sim = np.arctan2(sim_vertex[1], sim_vertex[0]) % (2*np.pi)
-                theta_sim = np.pi/2 - np.arctan2(sim_vertex[2] + 5 * units.m, np.linalg.norm(sim_vertex[:2]))
+                theta_sim = np.pi/2 - np.arctan2(sim_vertex[2] + self.__depth_offset, np.linalg.norm(sim_vertex[:2]))
                 distance_sim = np.linalg.norm(sim_vertex)
             else:
                 phi_sim, theta_sim, distance_sim = np.nan * np.zeros(3)
 
             if debug:
-                # plt.plot(distances_3d, np.max(combined_correlations, axis=1))
-                # plt.xscale('log')
-                # plt.show()
-
                 self.__draw_correlation_map_polar(
                     event, thetaphi, mean_corr,
                     thetaphi_sim = [theta_sim, phi_sim],
@@ -720,6 +718,37 @@ class neutrino3DVertexReconstructor:
                         filetag=f'_sim_{i_iteration}'
                     )
 
+                ### debug plot: horizontal distance vs depth
+                z_all = distances_3d[:, None] * np.cos(thetaphi[0][None]) - self.__depth_offset
+                x_all = distances_3d[:, None] * np.sin(thetaphi[0][None])
+                mask = combined_correlations > 0
+
+                # we project onto a grid in x, z. First, we define the grid (only once)
+                if correlation_xz is None:
+                    xz_horizontal = np.copy(distances_3d)
+                    xz_vertical = np.linspace(np.min(z_all[mask]), np.max(z_all[mask])+self.__depth_offset, 128)
+                    correlation_xz = np.zeros((len(xz_horizontal), len(xz_vertical))).reshape(-1)
+
+                # Then we find the nearest grid indices for each point in the minimization
+                x_index = np.searchsorted(xz_horizontal, x_all[mask])
+                z_index = np.searchsorted(xz_vertical, z_all[mask])
+
+                # We're only interested in the maximum correlation for each grid index.
+                # So we'll sort the correlation from highest to lowest and only
+                # include the first occurrence of each grid point by using np.unique
+                idx_sorted = np.argsort(-combined_correlations[mask]) # largest correlation values first
+                xz_index = np.vstack((x_index[idx_sorted], z_index[idx_sorted]))
+                xz_i, unique_idx = np.unique(xz_index, axis=-1, return_index=True)
+
+                # convert from the 2d indices above to flattened indices
+                ravel_idx = np.ravel_multi_index(xz_i, (len(xz_horizontal), len(xz_vertical)), mode='clip')
+                corr = combined_correlations[mask][idx_sorted][unique_idx]
+
+                # finally, we update the correlation grid with the correlation values from this iteration
+                correlation_xz_new = np.zeros_like(correlation_xz)
+                correlation_xz_new[ravel_idx] = corr
+                correlation_xz = np.maximum(correlation_xz, correlation_xz_new)
+
             mean_cutoff = np.percentile(mean_corr, 90)
             max_cutoff = np.percentile(max_corr, 95)
             if (i_iteration > 2) or (not self._use_maximum_filter):
@@ -731,32 +760,38 @@ class neutrino3DVertexReconstructor:
             n_distance_steps = int(n_distance_steps * np.sqrt(2))
             i_iteration += 1
 
-        if debug:
+        if debug: # the fit has finished - we make some more final debug plots
+            self.__draw_correlation_distance_depth(
+                    event, xz_horizontal, xz_vertical, correlation_xz, fit_vertex, sim_vertex)
+
             fit_vx_times = dict()
             sim_vx_times = dict()
             for channel_id in self.__channel_ids:
                 channel_pos = self.__detector.get_relative_position(self.__station_id, channel_id)
+
                 # for fit vertex
                 d_hor = np.atleast_2d(np.linalg.norm((fit_vertex-channel_pos)[:2]))
                 z = np.atleast_2d(fit_vertex[2])
                 fit_vx_times[channel_id] = dict()
-                for ray_type in ['D', 'R']:#['direct', 'refracted', 'reflected']:
+                for ray_type in ['D', 'R']:
                     dt = self.get_signal_travel_time(
                         d_hor, z, ray_type, channel_id)[0,0]
                     if dt < 0.01 * units.ns:
                         dt = np.nan
                     fit_vx_times[channel_id][ray_type] = dt
+
                 # for sim vertex
                 if sim_vertex is not None:
                     d_hor = np.atleast_2d([np.linalg.norm((sim_vertex-channel_pos)[:2])])
                     z = np.atleast_2d(sim_vertex[2])
                     sim_vx_times[channel_id] = dict()
-                    for ray_type in ['D','R']:#['direct', 'refracted', 'reflected']:
+                    for ray_type in ['D','R']:
                         dt = self.get_signal_travel_time(
                             d_hor, z, ray_type, channel_id)[0,0]
                         if dt < 0.01 * units.ns:
                             dt = np.nan
                         sim_vx_times[channel_id][ray_type] = dt
+
             self.__draw_pair_correlations(event, fit_vx_times, sim_vx_times)
             self.__draw_dnr_correlations(event, fit_vx_times, sim_vx_times)
 
@@ -1062,6 +1097,31 @@ class neutrino3DVertexReconstructor:
         plt.colorbar(cax)
         plt.tight_layout()
         fname = '{}/{}_{}_correlation_zoom{}'.format(self.__debug_folder, event.get_run_number(), event.get_id(), filetag)
+        save_fig(fig, fname, self.__debug_fmts)
+        plt.close()
+
+    def __draw_correlation_distance_depth(self, event, xz_horizontal, xz_vertical, correlation_xz, fit_vertex, sim_vertex, filetag=''):
+        fig, ax = plt.subplots(1,1, figsize=(6,4))
+        xplot, zplot = np.meshgrid(xz_horizontal, xz_vertical, indexing='ij')
+        correlation_plot = correlation_xz.copy().reshape((len(xz_horizontal), len(xz_vertical)))
+        correlation_plot[correlation_plot == 0] = np.nan
+        vmin = np.quantile(correlation_plot[~np.isnan(correlation_plot)], .9)
+        cax = ax.pcolormesh(xplot, zplot, correlation_plot, rasterized=True, vmin=vmin)
+        ax.plot(
+            np.linalg.norm(fit_vertex[:2]), fit_vertex[-1],
+            marker='s', mfc='none', color='black', ms=10, label='fit', ls='')
+        if sim_vertex is not None:
+            ax.plot(
+                np.linalg.norm(sim_vertex[:2]), sim_vertex[-1],
+                marker='o', mfc='none', color='red', ms=10, label='sim', ls='')
+
+        ax.set_xscale('log')
+        ax.set_fc('grey')
+        ax.set_xlabel('Horizontal distance [m]')
+        ax.set_ylabel('Depth [m]')
+        plt.colorbar(cax, extend='min', label='Correlation')
+        fname = '{}/{}_{}_correlation_depth_vs_distance_{}'.format(self.__debug_folder, event.get_run_number(), event.get_id(), filetag)
+
         save_fig(fig, fname, self.__debug_fmts)
         plt.close()
 
