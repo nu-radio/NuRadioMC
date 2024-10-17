@@ -3,7 +3,7 @@ import NuRadioReco.framework.parameter_serialization
 import pickle
 
 import logging
-logger = logging.getLogger('SimEmitter')
+logger = logging.getLogger('NuRadioReco.SimEmitter')
 
 
 class SimEmitter(NuRadioReco.framework.emitter.Emitter):

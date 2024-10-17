@@ -50,9 +50,9 @@ import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 import logging
-from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
+from NuRadioReco.utilities.logging import LOGGING_STATUS
 
-logger = setup_logger("NuRadioMC.simulation")
+logger = logging.getLogger("NuRadioMC.simulation")
 
 
 def pretty_time_delta(seconds):
@@ -91,13 +91,13 @@ class simulation:
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
-                 log_level=LOGGING_STATUS,
+                 log_level=logging.NOTSET,
                  default_detector_station=None,
                  default_detector_channel=None,
                  file_overwrite=False,
                  write_detector=True,
                  event_list=None,
-                 log_level_propagation=logging.WARNING,
+                 log_level_propagation=logging.NOTSET,
                  ice_model=None,
                  **kwargs):
         """

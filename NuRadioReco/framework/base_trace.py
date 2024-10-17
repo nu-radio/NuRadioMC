@@ -12,7 +12,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-logger = logging.getLogger("BaseTrace")
+logger = logging.getLogger("NuRadioReco.BaseTrace")
 
 
 class BaseTrace:

@@ -6,8 +6,8 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import logging
 from numpy import testing
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('test_raytracing')
+logger = logging.getLogger('NuRadioMC.test_raytracing')
+logger.setLevel(logging.INFO)
 
 ice = medium.southpole_simple()
 
