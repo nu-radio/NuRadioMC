@@ -1,5 +1,5 @@
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("NuRadioReco.channelCWNotchFilter")
 import time
 import numpy as np
 from scipy import signal
@@ -90,6 +90,8 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=
     freqs = find_frequency_peaks(freq, spectrum, threshold=threshold)
 
     if len(freqs):
+        # the array is reshaped to (nr_of_filters, nr_of_coefficients), since iirnotch is a second order IIR,
+        # the nr_of_coefficients will be 6: 3 for the numerator and 3 for the denumerator, in that order
         notch_filters = np.array([signal.iirnotch(freq, quality_factor, fs = fs) for freq in freqs]).reshape(-1, 6)
         logging.debug(f"Shape of notch filters for one channel is: {notch_filters.shape}")
         trace_notched = signal.sosfiltfilt(notch_filters, trace, padtype = None)
