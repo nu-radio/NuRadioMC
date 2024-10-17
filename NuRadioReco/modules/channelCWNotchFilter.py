@@ -63,18 +63,19 @@ def find_frequency_peaks(freq: np.ndarray, spectrum : np.ndarray, threshold : fl
 
     return freq[peak_idxs]
 
-def get_filter(freq : int, quality_factor=1e3, fs=3.2e9 * units.Hz, cache=None):
+def get_filter(freq : int, fs, quality_factor=1e3, cache=None):
     """
     Function to get single notch filter for a given frequency
     Parameters
     ----------
     freq : np.ndarray
         Frequency
+    fs : float,
+        sampling frequency in MHz
     quality_factor : int, default = 1000
         quality factor of the notch filter, defined as the ratio f0/bw, where f0 is the centre frequency
         and bw the bandwidth of the filter at (f0,-3 dB)
-    fs : float, default = 3.2e9 Hz
-        sampling frequency
+   
     cache : dict, default = None,
         Optional caching dictionary. The function will check whether the frequency to be filtered
         is in the dictionary values and will otherwise add it
@@ -95,7 +96,7 @@ def get_filter(freq : int, quality_factor=1e3, fs=3.2e9 * units.Hz, cache=None):
             cache[freq] = filter
     return filter
 
-def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=3.2e9 * units.Hz, quality_factor=1e3, threshold=4,
+def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs : float, quality_factor=1e3, threshold=4,
                cache : dict = None,
                filters : list = None):
     """
@@ -110,8 +111,8 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=
         Frequency of the trace's real fourier transform
     spectrum:
         the trace's real fourier transform
-    fs : float, default = 3.2e9 Hz
-        sampling frequency
+    fs : float
+        sampling frequency in MHz
     quality_factor : int, default = 1000
         quality factor of the notch filter, defined as the ratio f0/bw, where f0 is the centre frequency
         and bw the bandwidth of the filter at (f0,-3 dB)
@@ -130,7 +131,7 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=
     if len(freqs):
         # the array is reshaped to (nr_of_filters, nr_of_coefficients), since iirnotch is a second order IIR,
         # the nr_of_coefficients will be 6: 3 for the numerator and 3 for the denumerator, in that order
-        notch_filters = np.array([get_filter(freq, quality_factor, fs=fs, cache=cache) for freq in freqs]).reshape(-1, 6)
+        notch_filters = np.array([get_filter(freq, fs, quality_factor, cache=cache) for freq in freqs]).reshape(-1, 6)
         if filters is not None:
             filters.append(notch_filters)
         logging.debug(f"Shape of notch filters for one channel is: {notch_filters.shape}")
@@ -144,7 +145,7 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=
     return trace
 
 
-def plot_trace(channel, ax, fs=3.2e9 * units.Hz, label=None, plot_kwargs=dict()):
+def plot_trace(channel, ax, fs=3.2e9*units.Hz, label=None, plot_kwargs=dict()):
     """
     Function to plot trace of given channel
     
@@ -154,8 +155,8 @@ def plot_trace(channel, ax, fs=3.2e9 * units.Hz, label=None, plot_kwargs=dict())
         channel from which to get trace
     ax : matplotlib.axes
         ax on which to plot
-    fs : float, default = 3.2e9 Hz
-        sampling frequency of the RNO-G DAQ
+    fs : float, default = 3.2 Hz
+        sampling frequency
     label : string
         plotlabel
     plot_kwargs : dict
@@ -223,7 +224,7 @@ class channelCWNotchFilter():
             freq =  channel.get_frequencies()
             spectrum = channel.get_frequency_spectrum()
             trace = channel.get_trace()
-            trace_fil = filter_cws(trace, freq, spectrum, quality_factor=self.quality_factor, threshold=self.threshold, fs=fs,
+            trace_fil = filter_cws(trace, freq, spectrum, fs, quality_factor=self.quality_factor, threshold=self.threshold,
                                    cache=self.filter_cache, filters=self.filters)
             channel.set_trace(trace_fil, fs)
         
