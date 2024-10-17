@@ -1,7 +1,23 @@
 import logging
 
-
 LOGGING_STATUS = 25
+
+
+class NuRadioLogger(logging.Logger):
+    """
+    Custom logging class for NuRadio modules and applications. It adds a custom log level STATUS,
+    which has level=`LOGGING_STATUS` as defined in `logging.py` (as of February 2024, its value is 25).
+    The associated `status()` call is also implemented.
+    """
+    def __init__(self, name):
+        super().__init__(name)
+
+        # Add STATUS as the level name, to be used in message formatting
+        logging.addLevelName(LOGGING_STATUS, "STATUS")
+
+    def status(self, message, *args, **kwargs):
+        if self.isEnabledFor(LOGGING_STATUS):
+            self._log(LOGGING_STATUS, message, args, **kwargs)
 
 
 def addLoggingLevel(levelName, levelNum, methodName=None):
@@ -38,11 +54,11 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
         methodName = levelName.lower()
 
     if hasattr(logging, levelName):
-       raise AttributeError('{} already defined in logging module'.format(levelName))
+        raise AttributeError('{} already defined in logging module'.format(levelName))
     if hasattr(logging, methodName):
-       raise AttributeError('{} already defined in logging module'.format(methodName))
+        raise AttributeError('{} already defined in logging module'.format(methodName))
     if hasattr(logging.getLoggerClass(), methodName):
-       raise AttributeError('{} already defined in logger class'.format(methodName))
+        raise AttributeError('{} already defined in logger class'.format(methodName))
 
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
@@ -60,13 +76,16 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
     setattr(logging, methodName, logToRoot)
 
 
-def setup_logger(name="NuRadioReco", level=None):
+def _setup_logger(name="NuRadioReco", level=None):
     """
-    Set up the parent logger which all module loggers should pass their logs on to. Any handler which was
-    previously added to the logger is cleared, and a single new `logging.StreamHandler()` with a custom
-    formatter is added. Next to this, an extra logging level STATUS is added with level=`LOGGING_STATUS`,
-    which is defined in `module.py` (as of February 2024, its value is 25). Then STATUS is also set as
-    the default logging level.
+    Set up the parent logger which all module loggers should pass their logs on to. If this one already
+    exists, nothing is done and the logger is returned as is. Otherwise, a single new `logging.StreamHandler()`
+    with a custom formatter is added.
+
+    Notes
+    -----
+    This function is only meant to be called once, on import, as part of the `__init__.py` scripts of the base packages 
+    NuRadioReco and NuRadioMC. It is not meant nor necessary to call this function from a module or user script.
 
     Parameters
     ----------
@@ -74,29 +93,59 @@ def setup_logger(name="NuRadioReco", level=None):
         The name of the base logger
     level : int, default=25
         The logging level to use for the base logger
+
     """
     logger = logging.getLogger(name)
+
+    if len(logger.handlers) > 0:  # method hasHandlers() also checks parents -> ends up at root logger
+        # Don't change the logger if it already exists
+        logger.warning(f"Logger {name} already has handlers. Not changing anything, returning the existing logger...")
+        return logger
     logger.propagate = False
 
-    # First clear all the handlers
-    logger.handlers = []
+    # Create a StreamHandler with fancy formatter
+    handler = logging.StreamHandler()
+    handler.setFormatter(get_fancy_formatter())
+    handler.setLevel(1)  # we want the handler to be accepting all records from child loggers
 
     # Then add our custom handler to the logger
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
-    handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    # Add the STATUS log level
-    try:
-        addLoggingLevel('STATUS', LOGGING_STATUS)
-    except AttributeError:
-        pass
-
-    # Set logging level
+    # Finally, set the logging level
     if level is not None:
         logger.setLevel(level=level)
     else:
-        logger.setLevel(logging.STATUS)
+        logger.setLevel(LOGGING_STATUS)
 
     return logger
+
+
+def get_fancy_formatter():
+    """
+    Returns the formatter used in the NuRadio logger.
+
+    Returns
+    -------
+    formatter : logging.Formatter
+    """
+    formatter = logging.Formatter(
+        '\033[33;20m%(levelname)s - \033[93m%(asctime)s - \033[32m%(name)s - \033[0m%(message)s',
+        datefmt="%Y %b %d @ %H:%M:%S UTC%z"
+    )
+    return formatter
+
+
+def set_general_log_level(level):
+    """
+    Set the logging level of the NuRadioMC and NuRadioReco loggers to `level`.
+
+    Parameters
+    ----------
+    level : int
+        The desired logging level
+    """
+    nrr_logger = logging.getLogger("NuRadioReco")
+    nrr_logger.setLevel(level)
+
+    nrmc_logger = logging.getLogger("NuRadioMC")
+    nrmc_logger.setLevel(level)

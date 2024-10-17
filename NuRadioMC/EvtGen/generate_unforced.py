@@ -18,7 +18,6 @@ import NuRadioMC
 from NuRadioReco.utilities import version
 # np.random.seed(10)  # just for testing
 
-logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
