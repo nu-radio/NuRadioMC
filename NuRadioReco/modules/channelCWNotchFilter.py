@@ -91,7 +91,7 @@ def get_filter(freq : int, quality_factor=1e3, fs=3.2e9 * units.Hz, cache=None):
     if cache is not None:
         # Check to avoid cache dictionary overflowing the memory,
         # set to roughly stay below 6 MB (every filter is 6 floats + freq = 7 floats ~ 56B)
-        if len(cache.keys() < 1e5):
+        if len(cache.keys()) < 1e5:
             cache[freq] = filter
     return filter
 
