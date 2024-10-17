@@ -64,7 +64,8 @@ def find_frequency_peaks(freq: np.ndarray, spectrum : np.ndarray, threshold : fl
     return freq[peak_idxs]
 
 
-def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=3.2e9 * units.Hz, quality_factor=1e3, threshold=4):
+def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=3.2e9 * units.Hz, quality_factor=1e3, threshold=4,
+               filters : list = None):
     """
     Function that applies a notch filter at the frequency peaks of a given time trace
     using the scipy library
@@ -85,7 +86,8 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=
     threshold : int, default = 4
         threshold for peak definition. A peak is defined as a point in the frequency spectrum
         that exceeds threshold * rms(real fourier transform)
-
+    filters : NoneType or list, default = None
+        Optional list to which the filters used in this function can be appended for future reference
     """
     freqs = find_frequency_peaks(freq, spectrum, threshold=threshold)
 
@@ -93,10 +95,16 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs=
         # the array is reshaped to (nr_of_filters, nr_of_coefficients), since iirnotch is a second order IIR,
         # the nr_of_coefficients will be 6: 3 for the numerator and 3 for the denumerator, in that order
         notch_filters = np.array([signal.iirnotch(freq, quality_factor, fs = fs) for freq in freqs]).reshape(-1, 6)
+        if filters is not None:
+            filters.append(notch_filters)
         logging.debug(f"Shape of notch filters for one channel is: {notch_filters.shape}")
         trace_notched = signal.sosfiltfilt(notch_filters, trace, padtype = None)
         return trace_notched
-
+    else:
+        # append empty list when filters is specified to ensure
+        # filters list is shape 24 when looping over channels
+        if filters is not None:
+            filters.append([])
     return trace
 
 
@@ -162,9 +170,14 @@ class channelCWNotchFilter():
     def __init__(self):
         pass
 
-    def begin(self, quality_factor=1e3, threshold=4):
+    def begin(self, quality_factor=1e3, threshold=4,
+              save_filters=False):
         self.quality_factor = quality_factor
         self.threshold = threshold
+        if save_filters:
+            self.filters = []
+        else:
+            self.filters = None
 
     def run(self, event, station, det):
         for channel in station.iter_channels():
@@ -172,7 +185,7 @@ class channelCWNotchFilter():
             freq =  channel.get_frequencies()
             spectrum = channel.get_frequency_spectrum()
             trace = channel.get_trace()
-            trace_fil = filter_cws(trace, freq, spectrum, quality_factor=self.quality_factor, threshold=self.threshold, fs=fs)
+            trace_fil = filter_cws(trace, freq, spectrum, quality_factor=self.quality_factor, threshold=self.threshold, fs=fs, filters=self.filters)
             channel.set_trace(trace_fil, fs)
         
 # Standard test for people playing around with module settings, applies the module as one would in a data reading pipeline
