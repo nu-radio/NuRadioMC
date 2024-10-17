@@ -4,7 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from radiotools import plthelpers as php
 import logging
-logging.basicConfig(level=logging.INFO)
+
+
+logger = logging.getLogger("NuRadioMC.T04CompareModels")
+logger.setLevel(logging.INFO)
 
 interp_factor = 20
 # HAD for different viewing angles

@@ -6,7 +6,7 @@ from six import iteritems
 import pickle
 import logging
 import collections
-logger = logging.getLogger('Station')
+logger = logging.getLogger('NuRadioReco.Station')
 
 
 class Station(NuRadioReco.framework.base_station.BaseStation):
