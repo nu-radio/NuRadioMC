@@ -84,7 +84,7 @@ def _setup_logger(name="NuRadioReco", level=None):
 
     Notes
     -----
-    This function is only meant to be called once, on import, as part of the `__init__.py` scripts of the base packages 
+    This function is only meant to be called once, on import, as part of the `__init__.py` scripts of the base packages
     NuRadioReco and NuRadioMC. It is not meant nor necessary to call this function from a module or user script.
 
     Parameters
@@ -130,7 +130,7 @@ def get_fancy_formatter():
     """
     formatter = logging.Formatter(
         '\033[33;20m%(levelname)s - \033[93m%(asctime)s - \033[32m%(name)s - \033[0m%(message)s',
-        datefmt="%Y %b %d @ %H:%M:%S UTC%z"
+        datefmt="%H:%M:%S"
     )
     return formatter
 
