@@ -100,7 +100,8 @@ class BaseTrace:
             return np.copy(self._frequency_spectrum)
         else:
             trace = copy.copy(self.get_trace())
-            return fft.time2freq(trace[window], self._sampling_rate)
+            # The double transpose allows to work with 1D and ND traces
+            return fft.time2freq(trace.T[window].T, self._sampling_rate)
 
     def set_trace(self, trace, sampling_rate):
         """
