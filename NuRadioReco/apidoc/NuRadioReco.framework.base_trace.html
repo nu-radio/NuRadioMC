@@ -611,8 +611,21 @@
 <span id="nuradioreco-framework-base-trace-module"></span><h1>NuRadioReco.framework.base_trace module<a class="headerlink" href="#module-NuRadioReco.framework.base_trace" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.base_trace.</span></span><span class="sig-name descname"><span class="pre">BaseTrace</span></span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.base_trace.</span></span><span class="sig-name descname"><span class="pre">BaseTrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Initialize the BaseTrace object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace</strong><span class="classifier">np.array of floats (default: None)</span></dt><dd><p>The time trace. Can also be set later with the <a class="reference internal" href="#NuRadioReco.framework.base_trace.BaseTrace.set_trace" title="NuRadioReco.framework.base_trace.BaseTrace.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a> method.</p>
+</dd>
+<dt><strong>sampling_rate</strong><span class="classifier">float (default: None)</span></dt><dd><p>The sampling rate of the trace, i.e., the inverse of the bin width.</p>
+</dd>
+<dt><strong>trace_start_time</strong><span class="classifier">float (default: 0)</span></dt><dd><p>The start time of the trace.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -623,19 +636,19 @@
 <td><p>Returns the trace after applying a filter to it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_trace.BaseTrace.get_number_of_samples" title="NuRadioReco.framework.base_trace.BaseTrace.get_number_of_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code></a>()</p></td>
-<td><p>returns the number of samples in the time domain</p></td>
+<td><p>Returns the number of samples in the time domain.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate" title="NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
-<td><p>returns the sampling rate of the trace</p></td>
+<td><p>Returns the sampling rate of the trace.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_trace.BaseTrace.get_trace" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
-<td><p>returns the time trace.</p></td>
+<td><p>Returns the time trace.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum" title="NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_frequency_spectrum</span></code></a>(frequency_spectrum, ...)</p></td>
-<td><p>Sets the frequency spectrum</p></td>
+<td><p>Sets the frequency spectrum.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_trace.BaseTrace.set_trace" title="NuRadioReco.framework.base_trace.BaseTrace.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
-<td><p>Sets the time trace</p></td>
+<td><p>Sets the time trace.</p></td>
 </tr>
 </tbody>
 </table>
@@ -679,7 +692,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_trace">
 <span class="sig-name descname"><span class="pre">get_trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_trace" title="Permalink to this definition"></a></dt>
-<dd><p>returns the time trace.</p>
+<dd><p>Returns the time trace.</p>
 <p>If the frequency spectrum was modified before,
 an ifft is performed automatically to have the time domain representation
 up to date.</p>
@@ -719,7 +732,7 @@ up to date.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.set_trace">
 <span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.set_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.set_trace" title="Permalink to this definition"></a></dt>
-<dd><p>Sets the time trace</p>
+<dd><p>Sets the time trace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -736,7 +749,7 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum">
 <span class="sig-name descname"><span class="pre">set_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency_spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.set_frequency_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum" title="Permalink to this definition"></a></dt>
-<dd><p>Sets the frequency spectrum</p>
+<dd><p>Sets the frequency spectrum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -753,7 +766,7 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate">
 <span class="sig-name descname"><span class="pre">get_sampling_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_sampling_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate" title="Permalink to this definition"></a></dt>
-<dd><p>returns the sampling rate of the trace</p>
+<dd><p>Returns the sampling rate of the trace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -802,7 +815,7 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_number_of_samples">
 <span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_number_of_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_number_of_samples" title="Permalink to this definition"></a></dt>
-<dd><p>returns the number of samples in the time domain</p>
+<dd><p>Returns the number of samples in the time domain.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">

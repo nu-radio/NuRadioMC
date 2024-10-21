@@ -637,19 +637,19 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <td><p>channel group id If no group id is specified, the channel id is returned.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_number_of_samples" title="NuRadioReco.framework.channel.Channel.get_number_of_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code></a>()</p></td>
-<td><p>returns the number of samples in the time domain</p></td>
+<td><p>Returns the number of samples in the time domain.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_sampling_rate" title="NuRadioReco.framework.channel.Channel.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
-<td><p>returns the sampling rate of the trace</p></td>
+<td><p>Returns the sampling rate of the trace.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_trace" title="NuRadioReco.framework.channel.Channel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
-<td><p>returns the time trace.</p></td>
+<td><p>Returns the time trace.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_frequency_spectrum" title="NuRadioReco.framework.channel.Channel.set_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_frequency_spectrum</span></code></a>(frequency_spectrum, ...)</p></td>
-<td><p>Sets the frequency spectrum</p></td>
+<td><p>Sets the frequency spectrum.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_trace" title="NuRadioReco.framework.channel.Channel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
-<td><p>Sets the time trace</p></td>
+<td><p>Sets the time trace.</p></td>
 </tr>
 </tbody>
 </table>
@@ -814,7 +814,7 @@ to acommodate the time shift</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_number_of_samples">
 <span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_number_of_samples" title="Permalink to this definition"></a></dt>
-<dd><p>returns the number of samples in the time domain</p>
+<dd><p>Returns the number of samples in the time domain.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -828,7 +828,7 @@ to acommodate the time shift</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_sampling_rate">
 <span class="sig-name descname"><span class="pre">get_sampling_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_sampling_rate" title="Permalink to this definition"></a></dt>
-<dd><p>returns the sampling rate of the trace</p>
+<dd><p>Returns the sampling rate of the trace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -847,7 +847,7 @@ to acommodate the time shift</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_trace">
 <span class="sig-name descname"><span class="pre">get_trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_trace" title="Permalink to this definition"></a></dt>
-<dd><p>returns the time trace.</p>
+<dd><p>Returns the time trace.</p>
 <p>If the frequency spectrum was modified before,
 an ifft is performed automatically to have the time domain representation
 up to date.</p>
@@ -874,7 +874,7 @@ up to date.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.set_frequency_spectrum">
 <span class="sig-name descname"><span class="pre">set_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency_spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.set_frequency_spectrum" title="Permalink to this definition"></a></dt>
-<dd><p>Sets the frequency spectrum</p>
+<dd><p>Sets the frequency spectrum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -891,7 +891,7 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.set_trace">
 <span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.set_trace" title="Permalink to this definition"></a></dt>
-<dd><p>Sets the time trace</p>
+<dd><p>Sets the time trace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
