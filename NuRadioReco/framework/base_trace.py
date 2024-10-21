@@ -77,13 +77,30 @@ class BaseTrace:
         spec *= filter_response
         return fft.freq2time(spec, self.get_sampling_rate())
 
-    def get_frequency_spectrum(self):
-        if self.__time_domain_up_to_date:
-            self._frequency_spectrum = fft.time2freq(self._time_trace, self._sampling_rate)
-            self._time_trace = None
-            # logger.debug("frequency spectrum has shape {}".format(self._frequency_spectrum.shape))
-            self.__time_domain_up_to_date = False
-        return np.copy(self._frequency_spectrum)
+    def get_frequency_spectrum(self, window=None):
+        """
+        Returns the frequency spectrum.
+
+        Parameters
+        ----------
+        window: array of bools (default: None)
+            If not None, specifies the time window to be used for the FFT. Has to have the same length as the trace.
+
+        Returns
+        -------
+        frequency_spectrum: np.array of floats
+            The frequency spectrum.
+        """
+        if window is None:
+            if self.__time_domain_up_to_date:
+                self._frequency_spectrum = fft.time2freq(self._time_trace, self._sampling_rate)
+                self._time_trace = None
+                self.__time_domain_up_to_date = False
+
+            return np.copy(self._frequency_spectrum)
+        else:
+            trace = copy.copy(self.get_trace())
+            return fft.time2freq(trace[window], self._sampling_rate)
 
     def set_trace(self, trace, sampling_rate):
         """
