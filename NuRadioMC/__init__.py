@@ -3,10 +3,10 @@
 import os
 import logging
 
-from NuRadioReco.utilities.logging import NuRadioLogger, setup_logger
+from NuRadioReco.utilities.logging import NuRadioLogger, _setup_logger
 
 logging.setLoggerClass(NuRadioLogger)
-setup_logger(name="NuRadioMC")
+_setup_logger(name="NuRadioMC")
 
 try:
     import importlib.metadata as importlib_metadata
