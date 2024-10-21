@@ -688,7 +688,7 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    This function is only meant to be called once, on import, as part of the `__init__.py` scripts of the base packages </span>
+<span class="sd">    This function is only meant to be called once, on import, as part of the `__init__.py` scripts of the base packages</span>
 <span class="sd">    NuRadioReco and NuRadioMC. It is not meant nor necessary to call this function from a module or user script.</span>
 
 <span class="sd">    Parameters</span>
@@ -734,7 +734,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
         <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[33;20m</span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[93m</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[32m</span><span class="si">%(name)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[0m</span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
-        <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%Y %b </span><span class="si">%d</span><span class="s2"> @ %H:%M:%S UTC%z&quot;</span>
+        <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%H:%M:%S&quot;</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">formatter</span></div>
 
