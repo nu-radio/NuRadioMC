@@ -76,11 +76,16 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
     setattr(logging, methodName, logToRoot)
 
 
-def setup_logger(name="NuRadioReco", level=None):
+def _setup_logger(name="NuRadioReco", level=None):
     """
     Set up the parent logger which all module loggers should pass their logs on to. If this one already
     exists, nothing is done and the logger is returned as is. Otherwise, a single new `logging.StreamHandler()`
     with a custom formatter is added.
+
+    Notes
+    -----
+    This function is only meant to be called once, on import, as part of the `__init__.py` scripts of the base packages
+    NuRadioReco and NuRadioMC. It is not meant nor necessary to call this function from a module or user script.
 
     Parameters
     ----------
@@ -89,10 +94,6 @@ def setup_logger(name="NuRadioReco", level=None):
     level : int, default=25
         The logging level to use for the base logger
 
-    Notes
-    -----
-    This function is only meant to be called once, on import. It is part of the `init` scripts, so you
-    should not need to call this function explicitly.
     """
     logger = logging.getLogger(name)
 
@@ -129,7 +130,7 @@ def get_fancy_formatter():
     """
     formatter = logging.Formatter(
         '\033[33;20m%(levelname)s - \033[93m%(asctime)s - \033[32m%(name)s - \033[0m%(message)s',
-        datefmt="%Y %b %d @ %H:%M:%S UTC%z"
+        datefmt="%H:%M:%S"
     )
     return formatter
 
