@@ -194,8 +194,29 @@ class BaseTrace:
     def get_trace_start_time(self):
         return self._trace_start_time
 
-    def get_frequencies(self):
-        return get_frequencies(self.get_number_of_samples(), self._sampling_rate)
+    def get_frequencies(self, window=None):
+        """
+        Returns the frequencies of the frequency spectrum.
+
+        Parameters
+        ----------
+        window: array of bools or int (default: None)
+            If not None, used to determine the number of samples in the time domain used for the frequency spectrum.
+
+        Returns
+        -------
+        frequencies: np.array of floats
+            The frequencies of the frequency spectrum.
+        """
+        if window is None:
+            nsamples = self.get_number_of_samples()
+        else:
+            if isinstance(window, (int, float)):
+                nsamples = int(window)
+            else:
+                nsamples = int(np.sum(window))
+
+        return get_frequencies(nsamples, self._sampling_rate)
 
     def get_hilbert_envelope(self):
         from scipy import signal
