@@ -571,7 +571,7 @@ class readRNOGData:
         if self._selectors is not None:
             for selector in self._selectors:
                 if not selector(evtinfo):
-                    self.logger.debug(f"Event {self.__counter} (station {evtinfo.station}, run {evtinfo.run}, "
+                    self.logger.debug(f"Event {self.__counter - 1} (station {evtinfo.station}, run {evtinfo.run}, "
                                       f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
                     self.__skipped += 1
                     return False
