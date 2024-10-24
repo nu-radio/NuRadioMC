@@ -56,7 +56,7 @@ class readCoREASShower:
     def run(self):
         """
         Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.
-        A detector description is not needed to run this module. If a genericDetector is passed to the begin method, 
+        A detector description is not needed to run this module. If a genericDetector is passed to the begin method,
         the stations are added to it and the run method returns both the event and the detector.
         """
         while self.__current_input_file < len(self.__input_files):
@@ -116,17 +116,17 @@ class readCoREASShower:
                         station_id, corsika, observer, channel_ids=[0, 1, 2])
                 else:
                     sim_station = coreas.make_sim_station(
-                        station_id, corsika, observer, 
+                        station_id, corsika, observer,
                         channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
-                
+
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
-                
+
                 if self.__det is not None:
                     position = observer.attrs['position']
                     antenna_position = np.array([-position[1], position[0], position[2]]) * units.cm
                     antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
-                    
+
                     if not self.__det.has_station(station_id):
                         self.__det.add_generic_station({
                             'station_id': station_id,
