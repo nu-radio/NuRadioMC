@@ -1,9 +1,6 @@
 import NuRadioReco.modules.io.araroot.readARAData
-from NuRadioReco.modules.base.module import setup_logger
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
-
-logger = setup_logger()
 
 readARAData = NuRadioReco.modules.io.araroot.readARAData.readARAData()
 

@@ -1,7 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import logging
-logger = logging.getLogger('channelLengthAdjuster')
+logger = logging.getLogger('NuRadioReco.channelLengthAdjuster')
 
 
 class channelLengthAdjuster:

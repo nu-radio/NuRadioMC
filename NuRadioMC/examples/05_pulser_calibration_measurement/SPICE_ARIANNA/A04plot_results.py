@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import matplotlib.pyplot as plt
 import logging
-logging.basicConfig(level=logging.WARNING)
 import numpy as np
 from scipy import signal
 import argparse
@@ -10,6 +9,8 @@ from NuRadioReco.utilities import units, io_utilities
 from radiotools import plthelpers as php
 # plt.switch_backend('agg')
 
+logger = logging.getLogger("NuRadioMC.A04plot_results")
+logger.setLevel(logging.WARNING)
 
 if __name__ == "__main__":
     i = 3

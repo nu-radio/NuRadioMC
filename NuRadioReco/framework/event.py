@@ -11,7 +11,7 @@ import NuRadioReco.utilities.version
 from six import itervalues
 import collections
 import logging
-logger = logging.getLogger('Event')
+logger = logging.getLogger('NuRadioReco.Event')
 
 
 class Event:

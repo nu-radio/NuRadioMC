@@ -16,11 +16,10 @@ class efieldToVoltageConverterPerEfield():
     resulting voltage traces in the SimStationclass as SimChannel objects
     """
 
-    def __init__(self, log_level=None):
+    def __init__(self, log_level=logging.NOTSET):
         self.__t = 0
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverterPerEfield')
-        if(log_level):
-            self.logger.setLevel(log_level)
+        self.logger.setLevel(log_level)
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
     @register_run()
