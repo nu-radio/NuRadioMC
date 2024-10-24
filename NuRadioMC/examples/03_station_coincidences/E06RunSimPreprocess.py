@@ -10,8 +10,8 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("NuRadioMC.runstrawman")
+logger.setLevel(logging.INFO)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()

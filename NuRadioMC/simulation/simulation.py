@@ -198,10 +198,10 @@ def calculate_sim_efield(showers, sid, cid,
                 logger.debug('delta_C too large, ray tracing solution unlikely to be observed, skipping ray tracing solution')
                 continue
             # TODO: Fill with previous values if RT was already performed
-            R = p.get_path_length(iS)  # calculate path length
-            T = p.get_travel_time(iS)  # calculate travel time
+            wave_propagation_distance = p.get_path_length(iS)  # calculate path length
+            wave_propagation_time = p.get_travel_time(iS)  # calculate travel time
             time_logger.start_time('ray tracing (time)')
-            if R is None or T is None:
+            if wave_propagation_distance is None or wave_propagation_time is None:
                 logger.warning(f'travel distance or travel time could not be calculated, skipping ray tracing solution. Shower ID: {shower.get_id()} Station ID: {sid} Channel ID: {cid}')
                 continue
             kwargs = {}
@@ -244,9 +244,9 @@ def calculate_sim_efield(showers, sid, cid,
             # Trace start time is equal to the interaction time relative to the first
             # interaction plus the wave travel time.
             if shower.has_parameter(shp.vertex_time):
-                trace_start_time = shower[shp.vertex_time] + T
+                trace_start_time = shower[shp.vertex_time] + wave_propagation_time
             else:
-                trace_start_time = T
+                trace_start_time = wave_propagation_time
 
             # We shift the trace start time so that the trace time matches the propagation time.
             # The centre of the trace corresponds to the instant when the signal from the shower
@@ -259,8 +259,8 @@ def calculate_sim_efield(showers, sid, cid,
             electric_field[efp.azimuth] = azimuth
             electric_field[efp.zenith] = zenith
             electric_field[efp.ray_path_type] = propagation.solution_types[p.get_solution_type(iS)]
-            electric_field[efp.nu_vertex_distance] = R
-            electric_field[efp.nu_vertex_travel_time] = T
+            electric_field[efp.nu_vertex_distance] = wave_propagation_distance
+            electric_field[efp.nu_vertex_propagation_time] = wave_propagation_time
             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
             electric_field[efp.polarization_angle] = np.arctan2(*polarization_direction_onsky[1:][::-1]) #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
@@ -350,10 +350,10 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
         for iS in range(n): # loop through all ray tracing solution
             time_logger.start_time('ray tracing (time)')
             # TODO: Fill with previous values if RT was already performed
-            R = p.get_path_length(iS)  # calculate path length
-            T = p.get_travel_time(iS)  # calculate travel time
+            wave_propagation_distance = p.get_path_length(iS)  # calculate path length
+            wave_propagation_time = p.get_travel_time(iS)  # calculate travel time
             time_logger.stop_time('ray tracing (time)')
-            if R is None or T is None:
+            if wave_propagation_distance is None or wave_propagation_time is None:
                 logger.warning(f'travel distance or travel time could not be calculated, skipping ray tracing solution. Emitter ID: {emitter.get_id()} Station ID: {sid} Channel ID: {cid}')
                 continue
             # if the input file specifies a specific shower realization, or
@@ -401,8 +401,8 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
                 ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
                 eR = np.zeros_like(eTheta)
             # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
-            eTheta *= 1 / R
-            ePhi *= 1 / R
+            eTheta *= 1 / wave_propagation_distance
+            ePhi *= 1 / wave_propagation_distance
             time_logger.stop_time('signal generation')
 
             # this is common stuff which is the same between emitters and showers. Make sure to do any changes to this code in both places
@@ -416,14 +416,14 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             # Trace start time is equal to the emitter time in case one was defined
             # (relevant for multiple emitters per event group)
             if emitter.has_parameter(ep.time):
-                trace_start_time = emitter[ep.time] + T
+                trace_start_time = emitter[ep.time] + wave_propagation_time
             else:
-                trace_start_time = T
+                trace_start_time = wave_propagation_time
 
             # We shift the trace start time so that the trace time matches the propagation time.
             # The centre of the trace corresponds to the instant when the signal from the shower
             # vertex arrives at the observer. The next line makes sure that the centre time
-            # of the trace is equal to vertex_time + T (wave propagation time)
+            # of the trace is equal to vertex_time + wave_propagation_time (wave propagation time)
             trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
 
             zenith, azimuth = hp.cartesian_to_spherical(*p.get_receive_vector(iS))
@@ -431,8 +431,8 @@ def calculate_sim_efield_for_emitter(emitters, sid, cid,
             electric_field[efp.azimuth] = azimuth
             electric_field[efp.zenith] = zenith
             electric_field[efp.ray_path_type] = propagation.solution_types[p.get_solution_type(iS)]
-            electric_field[efp.nu_vertex_distance] = R
-            electric_field[efp.nu_vertex_travel_time] = T
+            electric_field[efp.nu_vertex_distance] = wave_propagation_distance
+            electric_field[efp.nu_vertex_propagation_time] = wave_propagation_time
             electric_field[efp.raytracing_solution] = p.get_raytracing_output(iS)
             electric_field[efp.launch_vector] = p.get_launch_vector(iS)
 

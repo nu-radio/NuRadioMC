@@ -19,7 +19,7 @@ class NuRadioRecoio(object):
 
     def __init__(self, filenames, parse_header=True, parse_detector=True, fail_on_version_mismatch=True,
                  fail_on_minor_version_mismatch=False,
-                 max_open_files=10, log_level=None, buffer_size=104857600):
+                 max_open_files=10, log_level=logging.NOTSET, buffer_size=104857600):
         """
         Initialize NuRadioReco io
 
@@ -39,8 +39,8 @@ class NuRadioRecoio(object):
             Controls if the module should try to read files with a different minor version
         max_open_files: int
             the maximum number of files that remain open simultaneously
-        log_level: None or log level
-            the log level of this class
+        log_level: int, default=logging.NOTSET
+            Override the log level of this class
         buffer_size: int
             the size of the read buffer in bytes (default 100MB)
         """
@@ -51,8 +51,7 @@ class NuRadioRecoio(object):
         self.logger = logging.getLogger('NuRadioReco.NuRadioRecoio')
         self.logger.info("initializing NuRadioRecoio with file {}".format(filenames))
         t = time.time()
-        if log_level is not None:
-            self.logger.setLevel(log_level)
+        self.logger.setLevel(log_level)
 
         # Initialize attributes
         self._filenames = None
@@ -201,8 +200,15 @@ class NuRadioRecoio(object):
                                 err = f"Station time not stored as dict or astropy.time.Time: ({type(value)})"
                                 self.logger.error(err)
                                 raise ValueError(err)
-
-                            station_time.format = 'isot'
+                            try:
+                                station_time.format = 'isot'
+                            except AttributeError:
+                                try:
+                                    station_time.precision = station_time._time.__dict__["precision"]
+                                    station_time.format = 'isot'
+                                except AttributeError:
+                                    self.logger.warning("setting format to 'isot' resulted in error.")
+                                    pass
 
                         self.__event_headers[station_id][key].append(station_time)
                     else:
