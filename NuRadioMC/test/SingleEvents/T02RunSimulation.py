@@ -11,9 +11,8 @@ import NuRadioReco.modules.triggerTimeAdjuster
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
+
+
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()

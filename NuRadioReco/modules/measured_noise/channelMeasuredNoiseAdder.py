@@ -27,7 +27,7 @@ class channelMeasuredNoiseAdder:
 
     def begin(self, filenames=None, folder=None, file_pattern="*", 
               random_seed=None, max_iterations=100, debug=False, 
-              draw_noise_statistics=False, channel_mapping=None, log_level=logging.WARNING, 
+              draw_noise_statistics=False, channel_mapping=None, log_level=logging.NOTSET,
               restrict_station_id=True, station_id=None, allow_noise_resampling=False, 
               baseline_substraction=True, allowed_triggers=["FORCE"]):
         """
@@ -66,8 +66,8 @@ class channelMeasuredNoiseAdder:
             ids of the MC station to the channel ids of the noise data
             Default is None which is 1-to-1 mapping
         
-        log_level: loggging log level
-            the log level, default logging.WARNING
+        log_level: logging log level
+            the log level, default logging.NOTSET (adhere to global logging level)
         
         baseline_substraction: boolean
             Option to subtract mean from trace. Set mean_opt=False to remove mean subtraction from trace.
