@@ -98,14 +98,14 @@ def rolled_sum_slicing(traces, rolling):
         1D array of summed traces
     """
 
+    if rolling[0]:
+        raise RuntimeError(f"Cannot have a roll value of {rolling[0]}!=0 for channel 0")
+
     # assume first trace always has no rolling
     sumtr = traces[0].copy()
     for i in range(1, len(traces)):
         r = rolling[i]
-        if r > 0:
-            sumtr[:-r] += traces[i][r:]
-            sumtr[-r:] += traces[i][:r]
-        elif r < 0:
+        if r != 0:
             sumtr[:r] += traces[i][-r:]
             sumtr[r:] += traces[i][:-r]
         else:
@@ -231,7 +231,7 @@ class thermalNoiseGeneratorPhasedArray():
 
     def __init__(self, detector_filename, station_id, triggered_channels,
                  Vrms, threshold, ref_index,
-                 noise_type="rayleigh", log_level=logging.WARNING,
+                 noise_type="rayleigh", log_level=logging.NOTSET,
                  pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None,
                  upsampling=2, window_length=16 * units.ns, step_size=8 * units.ns,
                  main_low_angle=np.deg2rad(-59.54968597864437), 
@@ -331,7 +331,8 @@ class thermalNoiseGeneratorPhasedArray():
             delays -= np.max(delays)
 
             roll = np.array(np.round(np.array(delays) * self.sampling_rate * self.upsampling)).astype(int)
-            self.beam_time_delays[iBeam] = roll
+            # subtract off the delay of antenna 0 because `rolled_sum_slicing` assumes this is the case
+            self.beam_time_delays[iBeam] = roll - roll[0]
 
         self.Vrms = Vrms
         self.threshold = threshold

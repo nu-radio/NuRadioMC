@@ -12,7 +12,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 import logging
-logger = logging.getLogger('coreas')
+logger = logging.getLogger('NuRadioReco.coreas')
 
 warning_printed_coreas_py = False
 
