@@ -20,7 +20,7 @@ from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
 from NuRadioReco.utilities import units
 import NuRadioReco.modules.io.eventWriter
-from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
+from NuRadioReco.utilities.logging import LOGGING_STATUS
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -46,7 +46,7 @@ from NuRadioReco.framework.parameters import emitterParameters as ep
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import NuRadioMC.simulation.time_logger
 
-logger = setup_logger("NuRadioMC.simulation")
+logger = logging.getLogger("NuRadioMC.simulation")
 
 # initialize a few NuRadioReco modules
 # TODO: Is this the best way to do it? Better to initialize them on demand
@@ -217,7 +217,7 @@ def calculate_sim_efield(showers, sid, cid,
 
             time_logger.start_time('signal generation')
             spectrum, additional_output = askaryan.get_frequency_spectrum(shower[shp.energy], viewing_angles[iS],
-                            n_samples, dt, shower[shp.type], n_index, R,
+                            n_samples, dt, shower[shp.type], n_index, wave_propagation_distance,
                             config['signal']['model'], seed=config['seed'], full_output=True, **kwargs)
             # save shower realization to SimShower and hdf5 file
             if config['signal']['model'] in ["ARZ2019", "ARZ2020"]:

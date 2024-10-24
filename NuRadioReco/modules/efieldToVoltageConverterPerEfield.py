@@ -8,7 +8,6 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import units, ice, geometryUtilities
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.utilities.logging import setup_logger
 
 
 class efieldToVoltageConverterPerEfield():
