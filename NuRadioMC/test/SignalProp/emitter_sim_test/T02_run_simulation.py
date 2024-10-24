@@ -10,6 +10,7 @@ import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
+import logging
 logger = logging.getLogger("NuRadioMC.runstrawman")
 
 # initialize detector sim modules
