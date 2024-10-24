@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function
 import argparse
 # import detector simulation modules
 import NuRadioReco.modules.trigger.highLowThreshold
@@ -7,10 +6,6 @@ import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
-
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
 
 # initialize detector sim modules
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
