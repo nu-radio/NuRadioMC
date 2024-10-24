@@ -131,12 +131,43 @@ class BaseStation():
         return self._station_id
 
     def remove_triggers(self):
+        """
+        removes all triggers from the station
+        """
         self._triggers = collections.OrderedDict()
 
     def get_trigger(self, name):
+        """
+        returns the trigger with the name 'name'
+
+        Parameters
+        ----------
+        name: string
+            the name of the trigger
+
+        Returns
+        -------
+            trigger: Trigger
+        """
         if (name not in self._triggers):
             raise ValueError("trigger with name {} not present".format(name))
         return self._triggers[name]
+
+    def get_primary_trigger(self):
+        """
+        returns the primary trigger of the station. If no primary trigger exists, it returns None
+        """
+        trigger = None
+        primary_trigger_count = 0
+        # test if only one primary trigger exists
+        for trig in self.get_triggers().values():
+            if trig.is_primary():
+                primary_trigger_count += 1
+                trigger = trig
+        if primary_trigger_count > 1:
+            logger.error('More than one primary trigger exists. Only one trigger can be the primary trigger. Please check your code.')
+            raise ValueError
+        return trigger
 
     def has_trigger(self, trigger_name):
         """
@@ -158,6 +189,14 @@ class BaseStation():
         return self._triggers
 
     def set_trigger(self, trigger):
+        """
+        sets a trigger for the station. If a trigger with the same name already exists, it will be overridden
+
+        Parameters
+        ----------
+        trigger: Trigger
+            the trigger object to set
+        """
         if (trigger.get_name() in self._triggers):
             logger.warning(
                 "station has already a trigger with name {}. The previous trigger will be overridden!".format(
@@ -167,7 +206,8 @@ class BaseStation():
 
     def has_triggered(self, trigger_name=None):
         """
-        convenience function.
+        convenience function. Returns True if the station was triggered. If a trigger name is set, it returns if the
+        selected trigger has triggered.
 
         Parameters
         ----------

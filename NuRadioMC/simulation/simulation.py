@@ -1537,7 +1537,7 @@ class simulation:
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(sid)) - set(channel_ids))
                 if (len(non_trigger_channels) > 0):
-                    logger.status(f"Simulating non-trigger channels for station {sid}")
+                    logger.status(f"Simulating non-trigger channels for station {sid}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
                             sim_station = calculate_sim_efield(showers=event_group.get_sim_showers(),
@@ -1573,30 +1573,8 @@ class simulation:
                             # of the simulation.
                             trace_start_time = evt.get_station().get_channel(channel_ids[0]).get_trace_start_time()
                             # # determine the trigger that was used to determine the readout window
-                            # trigger_name = None
-                            # trigger_time = None
-                            # pre_trigger_time = None
-                            # for trigger in evt.get_station().get_triggers().values():
-                            #     # we need to select the trigger that was used to determine the readout window, which is the one that has the
-                            #     # `pre_trigger_times` set. All other triggers will return None. We can double check that by testing that the
-                            #     #  trigger_time is the same as start time as the trace
-                            #     if trigger.get_pre_trigger_times() is not None:
-                            #         pre_trigger_time = trigger.get_pre_trigger_times()
-                            #         trigger_time = trigger.get_trigger_time()
-                            #         trigger_name = trigger.get_name()
-                            #         break
-
-                            # assert(trigger_time is not None)
-                            # assert(trigger_name is not None)
-                            # assert(trace_start_time == trigger_time)
 
                             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
-                                # tt = sim_channel.get_times()
-                                # t0 = tt[0]
-                                # t1 = tt[-1]
-                                # t0_readout = trace_start_time
-                                # t1_readout = t0_readout + self._det.get_number_of_samples(sid, sim_channel.get_id()) * self._det.get_sampling_frequency(sid, sim_channel.get_id())
-
                                 if not station.has_channel(sim_channel.get_id()):
                                     # add empty channel with the correct length and time if it doesn't exist yet.
                                     channel = NuRadioReco.framework.channel.Channel(channel_id)
@@ -1607,7 +1585,11 @@ class simulation:
 
                                 # Add the sim_channel to the station channel:
                                 channel = station.get_channel(sim_channel.get_id())
-                                channel.add_to_trace(sim_channel)
+                                # we need to account for the pre trigger time of the trigger that was used to determine the readout window
+                                pre_trigger_time = station.get_primary_trigger().get_pre_trigger_time_channel(channel_id)
+                                sim_channel_copy = copy.deepcopy(sim_channel)
+                                sim_channel_copy.set_trace_start_time(sim_channel.get_trace_start_time() + pre_trigger_time)
+                                channel.add_to_trace(sim_channel_copy)
 
                 for evt in output_buffer[sid].values():
                     # the only thing left is to add noise to the non-trigger traces
