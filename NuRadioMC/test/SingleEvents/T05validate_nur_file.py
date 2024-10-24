@@ -5,10 +5,6 @@ import numpy as np
 
 import NuRadioReco.modules.io.eventReader
 from NuRadioReco.utilities import units
-
-
-
-
 try:
     file1 = sys.argv[1]
     file2 = sys.argv[2]
@@ -30,12 +26,15 @@ def all_traces(file):
     i = 0
     for iE1, event1 in enumerate(eventReader1.run()):
         for st1, station1 in enumerate(event1.get_stations()):
+            # print(f"eventid {event1.get_run_number()} station id: {station1.get_id()}")
             for channel1 in station1.iter_channels(sorted=True):
                 trace1 = channel1.get_trace()
+                # print(channel1.get_id(), channel1.get_trace_start_time(), channel1.get_sampling_rate())
                 if i == 0:
                     all_traces = trace1
                 else:
                     all_traces = np.append(all_traces, trace1)
+                    # print(f"apending trace {len(trace1)} to all_traces {len(all_traces)}")
                 i += 1
     return all_traces
 
