@@ -8,10 +8,6 @@ import json
 import os
 import sys
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
-
 import NuRadioReco.modules.io.eventReader
 from NuRadioReco.utilities import units
 
