@@ -1591,11 +1591,11 @@ class simulation:
                             # assert(trace_start_time == trigger_time)
 
                             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
-                                tt = sim_channel.get_times()
-                                t0 = tt[0]
-                                t1 = tt[-1]
-                                t0_readout = trace_start_time
-                                t1_readout = t0_readout + self._det.get_number_of_samples(sid, sim_channel.get_id()) * self._det.get_sampling_frequency(sid, sim_channel.get_id())
+                                # tt = sim_channel.get_times()
+                                # t0 = tt[0]
+                                # t1 = tt[-1]
+                                # t0_readout = trace_start_time
+                                # t1_readout = t0_readout + self._det.get_number_of_samples(sid, sim_channel.get_id()) * self._det.get_sampling_frequency(sid, sim_channel.get_id())
 
                                 if not station.has_channel(sim_channel.get_id()):
                                     # add empty channel with the correct length and time if it doesn't exist yet.
