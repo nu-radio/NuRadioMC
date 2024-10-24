@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import matplotlib.pyplot as plt
 import logging
-logging.basicConfig(level=logging.WARNING)
 import numpy as np
 from scipy import signal
 import argparse
@@ -33,6 +32,9 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from radiotools import helper as hp
 # plt.switch_backend('agg')
+
+logger = logging.getLogger("NuRadioMC.A03reconstruct_sim")
+logger.setLevel(logging.WARNING)
 
 if __name__ == "__main__":
     plot = 1

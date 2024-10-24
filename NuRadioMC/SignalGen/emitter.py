@@ -5,7 +5,7 @@ from radiotools import helper as hp
 from NuRadioReco.utilities import units, fft
 import NuRadioReco.framework.base_trace
 import logging
-logger = logging.getLogger("SignalGen.emitter")
+logger = logging.getLogger("NuRadioMC.SignalGen.emitter")
 import os
 import pickle, lzma
 

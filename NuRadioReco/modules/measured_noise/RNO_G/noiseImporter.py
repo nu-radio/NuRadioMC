@@ -21,7 +21,7 @@ class noiseImporter:
     def begin(self, noise_folders, file_pattern="*",
               match_station_id=False, station_ids=None,
               channel_mapping=None, scramble_noise_file_order=True,
-              log_level=logging.INFO, random_seed=None, reader_kwargs={}):
+              log_level=logging.NOTSET, random_seed=None, reader_kwargs={}):
         """
         
         Parameters
@@ -47,8 +47,8 @@ class noiseImporter:
         scramble_noise_file_order: bool
             If True, randomize the order of noise files before reading them. (Default: True)
         
-        log_level: loggging log level
-            The log level to controll verbosity. (Default: logging.INFO)
+        log_level: logging log level
+            Override he log level to control verbosity. (Default: logging.NOTSET, ie follow general log level)
             
         random_seed: int
             Seed for the random number generator. (Default: None, no fixed seed).

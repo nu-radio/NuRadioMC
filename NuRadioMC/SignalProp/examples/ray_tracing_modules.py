@@ -4,9 +4,8 @@ from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 import numpy as np
 import logging
-logging.basicConfig()
 
-logger = logging.getLogger('ray_tracing_modules')
+logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_modules')
 solution_types = propagation.solution_types
 ray_tracing_modules = propagation.available_modules
 plot_line_styles = ["-", "--", ":", "-."]
