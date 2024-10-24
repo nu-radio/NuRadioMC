@@ -84,7 +84,6 @@ class electricFieldParameters(Enum):
     nu_vertex_propagation_time = 18  #: the time it takes for the signal to propagate from the vertex to the channel
     raytracing_solution = 19  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
     launch_vector = 20  #: the launch vector of the ray from which this efield originates (only available for in-ice simulations)
-    nu_vertex_travel_time = 21  #: the time it took the ray to travel from the vertex to the channel
 
 class ARIANNAParameters(Enum):  #: this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  #: the start time of a sequence
