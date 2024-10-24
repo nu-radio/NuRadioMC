@@ -10,7 +10,6 @@ import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
-import logging
 logger = logging.getLogger("NuRadioMC.runstrawman")
 
 # initialize detector sim modules
@@ -45,7 +44,6 @@ if __name__ == "__main__":
                                 outputfilenameNuRadioReco='test_output.nur',
                                 config_file='test_config.yaml',
                                 #log_level=logging.WARNING,
-                                log_level=logging.STATUS,
                                 evt_time=datetime.datetime(2018, 12, 30),
                                 file_overwrite=True)
     sim.run()
