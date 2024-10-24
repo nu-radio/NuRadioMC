@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function
 from six import iteritems
 try:
     import cPickle as pickle
@@ -67,6 +66,20 @@ class Trigger:
         self._trigger_type = trigger_type
         self._triggered_channels = []
         self._pre_trigger_times = pre_trigger_times
+        self._primary_trigger = False
+
+    def set_primary(self, primary_trigger=True):
+        """
+        set the trigger to be the primary trigger.
+        The trigger time of the primary trigger is used to define the readout window. There should only be one primary trigger.
+        """
+        self._primary_trigger = primary_trigger
+
+    def is_primary(self):
+        """
+        return True if this trigger is the primary trigger
+        """
+        return self._primary_trigger
 
     def has_triggered(self):
         """
@@ -131,9 +144,6 @@ class Trigger:
         """
         Set the pre-trigger times
 
-        This parameter should only be set if this trigger 
-        determines the readout windows (e.g. by :class:`NuRadioReco.modules.triggerTimeAdjuster`)
-
         Parameters
         ----------
         pre_trigger_times: float or dict
@@ -148,18 +158,38 @@ class Trigger:
         """
         Return the pre_trigger_time between the start of the trace and the (global) trigger time
 
-        If this trigger has not been used to adjust the readout windows, returns None instead
-
         Returns
         -------
         pre_trigger_times: dict | float
             the time before the trigger time that should be read out
-            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            if a dict is returned, the keys are the channel_ids, and the value is the pre_trigger_time between the
             start of the trace and the trigger time.
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
 
+        return self._pre_trigger_times
+
+    def get_pre_trigger_time_channel(self, channel_id):
+        """
+        get the trigger time for a specific channel
+
+        convenience function to get the trigger time for a specific channel
+
+        Parameters
+        ----------
+        channel_id: int
+            the channel id
+
+        Returns
+        -------
+        trigger_time: float
+            the trigger time for the channel
+        """
+        if self._pre_trigger_times is None:
+            return self._pre_trigger_times
+        if isinstance(self._pre_trigger_times, dict):
+            return self._pre_trigger_times[channel_id]
         return self._pre_trigger_times
 
     def serialize(self):
