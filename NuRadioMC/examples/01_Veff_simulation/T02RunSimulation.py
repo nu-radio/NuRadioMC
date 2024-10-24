@@ -8,10 +8,6 @@ from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
-
 # initialize detector sim modules
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()

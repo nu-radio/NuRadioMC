@@ -7,9 +7,8 @@ from numpy import testing
 import argparse
 from NuRadioReco.utilities import units
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
+
+
 
 error = 0
 

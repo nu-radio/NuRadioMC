@@ -5,7 +5,7 @@ import pickle
 import collections
 import math
 import logging
-logger = logging.getLogger('Particle')
+logger = logging.getLogger('NuRadioReco.Particle')
 
 
 class Particle:

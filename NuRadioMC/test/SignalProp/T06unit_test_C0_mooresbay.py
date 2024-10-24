@@ -6,8 +6,8 @@ from NuRadioReco.utilities import io_utilities, units
 import logging
 import pickle
 from numpy import testing
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('test_raytracing')
+logger = logging.getLogger('NuRadioMC.test_raytracing')
+logger.setLevel(logging.INFO)
 
 ice = medium.mooresbay_simple()
 

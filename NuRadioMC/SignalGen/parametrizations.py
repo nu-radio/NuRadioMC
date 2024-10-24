@@ -4,11 +4,7 @@ import numpy as np
 from NuRadioReco.utilities import units
 from scipy import constants
 import logging
-logger = logging.getLogger("SignalGen.parametrizations")
-
-
-def set_log_level(level):
-    logger.setLevel(level)
+logger = logging.getLogger("NuRadioMC.SignalGen.parametrizations")
 
 """
 

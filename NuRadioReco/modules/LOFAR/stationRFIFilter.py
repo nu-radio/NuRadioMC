@@ -9,7 +9,7 @@ from NuRadioReco.modules.io.LOFAR.rawTBBio import MultiFile_Dal1
 from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.utilities import units
 
-logger = logging.getLogger('NuRadioReco.stationRFIFilter')
+logger = logging.getLogger('NuRadioReco.LOFAR.stationRFIFilter')
 
 
 def num_double_zeros(data, threshold=None, ave_shift=False):
@@ -435,7 +435,7 @@ class stationRFIFilter:
     def metadata_dir(self, new_dir):
         self.__metadata_dir = new_dir
 
-    def begin(self, rfi_cleaning_trace_length=65536, reader=None, logger_level=logging.WARNING):
+    def begin(self, rfi_cleaning_trace_length=65536, reader=None, logger_level=logging.NOTSET):
         """
         Set the variables used for RFI detection. The `reader` object can be used to retrieve the filenames associated
         with the loaded stations, as well as the metadata directory.
@@ -446,8 +446,8 @@ class stationRFIFilter:
             The number of samples to use per block to construct the frequency spectrum.
         reader : readLOFARData object, default=None
             If provided, the reader will be used to set the metadata directory and find the TBB files paths.
-        logger_level : int, default=logging.WARNING
-            The logging level to use for the module.
+        logger_level : int, default=logging.NOTSET
+            Use this parameter to override the logging level for this module.
 
         Notes
         -----

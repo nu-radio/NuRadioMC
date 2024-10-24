@@ -4,7 +4,7 @@ from NuRadioReco.utilities import units
 import logging
 import pickle
 
-logger = logging.getLogger('analog_components')
+logger = logging.getLogger('NuRadioReco.analog_components')
 
 
 def save_preprocessed_Amps(response, amp_name):
