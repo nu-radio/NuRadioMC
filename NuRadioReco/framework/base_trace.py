@@ -195,13 +195,13 @@ class BaseTrace:
     def get_trace_start_time(self):
         return self._trace_start_time
 
-    def get_frequencies(self, window=None):
+    def get_frequencies(self, window_or_nsamples=None):
         """
         Returns the frequencies of the frequency spectrum.
 
         Parameters
         ----------
-        window: array of bools or int (default: None)
+        window_or_nsamples: array of bools or int (default: None)
             If not None, used to determine the number of samples in the time domain used for the frequency spectrum.
 
         Returns
@@ -209,13 +209,13 @@ class BaseTrace:
         frequencies: np.array of floats
             The frequencies of the frequency spectrum.
         """
-        if window is None:
+        if window_or_nsamples is None:
             nsamples = self.get_number_of_samples()
         else:
-            if isinstance(window, (int, float)):
-                nsamples = int(window)
+            if isinstance(window_or_nsamples, (int, float)):
+                nsamples = int(window_or_nsamples)
             else:
-                nsamples = int(np.sum(window))
+                nsamples = int(np.sum(window_or_nsamples))
 
         return get_frequencies(nsamples, self._sampling_rate)
 
