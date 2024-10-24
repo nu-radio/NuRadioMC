@@ -99,7 +99,10 @@ class channelSignalReconstructor:
 
         # Various definitions
         noise_int = np.sum(np.square(trace[noise_window_mask]))
-        noise_int *= (self.__signal_window_length) / float(noise_window_length)
+        if(noise_window_length > 0):
+            noise_int *= (self.__signal_window_length) / float(noise_window_length)
+        else:
+            logger.warning(f"Noise window length is zero. This likely indicates that the tracelength is too small. Noise quantities can not be calcualted.")
 
         if stored_noise:
             # we use the RMS from forced triggers

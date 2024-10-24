@@ -38,6 +38,9 @@ class Particle:
 
         return msg
 
+    def get_parameters(self):
+        return self._parameters
+
     def get_parameter(self, key):
         if not isinstance(key, parameters.particleParameters):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters")

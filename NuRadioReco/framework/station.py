@@ -20,19 +20,43 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def set_sim_station(self, sim_station):
         self.__sim_station = sim_station
 
+    def add_sim_station(self, sim_station):
+        self.__sim_station = self.__sim_station + sim_station
+
     def get_sim_station(self):
         return self.__sim_station
 
     def has_sim_station(self):
         return self.__sim_station is not None
 
-    def iter_channels(self, use_channels=None):
-        for channel_id, channel in iteritems(self.__channels):
-            if(use_channels is None):
-                yield channel
-            else:
-                if channel_id in use_channels:
-                    yield channel
+    def iter_channels(self, use_channels=None, sorted=False):
+        """
+        Iterates over all channels of the station. If `use_channels` is not None, only the channels with the ids in
+        `use_channels` are iterated over. If `sorted` is True, the channels are iterated over in ascending order of their
+        ids.
+
+        Parameters
+        ----------
+        use_channels : list of int, optional
+            List of channel ids to iterate over. If None, all channels are iterated over.
+        sorted : bool, optional
+            If True, the channels are iterated over in ascending order of their ids.
+
+        Yields
+        ------
+        NuRadioReco.framework.channel.Channel
+            The next channel in the iteration.
+        """
+        channel_ids = self.get_channel_ids()
+
+        if use_channels is not None:
+            channel_ids = [channel_id for channel_id in use_channels if channel_id in channel_ids]
+
+        if sorted:
+            channel_ids.sort()
+
+        for channel_id in channel_ids:
+            yield self.get_channel(channel_id)
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
@@ -55,6 +79,9 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def add_channel(self, channel):
         self.__channels[channel.get_id()] = channel
+
+    def has_channel(self, channel_id):
+        return channel_id in self.__channels
 
     def remove_channel(self, channel_id):
         """

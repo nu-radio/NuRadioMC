@@ -9,9 +9,9 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.triggerTimeAdjuster
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.logging import LOGGING_STATUS
 from NuRadioMC.simulation import simulation
-
-
+import logging
 
 
 # initialize detector sim modules
@@ -58,7 +58,6 @@ class mySimulation(simulation.simulation):
                                     number_concidences=4,  # 4/4 majority logic
                                     trigger_name='surface_dipoles_4of4_3sigma',
                                     set_not_triggered=(not station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
-        triggerTimeAdjuster.run(evt, station, det)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
@@ -81,6 +80,8 @@ sim = mySimulation(inputfilename=args.inputfilename,
                             config_file=args.config,
                             write_mode='mini',
                             default_detector_station=101,
-                            file_overwrite=True)
+                            file_overwrite=True,
+                            log_level=LOGGING_STATUS,
+                            log_level_propagation=LOGGING_STATUS)
 sim.run()
 
