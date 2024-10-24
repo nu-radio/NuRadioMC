@@ -280,7 +280,7 @@ class outputWriterHDF5:
                                     channel_rt_data['launch_vectors'][iCh, iS] = efield[efp.launch_vector]
                                     receive_vector = hp.spherical_to_cartesian(efield[efp.zenith], efield[efp.azimuth])
                                     channel_rt_data['receive_vectors'][iCh, iS] = receive_vector
-                                    channel_rt_data['travel_times'][iCh, iS] = efield[efp.nu_vertex_travel_time]
+                                    channel_rt_data['travel_times'][iCh, iS] = efield[efp.nu_vertex_propagation_time]
                                     channel_rt_data['travel_distances'][iCh, iS] = efield[efp.nu_vertex_distance]
 
                                     if self._particle_mode:
