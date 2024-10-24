@@ -9,6 +9,7 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.triggerTimeAdjuster
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.logging import LOGGING_STATUS
 from NuRadioMC.simulation import simulation
 import logging
 
@@ -80,7 +81,7 @@ sim = mySimulation(inputfilename=args.inputfilename,
                             write_mode='mini',
                             default_detector_station=101,
                             file_overwrite=True,
-                            log_level=logging.STATUS,
-                            log_level_propagation=logging.STATUS)
+                            log_level=LOGGING_STATUS,
+                            log_level_propagation=LOGGING_STATUS)
 sim.run()
 
