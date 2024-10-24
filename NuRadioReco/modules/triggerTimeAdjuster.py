@@ -66,19 +66,9 @@ class triggerTimeAdjuster:
 
 
         # determine which trigger to use
-        # if multiple primary triggers exist, raise an error
         # if no primary trigger exists, use the trigger with the earliest trigger time
-        trigger = None
-        primary_trigger_count = 0
-        # test if only one primary trigger exists
-        for trig in station.get_triggers().values():
-            if trig.is_primary():
-                primary_trigger_count += 1
-                trigger = trig
-        if primary_trigger_count > 1:
-            logger.error('More than one primary trigger exists. Cannot determine which trigger to use for setting the readout windows.')
-            raise ValueError
-        if primary_trigger_count == 0:
+        trigger = station.get_primary_trigger()
+        if trigger is None: # no primary trigger found
             logger.debug('No primary trigger found. Using the trigger with the earliest trigger time.')
             min_trigger_time = None
             for trig in station.get_triggers().values():
