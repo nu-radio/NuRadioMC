@@ -152,8 +152,8 @@ def get_fresnel_r_p(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
     """
     n = n_2 / n_1
-    return (-n**2 * np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
-           (n**2 * np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2))
+    return np.conjugate((n**2 * np.cos(zenith_incoming) - SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
+                        (n**2 * np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2)))
 
 
 def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
@@ -167,5 +167,5 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
     """
     n = n_2 / n_1
-    return (np.cos(zenith_incoming) - SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
-           (np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2))
+    return np.conjugate((np.cos(zenith_incoming) - SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
+                        (np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2)))
