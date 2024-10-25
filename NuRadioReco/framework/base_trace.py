@@ -248,15 +248,16 @@ class BaseTrace:
 
     def add_to_trace(self, channel):
         """
-        Adds the trace of another channel (with potentially diffrent length and _trace_start_time) to
-        the trace of this channel without changing the sampling. If used on an empty trace with a defined
-        self._sampling_rate and self.self._trace_start_time, and self._time_trace containing zeros, this
-        function can be seen as recording the channel in a specific readout window.
+        Adds the trace of another channel to the trace of this channel. The trace is only added within the 
+        time window of the "this" channel.
+        If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a 
+        _time_trace containing zeros, this function can be seen as recording a channel in the specified
+        readout window.
 
         Parameters
         ----------
         channel: BaseTrace
-            Channel to add to current channel
+            The channel whose trace is to be added to the trace of this channel.
         """
 
         assert self.get_number_of_samples() is not None, "No trace is set for this channel"
