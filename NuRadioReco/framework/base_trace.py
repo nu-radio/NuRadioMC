@@ -265,13 +265,13 @@ class BaseTrace:
 
         tt_readout = self.get_times()
         t0_readout = self.get_trace_start_time()
-        t1_readout = t0_readout +  self.get_number_of_samples() / self.get_sampling_rate()
+        t1_readout = tt_readout[-1]
         sampling_rate_readout = self.get_sampling_rate()
         n_samples_readout = self.get_number_of_samples()
 
         tt_channel = channel.get_times()
         t0_channel = channel.get_trace_start_time()
-        t1_channel = t0_channel + channel.get_number_of_samples() / channel.get_sampling_rate()
+        t1_channel = tt_channel[-1]
         sampling_rate_channel = channel.get_sampling_rate()
         n_samples_channel = channel.get_number_of_samples()
 
@@ -293,7 +293,7 @@ class BaseTrace:
             t_start_channel = t0_channel
         # 4. Channel ends after readout window:
         if t1_channel >= t1_readout:
-            i_end_readout = n_samples_readout
+            i_end_readout = n_samples_readout-1
             t_end_readout = t1_readout
             i_end_channel = int( (t1_readout - t0_channel) * sampling_rate_channel ) + 1 # The bin of channel right after readout ends
             t_end_channel = tt_channel[i_end_channel]
@@ -301,7 +301,7 @@ class BaseTrace:
         elif t1_channel < t1_readout:
             i_end_readout = int( (t1_channel - t0_readout) * sampling_rate_readout ) # The bin of readout right before channel ends
             t_end_readout = tt_readout[i_end_readout]
-            i_end_channel = n_samples_channel
+            i_end_channel = n_samples_channel-1
             t_end_channel = t1_channel
         
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
