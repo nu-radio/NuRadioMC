@@ -249,7 +249,7 @@ class BaseTrace:
     def add_to_trace(self, channel):
         """
         Adds the trace of another channel to the trace of this channel. The trace is only added within the 
-        time window of the "this" channel.
+        time window of "this" channel.
         If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a 
         _time_trace containing zeros, this function can be seen as recording a channel in the specified
         readout window.
@@ -276,8 +276,8 @@ class BaseTrace:
         n_samples_channel = channel.get_number_of_samples()
 
         # We handle 1+2x2 cases:
-        # 1. Channel is completely outside readout window:
-        if t1_channel < t0_readout or t1_readout < t0_channel:
+        # 1. Channel is completely outside readout window (less than one full bin overlap):
+        if t1_channel < tt_readout[1] or t1_readout < t0_channel:
             return
         # 2. Channel starts before readout window:
         if t0_channel < t0_readout:
