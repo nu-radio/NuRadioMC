@@ -276,32 +276,32 @@ class BaseTrace:
         n_samples_channel = channel.get_number_of_samples()
 
         # We handle 1+2x2 cases:
-        # 1. Channel is completely outside readout window (less than one full bin overlap):
-        if t1_channel < tt_readout[1] or t1_readout < t0_channel:
+        # 1. Channel is completely outside readout window:
+        if t1_channel < t0_readout or t1_readout < t0_channel:
             return
         # 2. Channel starts before readout window:
         if t0_channel < t0_readout:
             i_start_readout = 0
             t_start_readout = t0_readout
-            i_start_channel = int( (t0_readout-t0_channel) * sampling_rate_channel ) + 1 # The first bin of channel inside readout
+            i_start_channel = int((t0_readout-t0_channel) * sampling_rate_channel) + 1 # The first bin of channel inside readout
             t_start_channel = tt_channel[i_start_channel]
         # 3. Channel starts after readout window:
         elif t0_channel >= t0_readout:
-            i_start_readout = int( (t0_channel-t0_readout) * sampling_rate_readout ) # The bin of readout right before channel starts
+            i_start_readout = int((t0_channel-t0_readout) * sampling_rate_readout) # The bin of readout right before channel starts
             t_start_readout = tt_readout[i_start_readout]
             i_start_channel = 0
             t_start_channel = t0_channel
         # 4. Channel ends after readout window:
         if t1_channel >= t1_readout:
-            i_end_readout = n_samples_readout-1
+            i_end_readout = n_samples_readout - 1
             t_end_readout = t1_readout
-            i_end_channel = int( (t1_readout - t0_channel) * sampling_rate_channel ) + 1 # The bin of channel right after readout ends
+            i_end_channel = int((t1_readout - t0_channel) * sampling_rate_channel) + 1 # The bin of channel right after readout ends
             t_end_channel = tt_channel[i_end_channel]
         # 5. Channel ends before readout window:
         elif t1_channel < t1_readout:
-            i_end_readout = int( (t1_channel - t0_readout) * sampling_rate_readout ) # The bin of readout right before channel ends
+            i_end_readout = int((t1_channel - t0_readout) * sampling_rate_readout) # The bin of readout right before channel ends
             t_end_readout = tt_readout[i_end_readout]
-            i_end_channel = n_samples_channel-1
+            i_end_channel = n_samples_channel - 1
             t_end_channel = t1_channel
         
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
