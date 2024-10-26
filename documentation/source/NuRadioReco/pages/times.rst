@@ -1,5 +1,5 @@
 overview of times
-===========
+=================
 Time delays are introduced by several hardware components. These time delays are often corrected for by folding/unfolding the complex transfer function (for an amp e.g. the measurement of the S12 parameter). The unfolding is typically done in the frequency domain where a convolution becomes a simple multiplication. As a consequence of typically short trace length (<~1000 samples) and because a Fourier transform implies implicitly a periodic signal, a pulse being at the beginning of the trace can end up being at the end of the trace. To avoid this behavior we use the following procedure:
 
 We smoothly filter the first 5% and last 5% of the trace using a Tukey window function. This is a function that goes smoothly from 0 to 1.
@@ -37,7 +37,7 @@ We list all relevant modules that is used for a MC simulation and reconstruction
     * the channel traces are folded with the amplifier response which also includes some time delay
     * note that the hardwareResponseIncorporator does not take cable delays into account, as this is done by the efieldToVoltageConverter
 
-* triggerTimeAdjuster 
+* triggerTimeAdjuster
     * 'sim_to_data' mode: This modules cuts the trace to the correct length (as specified in the detector description) around the trigger time with a pre-trigger time that is passed to the module. The default settings are 50ns pre trigger time. In the case of multiple triggers it either uses the trigger that was specified by the user as an argument to this module, or it uses the trigger with the earliest trigger time. The pre-trigger times are saved to the trigger object (only to the one that was used to determine the trigger time). In the end, the trace_start_time is set to the trigger time. This is done because this reflects how raw experimental data looks like. 
     * 'data_to_sim' mode: The module determines the trigger that was used to cut the trace to its current length (the 'sim_to_data' step above in case of simulations) and adjusts the trace_start_time according to the different readout delays. In case of multiple triggers, either the user specifies the trigger name or the trigger that has the field `pre_trigger_times` set will be used. For the latter case, if multiple triggers have the `pre_trigger_times` set, a warning is raised but the `trace_start_time` is adjusted for all pre-trigger times of all triggers. After applying this module in the "data_to_sim" direction, the position in the trace that caused the trigger can be found via `trigger_time` - `trace_start_time`.
 
