@@ -2,6 +2,13 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 3.0
+new feature
+- pre trigger times, i.e., how much trace should be saved before the trigger occured, is defined in the 
+trigger modules (and not implicitely through the triggerTimeAdjuster module). The trigger objects have a new flag
+`primary` which defines that this trigger was used to set the readout windows (in the case of multiple triggers.) 
+Only one trigger can be the primary.
+
 version 2.3.0-dev
 new features:
 - Enhanced detector_browser to allow display RNO-G database detector
