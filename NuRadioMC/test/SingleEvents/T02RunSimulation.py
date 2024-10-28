@@ -7,7 +7,6 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.triggerTimeAdjuster
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 from NuRadioMC.simulation import simulation
@@ -21,7 +20,6 @@ triggerSimulatorHighLow = NuRadioReco.modules.trigger.highLowThreshold.triggerSi
 triggerSimulatorSimple = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 
 
 class mySimulation(simulation.simulation):
