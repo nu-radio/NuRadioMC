@@ -263,15 +263,16 @@ class BaseTrace:
 
     def add_to_trace(self, channel):
         """
-        Adds the trace of another channel (with potentially diffrent length and _trace_start_time) to
-        the trace of this channel without changing the sampling. If used on an empty trace with a defined
-        self._sampling_rate and self.self._trace_start_time, and self._time_trace containing zeros, this
-        function can be seen as recording the channel in a specific readout window.
+        Adds the trace of another channel to the trace of this channel. The trace is only added within the 
+        time window of "this" channel.
+        If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a 
+        _time_trace containing zeros, this function can be seen as recording a channel in the specified
+        readout window.
 
         Parameters
         ----------
         channel: BaseTrace
-            Channel to add to current channel
+            The channel whose trace is to be added to the trace of this channel.
         """
 
         assert self.get_number_of_samples() is not None, "No trace is set for this channel"
@@ -279,13 +280,13 @@ class BaseTrace:
 
         tt_readout = self.get_times()
         t0_readout = self.get_trace_start_time()
-        t1_readout = t0_readout +  self.get_number_of_samples() / self.get_sampling_rate()
+        t1_readout = tt_readout[-1]
         sampling_rate_readout = self.get_sampling_rate()
         n_samples_readout = self.get_number_of_samples()
 
         tt_channel = channel.get_times()
         t0_channel = channel.get_trace_start_time()
-        t1_channel = t0_channel + channel.get_number_of_samples() / channel.get_sampling_rate()
+        t1_channel = tt_channel[-1]
         sampling_rate_channel = channel.get_sampling_rate()
         n_samples_channel = channel.get_number_of_samples()
 
@@ -297,25 +298,25 @@ class BaseTrace:
         if t0_channel < t0_readout:
             i_start_readout = 0
             t_start_readout = t0_readout
-            i_start_channel = int( (t0_readout-t0_channel) * sampling_rate_channel ) + 1 # The first bin of channel inside readout
+            i_start_channel = int((t0_readout-t0_channel) * sampling_rate_channel) + 1 # The first bin of channel inside readout
             t_start_channel = tt_channel[i_start_channel]
         # 3. Channel starts after readout window:
         elif t0_channel >= t0_readout:
-            i_start_readout = int( (t0_channel-t0_readout) * sampling_rate_readout ) # The bin of readout right before channel starts
+            i_start_readout = int((t0_channel-t0_readout) * sampling_rate_readout) # The bin of readout right before channel starts
             t_start_readout = tt_readout[i_start_readout]
             i_start_channel = 0
             t_start_channel = t0_channel
         # 4. Channel ends after readout window:
         if t1_channel >= t1_readout:
-            i_end_readout = n_samples_readout
+            i_end_readout = n_samples_readout - 1
             t_end_readout = t1_readout
-            i_end_channel = int( (t1_readout - t0_channel) * sampling_rate_channel ) + 1 # The bin of channel right after readout ends
+            i_end_channel = int((t1_readout - t0_channel) * sampling_rate_channel) + 1 # The bin of channel right after readout ends
             t_end_channel = tt_channel[i_end_channel]
         # 5. Channel ends before readout window:
         elif t1_channel < t1_readout:
-            i_end_readout = int( (t1_channel - t0_readout) * sampling_rate_readout ) # The bin of readout right before channel ends
+            i_end_readout = int((t1_channel - t0_readout) * sampling_rate_readout) # The bin of readout right before channel ends
             t_end_readout = tt_readout[i_end_readout]
-            i_end_channel = n_samples_channel
+            i_end_channel = n_samples_channel - 1
             t_end_channel = t1_channel
         
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
