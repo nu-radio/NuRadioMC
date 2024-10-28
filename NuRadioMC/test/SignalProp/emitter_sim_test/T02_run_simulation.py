@@ -5,7 +5,6 @@ import datetime
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.triggerTimeAdjuster
 import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
@@ -20,7 +19,6 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 triggerSimulator.begin(log_level=logging.WARNING)
 
 class mySimulation(simulation.simulation):
@@ -36,7 +34,6 @@ class mySimulation(simulation.simulation):
                            coinc_window=30 * units.ns,
                            number_concidences=2,
                            triggered_channels=range(8))
-        triggerTimeAdjuster.run(evt, station, det)
 
 if __name__ == "__main__":
     sim = mySimulation(inputfilename='test_input.hdf5',
