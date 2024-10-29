@@ -71,24 +71,23 @@ t_python = time.time() - t_start
 print("Python time = {:.1f} seconds = {:.2f}ms/event".format(t_python, 1000. * t_python / n_events))
 
 
+# Numba testing
+results_C0s_numba = np.zeros((n_events, 2))
+results_A_numba = np.zeros((n_events, 2, n_freqs))
+t_start = time.time()
+for iX, x in enumerate(points):
+    r = ray.ray_tracing(ice, use_cpp=False,compile_numba = True)
+    r.set_start_and_end_point(x, x_receiver)
+    r.find_solutions()
+    if(r.has_solution()):
+        for iS in range(r.get_number_of_solutions()):
+            results_C0s_numba[iX, iS] = r.get_results()[iS]['C0']
+            results_A_numba[iX, iS] = r.get_attenuation(iS, ff)
+t_numba = time.time() - t_start
+print("Numba time = {:.1f} seconds = {:.2f}ms/event".format(t_numba, 1000. * t_numba / n_events))
 
-if numba_available:
-    results_C0s_numba = np.zeros((n_events, 2))
-    results_A_numba = np.zeros((n_events, 2, n_freqs))
-    t_start = time.time()
-    for iX, x in enumerate(points):
-        r = ray.ray_tracing(ice, use_cpp=False,compile_numba = True)
-        r.set_start_and_end_point(x, x_receiver)
-        r.find_solutions()
-        if(r.has_solution()):
-            for iS in range(r.get_number_of_solutions()):
-                results_C0s_numba[iX, iS] = r.get_results()[iS]['C0']
-                results_A_numba[iX, iS] = r.get_attenuation(iS, ff)
-    t_numba = time.time() - t_start
-    print("Numba time = {:.1f} seconds = {:.2f}ms/event".format(t_numba, 1000. * t_numba / n_events))
-
-    testing.assert_allclose(results_C0s_numba, results_C0s_python, atol=1e-08, rtol=1e-05)
-    testing.assert_allclose(results_A_numba, results_A_python, rtol=1e-2, atol=1e-3)
+testing.assert_allclose(results_C0s_numba, results_C0s_python, atol=1e-08, rtol=1e-05)
+testing.assert_allclose(results_A_numba, results_A_python, rtol=1e-2, atol=1e-3)
 
 testing.assert_allclose(results_C0s_cpp, results_C0s_python, atol=1e-08, rtol=1e-05)
 testing.assert_allclose(results_A_cpp, results_A_python, rtol=1e-2, atol=1e-3)
