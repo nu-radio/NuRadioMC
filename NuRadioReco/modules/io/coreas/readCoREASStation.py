@@ -73,7 +73,7 @@ class readCoREASStation:
 
                 channel_ids = detector.get_channel_ids(self.__station_id)
                 efield_trace = corsika_efield.get_trace()
-                efield_sampling_rate = efield_trace.get_sampling_rate()
+                efield_sampling_rate = corsika_efield.get_sampling_rate()
                 efield_times = corsika_efield.get_times()
 
                 prepend_zeros = True # prepend zeros to not have the pulse directly at the start, heritage from old code
