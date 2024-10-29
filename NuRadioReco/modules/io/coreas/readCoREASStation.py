@@ -9,6 +9,12 @@ logger = logging.getLogger('readCoREASStation')
 
 
 class readCoREASStation:
+    """
+    Reads in CoREAS simulations and creates simulated events for each observer, i.e., a new event for each simulated observer.
+
+    This module is useful for studies of individual electric fields, e.g., to detemine how well the energy fluence
+    can be reconstructed as a function of singal-to-noise ratio, or to study the polarization reconstruction.
+    """
 
     def begin(self, input_files, station_id, debug=False):
         """
