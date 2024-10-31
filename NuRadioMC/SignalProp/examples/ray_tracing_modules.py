@@ -7,6 +7,10 @@ import logging
 
 logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_modules')
 solution_types = propagation.solution_types
+try:
+    import radiopropa
+except:
+     solution_types.remove("radiopropa")
 ray_tracing_modules = propagation.available_modules
 plot_line_styles = ["-", "--", ":", "-."]
 
