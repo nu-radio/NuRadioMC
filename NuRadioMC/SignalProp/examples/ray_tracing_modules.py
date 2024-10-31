@@ -10,7 +10,7 @@ solution_types = propagation.solution_types
 try:
     import radiopropa
 except:
-     solution_types.remove("radiopropa")
+     solution_types.pop("radiopropa")
 ray_tracing_modules = propagation.available_modules
 plot_line_styles = ["-", "--", ":", "-."]
 
