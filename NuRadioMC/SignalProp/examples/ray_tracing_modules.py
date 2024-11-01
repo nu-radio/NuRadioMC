@@ -7,11 +7,11 @@ import logging
 
 logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_modules')
 solution_types = propagation.solution_types
+ray_tracing_modules = propagation.available_modules.copy()
 try:
     import radiopropa
 except:
-     solution_types.pop("radiopropa")
-ray_tracing_modules = propagation.available_modules
+    ray_tracing_modules.remove("radiopropa")
 plot_line_styles = ["-", "--", ":", "-."]
 
 ### This example shows the ray tracing results for the different 
