@@ -170,6 +170,15 @@ between simulated and reconstructed properties.
 
 It can be accessed by the ``get_sim_showers`` method of the :class:`Event<NuRadioReco.framework.event.Event>` class.
 
+SimEmitter
+____________
+The :class:`SimEmitter<NuRadioReco.framework.sim_emitter.SimEmitter>` class is used to hold parameters of simulated emitters via the parameter storage.
+The concept is similar to the SimShower, but is used when NuRadioMC is used to simulate emitters (and)
+not particle showers.
+
+It can be accessed by the ``get_sim_emitters`` method of the :class:`Event<NuRadioReco.framework.event.Event>` class.
+We allow for multiple emitters per event analogous to the multiple showers per event.
+
 Particle
 ________
 The :class:`Particle<NuRadioReco.framework.particle>` class stores information related to the particle that initiated the radio emission, such as flavour, energy and direction. A single :ref:`Event <NuRadioReco/pages/event_structure:Event>` may contain multiple particles, e.g. in the case of tau regeneration.

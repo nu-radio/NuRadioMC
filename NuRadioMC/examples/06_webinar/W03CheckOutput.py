@@ -7,9 +7,6 @@ import h5py
 import time
 import os
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
 
 """
 This file teaches how to read the output from NuRadioMC simulations. To run it
