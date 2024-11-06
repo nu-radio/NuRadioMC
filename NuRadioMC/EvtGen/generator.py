@@ -15,7 +15,7 @@ from NuRadioMC.simulation.simulation import pretty_time_delta
 
 
 logger = logging.getLogger("NuRadioMC.EvtGen")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.NOTSET)
 
 
 VERSION_MAJOR = 3

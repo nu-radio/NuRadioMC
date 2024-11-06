@@ -7,7 +7,7 @@ try:
 except ImportError:
     import pickle
 import logging
-logger = logging.getLogger('electric_field')
+logger = logging.getLogger('NuRadioReco.ElectricField')
 
 
 class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):

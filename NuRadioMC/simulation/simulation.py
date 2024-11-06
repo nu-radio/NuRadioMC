@@ -9,6 +9,7 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
+from numpy.random import Generator, Philox
 import h5py
 import time
 import six
@@ -29,6 +30,7 @@ import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
+import NuRadioReco.framework.sim_emitter
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -36,6 +38,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
 # parameters describing simulated Monte Carlo particles
 from NuRadioReco.framework.parameters import particleParameters as simp
+from NuRadioReco.framework.parameters import emitterParameters as ep
 # parameters set in the event generator
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 import datetime
@@ -46,17 +49,10 @@ import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
-# logging imports
 import logging
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
-
 logger = logging.getLogger("NuRadioMC.simulation")
-
-# formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
-# ch = logging.StreamHandler()
-# ch.setFormatter(formatter)
-# logger.addHandler(ch)
 
 
 def pretty_time_delta(seconds):
@@ -95,13 +91,13 @@ class simulation:
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
-                 log_level=LOGGING_STATUS,
+                 log_level=logging.NOTSET,
                  default_detector_station=None,
                  default_detector_channel=None,
                  file_overwrite=False,
                  write_detector=True,
                  event_list=None,
-                 log_level_propagation=logging.WARNING,
+                 log_level_propagation=logging.NOTSET,
                  ice_model=None,
                  **kwargs):
         """
@@ -174,6 +170,8 @@ class simulation:
             # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
+
+        self._rnd = Generator(Philox(self._cfg['seed']))
 
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
@@ -654,6 +652,16 @@ class simulation:
                     if particle_mode:
                         self._create_sim_shower()  # create sim shower
                         self._evt_tmp.add_sim_shower(self._sim_shower)
+                    else:
+                        emitter_obj = NuRadioReco.framework.sim_emitter.SimEmitter(self._shower_index)  # shower_id is equivalent to emitter_id in this case
+                        emitter_obj[ep.position] = np.array([self._fin['xx'][self._primary_index], self._fin['yy'][self._primary_index], self._fin['zz'][self._primary_index]])
+                        emitter_obj[ep.model] = self._fin['emitter_model'][self._primary_index]
+                        emitter_obj[ep.amplitude] = self._fin['emitter_amplitudes'][self._primary_index]
+                        for key in ep:
+                            if not emitter_obj.has_parameter(key):
+                                if 'emitter_' + key.name in self._fin:
+                                    emitter_obj[key] = self._fin['emitter_' + key.name][self._primary_index]
+                        self._evt_tmp.add_sim_emitter(emitter_obj)
 
                     # generate unique and increasing event id per station
                     self._event_ids_counter[self._station_id] += 1
@@ -739,17 +747,21 @@ class simulation:
                             if np.abs(delta_Cs[iS]) > self._cfg['speedup']['delta_C_cut']:
                                 logger.debug('delta_C too large, ray tracing solution unlikely to be observed, skipping event')
                                 continue
+
                             if pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']:
                                 sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
-                                R = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
-                                T = sg_pre['travel_times'][self._shower_index, channel_id, iS]
+
+                                wave_propagation_distance = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
+                                wave_propagation_time = sg_pre['travel_times'][self._shower_index, channel_id, iS]
                             else:
-                                R = self._raytracer.get_path_length(iS)  # calculate path length
-                                T = self._raytracer.get_travel_time(iS)  # calculate travel time
-                                if R is None or T is None:
+                                wave_propagation_distance = self._raytracer.get_path_length(iS)  # calculate path length
+                                wave_propagation_time = self._raytracer.get_travel_time(iS)  # calculate travel time
+                                if wave_propagation_distance is None or wave_propagation_time is None:
                                     continue
-                            sg['travel_distances'][iSh, channel_id, iS] = R
-                            sg['travel_times'][iSh, channel_id, iS] = T
+
+                            sg['travel_distances'][iSh, channel_id, iS] = wave_propagation_distance
+                            sg['travel_times'][iSh, channel_id, iS] = wave_propagation_time
+
                             self._launch_vector = self._raytracer.get_launch_vector(iS)
                             receive_vector = self._raytracer.get_receive_vector(iS)
                             # save receive vector
@@ -780,7 +792,7 @@ class simulation:
                                             logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
 
                                 spectrum, additional_output = askaryan.get_frequency_spectrum(self._fin['shower_energies'][self._shower_index], viewing_angles[iS],
-                                                self._n_samples, self._dt, self._fin['shower_type'][self._shower_index], n_index, R,
+                                                self._n_samples, self._dt, self._fin['shower_type'][self._shower_index], n_index, wave_propagation_distance,
                                                 self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
                                 # save shower realization to SimShower and hdf5 file
                                 if self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]:
@@ -812,29 +824,54 @@ class simulation:
                             elif self._fin_attrs['simulation_mode'] == "emitter":
                                 # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
                                 amplitude = self._fin['emitter_amplitudes'][self._shower_index]
-                                # following two lines used only for few models( not for all)
-                                emitter_frequency = self._fin['emitter_frequency'][self._shower_index]  # the frequency of cw and tone_burst signal
-                                half_width = self._fin['emitter_half_width'][self._shower_index]  # defines width of square and tone_burst signals
-                                # get emitting antenna properties
-                                antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
-                                antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
-                                ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
-                                       self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
+                                emitter_model = self._fin['emitter_model'][self._shower_index]
+                                emitter_kwargs = {}
+                                emitter_kwargs["launch_vector"] = self._launch_vector
+                                for key in self._fin.keys():
+                                    if key not in ['emitter_amplitudes', 'emitter_model']:
+                                        if key.startswith("emitter_"):
+                                            emitter_kwargs[key[8:]] = self._fin[key][self._shower_index]
 
-                                # source voltage given to the emitter
-                                voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
-                                                                                          self._fin['emitter_model'][self._shower_index], half_width=half_width, emitter_frequency=emitter_frequency)
-                                # convolve voltage output with antenna response to obtain emitted electric field
-                                frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
-                                zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
-                                VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
-                                c = constants.c * units.m / units.s
-                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
-                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
-                                eR = np.zeros_like(eTheta)
+                                if emitter_model.startswith("efield_"):
+                                    if emitter_model == "efield_idl1_spice":
+                                        if "emitter_realization" in self._fin:
+                                            emitter_kwargs['iN'] = self._fin['emitter_realization'][self._shower_index]
+                                        elif emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_kwargs['iN'] = emitter_obj.get_parameter(ep.realization_id)
+                                        else:
+                                            emitter_kwargs['rnd'] = self._rnd
+
+                                    (eR, eTheta, ePhi), additional_output = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs, full_output=True)
+                                    if emitter_model == "efield_idl1_spice":
+                                        if 'emitter_realization' not in self._mout:
+                                            self._mout['emitter_realization'] = np.zeros(self._n_showers)
+                                        if not emitter_obj.has_parameter(ep.realization_id):
+                                            emitter_obj.set_parameter(ep.realization_id, additional_output['iN'])
+                                            self._mout['emitter_realization'][self._shower_index] = additional_output['iN']
+                                            logger.debug(f"setting emitter realization to i = {additional_output['iN']}")
+                                else:
+                                    # the emitter fuction returns the voltage output of the pulser. We need to convole with the antenna response of the emitting antenna
+                                    # to obtain the emitted electric field.
+                                    # get emitting antenna properties
+                                    antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
+                                    antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
+                                    ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
+                                           self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
+
+                                    # source voltage given to the emitter
+                                    voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
+                                                                                              emitter_model, **emitter_kwargs)
+                                    # convolve voltage output with antenna response to obtain emitted electric field
+                                    frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
+                                    zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
+                                    VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
+                                    c = constants.c * units.m / units.s
+                                    eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
+                                    ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
+                                    eR = np.zeros_like(eTheta)
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
-                                eTheta *= 1 / R
-                                ePhi *= 1 / R
+                                eTheta *= 1 / wave_propagation_distance
+                                ePhi *= 1 / wave_propagation_distance
                             else:
                                 logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
                                 raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
@@ -847,7 +884,7 @@ class simulation:
                                 ax2.set_ylabel("amplitude [$\mu$V/m]")
                                 fig.tight_layout()
                                 fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
-                                    self._fin['shower_energies'][self._shower_index], viewing_angles[iS], R))
+                                    self._fin['shower_energies'][self._shower_index], viewing_angles[iS], wave_propagation_distance))
                                 fig.subplots_adjust(top=0.9)
                                 plt.show()
 
@@ -861,14 +898,14 @@ class simulation:
                             # Trace start time is equal to the interaction time relative to the first
                             # interaction plus the wave travel time.
                             if hasattr(self, '_vertex_time'):
-                                trace_start_time = self._vertex_time + T
+                                trace_start_time = self._vertex_time + wave_propagation_time
                             else:
-                                trace_start_time = T
+                                trace_start_time = wave_propagation_time
 
                             # We shift the trace start time so that the trace time matches the propagation time.
                             # The centre of the trace corresponds to the instant when the signal from the shower
                             # vertex arrives at the observer. The next line makes sure that the centre time
-                            # of the trace is equal to vertex_time + T (wave propagation time)
+                            # of the trace is equal to vertex_time + wave_propagation_time (wave propagation time)
                             trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
 
                             electric_field.set_trace_start_time(trace_start_time)
@@ -876,6 +913,7 @@ class simulation:
                             electric_field[efp.zenith] = zenith
                             electric_field[efp.ray_path_type] = propagation.solution_types[self._raytracer.get_solution_type(iS)]
                             electric_field[efp.nu_vertex_distance] = sg['travel_distances'][iSh, channel_id, iS]
+                            electric_field[efp.nu_vertex_propagation_time] = sg['travel_times'][iSh, channel_id, iS]
                             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
                             self._sim_station.add_electric_field(electric_field)
 
@@ -979,6 +1017,9 @@ class simulation:
                         # add showers that contribute to this (sub) event to event structure
                         for shower_id in self._shower_ids_of_sub_event:
                             self._evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
+                    else:
+                        for shower_id in self._shower_ids_of_sub_event:
+                            self._evt.add_sim_emitter(self._evt_tmp.get_sim_emitter(shower_id))
                     self._station.set_sim_station(sim_station)
                     self._station.set_station_time(self._evt_time)
                     self._evt.set_station(self._station)
@@ -1065,10 +1106,11 @@ class simulation:
             self._eventWriter.end()
             logger.debug("closing nur file")
 
-        try:
-            self.calculate_Veff()
-        except:
-            logger.error("error in calculating effective volume")
+        if "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] == "neutrino": # only calcualte Veff for neutrino simulations
+            try:
+                self.calculate_Veff()
+            except:
+                logger.error("error in calculating effective volume")
 
         t_total = time.time() - t_start
         outputTime = time.time() - t5

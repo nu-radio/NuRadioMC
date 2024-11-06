@@ -4,7 +4,7 @@ import numpy as np
 import time
 import logging
 
-logger = logging.getLogger("hardwareResponseIncorporator")
+logger = logging.getLogger("NuRadioReco.ARA.hardwareResponseIncorporator")
 
 
 class hardwareResponseIncorporator:
@@ -53,7 +53,6 @@ class hardwareResponseIncorporator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt
