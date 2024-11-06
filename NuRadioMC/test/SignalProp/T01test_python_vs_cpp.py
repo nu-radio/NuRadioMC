@@ -9,14 +9,6 @@ from numpy import testing
 logger = logging.getLogger('NuRadioMC.test_raytracing')
 logger.setLevel(logging.INFO)
 
-try:
-    from numba import jit, njit
-    numba_available = True
-    print("Numba version of raytracer is available")
-except:
-    print("Numba is not available")
-    numba_available = False
-
 ice = medium.southpole_simple()
 
 np.random.seed(0)  # set seed to have reproducible results
@@ -72,6 +64,11 @@ print("Python time = {:.1f} seconds = {:.2f}ms/event".format(t_python, 1000. * t
 
 
 # Numba testing
+try:
+    from numba import jit
+except:
+    raise NotImplementedError("Numba is not implemented")
+
 results_C0s_numba = np.zeros((n_events, 2))
 results_A_numba = np.zeros((n_events, 2, n_freqs))
 t_start = time.time()
