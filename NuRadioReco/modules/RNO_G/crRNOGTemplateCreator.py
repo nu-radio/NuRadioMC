@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
 import astropy
 import numpy as np
-from NuRadioReco.detector.generic_detector import GenericDetector
+import NuRadioReco.detector.detector as detector
 import NuRadioReco.modules.efieldToVoltageConverter
 import logging
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
@@ -16,6 +16,8 @@ from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.framework.parameters import electricFieldParameters
 from NuRadioReco.framework.electric_field import ElectricField
 import pickle
+import os
+
 
 class crRNOGTemplateCreator:
     """
@@ -123,7 +125,7 @@ class crRNOGTemplateCreator:
         self.__cr_zenith = cr_zenith
         self.__cr_azimuth = cr_azimuth
 
-    def run(self, template_filename='templates_cr_station_101.p', include_hardware_response=True, return_templates=False):
+    def run(self, template_filename='templates_cr_station_101.p', include_hardware_response=True, hardware_response_source='json', return_templates=False):
         """
         run method
 
@@ -135,6 +137,8 @@ class crRNOGTemplateCreator:
             filename of the pickle file that will be used to store the templates
         include_hardware_response: boolean
             if true, the hardware response of the surface amps (hardwareResponseIncorporator) is applied
+        hardware_response_source: string
+            define if the hardware response is loaded from the json ('json') or from the database ('database')
         return_templates: boolean
             if true, the template traces are returned in an addition to saving them in a pickle file
         """
@@ -153,9 +157,9 @@ class crRNOGTemplateCreator:
                 for rid, eid, sid, cid, e_width, antrot, cr_zen, cr_az in zip(self.__template_run_id, self.__template_event_id, self.__template_station_id, self.__template_channel_id, self.__Efield_width, self.__antenna_rotation, self.__cr_zenith, self.__cr_azimuth):
                     if cr_zen == crz and cr_az == cra:
                         # create the detector
-                        det_temp = GenericDetector(json_filename=self.__detector_file, antenna_by_depth=False, create_new=True)
+                        det_temp = detector.generic_detector.GenericDetector(json_filename=self.__detector_file, antenna_by_depth=False, create_new=True, log_level='ERROR')
                         det_temp.update(datetime.datetime(2025, 10, 1))
-                        det_temp.get_channel(101, 0)['ant_rotation_phi'] = antrot
+                        det_temp.get_channel(sid, cid)['ant_rotation_phi'] = antrot
 
                         station_time = datetime.datetime(2025, 10, 1)
 
@@ -165,7 +169,14 @@ class crRNOGTemplateCreator:
                         self.__efieldToVoltageConverter.run(temp_evt, temp_evt.get_station(sid), det_temp)
 
                         if include_hardware_response:
-                            self.__hardwareResponseIncorporator.run(temp_evt, temp_evt.get_station(sid), det_temp, sim_to_data=True)
+                            if hardware_response_source == 'json':
+                                self.__hardwareResponseIncorporator.run(temp_evt, temp_evt.get_station(sid), det_temp, sim_to_data=True)
+                            elif hardware_response_source == 'database':
+                                # create a rno-g detetcor to load the hardware response
+                                rnog_det = detector.Detector(source="rnog_mongo", log_level=logging.WARNING, always_query_entire_description=False,
+                                                             database_connection='RNOG_public', select_stations=sid)
+                                rnog_det.update(datetime.datetime(2023, 3, 4, 0, 0))
+                                self.__hardwareResponseIncorporator.run(temp_evt, temp_evt.get_station(sid), rnog_det, sim_to_data=True)
 
                         if self.__debug:
                             plt.plot(temp_evt.get_station(sid).get_channel(cid).get_times() / units.ns, temp_evt.get_station(sid).get_channel(cid).get_trace())
@@ -184,7 +195,8 @@ class crRNOGTemplateCreator:
                 save_dic[np.deg2rad(crz)] = save_dic_help
 
         # write as pickle file
-        pickle.dump([save_dic], open(self.__template_save_path + template_filename, "wb"))
+        with open(os.path.join(self.__template_save_path, template_filename), "wb") as pickle_file:
+            pickle.dump([save_dic], pickle_file)
         if return_templates:
             return template_events
 
