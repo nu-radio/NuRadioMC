@@ -77,13 +77,13 @@ class BaseTrace:
         spec *= filter_response
         return fft.freq2time(spec, self.get_sampling_rate())
 
-    def get_frequency_spectrum(self, window=None):
+    def get_frequency_spectrum(self, window_mask=None):
         """
         Returns the frequency spectrum.
 
         Parameters
         ----------
-        window: array of bools (default: None)
+        window_mask: array of bools (default: None)
             If not None, specifies the time window to be used for the FFT. Has to have the same length as the trace.
 
         Returns
@@ -91,7 +91,7 @@ class BaseTrace:
         frequency_spectrum: np.array of floats
             The frequency spectrum.
         """
-        if window is None:
+        if window_mask is None:
             if self.__time_domain_up_to_date:
                 self._frequency_spectrum = fft.time2freq(self._time_trace, self._sampling_rate)
                 self._time_trace = None
@@ -101,7 +101,7 @@ class BaseTrace:
         else:
             trace = copy.copy(self.get_trace())
             # The double transpose allows to work with 1D and ND traces
-            return fft.time2freq(trace.T[window].T, self._sampling_rate)
+            return fft.time2freq(trace.T[window_mask].T, self._sampling_rate)
 
     def set_trace(self, trace, sampling_rate):
         """
@@ -195,13 +195,13 @@ class BaseTrace:
     def get_trace_start_time(self):
         return self._trace_start_time
 
-    def get_frequencies(self, window_or_nsamples=None):
+    def get_frequencies(self, window_mask=None):
         """
         Returns the frequencies of the frequency spectrum.
 
         Parameters
         ----------
-        window_or_nsamples: array of bools or int (default: None)
+        window_mask: array of bools (default: None)
             If not None, used to determine the number of samples in the time domain used for the frequency spectrum.
 
         Returns
@@ -209,13 +209,10 @@ class BaseTrace:
         frequencies: np.array of floats
             The frequencies of the frequency spectrum.
         """
-        if window_or_nsamples is None:
+        if window_mask is None:
             nsamples = self.get_number_of_samples()
         else:
-            if isinstance(window_or_nsamples, (int, float)):
-                nsamples = int(window_or_nsamples)
-            else:
-                nsamples = int(np.sum(window_or_nsamples))
+            nsamples = int(np.sum(window_mask))
 
         return get_frequencies(nsamples, self._sampling_rate)
 
