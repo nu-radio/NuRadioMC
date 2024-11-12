@@ -565,13 +565,13 @@ class readRNOGData:
         skip: bool
             Returns False to skip/reject event, return True to keep/read event
         """
-        self.logger.debug(f"Processing event number {self._event_idx} out of total {self._n_events_total}")
+        self.logger.debug(f"Processing event number {self.__counter} out of total {self._n_events_total}")
 
         self.__counter += 1  # for logging
         if self._selectors is not None:
             for selector in self._selectors:
                 if not selector(evtinfo):
-                    self.logger.debug(f"Event {self._event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
+                    self.logger.debug(f"Event {self.__counter - 1} (station {evtinfo.station}, run {evtinfo.run}, "
                                       f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
                     self.__skipped += 1
                     return False
