@@ -6,7 +6,9 @@ from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverte
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('HighLowTriggerSimulator')
+
+
+logger = logging.getLogger('NuRadioReco.HighLowTriggerSimulator')
 
 
 def get_high_low_triggers(trace, high_threshold, low_threshold,
@@ -93,9 +95,8 @@ class triggerSimulator:
         self.__t = 0
         self.begin()
 
-    def begin(self, log_level=None):
-        if log_level is not None:
-            logger.setLevel(log_level)
+    def begin(self, log_level=logging.NOTSET):
+        logger.setLevel(log_level)
 
     @register_run()
     def run(self, evt, station, det,
@@ -254,7 +255,6 @@ class triggerSimulator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

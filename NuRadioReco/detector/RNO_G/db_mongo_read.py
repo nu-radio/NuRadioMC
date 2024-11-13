@@ -12,7 +12,6 @@ import NuRadioReco.utilities.metaclasses
 import astropy.time
 
 import logging
-logging.basicConfig()
 logger = logging.getLogger("NuRadioReco.MongoDBRead")
 logger.setLevel(logging.INFO)
 
@@ -298,11 +297,9 @@ class Database(object):
         # filter out all decommissioned channels and devices
         commissioned_info = copy.deepcopy(stations_for_buffer)
         for key in ['channels', 'devices']:
-            for ientry, entry in enumerate(stations_for_buffer[0][key]):
-                if entry['commission_time'] <= detector_time and entry['decommission_time'] >= detector_time:
-                    pass
-                else:
-                    commissioned_info[0][key].pop(ientry)
+            for entry in stations_for_buffer[0][key]:
+                if not entry['commission_time'] <= detector_time <= entry['decommission_time']:
+                    commissioned_info[0][key].remove(entry)
 
         # transform the output of db.aggregate to a dict
         # dictionarize the channel information

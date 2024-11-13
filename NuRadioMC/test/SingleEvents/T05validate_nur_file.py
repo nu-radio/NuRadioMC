@@ -6,9 +6,8 @@ import numpy as np
 import NuRadioReco.modules.io.eventReader
 from NuRadioReco.utilities import units
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
+
+
 
 try:
     file1 = sys.argv[1]

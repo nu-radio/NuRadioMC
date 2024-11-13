@@ -9,7 +9,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
 import logging
-logger = logging.getLogger('channelSignalReconstructor')
+logger = logging.getLogger('NuRadioReco.channelSignalReconstructor')
 
 
 class channelSignalReconstructor:
@@ -18,7 +18,7 @@ class channelSignalReconstructor:
 
     """
 
-    def __init__(self, log_level=logging.WARNING):
+    def __init__(self, log_level=logging.NOTSET):
         self.__t = 0
         logger.setLevel(log_level)
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
@@ -196,7 +196,6 @@ class channelSignalReconstructor:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

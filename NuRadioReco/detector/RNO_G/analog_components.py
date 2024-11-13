@@ -4,7 +4,7 @@ import os
 from NuRadioReco.utilities import units
 from radiotools import helper as hp
 import logging
-logger = logging.getLogger('analog_components')
+logger = logging.getLogger('NuRadioReco.analog_components')
 
 
 def load_amp_response(amp_type='rno_surface', temp=293.15,
