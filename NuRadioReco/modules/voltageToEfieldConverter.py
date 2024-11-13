@@ -13,7 +13,7 @@ import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
-logger = logging.getLogger('voltageToEfieldConverter')
+logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,

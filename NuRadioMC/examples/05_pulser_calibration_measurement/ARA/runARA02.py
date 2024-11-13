@@ -13,10 +13,7 @@ import NuRadioReco.modules.ARA.hardwareResponseIncorporator
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation as simulation
 
-# Setup logging
 import logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
 
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin()

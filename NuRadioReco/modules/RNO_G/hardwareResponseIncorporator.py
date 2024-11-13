@@ -16,7 +16,7 @@ class hardwareResponseIncorporator:
 
     def __init__(self):
         self.logger = logging.getLogger(
-            "NuRadioReco.hardwareResponseIncorporator")
+            "NuRadioReco.RNOG.hardwareResponseIncorporator")
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None

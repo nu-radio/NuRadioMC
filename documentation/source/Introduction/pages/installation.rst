@@ -6,8 +6,8 @@ Requirements
 In order to use ``NuRadioMC`` / ``NuRadioReco``, please ensure you are using a version of Python ``>=3.6``, and a UNIX operating system (linux or MacOS).
 If you are using Windows, consider installing the `Windows Subsystem for Linux <https://docs.microsoft.com/en-us/windows/wsl/install>`_.
 
-Installation using Pip
--------------------------
+Installation using ``pip``
+--------------------------
 As of version ``2.0.0``, ``NuRadioReco`` is now a subpackage of ``NuRadioMC``. Both ``NuRadioMC`` and ``NuRadioReco`` can therefore be installed
 using ``pip``:
 
@@ -23,7 +23,13 @@ The pip installation will also install all core dependencies.
   Some optional dependencies cannot be installed using pip and 
   :ref:`have to be installed manually <Introduction/pages/installation:Not pip-installable packages>`.
 
-.. Note:: If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.
+.. Note:: This is the release version of NuRadioMC. If you want the latest (development) version, use
+
+  .. code-block::
+
+    pip install git+https://github.com/nu-radio/NuRadioMC.git
+
+  instead, or install it manually (see below).
 
 Development version
 ---------------------------
@@ -145,7 +151,7 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 
 .. code-block:: bash
 
-  pip install uproot==4.1.1 'awkward<2'
+  pip install uproot awkward
 
 - To access some detector databases:
 

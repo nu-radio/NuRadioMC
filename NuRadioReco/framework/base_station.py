@@ -14,7 +14,7 @@ except ImportError:
 import logging
 import collections
 
-logger = logging.getLogger('BaseStation')
+logger = logging.getLogger('NuRadioReco.BaseStation')
 
 
 class BaseStation():
@@ -134,13 +134,29 @@ class BaseStation():
         self._triggers = collections.OrderedDict()
 
     def get_trigger(self, name):
-        if (name not in self._triggers):
+        if name not in self._triggers:
             raise ValueError("trigger with name {} not present".format(name))
         return self._triggers[name]
 
+    def get_first_trigger(self):
+        """
+        Returns the first trigger. Returns None if no trigger is present.
+        """
+        if not self._triggered:
+            return None
+
+        min_trigger_time = float('inf')
+        for trig in self._triggers.values():
+            if trig.has_triggered() and trig.get_trigger_time() < min_trigger_time:
+                min_trigger_time = trig.get_trigger_time()
+                min_trig = trig
+
+        return min_trig
+
     def has_trigger(self, trigger_name):
         """
-        checks if station has a trigger with a certain name
+        Checks if station has a trigger with a certain name.
+        WARNING: This function does not check if the trigger has triggered.
 
         Parameters
         ----------
@@ -153,21 +169,21 @@ class BaseStation():
 
     def get_triggers(self):
         """
-        returns a dictionary of the triggers. key is the trigger name, value is a trigger object
+        Returns a dictionary of the triggers. key is the trigger name, value is a trigger object
         """
         return self._triggers
 
     def set_trigger(self, trigger):
-        if (trigger.get_name() in self._triggers):
+        if trigger.get_name() in self._triggers:
             logger.warning(
-                "station has already a trigger with name {}. The previous trigger will be overridden!".format(
-                    trigger.get_name()))
+                f"Station has already a trigger with name {trigger.get_name()}. The previous trigger will be overridden!")
+
         self._triggers[trigger.get_name()] = trigger
         self._triggered = trigger.has_triggered() or self._triggered
 
     def has_triggered(self, trigger_name=None):
         """
-        convenience function.
+        Checks if the station has triggered. If trigger_name is set, check if the trigger with that name has triggered.
 
         Parameters
         ----------
@@ -176,17 +192,17 @@ class BaseStation():
                        it returns True if any of those triggers triggered
             * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
         """
-        if (trigger_name is None):
+        if trigger_name is None:
             return self._triggered
         else:
             return self.get_trigger(trigger_name).has_triggered()
 
     def set_triggered(self, triggered=True):
         """
-        convenience function to set a simple trigger. The recommended interface is to set triggers through the
+        Convenience function to set a simple trigger. The recommended interface is to set triggers through the
         set_trigger() interface.
         """
-        if (len(self._triggers) > 1):
+        if len(self._triggers) > 1:
             raise ValueError("more then one trigger were set. Request is ambiguous")
         trigger = NuRadioReco.framework.trigger.Trigger('default')
         trigger.set_triggered(triggered)
@@ -204,7 +220,7 @@ class BaseStation():
     def get_electric_fields_for_channels(self, channel_ids=None, ray_path_type=None):
         for e_field in self._electric_fields:
             channel_ids2 = channel_ids
-            if (channel_ids is None):
+            if channel_ids is None:
                 channel_ids2 = e_field.get_channel_ids()
             if e_field.has_channel_ids(channel_ids2):
                 if ray_path_type is None:
