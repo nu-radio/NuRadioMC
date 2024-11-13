@@ -1046,11 +1046,6 @@ class simulation:
                             channel_ids = self._det.get_channel_ids(self._station.get_id())
                             Vrms = {}
                             for channel_id in channel_ids:
-                                if self._det.is_channel_noiseless(self._station.get_id(), channel_id):
-                                    if channel_id not in self._noiseless_channels[self._station_id]:
-                                        self._noiseless_channels[self._station_id].append(channel_id)
-                                    continue
-
                                 norm = self._integrated_channel_response[self._station.get_id()][channel_id]
                                 Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
 
