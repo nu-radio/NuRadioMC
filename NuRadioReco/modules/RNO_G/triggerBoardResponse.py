@@ -153,8 +153,8 @@ class triggerBoardResponse:
 
             noise_bits = det_channel["trigger_adc_noise_nbits"]
             total_bits = det_channel["trigger_adc_nbits"]
-            volts_per_adc = self._adc_input_range / 2 ** total_bits
-            ideal_vrms = volts_per_adc * (2 ** (noise_bits - 1) - 1)
+            volts_per_adc = self._adc_input_range / (2 ** total_bits - 1)
+            ideal_vrms = volts_per_adc * (2 ** (noise_bits - 1))
 
             msg = f"\t Ch: {channel_id}\t Target Vrms: {ideal_vrms / units.mV:0.3f} mV"
             msg += f"\t V/ADC: {volts_per_adc / units.mV:0.3f} mV"
