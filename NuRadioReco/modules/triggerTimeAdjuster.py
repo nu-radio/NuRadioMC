@@ -29,7 +29,7 @@ class triggerTimeAdjuster:
         Run the trigger time adjuster.
 
         This module can be used either to 'cut' the simulated traces into
-        the appropriate readout windows, or to adjust the trace start times 
+        the appropriate readout windows, or to adjust the trace start times
         of simulated / real data to account for the different trigger readout
         delays.
 
@@ -48,7 +48,7 @@ class triggerTimeAdjuster:
 
         mode: 'sim_to_data' (default) | 'data_to_sim'
             If 'sim_to_data', cuts the (arbitrary-length) simulated traces
-            to the appropriate readout windows. 
+            to the appropriate readout windows.
             If 'data_to_sim', looks through all triggers in the station and adjusts the
             trace_start_time according to the different readout delays
 
@@ -61,7 +61,8 @@ class triggerTimeAdjuster:
                 if(kwargs['mode'] == mode):
                     counter += 1
         if counter > 1:
-            logger.warning('triggerTimeAdjuster was called twice with the same mode. This is likely a mistake. The module will not be applied again.')
+            logger.warning('triggerTimeAdjuster was called twice with the same mode. '
+                           'This is likely a mistake. The module will not be applied again.')
             return 0
 
 
@@ -70,20 +71,15 @@ class triggerTimeAdjuster:
         trigger = station.get_primary_trigger()
         if trigger is None: # no primary trigger found
             logger.debug('No primary trigger found. Using the trigger with the earliest trigger time.')
-            min_trigger_time = None
-            for trig in station.get_triggers().values():
-                if(trig.has_triggered()):
-                    if min_trigger_time is None or trig.get_trigger_time() < min_trigger_time:
-                        min_trigger_time = trig.get_trigger_time()
-                        trigger = trig
-            if(min_trigger_time is not None):
-                logger.info(f"minimum trigger time is {min_trigger_time/units.ns:.2f}ns")
+            trigger = station.get_first_trigger()
             if trigger is not None:
-                logger.info(f"setting trigger {trigger.get_name()} primary because it trigered first")
+                logger.info(f"setting trigger {trigger.get_name()} primary because it triggered first")
                 trigger.set_primary(True)
+
         if trigger is None:
             logger.info('No trigger found! Channel timings will not be changed.')
             return
+
         if mode == 'sim_to_data':
             if trigger.has_triggered():
                 trigger_time = trigger.get_trigger_time()
