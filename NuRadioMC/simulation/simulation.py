@@ -581,7 +581,8 @@ def apply_det_response(evt, det, config,
 
         detector_simulation_filter_amp(evt, station, det)
 
-    if time_logger is not None: time_logger.stop_time('detector response')
+    if time_logger is not None:
+        time_logger.stop_time('detector response')
 
 def build_dummy_event(sid, det, config):
     """
@@ -888,7 +889,9 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     events : list of NuRadioReco.framework.event.Event
         The list of events created from the grouped signals.
     """
-    if time_logger is not None: time_logger.start_time('group into events')
+    if time_logger is not None:
+        time_logger.start_time('group into events')
+
     event_group_id = event_group.get_run_number()
     start_times = []
     channel_identifiers = []
@@ -960,7 +963,9 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             increase_signal(station, None, 0)
         events.append(evt)
     logger.info(f"created {len(events)} events from event group {event_group_id}")
-    if time_logger is not None: time_logger.stop_time('group into events')
+    if time_logger is not None:
+        time_logger.stop_time('group into events')
+
     return events
 
 def read_input_hdf5(filename):
@@ -1188,6 +1193,7 @@ class simulation:
             self._ice = ice_model
         else:
             self._ice = NuRadioMC.utilities.medium.get_ice_model(self._config['propagation']['ice_model'])
+
         prop = propagation.get_propagation_module(self._config['propagation']['module'])
         self._propagator = prop(
             self._ice, self._config['propagation']['attenuation_model'],
@@ -1376,6 +1382,7 @@ class simulation:
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
             logger.status("terminating simulation")
             return 0
+
         logger.status("Starting NuRadioMC simulation")
         self.__time_logger.reset_times()
 
@@ -1650,6 +1657,7 @@ class simulation:
                             eventWriter.run(evt, self._det, mode=output_mode)
                         else:
                             eventWriter.run(evt, mode=output_mode)
+
                     remove_all_traces(evt)  # remove all traces to save memory
 
                 self._output_writer_hdf5.add_event_group(output_buffer)
