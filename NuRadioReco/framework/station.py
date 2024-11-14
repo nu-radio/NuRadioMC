@@ -37,6 +37,24 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
 
+    def get_trigger_channel(self, channel_id):
+        """
+        Returns the trigger channel of channel with id `channel_id`.
+        If the trigger channel is not set, the channel itself is returned.
+
+        Parameters
+        ----------
+        channel_id : int
+            The id of the channel for which to get the trigger channel.
+
+        Returns
+        -------
+        channel: `NuRadioReco.framework.channel.Channel`
+            The trigger channel of the channel with id `channel_id`.
+        """
+        channel = self.get_channel(channel_id)
+        return channel.get_trigger_channel()
+
     def iter_channel_group(self, channel_group_id):
         found_channel_group = False
         for channel_id, channel in iteritems(self.__channels):
