@@ -450,7 +450,7 @@ def apply_det_response_sim(sim_station, det, config,
                         detector_simulation_part1=None,
                         time_logger=None):
     """
-    Apply the detector response to the simulated electric field, i.e., the voltage traces
+    Apply the detector response to the simulated electric field, i.e., calculate the voltage traces as
     seen by the readout system, per shower, raytracing solution and channel.
     This includes the effect of the antenna response, the
     analog signal chain. The result is a list of SimChannel objects which are added to the
