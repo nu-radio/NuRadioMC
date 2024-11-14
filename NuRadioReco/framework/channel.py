@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
+import copy
 try:
     import cPickle as pickle
 except ImportError:
@@ -27,24 +28,29 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         self._parameters = {}
         self._id = channel_id
         self._group_id = channel_group_id
-        self.__additional_channels = []
+        self._trigger_channel = None
 
-    def add_additional_channel(self, channel):
-        if not isinstance(channel, Channel):
-            logger.error("channel needs to be of type NuRadioReco.framework.Channel")
-            raise ValueError("channel needs to be of type NuRadioReco.framework.Channel")
+    def set_trigger_channel(self, trigger_channel=None):
+        if trigger_channel is None:
+            self._trigger_channel = copy.deepcopy(self)
+        else:
+            if not isinstance(trigger_channel, Channel):
+                logger.error("trigger_channel needs to be of type NuRadioReco.framework.Channel")
+                raise ValueError("trigger_channel needs to be of type NuRadioReco.framework.Channel")
 
-        if channel.get_id() != self.get_id():
-            logger.error(f"channel id of additional channel {channel.get_id()} is different from the channel id {self.get_id()}")
-            raise ValueError(f"channel id of additional channel {channel.get_id()} is different from the channel id {self.get_id()}")
+            if trigger_channel.get_id() != self.get_id():
+                msg = (f"channel id of trigger channel {trigger_channel.get_id()} is different "
+                    f"from the channel id {self.get_id()}")
+                logger.error(msg)
+                raise ValueError(msg)
 
-        self.__additional_channels.append(channel)
+            self._trigger_channel = trigger_channel
 
-    def get_additional_channels(self, get_first=False):
-        if get_first:
-            return self.__additional_channels[0]
+    def get_trigger_channel(self):
+        if self._trigger_channel is None:
+            return self
 
-        return self.__additional_channels
+        return self._trigger_channel
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.channelParameters):
