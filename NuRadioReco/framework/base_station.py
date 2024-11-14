@@ -155,7 +155,7 @@ class BaseStation():
 
     def get_primary_trigger(self):
         """
-        returns the primary trigger of the station. If no primary trigger exists, it returns None
+        Returns the primary trigger of the station. If no primary trigger exists, it returns None
         """
         trigger = None
         primary_trigger_count = 0
@@ -164,14 +164,18 @@ class BaseStation():
             if trig.is_primary():
                 primary_trigger_count += 1
                 trigger = trig
+
         if primary_trigger_count > 1:
-            logger.error('More than one primary trigger exists. Only one trigger can be the primary trigger. Please check your code.')
+            logger.error(
+                'More than one primary trigger exists. Only one trigger can be the primary trigger. '
+                'Please check your code.')
             raise ValueError
+
         return trigger
 
     def get_first_trigger(self):
         """
-        Returns the first trigger. Returns None if no trigger is present.
+        Returns the first/earliest trigger. Returns None if no trigger fired.
         """
         if not self._triggered:
             return None
