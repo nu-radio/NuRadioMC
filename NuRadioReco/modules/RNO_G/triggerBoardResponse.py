@@ -7,7 +7,7 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 from NuRadioReco.utilities import units, fft
 
-logger = logging.getLogger("triggerBoardResponse")
+logger = logging.getLogger("NuRadioReco.triggerBoardResponse")
 
 
 class triggerBoardResponse:
@@ -23,7 +23,6 @@ class triggerBoardResponse:
         logger.setLevel(log_level)
         self.logger = logger
         self.__t = 0
-        self.__channel_offset = 0
         self.begin()
 
     def begin(self, adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage"):
@@ -150,7 +149,7 @@ class triggerBoardResponse:
 
         vrms_after_gain = []
         for channel_id, vrms in zip(trigger_channels, avg_vrms):
-            det_channel = det.get_channel(station.get_id(), channel_id - self.__channel_offset)
+            det_channel = det.get_channel(station.get_id(), channel_id)
 
             noise_bits = det_channel["trigger_adc_noise_nbits"]
             total_bits = det_channel["trigger_adc_nbits"]
@@ -219,7 +218,7 @@ class triggerBoardResponse:
             if len(requested_channels) and channel_id not in requested_channels:
                 continue
 
-            det_channel = det.get_channel(station_id, channel_id - self.__channel_offset)
+            det_channel = det.get_channel(station_id, channel_id)
 
             keep = True
             for field in self._mandatory_fields:
@@ -279,14 +278,14 @@ class triggerBoardResponse:
                 clock_offset=self._clock_offset,
                 adc_output=self._adc_output,
                 return_sampling_frequency=True,
-                channel_id=channel_id - self.__channel_offset,
+                channel_id=channel_id,
             )
 
             channel.set_trace(digitized_trace, adc_sampling_frequency)
 
     @register_run()
     def run(self, evt, station, det, requested_channels=[], vrms=None, apply_adc_gain=True,
-            digitize_trace=True, channel_offset=0, do_apply_trigger_filter=True):
+            digitize_trace=True, do_apply_trigger_filter=True):
         """
         Applies the additional filters on the trigger board and performs a gain amplification
         to get the correct number of trigger bits.
@@ -311,9 +310,6 @@ class triggerBoardResponse:
             Apply the gain shift to achieve the specified level of noise bits
         digitize_trace : bool (default: True)
             Apply the quantization to the voltages (uses `NuRadioReco.modules.analogToDigitalConverter` to do so)
-        channel_offset : int (default: 0)
-            The offset to apply to the channel IDs when requesting the detector description. This is
-            necessary if you have created a copy of the original channel and changed the ID.
         do_apply_trigger_filter : bool (default: True)
             Apply the trigger filter to the waveforms. The response might already be ablied as part of the
             detector simulation, in which case this should be set to `False`.
@@ -324,9 +320,7 @@ class triggerBoardResponse:
             the RMS voltage of the waveforms on the trigger board after applying the ADC gain
 
         """
-
         self.logger.debug("Applying the RNO-G trigger board response")
-        self.__channel_offset = channel_offset
 
         if do_apply_trigger_filter:
             trigger_channels, trigger_amp_response = self.get_trigger_values(station, det, requested_channels)
