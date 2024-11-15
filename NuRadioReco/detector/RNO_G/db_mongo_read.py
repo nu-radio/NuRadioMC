@@ -719,8 +719,11 @@ class Database(object):
             return {k:collection_info[0]['measurements'][k] for k in ('VEL', 'response_chain', 'primary_components')}
 
 
-    def get_component_data(self, component_type, component_id, supplementary_info, primary_time, verbose=True, sparameter='S21'):
+    def get_component_data(self, component_type, component_id, supplementary_info={}, primary_time=None, verbose=True, sparameter='S21'):
         """ returns the current primary measurement of the component, reads in the component collection"""
+
+        if primary_time is None:
+            primary_time = self.get_database_time()
 
         # define a search filter
         search_filter = [{'$match': {'name': component_id}}, {'$unwind': '$measurements'}, {'$match': {}}]
