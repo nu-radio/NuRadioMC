@@ -121,12 +121,14 @@ class Detector():
             "is_noiseless": False,
         }
 
+        self.additional_data = {}
+
         if select_stations is not None and not isinstance(select_stations, list):
             select_stations = [select_stations]
 
         self.selected_stations = select_stations
         self.logger.info(f"Select the following stations (if possible): {select_stations}")
-
+        self.__db = None
         if detector_file is None:
             self._det_imported_from_file = False
 
@@ -1262,6 +1264,23 @@ class Detector():
             Returns "summit"
         """
         return "summit"
+
+
+    def get_database(self):
+        """
+        Returns the database connection
+
+        Returns
+        -------
+
+        db: MongoClient
+            Returns the database connection
+        """
+        if self.__db is None:
+            self.logger.error("No database connection available. Return None")
+            return None
+
+        return self.__db
 
 
 if __name__ == "__main__":
