@@ -392,7 +392,7 @@ def calculate_sim_efield_for_emitter(emitters, station_id, channel_id,
                                                                             emitter_model, **emitter_kwargs)
                 # convolve voltage output with antenna response to obtain emitted electric field
                 frequencies = np.fft.rfftfreq(n_samples, d=dt)
-                zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*p.get_launch_vector(iS))
+                zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*propagator.get_launch_vector(iS))
                 VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
                 c = constants.c * units.m / units.s
                 eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
@@ -424,7 +424,7 @@ def calculate_sim_efield_for_emitter(emitters, station_id, channel_id,
             # of the trace is equal to vertex_time + wave_propagation_time (wave propagation time)
             trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
 
-            zenith, azimuth = hp.cartesian_to_spherical(*p.get_receive_vector(iS))
+            zenith, azimuth = hp.cartesian_to_spherical(*propagator.get_receive_vector(iS))
             electric_field.set_trace_start_time(trace_start_time)
             electric_field[efp.azimuth] = azimuth
             electric_field[efp.zenith] = zenith
