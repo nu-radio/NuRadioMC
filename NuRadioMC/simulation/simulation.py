@@ -257,7 +257,7 @@ def calculate_sim_efield(showers, station_id, channel_id,
             electric_field.set_trace_start_time(trace_start_time)
             electric_field[efp.azimuth] = azimuth
             electric_field[efp.zenith] = zenith
-            electric_field[efp.ray_path_type] = propagation.solution_types[p.get_solution_type(iS)]
+            electric_field[efp.ray_path_type] = propagation.solution_types[propagator.get_solution_type(iS)]
             electric_field[efp.nu_vertex_distance] = wave_propagation_distance
             electric_field[efp.nu_vertex_propagation_time] = wave_propagation_time
             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
