@@ -128,10 +128,37 @@ def get_fancy_formatter():
     -------
     formatter : logging.Formatter
     """
-    formatter = logging.Formatter(
-        '\033[33;20m%(levelname)s - \033[93m%(asctime)s - \033[32m%(name)s - \033[0m%(message)s',
+
+    class CustomFormatter(logging.Formatter):
+
+        def __init__(self, format, datefmt):
+            super().__init__(datefmt=datefmt)
+            grey = "\033[38;1m"
+            yellow = "\033[33;1m"
+            purple = "\033[35;1m"
+            green = "\033[32;1m"
+            red = "\033[31;1m"
+            reset = "\033[0m"
+
+            self.FORMATS = {
+                logging.DEBUG: grey + "%(levelname)s - " + reset + format,
+                logging.INFO: green + "%(levelname)s - " + reset + format,
+                logging.WARNING: purple + "%(levelname)s - " + reset + format,
+                logging.ERROR: red + "%(levelname)s - " + reset + format,
+                logging.CRITICAL: red + "%(levelname)s - " + reset + format
+            }
+
+        def format(self, record):
+            log_fmt = self.FORMATS.get(record.levelno)
+            formatter = logging.Formatter(log_fmt)
+            return formatter.format(record)
+
+
+    formatter = CustomFormatter(
+        format='\033[33m%(asctime)s - \033[32m%(name)s - \033[0m%(message)s',
         datefmt="%H:%M:%S"
     )
+
     return formatter
 
 
