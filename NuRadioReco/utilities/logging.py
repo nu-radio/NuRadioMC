@@ -143,6 +143,7 @@ def get_fancy_formatter():
             self.FORMATS = {
                 logging.DEBUG: grey + "%(levelname)s - " + reset + format,
                 logging.INFO: green + "%(levelname)s - " + reset + format,
+                LOGGING_STATUS: yellow + "%(levelname)s - " + reset + format,
                 logging.WARNING: purple + "%(levelname)s - " + reset + format,
                 logging.ERROR: red + "%(levelname)s - " + reset + format,
                 logging.CRITICAL: red + "%(levelname)s - " + reset + format
