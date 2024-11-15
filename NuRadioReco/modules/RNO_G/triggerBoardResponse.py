@@ -1,13 +1,66 @@
 import logging
 import numpy as np
 import time
+import functools
 
+from NuRadioReco.detector.response import Response
 from NuRadioReco.detector.RNO_G import analog_components
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 from NuRadioReco.utilities import units, fft
 
 logger = logging.getLogger("NuRadioReco.triggerBoardResponse")
+
+@functools.lru_cache(maxsize=1)
+def get_trigger_board_analog_response(freqs=np.linspace(10, 1000, 1000) * units.MHz):
+    trigger_amp_response = analog_components.load_amp_response("ULP_216")
+
+    gain = trigger_amp_response["gain"](freqs)
+    complex_phase = trigger_amp_response["phase"](freqs)
+    phase = np.imag(np.log(complex_phase))
+
+    return Response(
+        freqs, [gain, phase], ["mag", "rad"],
+        name="ULP_216", station_id=-1, channel_id=None)
+
+
+def get_component(det, collection="coax_cable", component="daq_drab_flower_2024_avg"):
+    if component in det.additional_data and 'y-axis_units' in det.additional_data[component]:
+        component_data = det.additional_data[component]
+    else:
+        db = det.get_database()
+        if db is None:
+            raise ValueError("No database connection. You probably imported the detector from a file. "
+                             "Please use the DB connection to load the component data.")
+
+        # load the s21 parameter measurement
+        component_data = db.get_component_data(
+            collection, component)
+        det.additional_data[component] = component_data
+
+    resp = Response(
+        component_data["frequencies"], [component_data["mag"], component_data["phase"]], component_data['y-axis_units'],
+        name=component, station_id=-1, channel_id=None)
+
+    return resp
+
+
+def get_diff_daq_to_trigger_response(det):
+    """
+    All components are here are not channel or station specific... (besides the argument `resp`)
+    """
+
+    # These to components are the same for each PA channel (as of Nov 2024)
+    lowpass = get_trigger_board_analog_response()
+    flower_coax = get_component(det, collection="coax_cable", component="daq_drab_flower_2024_avg")
+
+    # These to components are the same for each PA channel (as of Nov 2024)
+    radiant_coax = get_component(det, collection="coax_cable", component="daq_drab_radiant_pa_2024_avg")
+    radiant = get_component(det, collection="radiant_response", component="average_deep_channel_V2")
+
+    diff = lowpass * flower_coax / radiant / radiant_coax
+
+    return diff
 
 
 class triggerBoardResponse:
@@ -69,7 +122,7 @@ class triggerBoardResponse:
         """
 
         for channel_id in trigger_channels:
-            channel = station.get_channel(channel_id)
+            channel = station.get_trigger_channel(channel_id)
 
             # calculate and apply trigger filters
             freqs = channel.get_frequencies()
@@ -100,7 +153,7 @@ class triggerBoardResponse:
 
         avg_vrms = 0
         for channel_id in trigger_channels:
-            channel = station.get_channel(channel_id)
+            channel = station.get_trigger_channel(channel_id)
             trace = np.array(channel.get_trace())
             trace = trace[: int(trace_split * int(len(trace) / trace_split))].reshape((trace_split, -1))
             approx_vrms = np.median(np.std(trace, axis=1))
@@ -171,7 +224,7 @@ class triggerBoardResponse:
                 gain_to_use = self._triggerBoardAmplifications[-1]
                 vrms_after_gain.append(amplified_vrms_values[-1])
 
-            channel = station.get_channel(channel_id)
+            channel = station.get_trigger_channel(channel_id)
             self.logger.debug(f"\t Ch: {channel_id}\t Actuall Vrms: {np.std(channel.get_trace() * gain_to_use) / units.mV:0.3f} mV")
             channel.set_trace(channel.get_trace() * gain_to_use, channel.get_sampling_rate())
             self.logger.debug(f"\t Used Vrms: {vrms_after_gain[-1] / units.mV:0.3f} mV" + f"\tADC Gain {gain_to_use}")
@@ -180,92 +233,10 @@ class triggerBoardResponse:
 
         return np.array(vrms_after_gain), ideal_vrms
 
-    def get_trigger_values(self, station, det, requested_channels=[]):
-        """
-        Extracts information about the trigger channels from the detector description
-
-        Parameters
-        ----------
-        station : Station
-            Station to use
-        det : Detector
-            The detector description
-        requested_channels : list (default: [])
-            Channels that this function should consider when extracting data
-
-        Returns
-        -------
-        found_trigger_channels : list
-            channel ids for the trigger channels
-
-        trigger_filter : function
-            set of interpolations describing the `gain` and `phase` of the filter
-            (see function `load_amp_response` in file `./detector/RNO_G/analog_components.py`)
-
-        """
-
-        station_id = station.get_id()
-
-        found_trigger_channels = []
-        trigger_amp_response = None
-        trigger_amp_response_name = None
-
-        for det_channel in station.iter_channels():
-            channel_id = det_channel.get_id()
-
-            # If specifying the exact channels to consider, demand
-            # that this ID is in the list
-            if len(requested_channels) and channel_id not in requested_channels:
-                continue
-
-            det_channel = det.get_channel(station_id, channel_id)
-
-            keep = True
-            for field in self._mandatory_fields:
-                if field not in det_channel:
-                    keep = False
-                    break
-
-            if not keep:
-                continue
-
-            found_trigger_channels.append(channel_id)
-
-            # Check for mixed amplifiers (required for get_avg_vrms to work correctly)
-            if trigger_amp_response_name is not None and trigger_amp_response_name != det_channel["trigger_amp_type"]:
-                name = det_channel["trigger_amp_type"]
-                msg = f'Channel {channel_id} has `trigger_amp_type` of "{name}", but a `trigger_amp_type` of'
-                msg += f' "{trigger_amp_response_name}" was already found in the detector file. This module is not meant'
-                msg += " to work with mixed values of `trigger_amp_type`. Either unify the `trigger_amp_type` or supply"
-                msg += ' a group of channels to consider using the "requested_channels" option of this module'
-                raise RuntimeError(msg)
-
-            trigger_amp_response_name = det_channel["trigger_amp_type"]
-            trigger_amp_response = analog_components.load_amp_response(trigger_amp_response_name)
-
-        if not len(found_trigger_channels):
-            msg = f"No triggering channels found in station {station_id}. Make sure that trigger channels have the following"
-            msg += f" fields defined {self._mandatory_fields}"
-            raise RuntimeError(msg)
-
-        # Sanity check for the expected channels
-        for channel_id in requested_channels:
-            if channel_id not in found_trigger_channels:
-                msg = f"Channel {channel_id} was requested to participlate in the trigger but was not found with the proper the mandatory"
-                msg += f" fields set. Ensure that the following settings are in your Detector configuration {self._mandatory_fields}"
-                self.logger.warn(msg)
-
-        self.logger.debug(f"Found trigger channels {found_trigger_channels}")
-        self.logger.debug(f"Found trigger amps {trigger_amp_response_name}")
-
-        def trigger_filter(freqs):
-            return trigger_amp_response["gain"](freqs) * trigger_amp_response["phase"](freqs)
-
-        return found_trigger_channels, trigger_filter
 
     def digitize_trace(self, station, det, trigger_channels, vrms):
         for channel_id in trigger_channels:
-            channel = station.get_channel(channel_id)
+            channel = station.get_trigger_channel(channel_id)
 
             digitized_trace, adc_sampling_frequency = self._adc.get_digital_trace(
                 station,
@@ -284,14 +255,11 @@ class triggerBoardResponse:
             channel.set_trace(digitized_trace, adc_sampling_frequency)
 
     @register_run()
-    def run(self, evt, station, det, requested_channels=[], vrms=None, apply_adc_gain=True,
-            digitize_trace=True, do_apply_trigger_filter=True):
+    def run(self, evt, station, det, trigger_channels, vrms=None, apply_adc_gain=True,
+            digitize_trace=True):
         """
         Applies the additional filters on the trigger board and performs a gain amplification
         to get the correct number of trigger bits.
-        This module expects that all of the trigger channels (either defined by the existance of
-        `trigger_XXX` fields in the detector .json file or via the `requested_channels`
-        argument) are identical.
 
         Parameters
         ----------
@@ -301,8 +269,8 @@ class triggerBoardResponse:
             Station to run the module on
         det : Detector
             The detector description
-        requested_channels : list (default: [])
-            Channels that this module should consider when applying the filter
+        trigger_channels : list
+            Channels that this module should consider applying the filter/board response
         vrms : float (default: None)
             The Vrms of the trigger channels including the trigger board filters
             If set to `None`, this will be estimated using the waveforms
@@ -310,23 +278,20 @@ class triggerBoardResponse:
             Apply the gain shift to achieve the specified level of noise bits
         digitize_trace : bool (default: True)
             Apply the quantization to the voltages (uses `NuRadioReco.modules.analogToDigitalConverter` to do so)
-        do_apply_trigger_filter : bool (default: True)
-            Apply the trigger filter to the waveforms. The response might already be ablied as part of the
-            detector simulation, in which case this should be set to `False`.
 
         Returns
         -------
         trigger_board_vrms : float
             the RMS voltage of the waveforms on the trigger board after applying the ADC gain
-
         """
         self.logger.debug("Applying the RNO-G trigger board response")
 
-        if do_apply_trigger_filter:
-            trigger_channels, trigger_amp_response = self.get_trigger_values(station, det, requested_channels)
-            self.apply_trigger_filter(station, trigger_channels, trigger_amp_response)
-        else:
-            trigger_channels = requested_channels
+        for channel_id in trigger_channels:
+            channel = station.get_channel(channel_id)
+            channel.set_trigger_channel()  # This creates a copy of `channel` and sets it as the trigger channel
+
+        trigger_amp_response = get_diff_daq_to_trigger_response(det)
+        self.apply_trigger_filter(station, trigger_channels, trigger_amp_response)
 
         if vrms is None:
             vrms = self.get_avg_vrms(station, trigger_channels)
