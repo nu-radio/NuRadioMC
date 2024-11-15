@@ -346,7 +346,7 @@ class Response:
         """ Same as mul """
         return self.__mul__(other)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
         Define multiplication operator for
             - Other objects of the same class
