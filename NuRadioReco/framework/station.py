@@ -28,11 +28,19 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def iter_channels(self, use_channels=None):
         for channel_id, channel in iteritems(self.__channels):
-            if(use_channels is None):
+            if use_channels is None:
                 yield channel
             else:
                 if channel_id in use_channels:
                     yield channel
+
+    def iter_trigger_channels(self, use_channels=None):
+        for channel_id, channel in iteritems(self.__channels):
+            if use_channels is None:
+                yield channel.get_trigger_channel()
+            else:
+                if channel_id in use_channels:
+                    yield channel.get_trigger_channel()
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
