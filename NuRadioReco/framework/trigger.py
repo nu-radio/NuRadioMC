@@ -186,8 +186,6 @@ class Trigger:
         trigger_time: float
             the trigger time for the channel
         """
-        if self._pre_trigger_times is None:
-            return self._pre_trigger_times
         if isinstance(self._pre_trigger_times, dict):
             return self._pre_trigger_times[channel_id]
         return self._pre_trigger_times

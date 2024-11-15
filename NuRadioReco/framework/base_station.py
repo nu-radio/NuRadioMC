@@ -394,6 +394,15 @@ class BaseStation():
 
 
     def __add__(self, x):
+        """
+        adds a BaseStation object to another BaseStation object
+        WARNING: Only channel and efield objects are added but no other meta information
+
+        Parameters
+        ----------
+        x: BaseStation
+            the BaseStation object to add
+        """
         if not isinstance(x, BaseStation):
             raise AttributeError("Can only add BaseStation to BaseStation")
         if self.get_id() != x.get_id():
