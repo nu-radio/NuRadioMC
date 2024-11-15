@@ -602,7 +602,7 @@ def get_pickle_antenna_response(path):
                     os.remove(path) # remove outdated file
                     download_file = True
             else:
-                logger.status("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
+                logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
 
     if download_file:
         # does not exist yet -> download file

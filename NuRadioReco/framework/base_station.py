@@ -259,7 +259,11 @@ class BaseStation():
 
     def get_electric_field_ids(self):
         """
-        returns a list with the electric field IDs of all simElectricFields of the simStation
+        returns a sorted list with the electric field IDs of all simElectricFields of the simStation
+
+        Returns
+        -------
+        efield_ids: list
         """
         efield_ids = []
         for efield in self._electric_fields:
