@@ -688,7 +688,7 @@ class readRNOGData:
                 selectors=self._select_events)):
 
                 if self._read_calibrated_data:
-                    wfs = wfs * units.mV
+                    wfs = wfs
                 else:
                     # wf stores ADC counts
                     if self._convert_to_voltage:
@@ -788,7 +788,7 @@ class readRNOGData:
         for channel_id, wf in enumerate(waveforms):
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             if self._read_calibrated_data:
-                channel.set_trace(wf * units.mV, sampling_rate * units.GHz)
+                channel.set_trace(wf, sampling_rate * units.GHz)
             else:
                 # wf stores ADC counts
                 if self._convert_to_voltage:
