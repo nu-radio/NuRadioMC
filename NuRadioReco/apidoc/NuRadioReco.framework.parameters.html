@@ -238,6 +238,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
@@ -454,7 +464,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -908,6 +920,18 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dd><p>‘block’ or pedestal offsets. See <a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span></code></a></p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParameters.Vrms_NuRadioMC_simulation">
+<span class="sig-name descname"><span class="pre">Vrms_NuRadioMC_simulation</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">19</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParameters.Vrms_NuRadioMC_simulation" title="Permalink to this definition"></a></dt>
+<dd><p>the noise rms used in the MC simulation</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParameters.bandwidth_NuRadioMC_simulation">
+<span class="sig-name descname"><span class="pre">bandwidth_NuRadioMC_simulation</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParameters.bandwidth_NuRadioMC_simulation" title="Permalink to this definition"></a></dt>
+<dd><p>the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1014,6 +1038,18 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.parameters.electricFieldParameters.nu_vertex_propagation_time">
 <span class="sig-name descname"><span class="pre">nu_vertex_propagation_time</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">18</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.electricFieldParameters.nu_vertex_propagation_time" title="Permalink to this definition"></a></dt>
 <dd><p>the time it takes for the signal to propagate from the vertex to the channel</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.electricFieldParameters.raytracing_solution">
+<span class="sig-name descname"><span class="pre">raytracing_solution</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">19</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.electricFieldParameters.raytracing_solution" title="Permalink to this definition"></a></dt>
+<dd><p>the ray tracing solution (the dictionary returned by <em class="xref py py-obj">get_raytracing_output(i_solution)</em>)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.electricFieldParameters.launch_vector">
+<span class="sig-name descname"><span class="pre">launch_vector</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.electricFieldParameters.launch_vector" title="Permalink to this definition"></a></dt>
+<dd><p>the launch vector of the ray from which this efield originates (only available for in-ice simulations)</p>
 </dd></dl>
 
 </dd></dl>
@@ -1223,6 +1259,12 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.showerParameters.n_interaction">
+<span class="sig-name descname"><span class="pre">n_interaction</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">112</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.showerParameters.n_interaction" title="Permalink to this definition"></a></dt>
+<dd><p>Hierarchical counter for the number of showers per event group (also accounts for showers which did not trigger and might not be saved)</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="NuRadioReco.framework.parameters.showerParameters.interferometric_shower_maximum">
 <span class="sig-name descname"><span class="pre">interferometric_shower_maximum</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">120</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.showerParameters.interferometric_shower_maximum" title="Permalink to this definition"></a></dt>
 <dd><p>depth of the maximum of the longitudinal profile of the beam-formed signal</p>
@@ -1313,6 +1355,18 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dd><p>the id of the measurement of the emitted electric field</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.antenna_type">
+<span class="sig-name descname"><span class="pre">antenna_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.antenna_type" title="Permalink to this definition"></a></dt>
+<dd><p>the type of the antenna used to simulate the emission</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.emitterParameters.time">
+<span class="sig-name descname"><span class="pre">time</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">13</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.emitterParameters.time" title="Permalink to this definition"></a></dt>
+<dd><p>the time when the signal was emitted</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1382,6 +1436,12 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.parameters.particleParameters.n_interaction">
 <span class="sig-name descname"><span class="pre">n_interaction</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">13</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.particleParameters.n_interaction" title="Permalink to this definition"></a></dt>
 <dd><p>number of interaction</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.particleParameters.shower_id">
+<span class="sig-name descname"><span class="pre">shower_id</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">14</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.particleParameters.shower_id" title="Permalink to this definition"></a></dt>
+<dd><p>the shower id associated with this particle. This is needed to generate HDF5 files that contain the primary particle</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1569,6 +1629,24 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.parameters.generatorAttributes.dt">
 <span class="sig-name descname"><span class="pre">dt</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">27</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.generatorAttributes.dt" title="Permalink to this definition"></a></dt>
 <dd><p>inverse of sampling rate used in the simulation</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.generatorAttributes.Tnoise">
+<span class="sig-name descname"><span class="pre">Tnoise</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">28</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.generatorAttributes.Tnoise" title="Permalink to this definition"></a></dt>
+<dd><p>noise temperature used in the simulation</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.generatorAttributes.Vrms">
+<span class="sig-name descname"><span class="pre">Vrms</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">29</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.generatorAttributes.Vrms" title="Permalink to this definition"></a></dt>
+<dd><p>noise rms used in the simulation,</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.generatorAttributes.bandwidth">
+<span class="sig-name descname"><span class="pre">bandwidth</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">30</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.generatorAttributes.bandwidth" title="Permalink to this definition"></a></dt>
+<dd><p>integrated channel response used in the simulation</p>
 </dd></dl>
 
 <dl class="py attribute">

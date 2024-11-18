@@ -235,6 +235,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -451,7 +461,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -602,12 +614,11 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.channelGenericNoiseAdder</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
 <span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Philox</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
 
 
 <div class="viewcode-block" id="channelGenericNoiseAdder"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder">[docs]</a><span class="k">class</span> <span class="nc">channelGenericNoiseAdder</span><span class="p">:</span>
@@ -903,6 +914,66 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">noise</span></div>
 
+        
+<div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise_from_spectrum"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum">[docs]</a>    <span class="k">def</span> <span class="nf">bandlimited_noise_from_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">amplitude</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
+                          <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        n_samples: int</span>
+<span class="sd">            number of samples in the time domain</span>
+<span class="sd">        sampling_rate: float</span>
+<span class="sd">            desired sampling rate of data</span>
+<span class="sd">        spectrum: numpy.ndarray, function</span>
+<span class="sd">            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function </span>
+<span class="sd">            that takes the frequencies as an argument and returns the amplitudes. The overall normalization</span>
+<span class="sd">            of the spectrum is ignored if the paramter &quot;amplitude&quot; is set.</span>
+<span class="sd">        amplitude: float, optional</span>
+<span class="sd">            desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the </span>
+<span class="sd">            power of the spectrum.</span>
+<span class="sd">        type: string</span>
+<span class="sd">            perfect_white: flat frequency spectrum</span>
+<span class="sd">            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
+<span class="sd">            # white: flat frequency spectrum with random jitter</span>
+<span class="sd">        time_domain: bool (default True)</span>
+<span class="sd">            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter</span>
+<span class="sd">            might be more performant as the noise is generated internally in the frequency domain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
+        <span class="n">selection</span> <span class="o">=</span> <span class="n">frequencies</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">n_samples_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">spectrum</span><span class="p">):</span>
+            <span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">amplitude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># power = np.sum(spectrum**2)</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">)</span>
+            <span class="n">max_freq</span> <span class="o">=</span> <span class="n">frequencies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">amplitude</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">/</span> <span class="p">(</span><span class="n">norm</span> <span class="o">/</span> <span class="n">max_freq</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
+            <span class="n">sigscale</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_samples_freq</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">amplitude</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">amplitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
+            <span class="n">sigscale</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">ampl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;perfect_white&#39;</span><span class="p">:</span>
+            <span class="n">ampl</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sigscale</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;rayleigh&#39;</span><span class="p">:</span>
+            <span class="n">fsigma</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sigscale</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
+            <span class="n">ampl</span><span class="p">[</span><span class="n">selection</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="n">fsigma</span><span class="p">,</span> <span class="n">n_samples_freq</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
+
+        <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">sampling_rate</span>
+        <span class="n">noise</span> <span class="o">*=</span> <span class="n">spectrum</span>
+        <span class="k">if</span> <span class="n">time_domain</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n_samples</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">noise</span></div>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="kc">None</span>

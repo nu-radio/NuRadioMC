@@ -1,0 +1,7 @@
+NuRadioMC.simulation.time\_logger module
+========================================
+
+.. automodule:: NuRadioMC.simulation.time_logger
+   :members:
+   :undoc-members:
+   :show-inheritance:

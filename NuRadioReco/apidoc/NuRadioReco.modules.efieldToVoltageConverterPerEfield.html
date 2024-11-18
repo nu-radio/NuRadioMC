@@ -238,6 +238,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
@@ -454,7 +464,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -616,12 +628,16 @@
 <p>This module applies the antenna response to each electric field individually and stores the
 resulting voltage traces in the SimStationclass as SimChannel objects</p>
 <p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield.run" title="NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det)</p></td>
+<td><p>Converts simulated electric fields to voltage traces for each channel in a sim station.</p></td>
+</tr>
+</tbody>
+</table>
 <table class="docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><strong>end</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>run</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -629,7 +645,32 @@ resulting voltage traces in the SimStationclass as SimChannel objects</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldToVoltageConverterPerEfield.html#efieldToVoltageConverterPerEfield.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield.run" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Converts simulated electric fields to voltage traces for each channel in a sim station.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt</strong><span class="classifier">Event</span></dt><dd><p>The event object.</p>
+</dd>
+<dt><strong>station</strong><span class="classifier">SimStation (or Station)</span></dt><dd><p>The SimStation object. If a Station object is provided, it is detected and the 
+SimStation is automatically retrived from the Station object</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd><p>The detector object.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>LookupError</dt><dd><p>If the station has no electric fields.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield.end">

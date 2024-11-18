@@ -235,6 +235,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -451,7 +461,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -663,7 +675,9 @@
     <span class="n">signal_receiving_zenith</span> <span class="o">=</span> <span class="mi">15</span>    <span class="c1">#: the zenith angle of direction at which the radio signal arrived at the antenna</span>
     <span class="n">signal_ray_type</span> <span class="o">=</span> <span class="mi">16</span>        <span class="c1">#: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted</span>
     <span class="n">signal_receiving_azimuth</span> <span class="o">=</span> <span class="mi">17</span>   <span class="c1">#: the azimuth angle of direction at which the radio signal arrived at the antenna</span>
-    <span class="n">block_offsets</span> <span class="o">=</span> <span class="mi">18</span> <span class="c1">#: &#39;block&#39; or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span></div>
+    <span class="n">block_offsets</span> <span class="o">=</span> <span class="mi">18</span> <span class="c1">#: &#39;block&#39; or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span>
+    <span class="n">Vrms_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">19</span>  <span class="c1">#: the noise rms used in the MC simulation</span>
+    <span class="n">bandwidth_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1">#: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation</span></div>
 
 
 <div class="viewcode-block" id="electricFieldParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.electricFieldParameters">[docs]</a><span class="k">class</span> <span class="nc">electricFieldParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
@@ -683,7 +697,9 @@
     <span class="n">reflection_coefficient_phi</span> <span class="o">=</span> <span class="mi">15</span>  <span class="c1">#: for reflected rays: the complex Fresnel reflection coefficient of the ePhi component</span>
     <span class="n">cr_spectrum_quadratic_term</span> <span class="o">=</span> <span class="mi">16</span>  <span class="c1">#: result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter</span>
     <span class="n">energy_fluence_ratios</span> <span class="o">=</span> <span class="mi">17</span>   <span class="c1">#: Ratios of the energy fluences in different passbands</span>
-    <span class="n">nu_vertex_propagation_time</span> <span class="o">=</span> <span class="mi">18</span>  <span class="c1">#: the time it takes for the signal to propagate from the vertex to the channel</span></div>
+    <span class="n">nu_vertex_propagation_time</span> <span class="o">=</span> <span class="mi">18</span>  <span class="c1">#: the time it takes for the signal to propagate from the vertex to the channel</span>
+    <span class="n">raytracing_solution</span> <span class="o">=</span> <span class="mi">19</span>  <span class="c1">#: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)</span>
+    <span class="n">launch_vector</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1">#: the launch vector of the ray from which this efield originates (only available for in-ice simulations)</span></div>
 
 <div class="viewcode-block" id="ARIANNAParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.ARIANNAParameters">[docs]</a><span class="k">class</span> <span class="nc">ARIANNAParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>  <span class="c1">#: this class stores parameters specific to the ARIANNA data taking</span>
     <span class="n">seq_start_time</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: the start time of a sequence</span>
@@ -725,6 +741,7 @@
     <span class="n">interaction_type</span> <span class="o">=</span> <span class="mi">109</span>  <span class="c1">#: the interaction type, e.g. cc or nc</span>
     <span class="n">k_L</span> <span class="o">=</span> <span class="mi">110</span>  <span class="c1">#: the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile</span>
     <span class="n">flavor</span> <span class="o">=</span> <span class="mi">111</span>  <span class="c1">#: the flavor of the particle initiating the shower</span>
+    <span class="n">n_interaction</span> <span class="o">=</span> <span class="mi">112</span> <span class="c1">#: Hierarchical counter for the number of showers per event group (also accounts for showers which did not trigger and might not be saved)</span>
 
     <span class="n">interferometric_shower_maximum</span> <span class="o">=</span> <span class="mi">120</span>  <span class="c1">#: depth of the maximum of the longitudinal profile of the beam-formed signal</span>
     <span class="n">interferometric_shower_axis</span> <span class="o">=</span> <span class="mi">121</span>  <span class="c1">#: shower axis (direction) derived from beam-formed signal</span>
@@ -742,7 +759,9 @@
     <span class="n">orientation_theta</span> <span class="o">=</span> <span class="mi">8</span>  <span class="c1">#: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each</span>
     <span class="n">rotation_phi</span> <span class="o">=</span> <span class="mi">9</span>  <span class="c1">#: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each</span>
     <span class="n">rotation_theta</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1">#: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each</span>
-    <span class="n">realization_id</span> <span class="o">=</span> <span class="mi">11</span>  <span class="c1">#: the id of the measurement of the emitted electric field</span></div>
+    <span class="n">realization_id</span> <span class="o">=</span> <span class="mi">11</span>  <span class="c1">#: the id of the measurement of the emitted electric field</span>
+    <span class="n">antenna_type</span> <span class="o">=</span>  <span class="mi">12</span>  <span class="c1">#: the type of the antenna used to simulate the emission</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="mi">13</span>  <span class="c1">#: the time when the signal was emitted</span></div>
 
 
 <div class="viewcode-block" id="particleParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.particleParameters">[docs]</a><span class="k">class</span> <span class="nc">particleParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
@@ -757,6 +776,7 @@
     <span class="n">inelasticity</span> <span class="o">=</span> <span class="mi">11</span>  <span class="c1">#: inelasticity ot neutrino interaction</span>
     <span class="n">interaction_type</span> <span class="o">=</span> <span class="mi">12</span>  <span class="c1">#: interaction type, e.g., cc, nc</span>
     <span class="n">n_interaction</span> <span class="o">=</span> <span class="mi">13</span> <span class="c1">#: number of interaction</span>
+    <span class="n">shower_id</span> <span class="o">=</span> <span class="mi">14</span> <span class="c1">#: the shower id associated with this particle. This is needed to generate HDF5 files that contain the primary particle</span>
 
     <span class="n">cr_energy</span> <span class="o">=</span> <span class="mi">101</span>  <span class="c1">#: the cosmic-ray energy</span>
     <span class="n">cr_zenith</span> <span class="o">=</span> <span class="mi">102</span>  <span class="c1">#: zenith angle of the cosmic-ray incoming direction</span>
@@ -802,6 +822,9 @@
 
     <span class="n">flavors</span> <span class="o">=</span> <span class="mi">26</span> <span class="c1">#: list of simulated event flavours</span>
     <span class="n">dt</span> <span class="o">=</span> <span class="mi">27</span> <span class="c1">#: inverse of sampling rate used in the simulation</span>
+    <span class="n">Tnoise</span> <span class="o">=</span> <span class="mi">28</span> <span class="c1">#: noise temperature used in the simulation</span>
+    <span class="n">Vrms</span> <span class="o">=</span> <span class="mi">29</span> <span class="c1">#: noise rms used in the simulation,</span>
+    <span class="n">bandwidth</span> <span class="o">=</span> <span class="mi">30</span> <span class="c1">#: integrated channel response used in the simulation</span>
 
     <span class="c1"># simulated statistics</span>
     <span class="n">n_events</span> <span class="o">=</span> <span class="mi">100</span>

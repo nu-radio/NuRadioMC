@@ -238,6 +238,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -454,7 +464,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -705,6 +717,18 @@ the emitted electric field. This is automatically done in a NuRadioMC simulation
 <li><p>idl1 &amp; hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files</p></li>
 <li><p>gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum</p></li>
 <li><p>ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02</p></li>
+<li><p>efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE
+calibration campaigns from 2018 and 2019.
+The <em class="xref py py-obj">launch_vector</em> needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
+doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.
+the <em class="xref py py-obj">amplitude</em> is used to rescale the efield relatively, i.e., amplitude = 1 will return the measured efield amplitude, an 
+amplitude of 10 will return 10 times the measured efield amplitude, etc.
+Use kwarg <em class="xref py py-obj">iN</em> to select a specific pulse from the 10 available pulses. The default is a random selection.</p></li>
+<li><p>efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg <em class="xref py py-obj">polarization</em> needs
+to be specified to select the polarization of the efield, defined as float between 0 and 1 with
+0 = eTheta polarized and 1 = ePhi polarized. The default is 0.5, i.e. unpolarized. The amplitudes are
+set to preserve the total power of the delta pulse, i.e. A_theta = sqrt(1-polarization)
+and A_phi = sqrt(polarization).</p></li>
 </ul>
 </dd>
 <dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, can return additional output</p>
@@ -723,8 +747,7 @@ the emitted electric field. This is automatically done in a NuRadioMC simulation
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>time trace: 1d or 2d array, shape (N) or (3, N) for <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#module-NuRadioReco.framework.electric_field" title="NuRadioReco.framework.electric_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.electric_field</span></code></a></dt><dd><p>the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.</p>
-</dd>
+<dt>frequency spectrum: 1d or 2d array, shape (N/2+1) or (3, N/2+1) for <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#module-NuRadioReco.framework.electric_field" title="NuRadioReco.framework.electric_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.electric_field</span></code></a></dt><dd></dd>
 <dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
 </dd>
 </dl>

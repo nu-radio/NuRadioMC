@@ -235,6 +235,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -451,7 +461,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -695,7 +707,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span> <span class="o">=</span> <span class="n">antennapattern</span><span class="o">.</span><span class="n">AntennaPatternProvider</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="efieldToVoltageConverter.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="c1"># access simulated efield and high level parameters</span>
@@ -708,15 +720,17 @@
         <span class="c1"># for different cable delays</span>
         <span class="n">times_min</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">times_max</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">electric_field</span> <span class="ow">in</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_electric_fields_for_channels</span><span class="p">([</span><span class="n">iCh</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">channel_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channel_ids</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">electric_field</span> <span class="ow">in</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_electric_fields_for_channels</span><span class="p">([</span><span class="n">channel_id</span><span class="p">]):</span>
                 <span class="n">time_resolution</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
-                <span class="n">cab_delay</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_cable_delay</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">iCh</span><span class="p">)</span>
+                <span class="n">cab_delay</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_cable_delay</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
                 <span class="n">t0</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">cab_delay</span>
                 <span class="c1"># if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account</span>
                 <span class="k">if</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">is_cosmic_ray</span><span class="p">():</span>
                     <span class="n">site</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">)</span>
-                    <span class="n">antenna_position</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">iCh</span><span class="p">)</span> <span class="o">-</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
+                    <span class="n">antenna_position</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span> <span class="o">-</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
                     <span class="k">if</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>  <span class="c1"># signal is coming from below, so we take IOR of ice</span>
                         <span class="n">index_of_refraction</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="n">antenna_position</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">site</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>  <span class="c1"># signal is coming from above, so we take IOR of air</span>
@@ -747,7 +761,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;smallest trace start time </span><span class="si">{:.1f}</span><span class="s2">, largest trace time </span><span class="si">{:.1f}</span><span class="s2"> -&gt; n_samples = </span><span class="si">{:d}</span><span class="s2"> </span><span class="si">{:.0f}</span><span class="s2">ns)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">times_min</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">times_max</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">trace_length_samples</span><span class="p">,</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
 
         <span class="c1"># loop over all channels</span>
-        <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">:</span>
 
             <span class="c1"># one channel might contain multiple channels to store the signals from multiple ray paths,</span>
             <span class="c1"># so we loop over all simulated channels with the same id,</span>

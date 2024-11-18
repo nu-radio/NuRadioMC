@@ -235,6 +235,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -451,7 +461,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -864,6 +876,76 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time_trace&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="s1">&#39;trace_start_time&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;trace_start_time&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="BaseTrace.add_to_trace"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.add_to_trace">[docs]</a>    <span class="k">def</span> <span class="nf">add_to_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds the trace of another channel to the trace of this channel. The trace is only added within the </span>
+<span class="sd">        time window of &quot;this&quot; channel.</span>
+<span class="sd">        If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a </span>
+<span class="sd">        _time_trace containing zeros, this function can be seen as recording a channel in the specified</span>
+<span class="sd">        readout window.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        channel: BaseTrace</span>
+<span class="sd">            The channel whose trace is to be added to the trace of this channel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No trace is set for this channel&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">==</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span> <span class="s2">&quot;Sampling rates of the two channels do not match&quot;</span>
+
+        <span class="n">tt_readout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
+        <span class="n">t0_readout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
+        <span class="n">t1_readout</span> <span class="o">=</span> <span class="n">tt_readout</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sampling_rate_readout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+        <span class="n">n_samples_readout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span>
+
+        <span class="n">tt_channel</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
+        <span class="n">t0_channel</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
+        <span class="n">t1_channel</span> <span class="o">=</span> <span class="n">tt_channel</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sampling_rate_channel</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+        <span class="n">n_samples_channel</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span>
+
+        <span class="c1"># We handle 1+2x2 cases:</span>
+        <span class="c1"># 1. Channel is completely outside readout window:</span>
+        <span class="k">if</span> <span class="n">t1_channel</span> <span class="o">&lt;</span> <span class="n">t0_readout</span> <span class="ow">or</span> <span class="n">t1_readout</span> <span class="o">&lt;</span> <span class="n">t0_channel</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># 2. Channel starts before readout window:</span>
+        <span class="k">if</span> <span class="n">t0_channel</span> <span class="o">&lt;</span> <span class="n">t0_readout</span><span class="p">:</span>
+            <span class="n">i_start_readout</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">t_start_readout</span> <span class="o">=</span> <span class="n">t0_readout</span>
+            <span class="n">i_start_channel</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t0_readout</span><span class="o">-</span><span class="n">t0_channel</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_channel</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The first bin of channel inside readout</span>
+            <span class="n">t_start_channel</span> <span class="o">=</span> <span class="n">tt_channel</span><span class="p">[</span><span class="n">i_start_channel</span><span class="p">]</span>
+        <span class="c1"># 3. Channel starts after readout window:</span>
+        <span class="k">elif</span> <span class="n">t0_channel</span> <span class="o">&gt;=</span> <span class="n">t0_readout</span><span class="p">:</span>
+            <span class="n">i_start_readout</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t0_channel</span><span class="o">-</span><span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="c1"># The bin of readout right before channel starts</span>
+            <span class="n">t_start_readout</span> <span class="o">=</span> <span class="n">tt_readout</span><span class="p">[</span><span class="n">i_start_readout</span><span class="p">]</span>
+            <span class="n">i_start_channel</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">t_start_channel</span> <span class="o">=</span> <span class="n">t0_channel</span>
+        <span class="c1"># 4. Channel ends after readout window:</span>
+        <span class="k">if</span> <span class="n">t1_channel</span> <span class="o">&gt;=</span> <span class="n">t1_readout</span><span class="p">:</span>
+            <span class="n">i_end_readout</span> <span class="o">=</span> <span class="n">n_samples_readout</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">t_end_readout</span> <span class="o">=</span> <span class="n">t1_readout</span>
+            <span class="n">i_end_channel</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t1_readout</span> <span class="o">-</span> <span class="n">t0_channel</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_channel</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The bin of channel right after readout ends</span>
+            <span class="n">t_end_channel</span> <span class="o">=</span> <span class="n">tt_channel</span><span class="p">[</span><span class="n">i_end_channel</span><span class="p">]</span>
+        <span class="c1"># 5. Channel ends before readout window:</span>
+        <span class="k">elif</span> <span class="n">t1_channel</span> <span class="o">&lt;</span> <span class="n">t1_readout</span><span class="p">:</span>
+            <span class="n">i_end_readout</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t1_channel</span> <span class="o">-</span> <span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="c1"># The bin of readout right before channel ends</span>
+            <span class="n">t_end_readout</span> <span class="o">=</span> <span class="n">tt_readout</span><span class="p">[</span><span class="n">i_end_readout</span><span class="p">]</span>
+            <span class="n">i_end_channel</span> <span class="o">=</span> <span class="n">n_samples_channel</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">t_end_channel</span> <span class="o">=</span> <span class="n">t1_channel</span>
+        
+        <span class="c1"># Determine the remaining time between the binning of the two traces and use time shift as interpolation:</span>
+        <span class="n">residual_time_offset</span> <span class="o">=</span> <span class="n">t_start_channel</span> <span class="o">-</span> <span class="n">t_start_readout</span>
+        <span class="n">tmp_channel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">tmp_channel</span><span class="o">.</span><span class="n">apply_time_shift</span><span class="p">(</span><span class="n">residual_time_offset</span><span class="p">)</span>
+        <span class="n">trace_to_add</span> <span class="o">=</span> <span class="n">tmp_channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="n">i_start_channel</span><span class="p">:</span><span class="n">i_end_channel</span><span class="p">]</span>
+
+        <span class="c1"># Add the trace to the original trace:</span>
+        <span class="n">original_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+        <span class="n">original_trace</span><span class="p">[</span><span class="n">i_start_readout</span><span class="p">:</span><span class="n">i_end_readout</span><span class="p">]</span> <span class="o">+=</span> <span class="n">trace_to_add</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">original_trace</span><span class="p">,</span> <span class="n">sampling_rate_readout</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

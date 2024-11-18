@@ -238,6 +238,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
@@ -454,7 +464,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -707,31 +719,37 @@
 <tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_generator_info</strong></p></td>
+<tr class="row-even"><td><p><strong>get_event_time</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_id</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_generator_info</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>get_id</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_run_number</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_station_ids</strong></p></td>
+<tr class="row-even"><td><p><strong>get_run_number</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_stations</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_station_ids</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>has_generator_info</strong></p></td>
+<tr class="row-even"><td><p><strong>get_stations</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>has_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>has_generator_info</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>serialize</strong></p></td>
+<tr class="row-even"><td><p><strong>has_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_event_time</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>set_generator_info</strong></p></td>
@@ -859,6 +877,16 @@ return it, otherwise raise error. (Default: None)</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.set_event_time">
+<span class="sig-name descname"><span class="pre">set_event_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.set_event_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.set_event_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_event_time">
+<span class="sig-name descname"><span class="pre">get_event_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_event_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_event_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_stations">
@@ -1038,6 +1066,14 @@ all stations in the list is returned</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_sim_showers">
 <span class="sig-name descname"><span class="pre">get_sim_showers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_sim_showers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_sim_showers" title="Permalink to this definition"></a></dt>
 <dd><p>Get an iterator over all simulated showers in the event</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>sim_showers: iterator</dt><dd><p>An iterator over all simulated showers in the event</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

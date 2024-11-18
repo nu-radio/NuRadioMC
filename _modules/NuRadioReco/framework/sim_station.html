@@ -235,6 +235,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -451,7 +461,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -622,6 +634,37 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__magnetic_field_vector</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__simulation_weight</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__candidate</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SimStation.set_candidate"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.set_candidate">[docs]</a>    <span class="k">def</span> <span class="nf">set_candidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_status</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Set the candidate for the simulation station. True means the station is a candidate for producing a trigger.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            candidate_status : bool</span>
+<span class="sd">                If the station is a candidate for producing a trigger.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">candidate_status</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">and</span> <span class="n">candidate_status</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The candidate_status must be a bool or None.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__candidate</span> <span class="o">=</span> <span class="n">candidate_status</span></div>
+
+<div class="viewcode-block" id="SimStation.is_candidate"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.is_candidate">[docs]</a>    <span class="k">def</span> <span class="nf">is_candidate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns whether the station is a candidate for producing a trigger.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if the station is a candidate for producing a trigger, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__candidate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The candidate status has not been set.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__candidate</span></div>
 
 <div class="viewcode-block" id="SimStation.get_magnetic_field_vector"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_magnetic_field_vector">[docs]</a>    <span class="k">def</span> <span class="nf">get_magnetic_field_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__magnetic_field_vector</span></div>
@@ -732,7 +775,27 @@
             <span class="k">for</span> <span class="n">channel_pkl</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">]:</span>
                 <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">sim_channel</span><span class="o">.</span><span class="n">SimChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="n">channel</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">channel_pkl</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span></div></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        adds a SimStation object to another SimStation object</span>
+<span class="sd">        WARNING: Only channel and efield objects are added but no other meta information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">SimStation</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add SimStation to SimStation&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_id</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add SimStations with the same ID&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel with ID </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> already present in SimStation&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">efield_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_electric_field_ids</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span> <span class="ow">in</span> <span class="n">efield_ids</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Electric field with unique identifier </span><span class="si">{</span><span class="n">efield</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> already present in SimStation&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_electric_field</span><span class="p">(</span><span class="n">efield</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 </pre></div>
 
            </div>

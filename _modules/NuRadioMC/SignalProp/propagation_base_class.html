@@ -235,6 +235,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -451,7 +461,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -668,7 +680,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span><span class="o">.</span><span class="n">get_station_ids</span><span class="p">():</span>
-                <span class="n">sampling_frequency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">channel_id_1st</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">station_id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">sampling_frequency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id_1st</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span> <span class="o">!=</span> <span class="n">sampling_frequency</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Different channels have different sampling frequencies. Channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> has sampling frequency&quot;</span> \
+                                               <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span><span class="w"> </span><span class="n">channel_id</span><span class="p">)</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">.&quot;</span> \
+                                                <span class="sa">f</span><span class="s2">&quot;Using the sampoing frequency of the first channel with id </span><span class="si">{</span><span class="n">channel_id_1st</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">sampling_frequency</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> GHz.&quot;</span> \
+                                                    <span class="s2">&quot;to calculate the maximum relevant frequency for calculating signal attenuation.&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">sampling_frequency</span> <span class="o">*</span> <span class="mf">.5</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span> <span class="o">=</span> <span class="n">sampling_frequency</span> <span class="o">*</span> <span class="mf">.5</span>
 

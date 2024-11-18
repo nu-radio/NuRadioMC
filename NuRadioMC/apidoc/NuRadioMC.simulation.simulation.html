@@ -23,8 +23,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioMC.utilities package" href="NuRadioMC.utilities.html" />
-    <link rel="prev" title="NuRadioMC.simulation package" href="NuRadioMC.simulation.html" /> 
+    <link rel="next" title="NuRadioMC.simulation.time_logger module" href="NuRadioMC.simulation.time_logger.html" />
+    <link rel="prev" title="NuRadioMC.simulation.output_writer_hdf5 module" href="NuRadioMC.simulation.output_writer_hdf5.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -238,6 +238,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -454,7 +464,9 @@
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="NuRadioMC.simulation.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -610,18 +622,375 @@
   <section id="module-NuRadioMC.simulation.simulation">
 <span id="nuradiomc-simulation-simulation-module"></span><h1>NuRadioMC.simulation.simulation module<a class="headerlink" href="#module-NuRadioMC.simulation.simulation" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.pretty_time_delta">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">pretty_time_delta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#pretty_time_delta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.pretty_time_delta" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.merge_config">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">merge_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#merge_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.merge_config" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Merge the user configuration dictionary with the default configuration dictionary recursively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>user</strong><span class="classifier">dict</span></dt><dd><p>The user configuration dictionary.</p>
+</dd>
+<dt><strong>default</strong><span class="classifier">dict</span></dt><dd><p>The default configuration dictionary.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>dict</dt><dd><p>The merged configuration dictionary.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.calculate_sim_efield">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">calculate_sim_efield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">showers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propagator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_efield_amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_cut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#calculate_sim_efield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.calculate_sim_efield" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the simulated electric field for a given shower and channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>showers</strong><span class="classifier">list of showers</span></dt><dd><p>A list of the showers that should be simulated (as defined in the input HDF5 file)</p>
+</dd>
+<dt><strong>station_id</strong><span class="classifier">int</span></dt><dd><p>the station id, only needed to identify the correct channel in the detector description</p>
+</dd>
+<dt><strong>channel_id</strong><span class="classifier">int</span></dt><dd><p>the channel id for which the electric field should be calculated as defined in the detector description</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector object</span></dt><dd><p>the detector description defining all channels.</p>
+</dd>
+<dt><strong>propagator</strong><span class="classifier">propagator object</span></dt><dd><p>the propagator that should be used to calculate the electric field from emitter to receiver, typically a ray tracer</p>
+</dd>
+<dt><strong>medium: medium object</strong></dt><dd><p>the medium in which the electric field is propagating, typically ice</p>
+</dd>
+<dt><strong>config</strong><span class="classifier">dict</span></dt><dd><p>the NuRadioMC configuration dictionary (from the yaml file)</p>
+</dd>
+<dt><strong>time_logger: time_logger object</strong></dt><dd><p>the time logger to be used for the simulation</p>
+</dd>
+<dt><strong>min_efield_amplitude: float</strong></dt><dd><p>speedup cut: the minimum electric field amplitude, if all efields from all showers are below this threshold value
+the station will not be set as candidate station.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>list of SimEfield objects</dt><dd><p>A list of SimEfield objects, one for each shower and propagation solution</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.calculate_sim_efield_for_emitter">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">calculate_sim_efield_for_emitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emitters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propagator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_efield_amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#calculate_sim_efield_for_emitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.calculate_sim_efield_for_emitter" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the simulated electric field for a given shower and channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>emitters</strong><span class="classifier">list of emitters</span></dt><dd><p>A list of the emitters that should be simulated (as defined in the input HDF5 file)</p>
+</dd>
+<dt><strong>station_id</strong><span class="classifier">int</span></dt><dd><p>the station id, only needed to identify the correct channel in the detector description</p>
+</dd>
+<dt><strong>channel_id</strong><span class="classifier">int</span></dt><dd><p>the channel id for which the electric field should be calculated as defined in the detector description</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector object</span></dt><dd><p>the detector description defining all channels.</p>
+</dd>
+<dt><strong>propagator</strong><span class="classifier">propagator object</span></dt><dd><p>the propagator that should be used to calculate the electric field from emitter to receiver, typically a ray tracer</p>
+</dd>
+<dt><strong>medium: medium object</strong></dt><dd><p>the medium in which the electric field is propagating, typically ice</p>
+</dd>
+<dt><strong>config</strong><span class="classifier">dict</span></dt><dd><p>the NuRadioMC configuration dictionary (from the yaml file)</p>
+</dd>
+<dt><strong>rnd: numpy random number generator</strong></dt><dd><p>the random number generator to be used for the simulation</p>
+</dd>
+<dt><strong>antenna_pattern_provider: antenna pattern provider object</strong></dt><dd><p>the antenna pattern provider object to be used for the simulation</p>
+</dd>
+<dt><strong>time_logger: time_logger object</strong></dt><dd><p>the time logger to be used for the simulation</p>
+</dd>
+<dt><strong>min_efield_amplitude: float</strong></dt><dd><p>speedup cut: the minimum electric field amplitude, if all efields from all showers are belwo this threshold value
+the station will not be set as candidate station.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>list of SimEfield objects</dt><dd><p>A list of SimEfield objects, one for each shower and propagation solution</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.apply_det_response_sim">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">apply_det_response_sim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_simulation_filter_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_simulation_part1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#apply_det_response_sim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.apply_det_response_sim" title="Permalink to this definition"></a></dt>
+<dd><p>Apply the detector response to the simulated electric field, i.e., calculate the voltage traces as
+seen by the readout system, per shower, raytracing solution and channel.
+This includes the effect of the antenna response, the
+analog signal chain. The result is a list of SimChannel objects which are added to the
+SimStation object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sim_station</strong><span class="classifier">sim_station object that contains the electric fields at the observer positions</span></dt><dd><p>A list of SimEfield objects, one for each shower and propagation solution</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector object</span></dt><dd><p>the detector description defining all channels.</p>
+</dd>
+<dt><strong>config</strong><span class="classifier">dict</span></dt><dd><p>the NuRadioMC configuration dictionary (from the yaml file)</p>
+</dd>
+<dt><strong>detector_simulation_filter_amp: function (optional)</strong></dt><dd><p>a function that applies the filter and amplifier response to the electric field
+the arguments to the function are (event, station, detector)
+if not provided, the function <em class="xref py py-obj">detector_simulation_part1</em> needs to be provided.</p>
+</dd>
+<dt><strong>evt</strong><span class="classifier">NuRadioReco event object (optional)</span></dt><dd><p>all NuRadioReco modules that get executed will be registered to the event.
+If no event is provided, a dummy event is created so that the function runs, but
+then this information is not available to the user.</p>
+</dd>
+<dt><strong>event_time: time object (optional)</strong></dt><dd><p>the time of the event to be simulated</p>
+</dd>
+<dt><strong>detector_simulation_part1: function (optional)</strong></dt><dd><p>this function gives the user the full flexibility to implement all processing
+arguments to the function are (event, station, detector)</p>
+</dd>
+<dt><strong>Returns nothing. The SimChannels are added to the SimStation object.</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.apply_det_response">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">apply_det_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_simulation_filter_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms_per_channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrated_channel_response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noiseless_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_simulation_part2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#apply_det_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.apply_det_response" title="Permalink to this definition"></a></dt>
+<dd><p>Apply the detector response to the simulated electric field, i.e., the voltage traces
+seen by the readout system. This function combines all electric fields (from different showers and
+ray tracing solutions) of one detector channel/antenna. This includes the effect of the antenna response, the
+analog signal chain. The result is a list of Channel objects which are added to the
+Station object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt</strong><span class="classifier">NuRadioReco.framework.event.Event</span></dt><dd><p>Event object containing all the showers/emitters and electric fields</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector object</span></dt><dd><p>the detector description defining all channels.</p>
+</dd>
+<dt><strong>config</strong><span class="classifier">dict</span></dt><dd><p>the NuRadioMC configuration dictionary (from the yaml file)</p>
+</dd>
+<dt><strong>detector_simulation_filter_amp: function (optional)</strong></dt><dd><p>a function that applies the filter and amplifier response to the electric field
+the arguments to the function are (event, station, detector)
+if not provided, the function <em class="xref py py-obj">detector_simulation_part2</em> needs to be provided.</p>
+</dd>
+<dt><strong>add_noise</strong><span class="classifier">bool</span></dt><dd><p>if True, noise is added to the channels</p>
+</dd>
+<dt><strong>Vrms_per_channel</strong><span class="classifier">dict</span></dt><dd><p>the noise RMS per channel</p>
+</dd>
+<dt><strong>integrated_channel_response</strong><span class="classifier">dict</span></dt><dd><p>the integrated channels response int(S21^2, dt) per channel. Corresponds to bandwidth for signal
+chains without amplification. This is used to normalize the noise level
+to the bandwidth it is generated for.</p>
+</dd>
+<dt><strong>noiseless_channels</strong><span class="classifier">dict (keys station_id) of list of ints</span></dt><dd><p>the channels that should not have noise added</p>
+</dd>
+<dt><strong>detector_simulation_part2: function (optional)</strong></dt><dd><p>this function gives the user the full flexibility to implement all processing
+arguments to the function are (event, station, detector)</p>
+</dd>
+<dt><strong>time_logger: time_logger object</strong></dt><dd><p>the time logger to be used for the simulation</p>
+</dd>
+<dt><strong>channel_ids: list of ints</strong></dt><dd><p>the channel ids for which the detector response should be calculated. If None, all channels are used.</p>
+</dd>
+<dt><strong>Returns nothing. The Channels are added to the Station object.</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.build_dummy_event">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">build_dummy_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#build_dummy_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.build_dummy_event" title="Permalink to this definition"></a></dt>
+<dd><p>Builds a dummy event for simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id</strong><span class="classifier">int</span></dt><dd><p>The station ID.</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector object</span></dt><dd><p>The detector description defining all channels.</p>
+</dd>
+<dt><strong>config</strong><span class="classifier">dict</span></dt><dd><p>The NuRadioMC configuration dictionary (from the yaml file)</p>
+</dd>
+<dt><strong>Returns:</strong></dt><dd><p>object: The built event object.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.build_NuRadioEvents_from_hdf5">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">build_NuRadioEvents_from_hdf5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fin_attrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#build_NuRadioEvents_from_hdf5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.build_NuRadioEvents_from_hdf5" title="Permalink to this definition"></a></dt>
+<dd><p>Build NuRadioReco event structures from the input file</p>
+<p>The function automatically determines if a particle or an emitter is simulated and builds the
+corresponding event structure.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fin</strong><span class="classifier">dict</span></dt><dd><p>the input file data dictionary</p>
+</dd>
+<dt><strong>fin_attrs</strong><span class="classifier">dict</span></dt><dd><p>the input file attributes dictionary</p>
+</dd>
+<dt><strong>idxs</strong><span class="classifier">list of ints</span></dt><dd><p>the indices of the events that should be built</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>event_group</strong><span class="classifier"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.event.Event</span></code></a></span></dt><dd><p>an event group object containing the showers and particles or emitters
+the output should contain all relevant information from the hdf5 file (except the attributes)
+to perform a NuRadioMC simulation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.get_config">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#get_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.get_config" title="Permalink to this definition"></a></dt>
+<dd><p>Read the configuration file and return the configuration dictionary.</p>
+<p>The configuration dictionary is a combination of the default configuration
+and the local configuration file. The local configuration file can override
+the default configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>config_file</strong><span class="classifier">string</span></dt><dd><p>the path to the configuration file</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>cfg</strong><span class="classifier">dict</span></dt><dd><p>the configuration dictionary</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.calculate_polarization_vector">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">calculate_polarization_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">launch_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#calculate_polarization_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.calculate_polarization_vector" title="Permalink to this definition"></a></dt>
+<dd><p>calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shower_axis: array-like</strong></dt><dd><p>shower axis in cartesian coordinates</p>
+</dd>
+<dt><strong>launch_vector: array-like</strong></dt><dd><p>launch vector in cartesian coordinates</p>
+</dd>
+<dt><strong>config: dict</strong></dt><dd><p>configuration dictionary</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array-like</dt><dd><p>polarization vector in spherical coordinates (eR, eTheta, ePhi)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.increase_signal">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">increase_signal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#increase_signal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.increase_signal" title="Permalink to this definition"></a></dt>
+<dd><p>increase the signal of a simulated station by a factor of x
+this is e.g. used to approximate a phased array concept with a single antenna</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>channel_id: int or None</strong></dt><dd><p>if None, all available channels will be modified</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.calculate_particle_weight">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">calculate_particle_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#calculate_particle_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.calculate_particle_weight" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the (survival) propability of a neutrino reaching the simulation volume.</p>
+<p>Depending on the config settings, the weights is used from the input file, or
+calulated based on the Earth attenuation and cross section model defined in the config</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>event_group</strong><span class="classifier">EventGroup</span></dt><dd><p>The event group containing the particle.</p>
+</dd>
+<dt><strong>idx</strong><span class="classifier">int</span></dt><dd><p>The index of the particle in the event group.</p>
+</dd>
+<dt><strong>cfg</strong><span class="classifier">dict</span></dt><dd><p>The configuration parameters.</p>
+</dd>
+<dt><strong>fin</strong><span class="classifier">dictionary</span></dt><dd><p>the data part of the hdf5 input file</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>The weight of the particle.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function calculates the weight of a particle based on the given event group, particle index, and configuration parameters.
+The weight is determined based on the weight mode specified in the configuration parameters.
+If the weight mode is set to “existing”, the function checks if the input file contains weights and assigns the weight to the particle.
+If the weight mode is set to None, the weight is set to 1.
+Otherwise, the weight is calculated based on the particle’s zenith, energy, flavor, weight mode, cross section type, vertex position, and azimuth.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.group_into_events">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">group_into_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_event_time_diff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zerosignal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#group_into_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.group_into_events" title="Permalink to this definition"></a></dt>
+<dd><p>Group the signals from a station into multiple events based on signal arrival times.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.read_input_hdf5">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">read_input_hdf5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#read_input_hdf5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.read_input_hdf5" title="Permalink to this definition"></a></dt>
+<dd><p>Reads input file into memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str</span></dt><dd><p>The path to the input file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>fin</strong><span class="classifier">dict</span></dt><dd><p>A dictionary containing the data from the input file.</p>
+</dd>
+<dt><strong>fin_stations</strong><span class="classifier">dict</span></dt><dd><p>A nested dictionary containing the station data from the input file.</p>
+</dd>
+<dt><strong>fin_attrs</strong><span class="classifier">dict</span></dt><dd><p>A dictionary containing the attributes from the input file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.remove_all_traces">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">remove_all_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#remove_all_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.remove_all_traces" title="Permalink to this definition"></a></dt>
+<dd><p>Remove all traces from the event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt</strong><span class="classifier">NuRadioReco.framework.event.Event</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detectorfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilenameNuRadioReco</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evt_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2018,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_station</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level_propagation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ice_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detectorfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilenameNuRadioReco</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evt_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2018,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_station</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level_propagation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ice_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>initialize the NuRadioMC end-to-end simulation</p>
 <dl class="field-list simple">
@@ -639,7 +1008,7 @@ alternatively, the data and attributes dictionary can be passed directly to the 
 <dt><strong>det_kwargs: dict</strong></dt><dd><p>Pass arguments to the detector (only used when det == None)</p>
 </dd>
 <dt><strong>station_id: int</strong></dt><dd><p>the station id for which the simulation is performed. Must match a station
-deself._fined in the detector description</p>
+defined in the detector description</p>
 </dd>
 <dt><strong>outputfilenameNuRadioReco: string or None</strong></dt><dd><p>outputfilename of NuRadioReco detector sim file, this file contains all
 waveforms of the triggered events
@@ -669,6 +1038,8 @@ default True</p>
 </dd>
 <dt><strong>ice_model: medium object (default None)</strong></dt><dd><p>allows to specify a custom ice model. This model is used if the config file specifies the ice model as “custom”.</p>
 </dd>
+<dt><strong>trigger_channels: list of ints or dict of list of ints</strong></dt><dd><p>list of channel ids that are used for the trigger (per station_id). If None, all channels are used.</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -687,16 +1058,13 @@ default True</p>
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>calculate_Veff</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_Vrms</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_Vrms</strong></p></td>
+<tr class="row-even"><td><p><strong>get_bandwidth</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_bandwidth</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_sampling_rate</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_sampling_rate</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -722,11 +1090,6 @@ default True</p>
 <span class="sig-name descname"><span class="pre">get_bandwidth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation.get_bandwidth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.get_bandwidth" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation.calculate_Veff">
-<span class="sig-name descname"><span class="pre">calculate_Veff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation.calculate_Veff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.calculate_Veff" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation.integrated_channel_response">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">integrated_channel_response</span></span><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.integrated_channel_response" title="Permalink to this definition"></a></dt>
@@ -740,8 +1103,8 @@ default True</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioMC.simulation.html" class="btn btn-neutral float-left" title="NuRadioMC.simulation package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioMC.utilities.html" class="btn btn-neutral float-right" title="NuRadioMC.utilities package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioMC.simulation.output_writer_hdf5.html" class="btn btn-neutral float-left" title="NuRadioMC.simulation.output_writer_hdf5 module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioMC.simulation.time_logger.html" class="btn btn-neutral float-right" title="NuRadioMC.simulation.time_logger module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -235,6 +235,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html">overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -451,7 +461,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html">NuRadioMC.simulation.output_writer_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html">NuRadioMC.simulation.time_logger module</a></li>
 </ul>
 </li>
 </ul>
@@ -735,16 +747,51 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span></div>
 
 <div class="viewcode-block" id="BaseStation.remove_triggers"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.remove_triggers">[docs]</a>    <span class="k">def</span> <span class="nf">remove_triggers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        removes all triggers from the station</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BaseStation.get_trigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">get_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns the trigger with the name &#39;name&#39;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: string</span>
+<span class="sd">            the name of the trigger</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            trigger: Trigger</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;trigger with name </span><span class="si">{}</span><span class="s2"> not present&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
+<div class="viewcode-block" id="BaseStation.get_primary_trigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_primary_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">get_primary_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the primary trigger of the station. If no primary trigger exists, it returns None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">trigger</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">primary_trigger_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># test if only one primary trigger exists</span>
+        <span class="k">for</span> <span class="n">trig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">trig</span><span class="o">.</span><span class="n">is_primary</span><span class="p">():</span>
+                <span class="n">primary_trigger_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">trigger</span> <span class="o">=</span> <span class="n">trig</span>
+
+        <span class="k">if</span> <span class="n">primary_trigger_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;More than one primary trigger exists. Only one trigger can be the primary trigger. &#39;</span>
+                <span class="s1">&#39;Please check your code.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+
+        <span class="k">return</span> <span class="n">trigger</span></div>
+
 <div class="viewcode-block" id="BaseStation.get_first_trigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_first_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">get_first_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the first trigger. Returns None if no trigger is present.</span>
+<span class="sd">        Returns the first/earliest trigger. Returns None if no trigger fired.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -778,6 +825,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span></div>
 
 <div class="viewcode-block" id="BaseStation.set_trigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">set_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        sets a trigger for the station. If a trigger with the same name already exists, it will be overridden</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        trigger: Trigger</span>
+<span class="sd">            the trigger object to set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Station has already a trigger with name </span><span class="si">{</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">. The previous trigger will be overridden!&quot;</span><span class="p">)</span>
@@ -817,6 +872,20 @@
 
 <div class="viewcode-block" id="BaseStation.get_electric_fields"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_electric_fields">[docs]</a>    <span class="k">def</span> <span class="nf">get_electric_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_electric_fields</span></div>
+
+<div class="viewcode-block" id="BaseStation.get_electric_field_ids"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_electric_field_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_electric_field_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns a sorted list with the electric field IDs of all simElectricFields of the simStation</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        efield_ids: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">efield_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_electric_fields</span><span class="p">:</span>
+            <span class="n">efield_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">efield</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">())</span>
+        <span class="n">efield_ids</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">efield_ids</span></div>
 
 <div class="viewcode-block" id="BaseStation.add_electric_field"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.add_electric_field">[docs]</a>    <span class="k">def</span> <span class="nf">add_electric_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">electric_field</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_electric_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">electric_field</span><span class="p">)</span></div>
@@ -941,7 +1010,32 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_particle_type&#39;</span><span class="p">]</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_particle_type&#39;</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        adds a BaseStation object to another BaseStation object</span>
+<span class="sd">        WARNING: Only channel and efield objects are added but no other meta information</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x: BaseStation</span>
+<span class="sd">            the BaseStation object to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">BaseStation</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add BaseStation to BaseStation&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_id</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add BaseStations with the same ID&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">trigger</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_electric_field</span><span class="p">(</span><span class="n">efield</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_ARIANNA_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_ARIANNA_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 </pre></div>
 
            </div>
