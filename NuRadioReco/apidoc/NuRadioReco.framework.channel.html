@@ -648,6 +648,12 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_filtered_trace" title="NuRadioReco.framework.channel.Channel.get_filtered_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filtered_trace</span></code></a>(passband[, filter_type, ...])</p></td>
 <td><p>Returns the trace after applying a filter to it.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_frequencies" title="NuRadioReco.framework.channel.Channel.get_frequencies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_frequencies</span></code></a>([window_mask])</p></td>
+<td><p>Returns the frequencies of the frequency spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_frequency_spectrum" title="NuRadioReco.framework.channel.Channel.get_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_frequency_spectrum</span></code></a>([window_mask])</p></td>
+<td><p>Returns the frequency spectrum.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.get_group_id" title="NuRadioReco.framework.channel.Channel.get_group_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_group_id</span></code></a>()</p></td>
 <td><p>channel group id If no group id is specified, the channel id is returned.</p></td>
 </tr>
@@ -674,12 +680,6 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>deserialize</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_frequencies</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_frequency_spectrum</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>get_hilbert_envelope</strong></p></td>
@@ -826,13 +826,43 @@ to acommodate the time shift</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_frequencies">
-<span class="sig-name descname"><span class="pre">get_frequencies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_frequencies" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">get_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_frequencies" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the frequencies of the frequency spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>window_mask: array of bools (default: None)</strong></dt><dd><p>If not None, used to determine the number of samples in the time domain used for the frequency spectrum.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>frequencies: np.array of floats</dt><dd><p>The frequencies of the frequency spectrum.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_frequency_spectrum">
-<span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the frequency spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>window_mask: array of bools (default: None)</strong></dt><dd><p>If not None, specifies the time window to be used for the FFT. Has to have the same length as the trace.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>frequency_spectrum: np.array of floats</dt><dd><p>The frequency spectrum.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_hilbert_envelope">

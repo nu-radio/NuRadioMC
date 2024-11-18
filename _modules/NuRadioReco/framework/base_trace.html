@@ -693,13 +693,31 @@
         <span class="n">spec</span> <span class="o">*=</span> <span class="n">filter_response</span>
         <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="BaseTrace.get_frequency_spectrum"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_frequency_spectrum">[docs]</a>    <span class="k">def</span> <span class="nf">get_frequency_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="c1"># logger.debug(&quot;frequency spectrum has shape {}&quot;.format(self._frequency_spectrum.shape))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span><span class="p">)</span></div>
+<div class="viewcode-block" id="BaseTrace.get_frequency_spectrum"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_frequency_spectrum">[docs]</a>    <span class="k">def</span> <span class="nf">get_frequency_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the frequency spectrum.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        window_mask: array of bools (default: None)</span>
+<span class="sd">            If not None, specifies the time window to be used for the FFT. Has to have the same length as the trace.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        frequency_spectrum: np.array of floats</span>
+<span class="sd">            The frequency spectrum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">window_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span>
+            <span class="c1"># The double transpose allows to work with 1D and ND traces</span>
+            <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">window_mask</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseTrace.set_trace"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.set_trace">[docs]</a>    <span class="k">def</span> <span class="nf">set_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -793,8 +811,26 @@
 <div class="viewcode-block" id="BaseTrace.get_trace_start_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_trace_start_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trace_start_time</span></div>
 
-<div class="viewcode-block" id="BaseTrace.get_frequencies"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_frequencies">[docs]</a>    <span class="k">def</span> <span class="nf">get_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">get_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span></div>
+<div class="viewcode-block" id="BaseTrace.get_frequencies"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_frequencies">[docs]</a>    <span class="k">def</span> <span class="nf">get_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the frequencies of the frequency spectrum.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        window_mask: array of bools (default: None)</span>
+<span class="sd">            If not None, used to determine the number of samples in the time domain used for the frequency spectrum.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        frequencies: np.array of floats</span>
+<span class="sd">            The frequencies of the frequency spectrum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">window_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nsamples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nsamples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">window_mask</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">get_frequencies</span><span class="p">(</span><span class="n">nsamples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseTrace.get_hilbert_envelope"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_hilbert_envelope">[docs]</a>    <span class="k">def</span> <span class="nf">get_hilbert_envelope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span>
