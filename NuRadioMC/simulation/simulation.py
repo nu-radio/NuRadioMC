@@ -6,60 +6,54 @@ import warnings
 import copy
 import yaml
 import numpy as np
-from radiotools import helper as hp
-from radiotools import coordinatesystems as cstrans
-from numpy.random import Generator, Philox
 import h5py
 from scipy import constants
-# import detector simulation modules
-from NuRadioMC.SignalGen import askaryan
-from NuRadioMC.SignalGen import emitter as emitter_signalgen
+from numpy.random import Generator, Philox
+
+from radiotools import helper as hp
+from radiotools import coordinatesystems as cstrans
+
 import NuRadioMC.utilities.medium
+from NuRadioMC.SignalGen import askaryan, emitter as emitter_signalgen
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
 from NuRadioReco.utilities import units
-import NuRadioReco.modules.io.eventWriter
 from NuRadioReco.utilities.logging import LOGGING_STATUS
-import NuRadioReco.modules.channelSignalReconstructor
-import NuRadioReco.modules.electricFieldResampler
-import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.efieldToVoltageConverterPerEfield
-import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.channelAddCableDelay
-import NuRadioReco.modules.channelResampler
-import NuRadioReco.modules.triggerTimeAdjuster
-from NuRadioReco.detector import detector
+
+from NuRadioReco.modules.io import eventWriter
+from NuRadioReco.modules import (
+    channelAddCableDelay, electricFieldResampler, efieldToVoltageConverterPerEfield,
+    efieldToVoltageConverter, channelSignalReconstructor, channelResampler,
+    channelGenericNoiseAdder, triggerTimeAdjuster)
+
+from NuRadioReco.detector import detector, antennapattern
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
 import NuRadioReco.framework.sim_emitter
-from NuRadioReco.detector import antennapattern
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.framework.parameters import channelParameters as chp
-# parameters describing simulated Monte Carlo particles
-from NuRadioReco.framework.parameters import particleParameters as simp
-from NuRadioReco.framework.parameters import emitterParameters as ep
-# parameters set in the event generator
-from NuRadioReco.framework.parameters import generatorAttributes as genattrs
+
+from NuRadioReco.framework.parameters import (
+    electricFieldParameters as efp, showerParameters as shp,
+    channelParameters as chp, particleParameters as simp, emitterParameters as ep,
+    generatorAttributes as genattrs)
+
 import NuRadioMC.simulation.time_logger
 
 logger = logging.getLogger("NuRadioMC.simulation")
 
 # initialize a few NuRadioReco modules
 # TODO: Is this the best way to do it? Better to initialize them on demand
-channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
-electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
-efieldToVoltageConverterPerEfield = NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
-efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
-channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
+channel_add_cable_delay = channelAddCableDelay.channelAddCableDelay()
+electric_field_resampler = electricFieldResampler.electricFieldResampler()
+efield_to_voltage_converter_per_efield = efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
+efield_to_voltage_converter = efieldToVoltageConverter.efieldToVoltageConverter()
+channel_signal_reconstructor = channelSignalReconstructor.channelSignalReconstructor()
+channel_resampler = channelResampler.channelResampler()
+channel_generic_noise_adder = channelGenericNoiseAdder.channelGenericNoiseAdder()
+event_writer = eventWriter.eventWriter()
+trigger_time_adjuster = triggerTimeAdjuster.triggerTimeAdjuster()
 
 def merge_config(user, default):
     """
@@ -493,12 +487,12 @@ def apply_det_response_sim(sim_station, det, config,
     if detector_simulation_part1 is not None:
         detector_simulation_part1(sim_station, det)
     else:
-        efieldToVoltageConverterPerEfield.run(evt, sim_station, det)  # convolve efield with antenna pattern
+        efield_to_voltage_converter_per_efield.run(evt, sim_station, det)  # convolve efield with antenna pattern
         detector_simulation_filter_amp(evt, sim_station, det)
-        channelAddCableDelay.run(evt, sim_station, det)
+        channel_add_cable_delay.run(evt, sim_station, det)
 
     if config['speedup']['amp_per_ray_solution']:
-        channelSignalReconstructor.run(evt, sim_station, det)
+        channel_signal_reconstructor.run(evt, sim_station, det)
     if time_logger is not None: time_logger.stop_time('detector response (sim)')
 
 def apply_det_response(evt, det, config,
@@ -562,10 +556,10 @@ def apply_det_response(evt, det, config,
     else:
         dt = 1. / (config['sampling_rate'])
         # start detector simulation
-        efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)  # convolve efield with antenna pattern
+        efield_to_voltage_converter.run(evt, station, det, channel_ids=channel_ids)  # convolve efield with antenna pattern
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
         # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
-        channelResampler.run(evt, station, det, sampling_rate=1. / dt)
+        channel_resampler.run(evt, station, det, sampling_rate=1. / dt)
 
         if add_noise:
             max_freq = 0.5 / dt
@@ -573,7 +567,7 @@ def apply_det_response(evt, det, config,
             for channel_id in det.get_channel_ids(station.get_id()):
                 norm = integrated_channel_response[station.get_id()][channel_id]
                 Vrms[channel_id] = Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
-            channelGenericNoiseAdder.run(evt, station, det, amplitude=Vrms, min_freq=0 * units.MHz,
+            channel_generic_noise_adder.run(evt, station, det, amplitude=Vrms, min_freq=0 * units.MHz,
                                             max_freq=max_freq, type='rayleigh',
                                             excluded_channels=noiseless_channels[station.get_id()])
 
@@ -1374,10 +1368,10 @@ class simulation:
         logger.status("Starting NuRadioMC simulation")
         self.__time_logger.reset_times()
 
-        efieldToVoltageConverter.begin(time_resolution=self._config['speedup']['time_res_efieldconverter'])
-        channelGenericNoiseAdder.begin(seed=self._config['seed'])
+        efield_to_voltage_converter.begin(time_resolution=self._config['speedup']['time_res_efieldconverter'])
+        channel_generic_noise_adder.begin(seed=self._config['seed'])
         if self._outputfilenameNuRadioReco is not None:
-            eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
+            event_writer.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
 
         particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         event_group_ids = np.array(self._fin['event_group_ids'])
@@ -1518,7 +1512,7 @@ class simulation:
                     if not evt.get_station().has_triggered():
                         continue
 
-                    triggerTimeAdjuster.run(evt, station, self._det)
+                    trigger_time_adjuster.run(evt, station, self._det)
                     evt_group_triggered = True
                     output_buffer[station_id][evt.get_id()] = evt
                 # end event loop
@@ -1613,14 +1607,14 @@ class simulation:
                             for i, (name, instance, kwargs) in enumerate(evt.iter_modules(station_id)):
                                 if hasattr(instance, "get_filter"):
                                     filt *= instance.get_filter(ff, station_id, channel_id, self._det, **kwargs)
-                            noise = channelGenericNoiseAdder.bandlimited_noise_from_spectrum(len(channel.get_trace()), channel.get_sampling_rate(),
+                            noise = channel_generic_noise_adder.bandlimited_noise_from_spectrum(len(channel.get_trace()), channel.get_sampling_rate(),
                                                                                             spectrum=filt, amplitude=self._Vrms_per_channel[station.get_id()][channel_id],
                                                                                             type='rayleigh', time_domain=False)
                             # from NuRadioReco.utilities import fft
                             # logger.warning(f"adding noise to channel {channel.get_id()} with Vrms = {Vrms[channel_id]/units.mV:.4f}mV, realized noise Vrms = {np.std(fft.freq2time(noise, 1/dt))/units.mV:.4f}mV")
                             channel.set_frequency_spectrum(channel.get_frequency_spectrum() + noise, channel.get_sampling_rate())
 
-                    channelSignalReconstructor.run(evt, station, self._det)
+                    channel_signal_reconstructor.run(evt, station, self._det)
                     # save RMS and bandwidth to channel object
                     evt.set_generator_info(genattrs.Vrms, self._Vrms)
                     evt.set_generator_info(genattrs.dt, 1. / self._config['sampling_rate'])
@@ -1633,25 +1627,25 @@ class simulation:
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
                         sampling_rate_detector = self._det.get_sampling_frequency(station_id, self._det.get_channel_ids(station_id)[0])
-                        channelResampler.run(evt, station, self._det, sampling_rate=sampling_rate_detector)
-                        channelResampler.run(evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
-                        electricFieldResampler.run(evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
+                        channel_resampler.run(evt, station, self._det, sampling_rate=sampling_rate_detector)
+                        channel_resampler.run(evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
+                        electric_field_resampler.run(evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
 
                         output_mode = {'Channels': self._config['output']['channel_traces'],
                                        'ElectricFields': self._config['output']['electric_field_traces'],
                                        'SimChannels': self._config['output']['sim_channel_traces'],
                                        'SimElectricFields': self._config['output']['sim_electric_field_traces']}
                         if self.__write_detector:
-                            eventWriter.run(evt, self._det, mode=output_mode)
+                            event_writer.run(evt, self._det, mode=output_mode)
                         else:
-                            eventWriter.run(evt, mode=output_mode)
+                            event_writer.run(evt, mode=output_mode)
 
                     remove_all_traces(evt)  # remove all traces to save memory
 
                 self._output_writer_hdf5.add_event_group(output_buffer)
 
         if self._outputfilenameNuRadioReco is not None:
-            eventWriter.end()
+            event_writer.end()
             logger.debug("closing nur file")
 
         self._output_writer_hdf5.calculate_Veff()
