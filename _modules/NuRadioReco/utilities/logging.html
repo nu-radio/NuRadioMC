@@ -732,10 +732,38 @@
 <span class="sd">    -------</span>
 <span class="sd">    formatter : logging.Formatter</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
-        <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[33;20m</span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[93m</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[32m</span><span class="si">%(name)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[0m</span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+
+    <span class="k">class</span> <span class="nc">CustomFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="n">datefmt</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">datefmt</span><span class="o">=</span><span class="n">datefmt</span><span class="p">)</span>
+            <span class="n">grey</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[38;1m&quot;</span>
+            <span class="n">yellow</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[33;1m&quot;</span>
+            <span class="n">purple</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[35;1m&quot;</span>
+            <span class="n">green</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[32;1m&quot;</span>
+            <span class="n">red</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[31;1m&quot;</span>
+            <span class="n">reset</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[0m&quot;</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">FORMATS</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span> <span class="n">grey</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">:</span> <span class="n">green</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
+                <span class="n">LOGGING_STATUS</span><span class="p">:</span> <span class="n">yellow</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">:</span> <span class="n">purple</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">:</span> <span class="n">red</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">:</span> <span class="n">red</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span>
+            <span class="p">}</span>
+
+        <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+            <span class="n">log_fmt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">FORMATS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelno</span><span class="p">)</span>
+            <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">log_fmt</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+
+
+    <span class="n">formatter</span> <span class="o">=</span> <span class="n">CustomFormatter</span><span class="p">(</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[33m</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[32m</span><span class="si">%(name)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[0m</span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
         <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%H:%M:%S&quot;</span>
     <span class="p">)</span>
+
     <span class="k">return</span> <span class="n">formatter</span></div>
 
 
