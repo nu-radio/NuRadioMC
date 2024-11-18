@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, print_function
 import argparse
-import NuRadioReco.modules.triggerTimeAdjuster
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.trigger.highLowThreshold
@@ -27,7 +26,6 @@ electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFiel
 calculateAmplitudePerRaySolution = NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.calculateAmplitudePerRaySolution()
 hardwareResponseIncorporator = NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 triggerSimulator.begin(log_level=logging.WARNING)
 
 
@@ -40,7 +38,7 @@ class mySimulation(simulation.simulation):
     def _detector_simulation_trigger(self, evt, station, det):
         # save the amplitudes to output hdf5 file
         # save amplitudes per ray tracing solution to hdf5 data output
-        calculateAmplitudePerRaySolution.run(self._evt, self._station, self._det)
+        calculateAmplitudePerRaySolution.run(evt, station, det)
         triggerSimulator.run(evt, station, det,
                            threshold_high=1e-6 * self._Vrms,
                            threshold_low=-1e-6 * self._Vrms,
@@ -58,8 +56,6 @@ class mySimulation(simulation.simulation):
                            number_concidences=4,
                            trigger_name='highlow_2sigma_Hpol',
                            triggered_channels=[8, 9, 10, 11, 12, 13, 14, 15])
-
-        triggerTimeAdjuster.run(evt, station, det)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
@@ -80,6 +76,7 @@ sim = mySimulation(inputfilename=args.inputfilename,
                    detectorfile=args.detectordescription,
                    outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
                    config_file=args.config,
-                   file_overwrite=True)
+                   file_overwrite=True,
+                   log_level=logging.INFO)
 
 sim.run()
