@@ -693,7 +693,7 @@ class readRNOGData:
                     # wf stores ADC counts
                     if self._convert_to_voltage:
                         # convert adc to voltage
-                        wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1)) * units.V
+                        wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
 
                 if apply_baseline_correction == 'median':
                     wfs = _baseline_correction(wfs)
@@ -793,7 +793,7 @@ class readRNOGData:
                 # wf stores ADC counts
                 if self._convert_to_voltage:
                     # convert adc to voltage
-                    wf = wf * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1)) * units.V
+                    wf = wf * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
 
