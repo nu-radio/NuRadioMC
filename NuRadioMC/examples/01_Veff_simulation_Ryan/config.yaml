@@ -1,0 +1,10 @@
+propagation:
+  ice_model: greenland_simple
+  attenuation_model: GL1
+  attenuate_ice: True
+  focusing: False
+
+signal:
+  model: Alvarez2009 #RZ2020
+
+noise: True
