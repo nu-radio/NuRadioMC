@@ -688,12 +688,12 @@ class readRNOGData:
                 selectors=self._select_events)):
 
                 if self._read_calibrated_data:
-                    wfs = wfs
+                    wfs = wfs * units.V
                 else:
                     # wf stores ADC counts
                     if self._convert_to_voltage:
                         # convert adc to voltage
-                        wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
+                        wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1)) * units.V
 
                 if apply_baseline_correction == 'median':
                     wfs = _baseline_correction(wfs)
@@ -788,12 +788,12 @@ class readRNOGData:
         for channel_id, wf in enumerate(waveforms):
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             if self._read_calibrated_data:
-                channel.set_trace(wf, sampling_rate * units.GHz)
+                channel.set_trace(wf * units.V, sampling_rate * units.GHz)
             else:
                 # wf stores ADC counts
                 if self._convert_to_voltage:
                     # convert adc to voltage
-                    wf = wf * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
+                    wf = wf * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1)) * units.V
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
 
