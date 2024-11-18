@@ -9,6 +9,7 @@ NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enab
 - allow simulation of non-consecutive channel ids
 - enable resimulation from nur files (not yet implemented but prepared)
 - adding additional antennas on-the-fly to existing simulations
+- fix an inconsistency in the calculation of the Fresnel coefficients (causing incorrect polarity for reflected signals in non-TIR geometries)
 To enable resimulation from nur files, the nur files are the master file format and contain all information of the simulation. The hdf5 files
 are still generated from the nur files to have the main simulation results available in a simple table, e.g., for quick effective volume calculations.
 
