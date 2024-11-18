@@ -35,6 +35,8 @@ Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contri
 ## Publications builing up on NuRadioMC/Reco
 NuRadioMC is used in an increasing number of studies. To get an overview of what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
+* A. Nozdrina and D. Besson, "Implications of in-ice volume scattering for radio-frequency neutrino experiments", Journal of Cosmology and Astroparticle Physics 10(2024)086, [doi:10.1088/1475-7516/2024/10/086](https://doi.org/10.1088/1475-7516/2024/10/086)
+* F. Testagrossa, D. F. G. Fiorillo, and M. Bustamante, "Two-detector flavor sensitivity to ultrahigh-energy cosmic neutrinos", Phys. Rev. D 110, 083026 (2024), [doi:10.1103/PhysRevD.110.083026](https://doi.org/10.1103/PhysRevD.110.083026)
 * M. Ravn, C. Glaser, T. Glüsenkamp, A. Coleman, "Likelihood reconstruction of radio signals of neutrinos and cosmic rays", Proceedings of ARENA2024, [arXiv:2409.11888](https://arxiv.org/abs/2409.11888)
 * M. Mukhopadhyay, K. Kotera, S. Wissel, K. Murase, S. Kimura, "Ultrahigh-energy neutrino searches using next-generation gravitational wave detectors at radio neutrino detectors: GRAND, IceCube-Gen2 Radio, and RNO-G", [Phys.Rev.D 110 (2024) 6, 063004](https://doi.org/10.1103/PhysRevD.110.063004) arXiv:2406.19440
 * A. Coleman, O. Ericsson, C. Glaser, and M. Bustamante, "Flavor composition of ultrahigh-energy cosmic neutrinos: Measurement forecasts for in-ice radio-based EeV neutrino telescopes", [Phys. Rev. D 110, 023044 (2024)](https://doi.org/10.1103/PhysRevD.110.023044)
