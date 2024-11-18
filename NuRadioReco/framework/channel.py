@@ -98,17 +98,31 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
         else:
             base_trace_pkl = None
+
+        if self._trigger_channel is not None:
+            trigger_channel_pkl = self._trigger_channel.serialize(save_trace)
+        else:
+            trigger_channel_pkl = None
+
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 'id': self.get_id(),
                 'group_id': self._group_id,
-                'base_trace': base_trace_pkl}
+                'base_trace': base_trace_pkl,
+                'trigger_channel': trigger_channel_pkl}
 
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        if(data['base_trace'] is not None):
+        if data['base_trace'] is not None:
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
+
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
         self._id = data['id']
         self._group_id = data.get('group_id')  # Attempts to load group_id, returns None if not found
+        if data['trigger_channel'] is not None:
+            trigger_channel = Channel(None)
+            Channel.deserialize(trigger_channel, data['trigger_channel'])
+            self._trigger_channel = trigger_channel
+        else:
+            self._trigger_channel = None
