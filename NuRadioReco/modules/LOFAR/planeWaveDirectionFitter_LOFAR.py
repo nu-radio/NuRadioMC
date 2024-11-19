@@ -34,6 +34,7 @@ class planeWaveDirectionFitter:
         self.__rmsfactor = None
         self.__min_amp = None
         self.__max_iter = None
+        self.__good_antennas_dict = None
 
     def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, force_horizontal_array=True, window_size=256,
               debug=False, logger_level=logging.WARNING):
@@ -174,30 +175,6 @@ class planeWaveDirectionFitter:
         
         return np.mod(zenith * units.rad, 360 * units.deg), np.mod(azimuth * units.rad, 360 * units.deg)
 
-    @staticmethod
-    def _add_flag_to_channel(station, channel_id, flag):
-        """
-        Add a flag to a channel in a station.
-
-        Parameters
-        ----------
-        station : Station object
-            The station to add the flag to.
-        channel_id : int
-            The channel id to add the flag to.
-        flag : str
-            The flag to add to the channel.
-        """
-        tmp_station_param = station.get_parameter(stationParameters.flagged_channels)
-        if type(tmp_station_param) is dict:
-            if channel_id in tmp_station_param:
-                tmp_station_param[channel_id].append(flag)
-            else:
-                tmp_station_param[channel_id] = [flag]
-        else:
-            tmp_station_param = {channel_id: [flag]}
-        station.set_parameter(stationParameters.flagged_channels, tmp_station_param)
-
     @register_run()
     def run(self, event, detector):
         """
@@ -336,96 +313,11 @@ class planeWaveDirectionFitter:
                 self.logger.debug(f'azimuth = {np.rad2deg(azimuth):.3f}, zenith = {np.rad2deg(zenith):.3f}')
                 self.logger.debug(f'number of good antennas = {num_good_antennas:d}')
 
-                # Debug plots
+                # Debug plots if required
                 if self.__debug:
-                    import matplotlib as mpl
-
-                    inner = [['times'],
-                             ['expected']]
-                    outer = [[inner, 'residuals'],
-                             ['traces', 'traces']]
-
-                    fig, axd = plt.subplot_mosaic(outer, layout="constrained", figsize=(10, 12))
-                    for channel in station.iter_channels(use_channels=good_antennas[:, 0]):
-                        axd['traces'].plot(channel.get_trace() / units.mV)
-
-                    # mark the signal window:
-                    channel = station.get_channel(good_antennas[0, 0])  # should be all the same
-                    pulse_window_start, pulse_window_end = channel.get_parameter(channelParameters.signal_regions)
-
-                    axd['traces'].axvline(pulse_window_start, color='r')
-                    axd['traces'].axvline(pulse_window_end, color='r')
-                    axd['traces'].set_xlim(pulse_window_start - 500, pulse_window_end + 500)
-                    axd['traces'].set_xlabel('Sample index')
-                    axd['traces'].set_ylabel('Amplitude [mV]')
-                    axd['traces'].set_title(f'Good traces used in iteration {niter}')
-
-                    # Plot the timing residuals
-                    datasets = [times, expected_delays]
-
-                    norm1 = mpl.colors.Normalize(vmin=np.min(datasets), vmax=np.max(datasets))
-                    norm2 = mpl.colors.Normalize(vmin=np.min(residual_delays), vmax=np.max(residual_delays))
-                    cmap1 = mpl.colormaps.get_cmap('viridis')
-                    cmap2 = mpl.colormaps.get_cmap('seismic')
-
-                    axd['times'].scatter(position_array[:, 0], position_array[:, 1], c=times,
-                                         norm=norm1, cmap=cmap1,
-                                         label='Measured')
-                    axd['times'].set_title("Time delays")
-                    axd['times'].legend()
-
-                    axd['expected'].scatter(position_array[:, 0], position_array[:, 1], c=expected_delays,
-                                            norm=norm1, cmap=cmap1,
-                                            label='Expected')
-                    axd['expected'].legend()
-
-                    axd['residuals'].scatter(position_array[:, 0], position_array[:, 1], c=residual_delays,
-                                             norm=norm2, cmap=cmap2)
-                    axd['residuals'].set_title("Residual time delays")
-
-                    fig.colorbar(mpl.cm.ScalarMappable(norm=norm1, cmap=cmap1),
-                                 ax=axd['expected'], orientation='horizontal',
-                                 location='bottom',
-                                 label='Time [ns]')
-
-                    fig.colorbar(mpl.cm.ScalarMappable(norm=norm2, cmap=cmap2),
-                                 ax=axd['residuals'], orientation='horizontal',
-                                 location='bottom',
-                                 label='Time [ns]')
-
-                    fig.suptitle(f"Station {station.get_id()}")
-
-                    for ax in ['expected', 'residuals']:
-                        axd[ax].set_xlabel("Easting [m]")
-
-                    axd['residuals'].yaxis.set_label_position("right")
-                    axd['residuals'].set_ylabel("Northing [m]")
-                    axd['residuals'].set_aspect('equal')
-
-                    plt.show()
-                    plt.close(fig)
-
-                    # show the residuals per antenna and mark SNR:
-                    fig, ax = plt.subplots()
-                    antenna_SNRs = np.zeros(len(good_antennas))
-                    for i, antenna in enumerate(good_antennas[:,0]):
-                        channel = station.get_channel(antenna)
-                        antenna_SNRs[i] = channel.get_parameter(channelParameters.SNR)
-                    # print(antenna_SNRs)
-                    plt.scatter(np.arange(len(residual_delays)), residual_delays, marker='o', c=antenna_SNRs)
-                    # add colorbar
-                    plt.colorbar(label='SNR')
-                    # ax.axhline(k * spread, color='r', linestyle='--')
-                    # ax.axhline(-k * spread, color='r', linestyle='--')
-                    ax.set_xlabel('Antenna')
-                    ax.set_ylabel('Residual time [ns]')
-                    ax.set_title(f'Residuals for station {station.get_id()}')
-                    plt.show()
-                    figname = f"pipeline_planewavefit_debug_CS{station.get_id()}_{event.get_id()}.svg"
-                    fig.savefig(figname, format='svg', dpi=250, bbox_inches='tight')
-                    plt.close(fig)
-
-                
+                    self.debug_plots(
+                        event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
+                    )
 
                 # Bookkeeping
                 station.set_parameter(stationParameters.zenith, zenith)
@@ -453,15 +345,138 @@ class planeWaveDirectionFitter:
             good_antennas_dict[station.get_id()] = good_antennas
 
             # flag channels that were not used in the fit
-            for ind, channel_group_id in enumerate(station_channel_group_ids):
-                for channel in station.iter_channel_group(channel_group_id):
-                    if channel.get_id() not in good_antennas[:, 0]:
-                        flag = "planeWaveDirectionFitter_LOFAR"
-                        self._add_flag_to_channel(station, channel.get_id(), flag)
+            station_flagged_channels = station.get_parameter(stationParameters.flagged_channels)
+
+            for channel_id in good_channel_pair_ids.flatten().tolist():
+                if channel_id not in good_antennas.flatten():
+                    station_flagged_channels[channel_id].append("planewavefit_timing_outlier")
+
+            station.set_parameter(stationParameters.flagged_channels, station_flagged_channels)
 
         self.__good_antennas_dict = good_antennas_dict
 
-         
+    @staticmethod
+    def debug_plots(
+            event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
+    ):
+        """
+        Create debug plots for the plane wave fit.
+        """
+        planeWaveDirectionFitter.__debug_mosaic(
+            event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
+        )
+        planeWaveDirectionFitter.__debug_residuals(
+            event, good_antennas, residual_delays, station
+        )
+
+    @staticmethod
+    def __debug_residuals(event, good_antennas, residual_delays, station):
+        """
+        Show the residuals per antenna and mark SNR
+        """
+        fig, ax = plt.subplots()
+
+        antenna_SNRs = np.zeros(len(good_antennas))
+        for i, antenna in enumerate(good_antennas[:, 0]):
+            channel = station.get_channel(antenna)
+            antenna_SNRs[i] = channel.get_parameter(channelParameters.SNR)
+
+        plt.scatter(np.arange(len(residual_delays)), residual_delays, marker='o', c=antenna_SNRs)
+
+        # add colorbar
+        plt.colorbar(label='SNR')
+
+        ax.set_xlabel('Antenna')
+        ax.set_ylabel('Residual time [ns]')
+        ax.set_title(f'Residuals for station {station.get_id()}')
+
+        fig.savefig(
+            f"pipeline_planewavefit_residuals_CS{station.get_id()}_{event.get_id()}.png",
+            dpi=250, bbox_inches='tight'
+        )
+        fig.savefig(
+            f"pipeline_planewavefit_residuals_CS{station.get_id()}_{event.get_id()}.svg",
+            dpi=250, bbox_inches='tight'
+        )
+        plt.close(fig)
+
+    @staticmethod
+    def __debug_mosaic(event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times):
+        """
+        Plot the timings, as well as the residuals and the traces used for the fit.
+        """
+        import matplotlib as mpl
+
+        inner = [['times'],
+                 ['expected']]
+        outer = [[inner, 'residuals'],
+                 ['traces', 'traces']]
+
+        fig, axd = plt.subplot_mosaic(outer, layout="constrained", figsize=(10, 12))
+
+        for channel in station.iter_channels(use_channels=good_antennas[:, 0]):
+            axd['traces'].plot(channel.get_trace() / units.mV)
+
+        # mark the signal window:
+        channel = station.get_channel(good_antennas[0, 0])  # should be all the same
+        pulse_window_start, pulse_window_end = channel.get_parameter(channelParameters.signal_regions)
+
+        axd['traces'].axvline(pulse_window_start, color='r')
+        axd['traces'].axvline(pulse_window_end, color='r')
+        axd['traces'].set_xlim(pulse_window_start - 500, pulse_window_end + 500)
+        axd['traces'].set_xlabel('Sample index')
+        axd['traces'].set_ylabel('Amplitude [mV]')
+        axd['traces'].set_title(f'Good traces used in iteration {niter}')
+
+        # Plot the timing residuals
+        datasets = [times, expected_delays]
+        norm1 = mpl.colors.Normalize(vmin=np.min(datasets), vmax=np.max(datasets))
+        norm2 = mpl.colors.Normalize(vmin=np.min(residual_delays), vmax=np.max(residual_delays))
+        cmap1 = mpl.colormaps.get_cmap('viridis')
+        cmap2 = mpl.colormaps.get_cmap('seismic')
+
+        axd['times'].scatter(position_array[:, 0], position_array[:, 1], c=times,
+                             norm=norm1, cmap=cmap1,
+                             label='Measured')
+        axd['times'].set_title("Time delays")
+        axd['times'].legend()
+
+        axd['expected'].scatter(position_array[:, 0], position_array[:, 1], c=expected_delays,
+                                norm=norm1, cmap=cmap1,
+                                label='Expected')
+        axd['expected'].legend()
+
+        axd['residuals'].scatter(position_array[:, 0], position_array[:, 1], c=residual_delays,
+                                 norm=norm2, cmap=cmap2)
+        axd['residuals'].set_title("Residual time delays")
+
+        fig.colorbar(mpl.cm.ScalarMappable(norm=norm1, cmap=cmap1),
+                     ax=axd['expected'], orientation='horizontal',
+                     location='bottom',
+                     label='Time [ns]')
+        fig.colorbar(mpl.cm.ScalarMappable(norm=norm2, cmap=cmap2),
+                     ax=axd['residuals'], orientation='horizontal',
+                     location='bottom',
+                     label='Time [ns]')
+        fig.suptitle(f"Station {station.get_id()}")
+
+        for ax in ['expected', 'residuals']:
+            axd[ax].set_xlabel("Easting [m]")
+        axd['residuals'].yaxis.set_label_position("right")
+        axd['residuals'].set_ylabel("Northing [m]")
+        axd['residuals'].set_aspect('equal')
+
+        fig.savefig(
+            f"pipeline_planewavefit_debug_CS{station.get_id()}_{event.get_id()}.png",
+            dpi=250, bbox_inches='tight'
+        )
+        fig.savefig(
+            f"pipeline_planewavefit_debug_CS{station.get_id()}_{event.get_id()}.svg",
+            dpi=250, bbox_inches='tight'
+        )
+
+        plt.close(fig)
+
     def show_direction_plots(self, event, detector):
         """
         Show debug plot(s) for the plane wave fit.
