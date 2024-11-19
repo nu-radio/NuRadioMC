@@ -193,7 +193,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
                 efield_trace_vxB_vxvxB = cs.transform_to_vxB_vxvxB(
                     cs.transform_from_onsky_to_ground(trace)
                 )
-                return get_stokes(*efield_trace_vxB_vxvxB, window_samples=window_samples)
+                return get_stokes(*efield_trace_vxB_vxvxB[:2], window_samples=window_samples)
             except KeyError as e:
                 logger.error("Failed to compute stokes parameters in (vxB, vxvxB), electric field does not have a signal direction")
                 raise(e)
