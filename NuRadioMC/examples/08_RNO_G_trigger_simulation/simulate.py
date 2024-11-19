@@ -16,7 +16,7 @@ from NuRadioReco.utilities import units
 
 from NuRadioReco.detector.RNO_G import rnog_detector
 
-from NuRadioReco.modules import triggerTimeAdjuster, channelResampler, channelGenericNoiseAdder
+from NuRadioReco.modules import triggerTimeAdjuster
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
 
@@ -97,29 +97,27 @@ def RNO_G_HighLow_Thresh(lgRate_per_hz):
 class mySimulation(simulation.simulation):
 
     def __init__(self, *args, **kwargs):
+        # this module is needed in super().__init__ to calculate the vrms
+        self.rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
+
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
         self.deep_trigger_channels = deep_trigger_channels
 
 
         self.highLowThreshold = highLowThreshold.triggerSimulator()
-        self.triggerTimeAdjuster = triggerTimeAdjuster.triggerTimeAdjuster(log_level=logging.WARNING)
-        self.rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
-        self.rnogADCResponse = triggerBoardResponse.triggerBoardResponse(log_level=logging.DEBUG)
+        self.triggerTimeAdjuster = triggerTimeAdjuster.triggerTimeAdjuster()
+        self.rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
         self.rnogADCResponse.begin(adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage")
-        self.channel_generic_noise_adder = channelGenericNoiseAdder.channelGenericNoiseAdder()
 
-        channel_resampler = channelResampler.channelResampler()
-        channel_resampler.begin()
+        # future TODO: Add noise
+        # self.channel_generic_noise_adder = channelGenericNoiseAdder.channelGenericNoiseAdder()
+        # self.channel_generic_noise_adder.begin(seed=self._cfg['seed'])
 
-        self.eff_bandwitdth_trigband = {}
-        triggerTimeAdjuster.begin(pre_trigger_time=240 * units.ns)
-        self.channel_generic_noise_adder.begin(seed=self._cfg['seed'])
-
-        self.output_mode = {'Channels': self._cfg['output']['channel_traces'],
-                            'ElectricFields': self._cfg['output']['electric_field_traces'],
-                            'SimChannels': self._cfg['output']['sim_channel_traces'],
-                            'SimElectricFields': self._cfg['output']['sim_electric_field_traces']}
+        self.output_mode = {'Channels': self._config['output']['channel_traces'],
+                            'ElectricFields': self._config['output']['electric_field_traces'],
+                            'SimChannels': self._config['output']['sim_channel_traces'],
+                            'SimElectricFields': self._config['output']['sim_electric_field_traces']}
 
         self.high_low_trigger_thresholds = {
             "10mHz": RNO_G_HighLow_Thresh(-2),
@@ -160,7 +158,7 @@ class mySimulation(simulation.simulation):
             threshold_high = {channel_id: threshold * vrms for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
             threshold_low = {channel_id: -1 * threshold * vrms for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
 
-            highLowThreshold.run(
+            self.highLowThreshold.run(
                 evt,
                 station,
                 det,
@@ -178,7 +176,6 @@ class mySimulation(simulation.simulation):
         self.triggerTimeAdjuster.run(evt, station, det)
 
 
-
 if __name__ == "__main__":
 
     ABS_PATH_HERE = str(os.path.dirname(os.path.realpath(__file__)))
@@ -188,7 +185,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run NuRadioMC simulation")
     # Sim steering arguments
     parser.add_argument("--config", type=str, default=default_config_path, help="NuRadioMC yaml config file")
-    parser.add_argument("--detectordescription", type=str, default=None, help="Path to RNO-G detector description file. If None, query from DB")
+    parser.add_argument("--detectordescription", '--det', type=str, default=None, help="Path to RNO-G detector description file. If None, query from DB")
     parser.add_argument("--station_id", type=int, default=None, help="Set station to be used for simulation", required=True)
 
     # Neutrino arguments
@@ -198,7 +195,7 @@ if __name__ == "__main__":
 
     # File meta-variables
     parser.add_argument("--index", '-i', default=0, type=int, help="counter to create a unique data-set identifier")
-    parser.add_argument("--n_events_per_file", type=int, default=1e3, help="Number of nu-interactions per file")
+    parser.add_argument("--n_events_per_file", '-n', type=int, default=1e3, help="Number of nu-interactions per file")
     parser.add_argument("--data_dir", type=str, default=def_data_dir, help="directory name where the library will be created")
     parser.add_argument("--proposal", action="store_true", help="Use PROPOSAL for simulation")
     parser.add_argument("--nur_output", action="store_true", help="Write nur files.")
@@ -225,7 +222,7 @@ if __name__ == "__main__":
 
     # Simulate fiducial volume around station
     pos = det.get_absolute_position(args.station_id)
-    print(f"Simulating around center x0={pos[0]} y0={pos[1]}")
+    print(f"Simulating around center x0={pos[0]:.2f}m, y0={pos[1]:.2f}m")
     volume.update({"x0": pos[0], "y0": pos[1]})
 
     output_path = f"{args.data_dir}/station_{args.station_id}/nu_{args.flavor}_{args.interaction_type}"
