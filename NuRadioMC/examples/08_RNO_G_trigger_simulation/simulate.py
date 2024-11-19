@@ -183,35 +183,28 @@ if __name__ == "__main__":
 
     ABS_PATH_HERE = str(os.path.dirname(os.path.realpath(__file__)))
     def_data_dir = os.path.join(ABS_PATH_HERE, "data")
+    default_config_path = os.path.join(ABS_PATH_HERE, "../07_RNO_G_simulation/RNO_config.yaml")
 
     parser = argparse.ArgumentParser(description="Run NuRadioMC simulation")
     # Sim steering arguments
-    parser.add_argument("config", type=str, help="NuRadioMC yaml config file")
+    parser.add_argument("--config", type=str, default=default_config_path, help="NuRadioMC yaml config file")
+    parser.add_argument("--detectordescription", type=str, default=None, help="Path to RNO-G detector description file. If None, query from DB")
+    parser.add_argument("--station_id", type=int, default=None, help="Set station to be used for simulation", required=True)
 
     # Neutrino arguments
-    parser.add_argument("energy", type=float, help="Neutrino energy [eV]")
-    parser.add_argument("flavor", type=str, help="the flavor")
-    parser.add_argument("interaction_type", type=str, help="interaction type cc, nc or ccnc")
-
-    parser.add_argument("index", type=int, help="counter to create a unique data-set identifier")
+    parser.add_argument("--energy", '-e', default=1e18, type=float, help="Neutrino energy [eV]")
+    parser.add_argument("--flavor", '-f', default="all", type=str, help="the flavor")
+    parser.add_argument("--interaction_type", '-it', default="ccnc", type=str, help="interaction type cc, nc or ccnc")
 
     # File meta-variables
-    parser.add_argument("--detectordescription", type=str, default=None, help="Path to RNO-G detector description file. If None, query from DB")
+    parser.add_argument("--index", '-i', default=0, type=int, help="counter to create a unique data-set identifier")
     parser.add_argument("--n_events_per_file", type=int, default=1e3, help="Number of nu-interactions per file")
     parser.add_argument("--data_dir", type=str, default=def_data_dir, help="directory name where the library will be created")
     parser.add_argument("--proposal", action="store_true", help="Use PROPOSAL for simulation")
     parser.add_argument("--nur_output", action="store_true", help="Write nur files.")
 
-    parser.add_argument(
-        "--station_id",
-        type=int,
-        default=None,
-        help="Set station to be used for simulation",
-    )
-
     args = parser.parse_args()
     kwargs = args.__dict__
-
     assert args.station_id is not None, "Please specify a station id with `--station_id`"
 
     # Defaults for the trigger simulation which are not yet in the hardware DB
@@ -228,9 +221,12 @@ if __name__ == "__main__":
 
     det.update(dt.datetime(2023, 8, 3))
 
+    volume = get_fiducial_volume(args.energy)
+
+    # Simulate fiducial volume around station
     pos = det.get_absolute_position(args.station_id)
-    kwargs["x0"] = pos[0]
-    kwargs["y0"] = pos[1]
+    print(f"Simulating around center x0={pos[0]} y0={pos[1]}")
+    volume.update({"x0": pos[0], "y0": pos[1]})
 
     output_path = f"{args.data_dir}/station_{args.station_id}/nu_{args.flavor}_{args.interaction_type}"
 
@@ -240,18 +236,7 @@ if __name__ == "__main__":
 
     output_filename = f"{output_path}/{args.flavor}_{args.interaction_type}_1e{np.log10(args.energy):.2f}eV_{args.index:08d}.hdf5"
 
-    print(f"simulating around center x0={args.x0} y0={args.y0}")
-    # start simulating a library across the chosen number of cpus. Each CPU will only run for 1 day
-    # task({}, args.index, args.energy, det, args.config, output_filename, args.flavor, args.interaction_type, x0=args.x0, y0=args.y0, n_events_per_file=args.n_events_per_file)
-
-
     flavor_ids = {"e": [12, -12], "mu": [14, -14], "tau": [16, -16], "all": [12, 14, 16, -12, -14, -16]}
-
-    volume = get_fiducial_volume(args.energy)
-
-    # Simulate fiducial volume around station
-    volume.update({"x0": kwargs["x0"], "y0": kwargs["y0"]})
-
     run_proposal = args.proposal and ("cc" in args.interaction_type) and (args.flavor in ["mu", "tau", "all"])
     if run_proposal:
         print(f"Using PROPOSAL for simulation of {args.flavor} {args.interaction_type}")
