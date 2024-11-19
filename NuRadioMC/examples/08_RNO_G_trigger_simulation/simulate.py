@@ -8,6 +8,7 @@ import os
 import secrets
 import datetime as dt
 from scipy import constants
+import collections
 
 
 from NuRadioMC.EvtGen import generator
@@ -126,6 +127,8 @@ class mySimulation(simulation.simulation):
             "3Hz": RNO_G_HighLow_Thresh(np.log10(3)),
         }
 
+        self._Vrms_per_trigger_channel = collections.defaultdict(dict)
+
     def _detector_simulation_filter_amp(self, evt, station, det):
         # apply the amplifiers and filters to get to RADIANT-level
         self.rnogHarwareResponse.run(evt, station, det, sim_to_data=True)
@@ -146,8 +149,11 @@ class mySimulation(simulation.simulation):
 
         for idx, trigger_channel in enumerate(self.deep_trigger_channels):
             self.logger.info(
-                f'Vrms = {vrms_input_to_adc[idx] / units.mV:.2f} mV / {vrms_after_gain[idx] / units.mV:.2f} mV (after gain). '
-            )
+                f'Vrms = {vrms_input_to_adc[idx] / units.mV:.2f} mV / {vrms_after_gain[idx] / units.mV:.2f} mV (after gain).')
+
+            if station.get_id() not in self._Vrms_per_trigger_channel:
+                self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
+
 
         # this is only returning the correct value if digitize_trace=True for self.rnogADCResponse.run(..)
         flower_sampling_rate = station.get_trigger_channel(self.deep_trigger_channels[0]).get_sampling_rate()
