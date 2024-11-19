@@ -51,7 +51,6 @@ can then iterate over a channel group, which yields all channels for a given gro
 loaded again when reading in the Detector from a nur file
 - Added LOFAR coordinates to Detector site coordinates
 - Added up to date in-ice VPol response (RNOG_vpol_v2_5inch_center_n1.75.pkl) sha-1 hash
-- Implemented mattak dataset iterator in readRNOGDataMattak.run()
 - Fixed bug in phased-array noise generation script where the sign of the time delays was being ignored
 for the phasing_mode == "slice"
 - Improved logging: created NuRadioLogger class which is now used by default, the NRR and NRMC loggers
