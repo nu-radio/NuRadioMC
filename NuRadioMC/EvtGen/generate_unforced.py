@@ -7,7 +7,7 @@ from NuRadioMC.utilities import earth_attenuation
 from scipy.integrate import quad
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
-from NuRadioMC.simulation.simulation import pretty_time_delta
+from NuRadioMC.simulation.time_logger import pretty_time_delta
 from NuRadioMC.EvtGen.generator import write_events_to_hdf5
 from NuRadioMC.utilities import inelasticities
 import pickle
