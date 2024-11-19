@@ -281,7 +281,7 @@ class TBBData_Dal1:
                 dif = np.linalg.norm(
                     TBB_ITRF_dipole_positions[i] - self.ITRF_dipole_positions[i]
                 )
-                if dif > 1:
+                if dif > 1 and use_TBB_positions:
                     logger.warning(
                         f"Station {self.StationName} has suspicious antenna locations. Using metadata instead",
                     )
