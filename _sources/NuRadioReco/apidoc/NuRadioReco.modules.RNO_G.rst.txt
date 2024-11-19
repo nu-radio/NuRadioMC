@@ -14,3 +14,4 @@ Submodules
 
    NuRadioReco.modules.RNO_G.channelBlockOffsetFitter
    NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
+   NuRadioReco.modules.RNO_G.triggerBoardResponse

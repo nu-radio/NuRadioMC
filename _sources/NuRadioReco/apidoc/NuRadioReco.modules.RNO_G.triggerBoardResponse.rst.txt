@@ -1,0 +1,7 @@
+NuRadioReco.modules.RNO\_G.triggerBoardResponse module
+======================================================
+
+.. automodule:: NuRadioReco.modules.RNO_G.triggerBoardResponse
+   :members:
+   :undoc-members:
+   :show-inheritance:

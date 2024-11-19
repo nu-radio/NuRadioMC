@@ -639,6 +639,27 @@
         <span class="k">pass</span></div>
 
 
+<div class="viewcode-block" id="triggerTimeAdjuster.get_pre_trigger_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_pre_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_name</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get the pre_trigger_time for a given trigger_name and channel_id &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span>
+
+        <span class="n">pre_trigger_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span>
+        <span class="k">while</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pre_trigger_time</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">trigger_name</span> <span class="ow">in</span> <span class="n">pre_trigger_time</span><span class="p">:</span> <span class="c1"># keys are different triggers</span>
+                <span class="n">pre_trigger_time</span> <span class="o">=</span> <span class="n">pre_trigger_time</span><span class="p">[</span><span class="n">trigger_name</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">pre_trigger_time</span><span class="p">:</span> <span class="c1"># keys are channel_ids</span>
+                <span class="n">pre_trigger_time</span> <span class="o">=</span> <span class="n">pre_trigger_time</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s1">&#39;pre_trigger_time was specified as a dictionary, &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;but neither the trigger_name </span><span class="si">{</span><span class="n">trigger_name</span><span class="si">}</span><span class="s1"> &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;nor the channel id </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s1"> are present as keys&#39;</span>
+                    <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span>
+
+        <span class="k">return</span> <span class="n">pre_trigger_time</span></div>
+
 <div class="viewcode-block" id="triggerTimeAdjuster.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sim_to_data&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -656,11 +677,11 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        event: NuRadioReco.framework.event.Event</span>
+<span class="sd">        event: `NuRadioReco.framework.event.Event`</span>
 
-<span class="sd">        station: NuRadioReco.framework.base_station.Station</span>
+<span class="sd">        station: `NuRadioReco.framework.base_station.Station`</span>
 
-<span class="sd">        detector: NuRadioReco.detector.detector.Detector</span>
+<span class="sd">        detector: `NuRadioReco.detector.detector.Detector`</span>
 
 <span class="sd">        mode: &#39;sim_to_data&#39; (default) | &#39;data_to_sim&#39;</span>
 <span class="sd">            If &#39;sim_to_data&#39;, cuts the (arbitrary-length) simulated traces</span>
@@ -708,18 +729,24 @@
                     <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
                     <span class="n">trace_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
                     <span class="n">detector_sampling_rate</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+                    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__check_sampling_rates</span><span class="p">(</span><span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
+
+                    <span class="c1"># this should ensure that 1) the number of samples is even and</span>
+                    <span class="c1"># 2) resampling to the detector sampling rate results in the correct number of samples</span>
+                    <span class="c1"># (note that 2) can only be guaranteed if the detector sampling rate is lower than the</span>
+                    <span class="c1"># current sampling rate)</span>
                     <span class="n">number_of_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
-                        <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span> <span class="c1"># this should ensure that 1) the number of samples is even and 2) resampling to the detector sampling rate results in the correct number of samples (note that 2) can only be guaranteed if the detector sampling rate is lower than the current sampling rate)</span>
+                        <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
                             <span class="n">detector</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span> <span class="o">/</span> <span class="mi">2</span>
-                            <span class="o">*</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">/</span> <span class="n">detector_sampling_rate</span>
+                            <span class="o">*</span> <span class="n">sampling_rate</span> <span class="o">/</span> <span class="n">detector_sampling_rate</span>
                         <span class="p">))</span>
+
                     <span class="k">if</span> <span class="n">number_of_samples</span> <span class="o">&gt;</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Input has fewer samples than desired output. Channels has only </span><span class="si">{}</span><span class="s2"> samples but </span><span class="si">{}</span><span class="s2"> samples are requested.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                             <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">number_of_samples</span><span class="p">))</span>
                         <span class="k">raise</span> <span class="ne">AttributeError</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">__check_sampling_rates</span><span class="p">(</span><span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
                         <span class="n">trigger_time_sample</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">trigger_time_channel</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">))</span>
                         <span class="c1"># logger.debug(f&quot;channel {channel.get_id()}: trace_start_time = {channel.get_trace_start_time():.1f}ns, trigger time channel {trigger_time_channel/units.ns:.1f}ns,  trigger time sample = {trigger_time_sample}&quot;)</span>
                         <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
@@ -742,8 +769,6 @@
                                            <span class="sa">f</span><span class="s2">&quot;trigger time sample = </span><span class="si">{</span><span class="n">trigger_time_sample</span><span class="si">}</span><span class="s2">), the trace needs to be rolled by </span><span class="si">{</span><span class="n">roll_by</span><span class="si">}</span><span class="s2"> samples first&quot;</span> \
                                             <span class="sa">f</span><span class="s2">&quot; = </span><span class="si">{</span><span class="n">roll_by</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ns&quot;</span><span class="p">)</span>
                             <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">roll_by</span><span class="p">)</span>
-                            <span class="n">trigger_time_sample</span> <span class="o">-=</span> <span class="n">roll_by</span>
-                            <span class="n">rel_station_time_samples</span> <span class="o">=</span> <span class="o">-</span><span class="n">roll_by</span>
 
                         <span class="c1"># shift trace to be in the correct location for cutting</span>
                         <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">cut_samples_beginning</span><span class="p">:(</span><span class="n">number_of_samples</span> <span class="o">+</span> <span class="n">cut_samples_beginning</span><span class="p">)]</span>

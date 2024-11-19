@@ -631,7 +631,10 @@ If no trigger exists, nothing is done.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run" title="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, mode])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time" title="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time</span></code></a>(trigger_name, channel_id)</p></td>
+<td><p>Get the pre_trigger_time for a given trigger_name and channel_id</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run" title="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, mode])</p></td>
 <td><p>Run the trigger time adjuster.</p></td>
 </tr>
 </tbody>
@@ -649,6 +652,12 @@ If no trigger exists, nothing is done.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time">
+<span class="sig-name descname"><span class="pre">get_pre_trigger_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/triggerTimeAdjuster.html#triggerTimeAdjuster.get_pre_trigger_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time" title="Permalink to this definition"></a></dt>
+<dd><p>Get the pre_trigger_time for a given trigger_name and channel_id</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sim_to_data'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/triggerTimeAdjuster.html#triggerTimeAdjuster.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run" title="Permalink to this definition"></a></dt>
 <dd><p>Run the trigger time adjuster.</p>
@@ -663,9 +672,9 @@ is defined as the primary trigger and used to set the readout windows.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>event: NuRadioReco.framework.event.Event</strong></dt><dd></dd>
-<dt><strong>station: NuRadioReco.framework.base_station.Station</strong></dt><dd></dd>
-<dt><strong>detector: NuRadioReco.detector.detector.Detector</strong></dt><dd></dd>
+<dt><strong>event: `NuRadioReco.framework.event.Event`</strong></dt><dd></dd>
+<dt><strong>station: `NuRadioReco.framework.base_station.Station`</strong></dt><dd></dd>
+<dt><strong>detector: `NuRadioReco.detector.detector.Detector`</strong></dt><dd></dd>
 <dt><strong>mode: ‘sim_to_data’ (default) | ‘data_to_sim’</strong></dt><dd><p>If ‘sim_to_data’, cuts the (arbitrary-length) simulated traces
 to the appropriate readout windows.
 If ‘data_to_sim’, looks through all triggers in the station and adjusts the

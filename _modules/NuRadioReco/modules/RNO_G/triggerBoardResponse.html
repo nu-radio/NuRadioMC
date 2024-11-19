@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.detector.RNO_G.analog_components &mdash; NuRadio 2.3.0-dev documentation</title>
+  <title>NuRadioReco.modules.RNO_G.triggerBoardResponse &mdash; NuRadio 2.3.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css" />
@@ -604,7 +604,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.detector.RNO_G.analog_components</li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.RNO_G.triggerBoardResponse</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -613,103 +613,358 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for NuRadioReco.detector.RNO_G.analog_components</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.analog_components&#39;</span><span class="p">)</span>
+  <h1>Source code for NuRadioReco.modules.RNO_G.triggerBoardResponse</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">NuRadioReco.detector.RNO_G</span> <span class="kn">import</span> <span class="n">analog_components</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.modules.analogToDigitalConverter</span> <span class="kn">import</span> <span class="n">analogToDigitalConverter</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.triggerBoardResponse&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="load_amp_response"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.analog_components.html#NuRadioReco.detector.RNO_G.analog_components.load_amp_response">[docs]</a><span class="k">def</span> <span class="nf">load_amp_response</span><span class="p">(</span><span class="n">amp_type</span><span class="o">=</span><span class="s1">&#39;rno_surface&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mf">293.15</span><span class="p">,</span>
-                      <span class="n">path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))):</span>  <span class="c1"># use this function to read in log data</span>
+<div class="viewcode-block" id="triggerBoardResponse"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse">[docs]</a><span class="k">class</span> <span class="nc">triggerBoardResponse</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Read out amplifier gain and phase. Currently only examples have been implemented.</span>
-<span class="sd">    Needs a better structure in the future, possibly with database.</span>
-<span class="sd">    The hardware response incorporator currently reads in the load amp response.</span>
-<span class="sd">    If you want to read in the RI function for your reconstruction it needs to be changed</span>
-<span class="sd">    in modules/RNO_G/hardweareResponseIncorporator.py l. 52, amp response.</span>
-<span class="sd">    </span>
-<span class="sd">    Temperature dependence: the function loads a reference measurement made at room temperature</span>
-<span class="sd">    and will correct it for the temperature. The correction function is obtained empirically for</span>
-<span class="sd">    one amplifier of reference (one Surface board and one DRAB + fiber + IGLU chain)</span>
-<span class="sd">    by studying its gain in a climate chamber at different temperatures.</span>
-<span class="sd">    </span>
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    amp_type: string</span>
-<span class="sd">        * &quot;rno_surface&quot;: the surface signal chain</span>
-<span class="sd">        * &quot;iglu&quot;: the in-ice signal chain</span>
-<span class="sd">        * &quot;phased_array&quot;: the additional filter of the phased array channels before going into the phased array trigger. </span>
-<span class="sd">    temp: float (default 293.15K)</span>
-<span class="sd">        the default temperature in Kelvin that the amplifier response is corrected for</span>
+<span class="sd">    Simulates the response of the trigger board, nominally the &quot;flower board&quot;</span>
+<span class="sd">    Includes:</span>
+<span class="sd">    * analog frequency filter</span>
+<span class="sd">    * ADC gain to fix the noise RMS to a specified number of bits</span>
+<span class="sd">    * (optional) applies digitization to the waveforms</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># definition correction functions: temp in Kelvin, freq in GHz</span>
-    <span class="c1"># functions defined in temperature range [223.15 K , 323.15 K]</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">surface_correction_func</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">freqs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mf">1.0377798029</span> <span class="o">-</span> <span class="mf">0.00135258197</span> <span class="o">*</span> <span class="p">(</span><span class="n">temp</span> <span class="o">-</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.4788208019</span> <span class="o">-</span> <span class="mf">0.01790064797</span> <span class="o">*</span> <span class="p">(</span><span class="n">temp</span> <span class="o">-</span> <span class="mf">273.15</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">**</span> <span class="mi">5</span><span class="p">)</span>
+<div class="viewcode-block" id="triggerBoardResponse.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adc_input_range</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">,</span> <span class="n">clock_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">adc_output</span><span class="o">=</span><span class="s2">&quot;voltage&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        adc_input_range : float (default: 2V)</span>
+<span class="sd">            the voltage range of the ADC (should be given in units of volts)</span>
+<span class="sd">        clock_offset: bool</span>
+<span class="sd">            If True, a random clock offset between -1 and 1 clock cycles is added</span>
+<span class="sd">        adc_output: string</span>
+<span class="sd">            Options:</span>
 
-    <span class="k">def</span> <span class="nf">iglu_correction_func</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">freqs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mf">1.1139014286</span> <span class="o">-</span> <span class="mf">0.00004392995</span> <span class="o">*</span> <span class="p">((</span><span class="n">temp</span> <span class="o">-</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">+</span> <span class="mf">28.8331610295</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.6301058083</span> <span class="o">-</span> <span class="mf">0.0208741539</span> <span class="o">*</span> <span class="p">(</span><span class="n">temp</span> <span class="o">-</span> <span class="mf">273.15</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">**</span> <span class="mi">5</span><span class="p">)</span>
+<span class="sd">            * &#39;voltage&#39; to store the ADC output as discretised voltage trace</span>
+<span class="sd">            * &#39;counts&#39; to store the ADC output in ADC counts</span>
 
-    <span class="n">amp_response</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">correction_function</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">amp_type</span> <span class="o">==</span> <span class="s1">&#39;rno_surface&#39;</span><span class="p">:</span>
-        <span class="n">ph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;HardwareResponses/surface_placeholder.csv&#39;</span><span class="p">)</span>
-        <span class="n">ff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">ff</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span>
-        <span class="n">amp_gain_discrete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">amp_phase_discrete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">correction_function</span> <span class="o">=</span> <span class="n">surface_correction_func</span>
-    <span class="k">elif</span> <span class="n">amp_type</span> <span class="o">==</span> <span class="s1">&#39;iglu&#39;</span><span class="p">:</span>
-        <span class="n">ph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;HardwareResponses/iglu_drab_placeholder.csv&#39;</span><span class="p">)</span>
-        <span class="n">ff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">ff</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span>
-        <span class="n">amp_gain_discrete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">amp_phase_discrete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">correction_function</span> <span class="o">=</span> <span class="n">iglu_correction_func</span>
-    <span class="k">elif</span> <span class="n">amp_type</span> <span class="o">==</span> <span class="s1">&#39;phased_array&#39;</span> <span class="ow">or</span> <span class="n">amp_type</span> <span class="o">==</span> <span class="s1">&#39;ULP_216&#39;</span><span class="p">:</span>
-        <span class="n">ph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;HardwareResponses/ULP-216+_Plus25DegC.s2p&#39;</span><span class="p">)</span>
-        <span class="n">ff</span><span class="p">,</span> <span class="n">S11gain</span><span class="p">,</span> <span class="n">S11deg</span><span class="p">,</span> <span class="n">S21gain</span><span class="p">,</span> <span class="n">S21deg</span><span class="p">,</span> <span class="n">S12gain</span><span class="p">,</span> <span class="n">S12deg</span><span class="p">,</span> <span class="n">S22gain</span><span class="p">,</span> <span class="n">S22deg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">comments</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="s1">&#39;!&#39;</span><span class="p">],</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ff</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
-        <span class="n">amp_gain_discrete</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">dB_to_linear</span><span class="p">(</span><span class="n">S21gain</span><span class="p">)</span>
-        <span class="n">amp_phase_discrete</span> <span class="o">=</span> <span class="n">S21deg</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Amp type `</span><span class="si">{</span><span class="n">amp_type</span><span class="si">}</span><span class="s2">` not recognized. possible values are </span><span class="si">{</span><span class="n">get_available_amplifiers</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-    <span class="n">amp_gain_f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">ff</span><span class="p">,</span> <span class="n">amp_gain_discrete</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="c1"># all requests outside of measurement range are set to 1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_adc</span> <span class="o">=</span> <span class="n">analogToDigitalConverter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clock_offset</span> <span class="o">=</span> <span class="n">clock_offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_adc_output</span> <span class="o">=</span> <span class="n">adc_output</span>
 
-    <span class="k">def</span> <span class="nf">get_amp_gain</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">correction_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">amp_gain</span> <span class="o">=</span> <span class="n">correction_function</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">freqs</span><span class="p">)</span> <span class="o">*</span> <span class="n">amp_gain_f</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
+        <span class="c1"># the fields that need to exist in the detector description for this module to work</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mandatory_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;trigger_amp_type&quot;</span><span class="p">,</span> <span class="s2">&quot;trigger_adc_nbits&quot;</span><span class="p">,</span> <span class="s2">&quot;trigger_adc_noise_nbits&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Table 21 in https://www.analog.com/media/en/technical-documentation/data-sheets/hmcad1511.pdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_triggerBoardAmplifications</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.25</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">12.5</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_adc_input_range</span> <span class="o">=</span> <span class="n">adc_input_range</span></div>
+
+<div class="viewcode-block" id="triggerBoardResponse.apply_trigger_filter"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_trigger_filter">[docs]</a>    <span class="k">def</span> <span class="nf">apply_trigger_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">trigger_filter</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies the requested trigger filter to the `trigger_channels`</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station : Station</span>
+<span class="sd">            Station to use</span>
+<span class="sd">        trigger_channels : list</span>
+<span class="sd">            Channels that this function should be applied to</span>
+<span class="sd">        trigger_filter : function</span>
+<span class="sd">            set of interpolations describing the `gain` and `phase` of the filter</span>
+<span class="sd">            (see function `load_amp_response` in file `./detector/RNO_G/analog_components.py`)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">trigger_channels</span><span class="p">:</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
+
+            <span class="c1"># calculate and apply trigger filters</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
+            <span class="n">filt</span> <span class="o">=</span> <span class="n">trigger_filter</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span> <span class="o">*</span> <span class="n">filt</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="triggerBoardResponse.get_avg_vrms"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_avg_vrms">[docs]</a>    <span class="k">def</span> <span class="nf">get_avg_vrms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">trace_split</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimates the RMS voltage of the triggering antennas by splitting the waveforms</span>
+<span class="sd">        into chunks and taking the median of standard deviation of the chunks</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station : Station</span>
+<span class="sd">            Station to use</span>
+<span class="sd">        trigger_channels : list</span>
+<span class="sd">            Channels that this function should be applied to</span>
+<span class="sd">        trace_split : int (default: 9)</span>
+<span class="sd">            How many chunks each of the waveforms will be split into before calculating</span>
+<span class="sd">            the standard deviation</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        approx_vrms : float</span>
+<span class="sd">            the median RMS voltage of the waveforms</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">avg_vrms</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">trigger_channels</span><span class="p">:</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[:</span> <span class="nb">int</span><span class="p">(</span><span class="n">trace_split</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">/</span> <span class="n">trace_split</span><span class="p">))]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">trace_split</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">approx_vrms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Ch: </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="se">\t</span><span class="s2">Obser Vrms: </span><span class="si">{</span><span class="n">approx_vrms</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2"> mV&quot;</span><span class="p">)</span>
+            <span class="n">avg_vrms</span> <span class="o">+=</span> <span class="n">approx_vrms</span>
+
+        <span class="n">avg_vrms</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trigger_channels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average Vrms: </span><span class="si">{</span><span class="n">avg_vrms</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2"> mV&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">approx_vrms</span></div>
+
+<div class="viewcode-block" id="triggerBoardResponse.apply_adc_gain"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_adc_gain">[docs]</a>    <span class="k">def</span> <span class="nf">apply_adc_gain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">avg_vrms</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates and applies the gain adjustment such that the correct number</span>
+<span class="sd">        of &quot;noise bits&quot; are realized. The ADC has fixed possible gain values and</span>
+<span class="sd">        this module sets the one that is closest-to-but-greater-than the ideal value</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station : Station</span>
+<span class="sd">            Station to use</span>
+<span class="sd">        det : Detector</span>
+<span class="sd">            The detector description</span>
+<span class="sd">        trigger_channels : list</span>
+<span class="sd">            Channels that this function should be applied to</span>
+<span class="sd">        avg_rms : float (default: None)</span>
+<span class="sd">            The Vrms of the trigger channels including the trigger board filters</span>
+<span class="sd">            If set to `None`, this will be estimated using the waveforms</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        vrms_after_gain : float</span>
+<span class="sd">            the RMS voltage of the waveforms after the gain has been applied</span>
+
+<span class="sd">        ideal_vrms: float</span>
+<span class="sd">            the ideal vrms, as measured on the ADC capacitors</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">avg_vrms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">avg_vrms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_avg_vrms</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Applying gain at ADC level&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">avg_vrms</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">avg_vrms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">trigger_channels</span><span class="p">,</span> <span class="n">avg_vrms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">vrms_after_gain</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">vrms</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">trigger_channels</span><span class="p">,</span> <span class="n">avg_vrms</span><span class="p">):</span>
+            <span class="n">det_channel</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
+
+            <span class="n">noise_bits</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_adc_noise_nbits&quot;</span><span class="p">]</span>
+            <span class="n">total_bits</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_adc_nbits&quot;</span><span class="p">]</span>
+            <span class="n">volts_per_adc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_input_range</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">total_bits</span>
+            <span class="n">ideal_vrms</span> <span class="o">=</span> <span class="n">volts_per_adc</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">noise_bits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> Ch: </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="se">\t</span><span class="s2"> Target Vrms: </span><span class="si">{</span><span class="n">ideal_vrms</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2"> mV&quot;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> V/ADC: </span><span class="si">{</span><span class="n">volts_per_adc</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2"> mV&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="c1"># find the ADC gain from the possible values that makes the realized</span>
+            <span class="c1"># vrms closest-to-but-greater-than the ideal value</span>
+            <span class="n">amplified_vrms_values</span> <span class="o">=</span> <span class="n">vrms</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggerBoardAmplifications</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">amplified_vrms_values</span> <span class="o">&gt;</span> <span class="n">ideal_vrms</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+                <span class="n">gain_to_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggerBoardAmplifications</span><span class="p">[</span><span class="n">mask</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">vrms_after_gain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">amplified_vrms_values</span><span class="p">[</span><span class="n">mask</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">gain_to_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggerBoardAmplifications</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">vrms_after_gain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">amplified_vrms_values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> Ch: </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="se">\t</span><span class="s2"> Actuall Vrms: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">gain_to_use</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2"> mV&quot;</span><span class="p">)</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="o">*</span> <span class="n">gain_to_use</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> Used Vrms: </span><span class="si">{</span><span class="n">vrms_after_gain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2"> mV&quot;</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">ADC Gain </span><span class="si">{</span><span class="n">gain_to_use</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">eff_noise_bits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">vrms_after_gain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">volts_per_adc</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> Eff noise bits: </span><span class="si">{</span><span class="n">eff_noise_bits</span><span class="si">:</span><span class="s2">0.2f</span><span class="si">}</span><span class="se">\t</span><span class="s2">Requested: </span><span class="si">{</span><span class="n">noise_bits</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vrms_after_gain</span><span class="p">),</span> <span class="n">ideal_vrms</span></div>
+
+<div class="viewcode-block" id="triggerBoardResponse.get_trigger_values"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_trigger_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_trigger_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">requested_channels</span><span class="o">=</span><span class="p">[]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts information about the trigger channels from the detector description</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station : Station</span>
+<span class="sd">            Station to use</span>
+<span class="sd">        det : Detector</span>
+<span class="sd">            The detector description</span>
+<span class="sd">        requested_channels : list (default: [])</span>
+<span class="sd">            Channels that this function should consider when extracting data</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        found_trigger_channels : list</span>
+<span class="sd">            channel ids for the trigger channels</span>
+
+<span class="sd">        trigger_filter : function</span>
+<span class="sd">            set of interpolations describing the `gain` and `phase` of the filter</span>
+<span class="sd">            (see function `load_amp_response` in file `./detector/RNO_G/analog_components.py`)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">station_id</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+
+        <span class="n">found_trigger_channels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">trigger_amp_response</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">trigger_amp_response_name</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">det_channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+            <span class="n">channel_id</span> <span class="o">=</span> <span class="n">det_channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+
+            <span class="c1"># If specifying the exact channels to consider, demand</span>
+            <span class="c1"># that this ID is in the list</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">requested_channels</span><span class="p">)</span> <span class="ow">and</span> <span class="n">channel_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">requested_channels</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">det_channel</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+
+            <span class="n">keep</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mandatory_fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">det_channel</span><span class="p">:</span>
+                    <span class="n">keep</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">keep</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">found_trigger_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
+
+            <span class="c1"># Check for mixed amplifiers (required for get_avg_vrms to work correctly)</span>
+            <span class="k">if</span> <span class="n">trigger_amp_response_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">trigger_amp_response_name</span> <span class="o">!=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_amp_type&quot;</span><span class="p">]:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_amp_type&quot;</span><span class="p">]</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s1"> has `trigger_amp_type` of &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;, but a `trigger_amp_type` of&#39;</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39; &quot;</span><span class="si">{</span><span class="n">trigger_amp_response_name</span><span class="si">}</span><span class="s1">&quot; was already found in the detector file. This module is not meant&#39;</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot; to work with mixed values of `trigger_amp_type`. Either unify the `trigger_amp_type` or supply&quot;</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39; a group of channels to consider using the &quot;requested_channels&quot; option of this module&#39;</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="n">trigger_amp_response_name</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_amp_type&quot;</span><span class="p">]</span>
+            <span class="n">trigger_amp_response</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">load_amp_response</span><span class="p">(</span><span class="n">trigger_amp_response_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_trigger_channels</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No triggering channels found in station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">. Make sure that trigger channels have the following&quot;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; fields defined </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_mandatory_fields</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># Sanity check for the expected channels</span>
+        <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">requested_channels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">channel_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">found_trigger_channels</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> was requested to participlate in the trigger but was not found with the proper the mandatory&quot;</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; fields set. Ensure that the following settings are in your Detector configuration </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_mandatory_fields</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found trigger channels </span><span class="si">{</span><span class="n">found_trigger_channels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found trigger amps </span><span class="si">{</span><span class="n">trigger_amp_response_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">trigger_filter</span><span class="p">(</span><span class="n">freqs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">trigger_amp_response</span><span class="p">[</span><span class="s2">&quot;gain&quot;</span><span class="p">](</span><span class="n">freqs</span><span class="p">)</span> <span class="o">*</span> <span class="n">trigger_amp_response</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">](</span><span class="n">freqs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">found_trigger_channels</span><span class="p">,</span> <span class="n">trigger_filter</span></div>
+
+<div class="viewcode-block" id="triggerBoardResponse.digitize_trace"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.digitize_trace">[docs]</a>    <span class="k">def</span> <span class="nf">digitize_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">vrms</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">trigger_channels</span><span class="p">:</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
+
+            <span class="n">digitized_trace</span><span class="p">,</span> <span class="n">adc_sampling_frequency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc</span><span class="o">.</span><span class="n">get_digital_trace</span><span class="p">(</span>
+                <span class="n">station</span><span class="p">,</span>
+                <span class="n">det</span><span class="p">,</span>
+                <span class="n">channel</span><span class="p">,</span>
+                <span class="n">Vrms</span><span class="o">=</span><span class="n">vrms</span><span class="p">,</span>
+                <span class="n">trigger_adc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">adc_type</span><span class="o">=</span><span class="s2">&quot;perfect_floor_comparator&quot;</span><span class="p">,</span>
+                <span class="n">trigger_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Applied already</span>
+                <span class="n">clock_offset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_clock_offset</span><span class="p">,</span>
+                <span class="n">adc_output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_adc_output</span><span class="p">,</span>
+                <span class="n">return_sampling_frequency</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">digitized_trace</span><span class="p">,</span> <span class="n">adc_sampling_frequency</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="triggerBoardResponse.run"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">requested_channels</span><span class="o">=</span><span class="p">[],</span> <span class="n">vrms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apply_adc_gain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">digitize_trace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_apply_trigger_filter</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies the additional filters on the trigger board and performs a gain amplification</span>
+<span class="sd">        to get the correct number of trigger bits.</span>
+<span class="sd">        This module expects that all of the trigger channels (either defined by the existance of</span>
+<span class="sd">        `trigger_XXX` fields in the detector .json file or via the `requested_channels`</span>
+<span class="sd">        argument) are identical.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        evt : Event</span>
+<span class="sd">            Event to run the module on</span>
+<span class="sd">        station : Station</span>
+<span class="sd">            Station to run the module on</span>
+<span class="sd">        det : Detector</span>
+<span class="sd">            The detector description</span>
+<span class="sd">        requested_channels : list (default: [])</span>
+<span class="sd">            Channels that this module should consider when applying the filter</span>
+<span class="sd">        vrms : float (default: None)</span>
+<span class="sd">            The Vrms of the trigger channels including the trigger board filters</span>
+<span class="sd">            If set to `None`, this will be estimated using the waveforms</span>
+<span class="sd">        apply_adc_gain : bool (default: True)</span>
+<span class="sd">            Apply the gain shift to achieve the specified level of noise bits</span>
+<span class="sd">        digitize_trace : bool (default: True)</span>
+<span class="sd">            Apply the quantization to the voltages (uses `NuRadioReco.modules.analogToDigitalConverter` to do so)</span>
+<span class="sd">        do_apply_trigger_filter : bool (default: True)</span>
+<span class="sd">            Apply the trigger filter to the waveforms. The response might already be ablied as part of the</span>
+<span class="sd">            detector simulation, in which case this should be set to `False`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        trigger_board_vrms : float</span>
+<span class="sd">            the RMS voltage of the waveforms on the trigger board after applying the ADC gain</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Applying the RNO-G trigger board response&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">do_apply_trigger_filter</span><span class="p">:</span>
+            <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">trigger_amp_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trigger_values</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">requested_channels</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_trigger_filter</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">trigger_amp_response</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">amp_gain</span> <span class="o">=</span> <span class="n">amp_gain_f</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
-        
-        <span class="k">return</span> <span class="n">amp_gain</span>
+            <span class="n">trigger_channels</span> <span class="o">=</span> <span class="n">requested_channels</span>
 
-    <span class="c1"># Convert to MHz and broaden range (all requests outside of measurement range are set to 0)</span>
-    <span class="n">amp_phase_f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">ff</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">amp_phase_discrete</span><span class="p">),</span>
-                           <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">vrms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vrms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_avg_vrms</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">get_amp_phase</span><span class="p">(</span><span class="n">freqs</span><span class="p">):</span>
-        <span class="n">amp_phase</span> <span class="o">=</span> <span class="n">amp_phase_f</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">amp_phase</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">apply_adc_gain</span><span class="p">:</span>
+            <span class="n">trigger_board_vrms</span><span class="p">,</span> <span class="n">ideal_vrms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_adc_gain</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">vrms</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trigger_board_vrms</span> <span class="o">=</span> <span class="n">vrms</span>
+            <span class="n">ideal_vrms</span> <span class="o">=</span> <span class="n">vrms</span>
 
-    <span class="n">amp_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_amp_gain</span>
-    <span class="n">amp_response</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_amp_phase</span>
+        <span class="k">if</span> <span class="n">digitize_trace</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">digitize_trace</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">ideal_vrms</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">amp_response</span></div>
+        <span class="k">return</span> <span class="n">trigger_board_vrms</span></div>
 
+<div class="viewcode-block" id="triggerBoardResponse.end"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
 
-<div class="viewcode-block" id="get_available_amplifiers"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.analog_components.html#NuRadioReco.detector.RNO_G.analog_components.get_available_amplifiers">[docs]</a><span class="k">def</span> <span class="nf">get_available_amplifiers</span><span class="p">():</span>
-    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;iglu&#39;</span><span class="p">,</span> <span class="s1">&#39;rno_surface&#39;</span><span class="p">,</span> <span class="s1">&#39;phased_array&#39;</span><span class="p">,</span> <span class="s1">&#39;ULP_216&#39;</span><span class="p">]</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">dt</span></div></div>
 </pre></div>
 
            </div>

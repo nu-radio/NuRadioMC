@@ -618,6 +618,7 @@
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.trigger</span> <span class="kn">import</span> <span class="n">HighLowTrigger</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.modules.analogToDigitalConverter</span> <span class="kn">import</span> <span class="n">analogToDigitalConverter</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -629,7 +630,7 @@
 <div class="viewcode-block" id="get_high_low_triggers"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.get_high_low_triggers">[docs]</a><span class="k">def</span> <span class="nf">get_high_low_triggers</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">high_threshold</span><span class="p">,</span> <span class="n">low_threshold</span><span class="p">,</span>
                           <span class="n">time_coincidence</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    calculats a high low trigger in a time coincidence window</span>
+<span class="sd">    calculates a high low trigger in a time coincidence window</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -711,11 +712,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
 <div class="viewcode-block" id="triggerSimulator.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
-        <span class="k">return</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="triggerSimulator.run"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
+            <span class="n">use_digitization</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># Only active if use_digitization is set to True</span>
             <span class="n">threshold_high</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span>
             <span class="n">threshold_low</span><span class="o">=-</span><span class="mi">60</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span>
             <span class="n">high_low_window</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
@@ -723,7 +724,11 @@
             <span class="n">number_concidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">trigger_name</span><span class="o">=</span><span class="s2">&quot;default_high_low&quot;</span><span class="p">,</span>
-            <span class="n">set_not_triggered</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="n">set_not_triggered</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">Vrms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">trigger_adc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">clock_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">adc_output</span><span class="o">=</span><span class="s1">&#39;voltage&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        simulate ARIANNA trigger logic</span>
 
@@ -735,6 +740,8 @@
 <span class="sd">            The station to run the module on</span>
 <span class="sd">        det: Detector</span>
 <span class="sd">            The detector description</span>
+<span class="sd">        use_digitization: bool</span>
+<span class="sd">            If True, traces will be digitized</span>
 <span class="sd">        threshold_high: float or dict of floats</span>
 <span class="sd">            the threshold voltage that needs to be crossed on a single channel on the high side</span>
 <span class="sd">            a dict can be used to specify a different threshold per channel where the key is the channel id</span>
@@ -753,49 +760,91 @@
 <span class="sd">            a unique name of this particular trigger</span>
 <span class="sd">        set_not_triggered: bool (default: False)</span>
 <span class="sd">            if True not trigger simulation will be performed and this trigger will be set to not_triggered</span>
+<span class="sd">        Vrms: float</span>
+<span class="sd">            If supplied, overrides adc_reference_voltage as supplied in the detector description file</span>
+<span class="sd">        trigger_adc: bool</span>
+<span class="sd">            If True, the relevant ADC parameters in the config file are the ones</span>
+<span class="sd">            that start with `&#39;trigger_&#39;`</span>
+<span class="sd">        clock_offset: float</span>
 
+<span class="sd">        adc_output: string</span>
+<span class="sd">            Options:</span>
+<span class="sd">            * &#39;voltage&#39; to store the ADC output as discretised voltage trace</span>
+<span class="sd">            * &#39;counts&#39; to store the ADC output in ADC counts</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">use_digitization</span><span class="p">:</span>
+            <span class="n">adcConverter</span> <span class="o">=</span> <span class="n">analogToDigitalConverter</span><span class="p">()</span>
+
         <span class="n">channels_that_passed_trigger</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">set_not_triggered</span><span class="p">:</span>
             <span class="n">triggerd_bins_channels</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span>
+
             <span class="k">if</span> <span class="n">triggered_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
                     <span class="n">channel_trace_start_time</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
                     <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">channel_trace_start_time</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
+
             <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
                 <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">triggered_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">channel_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">triggered_channels</span><span class="p">:</span>
                     <span class="k">continue</span>
+
                 <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">!=</span> <span class="n">channel_trace_start_time</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly&#39;</span><span class="p">)</span>
-                <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
-                <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold_high</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+
+                <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+                <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span>
+
+                <span class="k">if</span> <span class="n">use_digitization</span><span class="p">:</span>
+                    <span class="n">trace</span><span class="p">,</span> <span class="n">trigger_sampling_rate</span> <span class="o">=</span> <span class="n">adcConverter</span><span class="o">.</span><span class="n">get_digital_trace</span><span class="p">(</span>
+                        <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span>
+                        <span class="n">Vrms</span><span class="o">=</span><span class="n">Vrms</span><span class="p">,</span>
+                        <span class="n">trigger_adc</span><span class="o">=</span><span class="n">trigger_adc</span><span class="p">,</span>
+                        <span class="n">clock_offset</span><span class="o">=</span><span class="n">clock_offset</span><span class="p">,</span>
+                        <span class="n">return_sampling_frequency</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">adc_type</span><span class="o">=</span><span class="s1">&#39;perfect_floor_comparator&#39;</span><span class="p">,</span>
+                        <span class="n">adc_output</span><span class="o">=</span><span class="n">adc_output</span><span class="p">,</span>
+                        <span class="n">trigger_filter</span><span class="o">=</span><span class="kc">None</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># overwrite the dt defined for the original trace by the digitized one</span>
+                    <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">trigger_sampling_rate</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold_high</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                     <span class="n">threshold_high_tmp</span> <span class="o">=</span> <span class="n">threshold_high</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">threshold_high_tmp</span> <span class="o">=</span> <span class="n">threshold_high</span>
-                <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold_low</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold_low</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                     <span class="n">threshold_low_tmp</span> <span class="o">=</span> <span class="n">threshold_low</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">threshold_low_tmp</span> <span class="o">=</span> <span class="n">threshold_low</span>
-                <span class="n">triggerd_bins</span> <span class="o">=</span> <span class="n">get_high_low_triggers</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">threshold_high_tmp</span><span class="p">,</span> <span class="n">threshold_low_tmp</span><span class="p">,</span>
-                                                      <span class="n">high_low_window</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
-                <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="n">triggerd_bins</span><span class="p">:</span>
+
+                <span class="n">triggerd_bins</span> <span class="o">=</span> <span class="n">get_high_low_triggers</span><span class="p">(</span>
+                    <span class="n">trace</span><span class="p">,</span> <span class="n">threshold_high_tmp</span><span class="p">,</span> <span class="n">threshold_low_tmp</span><span class="p">,</span> <span class="n">high_low_window</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">triggerd_bins</span><span class="p">):</span>
                     <span class="n">channels_that_passed_trigger</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+
                 <span class="n">triggerd_bins_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">triggerd_bins</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;channel </span><span class="si">{}</span><span class="s2">, len(triggerd_bins) = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggerd_bins</span><span class="p">)))</span>
 
-            <span class="n">has_triggered</span><span class="p">,</span> <span class="n">triggered_bins</span><span class="p">,</span> <span class="n">triggered_times</span> <span class="o">=</span> <span class="n">get_majority_logic</span><span class="p">(</span>
-                <span class="n">triggerd_bins_channels</span><span class="p">,</span> <span class="n">number_concidences</span><span class="p">,</span> <span class="n">coinc_window</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggerd_bins_channels</span><span class="p">):</span>
+                <span class="n">has_triggered</span><span class="p">,</span> <span class="n">triggered_bins</span><span class="p">,</span> <span class="n">triggered_times</span> <span class="o">=</span> <span class="n">get_majority_logic</span><span class="p">(</span>
+                    <span class="n">triggerd_bins_channels</span><span class="p">,</span> <span class="n">number_concidences</span><span class="p">,</span> <span class="n">coinc_window</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">has_triggered</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="c1"># set maximum signal aplitude</span>
             <span class="n">max_signal</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">has_triggered</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">has_triggered</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
                     <span class="n">max_signal</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_signal</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="n">triggered_bins</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+
                 <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">channels_max_amplitude</span><span class="p">,</span> <span class="n">max_signal</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;set_not_triggered flag True, setting triggered to False.&quot;</span><span class="p">)</span>
@@ -804,13 +853,15 @@
         <span class="n">trigger</span> <span class="o">=</span> <span class="n">HighLowTrigger</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">,</span> <span class="n">high_low_window</span><span class="p">,</span>
                                  <span class="n">coinc_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="n">number_concidences</span><span class="p">)</span>
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered_channels</span><span class="p">(</span><span class="n">channels_that_passed_trigger</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">has_triggered</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Station has NOT passed trigger&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">triggered_times</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">+</span><span class="n">channel_trace_start_time</span><span class="p">)</span> <span class="c1">#trigger_time= time from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction</span>
-            <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_times</span><span class="p">(</span><span class="n">triggered_times</span><span class="o">+</span><span class="n">channel_trace_start_time</span><span class="p">)</span>
+            <span class="c1"># trigger_time= time from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction</span>
+            <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">triggered_times</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">channel_trace_start_time</span><span class="p">)</span>
+            <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_times</span><span class="p">(</span><span class="n">triggered_times</span> <span class="o">+</span> <span class="n">channel_trace_start_time</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Station has passed trigger, trigger time is </span><span class="si">{:.1f}</span><span class="s2"> ns&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">trigger</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
 

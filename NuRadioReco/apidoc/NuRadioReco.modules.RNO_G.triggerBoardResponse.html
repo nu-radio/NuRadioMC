@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.analogToDigitalConverter module &mdash; NuRadio 2.3.0-dev documentation</title>
+  <title>NuRadioReco.modules.RNO_G.triggerBoardResponse module &mdash; NuRadio 2.3.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
@@ -23,8 +23,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.beamFormingDirectionFitter module" href="NuRadioReco.modules.beamFormingDirectionFitter.html" />
-    <link rel="prev" title="NuRadioReco.modules.trigger.simpleThreshold module" href="NuRadioReco.modules.trigger.simpleThreshold.html" /> 
+    <link rel="next" title="NuRadioReco.modules.base package" href="NuRadioReco.modules.base.html" />
+    <link rel="prev" title="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator module" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -289,11 +289,11 @@
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="NuRadioReco.modules.html">NuRadioReco.modules package</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
+<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
@@ -305,8 +305,8 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
 </ul>
 </li>
-<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#submodules">Submodules</a><ul class="current">
-<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.modules.analogToDigitalConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.analogToDigitalConverter.html">NuRadioReco.modules.analogToDigitalConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.beamFormingDirectionFitter.html">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelAddCableDelay.html">NuRadioReco.modules.channelAddCableDelay module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelAntennaDedispersion.html">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
@@ -609,9 +609,10 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.analogToDigitalConverter module</li>
+          <li class="breadcrumb-item"><a href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.RNO_G.triggerBoardResponse module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.analogToDigitalConverter.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -619,200 +620,63 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.analogToDigitalConverter">
-<span id="nuradioreco-modules-analogtodigitalconverter-module"></span><h1>NuRadioReco.modules.analogToDigitalConverter module<a class="headerlink" href="#module-NuRadioReco.modules.analogToDigitalConverter" title="Permalink to this heading"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.perfect_comparator">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">perfect_comparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_ref_voltage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'floor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#perfect_comparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.perfect_comparator" title="Permalink to this definition"></a></dt>
-<dd><p>Simulates a perfect comparator flash ADC that compares the voltage to the
-voltage for the least significative bit and takes the floor or the ceiling
-of their ratio as a digitised value of the trace.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>trace: array of floats</strong></dt><dd><p>Trace containing the voltage to be digitised</p>
-</dd>
-<dt><strong>adc_n_bits: int</strong></dt><dd><p>Number of bits of the ADC</p>
-</dd>
-<dt><strong>adc_ref_voltage: float</strong></dt><dd><p>Voltage corresponding to the maximum number of counts given by the
-ADC: 2**adc_n_bits - 1</p>
-</dd>
-<dt><strong>mode: string</strong></dt><dd><p>‘floor’ or ‘ceiling’</p>
-</dd>
-<dt><strong>output: {‘voltage’, ‘counts’}, default ‘voltage’</strong></dt><dd><p>Options:</p>
-<ul class="simple">
-<li><p>‘voltage’ to store the ADC output as discretised voltage trace</p></li>
-<li><p>‘counts’ to store the ADC output in ADC counts</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>digital_trace: array of floats</dt><dd><p>Digitised voltage trace in volts or ADC counts</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.perfect_floor_comparator">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">perfect_floor_comparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_ref_voltage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#perfect_floor_comparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.perfect_floor_comparator" title="Permalink to this definition"></a></dt>
-<dd><p>Perfect comparator ADC that takes the floor value of the comparison.
-See perfect_comparator</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.perfect_ceiling_comparator">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">perfect_ceiling_comparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_ref_voltage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#perfect_ceiling_comparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.perfect_ceiling_comparator" title="Permalink to this definition"></a></dt>
-<dd><p>Perfect comparator ADC that takes the floor value of the comparison.
-See perfect_floor.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.apply_saturation">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">apply_saturation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adc_counts_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_ref_voltage</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#apply_saturation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.apply_saturation" title="Permalink to this definition"></a></dt>
-<dd><p>Takes a digitised trace in ADC counts and clips the parts of the
-trace with values higher than 2**(adc_n_bits-1)-1 or lower than
--2**(adc_n_bits-1).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>adc_counts_trace: array of floats</strong></dt><dd><p>Voltage in ADC counts, unclipped</p>
-</dd>
-<dt><strong>adc_n_bits: int</strong></dt><dd><p>Number of bits of the ADC</p>
-</dd>
-<dt><strong>adc_ref_voltage: float</strong></dt><dd><p>Voltage corresponding to the maximum number of counts given by the
-ADC: 2**(adc_n_bits-1) - 1</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>saturated_trace: array of floats</dt><dd><p>The clipped or saturated voltage trace</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.round_to_int">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">round_to_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">digital_trace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#round_to_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.round_to_int" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+  <section id="module-NuRadioReco.modules.RNO_G.triggerBoardResponse">
+<span id="nuradioreco-modules-rno-g-triggerboardresponse-module"></span><h1>NuRadioReco.modules.RNO_G.triggerBoardResponse module<a class="headerlink" href="#module-NuRadioReco.modules.RNO_G.triggerBoardResponse" title="Permalink to this heading"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">analogToDigitalConverter</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.triggerBoardResponse.</span></span><span class="sig-name descname"><span class="pre">triggerBoardResponse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>This class simulates an analog to digital converter. The steps followed
-by this module to achieve the conversion are:</p>
-<ol class="arabic">
-<li><dl class="simple">
-<dt>The following properties of the channel are read. They must be in the</dt><dd><p>detector configuration file:</p>
-<ul class="simple">
-<li><p>“adc_nbits”, the number of bits of the ADC</p></li>
-<li><dl class="simple">
-<dt>“adc_reference_voltage”, the reference voltage in volts, that is, the</dt><dd><p>maximum voltage the ADC can convert without saturating</p>
-</dd>
-</dl>
-</li>
-<li><p>“adc_sampling_frequency”, the sampling frequency in GHz</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl>
-<dt>A random clock offset (jitter) can be added, as it would happen in</dt><dd><p>a real experiment. Choose random_clock_offset = True to do so. A time
-delay can also be fixed if the field “adc_time_delay” is specified in ns.
-The channel trace is interpolated to get the trace values at the clock
-times displaced from the channel times. This is fine as long as the input
-channel traces have been simulated with a sampling rate greater than the
-ADC sampling rate, which should be the case. Upsampling is also possible,
-and recommended for phased array simulations.</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>Upsampling after digitisation is performed by the FPGA, which
-means that the digitised trace is no longer discretised after being upsampled.
-The FPGA uses fixed point arithmetic, which in practice can be approximated
-as floats for our simulation purposes.</p>
-</div>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>A type of ADC converter is chosen, which transforms the trace in ADC</dt><dd><p>counts (discrete values). The available types are listed in the list
-_adc_types, which are (see functions with the same names for documentation):</p>
-<ul class="simple">
-<li><p>‘perfect_floor_comparator’</p></li>
-<li><p>‘perfect_ceiling_comparator’</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ol>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>Since this module already performs a downsampling, there is no
-need to use the channelResampler in those channels that possess an ADC. The
-chosen method for resampling is interpolation, since filtering only the
-spectrum below half the sampling frequency would eliminate the higher Nyquist
-zones.</p>
-</div>
-<p>Note that after this module the traces are still expressed in voltage units,
-only the possible values are discretised.</p>
-<p>If the ADC is used for triggering and the user does not want to modify the
-trace, the function get_digital_trace can be used. If there are two different
-ADCs for the same channel, one for triggering and another one for storing,
-one can define a trigger ADC adding <em class="xref py py-obj">“trigger_”</em> to every relevant ADC field
-in the detector configuration, and use them setting <em class="xref py py-obj">trigger_adc</em> to True in
-<a class="reference internal" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace" title="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_digital_trace</span></code></a>.</p>
+<p>Simulates the response of the trigger board, nominally the “flower board”
+Includes:
+* analog frequency filter
+* ADC gain to fix the noise RMS to a specified number of bits
+* (optional) applies digitization to the waveforms</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace" title="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_digital_trace</span></code></a>(station, det, channel[, ...])</p></td>
-<td><p>Returns the digital trace for a channel, without setting it.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_adc_gain" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_adc_gain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_adc_gain</span></code></a>(station, det, trigger_channels)</p></td>
+<td><p>Calculates and applies the gain adjustment such that the correct number of &quot;noise bits&quot; are realized.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.run" title="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, clock_offset, ...])</p></td>
-<td><p>Runs the analogToDigitalConverter and transforms the traces from all the channels of an input station to digital voltage values.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_trigger_filter" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_trigger_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_trigger_filter</span></code></a>(station, ...)</p></td>
+<td><p>Applies the requested trigger filter to the <em class="xref py py-obj">trigger_channels</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([adc_input_range, clock_offset, ...])</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_avg_vrms" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_avg_vrms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_avg_vrms</span></code></a>(station, trigger_channels[, ...])</p></td>
+<td><p>Estimates the RMS voltage of the triggering antennas by splitting the waveforms into chunks and taking the median of standard deviation of the chunks</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_trigger_values" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_trigger_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_values</span></code></a>(station, det[, ...])</p></td>
+<td><p>Extracts information about the trigger channels from the detector description</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, requested_channels, ...])</p></td>
+<td><p>Applies the additional filters on the trigger board and performs a gain amplification to get the correct number of trigger bits.</p></td>
 </tr>
 </tbody>
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>end</strong></p></td>
+<tr class="row-odd"><td><p><strong>digitize_trace</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>end</strong></p></td>
 <td></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace">
-<span class="sig-name descname"><span class="pre">get_digital_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_adc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_floor_comparator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter.get_digital_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the digital trace for a channel, without setting it. This allows
-the creation of a digital trace that can be used for triggering purposes
-without removing the original information on the channel.</p>
-<dl class="field-list">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adc_input_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><strong>station: framework.station.Station object</strong></dt><dd></dd>
-<dt><strong>det: detector.detector.Detector object</strong></dt><dd></dd>
-<dt><strong>channel: framework.channel.Channel object</strong></dt><dd></dd>
-<dt><strong>Vrms: float</strong></dt><dd><p>If supplied, overrides adc_reference_voltage as supplied in the detector description file</p>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>adc_input_range</strong><span class="classifier">float (default: 2V)</span></dt><dd><p>the voltage range of the ADC (should be given in units of volts)</p>
 </dd>
-<dt><strong>trigger_adc: bool</strong></dt><dd><p>If True, the relevant ADC parameters in the config file are the ones
-that start with <em class="xref py py-obj">‘trigger_’</em></p>
-</dd>
-<dt><strong>random_clock_offset: bool</strong></dt><dd><p>If True, a random clock offset between -1 and 1 clock cycles is added</p>
-</dd>
-<dt><strong>adc_type: string</strong></dt><dd><p>The type of ADC used. The following are available:</p>
-<ul class="simple">
-<li><p>perfect_floor_comparator</p></li>
-<li><p>perfect_ceiling_comparator</p></li>
-</ul>
-<p>See functions with the same name on this module for documentation</p>
-</dd>
-<dt><strong>return_sampling_frequency: bool</strong></dt><dd><p>If True, returns the trace and the ADC sampling frequency</p>
+<dt><strong>clock_offset: bool</strong></dt><dd><p>If True, a random clock offset between -1 and 1 clock cycles is added</p>
 </dd>
 <dt><strong>adc_output: string</strong></dt><dd><p>Options:</p>
 <ul class="simple">
@@ -820,18 +684,50 @@ that start with <em class="xref py py-obj">‘trigger_’</em></p>
 <li><p>‘counts’ to store the ADC output in ADC counts</p></li>
 </ul>
 </dd>
-<dt><strong>trigger_filter: array floats</strong></dt><dd><p>Freq. domain of the response to be applied to post-ADC traces
-Must be length for “MC freq”</p>
+</dl>
 </dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>If supplied, using this id to request detector description instead of the channel ID in the channel object</p>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_trigger_filter">
+<span class="sig-name descname"><span class="pre">apply_trigger_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.apply_trigger_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_trigger_filter" title="Permalink to this definition"></a></dt>
+<dd><p>Applies the requested trigger filter to the <em class="xref py py-obj">trigger_channels</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station</strong><span class="classifier">Station</span></dt><dd><p>Station to use</p>
+</dd>
+<dt><strong>trigger_channels</strong><span class="classifier">list</span></dt><dd><p>Channels that this function should be applied to</p>
+</dd>
+<dt><strong>trigger_filter</strong><span class="classifier">function</span></dt><dd><p>set of interpolations describing the <em class="xref py py-obj">gain</em> and <em class="xref py py-obj">phase</em> of the filter
+(see function <em class="xref py py-obj">load_amp_response</em> in file <em class="xref py py-obj">/detector/RNO_G/analog_components.py</em>)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_avg_vrms">
+<span class="sig-name descname"><span class="pre">get_avg_vrms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.get_avg_vrms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_avg_vrms" title="Permalink to this definition"></a></dt>
+<dd><p>Estimates the RMS voltage of the triggering antennas by splitting the waveforms
+into chunks and taking the median of standard deviation of the chunks</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station</strong><span class="classifier">Station</span></dt><dd><p>Station to use</p>
+</dd>
+<dt><strong>trigger_channels</strong><span class="classifier">list</span></dt><dd><p>Channels that this function should be applied to</p>
+</dd>
+<dt><strong>trace_split</strong><span class="classifier">int (default: 9)</span></dt><dd><p>How many chunks each of the waveforms will be split into before calculating
+the standard deviation</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>digital_trace: array of floats</dt><dd><p>Digitised voltage trace</p>
-</dd>
-<dt>adc_sampling_frequency: float</dt><dd><p>ADC sampling frequency for the channel</p>
+<dt><strong>approx_vrms</strong><span class="classifier">float</span></dt><dd><p>the median RMS voltage of the waveforms</p>
 </dd>
 </dl>
 </dd>
@@ -839,31 +735,30 @@ Must be length for “MC freq”</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_floor_comparator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.run" title="Permalink to this definition"></a></dt>
-<dd><p>Runs the analogToDigitalConverter and transforms the traces from all
-the channels of an input station to digital voltage values.</p>
-<dl class="field-list">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_adc_gain">
+<span class="sig-name descname"><span class="pre">apply_adc_gain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avg_vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.apply_adc_gain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_adc_gain" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates and applies the gain adjustment such that the correct number
+of “noise bits” are realized. The ADC has fixed possible gain values and
+this module sets the one that is closest-to-but-greater-than the ideal value</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><strong>evt: framework.event.Event object</strong></dt><dd></dd>
-<dt><strong>station: framework.station.Station object</strong></dt><dd></dd>
-<dt><strong>det: detector.detector.Detector object</strong></dt><dd></dd>
-<dt><strong>clock_offset: float</strong></dt><dd></dd>
-<dt><strong>adc_type: string</strong></dt><dd><p>The type of ADC used. The following are available:</p>
-<ul class="simple">
-<li><p>‘perfect_floor_comparator’</p></li>
-</ul>
-<p>See functions with the same name on this module for documentation</p>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station</strong><span class="classifier">Station</span></dt><dd><p>Station to use</p>
 </dd>
-<dt><strong>adc_output: string</strong></dt><dd><p>Options:</p>
-<ul class="simple">
-<li><p>‘voltage’ to store the ADC output as discretised voltage trace</p></li>
-<li><p>‘counts’ to store the ADC output in ADC counts</p></li>
-</ul>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd><p>The detector description</p>
 </dd>
-<dt><strong>upsampling_factor: integer</strong></dt><dd><p>Upsampling factor. The digital trace will be a upsampled to a
-sampling frequency int_factor times higher than the original one</p>
+<dt><strong>trigger_channels</strong><span class="classifier">list</span></dt><dd><p>Channels that this function should be applied to</p>
+</dd>
+<dt><strong>avg_rms</strong><span class="classifier">float (default: None)</span></dt><dd><p>The Vrms of the trigger channels including the trigger board filters
+If set to <em class="xref py py-obj">None</em>, this will be estimated using the waveforms</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vrms_after_gain</strong><span class="classifier">float</span></dt><dd><p>the RMS voltage of the waveforms after the gain has been applied</p>
+</dd>
+<dt>ideal_vrms: float</dt><dd><p>the ideal vrms, as measured on the ADC capacitors</p>
 </dd>
 </dl>
 </dd>
@@ -871,8 +766,80 @@ sampling frequency int_factor times higher than the original one</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.end" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_trigger_values">
+<span class="sig-name descname"><span class="pre">get_trigger_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.get_trigger_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_trigger_values" title="Permalink to this definition"></a></dt>
+<dd><p>Extracts information about the trigger channels from the detector description</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station</strong><span class="classifier">Station</span></dt><dd><p>Station to use</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd><p>The detector description</p>
+</dd>
+<dt><strong>requested_channels</strong><span class="classifier">list (default: [])</span></dt><dd><p>Channels that this function should consider when extracting data</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>found_trigger_channels</strong><span class="classifier">list</span></dt><dd><p>channel ids for the trigger channels</p>
+</dd>
+<dt><strong>trigger_filter</strong><span class="classifier">function</span></dt><dd><p>set of interpolations describing the <em class="xref py py-obj">gain</em> and <em class="xref py py-obj">phase</em> of the filter
+(see function <em class="xref py py-obj">load_amp_response</em> in file <em class="xref py py-obj">/detector/RNO_G/analog_components.py</em>)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.digitize_trace">
+<span class="sig-name descname"><span class="pre">digitize_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vrms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.digitize_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.digitize_trace" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_adc_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">digitize_trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_apply_trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run" title="Permalink to this definition"></a></dt>
+<dd><p>Applies the additional filters on the trigger board and performs a gain amplification
+to get the correct number of trigger bits.
+This module expects that all of the trigger channels (either defined by the existance of
+<em class="xref py py-obj">trigger_XXX</em> fields in the detector .json file or via the <em class="xref py py-obj">requested_channels</em>
+argument) are identical.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt</strong><span class="classifier">Event</span></dt><dd><p>Event to run the module on</p>
+</dd>
+<dt><strong>station</strong><span class="classifier">Station</span></dt><dd><p>Station to run the module on</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd><p>The detector description</p>
+</dd>
+<dt><strong>requested_channels</strong><span class="classifier">list (default: [])</span></dt><dd><p>Channels that this module should consider when applying the filter</p>
+</dd>
+<dt><strong>vrms</strong><span class="classifier">float (default: None)</span></dt><dd><p>The Vrms of the trigger channels including the trigger board filters
+If set to <em class="xref py py-obj">None</em>, this will be estimated using the waveforms</p>
+</dd>
+<dt><strong>apply_adc_gain</strong><span class="classifier">bool (default: True)</span></dt><dd><p>Apply the gain shift to achieve the specified level of noise bits</p>
+</dd>
+<dt><strong>digitize_trace</strong><span class="classifier">bool (default: True)</span></dt><dd><p>Apply the quantization to the voltages (uses <a class="reference internal" href="NuRadioReco.modules.analogToDigitalConverter.html#module-NuRadioReco.modules.analogToDigitalConverter" title="NuRadioReco.modules.analogToDigitalConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.analogToDigitalConverter</span></code></a> to do so)</p>
+</dd>
+<dt><strong>do_apply_trigger_filter</strong><span class="classifier">bool (default: True)</span></dt><dd><p>Apply the trigger filter to the waveforms. The response might already be ablied as part of the
+detector simulation, in which case this should be set to <em class="xref py py-obj">False</em>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>trigger_board_vrms</strong><span class="classifier">float</span></dt><dd><p>the RMS voltage of the waveforms on the trigger board after applying the ADC gain</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.end" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -883,8 +850,8 @@ sampling frequency int_factor times higher than the original one</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.trigger.simpleThreshold.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.trigger.simpleThreshold module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.beamFormingDirectionFitter.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.beamFormingDirectionFitter module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.base.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.base package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

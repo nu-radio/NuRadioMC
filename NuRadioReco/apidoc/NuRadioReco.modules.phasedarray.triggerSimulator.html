@@ -655,7 +655,7 @@ subbeam can be specified.</p>
 <td><p>Calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run" title="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, Vrms, threshold, ...])</p></td>
-<td><p>simulates phased array trigger for each event</p></td>
+<td><p>Simulates phased array trigger for each event.</p></td>
 </tr>
 </tbody>
 </table>
@@ -833,7 +833,7 @@ traces together</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.phased_trigger">
-<span class="sig-name descname"><span class="pre">phased_trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([-0.959931089,</span> <span class="pre">-0.714608352,</span> <span class="pre">-0.513801244,</span> <span class="pre">-0.333826648,</span> <span class="pre">-0.164572284,</span> <span class="pre">1.11022302e-16,</span> <span class="pre">0.164572284,</span> <span class="pre">0.333826648,</span> <span class="pre">0.513801244,</span> <span class="pre">0.714608352,</span> <span class="pre">0.959931089])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_adc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.phased_trigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.phased_trigger" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">phased_trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([-0.959931089,</span> <span class="pre">-0.714608352,</span> <span class="pre">-0.513801244,</span> <span class="pre">-0.333826648,</span> <span class="pre">-0.164572284,</span> <span class="pre">1.11022302e-16,</span> <span class="pre">0.164572284,</span> <span class="pre">0.333826648,</span> <span class="pre">0.513801244,</span> <span class="pre">0.714608352,</span> <span class="pre">0.959931089])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_adc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_digitization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.phased_trigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.phased_trigger" title="Permalink to this definition"></a></dt>
 <dd><p>simulates phased array trigger for each event</p>
 <p>Several channels are phased by delaying their signals by an amount given
 by a pointing angle. Several pointing angles are possible in order to cover
@@ -857,26 +857,35 @@ if None, all channels are taken</p>
 </dd>
 <dt><strong>phasing_angles: array of float</strong></dt><dd><p>pointing angles for the primary beam</p>
 </dd>
-<dt><strong>ref_index: float</strong></dt><dd><p>refractive index for beam forming</p>
+<dt><strong>ref_index: float (default 1.75)</strong></dt><dd><p>refractive index for beam forming</p>
 </dd>
-<dt><strong>trigger_adc: bool, default True</strong></dt><dd><p>If True, analog to digital conversion is performed. It must be specified in the
-detector file. See analogToDigitalConverter module for information</p>
+<dt><strong>trigger_adc: bool (default True)</strong></dt><dd><p>If True, uses the ADC settings from the trigger. It must be specified in the
+detector file. See analogToDigitalConverter module for information
+(see option <em class="xref py py-obj">apply_digitization</em>)</p>
 </dd>
-<dt><strong>clock_offset: float</strong></dt><dd><p>Overall clock offset, for adc clock jitter reasons</p>
+<dt><strong>clock_offset: float (default 0)</strong></dt><dd><p>Overall clock offset, for adc clock jitter reasons (see <em class="xref py py-obj">apply_digitization</em>)</p>
 </dd>
-<dt><strong>trigger_filter: array floats</strong></dt><dd><p>Freq. domain of the response to be applied to post-ADC traces
+<dt><strong>adc_output: string (default ‘voltage’)</strong></dt><dd><ul class="simple">
+<li><p>‘voltage’ to store the ADC output as discretised voltage trace</p></li>
+<li><p>‘counts’ to store the ADC output in ADC counts</p></li>
+</ul>
+</dd>
+<dt><strong>trigger_filter: array floats (default None)</strong></dt><dd><p>Freq. domain of the response to be applied to post-ADC traces
 Must be length for “MC freq”</p>
 </dd>
-<dt><strong>upsampling_factor: integer</strong></dt><dd><p>Upsampling factor. The trace will be a upsampled to a
+<dt><strong>upsampling_factor: integer (default 1)</strong></dt><dd><p>Upsampling factor. The trace will be a upsampled to a
 sampling frequency int_factor times higher than the original one
 after conversion to digital</p>
 </dd>
-<dt><strong>window: int</strong></dt><dd><p>Power integral window
+<dt><strong>window: int (default 32)</strong></dt><dd><p>Power integral window
 Units of ADC time ticks</p>
 </dd>
-<dt><strong>step: int</strong></dt><dd><p>Time step in power integral. If equal to window, there is no time overlap
+<dt><strong>step: int (default 16)</strong></dt><dd><p>Time step in power integral. If equal to window, there is no time overlap
 in between neighboring integration windows.
 Units of ADC time ticks</p>
+</dd>
+<dt><strong>apply_digitization: bool (default True)</strong></dt><dd><p>Perform the quantization of the ADC. If set to true, should also set options
+<em class="xref py py-obj">trigger_adc</em>, <em class="xref py py-obj">adc_output</em>, <em class="xref py py-obj">clock_offset</em></p>
 </dd>
 </dl>
 </dd>
@@ -900,8 +909,8 @@ If there is no trigger, it’s an empty dictionary</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple_phased_threshold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([-0.959931089,</span> <span class="pre">-0.714608352,</span> <span class="pre">-0.513801244,</span> <span class="pre">-0.333826648,</span> <span class="pre">-0.164572284,</span> <span class="pre">1.11022302e-16,</span> <span class="pre">0.164572284,</span> <span class="pre">0.333826648,</span> <span class="pre">0.513801244,</span> <span class="pre">0.714608352,</span> <span class="pre">0.959931089])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_not_triggered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_adc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run" title="Permalink to this definition"></a></dt>
-<dd><p>simulates phased array trigger for each event</p>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple_phased_threshold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([-0.959931089,</span> <span class="pre">-0.714608352,</span> <span class="pre">-0.513801244,</span> <span class="pre">-0.333826648,</span> <span class="pre">-0.164572284,</span> <span class="pre">1.11022302e-16,</span> <span class="pre">0.164572284,</span> <span class="pre">0.333826648,</span> <span class="pre">0.513801244,</span> <span class="pre">0.714608352,</span> <span class="pre">0.959931089])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_not_triggered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_adc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_digitization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run" title="Permalink to this definition"></a></dt>
+<dd><p>Simulates phased array trigger for each event.</p>
 <p>Several channels are phased by delaying their signals by an amount given
 by a pointing angle. Several pointing angles are possible in order to cover
 the sky. The array triggered_channels controls the channels that are phased,
@@ -928,33 +937,36 @@ if None, all channels are taken</p>
 </dd>
 <dt><strong>phasing_angles: array of float</strong></dt><dd><p>pointing angles for the primary beam</p>
 </dd>
-<dt><strong>set_not_triggered: bool (default: False)</strong></dt><dd><p>if True not trigger simulation will be performed and this trigger will be set to not_triggered</p>
+<dt><strong>set_not_triggered: bool (default False)</strong></dt><dd><p>If True, no trigger simulation will be performed and this trigger will be set to not_triggered</p>
 </dd>
-<dt><strong>ref_index: float</strong></dt><dd><p>refractive index for beam forming</p>
+<dt><strong>ref_index: float (default 1.75)</strong></dt><dd><p>refractive index for beam forming</p>
 </dd>
-<dt><strong>trigger_adc: bool, default True</strong></dt><dd><p>If True, analog to digital conversion is performed. It must be specified in the
+<dt><strong>trigger_adc: bool, (default True)</strong></dt><dd><p>If True, uses the ADC settings from the trigger. It must be specified in the
 detector file. See analogToDigitalConverter module for information</p>
 </dd>
-<dt><strong>clock_offset: float</strong></dt><dd><p>Overall clock offset, for adc clock jitter reasons</p>
+<dt><strong>clock_offset: float (default 0)</strong></dt><dd><p>Overall clock offset, for adc clock jitter reasons</p>
 </dd>
-<dt><strong>adc_output: string</strong></dt><dd><ul class="simple">
+<dt><strong>adc_output: string (default ‘voltage’)</strong></dt><dd><ul class="simple">
 <li><p>‘voltage’ to store the ADC output as discretised voltage trace</p></li>
 <li><p>‘counts’ to store the ADC output in ADC counts</p></li>
 </ul>
 </dd>
-<dt><strong>trigger_filter: array floats</strong></dt><dd><p>Freq. domain of the response to be applied to post-ADC traces
+<dt><strong>trigger_filter: array floats (default None)</strong></dt><dd><p>Freq. domain of the response to be applied to post-ADC traces
 Must be length for “MC freq”</p>
 </dd>
-<dt><strong>upsampling_factor: integer</strong></dt><dd><p>Upsampling factor. The trace will be a upsampled to a
+<dt><strong>upsampling_factor: integer (default 1)</strong></dt><dd><p>Upsampling factor. The trace will be a upsampled to a
 sampling frequency int_factor times higher than the original one
 after conversion to digital</p>
 </dd>
-<dt><strong>window: int</strong></dt><dd><p>Power integral window
+<dt><strong>window: int (default 32)</strong></dt><dd><p>Power integral window
 Units of ADC time ticks</p>
 </dd>
-<dt><strong>step: int</strong></dt><dd><p>Time step in power integral. If equal to window, there is no time overlap
+<dt><strong>step: int (default 16)</strong></dt><dd><p>Time step in power integral. If equal to window, there is no time overlap
 in between neighboring integration windows.
 Units of ADC time ticks</p>
+</dd>
+<dt><strong>apply_digitization: bool (default True)</strong></dt><dd><p>Perform the quantization of the ADC. If set to true, should also set options
+<em class="xref py py-obj">trigger_adc</em>, <em class="xref py py-obj">adc_output</em>, <em class="xref py py-obj">clock_offset</em></p>
 </dd>
 </dl>
 </dd>
