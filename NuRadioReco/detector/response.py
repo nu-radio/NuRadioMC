@@ -302,8 +302,8 @@ class Response:
         if isinstance(other, Response):
             self = copy.deepcopy(self)
             # station_id == -1 is a special case to all non-station specific responses
-            if (self._station_id != other._station_id or self._channel_id != other._channel_id and
-                    (other._station_id != -1 and self._station_id != -1)):
+            if ((self._station_id != other._station_id or self._channel_id != other._channel_id) and
+                (other._station_id != -1 and self._station_id != -1)):
                 self.logger.error("It looks like you are combining responses from "
                                   f"two different channels: {self._station_id}.{self._channel_id} "
                                   f" vs {other._station_id}.{other._channel_id} (station_id.channel_id)")
@@ -356,8 +356,8 @@ class Response:
         if isinstance(other, Response):
             self = copy.deepcopy(self)
             # station_id == -1 is a special case to all non-station specific responses
-            if (self._station_id != other._station_id or self._channel_id != other._channel_id and
-                    (other._station_id != -1 and self._station_id != -1)):
+            if ((self._station_id != other._station_id or self._channel_id != other._channel_id) and
+                (other._station_id != -1 and self._station_id != -1)):
                 self.logger.error(
                     "It looks like you are combining responses from "
                     f"two different channels: {self._station_id}.{self._channel_id} "
