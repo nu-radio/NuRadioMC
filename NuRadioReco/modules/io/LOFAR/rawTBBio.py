@@ -282,7 +282,7 @@ class TBBData_Dal1:
                     TBB_ITRF_dipole_positions[i] - self.ITRF_dipole_positions[i]
                 )
                 if dif > 1 and use_TBB_positions:
-                    logger.warning(
+                    logger.status(
                         f"Station {self.StationName} has suspicious antenna locations. Using metadata instead",
                     )
                     use_TBB_positions = False
