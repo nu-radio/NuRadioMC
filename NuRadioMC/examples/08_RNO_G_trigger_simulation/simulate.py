@@ -236,7 +236,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(output_path):
         print("Making dirs", output_path)
-        os.makedirs(output_path)
+        os.makedirs(output_path, exist_ok=True)
 
     output_filename = f"{output_path}/{args.flavor}_{args.interaction_type}_1e{np.log10(args.energy):.2f}eV_{args.index:08d}.hdf5"
 
