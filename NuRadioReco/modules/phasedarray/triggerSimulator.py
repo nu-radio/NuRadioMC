@@ -20,7 +20,7 @@ default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_
 class triggerSimulator:
     """
     Calculates the trigger for a phased array with a primary beam.
-    
+
     The channels that participate in both beams and the pointing angle for each
     subbeam can be specified.
 
@@ -144,7 +144,7 @@ class triggerSimulator:
         triggered_channels: array of ints
             channels ids of the channels that form the primary phasing array
             if None, all channels are taken
-        
+
         Returns
         -------
         channel_trace_start_time: float
@@ -265,21 +265,22 @@ class triggerSimulator:
 
         return phased_traces
 
-    def phased_trigger(self, station, det,
-                       Vrms=None,
-                       threshold=60 * units.mV,
-                       triggered_channels=None,
-                       phasing_angles=default_angles,
-                       ref_index=1.75,
-                       trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
-                       clock_offset=0,
-                       adc_output='voltage',
-                       trigger_filter=None,
-                       upsampling_factor=1,
-                       window=32,
-                       step=16,
-                       apply_digitization=True,
-                       ):
+    def phased_trigger(
+            self, station, det,
+            Vrms=None,
+            threshold=60 * units.mV,
+            triggered_channels=None,
+            phasing_angles=default_angles,
+            ref_index=1.75,
+            trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
+            clock_offset=0,
+            adc_output='voltage',
+            trigger_filter=None,
+            upsampling_factor=1,
+            window=32,
+            step=16,
+            apply_digitization=True,
+        ):
         """
         simulates phased array trigger for each event
 
@@ -441,6 +442,7 @@ class triggerSimulator:
                 is_triggered = True
                 trigger_times[iTrace] = trigger_delays[iTrace][triggered_channels[0]] + triggered_bins * step * time_step + channel_trace_start_time
                 logger.debug(f"trigger times  = {trigger_times[iTrace]}")
+
         if is_triggered:
             logger.debug("Trigger condition satisfied!")
             logger.debug("all trigger times", trigger_times)
@@ -469,7 +471,7 @@ class triggerSimulator:
             ):
 
         """
-        simulates phased array trigger for each event
+        Simulates phased array trigger for each event.
 
         Several channels are phased by delaying their signals by an amount given
         by a pointing angle. Several pointing angles are possible in order to cover
@@ -498,7 +500,7 @@ class triggerSimulator:
         phasing_angles: array of float
             pointing angles for the primary beam
         set_not_triggered: bool (default False)
-            if True not trigger simulation will be performed and this trigger will be set to not_triggered
+            If True, no trigger simulation will be performed and this trigger will be set to not_triggered
         ref_index: float (default 1.75)
             refractive index for beam forming
         trigger_adc: bool, (default True)
@@ -528,62 +530,66 @@ class triggerSimulator:
         apply_digitization: bool (default True)
             Perform the quantization of the ADC. If set to true, should also set options
             `trigger_adc`, `adc_output`, `clock_offset`
-        
+
         Returns
         -------
         is_triggered: bool
             True if the triggering condition is met
         """
 
-        if(triggered_channels is None):
+        if triggered_channels is None:
             triggered_channels = [channel.get_id() for channel in station.iter_channels()]
 
-        if(adc_output != 'voltage' and adc_output != 'counts'):
+        if adc_output != 'voltage' and adc_output != 'counts':
             error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
             raise ValueError(error_msg)
 
         is_triggered = False
         trigger_delays = {}
 
-        if(set_not_triggered):
+        if set_not_triggered:
             is_triggered = False
             trigger_delays = {}
-            triggered_beams = []
+            maximum_amps = np.zeros_like(phasing_angles)
+
         else:
-            is_triggered, trigger_delays, trigger_time, trigger_times = self.phased_trigger(station=station,
-                                                                             det=det,
-                                                                             Vrms=Vrms,
-                                                                             threshold=threshold,
-                                                                             triggered_channels=triggered_channels,
-                                                                             phasing_angles=phasing_angles,
-                                                                             ref_index=ref_index,
-                                                                             trigger_adc=trigger_adc,
-                                                                             clock_offset=clock_offset,
-                                                                             adc_output=adc_output,
-                                                                             trigger_filter=trigger_filter,
-                                                                             upsampling_factor=upsampling_factor,
-                                                                             window=window,
-                                                                             step=step,
-                                                                             apply_digitization=apply_digitization,
-                                                                             )
+            is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps = self.phased_trigger(
+                station=station,
+                det=det,
+                Vrms=Vrms,
+                threshold=threshold,
+                triggered_channels=triggered_channels,
+                phasing_angles=phasing_angles,
+                ref_index=ref_index,
+                trigger_adc=trigger_adc,
+                clock_offset=clock_offset,
+                adc_output=adc_output,
+                trigger_filter=trigger_filter,
+                upsampling_factor=upsampling_factor,
+                window=window,
+                step=step,
+                apply_digitization=apply_digitization,
+            )
 
         # Create a trigger object to be returned to the station
         trigger = SimplePhasedTrigger(
-            trigger_name, 
-            threshold, 
+            trigger_name,
+            threshold,
             channels=triggered_channels,
-            primary_angles=phasing_angles, 
+            primary_angles=phasing_angles,
             trigger_delays=trigger_delays,
-            window_size=window, 
+            window_size=window,
             step_size=step,
             maximum_amps=maximum_amps,
         )
 
         trigger.set_triggered(is_triggered)
-        
+
         if is_triggered:
-            #trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction; time offset to interaction time (channel_trace_start_time) already recognized in self.phased_trigger
-            trigger.set_trigger_time(trigger_time)# 
+            # trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of first
+            # interaction = trigger time from moment of first interaction; time offset to interaction time
+            # (channel_trace_start_time) already recognized in self.phased_trigger
+            trigger.set_trigger_time(trigger_time)
             trigger.set_trigger_times(trigger_times)
         else:
             trigger.set_trigger_time(None)
