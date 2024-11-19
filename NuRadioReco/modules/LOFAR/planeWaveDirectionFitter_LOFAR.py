@@ -37,7 +37,7 @@ class planeWaveDirectionFitter:
         self.__good_antennas_dict = None
 
     def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, force_horizontal_array=True, window_size=256,
-              debug=False, logger_level=logging.WARNING):
+              debug=False, logger_level=logging.NOTSET):
         """
         Set the parameters for the plane wave fit.
 
