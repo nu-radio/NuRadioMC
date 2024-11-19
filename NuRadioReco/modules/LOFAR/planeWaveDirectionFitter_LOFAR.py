@@ -233,6 +233,7 @@ class planeWaveDirectionFitter:
             num_good_antennas = np.sum(good_amp_or_snr)
             mask_good_antennas = np.full(num_good_antennas, True)
 
+            # the dominant antennas are good_antennas[:, 0]
             good_antennas = good_channel_pair_ids[good_amp_or_snr]
             position_array = relative_position_array[good_amp_or_snr]
 
@@ -378,6 +379,26 @@ class planeWaveDirectionFitter:
                     plt.show()
                     plt.close(fig)
 
+                    # show the residuals per antenna and mark SNR:
+                    fig, ax = plt.subplots()
+                    antenna_SNRs = np.zeros(len(good_antennas))
+                    for i, antenna in enumerate(good_antennas[:,0]):
+                        channel = station.get_channel(antenna)
+                        antenna_SNRs[i] = channel.get_parameter(channelParameters.SNR)
+                    # print(antenna_SNRs)
+                    plt.scatter(np.arange(len(residual_delays)), residual_delays, marker='o', c=antenna_SNRs)
+                    # add colorbar
+                    plt.colorbar(label='SNR')
+                    # ax.axhline(k * spread, color='r', linestyle='--')
+                    # ax.axhline(-k * spread, color='r', linestyle='--')
+                    ax.set_xlabel('Antenna')
+                    ax.set_ylabel('Residual time [ns]')
+                    ax.set_title(f'Residuals for station {station.get_id()}')
+                    plt.show()
+                    plt.close(fig)
+
+                
+
                 # Bookkeeping
                 station.set_parameter(stationParameters.zenith, zenith)
                 station.set_parameter(stationParameters.azimuth, azimuth)
@@ -387,7 +408,7 @@ class planeWaveDirectionFitter:
                     break
                 else:
                     num_good_antennas = len(good_antennas[mask_good_antennas])
-
+            
             azimuth = station.get_parameter(stationParameters.azimuth)
             zenith = station.get_parameter(stationParameters.zenith)
 
@@ -400,6 +421,72 @@ class planeWaveDirectionFitter:
 
             station.set_parameter(stationParameters.cr_zenith, zenith)
             station.set_parameter(stationParameters.cr_azimuth, azimuth)
+
+        # plot reconstructed directions of all stations and compare to LORA in polar plot:
+        if self.__debug:
+            fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+            ax.set_theta_zero_location('N')
+            ax.set_theta_direction(-1)
+            for station in event.get_stations():
+                if station.get_parameter(stationParameters.triggered):
+                    zenith = station.get_parameter(stationParameters.cr_zenith)
+                    azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                    ax.plot(azimuth, 
+                            zenith, 
+                            label=f'Station CS{station.get_id():03d}',
+                            marker='P',
+                            markersize=7,
+                            linestyle='')
+            
+            ax.plot(event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth),
+                    event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith),
+                    label='LORA',
+                    marker="X",
+                    markersize=7,
+                    linestyle='',
+                    color='black')
+            ax.legend()
+            plt.show()
+            plt.close(fig)
+
+    @staticmethod         
+    def show_direction_plots(event):
+        """
+        Show debug plot(s) for the plane wave fit.
+
+        Parameters
+        ----------
+        event : Event object
+            The event for which to show the debug plots.
+        detector : Detector object
+            The detector for which to show the debug plots.
+        """
+        
+        # plot reconstructed directions of all stations and compare to LORA in polar plot:
+        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax.set_theta_zero_location('N')
+        ax.set_theta_direction(-1)
+        for station in event.get_stations():
+            if station.get_parameter(stationParameters.triggered):
+                zenith = station.get_parameter(stationParameters.cr_zenith)
+                azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                ax.plot(azimuth, 
+                        zenith, 
+                        label=f'Station CS{station.get_id():03d}',
+                        marker='P',
+                        markersize=7,
+                        linestyle='')
+        
+        ax.plot(event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth),
+                event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith),
+                label='LORA',
+                marker="X",
+                markersize=7,
+                linestyle='',
+                color='black')
+        ax.legend()
+        plt.show()
+        plt.close(fig)
 
     def end(self):
         pass
