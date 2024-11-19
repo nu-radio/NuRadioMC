@@ -167,7 +167,7 @@ def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
 
     assert len(trace_u) == len(trace_v)
     h1 = scipy.signal.hilbert(trace_u)
-    h2 = scipy.signal.hilber(trace_v)
+    h2 = scipy.signal.hilbert(trace_v)
     stokes_i = np.abs(h1)**2 + np.abs(h2)**2
     stokes_q = np.abs(h1)**2 - np.abs(h2)**2
     uv = 2 * h1 * np.conjugate(h2)
