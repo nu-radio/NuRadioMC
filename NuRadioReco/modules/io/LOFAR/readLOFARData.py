@@ -4,6 +4,8 @@ import glob
 import json
 import math
 import logging
+from collections import defaultdict
+
 import numpy as np
 
 # from datetime import datetime
@@ -636,11 +638,8 @@ class readLOFARData:
             self.logger.debug("Channels deviating: %s" % channels_deviating)
             self.logger.debug("Channels no counterpart: %s" % channels_missing_counterpart)
 
-            # done here as it needs median timing values over all traces in the station
-            flagged_channel_ids: set[str] = channels_deviating.union(channels_missing_counterpart)
-
             # empty set to add the NRR flagged channel IDs to
-            flagged_nrr_channel_ids: set[int] = set()
+            flagged_nrr_channel_ids: dict = defaultdict(list)
             flagged_nrr_channel_group_ids: set[int] = set()  # keep track of channel group IDs to remove
 
             # Get the list of all dipole names which are present in the TTB file
@@ -653,10 +652,16 @@ class readLOFARData:
                 # convert TBB ID to NRR equivalent based on antenna set to be able to access trace
                 channel_id = int(tbbID_to_nrrID(TBB_channel_id, antenna_set))
 
-                if TBB_channel_id in flagged_channel_ids:
+                if TBB_channel_id in channels_deviating:
                     self.logger.status(f"Channel {channel_id} was flagged at read-in, "
                                        f"not adding to station {station_name}")
-                    flagged_nrr_channel_ids.add(channel_id)
+                    flagged_nrr_channel_ids[channel_id].append("reader_deviating_channel")
+                    flagged_nrr_channel_group_ids.add(detector.get_channel_group_id(station_id, channel_id))
+                    continue
+                elif TBB_channel_id in channels_missing_counterpart:
+                    self.logger.status(f"Channel {channel_id} was flagged at read-in, "
+                                       f"not adding to station {station_name}")
+                    flagged_nrr_channel_ids[channel_id].append("reader_channel_missing_counterpart")
                     flagged_nrr_channel_group_ids.add(detector.get_channel_group_id(station_id, channel_id))
                     continue
 
@@ -664,10 +669,9 @@ class readLOFARData:
                 try:
                     this_trace = lofar_trace_access.get_trace(TBB_channel_id)  # TBB_channel_id is str of 9 digits
                 except IndexError:
-                    flagged_channel_ids.add(TBB_channel_id)
-                    flagged_nrr_channel_ids.add(channel_id)
+                    self.logger.warning(f"Could not read data for channel id {channel_id}")
+                    flagged_nrr_channel_ids[channel_id].append("reader_trace_error")
                     flagged_nrr_channel_group_ids.add(detector.get_channel_group_id(station_id, channel_id))
-                    self.logger.warning("Could not read data for channel id %s" % channel_id)
                     continue
 
                 # The channel_group_id should be interpreted as an antenna index (e.g. like 'a1000000' which
@@ -697,7 +701,7 @@ class readLOFARData:
 
             for channel in channels_to_remove:
                 station.remove_channel(channel)
-                flagged_nrr_channel_ids.add(channel.get_id())
+                flagged_nrr_channel_ids[channel.get_id()].append("reader_removed_group_id")
 
             # store set of flagged nrr channel ids as station parameter
             station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
