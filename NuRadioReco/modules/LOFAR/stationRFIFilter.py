@@ -479,7 +479,7 @@ class stationRFIFilter:
             station_name = f'CS{station.get_id():03}'
             station_files = stations_dict[station_name]['files']
             antenna_set = stations_dict[station_name]['metadata'][1]
-            flagged_channel_ids = station.get_parameter(stationParameters.flagged_channels)  # this is a set
+            flagged_channel_ids: dict[int, list[str]] = station.get_parameter(stationParameters.flagged_channels)  # this is a defaultdict
 
             # Find the length of a trace in the station (assume all channels have been loaded with same length)
             station_trace_length = station.get_channel(station.get_channel_ids()[0]).get_number_of_samples()
@@ -497,6 +497,7 @@ class stationRFIFilter:
             flagged_tbb_channel_ids = set()
             for ind in flagged_channel_ids:
                 flagged_tbb_channel_ids.add(nrrID_to_tbbID(ind))  # in rawTBBio, antenna IDs are str
+
             if not self.do_polarizations_apart:
                 packet = FindRFI_LOFAR(station_files,
                                     self.metadata_dir,
@@ -568,9 +569,9 @@ class stationRFIFilter:
             for nrr_id in channel_ids_to_remove:
                 station.remove_channel(nrr_id)
 
-            flagged_channel_ids.update(
-                channel_ids_to_remove
-            )  # is set, not list
+            for channel_ind in channel_ids_to_remove:
+                flagged_channel_ids[channel_ind].append('rfi_outliers_cleaned_power')
+
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
 
             # Set spectral amplitude to zero for channels with RFI
