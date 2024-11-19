@@ -57,7 +57,7 @@ try:
     from numba import jit, njit
     numba_available = True
     print("Numba version of raytracer is available")
-except:
+except ImportError:
     print("Numba is not available")
     numba_available = False
 
@@ -193,19 +193,6 @@ def get_y_with_z_mirror(z, C_0, n_ice, b, delta_n, z_0, C_1=0.0):
     else:
         gamma = get_gamma(2 * z_turn - z, delta_n, z_0)
         return 2 * y_turn - get_y(gamma, C_0, C_1, n_ice, b, z_0)
-## Used in case of an array being passed as z 
-#    else:
-#        mask = z < z_turn
-#        res = np.zeros_like(z)
-#        zs = np.zeros_like(z)
-#        gamma = get_gamma(z[mask], delta_n, z_0)
-#        zs[mask] = z[mask]
-#        res[mask] = get_y(gamma, C_0, C_1, n_ice, b, z_0)
-#        gamma = get_gamma(2 * z_turn - z[~mask], delta_n, z_0)
-#        res[~mask] = 2 * y_turn - get_y(gamma, C_0, C_1, n_ice, b, z_0)
-#        zs[~mask] = 2 * z_turn - z[~mask]
-
-#        return np.array([res, zs])
 
 def get_y_turn( C_0, x1, n_ice, b, delta_n, z_0):
     """
@@ -452,6 +439,7 @@ class ray_tracing_2D(ray_tracing_base):
                     n = jit(n, nopython=True, cache=True)
                     self.use_cpp = False
                 except:
+                    self.__logger.warning("Error in compiling methods using jit - proceeding without numba")
                     compile_numba = False
 
 
