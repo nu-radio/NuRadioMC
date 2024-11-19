@@ -423,25 +423,19 @@ class ray_tracing_2D(ray_tracing_base):
                 global get_reflection_point,obj_delta_y_square,get_delta_y
                 global get_y_turn, get_y_with_z_mirror,get_turning_point
                 global get_gamma, get_y, get_C0_from_log
-                global  get_z_unmirrored, get_y_diff, n
-                try :
-                
-                    get_reflection_point = jit(get_reflection_point, nopython=True, cache=True)
-                    obj_delta_y_square = jit(obj_delta_y_square, nopython=True, cache=True)
-                    get_delta_y = jit(get_delta_y, nopython=True, cache=True)
-                    get_y_turn = jit(get_y_turn, nopython=True, cache=True)
-                    get_y_with_z_mirror = jit(get_y_with_z_mirror, nopython=True, cache=True)
-                    get_turning_point = jit(get_turning_point, nopython=True, cache=True)
-                    get_gamma = jit(get_gamma, nopython=True, cache=True)
-                    get_y = jit(get_y, nopython=True, cache=True)
-                    get_C0_from_log = jit(get_C0_from_log, nopython=True, cache=True)
-                    get_z_unmirrored = jit(get_z_unmirrored, nopython=True, cache=True)
-                    n = jit(n, nopython=True, cache=True)
-                    self.use_cpp = False
-                except:
-                    self.__logger.warning("Error in compiling methods using jit - proceeding without numba")
-                    compile_numba = False
-
+                global  get_z_unmirrored, get_y_diff, n                
+                get_reflection_point = jit(get_reflection_point, nopython=True, cache=True)
+                obj_delta_y_square = jit(obj_delta_y_square, nopython=True, cache=True)
+                get_delta_y = jit(get_delta_y, nopython=True, cache=True)
+                get_y_turn = jit(get_y_turn, nopython=True, cache=True)
+                get_y_with_z_mirror = jit(get_y_with_z_mirror, nopython=True, cache=True)
+                get_turning_point = jit(get_turning_point, nopython=True, cache=True)
+                get_gamma = jit(get_gamma, nopython=True, cache=True)
+                get_y = jit(get_y, nopython=True, cache=True)
+                get_C0_from_log = jit(get_C0_from_log, nopython=True, cache=True)
+                get_z_unmirrored = jit(get_z_unmirrored, nopython=True, cache=True)
+                n = jit(n, nopython=True, cache=True)
+                self.use_cpp = False
 
     def get_C_1(self, x1, C_0):
         """
