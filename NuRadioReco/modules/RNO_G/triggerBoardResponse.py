@@ -30,8 +30,9 @@ def get_component(det, collection="coax_cable", component="daq_drab_flower_2024_
     else:
         db = det.get_database()
         if db is None:
-            raise ValueError("No database connection. You probably imported the detector from a file. "
-                             "Please use the DB connection to load the component data.")
+            raise ValueError(
+                "No database connection. You probably imported the detector from a file. "
+                "Please use the DB connection to load the component data.")
 
         # load the s21 parameter measurement
         component_data = db.get_component_data(
@@ -99,7 +100,7 @@ class triggerBoardResponse:
         self._adc_output = adc_output
 
         # the fields that need to exist in the detector description for this module to work
-        self._mandatory_fields = ["trigger_amp_type", "trigger_adc_nbits", "trigger_adc_noise_nbits"]
+        self._mandatory_fields = ["trigger_adc_nbits", "trigger_adc_noise_nbits"]
 
         # Table 21 in https://www.analog.com/media/en/technical-documentation/data-sheets/hmcad1511.pdf
         self._triggerBoardAmplifications = np.array([1, 1.25, 2, 2.5, 4, 5, 8, 10, 12.5, 16, 20, 25, 32, 50])
