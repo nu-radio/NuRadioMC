@@ -550,22 +550,23 @@ class triggerSimulator:
             trigger_delays = {}
             triggered_beams = []
         else:
-            is_triggered, trigger_delays, trigger_time, trigger_times = self.phased_trigger(station=station,
-                                                                             det=det,
-                                                                             Vrms=Vrms,
-                                                                             threshold=threshold,
-                                                                             triggered_channels=triggered_channels,
-                                                                             phasing_angles=phasing_angles,
-                                                                             ref_index=ref_index,
-                                                                             trigger_adc=trigger_adc,
-                                                                             clock_offset=clock_offset,
-                                                                             adc_output=adc_output,
-                                                                             trigger_filter=trigger_filter,
-                                                                             upsampling_factor=upsampling_factor,
-                                                                             window=window,
-                                                                             step=step,
-                                                                             apply_digitization=apply_digitization,
-                                                                             )
+            is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps = self.phased_trigger(
+                station=station,
+                det=det,
+                Vrms=Vrms,
+                threshold=threshold,
+                triggered_channels=triggered_channels,
+                phasing_angles=phasing_angles,
+                ref_index=ref_index,
+                trigger_adc=trigger_adc,
+                clock_offset=clock_offset,
+                adc_output=adc_output,
+                trigger_filter=trigger_filter,
+                upsampling_factor=upsampling_factor,
+                window=window,
+                step=step,
+                apply_digitization=apply_digitization,
+            )
 
         # Create a trigger object to be returned to the station
         trigger = SimplePhasedTrigger(
