@@ -110,8 +110,9 @@ class Database(object):
             logger.error(f'Could not find database "{database_name}" in mongo client.')
             raise KeyError
 
+        logger.info("Attempting to connect to the database ...")
         self.db = self.__mongo_client[database_name]
-        logger.info("database connection to {} established".format(self.db.name))
+        logger.info(f"... connection to {self.db.name} established")
 
         # Set timestamp of database. This is used to determine which primary measurement is used
         self.__database_time = datetime.datetime.utcnow()
