@@ -75,7 +75,7 @@ class planeWaveDirectionFitter:
         self.logger.setLevel(logger_level)
 
     @staticmethod
-    def _get_timelags(station, channel_ids_dominant_pol, resample_factor=16):
+    def _get_timelags(station, channel_ids_dominant_pol):
         """
         Get timing differences between signals in antennas with respect to some reference antenna (the first one
         in the list of ids). The peak is determined using the Hilbert envelope after resampling the trace with
@@ -86,26 +86,17 @@ class planeWaveDirectionFitter:
         station : Station object
             The station for which to get the time lags
         channel_ids_dominant_pol : list of int
-            The list of channel ids to calculate the time lags for (usually the dominant polarisation)
-        resample_factor : int, default=16
-            The resample factor to use when calculating the peak
+            The list of channel ids to return the time lags for (usually the dominant polarisation)
 
         Returns
         -------
         timelags : np.ndarray
             The timelags (in internal units) for each channel in the list, with respect to the first one
         """
-        # Determine the signal time
+        # Get the signal time found by stationPulseFinder
         timelags = []
         for channel_id in channel_ids_dominant_pol:
-            channel = station.get_channel(channel_id)
-            pulse_window_start, pulse_window_end = channel.get_parameter(channelParameters.signal_regions)
-            resampled_window = resample(channel.get_trace()[pulse_window_start:pulse_window_end],
-                                        (pulse_window_end - pulse_window_start) * resample_factor)
-            resampled_max = np.argmax(resampled_window)
-            resampled_max_time = resampled_max / channel.get_sampling_rate() / resample_factor
-            window_start_time = pulse_window_start / channel.get_sampling_rate()
-            timelags.append(window_start_time + resampled_max_time)
+            timelags.append(station.get_channel(channel_id).get_parameter(channelParameters.signal_time))
 
         timelags -= timelags[0]  # get timelags wrt 1st antenna
 
@@ -391,11 +382,11 @@ class planeWaveDirectionFitter:
         ax.set_title(f'Residuals for station {station.get_id()}')
 
         fig.savefig(
-            f"pipeline_planewavefit_residuals_CS{station.get_id()}_{event.get_id()}.png",
+            f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_{event.get_id()}.png",
             dpi=250, bbox_inches='tight'
         )
         fig.savefig(
-            f"pipeline_planewavefit_residuals_CS{station.get_id()}_{event.get_id()}.svg",
+            f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_{event.get_id()}.svg",
             dpi=250, bbox_inches='tight'
         )
         plt.close(fig)
@@ -467,11 +458,11 @@ class planeWaveDirectionFitter:
         axd['residuals'].set_aspect('equal')
 
         fig.savefig(
-            f"pipeline_planewavefit_debug_CS{station.get_id()}_{event.get_id()}.png",
+            f"pipeline_planewavefit_debug_CS{station.get_id():03d}_{event.get_id()}.png",
             dpi=250, bbox_inches='tight'
         )
         fig.savefig(
-            f"pipeline_planewavefit_debug_CS{station.get_id()}_{event.get_id()}.svg",
+            f"pipeline_planewavefit_debug_CS{station.get_id():03d}_{event.get_id()}.svg",
             dpi=250, bbox_inches='tight'
         )
 

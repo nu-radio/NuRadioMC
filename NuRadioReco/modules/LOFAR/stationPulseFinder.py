@@ -10,7 +10,7 @@ from NuRadioReco.framework.parameters import stationParameters, channelParameter
 from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
 
-def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_start=0, noise_end=-1,
+def find_snr_of_timeseries(timeseries, sampling_rate=None, window_start=0, window_end=-1, noise_start=0, noise_end=-1,
                            resample_factor=1, full_output=False):
     r"""
     Return the signal-to-noise ratio (SNR) of a given time trace, defined as
@@ -24,6 +24,8 @@ def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_star
     ----------
     timeseries: array-like
         The time trace
+    sampling_rate : float
+        The sampling rate of the time trace (only needed if full_output=True)
     window_start : int
     window_end : int
         We look for the peak inside the resampled array `timeseries[window_start:window_end]`
@@ -33,7 +35,7 @@ def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_star
     resample_factor : int, default=1
         Factor with which the timeseries will be resampled, needs to be integer > 0
     full_output : bool, default=False
-        If True, also the peak of the envelope and RMS are returned
+        If True, also the peak of the envelope, RMS and signal time are returned
 
     Returns
     -------
@@ -47,6 +49,12 @@ def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_star
         amplitude_envelope
     )
 
+    if full_output:
+        resampled_max = np.argmax(analytic_signal)
+        resampled_max_time = resampled_max / sampling_rate / resample_factor
+        window_start_time = window_start / sampling_rate
+        signal_time = window_start_time + resampled_max_time
+
     rms = np.sqrt(
         np.mean(
             np.abs(hilbert(timeseries[noise_start:noise_end])) ** 2
@@ -54,7 +62,7 @@ def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_star
     )
 
     if full_output:
-        return peak / rms, peak, rms
+        return peak / rms, peak, rms, signal_time
 
     return peak / rms
 
@@ -195,13 +203,15 @@ class stationPulseFinder:
             self.logger.debug(f'Channel {channel.get_id()}: looking for signal in indices {signal_window}')
             self.logger.debug(f'Channel {channel.get_id()}: using {noise_window} as noise trace')
 
-            snr, peak, rms = find_snr_of_timeseries(channel.get_trace(),
+            snr, peak, rms, signal_time = find_snr_of_timeseries(channel.get_trace(),
+                                                    sampling_rate=channel.get_sampling_rate(),
                                                     window_start=signal_window[0], window_end=signal_window[1],
                                                     noise_start=noise_window[0], noise_end=noise_window[1],
                                                     resample_factor=16, full_output=True)
 
             channel.set_parameter(channelParameters.SNR, snr)
             channel.set_parameter(channelParameters.noise_rms, rms)
+            channel.set_parameter(channelParameters.signal_time, signal_time)
             channel.set_parameter(channelParameters.maximum_amplitude_envelope, peak)
             channel.set_parameter(channelParameters.maximum_amplitude, np.max(channel.get_trace()))
 
