@@ -89,6 +89,7 @@ The station-level attributes can be accessed using ``f[station_<station_id>].att
             :delim: |
 
             ``Vrms`` | RMS of the voltage used as thermal noise floor :math:`v_{n} = (k_{B} \, R \, T \, \Delta f) ^ {0.5}`. See the relevant section "Noise voltage and power" in this `wiki article <https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise>`_ (last two equations). Determine from ``Tnoise`` and ``bandwidth`` (see below).
+            ``Vrms_trigger`` | (Optional) Same as ``Vrms`` but for the trigger channels if they were simulated with a different response.
             ``bandwidth`` | Bandwidth is above equation. Calculated as the integral over the simulated filter response (`filt`) squared: :math:`\Delta f = np.trapz(np.abs(filt) ** 2, ff)`.
             ``antenna_positions`` | Relative position of all simulated antennas (channels)
 
@@ -154,7 +155,7 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``maximum_amplitudes_envelope`` | (``m_events``, ``n_channels``) | Maximum amplitude of the hilbert envelope for each event and channel
             ``multiple_triggers`` | (``m_showers``, ``n_triggers``) | A boolean array that specifies if a shower contributed to an event that fulfills a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
             ``multiple_triggers_per_event`` | (``m_events``, ``n_triggers``) | A boolean array that specifies if each event fulfilled a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
-            ``polarization`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D coordinates of the polarization vector at the antenna in cartesian coordinates. (The receive vector (which is opposite to the propagation direction) was used to rotate from spherical/on-sky coordinates to cartesian coordinates). The polarization vector does not include any propagation effects that could change the polarization, such as different reflectivities at the surface for the p and s polarization component.   
+            ``polarization`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D coordinates of the polarization vector at the antenna in cartesian coordinates. (The receive vector (which is opposite to the propagation direction) was used to rotate from spherical/on-sky coordinates to cartesian coordinates). The polarization vector does not include any propagation effects that could change the polarization, such as different reflectivities at the surface for the p and s polarization component.
             ``ray_tracing_C0`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
             ``ray_tracing_C1`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
             ``ray_tracing_reflection`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |

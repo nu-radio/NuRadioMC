@@ -150,9 +150,7 @@ class mySimulation(simulation.simulation):
         for idx, trigger_channel in enumerate(self.deep_trigger_channels):
             self.logger.info(
                 f'Vrms = {vrms_input_to_adc[idx] / units.mV:.2f} mV / {vrms_after_gain[idx] / units.mV:.2f} mV (after gain).')
-
-            if station.get_id() not in self._Vrms_per_trigger_channel:
-                self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
+            self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
 
 
         # this is only returning the correct value if digitize_trace=True for self.rnogADCResponse.run(..)
