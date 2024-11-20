@@ -185,7 +185,11 @@ class voltageToEfieldConverter:
                              efield3_f[0],
                              efield3_f[1]])
 
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, [0, 0, 0])
+        efield_position = np.mean([
+            det.get_relative_position(station.get_id(), channel_id)
+            for channel_id in use_channels], axis=0)
+
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, efield_position)
         electric_field.set_frequency_spectrum(efield3_f, station.get_channel(use_channels[0]).get_sampling_rate())
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
