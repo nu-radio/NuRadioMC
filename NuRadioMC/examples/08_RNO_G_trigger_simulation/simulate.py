@@ -8,7 +8,6 @@ import os
 import secrets
 import datetime as dt
 from scipy import constants
-import collections
 
 
 from NuRadioMC.EvtGen import generator
@@ -17,7 +16,6 @@ from NuRadioReco.utilities import units
 
 from NuRadioReco.detector.RNO_G import rnog_detector
 
-from NuRadioReco.modules import triggerTimeAdjuster
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
 
@@ -107,7 +105,6 @@ class mySimulation(simulation.simulation):
 
 
         self.highLowThreshold = highLowThreshold.triggerSimulator()
-        self.triggerTimeAdjuster = triggerTimeAdjuster.triggerTimeAdjuster()
         self.rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
         self.rnogADCResponse.begin(adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage")
 
@@ -127,7 +124,6 @@ class mySimulation(simulation.simulation):
             "3Hz": RNO_G_HighLow_Thresh(np.log10(3)),
         }
 
-        self._Vrms_per_trigger_channel = collections.defaultdict(dict)
 
     def _detector_simulation_filter_amp(self, evt, station, det):
         # apply the amplifiers and filters to get to RADIANT-level
@@ -175,9 +171,6 @@ class mySimulation(simulation.simulation):
                 triggered_channels=self.deep_trigger_channels,
                 trigger_name=f"deep_high_low_{thresh_key}",
             )
-
-        # run the adjustment on the full-band waveforms
-        self.triggerTimeAdjuster.run(evt, station, det)
 
 
 if __name__ == "__main__":
@@ -275,6 +268,7 @@ if __name__ == "__main__":
         outputfilenameNuRadioReco=nur_output_filename,
         config_file=args.config,
         trigger_channels=deep_trigger_channels,
+        # log_level=logging.INFO,
     )
 
     sim.run()
