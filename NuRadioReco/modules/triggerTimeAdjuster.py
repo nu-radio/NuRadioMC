@@ -23,6 +23,27 @@ class triggerTimeAdjuster:
         pass
 
 
+    def get_pre_trigger_time(self, trigger_name, channel_id):
+        """ Get the pre_trigger_time for a given trigger_name and channel_id """
+        if isinstance(self.__pre_trigger_time, float):
+            return self.__pre_trigger_time
+
+        pre_trigger_time = self.__pre_trigger_time
+        while isinstance(pre_trigger_time, dict):
+            if trigger_name in pre_trigger_time: # keys are different triggers
+                pre_trigger_time = pre_trigger_time[trigger_name]
+            elif channel_id in pre_trigger_time: # keys are channel_ids
+                pre_trigger_time = pre_trigger_time[channel_id]
+            else:
+                logger.error(
+                    'pre_trigger_time was specified as a dictionary, '
+                    f'but neither the trigger_name {trigger_name} '
+                    f'nor the channel id {channel_id} are present as keys'
+                    )
+                raise KeyError
+
+        return pre_trigger_time
+
     @register_run()
     def run(self, event, station, detector, mode='sim_to_data'):
         """
@@ -40,11 +61,11 @@ class triggerTimeAdjuster:
 
         Parameters
         ----------
-        event: NuRadioReco.framework.event.Event
+        event: `NuRadioReco.framework.event.Event`
 
-        station: NuRadioReco.framework.base_station.Station
+        station: `NuRadioReco.framework.base_station.Station`
 
-        detector: NuRadioReco.detector.detector.Detector
+        detector: `NuRadioReco.detector.detector.Detector`
 
         mode: 'sim_to_data' (default) | 'data_to_sim'
             If 'sim_to_data', cuts the (arbitrary-length) simulated traces
@@ -92,18 +113,24 @@ class triggerTimeAdjuster:
                     trace = channel.get_trace()
                     trace_length = len(trace)
                     detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
+                    sampling_rate = channel.get_sampling_rate()
+                    self.__check_sampling_rates(detector_sampling_rate, sampling_rate)
+
+                    # this should ensure that 1) the number of samples is even and
+                    # 2) resampling to the detector sampling rate results in the correct number of samples
+                    # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
+                    # current sampling rate)
                     number_of_samples = int(
-                        2 * np.ceil( # this should ensure that 1) the number of samples is even and 2) resampling to the detector sampling rate results in the correct number of samples (note that 2) can only be guaranteed if the detector sampling rate is lower than the current sampling rate)
+                        2 * np.ceil(
                             detector.get_number_of_samples(station.get_id(), channel.get_id()) / 2
-                            * channel.get_sampling_rate() / detector_sampling_rate
+                            * sampling_rate / detector_sampling_rate
                         ))
+
                     if number_of_samples > trace.shape[0]:
                         logger.error("Input has fewer samples than desired output. Channels has only {} samples but {} samples are requested.".format(
                             trace.shape[0], number_of_samples))
                         raise AttributeError
                     else:
-                        sampling_rate = channel.get_sampling_rate()
-                        self.__check_sampling_rates(detector_sampling_rate, sampling_rate)
                         trigger_time_sample = int(np.round(trigger_time_channel * sampling_rate))
                         # logger.debug(f"channel {channel.get_id()}: trace_start_time = {channel.get_trace_start_time():.1f}ns, trigger time channel {trigger_time_channel/units.ns:.1f}ns,  trigger time sample = {trigger_time_sample}")
                         channel_id = channel.get_id()
@@ -126,8 +153,6 @@ class triggerTimeAdjuster:
                                            f"trigger time sample = {trigger_time_sample}), the trace needs to be rolled by {roll_by} samples first" \
                                             f" = {roll_by / sampling_rate/units.ns:.2f}ns")
                             trace = np.roll(trace, roll_by)
-                            trigger_time_sample -= roll_by
-                            rel_station_time_samples = -roll_by
 
                         # shift trace to be in the correct location for cutting
                         trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]

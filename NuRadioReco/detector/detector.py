@@ -148,7 +148,7 @@ def Detector(*args, **kwargs):
 
         else:
             raise ValueError(f'Unknown source specifed (\"{source}\"). '
-                             f'Must be one of \"json\", \"sql\", "\dictionary\", \"mongo\"')
+                             f'Must be one of \"json\", \"sql\", \"dictionary\", \"mongo\"')
 
         has_reference_entry = _find_reference_entry(station_dict)
 
