@@ -143,16 +143,16 @@ class voltageToEfieldConverter:
 
         Parameters
         ----------
-        evt
-        station
-        det
+        evt : `NuRadioReco.framework.event.Event`
+        station : `NuRadioReco.framework.base_station.BaseStation`
+        det : Detector object
         use_channels: array of ints (default: [0, 1, 2, 3])
             the channel ids to use for the electric field reconstruction
         use_MC_direction: bool, default: False
-            if True uses zenith and azimuth direction from simulated station
-            if False uses reconstructed direction from station parameters.
+            If True uses zenith and azimuth direction from simulated station.
+            Otherwise, uses reconstructed direction from station parameters.
         force_Polarization: str, optional
-            if eTheta or ePhi, then only reconstructs chosen polarization of electric field,
+            If eTheta or ePhi, then only reconstructs chosen polarization of electric field,
             assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi
         """
         if use_channels is None:
@@ -169,7 +169,7 @@ class voltageToEfieldConverter:
 
         efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
         n_frequencies = len(V[0])
-        denom = (efield_antenna_factor[0][0] * efield_antenna_factor[1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[1][0])
+        denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
         mask = np.abs(denom) != 0
 
         # solve it in a vectorized way
