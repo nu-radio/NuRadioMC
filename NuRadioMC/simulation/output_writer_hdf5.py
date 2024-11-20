@@ -453,13 +453,15 @@ class outputWriterHDF5:
         if 'shower_ids' not in self._mout or len(self._mout['shower_ids']) == 0:
             logger.warning("no events to save, not writing output file")
             return False
+
         folder = os.path.dirname(self._output_filename)
         if not os.path.exists(folder) and folder != '':
             logger.warning(f"output folder {folder} does not exist, creating folder...")
             os.makedirs(folder)
+
+        logger.status("Start saving events to hdf5 ...")
         fout = h5py.File(self._output_filename, 'w')
 
-        logger.status("start saving events")
         # save data sets
         # all arrays need to be sorted by shower id
         sort = np.argsort(np.array(self._mout['shower_ids']))
@@ -480,7 +482,7 @@ class outputWriterHDF5:
             sort = np.argsort(np.array(value['shower_id']))
             for (key2, value2) in value.items():
                 # a few arrays are counting values for different events, so we need to sort them
-                if(key2 not in keys_per_event):
+                if key2 not in keys_per_event:
                     sg[key2] = np.array(value2)[sort]
                 else:
                     sg[key2] = np.array(value2)
@@ -492,13 +494,19 @@ class outputWriterHDF5:
         #     with open(self._detectorfile, 'r') as fdet:
         #         fout.attrs['detector'] = fdet.read()
 
-        # save antenna position separately to hdf5 output
+
+        # Save station level attributes
         for station_id in self._mout_groups:
             n_channels = self._det.get_number_of_channels(station_id)
             positions = np.zeros((n_channels, 3))
             for iCh, channel_id in enumerate(self._det.get_channel_ids(station_id)):
                 positions[iCh] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
             fout[f"station_{station_id:d}"].attrs['antenna_positions'] = positions
+            for key in self._mout_groups_attributes[station_id]:
+                if key not in fout[f"station_{station_id:d}"].attrs:
+                    fout[f"station_{station_id:d}"].attrs[key] = self._mout_groups_attributes[station_id][key]
+
+        # Store top level attributes
         fout.attrs['config'] = yaml.dump(self._mout_attributes['config'])
 
         # save NuRadioMC and NuRadioReco versions
@@ -511,6 +519,7 @@ class outputWriterHDF5:
                     fout.attrs[key] = self._mout_attributes[key]
                 else:
                     logger.warning(f"attribute {key} is None, not saving it")
+
         fout.close()
         return True
 
