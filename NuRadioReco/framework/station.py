@@ -125,7 +125,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             List of all channel ids
         """
         if return_group_ids:
-            channel_ids = {} # we use a set to avoid duplicates
+            channel_ids = set() # we use a set to avoid duplicates
             for channel in self.iter_channels():
                 channel_ids.add(channel.get_group_id())
         else:
