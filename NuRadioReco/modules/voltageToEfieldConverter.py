@@ -97,7 +97,12 @@ def stacked_lstsq(L, b, rcond=1e-10):
     Solve L x = b, via SVD least squares cutting of small singular values
     L is an array of shape (..., M, N) and b of shape (..., M).
     Returns x of shape (..., N)
+
+    Note that if L is symmetric, it is inverted analytically instead.
     """
+    if L.shape[-2] == L.shape[-1]: # try analytic matrix inversion if possible
+        return np.sum(np.linalg.inv(L) * b[:, None], axis=-1)
+
     u, s, v = np.linalg.svd(L, full_matrices=False)
     s_max = s.max(axis=-1, keepdims=True)
     s_min = rcond * s_max
@@ -110,11 +115,17 @@ def stacked_lstsq(L, b, rcond=1e-10):
 
 class voltageToEfieldConverter:
     """
-    This module reconstructs the electric field by solving the system of equation that related the incident electric field via the antenna response functions to the measured voltages
-    (see Eq. 4 of the NuRadioReco paper https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5).
-    The module assumed that the electric field is identical at the antennas/channels that are used for the reconstruction. Furthermore, at least two antennas with
+    Unfold the electric field from the channel voltages
+
+    This module reconstructs the electric field by solving the system of equation
+    that relate the incident electric field via the antenna response functions
+    to the measured voltages (see Eq. 4 of the NuRadioReco paper
+    https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5).
+    The module assumed that the electric field is identical at the antennas/channels
+    that are used for the reconstruction. Furthermore, at least two antennas with
     orthogonal polarization response are needed to reconstruct the 3dim electric field.
-    Alternatively, the polarization of the resulting efield could be forced to a single polarization component. In that case, a single antenna is sufficient.
+    Alternatively, the polarization of the resulting efield could be forced to a
+    single polarization component. In that case, a single antenna is sufficient.
     """
 
     def __init__(self):
@@ -137,12 +148,12 @@ class voltageToEfieldConverter:
         det
         use_channels: array of ints (default: [0, 1, 2, 3])
             the channel ids to use for the electric field reconstruction
-        use_MC_direction: bool
+        use_MC_direction: bool, default: False
             if True uses zenith and azimuth direction from simulated station
             if False uses reconstructed direction from station parameters.
-        force_Polarization: str
+        force_Polarization: str, optional
             if eTheta or ePhi, then only reconstructs chosen polarization of electric field,
-            assuming the other is 0. Otherwise, reconstructs electric field for both eTheta and ePhi
+            assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi
         """
         if use_channels is None:
             use_channels = [0, 1, 2, 3]
@@ -160,15 +171,7 @@ class voltageToEfieldConverter:
         n_frequencies = len(V[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[1][0])
         mask = np.abs(denom) != 0
-        # solving for electric field using just two orthorgonal antennas
-        E1 = np.zeros_like(V[0])
-        E2 = np.zeros_like(V[0])
-        E1[mask] = (V[0] * efield_antenna_factor[1][1] - V[1] * efield_antenna_factor[0][1])[mask] / denom[mask]
-        E2[mask] = (V[1] - efield_antenna_factor[1][0] * E1)[mask] / efield_antenna_factor[1][1][mask]
-        denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
-        mask = np.abs(denom) != 0
-        E1[mask] = (V[0] * efield_antenna_factor[-1][1] - V[-1] * efield_antenna_factor[0][1])[mask] / denom[mask]
-        E2[mask] = (V[-1] - efield_antenna_factor[-1][0] * E1)[mask] / efield_antenna_factor[-1][1][mask]
+
         # solve it in a vectorized way
         efield3_f = np.zeros((2, n_frequencies), dtype=complex)
         if force_Polarization == 'eTheta':
