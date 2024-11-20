@@ -543,12 +543,23 @@ class readLOFARData:
         zenith = math.remainder(lora_dict["LORA"]["zenith_rad"], 2 * np.pi)
         azimuth = math.remainder(lora_dict["LORA"]["azimuth_rad"], 2 * np.pi)
 
+        # Read in core position reconstruction from LORA
+        core_pos_x = lora_dict["LORA"]["core_x_m"]
+        core_pos_y = lora_dict["LORA"]["core_y_m"]
+
+        # Read in energy estimate from LORA
+        energy = lora_dict["LORA"]["energy_GeV"]
+        
         # The LORA coordinate system has x pointing East -> set this through magnetic field vector (values from 2015)
         self.__hybrid_shower.set_parameter(showerParameters.magnetic_field_vector,
                                            np.array([0.004675, 0.186270, -0.456412]))
         self.__hybrid_shower.set_parameter(showerParameters.zenith, zenith * units.radian)
         self.__hybrid_shower.set_parameter(showerParameters.azimuth, azimuth * units.radian)
 
+        # Add LORA core and energy to parameters. The z-Position of the core is always at 7.6m for LOFAR
+        self.__hybrid_shower.set_parameter(showerParameters.core, np.array([core_pos_x * units.m, core_pos_y * units.m, 7.6 * units.m]))
+        self.__hybrid_shower.set_parameter(showerParameters.energy, energy * units.GeV)
+        
         # Go through TBB directory and identify all files for this event
         tbb_filename_pattern = tbb_filetag_from_unix(self.__lora_timestamp)
 
