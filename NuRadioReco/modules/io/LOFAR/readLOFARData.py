@@ -555,7 +555,9 @@ class readLOFARData:
                                            np.array([0.004675, 0.186270, -0.456412]))
         self.__hybrid_shower.set_parameter(showerParameters.zenith, zenith * units.radian)
         self.__hybrid_shower.set_parameter(showerParameters.azimuth, azimuth * units.radian)
-        self.__hybrid_shower.set_parameter(showerParameters.core, np.array([core_pos_x * units.m, core_pos_y * units.m, 0.0 * units.m]))
+
+        # Add LORA core and energy to parameters. The z-Position of the core is always at 7.6m for LOFAR
+        self.__hybrid_shower.set_parameter(showerParameters.core, np.array([core_pos_x * units.m, core_pos_y * units.m, 7.6 * units.m]))
         self.__hybrid_shower.set_parameter(showerParameters.energy, energy * units.GeV)
         
         # Go through TBB directory and identify all files for this event
