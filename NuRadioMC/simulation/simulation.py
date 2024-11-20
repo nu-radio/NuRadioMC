@@ -1273,6 +1273,8 @@ class simulation:
 
         self._Vrms_per_channel = collections.defaultdict(dict)
         self._Vrms_efield_per_channel = collections.defaultdict(dict)
+        self._Vrms_per_trigger_channel = collections.defaultdict(dict)  # Only used for trigger channels in a custom trigger simulation (optional)
+
 
         if noise_temp is not None:
             if noise_temp == "detector":
@@ -1629,6 +1631,13 @@ class simulation:
                     for channel in station.iter_channels():
                         channel[chp.Vrms_NuRadioMC_simulation] = self._Vrms_per_channel[station_id][channel.get_id()]
                         channel[chp.bandwidth_NuRadioMC_simulation] = self._integrated_channel_response[station_id][channel.get_id()]
+
+                    if self.__trigger_channel_ids is not None and len(self._Vrms_per_trigger_channel):
+                        for channel in station.iter_channels():
+                            if channel.get_id() in self.__trigger_channel_ids:
+                                channel[chp.Vrms_trigger_NuRadioMC_simulation] = self._Vrms_per_trigger_channel[station_id][channel.get_id()]
+                            else:
+                                channel[chp.Vrms_trigger_NuRadioMC_simulation] = 0
 
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
