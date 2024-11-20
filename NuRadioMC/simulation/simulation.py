@@ -1532,24 +1532,28 @@ class simulation:
                 # we loop through all non-trigger channels and simulate the electric fields for all showers.
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
-                if (len(non_trigger_channels) > 0):
+                if len(non_trigger_channels):
                     logger.status(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
-                            sim_station = calculate_sim_efield(showers=event_group.get_sim_showers(),
-                                                            station_id=station_id, channel_id=channel_id,
-                                                            det=self._det, propagator=self._propagator, medium=self._ice,
-                                                            config=self._config,
-                                                            time_logger=self.__time_logger,
-                                                            min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id],
-                                                            distance_cut=self._get_distance_cut)
+                            sim_station = calculate_sim_efield(
+                                showers=event_group.get_sim_showers(),
+                                station_id=station_id, channel_id=channel_id,
+                                det=self._det, propagator=self._propagator, medium=self._ice,
+                                config=self._config,
+                                time_logger=self.__time_logger,
+                                min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude'])
+                                    * self._Vrms_efield_per_channel[station_id][channel_id],
+                                distance_cut=self._get_distance_cut)
                         else:
-                            sim_station = calculate_sim_efield_for_emitter(emitters=event_group.get_sim_emitters(),
-                                                station_id=station_id, channel_id=channel_id,
-                                                det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
-                                                rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
-                                                min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id],
-                                                time_logger=self.__time_logger)
+                            sim_station = calculate_sim_efield_for_emitter(
+                                emitters=event_group.get_sim_emitters(),
+                                station_id=station_id, channel_id=channel_id,
+                                det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
+                                rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
+                                min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude'])
+                                    * self._Vrms_efield_per_channel[station_id][channel_id],
+                                time_logger=self.__time_logger)
 
                         # skip to next channel if the efield is below the speed cut
                         if not sim_station.get_electric_fields():
@@ -1562,7 +1566,8 @@ class simulation:
                         apply_det_response_sim(sim_station, self._det, self._config, self.detector_simulation_filter_amp,
                                             event_time=self._evt_time, time_logger=self.__time_logger,
                                             detector_simulation_part1=self.detector_simulation_part1)
-                        logger.debug(f"adding sim_station to station {station_id} for event group {event_group.get_run_number()}, channel {channel_id}")
+
+                        logger.debug(f"Adding sim_station to station {station_id} for event group {event_group.get_run_number()}, channel {channel_id}")
                         station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
                         for evt in output_buffer[station_id].values():
                             # determine the trigger that was used to determine the readout window
@@ -1605,9 +1610,12 @@ class simulation:
                             for i, (name, instance, kwargs) in enumerate(evt.iter_modules(station_id)):
                                 if hasattr(instance, "get_filter"):
                                     filt *= instance.get_filter(ff, station_id, channel_id, self._det, **kwargs)
-                            noise = channelGenericNoiseAdder.bandlimited_noise_from_spectrum(len(channel.get_trace()), channel.get_sampling_rate(),
-                                                                                            spectrum=filt, amplitude=self._Vrms_per_channel[station.get_id()][channel_id],
-                                                                                            type='rayleigh', time_domain=False)
+
+                            noise = channelGenericNoiseAdder.bandlimited_noise_from_spectrum(
+                                len(channel.get_trace()), channel.get_sampling_rate(),
+                                spectrum=filt, amplitude=self._Vrms_per_channel[station.get_id()][channel_id],
+                                type='rayleigh', time_domain=False)
+
                             # from NuRadioReco.utilities import fft
                             # logger.warning(f"adding noise to channel {channel.get_id()} with Vrms = {Vrms[channel_id]/units.mV:.4f}mV, realized noise Vrms = {np.std(fft.freq2time(noise, 1/dt))/units.mV:.4f}mV")
                             channel.set_frequency_spectrum(channel.get_frequency_spectrum() + noise, channel.get_sampling_rate())
