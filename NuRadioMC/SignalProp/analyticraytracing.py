@@ -438,7 +438,7 @@ class ray_tracing_2D(ray_tracing_base):
                     n = jit(n, nopython=True, cache=True)
                     self.use_cpp = False
                 except: 
-                     self.__logger.warning("Error in compiling methods using jit - proceeding without numba")
+                    self.__logger.warning("Error in compiling methods using jit - proceeding without numba")
                     compile_numba = False
 
     def get_C_1(self, x1, C_0):
