@@ -1,0 +1,297 @@
+"""
+This module contains the pipelineVisualizer class for LOFAR.
+
+.. moduleauthor:: Karen Terveer <karen.terveer@fau.de>
+"""
+
+import logging
+import numpy as np
+import matplotlib.pyplot as plt
+import radiotools.helper as hp
+import scipy
+import radiotools
+
+from scipy.signal import resample
+
+from NuRadioReco.utilities import units
+from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
+from NuRadioReco.modules.base.module import register_run
+
+
+class pipelineVisualizer:
+    """
+    Creates debug plots from the LOFAR pipeline - 
+    This is the pipelineVisualizerTM for LOFAR.
+
+    Any significant plots resulting from the pipeline
+    should be added here by creating a function for them,
+    and calling all functions sequentially.
+    """
+
+    def __init__(self):
+
+        self.logger = logging.getLogger("NuRadioReco.pipelineVisualizer")
+
+
+    def begin(self, logger_level=logging.WARNING):
+
+        self.__logger_level = logger_level
+        self.logger.setLevel(logger_level)
+
+
+    def plot_polarization(self, event, detector):
+
+        """
+            Plot the polarization of the electric field.
+
+            Parameters
+            ----------
+            event : Event object
+                The event containing the stations and electric fields.
+            detector : Detector object
+                The detector object containing information about the detector.
+
+            Returns
+            -------
+            fig : matplotlib Figure object
+                The generated figure object containing the polarization plot.
+        """
+        lora_core = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.core)
+
+        fig_pol, ax = plt.subplots(figsize=(8,7))
+
+        for station in event.get_stations():
+
+            if station.get_parameter(stationParameters.triggered):
+                
+                zenith = station.get_parameter(stationParameters.cr_zenith)
+                azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                cs = radiotools.coordinatesystems.cstrafo(
+                zenith, azimuth, magnetic_field_vector=None, site="lofar")
+
+                efields = station.get_electric_fields()
+
+                for field in efields:
+
+                    ids = field.get_channel_ids()
+                    pos = detector.get_absolute_position(station.get_id()) + detector.get_relative_position(station.get_id(), ids[0])
+                    
+                    # transform to vxB and vxvxB, assuming the LORA core reco. 
+                    # This is likely NOT the correct core position, 
+                    # it has to be determined from the radio data later
+
+                    pos_vB = cs.transform_to_vxB_vxvxB(pos, core=lora_core)[0]
+                    pos_vvB = cs.transform_to_vxB_vxvxB(pos, core=lora_core)[1]
+
+                    pulse_window_start, pulse_window_end = station.get_channel(ids[0]).get_parameter(channelParameters.signal_regions)
+                    pulse_window_len = pulse_window_end - pulse_window_start
+
+                    stokes = field.get_stokes_parameters(window_samples=pulse_window_len, vxB_vxvxB=True, site="lofar")
+                    stokes_max = np.argmax(stokes[0])
+
+                    I = stokes[0,stokes_max]
+                    Q = stokes[1,stokes_max]
+                    U = stokes[2,stokes_max]
+                    V = stokes[3,stokes_max]
+
+                    I_sigma = stokes[0, stokes_max-2*pulse_window_len]
+                    Q_sigma = stokes[1, stokes_max-2*pulse_window_len]
+                    U_sigma = stokes[2, stokes_max-2*pulse_window_len]
+                    V_sigma = stokes[3, stokes_max-2*pulse_window_len]
+
+                    pol_angle = 0.5 * np.arctan2(U,Q)
+                    pol_angle_sigma= np.sqrt((U_sigma**2*(0.5*Q/(U**2+Q**2))**2 + Q_sigma**2*(0.5*U/(U**2+Q**2))**2))
+
+                    if np.abs(0.5 * np.arctan2(U,Q)) > 80*np.pi/180:
+                        self.logger.warning("strange polarization direction in channel group %s" % ids)
+
+                    pol_degree= np.sqrt(U**2 + Q**2 + V**2) / I
+                    pol_degree *= 7 # scale for better visibility
+
+                    dx = pol_degree * np.cos(pol_angle)
+                    dy = pol_degree * np.sin(pol_angle)
+
+                    dx_sigma_plus = pol_degree * np.cos(pol_angle + pol_angle_sigma)
+                    dy_sigma_plus = pol_degree * np.sin(pol_angle + pol_angle_sigma)
+
+                    dx_sigma_minus = pol_degree * np.cos(pol_angle - pol_angle_sigma)
+                    dy_sigma_minus = pol_degree * np.sin(pol_angle - pol_angle_sigma)
+
+                    ax.arrow(pos_vB, pos_vvB, dx_sigma_plus, dy_sigma_plus, head_width=5, head_length=6, fc='grey', ec='black', alpha=0.5)
+                    ax.arrow(pos_vB, pos_vvB, dx_sigma_minus, dy_sigma_minus, head_width=5, head_length=6, fc='grey', ec='black', alpha=0.5)
+                    ax.arrow(pos_vB, pos_vvB, dx, dy, head_width=5, head_length=6, fc='black', ec='black')
+
+        
+        ax.scatter([0], [0], color='red', s=50, label='LORA core', marker = 'x')
+        ax.legend()
+        ax.set_xlabel('Direction along $v \\times B$ [m]')
+        ax.set_ylabel('Direction along $v \\times (v \\times B)$ [m]')   
+
+        return fig_pol
+    
+    def show_direction_plot(self, event):
+        """
+        Create the final plot for the plane wave fit direction
+        reconstruction. Author: Philipp Laub
+
+        Parameters
+        ----------
+        event : Event object
+            The event for which to show the final plots.
+        """
+        
+        # plot reconstructed directions of all stations and compare to LORA in polar plot:
+        fig_dir, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax.set_theta_zero_location('E')
+        ax.set_theta_direction(1)
+        for station in event.get_stations():
+            if station.get_parameter(stationParameters.triggered):
+                zenith = station.get_parameter(stationParameters.cr_zenith)
+                azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                ax.plot(azimuth, 
+                        zenith, 
+                        label=f'Station CS{station.get_id():03d}',
+                        marker='P',
+                        markersize=7,
+                        linestyle='')
+        
+        ax.plot(event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth),
+                event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith),
+                label='LORA',
+                marker="X",
+                markersize=7,
+                linestyle='',
+                color='black')
+        ax.legend()
+        plt.title("Reconstructed arrival directions")
+
+        return fig_dir
+
+    def show_time_fluence_plot(self, event, detector, min_number_good_antennas=4):
+
+        """
+        Create the final plot for the plane wave fit, including
+        timing and pseudofluence. Author: Philipp Laub
+
+        Parameters
+        ----------
+        event : Event object
+            The event for which to show the final plots.
+        detector : Detector object
+            The detector for which to show the final plots.
+        min_number_good_antennas : int, default=4
+            The minimum number of good antennas that should be present in a station to consider it for the fit.
+        """
+
+        # plot the antenna positions and mark arrival time by color and "fluence" by markersize. 
+        # Also indicate the reconstructed arrival direction per station via an arrow.
+
+        from matplotlib.colors import Normalize
+
+        good_antennas_dict = {}
+        for station in event.get_stations():
+            if station.get_parameter(stationParameters.triggered):
+                good_antennas_dict[station.get_id()] = []
+                flagged_channels = station.get_parameter(stationParameters.flagged_channels)
+                # Get all group IDs which are still present in the station
+                station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
+
+                # Get the dominant polarisation orientation as calculated by stationPulseFinder
+                dominant_orientation = station.get_parameter(stationParameters.cr_dominant_polarisation)
+
+                good_channel_pair_ids = np.zeros((len(station_channel_group_ids), 2), dtype=int)
+                for ind, channel_group_id in enumerate(station_channel_group_ids):
+                    for channel in station.iter_channel_group(channel_group_id):
+                        if np.all(detector.get_antenna_orientation(station.get_id(), channel.get_id()) == dominant_orientation):
+                            good_channel_pair_ids[ind, 0] = channel.get_id()
+                        else:
+                            good_channel_pair_ids[ind, 1] = channel.get_id()
+
+                    # Check if dominant channel has been flagged
+                    channel = station.get_channel(good_channel_pair_ids[ind, 0])
+                    if channel.get_id() not in flagged_channels:
+                        good_antennas_dict[station.get_id()].append(channel.get_id())
+
+        fig_time, ax = plt.subplots(dpi=150, figsize=(8, 5))
+        fluences = []
+        positions = []
+        SNRs = []
+        for station in event.get_stations():
+            if station.get_parameter(stationParameters.triggered):
+                zenith = station.get_parameter(stationParameters.cr_zenith)
+                azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                good_antennas = good_antennas_dict[station.get_id()]
+                if len(good_antennas) >= min_number_good_antennas:
+                    for antenna in good_antennas:
+                        positions.append(detector.get_relative_position(station.get_id(), antenna) + detector.get_absolute_position(station.get_id()))
+                        channel = station.get_channel(antenna)
+                        SNRs.append(channel.get_parameter(channelParameters.SNR))
+                        fluences.append(np.sum(np.square(channel.get_trace())))
+                    station_pos = detector.get_absolute_position(station.get_id())
+                    ax.quiver(station_pos[0], station_pos[1], 
+                            np.cos(azimuth), np.sin(azimuth), 
+                            color='black', 
+                            scale=0.02, 
+                            scale_units='xy', 
+                            angles='uv',
+                            width=0.005)
+        
+        timelags = []
+        for station in event.get_stations():
+            if station.get_parameter(stationParameters.triggered):
+                good_antennas = good_antennas_dict[station.get_id()]
+                if len(good_antennas) >= min_number_good_antennas:
+                    for channel_id in good_antennas:
+                        timelags.append(station.get_channel(channel_id).get_parameter(channelParameters.signal_time))
+        
+        timelags = np.array(timelags)
+        timelags -= timelags[0]  # get timelags wrt 1st antenna
+        # plot all locations and use arrival time for color and fluence for marker size and add a colorbar
+        positions = np.array(positions)
+        fluences = np.array(fluences)
+        SNRs = np.array(SNRs)
+        fluence_norm = Normalize(vmin=np.min(fluences), vmax=np.max(fluences))
+        sc = ax.scatter(
+            positions[:,0], 
+            positions[:,1], 
+            c=timelags, 
+            s=15 * fluence_norm(fluences), 
+            cmap='viridis',
+            zorder=-1)
+        ax.set_aspect('equal')
+        plt.colorbar(sc, label='Relative arrival time [ns]', shrink=0.7)
+        ax.set_xlabel('Meters east [m]')
+        ax.set_ylabel('Meters north [m]')
+        plt.title("Antenna positions and arrival time")
+
+        return fig_time
+
+
+    @register_run()
+    def run(self, event, detector, polarization=False, direction=False):
+        """
+        Produce pipeline plots for the given event.
+
+        Parameters
+        ----------
+        event : Event object
+            The event for which to visualize the pipeline.
+        detector : Detector object
+            The detector for which to visualize the pipeline.
+        """
+
+        plots = []
+        if polarization:
+            plots.append(self.plot_polarization(event, detector))
+        if direction:
+            plots.append(self.show_direction_plot(event))
+            plots.append(self.show_time_fluence_plot(event, detector))
+
+        self.plots = [plot for plot in plots]
+
+        plt.show()
+           
+
+    def end(self):
+
+        pass
