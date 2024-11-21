@@ -33,7 +33,7 @@ class pipelineVisualizer:
         self.logger = logging.getLogger("NuRadioReco.pipelineVisualizer")
 
 
-    def begin(self, logger_level=logging.WARNING):
+    def begin(self, logger_level=logging.NOTSET):
 
         self.__logger_level = logger_level
         self.logger.setLevel(logger_level)
@@ -43,6 +43,14 @@ class pipelineVisualizer:
 
         """
             Plot the polarization of the electric field.
+            This method calculates the stokes parameters of the pulse 
+            using get_stokes from framework.electric_field, and
+            determines the polarization angle and degree, plotting
+            them as arrows in the vxB and vxvxB plane.
+            It estimates uncertainties by picking a pure noise value of
+            stokes parameters, propagating through the angle and degree
+            formulas and plotting them as arrows with reduced opacity.
+            Author: Karen Terveer
 
             Parameters
             ----------
@@ -53,40 +61,67 @@ class pipelineVisualizer:
 
             Returns
             -------
-            fig : matplotlib Figure object
+            fig_pol : matplotlib Figure object
                 The generated figure object containing the polarization plot.
         """
-        lora_core = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.core)
+
+        from NuRadioReco.framework.electric_field import get_stokes
+
+
 
         fig_pol, ax = plt.subplots(figsize=(8,7))
+        fcs = ['black', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'grey', 'cyan', 'magenta', 'yellow', 'red']
 
-        for station in event.get_stations():
+        lora_core = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.core)
+
+        try:
+            core = event.get_first_shower().get_parameter(showerParameters.core)
+
+        except:
+            self.logger.warning("No radio core found, using LORA core instead")
+            core = lora_core
+
+        for i, station in enumerate(event.get_stations()):
+        #for station in event.get_stations():
 
             if station.get_parameter(stationParameters.triggered):
-                
+
                 zenith = station.get_parameter(stationParameters.cr_zenith)
                 azimuth = station.get_parameter(stationParameters.cr_azimuth)
                 cs = radiotools.coordinatesystems.cstrafo(
                 zenith, azimuth, magnetic_field_vector=None, site="lofar")
-
                 efields = station.get_electric_fields()
+
+                station_pos = detector.get_absolute_position(station.get_id())
+                station_pos_vB = cs.transform_to_vxB_vxvxB(station_pos, core=core)[0]
+                station_pos_vvB = cs.transform_to_vxB_vxvxB(station_pos, core=core)[1]
+
+                ax.scatter(station_pos_vB, station_pos_vvB, color=fcs[i], s=20, label=f'Station CS{station.get_id():03d}')   
 
                 for field in efields:
 
                     ids = field.get_channel_ids()
-                    pos = detector.get_absolute_position(station.get_id()) + detector.get_relative_position(station.get_id(), ids[0])
-                    
+                    pos = station_pos + detector.get_relative_position(station.get_id(), ids[0])
+
                     # transform to vxB and vxvxB, assuming the LORA core reco. 
                     # This is likely NOT the correct core position, 
                     # it has to be determined from the radio data later
 
-                    pos_vB = cs.transform_to_vxB_vxvxB(pos, core=lora_core)[0]
-                    pos_vvB = cs.transform_to_vxB_vxvxB(pos, core=lora_core)[1]
+                    pos_vB = cs.transform_to_vxB_vxvxB(pos, core=core)[0]
+                    pos_vvB = cs.transform_to_vxB_vxvxB(pos, core=core)[1]
 
                     pulse_window_start, pulse_window_end = station.get_channel(ids[0]).get_parameter(channelParameters.signal_regions)
                     pulse_window_len = pulse_window_end - pulse_window_start
 
-                    stokes = field.get_stokes_parameters(window_samples=pulse_window_len, vxB_vxvxB=True, site="lofar")
+                    trace = field.get_trace()[:,pulse_window_start:pulse_window_end]
+
+                    efield_trace_vxB_vxvxB = cs.transform_to_vxB_vxvxB(
+                        cs.transform_from_onsky_to_ground(trace)
+                    )
+
+                    #get stokes parameters
+                    stokes = get_stokes(*efield_trace_vxB_vxvxB[:2], window_samples=64)
+
                     stokes_max = np.argmax(stokes[0])
 
                     I = stokes[0,stokes_max]
@@ -94,14 +129,18 @@ class pipelineVisualizer:
                     U = stokes[2,stokes_max]
                     V = stokes[3,stokes_max]
 
-                    I_sigma = stokes[0, stokes_max-2*pulse_window_len]
-                    Q_sigma = stokes[1, stokes_max-2*pulse_window_len]
-                    U_sigma = stokes[2, stokes_max-2*pulse_window_len]
-                    V_sigma = stokes[3, stokes_max-2*pulse_window_len]
+                    # get stokes uncertainties by picking a pure noise value
+                    I_sigma = stokes[0, stokes_max-pulse_window_len//4]
+                    Q_sigma = stokes[1, stokes_max-pulse_window_len//4]
+                    U_sigma = stokes[2, stokes_max-pulse_window_len//4]
+                    V_sigma = stokes[3, stokes_max-pulse_window_len//4]
 
                     pol_angle = 0.5 * np.arctan2(U,Q)
                     pol_angle_sigma= np.sqrt((U_sigma**2*(0.5*Q/(U**2+Q**2))**2 + Q_sigma**2*(0.5*U/(U**2+Q**2))**2))
 
+                    # if the polarization deviates from the vxB direction by more than 80 degrees,
+                    # this could indicate something wrong with the antenna. Show a warning including
+                    # the channel ids
                     if np.abs(0.5 * np.arctan2(U,Q)) > 80*np.pi/180:
                         self.logger.warning("strange polarization direction in channel group %s" % ids)
 
@@ -117,12 +156,19 @@ class pipelineVisualizer:
                     dx_sigma_minus = pol_degree * np.cos(pol_angle - pol_angle_sigma)
                     dy_sigma_minus = pol_degree * np.sin(pol_angle - pol_angle_sigma)
 
-                    ax.arrow(pos_vB, pos_vvB, dx_sigma_plus, dy_sigma_plus, head_width=5, head_length=6, fc='grey', ec='black', alpha=0.5)
-                    ax.arrow(pos_vB, pos_vvB, dx_sigma_minus, dy_sigma_minus, head_width=5, head_length=6, fc='grey', ec='black', alpha=0.5)
-                    ax.arrow(pos_vB, pos_vvB, dx, dy, head_width=5, head_length=6, fc='black', ec='black')
+                    ax.arrow(pos_vB, pos_vvB, dx_sigma_plus, dy_sigma_plus, head_width=2, head_length=5, fc=fcs[i], ec = fcs[i], alpha=0.5)
+                    ax.arrow(pos_vB, pos_vvB, dx_sigma_minus, dy_sigma_minus, head_width=2, head_length=5, ec = fcs[i], fc=fcs[i], alpha=0.5)
+                    ax.arrow(pos_vB, pos_vvB, dx, dy, head_width=2, head_length=6, fc=fcs[i], ec = fcs[i])
 
-        
-        ax.scatter([0], [0], color='red', s=50, label='LORA core', marker = 'x')
+        if (core != lora_core).all():
+            lora_vB = cs.transform_to_vxB_vxvxB(lora_core, core=core)[0]
+            lora_vvB = cs.transform_to_vxB_vxvxB(lora_core, core=core)[1]
+            ax.scatter(lora_vB, lora_vvB, color='tab:olive', s=50, label='LORA core', marker = 'x')
+            label = 'radio core'
+        else:
+            label = 'LORA core'
+
+        ax.scatter([0], [0], color='red', s=50, label=label, marker = 'x')
         ax.legend()
         ax.set_xlabel('Direction along $v \\times B$ [m]')
         ax.set_ylabel('Direction along $v \\times (v \\times B)$ [m]')   
@@ -130,6 +176,7 @@ class pipelineVisualizer:
         return fig_pol
     
     def show_direction_plot(self, event):
+
         """
         Create the final plot for the plane wave fit direction
         reconstruction. Author: Philipp Laub
@@ -138,6 +185,11 @@ class pipelineVisualizer:
         ----------
         event : Event object
             The event for which to show the final plots.
+        
+        Returns
+        -------
+        fig_dir : matplotlib Figure object
+            The generated figure object containing the direction plot.
         """
         
         # plot reconstructed directions of all stations and compare to LORA in polar plot:
@@ -180,13 +232,25 @@ class pipelineVisualizer:
         detector : Detector object
             The detector for which to show the final plots.
         min_number_good_antennas : int, default=4
-            The minimum number of good antennas that should be present in a station to consider it for the fit.
+            The minimum number of good antennas that should be 
+            present in a station to consider it for the fit.
+
+        Returns
+        -------
+        fig_pol : matplotlib Figure object
+            The generated figure object containing the polarization plot.
         """
 
         # plot the antenna positions and mark arrival time by color and "fluence" by markersize. 
         # Also indicate the reconstructed arrival direction per station via an arrow.
 
         from matplotlib.colors import Normalize
+        from astropy.time import Time
+
+        time = detector.get_detector_time().utc
+
+        if time.mjd < 56266:
+            self.logger.warning("Event was before Dec 1, 2012. The non-core station clocks might be off.")
 
         good_antennas_dict = {}
         for station in event.get_stations():
@@ -289,6 +353,7 @@ class pipelineVisualizer:
 
         self.plots = [plot for plot in plots]
 
+        plt.savefig('/vol/astro7/lofar/kterveer/projects/pipeline/scripts/plots.png')
         plt.show()
            
 
