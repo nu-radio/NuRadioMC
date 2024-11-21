@@ -886,8 +886,8 @@ class Database(object):
             supp_info = {k.replace(component + "_", ""): additional_information[k] for k in additional_information
                          if re.search(component, k)}
 
-            if re.search("_\d+", component, re.IGNORECASE):
-                collection_suffix = re.findall("(_\d+)", component, re.IGNORECASE)[0]
+            if re.search("_[0-9]+", component, re.IGNORECASE):
+                collection_suffix = re.findall("(_[0-9]+)", component, re.IGNORECASE)[0]
                 collection_component = component.replace(collection_suffix, "")
             else:
                 collection_component = component
