@@ -43,10 +43,9 @@ class channelReadoutWindowCutter:
         counter = 0
         for i, (name, instance, kwargs) in enumerate(event.iter_modules(station.get_id())):
             if name == 'channelReadoutWindowCutter':
-                if(kwargs['mode'] == mode):
-                    counter += 1
+                counter += 1
         if counter > 1:
-            logger.warning('channelReadoutWindowCutter was called twice with the same mode. '
+            logger.warning('channelReadoutWindowCutter was called twice. '
                            'This is likely a mistake. The module will not be applied again.')
             return 0
 
