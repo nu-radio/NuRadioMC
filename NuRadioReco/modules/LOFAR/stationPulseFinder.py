@@ -55,11 +55,20 @@ def find_snr_of_timeseries(timeseries, sampling_rate=None, window_start=0, windo
         window_start_time = window_start / sampling_rate
         signal_time = window_start_time + resampled_max_time
 
-    rms = np.sqrt(
-        np.mean(
-            np.abs(hilbert(timeseries[noise_start:noise_end])) ** 2
-        )
-    )
+    rms = np.std(np.abs(hilbert(timeseries[noise_start:noise_end])))
+    # (AC) The Hilbert envelope has a mean that is nonzero 
+    # the stddev only takes the variations around the mean
+    # whereas the (real) RMS takes the square of all values (incl the mean), then sqrt
+    # TEST if this SNR definition gives good results! 
+    # This is what seems to have been done in PyCRTools. See pulseenvelope.py:233
+    # and mMath.cc function hMaxSNR  
+
+
+    #rms = np.sqrt(
+    #    np.mean(
+    #        np.abs(hilbert(timeseries[noise_start:noise_end])) ** 2
+    #    )
+    #)
 
     if full_output:
         return peak / rms, peak, rms, signal_time
@@ -171,8 +180,8 @@ class stationPulseFinder:
             else:
                 station.set_parameter(stationParameters.triggered, False)
 
-            values_per_pol.append([np.max(amplitude_envelope), signal_window_start, signal_window_end])
-
+            values_per_pol.append([snr, signal_window_start, signal_window_end])
+            # SNR is technically better than just the max(envelope) as a measure for strongest polarization
         values_per_pol = np.asarray(values_per_pol)
         dominant = np.argmax(values_per_pol[:, 0])
         window_start, window_end = values_per_pol[dominant][1:]
