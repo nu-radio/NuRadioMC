@@ -173,17 +173,13 @@ class voltageToEfieldConverter:
         mask = np.abs(denom) != 0
 
         # solve it in a vectorized way
-        efield3_f = np.zeros((2, n_frequencies), dtype=complex)
+        efield3_f = np.zeros((3, n_frequencies), dtype=complex)
         if force_Polarization == 'eTheta':
-            efield3_f[:1, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 0, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+            efield3_f[1:2, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 0, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
         elif force_Polarization == 'ePhi':
-            efield3_f[1:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 1, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+            efield3_f[2:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 1, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
         else:
-            efield3_f[:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
-        # add eR direction
-        efield3_f = np.array([np.zeros_like(efield3_f[0], dtype=complex),
-                             efield3_f[0],
-                             efield3_f[1]])
+            efield3_f[1:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
 
         efield_position = np.mean([
             det.get_relative_position(station.get_id(), channel_id)
