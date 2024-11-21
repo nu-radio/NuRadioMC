@@ -180,7 +180,7 @@ def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
         window_samples = len(h1)
 
     stokes = np.asarray([
-        scipy.signal.convolve(i, np.ones(window_samples), mode='valid', method='fft') for i in stokes
+        scipy.signal.convolve(i, np.ones(window_samples), mode='valid') for i in stokes
     ])
     stokes /= window_samples
 
