@@ -1521,7 +1521,7 @@ class simulation:
                     if not evt.get_station().has_triggered():
                         continue
 
-                    triggerTimeAdjuster.run(evt, station, self._det)
+                    #triggerTimeAdjuster.run(evt, station, self._det)
                     evt_group_triggered = True
                     output_buffer[station_id][evt.get_id()] = evt
                 # end event loop
@@ -1632,12 +1632,11 @@ class simulation:
                         channel[chp.Vrms_NuRadioMC_simulation] = self._Vrms_per_channel[station_id][channel.get_id()]
                         channel[chp.bandwidth_NuRadioMC_simulation] = self._integrated_channel_response[station_id][channel.get_id()]
 
-                    if self.__trigger_channel_ids is not None and len(self._Vrms_per_trigger_channel):
-                        for channel in station.iter_channels():
-                            if channel.get_id() in self.__trigger_channel_ids:
-                                channel[chp.Vrms_trigger_NuRadioMC_simulation] = self._Vrms_per_trigger_channel[station_id][channel.get_id()]
-                            else:
-                                channel[chp.Vrms_trigger_NuRadioMC_simulation] = 0
+                        # Always store this, even when no "extra" trigger channels are simulated
+                        if self.__trigger_channel_ids is not None and channel.get_id() in self.__trigger_channel_ids and channel.get_id() in self._Vrms_per_trigger_channel[station_id]:
+                            channel[chp.Vrms_trigger_NuRadioMC_simulation] = self._Vrms_per_trigger_channel[station_id][channel.get_id()]
+                        else:
+                            channel[chp.Vrms_trigger_NuRadioMC_simulation] = 0
 
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
