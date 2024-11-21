@@ -28,7 +28,7 @@ import NuRadioReco.modules.efieldToVoltageConverterPerEfield
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
-import NuRadioReco.modules.triggerTimeAdjuster
+import NuRadioReco.modules.channelReadoutWindowCutter
 from NuRadioReco.detector import detector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
@@ -59,7 +59,7 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
+channelReadoutWindowCutter = NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter()
 
 def merge_config(user, default):
     """
@@ -1519,7 +1519,7 @@ class simulation:
                     if not evt.get_station().has_triggered():
                         continue
 
-                    triggerTimeAdjuster.run(evt, station, self._det)
+                    channelReadoutWindowCutter.run(evt, station, self._det)
                     evt_group_triggered = True
                     output_buffer[station_id][evt.get_id()] = evt
                 # end event loop
