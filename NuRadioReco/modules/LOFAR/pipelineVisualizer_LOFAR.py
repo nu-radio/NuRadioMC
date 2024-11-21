@@ -85,13 +85,15 @@ class pipelineVisualizer:
             self.logger.warning("No radio core found, using LORA core instead")
             core = lora_core
 
-        for i, station in enumerate(event.get_stations()):
-        #for station in event.get_stations():
+        azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
+        zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
+        
+        i=0
+        #for i, station in enumerate(event.get_stations()):
+        for station in event.get_stations():
 
             if station.get_parameter(stationParameters.triggered):
 
-                zenith = station.get_parameter(stationParameters.cr_zenith)
-                azimuth = station.get_parameter(stationParameters.cr_azimuth)
                 cs = radiotools.coordinatesystems.cstrafo(
                 zenith, azimuth, magnetic_field_vector=None, site="lofar")
                 efields = station.get_electric_fields()
@@ -100,16 +102,12 @@ class pipelineVisualizer:
                 station_pos_vB = cs.transform_to_vxB_vxvxB(station_pos, core=core)[0]
                 station_pos_vvB = cs.transform_to_vxB_vxvxB(station_pos, core=core)[1]
 
-                ax.scatter(station_pos_vB, station_pos_vvB, color=cmap(norm(i)), s=20, label=f'Station CS{station.get_id():03d}')   
+                ax.scatter(station_pos_vB, station_pos_vvB, color=cmap(norm(i)), s=20, label=f'CS{station.get_id():03d}')   
 
                 for field in efields:
 
                     ids = field.get_channel_ids()
                     pos = station_pos + detector.get_relative_position(station.get_id(), ids[0])
-
-                    # transform to vxB and vxvxB, assuming the LORA core reco. 
-                    # This is likely NOT the correct core position, 
-                    # it has to be determined from the radio data later
 
                     pos_vB = cs.transform_to_vxB_vxvxB(pos, core=core)[0]
                     pos_vvB = cs.transform_to_vxB_vxvxB(pos, core=core)[1]
@@ -164,6 +162,8 @@ class pipelineVisualizer:
                     ax.arrow(pos_vB, pos_vvB, dx_sigma_minus, dy_sigma_minus, head_width=2, head_length=5, ec = cmap(norm(i)), fc=cmap(norm(i)), alpha=0.5)
                     ax.arrow(pos_vB, pos_vvB, dx, dy, head_width=2, head_length=6, fc=cmap(norm(i)), ec = cmap(norm(i)))
 
+                i+=1
+
         if (core != lora_core).all():
             lora_vB = cs.transform_to_vxB_vxvxB(lora_core, core=core)[0]
             lora_vvB = cs.transform_to_vxB_vxvxB(lora_core, core=core)[1]
@@ -205,19 +205,22 @@ class pipelineVisualizer:
         num_stations = len(triggered_station_ids)
         cmap = get_cmap('jet')
         norm = Normalize(vmin=0, vmax=num_stations-1) 
+        
+        i=0
 
-        for i, station in enumerate(event.get_stations()):
+        for station in event.get_stations():
             if station.get_parameter(stationParameters.triggered):
                 zenith = station.get_parameter(stationParameters.cr_zenith)
                 azimuth = station.get_parameter(stationParameters.cr_azimuth)
                 ax.plot(azimuth, 
                         zenith, 
-                        label=f'Station CS{station.get_id():03d}',
+                        label=f'CS{station.get_id():03d}',
                         marker='P',
                         markersize=7,
                         linestyle='',
                         color=cmap(norm(i))
                         )
+                i+=1
         
         ax.plot(event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth),
                 event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith),
@@ -326,11 +329,14 @@ class pipelineVisualizer:
                     for channel_id in good_antennas:
                         timelags.append(station.get_channel(channel_id).get_parameter(channelParameters.signal_time))
 
-        for i, station in enumerate(event.get_stations()):
+        i=0
+        for station in event.get_stations():
             # plot absolute station positions
             if station.get_parameter(stationParameters.triggered):
                 station_pos = detector.get_absolute_position(station.get_id())
-                ax.scatter(station_pos[0], station_pos[1], color=cmap(norm(i)), s=20, label=f'Station CS{station.get_id():03d}')
+                ax.scatter(station_pos[0], station_pos[1], color=cmap(norm(i)), s=20, label=f'CS{station.get_id():03d}')
+                i+=1
+
 
         timelags = np.array(timelags)
         timelags -= timelags[0]  # get timelags wrt 1st antenna
