@@ -654,7 +654,7 @@
     <span class="n">distance_correlations</span> <span class="o">=</span> <span class="mi">30</span>
     <span class="n">shower_energy</span> <span class="o">=</span> <span class="mi">31</span> <span class="c1">#: the energy of the shower</span>
     <span class="n">viewing_angles</span> <span class="o">=</span> <span class="mi">32</span> <span class="c1">#: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float</span>
-    <span class="n">flagged_channels</span> <span class="o">=</span> <span class="mi">60</span>  <span class="c1">#: a set of flagged channel ids (calculated by readLOFARData and adjusted by stationRFIFilter)</span>
+    <span class="n">flagged_channels</span> <span class="o">=</span> <span class="mi">60</span>  <span class="c1">#: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)</span>
     <span class="n">cr_dominant_polarisation</span> <span class="o">=</span> <span class="mi">61</span>  <span class="c1">#: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)</span>
     <span class="n">dirty_fft_channels</span> <span class="o">=</span> <span class="mi">62</span>  <span class="c1">#: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)</span></div>
 

@@ -796,7 +796,7 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="NuRadioReco.framework.parameters.stationParameters.flagged_channels">
 <span class="sig-name descname"><span class="pre">flagged_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">60</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.stationParameters.flagged_channels" title="Permalink to this definition"></a></dt>
-<dd><p>a set of flagged channel ids (calculated by readLOFARData and adjusted by stationRFIFilter)</p>
+<dd><p>a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)</p>
 </dd></dl>
 
 <dl class="py attribute">
