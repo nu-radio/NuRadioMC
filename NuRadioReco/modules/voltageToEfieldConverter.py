@@ -101,7 +101,14 @@ def stacked_lstsq(L, b, rcond=1e-10):
     Note that if L is symmetric, it is inverted analytically instead.
     """
     if L.shape[-2] == L.shape[-1]: # try analytic matrix inversion if possible
-        return np.sum(np.linalg.inv(L) * b[:, None], axis=-1)
+
+        if L.shape[-1] == 2: # use explicit formula for matrix inverse
+            denom = (L[:,0,0] * L[:,1,1] - L[:,0,1] * L[:,1,0])
+            e_theta = (b[:,0] * L[:,1,1] - b[:,1] * L[:,0,1]) / denom
+            e_phi = (b[:,1] - L[:,1,0] * e_theta) / L[:,1,1]
+            return np.stack((e_theta, e_phi), axis=-1)
+        else:
+            return np.sum(np.linalg.inv(L) * b[:, None], axis=-1)
 
     u, s, v = np.linalg.svd(L, full_matrices=False)
     s_max = s.max(axis=-1, keepdims=True)
