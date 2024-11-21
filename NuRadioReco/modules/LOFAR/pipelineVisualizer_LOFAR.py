@@ -334,7 +334,7 @@ class pipelineVisualizer:
             # plot absolute station positions
             if station.get_parameter(stationParameters.triggered):
                 station_pos = detector.get_absolute_position(station.get_id())
-                ax.scatter(station_pos[0], station_pos[1], color=cmap(norm(i)), s=20, label=f'CS{station.get_id():03d}')
+                ax.scatter(station_pos[0], station_pos[1], color=cmap(norm(i)), s=20, marker = "*", label=f'CS{station.get_id():03d}')
                 i+=1
 
 
