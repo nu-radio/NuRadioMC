@@ -18,6 +18,9 @@ class triggerTimeAdjuster:
         logger.setLevel(log_level)
         self.__sampling_rate_warning_issued = False
         self.begin()
+        logger.warning(f"triggerTimeAdjuster is deprecated and will be removed soon. In most cased you can safely delete the application\
+                       of this module as it is automatically applied in NuRadioMC simulations. If you really need to use this module, \
+                       please use the channelReadoutWindowCutter module instead.")
 
     def begin(self):
         pass
@@ -76,6 +79,9 @@ class triggerTimeAdjuster:
             If the ``trigger_name`` was specified in the ``begin`` function,
             only this trigger is considered.
         """
+        logger.warning(f"triggerTimeAdjuster is deprecated and will be removed soon. In most cased you can safely delete the application\
+                       of this module as it is automatically applied in NuRadioMC simulations. If you really need to use this module, \
+                       please use the channelReadoutWindowCutter module instead.")
         counter = 0
         for i, (name, instance, kwargs) in enumerate(event.iter_modules(station.get_id())):
             if name == 'triggerTimeAdjuster':
