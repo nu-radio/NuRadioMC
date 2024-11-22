@@ -181,12 +181,6 @@ class planeWaveDirectionFitter:
         detector : Detector object
             The detector for which to run the plane wave fit.
         """
-
-        good_antennas_dict = {}
-        # converter = voltageToEfieldConverter()
-        # logging.getLogger('voltageToEfieldConverter').setLevel(self.__logger_level)
-        # converter.begin()
-
         for station in event.get_stations():
             if not station.get_parameter(stationParameters.triggered):
                 self.logger.debug(f"Station CS{station.get_id():03d} did not trigger, skipping...")
@@ -194,8 +188,8 @@ class planeWaveDirectionFitter:
             self.logger.debug(f"Running over station CS{station.get_id():03d}")
 
             # get LORA initial guess for the direction
-            zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
-            azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
+            lora_zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
+            lora_azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
 
             # Get all group IDs which are still present in the station
             station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
@@ -224,9 +218,6 @@ class planeWaveDirectionFitter:
                     if np.max(np.abs(channel.get_trace())) >= self.__min_amp:
                         good_amp_or_snr[ind] = True
 
-            station.set_parameter(stationParameters.zenith, zenith)
-            station.set_parameter(stationParameters.azimuth, azimuth)
-
             num_good_antennas = np.sum(good_amp_or_snr)
             mask_good_antennas = np.full(num_good_antennas, True)
 
@@ -237,7 +228,7 @@ class planeWaveDirectionFitter:
             # iteratively do the plane wave fit and remove outliers (controlled by rmsfactor)
             # until the number of good antennas remains constant
             niter = 0
-
+            zenith, azimuth = lora_zenith, lora_azimuth
             while niter < self.__max_iter:  # TODO: maybe add additional condition?
                 niter += 1
                 # if only three antennas (or less) remain, fit should not be trusted as it always has a solution (fails)
@@ -279,12 +270,8 @@ class planeWaveDirectionFitter:
                         'to the LORA estimate and recalculating the residual delays.'
                     )
 
-                    zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(
-                        showerParameters.zenith
-                    )
-                    azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(
-                        showerParameters.azimuth
-                    )
+                    zenith = lora_zenith
+                    azimuth = lora_azimuth
 
                     expected_delays = geometric_delay_far_field(
                         goodpositions, hp.spherical_to_cartesian(zenith / units.rad, azimuth / units.rad)
@@ -320,18 +307,11 @@ class planeWaveDirectionFitter:
                 self.logger.debug(f'azimuth = {np.rad2deg(azimuth):.3f}, zenith = {np.rad2deg(zenith):.3f}')
                 self.logger.debug(f'number of good antennas = {num_good_antennas:d}')
 
-                # Bookkeeping
-                station.set_parameter(stationParameters.zenith, zenith)
-                station.set_parameter(stationParameters.azimuth, azimuth)
-
                 # if the next iteration has the same number of good antennae the while loop will be terminated
                 if len(good_antennas[mask_good_antennas]) == num_good_antennas:
                     break
                 else:
                     num_good_antennas = len(good_antennas[mask_good_antennas])
-
-            azimuth = station.get_parameter(stationParameters.azimuth)
-            zenith = station.get_parameter(stationParameters.zenith)
 
             self.logger.status(
                 f"Azimuth (counterclockwise wrt to East) and zenith for station CS{station.get_id():03d}:"
@@ -343,8 +323,21 @@ class planeWaveDirectionFitter:
             )
             self.logger.status(f"{90 - azimuth / units.deg}, {90 - zenith / units.deg}")
 
-            station.set_parameter(stationParameters.cr_zenith, zenith)
-            station.set_parameter(stationParameters.cr_azimuth, azimuth)
+            # Set stationParameters.zenith/azimuth because voltageToEfieldConverter uses these to convert
+            # NOTE: these can be the LORA direction (in case the fit failed)
+            station.set_parameter(stationParameters.zenith, zenith)
+            station.set_parameter(stationParameters.azimuth, azimuth)
+
+            # Only set reconstructed direction if it is not identical to the LORA direction
+            if not (zenith == lora_zenith and azimuth == lora_azimuth):
+                self.logger.info(
+                    f"The fit for station CS{station.get_id():03d} seems to have failed."
+                    f"I will not set the cr_zenith and cr_azimuth station parameters, but you can"
+                    f"still unfold the voltages to electric fields with the LORA direction as this"
+                    f"is saved in the zenith and azimuth station parameters."
+                )
+                station.set_parameter(stationParameters.cr_zenith, zenith)
+                station.set_parameter(stationParameters.cr_azimuth, azimuth)
 
             # flag channels that were not used in the fit
             station_flagged_channels = station.get_parameter(stationParameters.flagged_channels)
