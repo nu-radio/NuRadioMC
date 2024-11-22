@@ -594,13 +594,15 @@ class stationRFIFilter:
     def end(self, event=None):
         if event is not None:
             for station in event.get_stations():
-                self.plot_median_freq_spectrum(station, rfi_cleaned=False, flagging=True)
-                self.plot_median_freq_spectrum(station, rfi_cleaned=True, flagging=False)
+                self.plot_median_freq_spectrum(event, station, rfi_cleaned=False, flagging=True)
+                self.plot_median_freq_spectrum(event, station, rfi_cleaned=True, flagging=False)
 
-    def plot_median_freq_spectrum(self, station, rfi_cleaned: bool = False, flagging: bool = False):
+    def plot_median_freq_spectrum(self, event, station, rfi_cleaned: bool = False, flagging: bool = False):
         import matplotlib.pyplot as plt
         if flagging and rfi_cleaned:
             logger.warning("plot_median_freq_spectrum flagging the rfi_cleaned channels in a clean trace is weird, but ok")
+
+        station_name = f'CS{station.get_id():03d}'
 
         if rfi_cleaned:
             # median spectrum from channels in the station. Since this function is expected to run in the .end() after .run(), the traces there are cleaned
@@ -609,9 +611,11 @@ class stationRFIFilter:
                 spectrum = channel.get_frequency_spectrum()
                 spectra.append(np.abs(spectrum))
             median_spectrum = np.median(np.array(spectra), axis=0)
+            plot_filename = f"{event.get_id()}-{station_name}-rfi_cleaning_flags.pdf"
         else:
             # pre rfi cleaned spectrum stored
             median_spectrum = self.__median_spectrum[station.get_id()]
+            plot_filename = f"{event.get_id()}-{station_name}-median_spectrum_after_rfi_cleaning.pdf"
 
         fig = plt.figure()
         ax = fig.add_subplot()
@@ -624,6 +628,7 @@ class stationRFIFilter:
             ax.scatter(freq_MHz[dirty_channels], log_median_spectrum[dirty_channels], marker="x", color="red", zorder=2)
         ax.set_xlabel("Frequency [MHz]")
         ax.set_ylabel("Log-Spectral Power [ADU]")
-        station_name = f'CS{station.get_id():03}'
         ax.set_title(f"{station_name} Median frequency spectrum")
-        plt.show()
+        import os 
+        os.makedirs(str(event.get_id()), exist_ok=True)
+        plt.savefig(f"{event.get_id()}/" + plot_filename)
