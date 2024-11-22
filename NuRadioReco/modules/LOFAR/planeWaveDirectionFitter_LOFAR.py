@@ -10,7 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import radiotools.helper as hp
 
-from scipy.signal import resample
 
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
@@ -36,7 +35,7 @@ class planeWaveDirectionFitter:
         self.__max_iter = None
         self.__min_number_good_antennas = None
 
-    def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, force_horizontal_array=True, window_size=256,
+    def begin(self, max_iter=10, cr_snr=3, min_amp=None, rmsfactor=2.0, force_horizontal_array=True,
               debug=False, logger_level=logging.NOTSET, min_number_good_antennas=4):
         """
         Set the parameters for the plane wave fit.
@@ -57,8 +56,6 @@ class planeWaveDirectionFitter:
         force_horizontal_array : bool, default=True
             Set to True when you know the array is non-horizontal (z > 0.5) but want to use the
             horizontal approximation anyway. Recommended to set to True.
-        window_size : int, default=256
-            The size of the window to use for the pulse finding.
         debug : bool, default=False
             Set to True to enable debug plots.
         logger_level : int, default=logging.WARNING
@@ -71,7 +68,6 @@ class planeWaveDirectionFitter:
         self.__min_amp = min_amp
         self.__rmsfactor = rmsfactor
         self.__ignore_non_horizontal_array = force_horizontal_array
-        self.__window_size = window_size
         self.__debug = debug
         self.__logger_level = logger_level
         self.logger.setLevel(logger_level)
@@ -349,6 +345,37 @@ class planeWaveDirectionFitter:
 
             station.set_parameter(stationParameters.flagged_channels, station_flagged_channels)
 
+    @staticmethod
+    def __check_for_good_ant(detector, event):
+        """
+        Create a dictionary which for every station in the event contains a list of antennas which have not
+        been flagged.
+        """
+        good_antennas_dict = {}
+        for station in event.get_stations():
+            if station.get_parameter(stationParameters.triggered):
+                good_antennas_dict[station.get_id()] = []
+                flagged_channels = station.get_parameter(stationParameters.flagged_channels)
+                # Get all group IDs which are still present in the station
+                station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
+
+                # Get the dominant polarisation orientation as calculated by stationPulseFinder
+                dominant_orientation = station.get_parameter(stationParameters.cr_dominant_polarisation)
+
+                good_channel_pair_ids = np.zeros((len(station_channel_group_ids), 2), dtype=int)
+                for ind, channel_group_id in enumerate(station_channel_group_ids):
+                    for channel in station.iter_channel_group(channel_group_id):
+                        if np.all(detector.get_antenna_orientation(station.get_id(), channel.get_id()) == dominant_orientation):
+                            good_channel_pair_ids[ind, 0] = channel.get_id()
+                        else:
+                            good_channel_pair_ids[ind, 1] = channel.get_id()
+
+                    # Check if dominant channel has been flagged
+                    channel = station.get_channel(good_channel_pair_ids[ind, 0])
+                    if channel.get_id() not in flagged_channels:
+                        good_antennas_dict[station.get_id()].append(channel.get_id())
+
+        return good_antennas_dict
 
     @staticmethod
     def debug_plots(
@@ -472,8 +499,7 @@ class planeWaveDirectionFitter:
 
         plt.close(fig)
 
-    @staticmethod
-    def show_direction_plots(event, detector, min_number_good_antennas=4):
+    def show_direction_plots(self, event, detector, min_number_good_antennas=4):
         """
         Show the final plots for the plane wave fit.
 
@@ -486,61 +512,30 @@ class planeWaveDirectionFitter:
         min_number_good_antennas : int, default=4
             The minimum number of good antennas that should be present in a station to consider it for the fit.
         """
-        from matplotlib.colors import Normalize
-        # plot reconstructed directions of all stations and compare to LORA in polar plot:
-        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-        ax.set_theta_zero_location('E')
-        ax.set_theta_direction(1)
-        for station in event.get_stations():
-            if station.get_parameter(stationParameters.triggered):
-                zenith = station.get_parameter(stationParameters.cr_zenith)
-                azimuth = station.get_parameter(stationParameters.cr_azimuth)
-                ax.plot(azimuth, 
-                        zenith, 
-                        label=f'Station CS{station.get_id():03d}',
-                        marker='P',
-                        markersize=7,
-                        linestyle='')
-        
-        ax.plot(event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth),
-                event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith),
-                label='LORA',
-                marker="X",
-                markersize=7,
-                linestyle='',
-                color='black')
-        ax.legend()
-        plt.title("Reconstructed arrival directions")
-        figname = f"pipeline_planewavefit_arrival_direction_{event.get_id()}"
-        fig.savefig(f"{figname}.svg", dpi=250, bbox_inches='tight')
-        fig.savefig(f"{figname}.png", dpi=250, bbox_inches='tight')
-        plt.close(fig)
+        # Make a comparison of the reconstructed direction per station with the LORA direction
+        arrival_direction_figure = self.show_arrival_direction(event)
 
-        # plot the antenna positions and mark arrival time by color and "fluence" by markersize. 
+        fig_name = f"pipeline_planewavefit_arrival_direction_{event.get_id()}"
+        arrival_direction_figure.savefig(f"{fig_name}.svg", dpi=250, bbox_inches='tight')
+        arrival_direction_figure.savefig(f"{fig_name}.png", dpi=250, bbox_inches='tight')
+
+        plt.close(arrival_direction_figure)
+
+        # Plot the antenna positions and mark arrival time by color and "fluence" by markersize.
         # Also indicate the reconstructed arrival direction per station via an arrow.
-        good_antennas_dict = {}
-        for station in event.get_stations():
-            if station.get_parameter(stationParameters.triggered):
-                good_antennas_dict[station.get_id()] = []
-                flagged_channels = station.get_parameter(stationParameters.flagged_channels)
-                # Get all group IDs which are still present in the station
-                station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
+        arrival_time_fig = self.show_arrival_time_fluence(detector, event, min_number_good_antennas)
 
-                # Get the dominant polarisation orientation as calculated by stationPulseFinder
-                dominant_orientation = station.get_parameter(stationParameters.cr_dominant_polarisation)
+        fig_name = f"pipeline_planewavefit_arrival_time_fluence_{event.get_id()}"
+        arrival_time_fig.savefig(f"{fig_name}.svg", dpi=250, bbox_inches='tight')
+        arrival_time_fig.savefig(f"{fig_name}.png", dpi=250, bbox_inches='tight')
 
-                good_channel_pair_ids = np.zeros((len(station_channel_group_ids), 2), dtype=int)
-                for ind, channel_group_id in enumerate(station_channel_group_ids):
-                    for channel in station.iter_channel_group(channel_group_id):
-                        if np.all(detector.get_antenna_orientation(station.get_id(), channel.get_id()) == dominant_orientation):
-                            good_channel_pair_ids[ind, 0] = channel.get_id()
-                        else:
-                            good_channel_pair_ids[ind, 1] = channel.get_id()
+        plt.close(arrival_time_fig)
 
-                    # Check if dominant channel has been flagged
-                    channel = station.get_channel(good_channel_pair_ids[ind, 0])
-                    if channel.get_id() not in flagged_channels:
-                        good_antennas_dict[station.get_id()].append(channel.get_id())
+    def show_arrival_time_fluence(self, detector, event, min_number_good_antennas):
+        from matplotlib.colors import Normalize
+
+        # Find all the good antennas
+        good_antennas_dict = self.__check_for_good_ant(detector, event)
 
         fig, ax = plt.subplots(dpi=150, figsize=(8, 5))
         fluences = []
@@ -548,44 +543,53 @@ class planeWaveDirectionFitter:
         SNRs = []
         for station in event.get_stations():
             if station.get_parameter(stationParameters.triggered):
-                zenith = station.get_parameter(stationParameters.cr_zenith)
-                azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                try:
+                    azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                except KeyError:
+                    self.logger.info(
+                        f"Station CS{station.get_id():03d} does not have a reconstructed direction, "
+                        f"so I am not plotting this one."
+                    )
+                    continue
                 good_antennas = good_antennas_dict[station.get_id()]
                 if len(good_antennas) >= min_number_good_antennas:
                     for antenna in good_antennas:
-                        positions.append(detector.get_relative_position(station.get_id(), antenna) + detector.get_absolute_position(station.get_id()))
+                        positions.append(
+                            detector.get_relative_position(station.get_id(), antenna) + detector.get_absolute_position(
+                                station.get_id()))
                         channel = station.get_channel(antenna)
                         SNRs.append(channel.get_parameter(channelParameters.SNR))
                         fluences.append(np.sum(np.square(channel.get_trace())))
                     station_pos = detector.get_absolute_position(station.get_id())
-                    ax.quiver(station_pos[0], station_pos[1], 
-                            np.cos(azimuth), np.sin(azimuth), 
-                            color='black', 
-                            scale=0.02, 
-                            scale_units='xy', 
-                            angles='uv',
-                            width=0.005)
-        
+                    ax.quiver(station_pos[0], station_pos[1],
+                              np.cos(azimuth), np.sin(azimuth),
+                              color='black',
+                              scale=0.02,
+                              scale_units='xy',
+                              angles='uv',
+                              width=0.005)
         timelags = []
+
         for station in event.get_stations():
             if station.get_parameter(stationParameters.triggered):
                 good_antennas = good_antennas_dict[station.get_id()]
                 if len(good_antennas) >= min_number_good_antennas:
                     for channel_id in good_antennas:
                         timelags.append(station.get_channel(channel_id).get_parameter(channelParameters.signal_time))
-        
+
         timelags = np.array(timelags)
-        timelags -= timelags[0]  # get timelags wrt 1st antenna
+        timelags -= timelags[0]
+
         # plot all locations and use arrival time for color and fluence for marker size and add a colorbar
         positions = np.array(positions)
         fluences = np.array(fluences)
         SNRs = np.array(SNRs)
         fluence_norm = Normalize(vmin=np.min(fluences), vmax=np.max(fluences))
         sc = ax.scatter(
-            positions[:,0], 
-            positions[:,1], 
-            c=timelags, 
-            s=15 * fluence_norm(fluences), 
+            positions[:, 0],
+            positions[:, 1],
+            c=timelags,
+            s=15 * fluence_norm(fluences),
             cmap='viridis',
             zorder=-1)
         ax.set_aspect('equal')
@@ -593,11 +597,48 @@ class planeWaveDirectionFitter:
         ax.set_xlabel('Meters east [m]')
         ax.set_ylabel('Meters north [m]')
         plt.title("Antenna positions and arrival time")
-        figname = f"pipeline_planewavefit_arrival_time_fluence_{event.get_id()}"
-        fig.savefig(f"{figname}.svg", dpi=250, bbox_inches='tight')
-        fig.savefig(f"{figname}.png", dpi=250, bbox_inches='tight')
-        plt.close(fig)
+        return fig
 
+    def show_arrival_direction(self, event):
+        # plot reconstructed directions of all stations and compare to LORA in polar plot:
+        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+
+        ax.set_theta_zero_location('E')
+        ax.set_theta_direction(1)
+
+        for station in event.get_stations():
+            if station.get_parameter(stationParameters.triggered):
+                try:
+                    zenith = station.get_parameter(stationParameters.cr_zenith)
+                    azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                except KeyError:
+                    self.logger.info(
+                        f"Station CS{station.get_id():03d} does not have a reconstructed direction, "
+                        f"so I am not plotting this one."
+                    )
+                    continue
+                ax.plot(
+                    azimuth, zenith,
+                    label=f'Station CS{station.get_id():03d}',
+                    marker='P',
+                    markersize=7,
+                    linestyle=''
+                )
+
+        ax.plot(
+            event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth),
+            event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith),
+            label='LORA',
+            marker="X",
+            markersize=7,
+            linestyle='',
+            color='black'
+        )
+
+        ax.legend()
+        ax.set_title("Reconstructed arrival directions")
+
+        return fig
 
     def end(self):
         pass
