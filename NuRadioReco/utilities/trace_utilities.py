@@ -20,7 +20,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
 
     Parameters
     ----------
-    
+
     station: Station
     frequencies: array of complex
         frequencies of the radio signal for which the antenna response is needed
@@ -120,7 +120,7 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 
 
     Parameters
     ----------
-    
+
     trace: array of floats
         Trace to be upsampled
     original_sampling_frequency: float
@@ -232,9 +232,12 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
 def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
     """
     Delays a trace by transforming it to frequency and multiplying by phases.
-    Since this method is cyclic, the trace has to be cropped. It only accepts
-    positive delays, so some samples from the beginning are thrown away and then
-    some samples from the end so that the total number of samples is equal to
+
+    Since this method is cyclic, the delayed trace has to be cropped. A positive
+    delay means that the trace is shifted to the right, i.e., its delayed. A
+    negative delay would mean that the trace is shifted to the left. Samples
+    from the beginning or end are thrown away. Optionally one can crop the
+    trace (from the end) so that the total number of samples is equal to
     the argument delayed samples.
 
     Parameters
@@ -254,11 +257,6 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
     delayed_trace: array of floats
         The delayed, cropped trace
     """
-
-    if time_delay < 0:
-        msg = 'Time delay must be positive'
-        raise ValueError(msg)
-
     n_samples = len(trace)
 
     spectrum = fft.time2freq(trace, sampling_frequency)
@@ -268,10 +266,13 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
 
     delayed_trace = fft.freq2time(spectrum, sampling_frequency)
 
-    init_sample = int(time_delay * sampling_frequency) + 1
+    cycled_samples = int(time_delay * sampling_frequency) + 1
+    if time_delay > 0:
+        delayed_trace = delayed_trace[cycled_samples:]
+    else:
+        delayed_trace = delayed_trace[:cycled_samples]
 
     if delayed_samples is not None:
-        delayed_trace = delayed_trace[init_sample:None]
         delayed_trace = delayed_trace[:delayed_samples]
 
     return delayed_trace
