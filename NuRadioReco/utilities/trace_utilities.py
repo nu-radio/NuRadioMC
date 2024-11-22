@@ -256,6 +256,8 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
     -------
     delayed_trace: array of floats
         The delayed, cropped trace
+    dt_start: float
+        The time change of the trace start time.
     """
     n_samples = len(trace)
 
@@ -266,13 +268,15 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
 
     delayed_trace = fft.freq2time(spectrum, sampling_frequency)
 
-    cycled_samples = int(time_delay * sampling_frequency) + 1
+    cycled_samples = int(round(time_delay * sampling_frequency))
     if time_delay > 0:
         delayed_trace = delayed_trace[cycled_samples:]
+        dt_start = cycled_samples * sampling_frequency
     else:
         delayed_trace = delayed_trace[:cycled_samples]
+        dt_start = 0
 
     if delayed_samples is not None:
         delayed_trace = delayed_trace[:delayed_samples]
 
-    return delayed_trace
+    return delayed_trace, dt_start
