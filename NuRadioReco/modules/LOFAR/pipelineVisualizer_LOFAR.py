@@ -20,6 +20,38 @@ from NuRadioReco.framework.parameters import stationParameters, channelParameter
 from NuRadioReco.modules.base.module import register_run
 
 
+def check_for_good_ant(event, detector):
+    """
+    Create a dictionary which for every station in the event contains a list of antennas which have not
+    been flagged.
+    """
+    good_antennas_dict = {}
+    for station in event.get_stations():
+        if station.get_parameter(stationParameters.triggered):
+            good_antennas_dict[station.get_id()] = []
+            flagged_channels = station.get_parameter(stationParameters.flagged_channels)
+            # Get all group IDs which are still present in the station
+            station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
+
+            # Get the dominant polarisation orientation as calculated by stationPulseFinder
+            dominant_orientation = station.get_parameter(stationParameters.cr_dominant_polarisation)
+
+            good_channel_pair_ids = np.zeros((len(station_channel_group_ids), 2), dtype=int)
+            for ind, channel_group_id in enumerate(station_channel_group_ids):
+                for channel in station.iter_channel_group(channel_group_id):
+                    if np.all(detector.get_antenna_orientation(station.get_id(), channel.get_id()) == dominant_orientation):
+                        good_channel_pair_ids[ind, 0] = channel.get_id()
+                    else:
+                        good_channel_pair_ids[ind, 1] = channel.get_id()
+
+                # Check if dominant channel has been flagged
+                channel = station.get_channel(good_channel_pair_ids[ind, 0])
+                if channel.get_id() not in flagged_channels:
+                    good_antennas_dict[station.get_id()].append(channel.get_id())
+
+    return good_antennas_dict
+
+
 class pipelineVisualizer:
     """
     Creates debug plots from the LOFAR pipeline - 
@@ -80,14 +112,11 @@ class pipelineVisualizer:
 
         try:
             core = event.get_first_shower().get_parameter(showerParameters.core)
-
-        except:
+        except KeyError:
             self.logger.warning("No radio core found, using LORA core instead")
             core = lora_core
 
         for i, station in enumerate(event.get_stations()):
-        #for station in event.get_stations():
-
             if station.get_parameter(stationParameters.triggered):
 
                 zenith = station.get_parameter(stationParameters.cr_zenith)
@@ -180,10 +209,10 @@ class pipelineVisualizer:
         return fig_pol
     
     def show_direction_plot(self, event):
-
         """
-        Create the final plot for the plane wave fit direction
-        reconstruction. Author: Philipp Laub
+        Make a comparison of the reconstructed direction per station with the LORA direction.
+
+        Author: Philipp Laub
 
         Parameters
         ----------
@@ -198,36 +227,50 @@ class pipelineVisualizer:
         
         # plot reconstructed directions of all stations and compare to LORA in polar plot:
         fig_dir, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+
         ax.set_theta_zero_location('E')
         ax.set_theta_direction(1)
 
-        triggered_station_ids = [station.get_id() for station in event.get_stations() if station.get_parameter(stationParameters.triggered)]    
+        triggered_station_ids = [
+            station.get_id() for station in event.get_stations() if station.get_parameter(stationParameters.triggered)
+        ]
         num_stations = len(triggered_station_ids)
+
         cmap = get_cmap('jet')
         norm = Normalize(vmin=0, vmax=num_stations-1) 
 
         for i, station in enumerate(event.get_stations()):
             if station.get_parameter(stationParameters.triggered):
-                zenith = station.get_parameter(stationParameters.cr_zenith)
-                azimuth = station.get_parameter(stationParameters.cr_azimuth)
-                ax.plot(azimuth, 
-                        zenith, 
-                        label=f'Station CS{station.get_id():03d}',
-                        marker='P',
-                        markersize=7,
-                        linestyle='',
-                        color=cmap(norm(i))
-                        )
-        
-        ax.plot(event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth),
-                event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith),
-                label='LORA',
-                marker="X",
-                markersize=7,
-                linestyle='',
-                color='black')
+                try:
+                    zenith = station.get_parameter(stationParameters.cr_zenith)
+                    azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                except KeyError:
+                    self.logger.info(
+                        f"Station CS{station.get_id():03d} does not have a reconstructed direction, "
+                        f"so I am not plotting this one."
+                    )
+                    continue
+                ax.plot(
+                    azimuth, zenith,
+                    label=f'Station CS{station.get_id():03d}',
+                    marker='P',
+                    markersize=7,
+                    linestyle='',
+                    color=cmap(norm(i))
+                )
+
+        ax.plot(
+            event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth),
+            event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith),
+            label='LORA',
+            marker="X",
+            markersize=7,
+            linestyle='',
+            color='black'
+        )
+
         ax.legend()
-        plt.title("Reconstructed arrival directions")
+        ax.set_title("Reconstructed arrival directions")
 
         return fig_dir
 
@@ -263,35 +306,15 @@ class pipelineVisualizer:
         if time.mjd < 56266:
             self.logger.warning("Event was before Dec 1, 2012. The non-core station clocks might be off.")
 
-        good_antennas_dict = {}
-
-        for station in event.get_stations():
-            if station.get_parameter(stationParameters.triggered):
-                good_antennas_dict[station.get_id()] = []
-                flagged_channels = station.get_parameter(stationParameters.flagged_channels)
-                # Get all group IDs which are still present in the station
-                station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
-
-                # Get the dominant polarisation orientation as calculated by stationPulseFinder
-                dominant_orientation = station.get_parameter(stationParameters.cr_dominant_polarisation)
-
-                good_channel_pair_ids = np.zeros((len(station_channel_group_ids), 2), dtype=int)
-                for ind, channel_group_id in enumerate(station_channel_group_ids):
-                    for channel in station.iter_channel_group(channel_group_id):
-                        if np.all(detector.get_antenna_orientation(station.get_id(), channel.get_id()) == dominant_orientation):
-                            good_channel_pair_ids[ind, 0] = channel.get_id()
-                        else:
-                            good_channel_pair_ids[ind, 1] = channel.get_id()
-
-                    # Check if dominant channel has been flagged
-                    channel = station.get_channel(good_channel_pair_ids[ind, 0])
-                    if channel.get_id() not in flagged_channels:
-                        good_antennas_dict[station.get_id()].append(channel.get_id())
+        good_antennas_dict = check_for_good_ant(event, detector)
 
         fig_time, ax = plt.subplots(dpi=150, figsize=(8, 5))
 
-        triggered_station_ids = [station.get_id() for station in event.get_stations() if station.get_parameter(stationParameters.triggered)]    
+        triggered_station_ids = [
+            station.get_id() for station in event.get_stations() if station.get_parameter(stationParameters.triggered)
+        ]
         num_stations = len(triggered_station_ids)
+
         cmap = get_cmap('jet')
         norm = Normalize(vmin=0, vmax=num_stations-1) 
         
@@ -300,8 +323,14 @@ class pipelineVisualizer:
         SNRs = []
         for station in event.get_stations():
             if station.get_parameter(stationParameters.triggered):
-                zenith = station.get_parameter(stationParameters.cr_zenith)
-                azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                try:
+                    azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                except KeyError:
+                    self.logger.info(
+                        f"Station CS{station.get_id():03d} does not have a reconstructed direction, "
+                        f"so I am not plotting this one."
+                    )
+                    continue
                 good_antennas = good_antennas_dict[station.get_id()]
                 if len(good_antennas) >= min_number_good_antennas:
                     for antenna in good_antennas:
@@ -390,8 +419,5 @@ class pipelineVisualizer:
 
         self.plots = [plot for plot in plots]
 
-           
-
     def end(self):
-
         pass
