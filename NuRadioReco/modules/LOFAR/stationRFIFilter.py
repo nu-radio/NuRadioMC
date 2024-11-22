@@ -416,6 +416,7 @@ class stationRFIFilter:
         self.__station_list = None
         self.__metadata_dir = None
         self.__median_spectrum = None
+        self.__do_polarizations_apart = None
 
     @property
     def station_list(self):
@@ -445,6 +446,8 @@ class stationRFIFilter:
             The number of samples to use per block to construct the frequency spectrum.
         reader : readLOFARData object, default=None
             If provided, the reader will be used to set the metadata directory and find the TBB files paths.
+        do_polarizations_apart : bool, default=False
+            If True, the X and Y polarisations will be processed separately.
         logger_level : int, default=logging.NOTSET
             Use this parameter to override the logging level for this module.
 
@@ -454,7 +457,7 @@ class stationRFIFilter:
         manually before attempting to execute the `stationRFIFilter.run()` function.
         """
         self.__rfi_trace_length = rfi_cleaning_trace_length
-        self.do_polarizations_apart = do_polarizations_apart
+        self.__do_polarizations_apart = do_polarizations_apart
         if reader is not None:
             self.station_list = reader.get_stations()
             self.metadata_dir = reader.meta_dir
@@ -498,7 +501,7 @@ class stationRFIFilter:
             for ind in flagged_channel_ids:
                 flagged_tbb_channel_ids.add(nrrID_to_tbbID(ind))  # in rawTBBio, antenna IDs are str
 
-            if not self.do_polarizations_apart:
+            if not self.__do_polarizations_apart:
                 packet = FindRFI_LOFAR(station_files,
                                     self.metadata_dir,
                                     station_trace_length,
