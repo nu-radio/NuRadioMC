@@ -16,7 +16,7 @@ def find_snr_of_timeseries(timeseries, sampling_rate=None, window_start=0, windo
     Return the signal-to-noise ratio (SNR) of a given time trace, defined as
 
     ..math ::
-        \frac{max( | Hilbert(timeseries[window]) | )}{ RMS( Hilbert(timeseries[noise]) ) }
+        \frac{max( | Hilbert(timeseries[window]) | )}{ STD( Hilbert(timeseries[noise]) ) }
 
     The signal window and noise window are controlled through the extra parameters to the function.
 
@@ -55,7 +55,6 @@ def find_snr_of_timeseries(timeseries, sampling_rate=None, window_start=0, windo
         window_start_time = window_start / sampling_rate
         signal_time = window_start_time + resampled_max_time
 
-    rms = np.std(np.abs(hilbert(timeseries[noise_start:noise_end])))
     # (AC) The Hilbert envelope has a mean that is nonzero 
     # the stddev only takes the variations around the mean
     # whereas the (real) RMS takes the square of all values (incl the mean), then sqrt
@@ -63,17 +62,20 @@ def find_snr_of_timeseries(timeseries, sampling_rate=None, window_start=0, windo
     # This is what seems to have been done in PyCRTools. See pulseenvelope.py:233
     # and mMath.cc function hMaxSNR  
 
+    std = np.std(
+        np.abs(hilbert(timeseries[noise_start:noise_end]))
+    )
 
-    #rms = np.sqrt(
-    #    np.mean(
-    #        np.abs(hilbert(timeseries[noise_start:noise_end])) ** 2
-    #    )
-    #)
+    rms = np.sqrt(
+       np.mean(
+           np.abs(hilbert(timeseries[noise_start:noise_end])) ** 2
+       )
+    )
 
     if full_output:
-        return peak / rms, peak, rms, signal_time
+        return peak / std, peak, rms, signal_time
 
-    return peak / rms
+    return peak / std
 
 
 class stationPulseFinder:
@@ -93,7 +95,7 @@ class stationPulseFinder:
 
         self.direction_cartesian = None  # The zenith and azimuth pointing towards where to beamform.
 
-    def begin(self, window=256, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
+    def begin(self, window=256, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.NOTSET):
         """
         Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
         to use for noise measurements. The function also defines what an acceptable SNR is to consider a
@@ -111,8 +113,8 @@ class stationPulseFinder:
             The minimum SNR a channel should have to be considered having a CR signal.
         good_channels : int, default=6
             The minimum number of good channels a station should have in order be "triggered".
-        logger_level : int, default=logging.WARNING
-            The logging level to use for the module.
+        logger_level : int, default=logging.NOTSET
+            Use this parameter to override the logging level for this module.
         """
         # TODO: find window size used in PyCRTools
         self.__window_size = window
