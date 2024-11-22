@@ -745,19 +745,22 @@ new connection. Set to True to create a new database connection.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site</span></code></a>(station_id)</p></td>
 <td><p>This detector class is exclusive for the RNO-G detector at Summit Greenland.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station</span></code></a>(station_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code></a>([station_id])</p></td>
+<td><p>Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station</span></code></a>(station_id)</p></td>
 <td><p>Returns a dictionary of all station parameters/information including some channel information.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code></a>()</p></td>
 <td><p>Returns the list of all commissioned stations.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>(station_id, channel_id[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>(station_id, channel_id[, ...])</p></td>
 <td><p>Return the sum of the time delay of all components in the signal chain calculated from the phase</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
 <td><p>Returns true if the station is commission.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.update" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.update" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
 <td><p>Updates the detector.</p></td>
 </tr>
 </tbody>
@@ -1326,6 +1329,20 @@ arguments.</p>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt>site: str</dt><dd><p>Returns “summit”</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates">
+<span class="sig-name descname"><span class="pre">get_site_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_site_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates" title="Permalink to this definition"></a></dt>
+<dd><p>Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>the station ID (not used, only for compatibility with other detector classes)</p>
 </dd>
 </dl>
 </dd>
