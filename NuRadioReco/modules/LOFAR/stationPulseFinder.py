@@ -95,7 +95,7 @@ class stationPulseFinder:
 
         self.direction_cartesian = None  # The zenith and azimuth pointing towards where to beamform.
 
-    def begin(self, window=256, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.NOTSET):
+    def begin(self, window=256, noise_window=10000, cr_snr=6.5, good_channels=6, logger_level=logging.NOTSET):
         """
         Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
         to use for noise measurements. The function also defines what an acceptable SNR is to consider a
