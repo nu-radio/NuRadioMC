@@ -267,8 +267,14 @@ class planeWaveDirectionFitter:
 
                 residual_delays = goodtimes - expected_delays
 
+                # Debug plots if required
+                if self.__debug:
+                    self.debug_plots(
+                        event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
+                    )
+
                 if np.isnan(zenith) or np.isnan(azimuth):
-                    self.logger.warning('Plane wave fit returns NaN.')
+                    self.logger.error('Plane wave fit returns NaN.')
                     bins = int((residual_delays.max() - residual_delays.min()) * lightspeed / (
                             position_array[:, 0].max() - position_array[:, 0].min()))
                     if bins < 1:
@@ -307,12 +313,6 @@ class planeWaveDirectionFitter:
                 self.logger.debug(f'azimuth = {np.rad2deg(azimuth):.3f}, zenith = {np.rad2deg(zenith):.3f}')
                 self.logger.debug(f'number of good antennas = {num_good_antennas:d}')
 
-                # Debug plots if required
-                if self.__debug:
-                    self.debug_plots(
-                        event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
-                    )
-
                 # Bookkeeping
                 station.set_parameter(stationParameters.zenith, zenith)
                 station.set_parameter(stationParameters.azimuth, azimuth)
@@ -322,7 +322,7 @@ class planeWaveDirectionFitter:
                     break
                 else:
                     num_good_antennas = len(good_antennas[mask_good_antennas])
-            
+
             azimuth = station.get_parameter(stationParameters.azimuth)
             zenith = station.get_parameter(stationParameters.zenith)
 
@@ -341,6 +341,7 @@ class planeWaveDirectionFitter:
 
             for channel_id in good_channel_pair_ids.flatten().tolist():
                 if channel_id not in good_antennas.flatten():
+                    # TODO: this flag is not always correct, as channels excluded by SNR are also flagged
                     station_flagged_channels[channel_id].append("planewavefit_timing_outlier")
 
             station.set_parameter(stationParameters.flagged_channels, station_flagged_channels)
