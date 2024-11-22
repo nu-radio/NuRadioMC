@@ -655,7 +655,7 @@
         <span class="c1"># self._n_showers = len(self._fin[&#39;shower_ids&#39;])</span>
 
         <span class="c1"># self._hdf5_keys = [&#39;event_group_ids&#39;, &#39;xx&#39;, &#39;yy&#39;, &#39;zz&#39;, &#39;vertex_times&#39;,</span>
-        <span class="c1">#                    &#39;azimuths&#39;, &#39;zemiths&#39;, &#39;energies&#39;, </span>
+        <span class="c1">#                    &#39;azimuths&#39;, &#39;zemiths&#39;, &#39;energies&#39;,</span>
         <span class="c1">#                    &#39;shower_energies&#39;, &#39;&#39;n_interaction&#39;,</span>
         <span class="c1">#                    &#39;shower_ids&#39;, &#39;event_ids&#39;, &#39;triggered&#39;, &#39;n_samples&#39;,</span>
         <span class="c1">#                    &#39;dt&#39;, &#39;Tnoise&#39;, &#39;Vrms&#39;, &#39;bandwidth&#39;, &#39;trigger_names&#39;]</span>
@@ -714,37 +714,40 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;adding event group to output file&quot;</span><span class="p">)</span>
 
-
-
-        <span class="c1"># first add atributes to the output file. Attributes of all events should be the same, </span>
-        <span class="c1"># raising an error if not. </span>
+        <span class="c1"># first add atributes to the output file. Attributes of all events should be the same,</span>
+        <span class="c1"># raising an error if not.</span>
         <span class="n">trigger_names</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">extent_array_by</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">event_buffer</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">event_buffer</span><span class="p">[</span><span class="n">sid</span><span class="p">]:</span>
                 <span class="n">evt</span> <span class="o">=</span> <span class="n">event_buffer</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="n">eid</span><span class="p">]</span>
+
+                <span class="c1"># save event attributes</span>
                 <span class="k">for</span> <span class="n">enum_entry</span> <span class="ow">in</span> <span class="n">genattrs</span><span class="p">:</span>
-                    <span class="k">if</span><span class="p">(</span><span class="n">evt</span><span class="o">.</span><span class="n">has_generator_info</span><span class="p">(</span><span class="n">enum_entry</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">evt</span><span class="o">.</span><span class="n">has_generator_info</span><span class="p">(</span><span class="n">enum_entry</span><span class="p">):</span>
                         <span class="k">if</span> <span class="n">enum_entry</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mout_attributes</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_mout_attributes</span><span class="p">[</span><span class="n">enum_entry</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_generator_info</span><span class="p">(</span><span class="n">enum_entry</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>  <span class="c1"># if the attribute is already present, we need to check if it is the same for all events</span>
                             <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout_attributes</span><span class="p">[</span><span class="n">enum_entry</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">==</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_generator_info</span><span class="p">(</span><span class="n">enum_entry</span><span class="p">)))</span>
+
+                <span class="c1"># save station attributes</span>
                 <span class="k">for</span> <span class="n">stn</span> <span class="ow">in</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_stations</span><span class="p">():</span>
-                    <span class="c1"># save station attributes</span>
-                    <span class="n">tmp_keys</span> <span class="o">=</span> <span class="p">[[</span><span class="n">chp</span><span class="o">.</span><span class="n">Vrms_NuRadioMC_simulation</span><span class="p">,</span> <span class="s2">&quot;Vrms&quot;</span><span class="p">],</span> <span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">bandwidth_NuRadioMC_simulation</span><span class="p">,</span> <span class="s2">&quot;bandwidth&quot;</span><span class="p">]]</span>
-                    <span class="k">for</span> <span class="p">(</span><span class="n">key_cp</span><span class="p">,</span> <span class="n">key_hdf5</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tmp_keys</span><span class="p">:</span>
-                        <span class="n">channel_values</span> <span class="o">=</span> <span class="p">[]</span>
-                        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">stn</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="nb">sorted</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-                            <span class="n">channel_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="n">key_cp</span><span class="p">])</span>
+                    <span class="n">station_key_pairs</span> <span class="o">=</span> <span class="p">[[</span><span class="n">chp</span><span class="o">.</span><span class="n">Vrms_NuRadioMC_simulation</span><span class="p">,</span> <span class="s2">&quot;Vrms&quot;</span><span class="p">],</span> <span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">bandwidth_NuRadioMC_simulation</span><span class="p">,</span> <span class="s2">&quot;bandwidth&quot;</span><span class="p">]]</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">key_cp</span><span class="p">,</span> <span class="n">key_hdf5</span><span class="p">)</span> <span class="ow">in</span> <span class="n">station_key_pairs</span><span class="p">:</span>
+                        <span class="n">channel_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">channel</span><span class="p">[</span><span class="n">key_cp</span><span class="p">]</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">stn</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="nb">sorted</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
+
                         <span class="k">if</span> <span class="n">key_hdf5</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mout_groups_attributes</span><span class="p">[</span><span class="n">sid</span><span class="p">]:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_mout_groups_attributes</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="n">key_hdf5</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel_values</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout_groups_attributes</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="n">key_hdf5</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel_values</span><span class="p">))),</span> <span class="sa">f</span><span class="s2">&quot;station </span><span class="si">{</span><span class="n">sid</span><span class="si">}</span><span class="s2"> key </span><span class="si">{</span><span class="n">key_hdf5</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout_groups_attributes</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="n">key_hdf5</span><span class="p">]</span><span class="si">}</span><span class="s2">, but current channel is </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel_values</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout_groups_attributes</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="n">key_hdf5</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel_values</span><span class="p">))),</span> \
+                                <span class="sa">f</span><span class="s2">&quot;station </span><span class="si">{</span><span class="n">sid</span><span class="si">}</span><span class="s2"> key </span><span class="si">{</span><span class="n">key_hdf5</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout_groups_attributes</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="n">key_hdf5</span><span class="p">]</span><span class="si">}</span><span class="s2">, but current channel is </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel_values</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
                     <span class="k">for</span> <span class="n">trigger</span> <span class="ow">in</span> <span class="n">stn</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                         <span class="k">if</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">trigger_names</span><span class="p">:</span>
                             <span class="n">trigger_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
                             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;extending data structure by trigger </span><span class="si">{</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2"> to output file&quot;</span><span class="p">)</span>
                             <span class="n">extent_array_by</span> <span class="o">+=</span> <span class="mi">1</span>
+
         <span class="c1"># the available triggers are not available from the start because a certain trigger</span>
         <span class="c1"># might only trigger a later event. Therefore we need to extend the array</span>
         <span class="c1"># if we find a new trigger</span>
@@ -756,6 +759,7 @@
                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout</span><span class="p">[</span><span class="n">key</span><span class="p">])):</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;extending data structure by </span><span class="si">{</span><span class="n">extent_array_by</span><span class="si">}</span><span class="s2"> to output file for key </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_mout</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mout</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="n">extent_array_by</span>
+
             <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_ids</span><span class="p">:</span>
                 <span class="n">sg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mout_groups</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">sg</span><span class="p">:</span>
@@ -772,7 +776,7 @@
                 <span class="n">evt</span> <span class="o">=</span> <span class="n">event_buffer</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="n">eid</span><span class="p">]</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_mode</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">shower</span> <span class="ow">in</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_sim_showers</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">shower</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">in</span> <span class="n">shower_ids</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">shower</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shower_ids</span><span class="p">:</span>
                             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;adding shower </span><span class="si">{</span><span class="n">shower</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> to output file&quot;</span><span class="p">)</span>
                             <span class="c1"># shower ids might not be in increasing order. We need to sort the hdf5 output later</span>
                             <span class="n">shower_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shower</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
@@ -801,7 +805,9 @@
                             <span class="bp">self</span><span class="o">.</span><span class="n">__first_event</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">else</span><span class="p">:</span>  <span class="c1"># emitters have different properties, so we need to treat them differently than showers</span>
                     <span class="k">for</span> <span class="n">emitter</span> <span class="ow">in</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_sim_emitters</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">emitter</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">in</span> <span class="n">shower_ids</span><span class="p">:</span>  <span class="c1"># the key &quot;shower_ids&quot; is also used for emitters and identifies the emitter id. This is done because it is the only way to have the same input files for both shower/particle and emitter simulations. </span>
+                        <span class="c1"># the key &quot;shower_ids&quot; is also used for emitters and identifies the emitter id. This is done because it is</span>
+                        <span class="c1"># the only way to have the same input files for both shower/particle and emitter simulations.</span>
+                        <span class="k">if</span> <span class="n">emitter</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shower_ids</span><span class="p">:</span>
                             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;adding shower </span><span class="si">{</span><span class="n">emitter</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> to output file&quot;</span><span class="p">)</span>
                             <span class="c1"># shower ids might not be in increasing order. We need to sort the hdf5 output later</span>
                             <span class="n">shower_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">emitter</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
@@ -820,8 +826,9 @@
                                             <span class="bp">self</span><span class="o">.</span><span class="n">__add_parameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout</span><span class="p">,</span> <span class="n">keyname</span><span class="p">,</span> <span class="n">emitter</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">__first_event</span><span class="p">)</span>
 
                             <span class="bp">self</span><span class="o">.</span><span class="n">__first_event</span> <span class="o">=</span> <span class="kc">False</span>
+
                 <span class="c1"># now save station data</span>
-                <span class="n">stn</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>  <span class="c1"># there can only ever be one station per event! If there are more than one station, this line will crash. </span>
+                <span class="n">stn</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>  <span class="c1"># there can only ever be one station per event! If there are more than one station, this line will crash.</span>
                 <span class="n">sg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mout_groups</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__add_parameter</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="s1">&#39;event_group_ids&#39;</span><span class="p">,</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">())</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__add_parameter</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="s1">&#39;event_ids&#39;</span><span class="p">,</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
@@ -848,8 +855,8 @@
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">__add_parameter</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="s1">&#39;triggered&#39;</span><span class="p">,</span> <span class="n">stn</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">())</span>
 
-                <span class="c1"># depending on the simulation mode we have either showers or emitters but we can </span>
-                <span class="c1"># treat them the same way as long as we only call common member functions such as </span>
+                <span class="c1"># depending on the simulation mode we have either showers or emitters but we can</span>
+                <span class="c1"># treat them the same way as long as we only call common member functions such as</span>
                 <span class="c1"># `get_id()`</span>
                 <span class="n">iterable</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_mode</span><span class="p">:</span>
@@ -866,9 +873,9 @@
                         <span class="c1"># we need to save data per shower, channel and ray tracing solution. Due to the simple table structure</span>
                         <span class="c1"># of the hdf5 files we need to preserve the ordering of the showers and channels. As the order in the</span>
                         <span class="c1"># NuRadio data structure is different, we need to go through some effort to get the right order.</span>
-                        <span class="c1"># The shower ids will be sorted at the very end. </span>
-                        <span class="c1"># The channel ids already have the correct ordering. </span>
-                        <span class="c1"># The ray tracing solutions are also ordered, because the efield object contains the correct ray tracing solution id. </span>
+                        <span class="c1"># The shower ids will be sorted at the very end.</span>
+                        <span class="c1"># The channel ids already have the correct ordering.</span>
+                        <span class="c1"># The ray tracing solutions are also ordered, because the efield object contains the correct ray tracing solution id.</span>
                         <span class="n">channel_rt_data</span> <span class="o">=</span> <span class="p">{}</span>
                         <span class="n">keys_channel_rt_data</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;travel_times&#39;</span><span class="p">,</span> <span class="s1">&#39;travel_distances&#39;</span><span class="p">]</span>
                         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mout_attributes</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">][</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;amp_per_ray_solution&#39;</span><span class="p">]:</span>
@@ -882,7 +889,7 @@
                         <span class="c1"># important: we need to loop over the channels of the station object, not</span>
                         <span class="c1"># the channels present in the sim_station object. This is because the sim</span>
                         <span class="c1"># channel object only contains the channels that have a signal, i.e., a ray</span>
-                        <span class="c1"># tracing solution and a strong enough Askaryan signal. But we want to loop over all </span>
+                        <span class="c1"># tracing solution and a strong enough Askaryan signal. But we want to loop over all</span>
                         <span class="c1"># channels of the station, because we want to save the data for all channels, not only</span>
                         <span class="c1"># the ones that have a signal. This also preserves the order of the channels.</span>
                         <span class="k">for</span> <span class="n">iCh</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stn</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="nb">sorted</span><span class="o">=</span><span class="kc">True</span><span class="p">)):</span>
@@ -926,9 +933,9 @@
             <span class="n">trigger_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">shower_ids_stn</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout_attributes</span><span class="p">[</span><span class="s1">&#39;trigger_names&#39;</span><span class="p">])),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
             <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">event_buffer</span><span class="p">[</span><span class="n">sid</span><span class="p">]:</span>
                 <span class="n">evt</span> <span class="o">=</span> <span class="n">event_buffer</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="n">eid</span><span class="p">]</span>
-                <span class="n">stn</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>  <span class="c1"># there can only ever be one station per event! If there are more than one station, this line will crash. </span>
-                <span class="c1"># depending on the simulation mode we have either showers or emitters but we can </span>
-                <span class="c1"># treat them the same way as long as we only call common member functions such as </span>
+                <span class="n">stn</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>  <span class="c1"># there can only ever be one station per event! If there are more than one station, this line will crash.</span>
+                <span class="c1"># depending on the simulation mode we have either showers or emitters but we can</span>
+                <span class="c1"># treat them the same way as long as we only call common member functions such as</span>
                 <span class="c1"># `get_id()`</span>
                 <span class="n">iterable</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_mode</span><span class="p">:</span>
@@ -988,7 +995,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_mode</span><span class="p">:</span>
             <span class="c1"># we also want to save the first interaction even if it didn&#39;t contribute to any trigger</span>
-            <span class="c1"># this is important to know the initial neutrino properties (only relevant for the simulation of </span>
+            <span class="c1"># this is important to know the initial neutrino properties (only relevant for the simulation of</span>
             <span class="c1"># secondary interactions)</span>
             <span class="n">stn_buffer</span> <span class="o">=</span> <span class="n">event_buffer</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
             <span class="n">evt</span> <span class="o">=</span> <span class="n">stn_buffer</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">stn_buffer</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]]</span>
@@ -1138,7 +1145,7 @@
 <span class="sd">            float: The calculated effective volume (Veff)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># calculate effective</span>
-        <span class="k">try</span><span class="p">:</span> <span class="c1"># sometimes not all relevant attributes are set, e.g. for emitter simulations. </span>
+        <span class="k">try</span><span class="p">:</span> <span class="c1"># sometimes not all relevant attributes are set, e.g. for emitter simulations.</span>
             <span class="n">triggered</span> <span class="o">=</span> <span class="n">remove_duplicate_triggers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout</span><span class="p">[</span><span class="s1">&#39;triggered&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mout</span><span class="p">[</span><span class="s1">&#39;event_group_ids&#39;</span><span class="p">])</span>
             <span class="n">n_triggered</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">triggered</span><span class="p">)</span>
             <span class="n">n_triggered_weighted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mout</span><span class="p">[</span><span class="s1">&#39;weights&#39;</span><span class="p">])[</span><span class="n">triggered</span><span class="p">])</span>
