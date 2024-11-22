@@ -345,8 +345,6 @@ class planeWaveDirectionFitter:
 
             station.set_parameter(stationParameters.flagged_channels, station_flagged_channels)
 
-
-
     @staticmethod
     def debug_plots(
             event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
