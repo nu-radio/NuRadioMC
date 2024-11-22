@@ -7,13 +7,9 @@ This module contains the pipelineVisualizer class for LOFAR.
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
-import radiotools.helper as hp
-import scipy
 import radiotools
 from matplotlib.cm import get_cmap
 from matplotlib.colors import Normalize
-
-from scipy.signal import resample
 
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
@@ -63,48 +59,48 @@ class pipelineVisualizer:
     """
 
     def __init__(self):
-
+        self.plots = None
         self.logger = logging.getLogger("NuRadioReco.pipelineVisualizer")
 
 
     def begin(self, logger_level=logging.NOTSET):
-
-        self.__logger_level = logger_level
         self.logger.setLevel(logger_level)
 
 
     def plot_polarization(self, event, detector):
-
         """
-            Plot the polarization of the electric field.
-            This method calculates the stokes parameters of the pulse 
-            using get_stokes from framework.electric_field, and
-            determines the polarization angle and degree, plotting
-            them as arrows in the vxB and vxvxB plane.
-            It estimates uncertainties by picking a pure noise value of
-            stokes parameters, propagating through the angle and degree
-            formulas and plotting them as arrows with reduced opacity.
-            Author: Karen Terveer
+        Plot the polarization of the electric field.
+        This method calculates the stokes parameters of the pulse
+        using get_stokes from framework.electric_field, and
+        determines the polarization angle and degree, plotting
+        them as arrows in the vxB and vxvxB plane.
+        It estimates uncertainties by picking a pure noise value of
+        stokes parameters, propagating through the angle and degree
+        formulas and plotting them as arrows with reduced opacity.
+        Author: Karen Terveer
 
-            Parameters
-            ----------
-            event : Event object
-                The event containing the stations and electric fields.
-            detector : Detector object
-                The detector object containing information about the detector.
+        Parameters
+        ----------
+        event : Event object
+            The event containing the stations and electric fields.
+        detector : Detector object
+            The detector object containing information about the detector.
 
-            Returns
-            -------
-            fig_pol : matplotlib Figure object
-                The generated figure object containing the polarization plot.
+        Returns
+        -------
+        fig_pol : matplotlib Figure object
+            The generated figure object containing the polarization plot.
         """
 
         from NuRadioReco.framework.electric_field import get_stokes
 
         fig_pol, ax = plt.subplots(figsize=(8,7))
 
-        triggered_station_ids = [station.get_id() for station in event.get_stations() if station.get_parameter(stationParameters.triggered)]    
+        triggered_station_ids = [
+            station.get_id() for station in event.get_stations() if station.get_parameter(stationParameters.triggered)
+        ]
         num_stations = len(triggered_station_ids)
+
         cmap = get_cmap('jet')  
         norm = Normalize(vmin=0, vmax=num_stations-1) 
 
@@ -119,26 +115,28 @@ class pipelineVisualizer:
         for i, station in enumerate(event.get_stations()):
             if station.get_parameter(stationParameters.triggered):
 
-                zenith = station.get_parameter(stationParameters.cr_zenith)
-                azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                zenith = station.get_parameter(stationParameters.cr_zenith) / units.rad
+                azimuth = station.get_parameter(stationParameters.cr_azimuth) / units.rad
+
                 cs = radiotools.coordinatesystems.cstrafo(
-                zenith, azimuth, magnetic_field_vector=None, site="lofar")
+                    zenith, azimuth, magnetic_field_vector=None, site="lofar"
+                )
+
                 efields = station.get_electric_fields()
 
                 station_pos = detector.get_absolute_position(station.get_id())
                 station_pos_vB = cs.transform_to_vxB_vxvxB(station_pos, core=core)[0]
                 station_pos_vvB = cs.transform_to_vxB_vxvxB(station_pos, core=core)[1]
 
-                ax.scatter(station_pos_vB, station_pos_vvB, color=cmap(norm(i)), s=20, label=f'Station CS{station.get_id():03d}')   
+                ax.scatter(
+                    station_pos_vB, station_pos_vvB,
+                    color=cmap(norm(i)), s=20, label=f'Station CS{station.get_id():03d}'
+                )
 
                 for field in efields:
 
                     ids = field.get_channel_ids()
                     pos = station_pos + detector.get_relative_position(station.get_id(), ids[0])
-
-                    # transform to vxB and vxvxB, assuming the LORA core reco. 
-                    # This is likely NOT the correct core position, 
-                    # it has to be determined from the radio data later
 
                     pos_vB = cs.transform_to_vxB_vxvxB(pos, core=core)[0]
                     pos_vvB = cs.transform_to_vxB_vxvxB(pos, core=core)[1]
@@ -189,11 +187,23 @@ class pipelineVisualizer:
                     dx_sigma_minus = pol_degree * np.cos(pol_angle - pol_angle_sigma)
                     dy_sigma_minus = pol_degree * np.sin(pol_angle - pol_angle_sigma)
 
-                    ax.arrow(pos_vB, pos_vvB, dx_sigma_plus, dy_sigma_plus, head_width=2, head_length=5, fc=cmap(norm(i)), ec = cmap(norm(i)), alpha=0.5)
-                    ax.arrow(pos_vB, pos_vvB, dx_sigma_minus, dy_sigma_minus, head_width=2, head_length=5, ec = cmap(norm(i)), fc=cmap(norm(i)), alpha=0.5)
-                    ax.arrow(pos_vB, pos_vvB, dx, dy, head_width=2, head_length=6, fc=cmap(norm(i)), ec = cmap(norm(i)))
+                    ax.arrow(
+                        pos_vB, pos_vvB, dx_sigma_plus, dy_sigma_plus,
+                        head_width=2, head_length=5,
+                        fc=cmap(norm(i)), ec = cmap(norm(i)), alpha=0.5
+                    )
+                    ax.arrow(
+                        pos_vB, pos_vvB, dx_sigma_minus, dy_sigma_minus,
+                        head_width=2, head_length=5,
+                        fc=cmap(norm(i)), ec = cmap(norm(i)), alpha=0.5
+                    )
+                    ax.arrow(
+                        pos_vB, pos_vvB, dx, dy,
+                        head_width=2, head_length=6,
+                        fc=cmap(norm(i)), ec = cmap(norm(i))
+                    )
 
-        if (core != lora_core).all():
+        if np.any(core != lora_core):
             lora_vB = cs.transform_to_vxB_vxvxB(lora_core, core=core)[0]
             lora_vvB = cs.transform_to_vxB_vxvxB(lora_core, core=core)[1]
             ax.scatter(lora_vB, lora_vvB, color='tab:red', s=50, label='LORA core', marker = 'x')
@@ -277,8 +287,10 @@ class pipelineVisualizer:
     def show_time_fluence_plot(self, event, detector, min_number_good_antennas=4):
 
         """
-        Create the final plot for the plane wave fit, including
-        timing and pseudofluence. Author: Philipp Laub
+        Plot the antenna positions, marking arrival time by color and pseudofluence by markersize.
+        The reconstructed arrival direction per station is indicated with an arrow.
+
+        Author: Philipp Laub
 
         Parameters
         ----------
@@ -295,12 +307,6 @@ class pipelineVisualizer:
         fig_pol : matplotlib Figure object
             The generated figure object containing the polarization plot.
         """
-
-        # plot the antenna positions and mark arrival time by color and "fluence" by markersize. 
-        # Also indicate the reconstructed arrival direction per station via an arrow.
-
-        from astropy.time import Time
-
         time = detector.get_detector_time().utc
 
         if time.mjd < 56266:
@@ -334,7 +340,9 @@ class pipelineVisualizer:
                 good_antennas = good_antennas_dict[station.get_id()]
                 if len(good_antennas) >= min_number_good_antennas:
                     for antenna in good_antennas:
-                        positions.append(detector.get_relative_position(station.get_id(), antenna) + detector.get_absolute_position(station.get_id()))
+                        positions.append(
+                            detector.get_relative_position(station.get_id(), antenna) + detector.get_absolute_position(station.get_id())
+                        )
                         channel = station.get_channel(antenna)
                         SNRs.append(channel.get_parameter(channelParameters.SNR))
                         fluences.append(np.sum(np.square(channel.get_trace())))
