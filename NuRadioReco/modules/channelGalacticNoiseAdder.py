@@ -13,12 +13,12 @@ logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
 try:
     from radiocalibrationtoolkit import *  # Documentation: https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main contains SSM, GMOSS, ULSA
 except:
-    logger.warning("radiocalibrationtoolkit import failed. Consider installing it to use more sky models.")
+    raise ImportError("radiocalibrationtoolkit import failed. Consider installing it to use more sky models.")
 
 try:
     from pylfmap import LFmap  # Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
 except:
-    logger.warning("LFmap import failed. Consider installing it to use LFmap as sky model.")
+    raise ImportError("LFmap import failed. Consider installing it to use LFmap as sky model.")
 
 from pygdsm import (
     GlobalSkyModel16,
@@ -63,7 +63,8 @@ class channelGalacticNoiseAdder:
             skymodel=None,
             debug=False,
             n_side=4,
-            freq_range=None
+            freq_range=None,
+            interpolation_frequencies=None
     ):
         """
         Set up important parameters for the module
@@ -81,32 +82,38 @@ class channelGalacticNoiseAdder:
             from that direction is calculated. The number of pixels used is
             12 * n_side ** 2, so a larger value for n_side will result better accuracy
             but also greatly increase computing time.
-        freq_range: array of len=2, default: [30, 80] * units.MHZ
+        freq_range: array of len=2, default: [10,1100] * units.MHZ
             The sky brightness temperature will be evaluated for the frequencies
             within this limit. Brightness temperature for frequencies in between are
             calculated by interpolation the log10 of the temperature
             The interpolation_frequencies have to cover the entire passband
             specified in the run method.
+        interpolation_frequencies: array of frequencies to interpolate to.
+            Kept for historic purposes with intention to deprecate in the future.
         """
         self.__debug = debug
         self.__n_side = n_side
 
-        if freq_range is None:
-            freq_range = np.array([30, 80]) * units.MHz
+        if interpolation_frequencies is None:
+            if freq_range is None:
+                freq_range = np.array([10,1100])
 
-        # define interpolation frequencies. Set in logarithmic range from freq_range[0] to freq_range[1],
-        # rounded to 0 decimal places to avoid import errors from LFmap abd tabulated models.
-        self.__interpolation_frequencies = np.around(
-            np.logspace(
-                *np.log10(freq_range / units.MHz), num=30
-            ), 0
-        ) * units.MHz
+            # define interpolation frequencies. Set in logarithmic range from freq_range[0] to freq_range[1],
+            # rounded to 0 decimal places to avoid import errors from LFmap abd tabulated models.
+            self.__interpolation_frequencies = np.around(
+                np.logspace(
+                    *np.log10(freq_range), num=15
+                ), 0
+            ) * units.MHz
+        else:
+            self.__interpolation_frequencies = interpolation_frequencies * units.MHz
+            logger.warning("DeprecationWarning: Optional argument 'interpolation_frequencies' was replaced by 'freq_range'.")
 
         # initialise sky model
         try:
             if skymodel is None:
                 sky_model = GlobalSkyModel(freq_unit="MHz")
-                logger.warning("No sky model specified. Using standard: Global Sky Model (2008). Available models: "
+                logger.info("No sky model specified. Using standard: Global Sky Model (2008). Available models: "
                                "lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci")
             elif skymodel == 'lfss':
                 sky_model = LowFrequencySkyModel(freq_unit="MHz")
@@ -142,7 +149,7 @@ class channelGalacticNoiseAdder:
                 logger.error(f"Sky model {skymodel} unknown. Defaulting to Global Sky Model (2008).")
                 sky_model = GlobalSkyModel(freq_unit="MHz")
 
-        except NameError:
+        except ImportError:
             logger.error(f"Could not find {skymodel} skymodel. Do you have the correct package installed? \n"
                          f"Defaulting to Global Sky Model (2008) as sky model.")
             sky_model = GlobalSkyModel(freq_unit="MHz")
@@ -197,7 +204,7 @@ class channelGalacticNoiseAdder:
         d_f = freqs[2] - freqs[1]
 
         if passband is None:
-            passband = [30 * units.MHz, 80 * units.MHz]
+            passband = [10 * units.MHz, 1100 * units.MHz]
         passband_filter = (freqs > passband[0]) & (freqs < passband[1])
 
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
