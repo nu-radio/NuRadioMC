@@ -274,32 +274,39 @@ class planeWaveDirectionFitter:
                     )
 
                 if np.isnan(zenith) or np.isnan(azimuth):
-                    self.logger.error('Plane wave fit returns NaN.')
-                    bins = int((residual_delays.max() - residual_delays.min()) * lightspeed / (
-                            position_array[:, 0].max() - position_array[:, 0].min()))
-                    if bins < 1:
-                        bins = 1
-                    hist, edges = np.histogram(residual_delays, bins=bins)
+                    self.logger.error(
+                        'Plane wave fit returns NaN. I will try to recover by setting zenith and azimuth '
+                        'to the LORA estimate and recalculating the residual delays.'
+                    )
+
+                    zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(
+                        showerParameters.zenith
+                    )
+                    azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(
+                        showerParameters.azimuth
+                    )
+
+                    expected_delays = geometric_delay_far_field(
+                        goodpositions, hp.spherical_to_cartesian(zenith / units.rad, azimuth / units.rad)
+                    )
+                    expected_delays -= expected_delays[0]
+                    residual_delays = goodtimes - expected_delays
+
+                    bins = int(
+                        (residual_delays.max() - residual_delays.min()) * lightspeed /
+                        (position_array[:, 0].max() - position_array[:, 0].min())
+                    )
+                    hist, edges = np.histogram(residual_delays, bins=max(bins, 1))
 
                     max_time = np.argmax(hist)
                     self.logger.debug(f"histogram filled: {hist}")
                     self.logger.debug(f"edges: {edges}")
-                    # fix for first and last bin
                     self.logger.debug(f"maximum at: {max_time}")
 
-                    try:
-                        upper = edges[max_time + 2]
-                    except IndexError:
-                        upper = edges[edges.shape[0] - 1]
-                        self.logger.debug(f"upper exception")
+                    upper = edges[min(max_time + 2, len(edges) - 1)]
+                    lower = edges[max(max_time - 1, 0)]
 
-                    try:
-                        lower = edges[max_time]
-                    except IndexError:
-                        self.logger.debug(f"lower exception")
-                        lower = edges[0]
-
-                    self.logger.debug(f"selecting between lower {lower} and upper {upper}")
+                    self.logger.debug(f"Selecting between lower {lower} and upper {upper}")
                     mask_good_antennas = (residual_delays > lower) & (residual_delays < upper)
                 else:
                     # remove > k-sigma outliers and iterate
@@ -327,10 +334,13 @@ class planeWaveDirectionFitter:
             zenith = station.get_parameter(stationParameters.zenith)
 
             self.logger.status(
-                f"Azimuth (counterclockwise wrt to East) and zenith for station CS{station.get_id():03d}:")
+                f"Azimuth (counterclockwise wrt to East) and zenith for station CS{station.get_id():03d}:"
+            )
             self.logger.status(f"{azimuth / units.deg}, {zenith / units.deg}")
 
-            self.logger.status(f"Azimuth (clockwise wrt to North) and elevation for station CS{station.get_id():03d}:")
+            self.logger.status(
+                f"Azimuth (clockwise wrt to North) and elevation for station CS{station.get_id():03d}:"
+            )
             self.logger.status(f"{90 - azimuth / units.deg}, {90 - zenith / units.deg}")
 
             station.set_parameter(stationParameters.cr_zenith, zenith)
