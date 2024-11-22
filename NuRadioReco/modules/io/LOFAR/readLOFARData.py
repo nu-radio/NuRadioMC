@@ -283,7 +283,9 @@ class getLOFARtraces:
         self.tbb_file = rawTBBio.MultiFile_Dal1(self.data_filename, metadata_dir=self.metadata_dir)
         sample_number = self.tbb_file.get_nominal_sample_number()
         timestamp = self.tbb_file.get_timestamp()
-        station_clock_offsets = rawTBBio_metadata.getClockCorrections(metadata_dir=self.metadata_dir)
+        station_clock_offsets = rawTBBio_metadata.getClockCorrections(
+            metadata_dir=self.metadata_dir, time=timestamp
+        )
         this_station_name = self.tbb_file.get_station_name()
 
         logger.info("Getting clock offset for station %s" % this_station_name)
