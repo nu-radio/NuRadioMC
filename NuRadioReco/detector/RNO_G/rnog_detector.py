@@ -1263,6 +1263,17 @@ class Detector():
         """
         return "summit"
 
+    def get_site_coordinates(self, station_id=None):
+        """
+        Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.
+
+        Parameters
+        ----------
+        station_id: int
+            the station ID (not used, only for compatibility with other detector classes)
+        """
+        return (72.57, -38.46)
+
 
 if __name__ == "__main__":
 
