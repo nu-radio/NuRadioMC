@@ -243,6 +243,8 @@ def read_CORSIKA7(input_file, declination=None):
     """
     this function reads the corsika hdf5 file and returns a sim_station with all relevent information from the file
 
+    Note that the function assumes the energy has been fixed to a single value.
+
     Parameters
     ----------
     input_file : string
@@ -250,61 +252,81 @@ def read_CORSIKA7(input_file, declination=None):
 
     Returns
     -------
-    evt : event object
+    evt : Event
         event object containing the corsika information
     """
-    if (declination is None):
+    if declination is None:
         declination = 0
-        logger.warning(
-            "No declination given, assuming 0 degree. This might need to incorrect electric field polarizations.")
+        logger.status(
+            "No declination given, assuming 0 degrees. This might need to incorrect electric field polarizations."
+        )
+
     corsika = h5py.File(input_file, "r")
+
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     zenith, azimuth, magnetic_field_vector = get_angles(corsika, declination)
+    energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV  # Assume fixed energy
 
+    # Create RadioShower to store simulation parameters in Event
     sim_shower = NuRadioReco.framework.radio_shower.RadioShower()
+
+    sim_shower.set_parameter(shp.primary_particle, corsika["inputs"].attrs["PRMPAR"])
+    sim_shower.set_parameter(shp.observation_level, corsika["inputs"].attrs["OBSLEV"] * units.cm)
+
     sim_shower.set_parameter(shp.zenith, zenith)
     sim_shower.set_parameter(shp.azimuth, azimuth)
     sim_shower.set_parameter(shp.magnetic_field_vector, magnetic_field_vector)
-    energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
     sim_shower.set_parameter(shp.energy, energy)
-    sim_shower.set_parameter(shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2)
-    sim_shower.set_parameter(shp.refractive_index_at_ground, corsika['CoREAS'].attrs["GroundLevelRefractiveIndex"])
-    sim_shower.set_parameter(shp.magnetic_field_rotation,
-                             corsika['CoREAS'].attrs["RotationAngleForMagfieldDeclination"] * units.degree)
-    sim_shower.set_parameter(shp.distance_shower_maximum_geometric,
-                             corsika['CoREAS'].attrs["DistanceOfShowerMaximum"] * units.cm)
 
-    sim_shower.set_parameter(shp.observation_level, corsika["inputs"].attrs["OBSLEV"] * units.cm)
-    sim_shower.set_parameter(shp.primary_particle, corsika["inputs"].attrs["PRMPAR"])
+    sim_shower.set_parameter(
+        shp.core_coordinate_vertical, corsika['CoREAS'].attrs["CoreCoordinateVertical"] * units.cm
+    )
+    sim_shower.set_parameter(
+        shp.coreas_GPSSecs, corsika['CoREAS'].attrs["GPSSecs"]
+    )
+    sim_shower.set_parameter(
+        shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2
+    )
+    sim_shower.set_parameter(
+        shp.distance_shower_maximum_geometric, corsika['CoREAS'].attrs["DistanceOfShowerMaximum"] * units.cm
+    )
+    sim_shower.set_parameter(
+        shp.refractive_index_at_ground, corsika['CoREAS'].attrs["GroundLevelRefractiveIndex"]
+    )
+    sim_shower.set_parameter(
+        shp.magnetic_field_rotation, corsika['CoREAS'].attrs["RotationAngleForMagfieldDeclination"] * units.degree
+    )
+
     if 'ATMOD' in corsika['inputs'].attrs.keys():
         sim_shower.set_parameter(shp.atmospheric_model, corsika["inputs"].attrs["ATMOD"])
+
     if 'highlevel' in corsika.keys():
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
-    sim_shower.set_parameter(shp.core_coordinate_vertical, corsika['CoREAS'].attrs["CoreCoordinateVertical"] / 100)
-    sim_shower.set_parameter(shp.coreas_GPSSecs, corsika['CoREAS'].attrs["GPSSecs"])
 
+    # The traces are stored in a SimStation
     sim_station = NuRadioReco.framework.sim_station.SimStation(0)  # set sim station id to 0
+
     sim_station.set_parameter(stnp.azimuth, azimuth)
     sim_station.set_parameter(stnp.zenith, zenith)
     sim_station.set_parameter(stnp.cr_energy, energy)
     sim_station.set_magnetic_field_vector(magnetic_field_vector)
-    sim_station.set_parameter(stnp.cr_xmax, corsika['CoREAS'].attrs['DepthOfShowerMaximum'])
-    if 'highlevel' in corsika.keys():
-        sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
+
     sim_station.set_is_cosmic_ray()
 
     for j_obs, observer in enumerate(corsika['CoREAS']['observers'].values()):
         obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector)
-        obs_positions_onsky = convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field_vector)
         efield, efield_time = convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vector)
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(j_obs)
+
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(
+            np.array([j_obs]), position=obs_positions_geo
+        )
         electric_field.set_trace(efield.T, sampling_rate)
         electric_field.set_trace_start_time(efield_time[0])
+
         electric_field.set_parameter(efp.ray_path_type, 'direct')
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
-        electric_field.set_position(obs_positions_geo)
-        electric_field.set_position_onsky(obs_positions_onsky)
+
         sim_station.add_electric_field(electric_field)
 
     evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
@@ -313,6 +335,7 @@ def read_CORSIKA7(input_file, declination=None):
     evt.set_station(stn)
     evt.add_sim_shower(sim_shower)
     corsika.close()
+
     return evt
 
 
