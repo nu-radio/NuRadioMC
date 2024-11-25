@@ -49,11 +49,21 @@ def get_angles(corsika, declination):
     corsika : hdf5 file object
         the open hdf5 file object of the corsika hdf5 file
     declination : float
-        declination of the magnetic field
+        declination of the magnetic field, in internal units
+
+    Returns
+    -------
+    zenith : float
+        zenith angle
+    azimuth : float
+        azimuth angle
+    magnetic_field_vector : np.ndarray
+        magnetic field vector
     """
-    zenith = np.deg2rad(corsika['inputs'].attrs["THETAP"][0])
-    azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(
-        corsika['inputs'].attrs["PHIP"][0]) + declination)  # TODO: check if sign of declination is correct is correct
+    zenith = corsika['inputs'].attrs["THETAP"][0] * units.deg
+    azimuth = hp.get_normalized_angle(
+        3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]) + declination / units.rad
+    ) * units.rad  # TODO: check if sign of declination is correct is correct
 
     Bx, Bz = corsika['inputs'].attrs["MAGNET"]
     B_inclination = np.arctan2(Bz, Bx)
@@ -61,8 +71,9 @@ def get_angles(corsika, declination):
     B_strength = (Bx ** 2 + Bz ** 2) ** 0.5 * units.micro * units.tesla
 
     # in local coordinates north is + 90 deg
-    magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination,
-                                                                   declination + np.pi * 0.5)  # TODO: check if sign of declination is correct is correct
+    magnetic_field_vector = B_strength * hp.spherical_to_cartesian(
+        B_inclination, declination / units.rad
+    ) * units.rad + np.pi / 2 # TODO: check if sign of declination is correct is correct
 
     return zenith, azimuth, magnetic_field_vector
 
