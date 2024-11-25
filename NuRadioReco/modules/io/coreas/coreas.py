@@ -96,6 +96,7 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     Converts the electric field from one CoREAS observer to NuRadio units and the on-sky coordinate system.
 
     The on-sky CS in NRR has basis vectors eR, eTheta, ePhi.
+    Before going to the on-sky CS, we account for the magnetic field which does not point strictly North.
     To get the zenith, azimuth and magnetic field vector, one can use `get_angles()`.
     The `observer` array should have the shape (n_samples, 4) with the columns (time, Ey, -Ex, Ez),
     where (x, y, z) is the NuRadio CS.
@@ -103,7 +104,7 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     Parameters
     ----------
     observer : np.ndarray
-        The observer as in the HDF5 file, e.g. corsika['CoREAS']['observers'].values()[i].
+        The observer as in the HDF5 file, e.g. list(corsika['CoREAS']['observers'].values())[i].
     zenith : float
         zenith angle (in internal units)
     azimuth : float
@@ -138,38 +139,52 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     return efield_on_sky.T, efield_times
 
 
-def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector, z_coord=0):
+def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector):
     """
-    Converts one observer positions from the corsika observer to NuRadio units on ground.
-    coreas: x-axis pointing to the magnetic north, the positive y-axis to the west, and the z-axis upwards.
-    NuRadio: x-axis pointing to the east, the positive y-axis geographical north, and the z-axis upwards.
-    NuRadio_x = -coreas_y, NuRadio_y = coreas_x, NuRadio_z = coreas_z and then correct for mag north
+    Convert observer positions from the CORSIKA CS to the NRR ground CS.
+
+    First, the observer position is converted to the NRR coordinate conventions (i.e. x pointing East,
+    y pointing North, z pointing up). Then, the observer position is corrected for magnetic north
+    (as CORSIKA only has two components to its magnetic field vector) and put in the geographic CS.
+    To get the zenith, azimuth and magnetic field vector, one can use the `get_angles()` function.
+    If multiple observers are to be converted, the `observer` array should have the shape (n_observers, 3).
 
     Parameters
     ----------
-    observer : value
-        observer as in the hdf5 file object, e.g. corsika['CoREAS']['observers'].values()[i]
+    observer : np.ndarray
+        The observer's position as extracted from the HDF5 file, e.g. corsika['CoREAS']['my_observer']['position'].
     zenith : float
-        zenith angle in radians from corsika file, e.g. use get_angles()
+        zenith angle (in internal units)
     azimuth : float
-        azimuth angle in radians from corsika file, e.g. use get_angles()
-    magnetic_field_vector : np.array (3)
-        magnetic field vector from corsika file, e.g. use get_angles()
+        azimuth angle (in internal units)
+    magnetic_field_vector : np.ndarray
+        magnetic field vector
   
     Returns
     -------
-    obs_positions_geo: np.array (3)
-        observer positions in geographic coordinates
+    obs_positions_geo: np.ndarray
+        observer positions in geographic coordinates, shaped as (n_observers, 3).
     
     """
-    cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector)
+    cs = coordinatesystems.cstrafo(
+        zenith / units.rad, azimuth / units.rad,
+        magnetic_field_vector
+    )
 
-    obs_positions = np.array([-observer.attrs['position'][1], observer.attrs['position'][0], z_coord]) * units.cm
+    # If single position is given, make sure it has the right shape (3,) -> (1, 3)
+    if observer.ndim == 1:
+        observer = observer[np.newaxis, :]
+
+    obs_positions = np.array([
+        observer[:, 1] * -1,
+        observer[:, 0],
+        observer[:, 2]
+    ]) * units.cm
 
     # second to last dimension has to be 3 for the transformation
-    obs_positions_geo = cs.transform_from_magnetic_to_geographic(obs_positions.T)
+    obs_positions_geo = cs.transform_from_magnetic_to_geographic(obs_positions)
 
-    return obs_positions_geo
+    return obs_positions_geo.T
 
 
 def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field_vector):
