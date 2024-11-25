@@ -189,36 +189,43 @@ def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnet
 
 def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field_vector):
     """
-    Converts one observer positions from the corsika file to NuRadio units in the (vxB, vxvxB) shower plane.
-    coreas: x-axis pointing to the magnetic north, the positive y-axis to the west, and the z-axis upwards.
-    NuRadio: x-axis pointing to the east, the positive y-axis geographical north, and the z-axis upwards.
-    NuRadio_x = -coreas_y, NuRadio_y = coreas_x, NuRadio_z = coreas_z and then correct for mag north
+    Convert observer position from CORSIKA CS to the showerplane CS.
+
+    The showerplane CS has the basis (vxB, vxvxB, v).
+    The position is first transformed to the NRR ground CS, using `convert_obs_positions_to_nuradio_on_ground()`.
+    Then the radiotools function `coordinatesystems.cstrafo.transform_to_vxB_vxvxB()` is used to go to the showerplane.
+    If multiple observers are to be converted, the `observer` array should have the shape (n_observers, 3).
 
     Parameters
     ----------
-    observer : value
-        observer as in the hdf5 file object, e.g. corsika['CoREAS']['observers'].values()[i]
+    observer : np.ndarray
+        The observer's position as extracted from the HDF5 file, e.g. corsika['CoREAS']['my_observer']['position'].
     zenith : float
-        zenith angle in radians from corsika file, e.g. use get_angles()
+        zenith angle (in internal units)
     azimuth : float
-        azimuth angle in radians from corsika file, e.g. use get_angles()
-    magnetic_field_vector : np.array (3)
-        magnetic field vector from corsika file, e.g. use get_angles()
+        azimuth angle (in internal units)
+    magnetic_field_vector : np.ndarray
+        magnetic field vector
   
     Returns
     -------
-    obs_positions_vxB_vxvxB: np.array (3)
-        observer positions in (vxB, vxvxB) shower plane
+    obs_positions_vxB_vxvxB: np.ndarray
+        observer positions in (vxB, vxvxB, v) CS, shaped as (n_observers, 3).
     
     """
-    cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector)
+    cs = coordinatesystems.cstrafo(
+        zenith / units.rad, azimuth / units.rad,
+        magnetic_field_vector
+    )
 
-    obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector)
+    obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(
+        observer, zenith, azimuth, magnetic_field_vector
+    )  # This will have shape (n_observers, 3)
 
     # transforms the coreas observer positions into the vxB, vxvxB shower plane
-    obs_positions_vxB_vxvxB = cs.transform_to_vxB_vxvxB(obs_positions_geo).T
+    obs_positions_vxB_vxvxB = cs.transform_to_vxB_vxvxB(obs_positions_geo)
 
-    return obs_positions_vxB_vxvxB
+    return obs_positions_vxB_vxvxB.T
 
 
 def read_CORSIKA7(input_file, declination=None):
