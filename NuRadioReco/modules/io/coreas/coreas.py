@@ -69,22 +69,25 @@ def get_angles(corsika, declination):
 
 def get_geomagnetic_angle(zenith, azimuth, magnetic_field_vector):
     """
-    Calculates the angle between the geomagnetic field and the shower axis.
+    Calculates the angle between the geomagnetic field and the shower axis defined by `zenith` and `azimuth`.
+
     Parameters
     ----------
     zenith : float
-        zenith angle in radians
+        zenith angle (in internal units)
     azimuth : float
-        azimuth angle in radians
-    magnetic_field_vector : np.array (3)
-        magnetic field vector in cartesian coordinates
+        azimuth angle (in internal units)
+    magnetic_field_vector : np.ndarray
+        The magnetic field vector in the NRR coordinate system (x points East, y points North, z points up)
+
     Returns
     -------
     geomagnetic_angle : float
-        geomagnetic angle in radians
+        geomagnetic angle
     """
-    shower_axis_vector = hp.spherical_to_cartesian(zenith, azimuth)
-    geomagnetic_angle = hp.get_angle(magnetic_field_vector, shower_axis_vector)
+    shower_axis_vector = hp.spherical_to_cartesian(zenith / units.rad, azimuth / units.rad)
+    geomagnetic_angle = hp.get_angle(magnetic_field_vector, shower_axis_vector) * units.rad
+
     return geomagnetic_angle
 
 
@@ -797,6 +800,7 @@ class coreasInterpolator:
                 self.obs_positions_vxB_vxvxB[:, 0],
                 self.obs_positions_vxB_vxvxB[:, 1],
                 self.electric_field_on_sky,
+                signals_start_times=self.efield_times[:, 0],
                 lowfreq=(interp_lowfreq - 0.01) / units.MHz,
                 highfreq=(interp_highfreq + 0.01) / units.MHz,
                 sampling_period=1 / self.sampling_rate / units.s,  # interpolator wants sampling period in seconds
