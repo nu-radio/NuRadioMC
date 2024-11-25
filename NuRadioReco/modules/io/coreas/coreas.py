@@ -91,54 +91,51 @@ def get_geomagnetic_angle(zenith, azimuth, magnetic_field_vector):
     return geomagnetic_angle
 
 
-def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vector, prepend_zeros=False):
+def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vector):
     """
-    Converts the electric field from one coreas observer to NuRadio units and
-    spherical coordinated eR, eTheta, ePhi (on sky)
+    Converts the electric field from one CoREAS observer to NuRadio units and the on-sky coordinate system.
+
+    The on-sky CS in NRR has basis vectors eR, eTheta, ePhi.
+    To get the zenith, azimuth and magnetic field vector, one can use `get_angles()`.
+    The `observer` array should have the shape (n_samples, 4) with the columns (time, Ey, -Ex, Ez),
+    where (x, y, z) is the NuRadio CS.
 
     Parameters
     ----------
-    observer : value
-        observer as in the hdf5 file object, e.g. corsika['CoREAS']['observers'].values()[i]
+    observer : np.ndarray
+        The observer as in the HDF5 file, e.g. corsika['CoREAS']['observers'].values()[i].
     zenith : float
-        zenith angle in radians from corsika file, e.g. use get_angles()
+        zenith angle (in internal units)
     azimuth : float
-        azimuth angle in radians from corsika file, e.g. use get_angles()
-    magnetic_field_vector : np.array (3)
-        magnetic field vector from corsika file, e.g. use get_angles()
-    prepend_zeros : bool
-        if True, the trace is prepended with zeros to not have the pulse directly at the start
+        azimuth angle (in internal units)
+    magnetic_field_vector : np.ndarray
+        magnetic field vector
     
     Returns
     -------
     efield: np.array (n_samples, 3)
-        efield with three polarizations (r, theta, phi)
+        Electric field in the on-sky CS (r, theta, phi)
     efield_times: np.array (n_samples)
+        The time values corresponding to the electric field samples
 
     """
-    cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector)
+    cs = coordinatesystems.cstrafo(
+        zenith / units.rad, azimuth / units.rad,
+        magnetic_field_vector  # the magnetic field vector is used to find showerplane, so only direction is important
+    )
 
-    efield = np.array([observer[:, 0] * units.second,
-                       -observer[:, 2] * conversion_fieldstrength_cgs_to_SI,
-                       observer[:, 1] * conversion_fieldstrength_cgs_to_SI,
-                       observer[:, 3] * conversion_fieldstrength_cgs_to_SI])
+    efield_times = observer[:, 0] * units.second
+    efield = np.array([
+        observer[:, 2] * -1,  # CORSIKA y-axis points West
+        observer[:, 1],
+        observer[:, 3]
+    ]) * conversion_fieldstrength_cgs_to_SI
 
-    efield_times = efield[0, :]
-    efield_geo = cs.transform_from_magnetic_to_geographic(efield[1:, :])
     # convert coreas efield to NuRadio spherical coordinated eR, eTheta, ePhi (on sky)
-    efield_on_sky = cs.transform_from_ground_to_onsky(efield_geo)
+    efield_geographic = cs.transform_from_magnetic_to_geographic(efield)
+    efield_on_sky = cs.transform_from_ground_to_onsky(efield_geographic)
 
-    if prepend_zeros:
-        # prepend trace with zeros to not have the pulse directly at the start
-        n_samples_prepend = efield_on_sky.shape[1]
-        efield = np.zeros((3, n_samples_prepend + efield_on_sky.shape[1]))
-        efield[0] = np.append(np.zeros(n_samples_prepend), efield_on_sky[0])
-        efield[1] = np.append(np.zeros(n_samples_prepend), efield_on_sky[1])
-        efield[2] = np.append(np.zeros(n_samples_prepend), efield_on_sky[2])
-    else:
-        efield = efield_on_sky
-
-    return efield.T, efield_times
+    return efield_on_sky.T, efield_times
 
 
 def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector, z_coord=0):
