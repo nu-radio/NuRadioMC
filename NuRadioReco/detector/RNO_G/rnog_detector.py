@@ -1223,31 +1223,33 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
-        time_delay = 0
-        for key, value in signal_chain_dict["response_chain"].items():
+        if use_stored and not cable_only:
+            resp = self.get_signal_chain_response(station_id, channel_id)
+            return resp.get_time_delay()
+        elif use_stored and cable_only:
+            time_delays = resp.get_time_delays()
+            names = resp.get_names()
+            time_delay = 0
+            for name, dt in zip(names, time_delays):
+                if re.search("cable", name) is None and re.search("fiber", name):
+                    continue
+                time_delay += dt
+            return time_delay
+        else:
+            time_delay = 0
+            for key, value in signal_chain_dict["response_chain"].items():
 
-            if re.search("cable", key) is None and re.search("fiber", key) and cable_only:
-                continue
-
-            weight = value.get("weight", 1)
-            if use_stored:
-                if "time_delay" not in value and "cable_delay" not in value:
-                    self.logger.warning(
-                        f"The signal chain component \"{key}\" of station.channel "
-                        f"{station_id}.{channel_id} has no cable/time delay stored... (hence return time delay without it)")
+                if re.search("cable", key) is None and re.search("fiber", key) and cable_only:
                     continue
 
-                try:
-                    time_delay += weight * value["time_delay"]
-                except KeyError:
-                    time_delay += weight * value["cable_delay"]
-
-            else:
                 ydata = [value["mag"], value["phase"]]
+                # This is different from within `get_signal_chain_response` because we do set the time delay here
+                # and thus we do not remove it from the response.
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
+                weight = value.get("weight", 1)
                 time_delay += weight * response._calculate_time_delay()
 
         return time_delay
