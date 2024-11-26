@@ -31,6 +31,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         self._trigger_channel = None
 
     def set_trigger_channel(self, trigger_channel):
+        """ Sets an extra trigger channel of this channel. """
         if not isinstance(trigger_channel, Channel):
             logger.error("trigger_channel needs to be of type NuRadioReco.framework.Channel")
             raise ValueError("trigger_channel needs to be of type NuRadioReco.framework.Channel")
@@ -44,10 +45,15 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         self._trigger_channel = trigger_channel
 
     def get_trigger_channel(self):
+        """ Returns the trigger channel of this channel. If no trigger channel is set, this channel is returned. """
         if self._trigger_channel is None:
             return self
 
         return self._trigger_channel
+
+    def has_extra_trigger_channel(self):
+        """ Returns True if an extra trigger channel is set, i.e., if `self._trigger_channel` is not None. """
+        return self._trigger_channel is not None
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.channelParameters):
