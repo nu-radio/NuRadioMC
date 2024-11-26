@@ -632,17 +632,23 @@
 <dd><p>Solve L x = b, via SVD least squares cutting of small singular values
 L is an array of shape (…, M, N) and b of shape (…, M).
 Returns x of shape (…, N)</p>
+<p>Note that if L is symmetric, it is inverted analytically instead.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.voltageToEfieldConverter.</span></span><span class="sig-name descname"><span class="pre">voltageToEfieldConverter</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/voltageToEfieldConverter.html#voltageToEfieldConverter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>This module reconstructs the electric field by solving the system of equation that related the incident electric field via the antenna response functions to the measured voltages
-(see Eq. 4 of the NuRadioReco paper <a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5">https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5</a>).
-The module assumed that the electric field is identical at the antennas/channels that are used for the reconstruction. Furthermore, at least two antennas with
+<p>Unfold the electric field from the channel voltages</p>
+<p>This module reconstructs the electric field by solving the system of equation
+that relate the incident electric field via the antenna response functions
+to the measured voltages (see Eq. 4 of the NuRadioReco paper
+<a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5">https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5</a>).
+The module assumed that the electric field is identical at the antennas/channels
+that are used for the reconstruction. Furthermore, at least two antennas with
 orthogonal polarization response are needed to reconstruct the 3dim electric field.
-Alternatively, the polarization of the resulting efield could be forced to a single polarization component. In that case, a single antenna is sufficient.</p>
+Alternatively, the polarization of the resulting efield could be forced to a
+single polarization component. In that case, a single antenna is sufficient.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -670,19 +676,19 @@ Alternatively, the polarization of the resulting efield could be forced to a sin
 <dt class="sig sig-object py" id="NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_MC_direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_Polarization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/voltageToEfieldConverter.html#voltageToEfieldConverter.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter.run" title="Permalink to this definition"></a></dt>
 <dd><p>run method. This function is executed for each event</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>evt</strong></dt><dd></dd>
-<dt><strong>station</strong></dt><dd></dd>
-<dt><strong>det</strong></dt><dd></dd>
+<dd class="field-odd"><dl>
+<dt><strong>evt</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.event.Event</span></code></a></span></dt><dd></dd>
+<dt><strong>station</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation" title="NuRadioReco.framework.base_station.BaseStation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.base_station.BaseStation</span></code></a></span></dt><dd></dd>
+<dt><strong>det</strong><span class="classifier">Detector object</span></dt><dd></dd>
 <dt><strong>use_channels: array of ints (default: [0, 1, 2, 3])</strong></dt><dd><p>the channel ids to use for the electric field reconstruction</p>
 </dd>
-<dt><strong>use_MC_direction: bool</strong></dt><dd><p>if True uses zenith and azimuth direction from simulated station
-if False uses reconstructed direction from station parameters.</p>
+<dt><strong>use_MC_direction: bool, default: False</strong></dt><dd><p>If True uses zenith and azimuth direction from simulated station.
+Otherwise, uses reconstructed direction from station parameters.</p>
 </dd>
-<dt><strong>force_Polarization: str</strong></dt><dd><p>if eTheta or ePhi, then only reconstructs chosen polarization of electric field,
-assuming the other is 0. Otherwise, reconstructs electric field for both eTheta and ePhi</p>
+<dt><strong>force_Polarization: str, optional</strong></dt><dd><p>If eTheta or ePhi, then only reconstructs chosen polarization of electric field,
+assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi</p>
 </dd>
 </dl>
 </dd>
