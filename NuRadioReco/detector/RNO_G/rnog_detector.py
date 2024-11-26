@@ -1219,7 +1219,6 @@ class Detector():
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
         """
-
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
@@ -1227,19 +1226,21 @@ class Detector():
             resp = self.get_signal_chain_response(station_id, channel_id)
             return resp.get_time_delay()
         elif use_stored and cable_only:
+            resp = self.get_signal_chain_response(station_id, channel_id)
             time_delays = resp.get_time_delays()
             names = resp.get_names()
             time_delay = 0
             for name, dt in zip(names, time_delays):
-                if re.search("cable", name) is None and re.search("fiber", name):
+                if re.search("cable", name) is None and re.search("fiber", name) is None:
                     continue
+
                 time_delay += dt
             return time_delay
         else:
             time_delay = 0
             for key, value in signal_chain_dict["response_chain"].items():
 
-                if re.search("cable", key) is None and re.search("fiber", key) and cable_only:
+                if re.search("cable", key) is None and re.search("fiber", key) is None and cable_only:
                     continue
 
                 ydata = [value["mag"], value["phase"]]
@@ -1290,20 +1291,24 @@ if __name__ == "__main__":
     from NuRadioReco.detector import detector
 
     det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=False,
-                            database_connection='RNOG_public', select_stations=24)
+                            database_connection='RNOG_public', select_stations=13)
 
-    det.update(datetime.datetime(2023, 8, 2, 0, 0))
+    det.update(datetime.datetime(2023, 7, 2, 0, 0))
 
+    print(det.get_time_delay(13, 0))
+    print(det.get_time_delay(13, 0, cable_only=True))
+    # print(det.get_time_delay(13, 0, cable_only=False, use_stored=False))
+    print(det.get_time_delay(13, 0, cable_only=True, use_stored=False))
 
-    response = det.get_signal_chain_response(station_id=24, channel_id=0)
+    # response = det.get_signal_chain_response(station_id=24, channel_id=0)
 
-    from NuRadioReco.framework import electric_field
-    ef = electric_field.ElectricField(channel_ids=[0])
-    ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
+    # from NuRadioReco.framework import electric_field
+    # ef = electric_field.ElectricField(channel_ids=[0])
+    # ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
 
-    # Multipy the response to a trace. The multiply operator takes care of everything
-    trace_at_readout = ef * response
+    # # Multipy the response to a trace. The multiply operator takes care of everything
+    # trace_at_readout = ef * response
 
-    # getting the complex response as array
-    freq = np.arange(50, 1000) * units.MHz
-    complex_resp = response(freq)
+    # # getting the complex response as array
+    # freq = np.arange(50, 1000) * units.MHz
+    # complex_resp = response(freq)
