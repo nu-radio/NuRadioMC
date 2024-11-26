@@ -9,8 +9,7 @@ from scipy.optimize import fsolve
 import h5py
 from NuRadioMC.EvtGen.generator import write_events_to_hdf5
 import logging
-logger = logging.getLogger("EventGen")
-logging.basicConfig()
+logger = logging.getLogger("NuRadioMC.EventGen")
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 1
