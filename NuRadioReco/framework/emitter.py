@@ -3,7 +3,7 @@ import NuRadioReco.framework.parameter_serialization
 import pickle
 
 import logging
-logger = logging.getLogger('Emitter')
+logger = logging.getLogger('NuRadioReco.Emitter')
 
 
 class Emitter:

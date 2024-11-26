@@ -84,6 +84,7 @@ if __name__ == "__main__":
     exclude_modules.append('../**/eventbrowser') 
     exclude_modules.append('../**/setup.py')
     exclude_modules.append('../**/CPPAnalyticRayTracing') # C code also doesn't work right now
+    exclude_modules.append('../**/araroot') # this doesn't work because we don't have the .so files to read ARA data
 
     # create the automatic code documentation with apidoc
     for module in ['NuRadioReco', 'NuRadioMC']:

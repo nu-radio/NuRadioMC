@@ -30,7 +30,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
     """
 
     def __init__(self, json_filename, default_station=None, default_channel=None, default_device=None, source='json',
-                 dictionary=None, log_level=logging.WARNING,
+                 dictionary=None, log_level=logging.NOTSET,
                  assume_inf=True, antenna_by_depth=False):
         """
         Initialize the stations detector properties.

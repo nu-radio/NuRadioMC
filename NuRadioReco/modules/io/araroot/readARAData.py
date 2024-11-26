@@ -31,7 +31,7 @@ class readARAData:
 
     """
     def __init__(self):
-        self.logger = logging.getLogger("NuRadioReco.readARAData")
+        self.logger = logging.getLogger("NuRadioReco.ARA.readARAData")
         self.__id_current_event = None
         self.__t = None
         self.f = None

@@ -216,7 +216,7 @@ class ProposalFunctions(object):
     not be used from the outside to avoid mismatching units.
     """
 
-    def __init__(self, config_file='SouthPole', log_level=logging.INFO, tables_path=None, seed=12, upper_energy_limit=1e14*units.MeV):
+    def __init__(self, config_file='SouthPole', log_level=logging.NOTSET, tables_path=None, seed=12, upper_energy_limit=1e14*units.MeV):
         """
         Parameters
         ----------
@@ -232,6 +232,7 @@ class ProposalFunctions(object):
             -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
             same as SouthPole but with a 3 km deep ice layer.
         log_level: logging level
+            Override the global logging level
         tables_path: path
             Path to PROPOSAL tables. Should be set to a path where PROPOSAL tables exist, or
             where PROPOSAL tables can be saved. This avoids that PROPOSAL has to regenerate
@@ -249,7 +250,7 @@ class ProposalFunctions(object):
             For more details, check the documentation for the
             :class:`Singleton metaclass <NuRadioReco.utilities.metaclasses.Singleton>`.
         """
-        self.__logger = logging.getLogger("proposal")
+        self.__logger = logging.getLogger("NuRadioMC.proposal")
         self.__logger.setLevel(log_level)
         self.__logger.info("initializing proposal interface class")
 
