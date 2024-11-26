@@ -497,13 +497,14 @@ class Response:
         mask = np.all([195 * units.MHz < freqs, freqs < 250 * units.MHz], axis=0)[:-1]
         time_delay1 = np.mean(time_delay[mask])
 
-        # fit the unwrapped phase with a linear function
-        popt = np.polyfit(freqs, np.unwrap(phase), 1)
-        time_delay2 = -popt[0] / (2 * np.pi)
+        # This alternative calculation is only meaningful if group delay is ~ constant over the whole frequency range (which is the case for most cables)
+        # # fit the unwrapped phase with a linear function
+        # popt = np.polyfit(freqs, np.unwrap(phase), 1)
+        # time_delay2 = -popt[0] / (2 * np.pi)
 
-        if np.abs(time_delay1 - time_delay2) > 0.1 * units.ns:
-            self.logger.warning("Calculation of time delay. The two methods yield different results: "
-                                f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
+        # if np.abs(time_delay1 - time_delay2) > 0.1 * units.ns:
+        #     self.logger.warning("Calculation of time delay. The two methods yield different results: "
+        #                         f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
 
         return time_delay1
 
