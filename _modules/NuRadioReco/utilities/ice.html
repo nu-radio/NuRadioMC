@@ -614,17 +614,58 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.ice</h1><div class="highlight"><pre>
-<span></span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">implementation of ice models</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">(old) implementation of ice models</span>
 
+<span class="sd">Only returns one of two values depending on whether the depth is below</span>
+<span class="sd">or above 0 (assumed to be the ice-air) interface.</span>
+
+<span class="sd">.. Warning::</span>
+<span class="sd">    This function is used internally in some modules, but should not</span>
+<span class="sd">    be used in new user code. Please use the `NuRadioMC.utilities.medium`</span>
+<span class="sd">    module instead</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.utilities.ice&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="get_refractive_index"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html#NuRadioReco.utilities.ice.get_refractive_index">[docs]</a><span class="k">def</span> <span class="nf">get_refractive_index</span><span class="p">(</span><span class="n">depth</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s1">&#39;southpole&#39;</span><span class="p">):</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">depth</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mf">1.3</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get refractive index for depth</span>
+
+<span class="sd">    For sites that are not at the poles, always returns the refractive index</span>
+<span class="sd">    of air (1.000293). Otherwise, returns 1.3</span>
+
+<span class="sd">    .. Warning::</span>
+<span class="sd">        This function is only used internally. New user code should</span>
+<span class="sd">        use the ice models in `NuRadioMC.utilities.medium` instead</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    depth : float</span>
+<span class="sd">        The depth</span>
+<span class="sd">    site : str, optional</span>
+<span class="sd">        The site to use. For sites on land (not in-ice),</span>
+<span class="sd">        the refractive index returned is always that for air.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    n : float</span>
+<span class="sd">        The refractive index. For land-based sites,</span>
+<span class="sd">        this is always n_air=1.000293; for in-ice sites,</span>
+<span class="sd">        returns n_ice=1.3 or n_air depending on the depth.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lofar&#39;</span><span class="p">,</span> <span class="s1">&#39;auger&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mf">1.000293</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mf">1.000293</span></div>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;southpole&#39;</span><span class="p">,</span> <span class="s1">&#39;mooresbay&#39;</span><span class="p">,</span> <span class="s1">&#39;summit&#39;</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;site &#39;</span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">&#39; unknown, assuming in-ice detector&quot;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">depth</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mf">1.3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">1.000293</span></div>
 </pre></div>
 
            </div>
