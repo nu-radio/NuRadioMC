@@ -622,6 +622,7 @@ class readLOFARData:
         time = Time(self.__lora_timestamp, format='unix')
         detector.update(time)
 
+        station_ids = []
         # Add all Detector stations to Event
         for station_name, station_dict in self.__stations.items():
             station_id = int(station_name[2:])
@@ -635,8 +636,8 @@ class readLOFARData:
 
             station = NuRadioReco.framework.station.Station(station_id)
             station.set_station_time(time)
-            radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
-                                                                          station_ids=[station_id])
+            # radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
+            #                                                               station_ids=[station_id])
 
             # Use KRATOS io functions to access trace
             lofar_trace_access = getLOFARtraces(
@@ -719,12 +720,16 @@ class readLOFARData:
             # store set of flagged nrr channel ids as station parameter
             station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
 
-            # Add station to Event, together with RadioShower to store reconstruction values later on
+            # Add station to Event
             evt.set_station(station)
-            evt.add_shower(radio_shower)
+            station_ids.append(station_id)
+            # evt.add_shower(radio_shower)
 
             lofar_trace_access.close_file()
-
+            
+        # Add general event radio shower to event to store reconstruction values later
+        radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=self.__event_id, station_ids=station_ids)
+        evt.add_shower(radio_shower)
         yield evt
 
     def end(self):
