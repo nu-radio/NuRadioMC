@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 import logging
-logger = logging.getLogger('efieldRadioInterferometricReconstruction')
+logger = logging.getLogger('NuRadioReco.efieldRadioInterferometricReconstruction')
 
 """
 This module hosts to classes

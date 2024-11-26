@@ -4,8 +4,8 @@ import h5py
 from NuRadioMC.EvtGen import generator
 from NuRadioReco.utilities import units
 import logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("testtaueventgen")
+logger = logging.getLogger("NuRadioMC.EvtGen.test_tau_eventgen")
+logger.setLevel(logging.DEBUG)
 
 # define simulation volume
 volume = {

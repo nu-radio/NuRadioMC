@@ -3,7 +3,7 @@ from NuRadioReco.utilities import units, fft
 from scipy import constants
 from scipy.optimize import curve_fit
 import logging
-logger = logging.getLogger("HCRB2017")
+logger = logging.getLogger("NuRadioMC.SignalGen.HCRB2017")
 logger.setLevel(logging.INFO)
 
 

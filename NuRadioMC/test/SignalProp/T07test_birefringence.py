@@ -7,9 +7,9 @@ from NuRadioReco.framework import base_trace
 import NuRadioReco.framework.electric_field
 import logging
 from scipy.spatial.tests.test_qhull import points
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('test_raytracing')
 
+logger = logging.getLogger('NuRadio.SignalProp.test_raytracing')
+logger.setLevel(logging.INFO)
 
 import matplotlib.pyplot as plt
 

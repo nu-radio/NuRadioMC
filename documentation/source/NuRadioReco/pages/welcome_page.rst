@@ -7,6 +7,7 @@ NuRadioReco Documentation
 
    event_structure
    detector_tree
+   times
    nur_modules
    event_display
    utilities
