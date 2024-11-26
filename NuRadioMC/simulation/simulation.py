@@ -1521,7 +1521,7 @@ class simulation:
                     if not evt.get_station().has_triggered():
                         continue
 
-                    #triggerTimeAdjuster.run(evt, station, self._det)
+                    triggerTimeAdjuster.run(evt, station, self._det)
                     evt_group_triggered = True
                     output_buffer[station_id][evt.get_id()] = evt
                 # end event loop
