@@ -1165,18 +1165,14 @@ class Detector():
 
 
     def get_cable_delay(self, station_id, channel_id, use_stored=True):
-        """
-        Return the cable delay of a signal chain as stored in the detector description.
-        This interface is required by simulation.py. See get_time_delay for description of
-        arguments.
-        """
+        """ Same as `get_time_delay`. Only here to keep the same interface as the other detector classes. """
         # FS: For the RNO-G detector description it is not easy to determine the cable delay alone
         # because it is not clear which reference components may need to be substraced.
         # However, having the cable delay without amplifiers is anyway weird.
-        return self.get_time_delay(station_id, channel_id, cable_only=False, use_stored=use_stored)
+        return self.get_time_delay(station_id, channel_id, use_stored=use_stored)
 
-    def get_time_delay(self, station_id, channel_id, cable_only=False, use_stored=True):
-        """ Return the sum of the time delay of all components in the signal chain calculated from the phase
+    def get_time_delay(self, station_id, channel_id, use_stored=True):
+        """ Return the sum of the time delay of all components in the signal chain calculated from the phase.
 
         Parameters
         ----------
@@ -1186,9 +1182,6 @@ class Detector():
 
         channel_id: int
             The channel id
-
-        cable_only: bool
-            If True: Consider only cables to calculate delay. (Default: False)
 
         use_stored: bool
             If True, take time delay as stored in DB rather than calculated from response. (Default: True)
@@ -1204,23 +1197,10 @@ class Detector():
 
         if use_stored:
             resp = self.get_signal_chain_response(station_id, channel_id)
-            if not cable_only:
-                return resp.get_time_delay()
-            else:
-                time_delays = resp.get_time_delays()
-                names = resp.get_names()
-                time_delay = 0
-                for name, dt in zip(names, time_delays):
-                    if re.search("cable", name) is None and re.search("fiber", name) is None:
-                        continue
-                    time_delay += dt
-                return time_delay
+            return resp.get_time_delay()
         else:
             time_delay = 0
             for key, value in signal_chain_dict["response_chain"].items():
-
-                if re.search("cable", key) is None and re.search("fiber", key) is None and cable_only:
-                    continue
 
                 ydata = [value["mag"], value["phase"]]
                 # This is different from within `get_signal_chain_response` because we do set the time delay here
