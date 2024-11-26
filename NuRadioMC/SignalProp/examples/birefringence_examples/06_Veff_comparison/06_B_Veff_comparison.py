@@ -11,8 +11,7 @@ from NuRadioMC.simulation import simulation
 import matplotlib.pyplot as plt
 import numpy as np
 import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("NuRadioMC.SignalProp.runstrawman")
 
 ###-----------------------------------------
 #   EXAMPLE: Script to calculate the effects of birefringence on the effective volume. 

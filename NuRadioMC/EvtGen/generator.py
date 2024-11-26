@@ -12,10 +12,10 @@ import NuRadioMC
 from NuRadioMC.utilities import inelasticities
 from NuRadioMC.simulation.time_logger import pretty_time_delta
 from NuRadioReco.utilities import units, version, particle_names
-from NuRadioReco.utilities.logging import setup_logger
 
-logger = setup_logger("NuRadioMC.EvtGen")
-logger.setLevel(logging.INFO)
+
+logger = logging.getLogger("NuRadioMC.EvtGen")
+logger.setLevel(logging.NOTSET)
 
 
 VERSION_MAJOR = 3

@@ -12,9 +12,7 @@ import time
 from NuRadioReco.utilities import units
 
 import logging
-logger = logging.getLogger("Veff")
-logging.basicConfig()
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("NuRadioMC.Veff")
 
 
 # collection of utility function regarding the calculation of the effective volume of a neutrino detector

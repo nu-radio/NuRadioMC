@@ -5,7 +5,7 @@ from radiotools import helper as hp, coordinatesystems
 import pickle
 
 import logging
-logger = logging.getLogger('Shower')
+logger = logging.getLogger('NuRadioReco.Shower')
 
 
 class BaseShower:

@@ -3,9 +3,6 @@ import os
 from NuRadioReco.utilities import units
 from NuRadioMC.EvtGen.generator import write_events_to_hdf5
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 1

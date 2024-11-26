@@ -2,8 +2,31 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 3.0
+NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enabling long-awaited features such as:
+- exposing functions to calculate voltage traces from showers for stand-alone use (needed e.g. for Likelihood forward folding reconstruction)
+- separate simulation of trigger channels (-> significant speed up of simulations)
+- allow simulation of non-consecutive channel ids
+- enable resimulation from nur files (not yet implemented but prepared)
+- adding additional antennas on-the-fly to existing simulations
+To enable resimulation from nur files, the nur files are the master file format and contain all information of the simulation. The hdf5 files
+are still generated from the nur files to have the main simulation results available in a simple table, e.g., for quick effective volume calculations.
+
+The changes are transparent to the user. All usecode still works and produces identical results. (Only the triggerTimeAdjuster module
+was integrated into the main simulation routine and is not needed anymore in the user code.)
+See https://github.com/nu-radio/NuRadioMC/pull/680 for details.
+To simulate trigger channels separately, a list of trigger channels ids need to be passed to the __init__ function of the simulation class.
+
+new feature
+- pre trigger times, i.e., how much trace should be saved before the trigger occured, is defined in the
+trigger modules (and not implicitely through the triggerTimeAdjuster module). The trigger objects have a new flag
+`primary` which defines that this trigger was used to set the readout windows (in the case of multiple triggers.)
+Only one trigger can be the primary.
+- BaseTrace has a new utility function `add_to_trace`, which adds a trace into an existing one.
+
 version 2.3.0-dev
 new features:
+- Enhanced detector_browser to allow display RNO-G database detector
 - Added download utility unifying download of antenna models/proposal tables/shower
 library with possibility to add/change fallback-server(s). Added Chicago
 server as fallback.
@@ -27,7 +50,13 @@ can then iterate over a channel group, which yields all channels for a given gro
 - The assume_inf and antenna_by_depth Detector keywords are now saved in the nur file, and will be
 loaded again when reading in the Detector from a nur file
 - Added LOFAR coordinates to Detector site coordinates
+- Added up to date in-ice VPol response (RNOG_vpol_v2_5inch_center_n1.75.pkl) sha-1 hash
 - Implemented mattak dataset iterator in readRNOGDataMattak.run()
+- Fixed bug in phased-array noise generation script where the sign of the time delays was being ignored
+for the phasing_mode == "slice"
+- Improved logging: created NuRadioLogger class which is now used by default, the NRR and NRMC loggers
+are created automatically when importing the packages, and a new STATUS logging level was added.
+- Updating the ray_tracing_2D class in order to be able to use Numba optimization
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module

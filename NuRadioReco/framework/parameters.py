@@ -38,7 +38,7 @@ class stationParameters(Enum):
     distance_correlations = 30
     shower_energy = 31 #: the energy of the shower
     viewing_angles = 32 #: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
-    flagged_channels = 60  #: a set of flagged channel ids (calculated by readLOFARData and adjusted by stationRFIFilter)
+    flagged_channels = 60  #: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)
     cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
     dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
 
@@ -81,10 +81,9 @@ class electricFieldParameters(Enum):
     reflection_coefficient_phi = 15  #: for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
     cr_spectrum_quadratic_term = 16  #: result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
     energy_fluence_ratios = 17   #: Ratios of the energy fluences in different passbands
-    raytracing_solution = 18  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
-    launch_vector = 19  #: the launch vector of the ray from which this efield originates (only available for in-ice simulations)
-    nu_vertex_travel_time = 20  #: the time it took the ray to travel from the vertex to the channel
-
+    nu_vertex_propagation_time = 18  #: the time it takes for the signal to propagate from the vertex to the channel
+    raytracing_solution = 19  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
+    launch_vector = 20  #: the launch vector of the ray from which this efield originates (only available for in-ice simulations)
 
 class ARIANNAParameters(Enum):  #: this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  #: the start time of a sequence

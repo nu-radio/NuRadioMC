@@ -6,7 +6,7 @@ from six import iteritems
 import pickle
 import logging
 import collections
-logger = logging.getLogger('Station')
+logger = logging.getLogger('NuRadioReco.Station')
 
 
 class Station(NuRadioReco.framework.base_station.BaseStation):
@@ -18,15 +18,49 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         self.__sim_station = None
 
     def set_sim_station(self, sim_station):
+        """
+        Sets the SimStation of the Station.
+        If a SimStation is already present, it is overwritten.
+
+        Parameters
+        ----------
+        sim_station : NuRadioReco.framework.sim_station.SimStation
+            The SimStation to set as the SimStation of the Station.
+        """
         self.__sim_station = sim_station
 
     def add_sim_station(self, sim_station):
+        """
+        Adds a SimStation to the Station. If a SimStation is already present, the new SimStation is merged to the existing
+        one.
+
+        Parameters
+        ----------
+        sim_station : NuRadioReco.framework.sim_station.SimStation
+            The SimStation to add to the Station.
+        """
         self.__sim_station = self.__sim_station + sim_station
 
     def get_sim_station(self):
+        """
+        Returns the SimStation of the Station.
+
+        Returns
+        -------
+        NuRadioReco.framework.sim_station.SimStation
+            The SimStation of the Station.
+        """
         return self.__sim_station
 
     def has_sim_station(self):
+        """
+        Returns whether the Station has a SimStation.
+
+        Returns
+        -------
+        bool
+            True if the Station has a SimStation, False otherwise.
+        """
         return self.__sim_station is not None
 
     def iter_channels(self, use_channels=None, sorted=False):

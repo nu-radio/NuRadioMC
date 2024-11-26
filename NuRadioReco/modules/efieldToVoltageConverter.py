@@ -26,7 +26,7 @@ class efieldToVoltageConverter():
 
     """
 
-    def __init__(self, log_level=logging.WARNING):
+    def __init__(self, log_level=logging.NOTSET):
         self.__t = 0
         self.__uncertainty = None
         self.__debug = None

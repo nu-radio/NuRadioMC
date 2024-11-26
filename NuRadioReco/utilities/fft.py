@@ -30,9 +30,27 @@ which are defined using the latter convention.
 
 import numpy as np
 
+def freqs(num_samples, sampling_rate):
+    """
+    Returns frequency bins for FFT.
+  
+    Parameters
+    ----------
+    num_samples: int
+        The number of sample in the time domain
+    sampling_rate: float
+        Sampling rate of the trace
+
+    Returns
+    -------
+    frequencies: np.array
+        Frequency binning
+    """
+    return np.fft.rfftfreq(num_samples, d = 1 / sampling_rate)
+
 def time2freq(trace, sampling_rate):
     """
-    performs forward FFT with correct normalization that conserves the power
+    Performs forward FFT with correct normalization that conserves the power.
 
     Parameters
     ----------
@@ -40,13 +58,18 @@ def time2freq(trace, sampling_rate):
         time trace to be transformed into frequency space
     sampling_rate: float
         sampling rate of the trace
+
+    Returns
+    -------
+    spec: np.array
+        Frequency spectrum
     """
     return np.fft.rfft(trace, axis=-1) / sampling_rate * 2 ** 0.5  # an additional sqrt(2) is added because negative frequencies are omitted.
 
 
 def freq2time(spectrum, sampling_rate, n=None):
     """
-    performs backward FFT with correct normalization that conserves the power
+    Performs backward FFT with correct normalization that conserves the power.
 
     Parameters
     ----------
@@ -56,5 +79,10 @@ def freq2time(spectrum, sampling_rate, n=None):
         sampling rate of the spectrum
     n: int
         the number of sample in the time domain (relevant if time trace has an odd number of samples)
+
+    Returns
+    -------
+    trace: np.array
+        Time series/trace
     """
     return np.fft.irfft(spectrum, axis=-1, n=n) * sampling_rate / 2 ** 0.5

@@ -8,7 +8,7 @@ try:
 except ImportError:
     import pickle
 import logging
-logger = logging.getLogger('SimStation')
+logger = logging.getLogger('NuRadioReco.SimStation')
 
 
 class SimStation(NuRadioReco.framework.base_station.BaseStation):

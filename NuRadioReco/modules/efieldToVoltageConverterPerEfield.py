@@ -8,7 +8,7 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import units, ice, geometryUtilities
 from NuRadioReco.utilities import trace_utilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.utilities.logging import setup_logger
+from NuRadioReco.framework.parameters import channelParameters as chp
 
 
 class efieldToVoltageConverterPerEfield():
@@ -17,11 +17,10 @@ class efieldToVoltageConverterPerEfield():
     resulting voltage traces in the SimStationclass as SimChannel objects
     """
 
-    def __init__(self, log_level=None):
+    def __init__(self, log_level=logging.NOTSET):
         self.__t = 0
-        self.logger = setup_logger('NuRadioReco.efieldToVoltageConverterPerEfield')
-        if(log_level):
-            self.logger.setLevel(log_level)
+        self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverterPerEfield')
+        self.logger.setLevel(log_level)
         self.antenna_provider = antennapattern.AntennaPatternProvider()
 
     @register_run()
@@ -65,6 +64,7 @@ class efieldToVoltageConverterPerEfield():
             for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
                 sim_channel = NuRadioReco.framework.sim_channel.SimChannel(channel_id, shower_id=electric_field.get_shower_id(),
                                                                            ray_tracing_id=electric_field.get_ray_tracing_solution_id())
+                sim_channel[chp.signal_ray_type] = electric_field[efp.ray_path_type]
 
                 ff = electric_field.get_frequencies()
                 efield_fft = electric_field.get_frequency_spectrum()
