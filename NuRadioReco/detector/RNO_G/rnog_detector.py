@@ -1263,6 +1263,28 @@ class Detector():
         return self.__db
 
 
+    def get_component(self, collection="coax_cable", component="daq_drab_flower_2024_avg"):
+        if component in self.additional_data and 'y-axis_units' in self.additional_data[component]:
+            component_data = self.additional_data[component]
+        else:
+            db = self.get_database()
+            if db is None:
+                raise ValueError(
+                    "No database connection. You probably imported the detector from a file. "
+                    "Please use the DB connection to load the component data.")
+
+            # load the s21 parameter measurement
+            component_data = db.get_component_data(
+                collection, component)
+            self.additional_data[component] = component_data
+
+        resp = Response(
+            component_data["frequencies"], [component_data["mag"], component_data["phase"]], component_data['y-axis_units'],
+            name=component, station_id=-1, channel_id=None)
+
+        return resp
+
+
 if __name__ == "__main__":
 
     from NuRadioReco.detector import detector
