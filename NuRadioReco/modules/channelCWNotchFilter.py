@@ -38,6 +38,7 @@ def find_frequency_peaks_from_trace(trace : np.ndarray, fs : float, threshold : 
 
     return freq_peaks
 
+
 def find_frequency_peaks(freq: np.ndarray, spectrum : np.ndarray, threshold : float = 4):
     """
     Function fo find the frequency peaks in the real fourier transform of the input trace.
@@ -63,9 +64,11 @@ def find_frequency_peaks(freq: np.ndarray, spectrum : np.ndarray, threshold : fl
 
     return freq[peak_idxs]
 
+
 def get_filter(freq : int, fs, quality_factor=1e3, cache=None):
     """
-    Function to get single notch filter for a given frequency
+    Function to get single notch filter for a given frequency.
+    
     Parameters
     ----------
     freq : np.ndarray
@@ -75,15 +78,15 @@ def get_filter(freq : int, fs, quality_factor=1e3, cache=None):
     quality_factor : int, default = 1000
         quality factor of the notch filter, defined as the ratio f0/bw, where f0 is the centre frequency
         and bw the bandwidth of the filter at (f0,-3 dB)
-   
     cache : dict, default = None,
         Optional caching dictionary. The function will check whether the frequency to be filtered
         is in the dictionary values and will otherwise add it
         !!! Note this does not cache the quality factor information
+    
     Returns
     -------
-        filter : list, shape (6)
-            second order IIR notch filter at frequency freq
+    filter : list, shape (6)
+        second order IIR notch filter at frequency freq
     """
     if cache is not None:
         if freq in cache.keys():
@@ -95,6 +98,7 @@ def get_filter(freq : int, fs, quality_factor=1e3, cache=None):
         if len(cache.keys()) < 1e5:
             cache[freq] = filter
     return filter
+
 
 def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs : float, quality_factor=1e3, threshold=4,
                cache : dict = None,
@@ -125,6 +129,11 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs 
         !!! Note this assumes the quality_factor is the same for all notch filters!!!
     filters : NoneType or list, default = None
         Optional list to which the filters used in this function can be appended for future reference
+
+    Returns
+    -------
+    trace : np.ndarray
+        CW-filtered trace
     """
     freqs = find_frequency_peaks(freq, spectrum, threshold=threshold)
 
@@ -142,6 +151,7 @@ def filter_cws(trace : np.ndarray, freq : np.ndarray, spectrum : np.ndarray, fs 
         # filters list is shape 24 when looping over channels
         if filters is not None:
             filters.append([])
+    
     return trace
 
 
@@ -200,21 +210,15 @@ def plot_ft(channel, ax, label=None, plot_kwargs=dict()):
 
 
 class channelCWNotchFilter():
-    """
-    cwFilter class to apply the module as defined by NuRadio module syntax,
-    using notch filters from the scipy library
-    """
+    """ Continuous wave (CW) filter module. Uses notch filters from the scipy library """
+    
     def __init__(self):
         pass
 
-    def begin(self, quality_factor=1e3, threshold=4,
-              save_filters=False):
+    def begin(self, quality_factor=1e3, threshold=4, save_filters=False):
         self.quality_factor = quality_factor
         self.threshold = threshold
-        if save_filters:
-            self.filters = []
-        else:
-            self.filters = None
+        self.filters = [] if save_filters else None
         # dictionary to cache known notch filters at specific frequencies
         self.filter_cache = {}
 
@@ -224,10 +228,13 @@ class channelCWNotchFilter():
             freq =  channel.get_frequencies()
             spectrum = channel.get_frequency_spectrum()
             trace = channel.get_trace()
-            trace_fil = filter_cws(trace, freq, spectrum, fs, quality_factor=self.quality_factor, threshold=self.threshold,
-                                   cache=self.filter_cache, filters=self.filters)
+            trace_fil = filter_cws(
+                trace, freq, spectrum, fs, quality_factor=self.quality_factor, threshold=self.threshold, 
+                cache=self.filter_cache, filters=self.filters)
+            
             channel.set_trace(trace_fil, fs)
-        
+
+
 # Standard test for people playing around with module settings, applies the module as one would in a data reading pipeline
 # using one event in RNO_G_DATA (choose station and run) as a test
 if __name__ == "__main__":
