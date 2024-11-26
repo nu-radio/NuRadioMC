@@ -99,6 +99,8 @@ class Response:
         if y[0] is None or y[1] is None:
             raise ValueError("Data for response incomplete, detected \"None\"")
 
+        # print(name, y_unit[1], y[1])
+
         y_ampl, y_phase = np.array(y)
         if y_unit[0] == "dB":
             gain = 10 ** (y_ampl / 20)
@@ -110,10 +112,14 @@ class Response:
         if y_unit[1].lower() == "deg":
             if np.max(np.abs(y_phase)) < 2 * np.pi:
                 self.logger.warning("Is the phase really in deg? Does not look like it... "
-                                    f"Do not convert to rad. Phase: {y_phase}")
+                                    f"Do not convert {name} to rad: {y_phase}")
             else:
                 y_phase = np.deg2rad(y_phase)
         elif y_unit[1].lower() == "rad":
+            # We can not make this test because the phase might be already unwrapped
+            # if np.amax(y_phase) - np.amin(y_phase) > 2 * np.pi:
+            #     self.logger.warning("Is the phase really in rad? Does not look like it... "
+            #                         f"Do convert {name} to rad: {y_phase}")
             y_phase = y_phase
         else:
             raise KeyError
@@ -481,15 +487,13 @@ class Response:
             The time delay at ~ 200 MHz
         """
 
-        freqs = np.arange(0.05, 1.2, 0.001) * units.GHz
+        freqs = np.arange(50, 1200, 0.5) * units.MHz
 
         response = self(freqs)
-
         delta_freq = np.diff(freqs)
-
         phase = np.angle(response)
-        time_delay = -np.diff(np.unwrap(phase)) / delta_freq / 2 / np.pi
 
+        time_delay = -np.diff(np.unwrap(phase)) / delta_freq / 2 / np.pi
         mask = np.all([195 * units.MHz < freqs, freqs < 250 * units.MHz], axis=0)[:-1]
         time_delay1 = np.mean(time_delay[mask])
 
