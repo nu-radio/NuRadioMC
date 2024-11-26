@@ -27,10 +27,8 @@ deep_trigger_channels = np.array([0, 1, 2, 3])
 def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_channels, temperature):
 
     vrms_per_channel = []
-    diff_resp = triggerBoardResponse.get_diff_daq_to_trigger_response(det)
     for channel_id in trigger_channels:
-        resp = det.get_signal_chain_response(station_id, channel_id)
-        resp = resp * diff_resp
+        resp = hardwareResponseIncorporator.get_trigger_channel_response(det, station_id, channel_id)
 
         freqs = np.linspace(10, 1200, 1000) * units.MHz
         filt = resp(freqs)
@@ -98,6 +96,7 @@ class mySimulation(simulation.simulation):
     def __init__(self, *args, **kwargs):
         # this module is needed in super().__init__ to calculate the vrms
         self.rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
+        self.rnogHarwareResponse.begin(trigger_channels=deep_trigger_channels)
 
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
