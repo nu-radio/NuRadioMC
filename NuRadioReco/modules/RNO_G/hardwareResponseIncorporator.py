@@ -2,11 +2,52 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 
 from NuRadioReco.detector.RNO_G import analog_components
-import NuRadioReco.detector.detector as detector
+from NuRadioReco.detector import detector, response
 
 import numpy as np
+import copy
 import time
 import logging
+import functools
+
+
+@functools.lru_cache(maxsize=1)
+def get_trigger_board_analog_response(freqs=np.linspace(10, 1000, 1000) * units.MHz):
+    """ Returns the analog response of the trigger board. """
+    trigger_amp_response = analog_components.load_amp_response("ULP_216")
+
+    gain = trigger_amp_response["gain"](freqs)
+    complex_phase = trigger_amp_response["phase"](freqs)
+    phase = np.imag(np.log(complex_phase))
+
+    return response.Response(
+        freqs, [gain, phase], ["mag", "rad"],
+        name="ULP_216", station_id=-1, channel_id=None)
+
+
+def get_trigger_channel_response(det, station_id, channel_id):
+    """
+    This function is a temporary solution to get the trigger channel response. Eventually this should be handled by the detector class.
+    """
+
+    if f"trigger_channel_resp_{station_id}_{channel_id}" not in det.additional_data:
+
+        daq_channel_resp = det.get_signal_chain_response(station_id, channel_id)
+
+        trigger_channel_resp = copy.deepcopy(daq_channel_resp)
+        trigger_channel_resp.remove('radiant_response')
+        trigger_channel_resp.remove('coax_cable')
+
+        # These to components are the same for each PA channel (as of Nov 2024)
+        lowpass = get_trigger_board_analog_response()
+        flower_coax = det.get_component(collection="coax_cable", component="daq_drab_flower_2024_avg")
+
+        trigger_channel_resp = trigger_channel_resp * lowpass * flower_coax
+
+        det.additional_data[f"trigger_channel_resp_{station_id}_{channel_id}"] = trigger_channel_resp
+
+    return det.additional_data[f"trigger_channel_resp_{station_id}_{channel_id}"]
+
 
 
 class hardwareResponseIncorporator:
@@ -21,12 +62,20 @@ class hardwareResponseIncorporator:
         self.__t = 0
         self.__mingainlin = None
 
-    def begin(self):
-        pass
+    def begin(self, trigger_channels=None):
+        """
+        Parameters
+        ----------
+        trigger_channels: list of int
+            List of channels for which an extra trigger channel with a different response is used. (Default: None)
+
+        """
+        self.trigger_channels = trigger_channels
+
 
     def get_filter(self, frequencies, station_id, channel_id, det,
                    temp=293.15, sim_to_data=False, phase_only=False,
-                   mode=None, mingainlin=None):
+                   mode=None, mingainlin=None, is_trigger=False):
         """
         Helper function to return the filter that the module applies.
 
@@ -74,6 +123,9 @@ class hardwareResponseIncorporator:
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
 
+        is_trigger_channel: bool
+            Use trigger channel response instead. Only relevant for RNO-G. (Default: False)
+
         Returns
         -------
         array of complex floats
@@ -81,8 +133,10 @@ class hardwareResponseIncorporator:
         """
 
         if isinstance(det, detector.rnog_detector.Detector):
-            amp_response = det.get_signal_chain_response(
-                station_id, channel_id)(frequencies)
+            if is_trigger:
+                amp_response = get_trigger_channel_response(det, station_id, channel_id)(frequencies)
+            else:
+                amp_response = det.get_signal_chain_response(station_id, channel_id)(frequencies)
         elif isinstance(det, detector.detector_base.DetectorBase):
             amp_type = det.get_amplifier_type(station_id, channel_id)
             # it reads the log file. change this to load_amp_measurement if you want the RI file
@@ -172,12 +226,37 @@ class hardwareResponseIncorporator:
 
         t = time.time()
 
+        if self.trigger_channels is not None and not isinstance(det, detector.rnog_detector.Detector):
+            raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
+
         for channel in station.iter_channels():
             frequencies = channel.get_frequencies()
             trace_fft = channel.get_frequency_spectrum()
 
-            trace_fft *= self.get_filter(
+            filter = self.get_filter(
                 frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
+
+            if self.trigger_channels is not None and channel.get_id() in self.trigger_channels:
+                # There is an issue with how we simulate the hardware reponse for trigger channels atm.
+                # The entire time delay is not added here but mostly already in the efieldToVoltage module.
+                # Here only the "residual" time delay inprinted in the S21 response is added. If the
+                # time delay which is already added in the efieldToVoltage module is different between
+                # trigger and daq channels this will not be correctly reflected (afaict this is not the case atm).
+                trig_filter = self.get_filter(
+                    frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin,
+                    is_trigger=True)
+
+                trig_trace_fft = trace_fft * trig_filter
+                # zero first bins to avoid DC offset
+                trig_trace_fft[0] = 0
+
+                # Add trigger channel
+                trig_channel = copy.deepcopy(channel)
+                trig_channel.set_frequency_spectrum(
+                    trig_trace_fft, channel.get_sampling_rate())
+                channel.set_trigger_channel(trig_channel)
+
+            trace_fft *= filter
             # zero first bins to avoid DC offset
             trace_fft[0] = 0
 
@@ -188,11 +267,10 @@ class hardwareResponseIncorporator:
 
             if not sim_to_data:
                 # Include cable delays
-                cable_delay = det.get_cable_delay(
-                    station.get_id(), channel.get_id())
+                cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
+                channel.add_trace_start_time(-cable_delay)
                 self.logger.debug("cable delay of channel {} is {}ns".format(
                     channel.get_id(), cable_delay / units.ns))
-                channel.add_trace_start_time(-cable_delay)
 
         self.__t += time.time() - t
 

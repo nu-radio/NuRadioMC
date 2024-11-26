@@ -1,67 +1,11 @@
 import logging
 import numpy as np
-import time
-import functools
 
-from NuRadioReco.detector.response import Response
-from NuRadioReco.detector.RNO_G import analog_components
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units
 
 logger = logging.getLogger("NuRadioReco.triggerBoardResponse")
-
-@functools.lru_cache(maxsize=1)
-def get_trigger_board_analog_response(freqs=np.linspace(10, 1000, 1000) * units.MHz):
-    trigger_amp_response = analog_components.load_amp_response("ULP_216")
-
-    gain = trigger_amp_response["gain"](freqs)
-    complex_phase = trigger_amp_response["phase"](freqs)
-    phase = np.imag(np.log(complex_phase))
-
-    return Response(
-        freqs, [gain, phase], ["mag", "rad"],
-        name="ULP_216", station_id=-1, channel_id=None)
-
-
-def get_component(det, collection="coax_cable", component="daq_drab_flower_2024_avg"):
-    if component in det.additional_data and 'y-axis_units' in det.additional_data[component]:
-        component_data = det.additional_data[component]
-    else:
-        db = det.get_database()
-        if db is None:
-            raise ValueError(
-                "No database connection. You probably imported the detector from a file. "
-                "Please use the DB connection to load the component data.")
-
-        # load the s21 parameter measurement
-        component_data = db.get_component_data(
-            collection, component)
-        det.additional_data[component] = component_data
-
-    resp = Response(
-        component_data["frequencies"], [component_data["mag"], component_data["phase"]], component_data['y-axis_units'],
-        name=component, station_id=-1, channel_id=None)
-
-    return resp
-
-
-def get_diff_daq_to_trigger_response(det):
-    """
-    All components are here are not channel or station specific... (besides the argument `resp`)
-    """
-
-    # These to components are the same for each PA channel (as of Nov 2024)
-    lowpass = get_trigger_board_analog_response()
-    flower_coax = get_component(det, collection="coax_cable", component="daq_drab_flower_2024_avg")
-
-    # These to components are the same for each PA channel (as of Nov 2024)
-    radiant_coax = get_component(det, collection="coax_cable", component="daq_drab_radiant_pa_2024_avg")
-    radiant = get_component(det, collection="radiant_response", component="average_deep_channel_V2")
-
-    diff = lowpass * flower_coax / radiant / radiant_coax
-
-    return diff
 
 
 class triggerBoardResponse:
@@ -286,13 +230,6 @@ class triggerBoardResponse:
             the RMS voltage of the waveforms on the trigger board after applying the ADC gain
         """
         self.logger.debug("Applying the RNO-G trigger board response")
-
-        for channel_id in trigger_channels:
-            channel = station.get_channel(channel_id)
-            channel.set_trigger_channel()  # This creates a copy of `channel` and sets it as the trigger channel
-
-        trigger_amp_response = get_diff_daq_to_trigger_response(det)
-        self.apply_trigger_filter(station, trigger_channels, trigger_amp_response)
 
         if vrms is None:
             vrms = self.get_avg_vrms(station, trigger_channels)
