@@ -20,11 +20,9 @@ class hardwareResponseIncorporator:
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
-        self.__debug = None
-        self.begin()
 
-    def begin(self, debug=False):
-        self.__debug = debug
+    def begin(self):
+        pass
 
     def get_filter(self, frequencies, station_id, channel_id, det,
                    temp=293.15, sim_to_data=False, phase_only=False,
@@ -61,10 +59,10 @@ class hardwareResponseIncorporator:
             Options:
 
             * 'phase_only': only the phases response is applied but not the amplitude response
-              (identical to phase_only=True )
+            (identical to phase_only=True )
             * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
-              filter response is 1 (before applying cable response). This makes it easier
-              to compare the filtered to unfiltered signal
+            filter response is 1 (before applying cable response). This makes it easier to compare
+            the filtered to unfiltered signal
             * None : default, gain and phase effects are applied 'normally'
 
         mingainlin: float
@@ -150,10 +148,10 @@ class hardwareResponseIncorporator:
             Options:
 
             * 'phase_only': only the phases response is applied but not the amplitude response
-              (identical to phase_only=True )
+            (identical to phase_only=True)
             * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
-              filter response is 1 (before applying cable response). This makes it easier
-              to compare the filtered to unfiltered signal
+            filter response is 1 (before applying cable response). This makes it easier to compare
+            the filtered to unfiltered signal
             * None: default, gain and phase effects are applied 'normally'
 
         mingainlin: float
@@ -222,8 +220,8 @@ class hardwareResponseIncorporator:
         amp_response_phase = amp_response_f['phase'](ff)
         mask = (ff < 70 * units.MHz) & (ff > 40 * units.MHz)
         spec[~mask] = 0
-        trace2 = fft.freq2time(spec * amp_response_gain *
-                               amp_response_phase, sampling_rate)
+        trace2 = fft.freq2time(
+            spec * amp_response_gain * amp_response_phase, sampling_rate)
         max_time2 = np.abs(trace2).argmax() / sampling_rate
         return max_time2 - max_time
 
