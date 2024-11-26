@@ -59,8 +59,8 @@ from scipy import constants
 import numpy as np
 import json
 import logging
-logging.basicConfig(level=logging.CRITICAL)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("NuRadioReco.runstrawman")
+
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,

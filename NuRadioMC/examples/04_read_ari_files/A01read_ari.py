@@ -9,7 +9,8 @@ import NuRadioReco.modules.io.eventReader
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("NuRadioReco.A01read_ari")
+logger.setLevel(logging.INFO)
 
 # Parse eventfile as argument
 parser = argparse.ArgumentParser(description='NuRadioSim file')
@@ -33,17 +34,14 @@ if __name__ == "__main__":
             station_id = station.get_id()
             for channel in station.iter_channels():
                 channel_id = channel.get_id()
-                
+
                 # get time trace and times of bins
                 trace = channel.get_trace()
                 times = channel.get_times()
-                
+
                 # or get the frequency spetrum instead
                 spectrum = channel.get_frequency_spectrum()
                 frequencies = channel.get_frequencies()
-                
+
                 # obtain the position of the channel/antenna from the detector description
                 position = det.get_relative_position(station_id, channel_id)
-                
-                
-                
