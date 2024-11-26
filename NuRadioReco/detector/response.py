@@ -467,7 +467,7 @@ class Response:
         """ Get time delay from DB """
         return np.sum(self.__time_delays)
 
-    def get_time_delays(self, ):
+    def get_time_delays(self):
         """ Get time delay from DB """
         return self.__time_delays
 
