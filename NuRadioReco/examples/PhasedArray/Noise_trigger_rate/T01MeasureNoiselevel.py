@@ -12,10 +12,6 @@ import NuRadioReco.framework.channel
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import fft
 from NuRadioReco.detector import detector
-from NuRadioReco.utilities.logging import setup_logger
-
-
-logger = setup_logger()
 
 
 parser = argparse.ArgumentParser(description='calculates noise trigger rate for phased array')

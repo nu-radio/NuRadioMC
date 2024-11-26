@@ -8,9 +8,7 @@ import argparse
 import os
 import logging
 import math
-logger = logging.getLogger("HDF5-merger")
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
-logger.setLevel(logging.WARNING)
+logger = logging.getLogger("NuRadioMC.HDF5-merger")
 
 
 def merge2(filenames, output_filename):

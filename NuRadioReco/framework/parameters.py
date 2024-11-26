@@ -38,7 +38,7 @@ class stationParameters(Enum):
     distance_correlations = 30
     shower_energy = 31 #: the energy of the shower
     viewing_angles = 32 #: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
-    flagged_channels = 60  #: a set of flagged channel ids (calculated by readLOFARData and adjusted by stationRFIFilter)
+    flagged_channels = 60  #: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)
     cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
     dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
 
@@ -60,6 +60,8 @@ class channelParameters(Enum):
     signal_ray_type = 16        #: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuth = 17   #: the azimuth angle of direction at which the radio signal arrived at the antenna
     block_offsets = 18 #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+    Vrms_NuRadioMC_simulation = 19  #: the noise rms used in the MC simulation
+    bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
 
 
 class electricFieldParameters(Enum):
@@ -80,6 +82,8 @@ class electricFieldParameters(Enum):
     cr_spectrum_quadratic_term = 16  #: result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
     energy_fluence_ratios = 17   #: Ratios of the energy fluences in different passbands
     nu_vertex_propagation_time = 18  #: the time it takes for the signal to propagate from the vertex to the channel
+    raytracing_solution = 19  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
+    launch_vector = 20  #: the launch vector of the ray from which this efield originates (only available for in-ice simulations)
 
 class ARIANNAParameters(Enum):  #: this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  #: the start time of a sequence
@@ -121,6 +125,7 @@ class showerParameters(Enum):
     interaction_type = 109  #: the interaction type, e.g. cc or nc
     k_L = 110  #: the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
     flavor = 111  #: the flavor of the particle initiating the shower
+    n_interaction = 112 #: Hierarchical counter for the number of showers per event group (also accounts for showers which did not trigger and might not be saved)
 
     interferometric_shower_maximum = 120  #: depth of the maximum of the longitudinal profile of the beam-formed signal
     interferometric_shower_axis = 121  #: shower axis (direction) derived from beam-formed signal
@@ -139,6 +144,8 @@ class emitterParameters(Enum):
     rotation_phi = 9  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
     rotation_theta = 10  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
     realization_id = 11  #: the id of the measurement of the emitted electric field
+    antenna_type =  12  #: the type of the antenna used to simulate the emission
+    time = 13  #: the time when the signal was emitted
 
 
 class particleParameters(Enum):
@@ -153,6 +160,7 @@ class particleParameters(Enum):
     inelasticity = 11  #: inelasticity ot neutrino interaction
     interaction_type = 12  #: interaction type, e.g., cc, nc
     n_interaction = 13 #: number of interaction
+    shower_id = 14 #: the shower id associated with this particle. This is needed to generate HDF5 files that contain the primary particle
 
     cr_energy = 101  #: the cosmic-ray energy
     cr_zenith = 102  #: zenith angle of the cosmic-ray incoming direction
@@ -198,6 +206,9 @@ class generatorAttributes(Enum):
 
     flavors = 26 #: list of simulated event flavours
     dt = 27 #: inverse of sampling rate used in the simulation
+    Tnoise = 28 #: noise temperature used in the simulation
+    Vrms = 29 #: noise rms used in the simulation,
+    bandwidth = 30 #: integrated channel response used in the simulation
 
     # simulated statistics
     n_events = 100

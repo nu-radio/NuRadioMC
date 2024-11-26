@@ -1,11 +1,8 @@
 import NuRadioReco.detector.antennapattern
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
-import logging
 import numpy as np
 
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(level=logging.DEBUG)
 
 provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
