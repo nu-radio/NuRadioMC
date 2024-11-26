@@ -388,8 +388,7 @@ class ray_tracing_2D(ray_tracing_base):
             the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss
             of some accuracy, See PR #507. This optimization is used for all ice models.
             With this argument you can explicitly activate or deactivate
-            (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
-            listed in speedup_attenuation_models)
+            (True or False) if you want to use the optimization. (Default: use optimized calculation.)
         use_cpp: bool
             if True, use CPP implementation of minimization routines
             default: True if CPP version is available
