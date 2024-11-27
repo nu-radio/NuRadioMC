@@ -1,1 +1,1 @@
-from _deprecated import *
+from NuRadioReco.modules._deprecated import triggerTimeAdjuster
