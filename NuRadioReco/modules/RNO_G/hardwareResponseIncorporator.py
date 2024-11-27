@@ -8,46 +8,6 @@ import numpy as np
 import copy
 import time
 import logging
-import functools
-
-
-@functools.lru_cache(maxsize=1)
-def get_trigger_board_analog_response(freqs=np.linspace(10, 1000, 1000) * units.MHz):
-    """ Returns the analog response of the trigger board. """
-    trigger_amp_response = analog_components.load_amp_response("ULP_216")
-
-    gain = trigger_amp_response["gain"](freqs)
-    complex_phase = trigger_amp_response["phase"](freqs)
-    phase = np.imag(np.log(complex_phase))
-
-    return response.Response(
-        freqs, [gain, phase], ["mag", "rad"],
-        name="ULP_216", station_id=-1, channel_id=None)
-
-
-def get_trigger_channel_response(det, station_id, channel_id):
-    """
-    This function is a temporary solution to get the trigger channel response. Eventually this should be handled by the detector class.
-    """
-
-    if f"trigger_channel_resp_{station_id}_{channel_id}" not in det.additional_data:
-
-        daq_channel_resp = det.get_signal_chain_response(station_id, channel_id)
-
-        trigger_channel_resp = copy.deepcopy(daq_channel_resp)
-        trigger_channel_resp.remove('radiant_response')
-        trigger_channel_resp.remove('coax_cable')
-
-        # These to components are the same for each PA channel (as of Nov 2024)
-        lowpass = get_trigger_board_analog_response()
-        flower_coax = det.get_component(collection="coax_cable", component="daq_drab_flower_2024_avg")
-
-        trigger_channel_resp = trigger_channel_resp * lowpass * flower_coax
-
-        det.additional_data[f"trigger_channel_resp_{station_id}_{channel_id}"] = trigger_channel_resp
-
-    return det.additional_data[f"trigger_channel_resp_{station_id}_{channel_id}"]
-
 
 
 class hardwareResponseIncorporator:
@@ -133,10 +93,8 @@ class hardwareResponseIncorporator:
         """
 
         if isinstance(det, detector.rnog_detector.Detector):
-            if is_trigger:
-                amp_response = get_trigger_channel_response(det, station_id, channel_id)(frequencies)
-            else:
-                amp_response = det.get_signal_chain_response(station_id, channel_id)(frequencies)
+            resp = det.get_signal_chain_response(station_id, channel_id, is_trigger)
+            amp_response = resp(frequencies)
         elif isinstance(det, detector.detector_base.DetectorBase):
             amp_type = det.get_amplifier_type(station_id, channel_id)
             # it reads the log file. change this to load_amp_measurement if you want the RI file

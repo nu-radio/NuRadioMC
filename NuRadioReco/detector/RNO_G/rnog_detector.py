@@ -830,7 +830,7 @@ class Detector():
         return response_func(frequencies)
 
     @_check_detector_time
-    def get_signal_chain_response(self, station_id, channel_id):
+    def get_signal_chain_response(self, station_id, channel_id, trigger=False):
         """
         Returns a `detector.response.Response` object which describes the complex response of the
         entire signal chain, i.e., the combined reponse of all components of one
@@ -845,6 +845,9 @@ class Detector():
         channel_id: int
             The channel id
 
+        trigger: bool
+            If True, the trigger channel resonse is returned. An error is raised if no trigger response exists. (Default: False)
+
         Returns
         -------
 
@@ -854,9 +857,22 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
+        if trigger:
+            response_chain_key = "trigger_response_chain"
+            response_key = "total_trigger_response"
+
+            if response_chain_key not in signal_chain_dict or "is_trigger_chain_absolute" not in signal_chain_dict:
+                raise KeyError(f"No trigger response for station.channel {station_id}.{channel_id}")
+
+            if not signal_chain_dict["is_trigger_chain_absolute"]:
+                raise NotImplementedError("Relative trigger chains are not implemented yet.")
+        else:
+            response_chain_key = "response_chain"
+            response_key = "total_response"
+
         # total_response can be None if imported from file
-        if "total_response" not in signal_chain_dict or signal_chain_dict["total_response"] is None:
-            measurement_components_dic = signal_chain_dict["response_chain"]
+        if response_key not in signal_chain_dict or signal_chain_dict[response_key] is None:
+            measurement_components_dic = signal_chain_dict[response_chain_key]
 
             # Here comes a HACK
             components = list(measurement_components_dic.keys())
@@ -906,9 +922,9 @@ class Detector():
                 responses.append(response)
 
             # Buffer object
-            signal_chain_dict["total_response"] = np.prod(responses)
+            signal_chain_dict[response_key] = np.prod(responses)
 
-        return signal_chain_dict["total_response"]
+        return signal_chain_dict[response_key]
 
     @_check_detector_time
     def get_signal_chain_components(self, station_id, channel_id):
