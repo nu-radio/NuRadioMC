@@ -125,7 +125,7 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     
     Returns
     -------
-    efield: np.array (n_samples, 3)
+    efield: np.array (3, n_samples)
         Electric field in the on-sky CS (r, theta, phi)
     efield_times: np.array (n_samples)
         The time values corresponding to the electric field samples
@@ -147,7 +147,7 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     efield_geographic = cs.transform_from_magnetic_to_geographic(efield)
     efield_on_sky = cs.transform_from_ground_to_onsky(efield_geographic)
 
-    return efield_on_sky.T, efield_times
+    return efield_on_sky, efield_times
 
 
 def convert_obs_positions_to_nuradio_on_ground(observer_pos, zenith, azimuth, magnetic_field_vector):
