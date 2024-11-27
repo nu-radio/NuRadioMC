@@ -4,7 +4,6 @@ from matplotlib import cm
 from radiotools import helper as hp
 from radiotools import coordinatesystems
 
-from NuRadioReco.examples.StandAloneScripts.A02retrieve_detector_info import position
 from NuRadioReco.utilities import units
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.event
@@ -14,8 +13,8 @@ import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
-# import cr_pulse_interpolator.interpolation_fourier
-# import cr_pulse_interpolator.signal_interpolation_fourier
+import cr_pulse_interpolator.interpolation_fourier
+import cr_pulse_interpolator.signal_interpolation_fourier
 import logging
 import copy
 import h5py
