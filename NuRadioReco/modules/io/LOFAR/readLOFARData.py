@@ -636,8 +636,6 @@ class readLOFARData:
 
             station = NuRadioReco.framework.station.Station(station_id)
             station.set_station_time(time)
-            # radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
-            #                                                               station_ids=[station_id])
 
             # Use KRATOS io functions to access trace
             lofar_trace_access = getLOFARtraces(
@@ -723,7 +721,6 @@ class readLOFARData:
             # Add station to Event
             evt.set_station(station)
             station_ids.append(station_id)
-            # evt.add_shower(radio_shower)
 
             lofar_trace_access.close_file()
             
