@@ -899,12 +899,9 @@ class ray_tracing_2D(ray_tracing_base):
                         elif idx == -1:
                             idx = 0
                         
-                        integrand = integrate.quad(self.ds, segments[idx], segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0]
-                        attenuation = (attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs)
-                        att_int = np.array(
-                            [integrand, attenuation])
-
-                        attenuation_exp_tmp[:, idx] = att_int
+                        
+                        att = np.array([attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs])
+                        attenuation_exp_tmp[:, idx] = 1. / att
 
                     # sum over all segments
                     attenuation_exp = np.sum(attenuation_exp_tmp, axis=1)
