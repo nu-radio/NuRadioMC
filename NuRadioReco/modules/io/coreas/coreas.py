@@ -12,8 +12,8 @@ import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
-import cr_pulse_interpolator.interpolation_fourier
-import cr_pulse_interpolator.signal_interpolation_fourier
+# import cr_pulse_interpolator.interpolation_fourier
+# import cr_pulse_interpolator.signal_interpolation_fourier
 import logging
 import copy
 import h5py
@@ -150,7 +150,7 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     return efield_on_sky.T, efield_times
 
 
-def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector):
+def convert_obs_positions_to_nuradio_on_ground(observer_pos, zenith, azimuth, magnetic_field_vector):
     """
     Convert observer positions from the CORSIKA CS to the NRR ground CS.
 
@@ -162,8 +162,8 @@ def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnet
 
     Parameters
     ----------
-    observer : np.ndarray
-        The observer's position as extracted from the HDF5 file, e.g. corsika['CoREAS']['my_observer']['position'].
+    observer_pos : np.ndarray
+        The observer's position as extracted from the HDF5 file, e.g. corsika['CoREAS']['my_observer'].attrs['position']
     zenith : float
         zenith angle (in internal units)
     azimuth : float
@@ -183,13 +183,13 @@ def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnet
     )
 
     # If single position is given, make sure it has the right shape (3,) -> (1, 3)
-    if observer.ndim == 1:
-        observer = observer[np.newaxis, :]
+    if observer_pos.ndim == 1:
+        observer_pos = observer_pos[np.newaxis, :]
 
     obs_positions = np.array([
-        observer[:, 1] * -1,
-        observer[:, 0],
-        observer[:, 2]
+        observer_pos[:, 1] * -1,
+        observer_pos[:, 0],
+        observer_pos[:, 2]
     ]) * units.cm
 
     # second to last dimension has to be 3 for the transformation
@@ -198,7 +198,7 @@ def convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnet
     return obs_positions_geo.T
 
 
-def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field_vector):
+def convert_obs_positions_to_vxB_vxvxB(observer_pos, zenith, azimuth, magnetic_field_vector):
     """
     Convert observer position from CORSIKA CS to the showerplane CS.
 
@@ -209,8 +209,8 @@ def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field
 
     Parameters
     ----------
-    observer : np.ndarray
-        The observer's position as extracted from the HDF5 file, e.g. corsika['CoREAS']['my_observer']['position'].
+    observer_pos : np.ndarray
+        The observer's position as extracted from the HDF5 file, e.g. corsika['CoREAS']['my_observer'].attrs['position']
     zenith : float
         zenith angle (in internal units)
     azimuth : float
@@ -230,7 +230,7 @@ def convert_obs_positions_to_vxB_vxvxB(observer, zenith, azimuth, magnetic_field
     )
 
     obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(
-        observer, zenith, azimuth, magnetic_field_vector
+        observer_pos, zenith, azimuth, magnetic_field_vector
     )  # This will have shape (n_observers, 3)
 
     # transforms the coreas observer positions into the vxB, vxvxB shower plane
@@ -314,7 +314,9 @@ def read_CORSIKA7(input_file, declination=None):
     sim_station.set_is_cosmic_ray()
 
     for j_obs, observer in enumerate(corsika['CoREAS']['observers'].values()):
-        obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(observer, zenith, azimuth, magnetic_field_vector)
+        obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(
+            observer.attrs['position'], zenith, azimuth, magnetic_field_vector
+        )
         efield, efield_time = convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vector)
 
         electric_field = NuRadioReco.framework.electric_field.ElectricField(
