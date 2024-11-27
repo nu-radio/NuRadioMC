@@ -754,22 +754,23 @@ class coreasInterpolator:
 
     def initialize_efield_interpolator(self, interp_lowfreq, interp_highfreq):
         """
-        Initialises the efield interpolator object. The efield will be interpolated in the shower plane for
+        Initialise the efield interpolator.
+
+        The efield will be interpolated in the shower plane for
         geometrical reasons. If the geomagnetic angle is smaller than 15deg, no interpolator object is returned.
 
         Parameters
         ----------
         interp_lowfreq : float
-            lower frequency for the bandpass filter in interpolation in GHz
+            Lower frequency for the bandpass filter in interpolation (in internal units)
         interp_highfreq : float
-            higher frequency for the bandpass filter in interpolation in GHz
+            Upper frequency for the bandpass filter in interpolation (in internal units)
 
         Returns
         -------
         efield_interpolator : interpolator object
 
         """
-        self.efield_interpolator_initialized = True
         self.interp_lowfreq = interp_lowfreq
         self.interp_highfreq = interp_highfreq
 
@@ -790,7 +791,7 @@ class coreasInterpolator:
                 self.obs_positions_vxB_vxvxB[:, 0],
                 self.obs_positions_vxB_vxvxB[:, 1],
                 self.electric_field_on_sky,
-                signals_start_times=self.efield_times[:, 0],
+                signals_start_times=self.efield_times[:, 0] / units.s,
                 lowfreq=(interp_lowfreq - 0.01) / units.MHz,
                 highfreq=(interp_highfreq + 0.01) / units.MHz,
                 sampling_period=1 / self.sampling_rate / units.s,  # interpolator wants sampling period in seconds
@@ -801,11 +802,14 @@ class coreasInterpolator:
                 ignore_cutoff_freq_in_timing=False,
                 verbose=False
             )
+
+            self.efield_interpolator_initialized = True
+
         return self.efield_interpolator
 
     def initialize_fluence_interpolator(self, quantity=efp.signal_energy_fluence, debug=False):
         """
-        initilized fluence interpolator object.
+        Initialise fluence interpolator.
 
         Parameters
         ----------
@@ -891,10 +895,10 @@ class coreasInterpolator:
 
         Parameters
         ----------
-        position_on_ground : np.array (3)
+        position_on_ground : np.ndarray
             position of the antenna on ground
 
-        core : np.array (3)
+        core : np.ndarray
             position of the core on ground
 
         Returns
@@ -906,15 +910,12 @@ class coreasInterpolator:
             start time of the trace
         """
         logger.debug(
-            f"get interpolated efield for antenna position {position_on_ground} on ground and core position {core}")
-        antenna_position = copy.copy(position_on_ground)
-
-        # core and antenna need to be in the same z plane
-        antenna_position[2] = core[2]
+            f"Getting interpolated efield for antenna position {position_on_ground} on ground and core position {core}"
+        )
 
         # transform antenna position into shower plane with respect to core position, core position is set to 0,0 in shower plane
-        antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(antenna_position, core=core)
-        logger.debug(f"antenna position in shower plane {antenna_pos_vBvvB}")
+        antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(position_on_ground, core=core)
+        logger.debug(f"The antenna position in shower plane is {antenna_pos_vBvvB}")
 
         # calculate distance between core position at(0,0) and antenna positions in shower plane
         dcore_vBvvB = np.linalg.norm(antenna_pos_vBvvB[:-1])
