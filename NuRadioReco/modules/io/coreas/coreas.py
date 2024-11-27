@@ -637,56 +637,64 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
 
 class coreasInterpolator:
     """
-    The functions in this class are used to interpolate the fluence and signal shape from coreas files
+    This class provides an interface to interpolate the electric field traces provided by CoREAS.
+
+    The interpolation method is based on the Fourier interpolation method described in
+    Corstanje et al. (2023), JINST 18 P09005. The implementation lives in a separate package
+    called cr-pulse-inerpolator (this package is a optional dependency of NuRadioReco).
 
     Parameters
     ----------
-    corsika_evt : NuRadio event object
-            use read_CORSIKA7() to create the event object containing the CoREAS output
+    corsika_evt : Event
+        An Event object containing the CoREAS output, from read_CORSIKA7()
     """
 
     def __init__(self, corsika_evt):
+        # These are set by self.initialize_star_shape()
         self.sampling_rate = None
         self.electric_field_on_sky = None
         self.efield_times = None
-        self.obs_positions_geo = None
-        self.obs_positions_vxB_vxvxB = None
-        self.empty_efield = None
-        self.max_coreas_efield = None
-        self.star_radius = None
-        self.geo_star_radius = None
 
-        self.corsika_evt = corsika_evt
+        self.obs_positions_ground = None
+        self.obs_positions_vxB_vxvxB = None
+
+        # Store the SimStation and SimShower objects
         self.sim_station = corsika_evt.get_station(0).get_sim_station()
         self.shower = corsika_evt.get_first_sim_shower()  # there should only be one simulated shower
+        self.cs = self.shower.get_coordinatesystem()
+
+        # Flags to check whether interpolator is initialized
         self.star_shape_initialized = False
         self.efield_interpolator_initialized = False
         self.fluence_interpolator_initialized = False
-        self.zenith = self.shower.get_parameter(shp.zenith)
-        self.azimuth = self.shower.get_parameter(shp.azimuth)
 
+        # Interpolator objects
         self.interp_lowfreq = None
         self.interp_highfreq = None
         self.efield_interpolator = None
         self.fluence_interpolator = None
 
-        self.cs = coordinatesystems.cstrafo(self.zenith, self.azimuth, self.shower[shp.magnetic_field_vector])
-
         self.initialize_star_shape()
+
+        logger.info(
+            f'Initialised star shape pattern for interpolation. '
+            f'The shower arrives from zenith={self.zenith / units.deg:.1f}deg, '
+            f'azimuth={self.azimuth / units.deg:.1f}deg '
+            f'The starshape has radius {self.starshape_radius:.0f}m in the shower plane '
+            f'and {self.starshape_radius_ground:.0f}m on ground. '
+        )
 
     def initialize_star_shape(self):
         """
         Initializes the star shape pattern for interpolation, e.g. creates the arrays with the observer positions
         in the shower plane and the electric field.
         """
-        obs_positions_geo = []
-        obs_positions_onsky = []
+        obs_positions = []
         electric_field_on_sky = []
         efield_times = []
 
         for j_obs, efield in enumerate(self.sim_station.get_electric_fields()):
-            obs_positions_geo.append(efield.get_position())
-            obs_positions_onsky.append(efield.get_position_onsky())
+            obs_positions.append(efield.get_position())
             electric_field_on_sky.append(efield.get_trace().T)
             efield_times.append(efield.get_times())
 
@@ -694,66 +702,55 @@ class coreasInterpolator:
         self.electric_field_on_sky = np.array(electric_field_on_sky)
         self.efield_times = np.array(efield_times)
         self.sampling_rate = 1. / (self.efield_times[0][1] - self.efield_times[0][0])
-        self.obs_positions_geo = np.array(obs_positions_geo)
-        self.obs_positions_vxB_vxvxB = np.array(obs_positions_onsky)
 
-        self.max_coreas_efield = np.max(np.abs(self.electric_field_on_sky))
-        self.empty_efield = np.zeros_like(self.electric_field_on_sky[0, :, :])
+        self.obs_positions_ground = np.array(obs_positions)  # (n_observers, 3)
+        self.obs_positions_vxB_vxvxB = self.cs.transform_to_vxB_vxvxB(self.obs_positions_ground)
 
-        self.star_radius = np.max(np.linalg.norm(self.obs_positions_vxB_vxvxB[:, :-1], axis=-1))
-        self.geo_star_radius = np.max(np.linalg.norm(self.obs_positions_geo[:-1, :], axis=0))
-        logger.info(
-            f'Initialize star shape pattern for interpolation. '
-            f'The shower arrives at zenith={self.zenith / units.deg:.0f}deg, '
-            f'azimuth={self.azimuth / units.deg:.0f}deg with radius {self.star_radius:.0f}m in the shower plane '
-            f'and {self.geo_star_radius:.0f}m on ground. ')
         self.star_shape_initialized = True
 
-    def get_sampling_rate(self):
-        """
-        returns the sampling rate of the electric field
-        """
-        return self.sampling_rate
+    @property
+    def zenith(self):
+        return self.shower.get_parameter(shp.zenith)
 
-    def get_empty_efield(self):
-        """
-        returns the an array of zeros in the shape of the electric field on the sky
-        """
-        if not self.star_shape_initialized:
-            logger.error('interpolator not initialized, call initialize_star_shape first')
-            return None
-        else:
-            return self.empty_efield
+    @property
+    def azimuth(self):
+        return self.shower.get_parameter(shp.azimuth)
 
-    def get_max_efield(self):
-        """
-        returns the maximum value of the electric field provided by coreas
-        """
-        if not self.star_shape_initialized:
-            logger.error('interpolator not initialized, call initialize_star_shape first')
-            return None
-        else:
-            return self.max_coreas_efield
+    @property
+    def magnetic_field_vector(self):
+        return self.shower.get_parameter(shp.magnetic_field_vector)
 
-    def get_star_radius(self):
+    @property
+    def starshape_radius(self):
         """
         returns the maximal radius of the star shape pattern in the shower plane
         """
         if not self.star_shape_initialized:
-            logger.error('interpolator not initialized, call initialize_star_shape first')
+            logger.error('The interpolator was not initialized, call initialize_star_shape first')
             return None
         else:
-            return self.star_radius
+            return np.max(np.linalg.norm(self.obs_positions_vxB_vxvxB[:, :-1], axis=-1))
 
-    def get_geo_star_radius(self):
+    @property
+    def starshape_radius_ground(self):
         """
         returns the maximal radius of the star shape pattern on ground
         """
         if not self.star_shape_initialized:
-            logger.error('interpolator not initialized, call initialize_star_shape first')
+            logger.error('The interpolator was not initialized, call initialize_star_shape first')
             return None
         else:
-            return self.geo_star_radius
+            return np.max(np.linalg.norm(self.obs_positions_ground[:, :-1], axis=-1))
+
+    def get_empty_efield(self):
+        """
+        Get an array of zeros in the shape of the electric field on the sky
+        """
+        if not self.star_shape_initialized:
+            logger.error('The interpolator was not initialized, call initialize_star_shape first')
+            return None
+        else:
+            return np.zeros_like(self.electric_field_on_sky[0, :, :])
 
     def initialize_efield_interpolator(self, interp_lowfreq, interp_highfreq):
         """
@@ -776,13 +773,13 @@ class coreasInterpolator:
         self.interp_lowfreq = interp_lowfreq
         self.interp_highfreq = interp_highfreq
 
-        geomagnetic_angle = get_geomagnetic_angle(self.zenith, self.azimuth, self.shower[shp.magnetic_field_vector])
+        geomagnetic_angle = get_geomagnetic_angle(self.zenith, self.azimuth, self.magnetic_field_vector)
 
         if geomagnetic_angle < 15 * units.deg:
             logger.warning(
-                f'geomagnetic angle is {geomagnetic_angle / units.deg:.2f} deg, '
+                f'The geomagnetic angle is {geomagnetic_angle / units.deg:.2f} deg, '
                 f'which is smaller than 15deg, which is the lower limit for the signal interpolation. '
-                f'The closest obersever is used instead.')
+                f'The closest observer is used instead.')
             self.efield_interpolator = -1
         else:
             logger.info(
