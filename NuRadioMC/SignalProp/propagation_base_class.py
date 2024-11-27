@@ -60,6 +60,19 @@ class ray_tracing_base:
         self._n_reflections = n_reflections
 
         self._config = config
+        if self._config is not None:
+            if 'n_freq' in self._config['propagation']:
+                if n_frequencies_integration is not None:
+                    self.__logger.warning(f"overriding n_frequencies_integration from config file from {n_frequencies_integration} to {self._config['propagation']['n_freq']}")
+                self._n_frequencies_integration = self._config['propagation']['n_freq']
+            if 'n_reflections' in self._config['propagation']:
+                if n_reflections is not None:
+                    self.__logger.warning(f"overriding n_reflections from config file from {n_reflections} to {self._config['propagation']['n_reflections']}")
+                self._n_reflections = self._config['propagation']['n_reflections']
+            if 'attenuation_model' in self._config['propagation']:
+                if attenuation_model is not None:
+                    self.__logger.warning(f"overriding attenuation_model from config file from {attenuation_model} to {self._config['propagation']['attenuation_model']}")
+                self._attenuation_model = self._config['propagation']['attenuation_model']
         self._detector = detector
         self._max_detector_frequency = None
         if self._detector is not None:
