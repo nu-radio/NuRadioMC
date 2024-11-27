@@ -656,7 +656,7 @@ class coreasInterpolator:
         self.efield_times = None
 
         self.obs_positions_ground = None
-        self.obs_positions_vxB_vxvxB = None
+        self.obs_positions_showerplane = None
 
         # Store the SimStation and SimShower objects
         self.sim_station = corsika_evt.get_station(0).get_sim_station()
@@ -704,7 +704,7 @@ class coreasInterpolator:
         self.sampling_rate = 1. / (self.efield_times[0][1] - self.efield_times[0][0])
 
         self.obs_positions_ground = np.array(obs_positions)  # (n_observers, 3)
-        self.obs_positions_vxB_vxvxB = self.cs.transform_to_vxB_vxvxB(self.obs_positions_ground)
+        self.obs_positions_showerplane = self.cs.transform_to_vxB_vxvxB(self.obs_positions_ground)
 
         self.star_shape_initialized = True
 
@@ -729,7 +729,7 @@ class coreasInterpolator:
             logger.error('The interpolator was not initialized, call initialize_star_shape first')
             return None
         else:
-            return np.max(np.linalg.norm(self.obs_positions_vxB_vxvxB[:, :-1], axis=-1))
+            return np.max(np.linalg.norm(self.obs_positions_showerplane[:, :-1], axis=-1))
 
     @property
     def starshape_radius_ground(self):
@@ -788,8 +788,8 @@ class coreasInterpolator:
                 f'and highfreq {interp_highfreq / units.MHz} MHz')
 
             self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
-                self.obs_positions_vxB_vxvxB[:, 0],
-                self.obs_positions_vxB_vxvxB[:, 1],
+                self.obs_positions_showerplane[:, 0],
+                self.obs_positions_showerplane[:, 1],
                 self.electric_field_on_sky,
                 signals_start_times=self.efield_times[:, 0] / units.s,
                 lowfreq=(interp_lowfreq - 0.01) / units.MHz,
@@ -807,7 +807,7 @@ class coreasInterpolator:
 
         return self.efield_interpolator
 
-    def initialize_fluence_interpolator(self, quantity=efp.signal_energy_fluence, debug=False):
+    def initialize_fluence_interpolator(self, quantity=efp.signal_energy_fluence):
         """
         Initialise fluence interpolator.
 
@@ -828,24 +828,11 @@ class coreasInterpolator:
 
         logger.info(f'fluence interpolation')
         self.fluence_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
-            self.obs_positions_vxB_vxvxB[:, 0],
-            self.obs_positions_vxB_vxvxB[:, 1],
+            self.obs_positions_showerplane[:, 0],
+            self.obs_positions_showerplane[:, 1],
             fluence_per_position
         )
         self.fluence_interpolator_initialized = True
-
-        if debug:
-            max_efield = []
-            for i in range(len(self.electric_field_on_sky[:, 0, 1])):
-                max_efield.append(np.max(np.abs(self.electric_field_on_sky[i, :, :])))
-            plt.scatter(self.obs_positions_vxB_vxvxB[:, 0], self.obs_positions_vxB_vxvxB[:, 1], c=max_efield,
-                        cmap='viridis', marker='o', edgecolors='k')
-            cbar = plt.colorbar()
-            cbar.set_label('max amplitude')
-            plt.xlabel('v x B [m]')
-            plt.ylabel('v x v x B [m]')
-            plt.show()
-            plt.close()
 
         return self.fluence_interpolator
 
@@ -887,117 +874,133 @@ class coreasInterpolator:
         ax.set_aspect('equal')
         return fig, ax
 
-    def get_interp_efield_value(self, position_on_ground, core):
+    def get_position_showerplane(self, position_on_ground):
         """
-        Accesses the interpolated electric field given the position of the detector on ground. For the interpolation,
-        the pulse will be projected in the shower plane. If the geomagnetic angle is smaller than 15deg, the electric
-        field of the closest observer position is returned.
+        Transform the position of the antenna on ground to the shower plane.
 
         Parameters
         ----------
         position_on_ground : np.ndarray
-            position of the antenna on ground
+            Position of the antenna on ground
+            This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the
+            z-coordinate is automatically set to the observation level of the simulation.
+        """
+        core = np.array([0, 0, self.shower[shp.observation_level]])  # by definition of CoREAS simulation (?)
 
-        core : np.ndarray
-            position of the core on ground
+        if len(position_on_ground) == 2:
+            position_on_ground = np.append(position_on_ground, core[2])
+            logger.info(
+                f"The antenna position is given in 2D, assuming the antenna is on the ground. "
+                f"The z-coordinate is set to the observation level {core[2] / units.m:.2f}m"
+            )
+        elif position_on_ground[2] != core[2]:
+            logger.warning(
+                "The antenna position is not in the same z-plane as the core position. "
+                "This behaviour is not tested, so only proceed if you know what you are doing."
+            )
+
+        antenna_pos_showerplane = self.cs.transform_to_vxB_vxvxB(position_on_ground, core=core)
+
+        return antenna_pos_showerplane
+
+    def get_interp_efield_value(self, position_on_ground):
+        """
+        Calculate the interpolated electric field given an antenna position on ground.
+
+        For the interpolation, the pulse will be projected in the shower plane.
+        If the geomagnetic angle is smaller than 15deg, the electric field of the closest observer position is returned.
+
+        Parameters
+        ----------
+        position_on_ground : np.ndarray
+            Position of the antenna on ground
+            This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the
+            z-coordinate is automatically set to the observation level of the simulation.
 
         Returns
         -------
         efield_interp : float
-            interpolated efield value or efield of clostest observer
-
+            Interpolated efield value
         trace_start_time : float
-            start time of the trace
+            Start time of the trace
         """
         logger.debug(
-            f"Getting interpolated efield for antenna position {position_on_ground} on ground and core position {core}"
+            f"Getting interpolated efield for antenna position {position_on_ground} on ground"
         )
 
-        # transform antenna position into shower plane with respect to core position, core position is set to 0,0 in shower plane
-        antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(position_on_ground, core=core)
-        logger.debug(f"The antenna position in shower plane is {antenna_pos_vBvvB}")
+        antenna_pos_showerplane = self.get_position_showerplane(position_on_ground)
+        logger.debug(f"The antenna position in shower plane is {antenna_pos_showerplane}")
 
         # calculate distance between core position at(0,0) and antenna positions in shower plane
-        dcore_vBvvB = np.linalg.norm(antenna_pos_vBvvB[:-1])
+        dcore_showerplane = np.linalg.norm(antenna_pos_showerplane[:-1])
+
         # interpolate electric field at antenna position in shower plane which are inside star pattern
-        if dcore_vBvvB > self.star_radius:
-            efield_interp = self.empty_efield
+        if dcore_showerplane > self.starshape_radius:
+            efield_interp = self.get_empty_efield()
             trace_start_time = None
             logger.debug(
-                f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern '
-                f'with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, '
-                f'set efield to zero')
+                f'Antenna position with distance {dcore_showerplane:.2f} to core is outside of starshape '
+                f'with radius {self.starshape_radius:.2f}. Setting efield to zero and trace_start_time to None'
+            )
+        elif self.efield_interpolator == -1:
+            efield_interp = self.get_closest_observer_efield(antenna_pos_showerplane)
+            trace_start_time = None
         else:
-            if self.efield_interpolator == -1:
-                efield = self.get_closest_observer_efield(antenna_pos_vBvvB)
-                efield_interp = efield
-                trace_start_time = None
-
-            else:
-                efield_interp, trace_start_time, abs_spectrum, phasespectrum = self.efield_interpolator(
-                    antenna_pos_vBvvB[0], antenna_pos_vBvvB[1],
-                    lowfreq=self.interp_lowfreq / units.MHz,
-                    highfreq=self.interp_highfreq / units.MHz,
-                    filter_up_to_cutoff=False,
-                    account_for_timing=True,
-                    pulse_centered=True,
-                    full_output=True)
-
-        #check if interpolation is within expected range
-        if np.max(np.abs(efield_interp)) > self.max_coreas_efield:
-            logger.warning(
-                f'interpolated efield {np.max(np.abs(efield_interp)):.2f} is larger than '
-                f'the maximum coreas efield {self.max_coreas_efield:.2f}')
+            efield_interp, trace_start_time, _, _ = self.efield_interpolator(
+                antenna_pos_showerplane[0], antenna_pos_showerplane[1],
+                lowfreq=self.interp_lowfreq / units.MHz,
+                highfreq=self.interp_highfreq / units.MHz,
+                filter_up_to_cutoff=False,
+                account_for_timing=True,
+                pulse_centered=True,
+                full_output=True)
 
         return efield_interp, trace_start_time
 
-    def get_interp_fluence_value(self, position_on_ground, core):
+    def get_interp_fluence_value(self, position_on_ground):
         """
-        Accesses the interpolated fluence for a given position on ground
+        Calculate the interpolated fluence for a given position on the ground.
 
         Parameters
         ----------
-        position_on_ground : np.array (3)
-            position of the antenna on ground
-
-        core : np.array (3)
-            position of the core on ground
+        position_on_ground : np.ndarray
+            Position of the antenna on ground
+            This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the
+            z-coordinate is automatically set to the observation level of the simulation.
 
         Returns
         -------
         fluence_interp : float
             interpolated fluence value
         """
-        antenna_position = position_on_ground
-        z_plane = core[2]
+        logger.debug(
+            f"Getting interpolated efield for antenna position {position_on_ground} on ground"
+        )
 
-        #core and antenna need to be in the same z plane
-        antenna_position[2] = z_plane
-
-        # transform antenna position into shower plane with respect to core position, core position is set to 0,0 in shower plane
-        antenna_pos_vBvvB = self.cs.transform_to_vxB_vxvxB(antenna_position, core=core)
+        antenna_pos_showerplane = self.get_position_showerplane(position_on_ground)
+        logger.debug(f"The antenna position in shower plane is {antenna_pos_showerplane}")
 
         # calculate distance between core position at(0,0) and antenna positions in shower plane
-        dcore_vBvvB = np.linalg.norm(antenna_pos_vBvvB[:-1])
+        dcore_showerplane = np.linalg.norm(antenna_pos_showerplane[:-1])
+
         # interpolate electric field at antenna position in shower plane which are inside star pattern
-        if dcore_vBvvB > self.star_radius:
+        if dcore_showerplane > self.starshape_radius:
             fluence_interp = 0
             logger.debug(
-                f'antenna position with distance {dcore_vBvvB:.2f} to core is outside of star pattern '
-                f'with radius {self.star_radius:.2f} on ground {self.geo_star_radius:.2f}, '
-                f'fluence to zero')
+                f'Antenna position with distance {dcore_showerplane:.2f} to core is outside of star pattern '
+                f'with radius {self.starshape_radius:.2f}, setting fluence to 0')
         else:
-            fluence_interp = self.fluence_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1])
+            fluence_interp = self.fluence_interpolator(antenna_pos_showerplane[0], antenna_pos_showerplane[1])
 
         return fluence_interp
 
-    def get_closest_observer_efield(self, antenna_pos_vBvvB):
+    def get_closest_observer_efield(self, antenna_pos_showerplane):
         """
         Returns the electric field of the closest observer position for an antenna position in the shower plane.
 
         Parameters
         ----------
-        antenna_pos_vBvvB : np.array (3)
+        antenna_pos_showerplane : np.ndarray
             antenna position in the shower plane
 
         Returns
@@ -1006,9 +1009,11 @@ class coreasInterpolator:
             electric field
 
         """
-        distances = np.linalg.norm(antenna_pos_vBvvB[:2] - self.obs_positions_vBvvB[:, :2], axis=1)
+        distances = np.linalg.norm(antenna_pos_showerplane[:2] - self.obs_positions_showerplane[:, :2], axis=1)
         index = np.argmin(distances)
-        distance = distances[index]
         efield = self.electric_field_on_sky[index, :, :]
-        logger.info(f'antenna position with distance {distance:.2f} to closest observer is used')
+        logger.debug(
+            f'Returning the electric field of the closest observer position, '
+            f'which is {distances[index] / units.m:.2f}m away from the antenna'
+        )
         return efield

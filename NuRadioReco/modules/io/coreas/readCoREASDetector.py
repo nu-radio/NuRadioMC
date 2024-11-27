@@ -217,8 +217,7 @@ class readCoREASDetector:
                     channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
                     antenna_position_rel = detector.get_relative_position(station_id, channel_ids_for_group_id[0])
                     antenna_position = det_station_position + antenna_position_rel
-                    res_efield, res_trace_start_time = self.coreas_interpolator.get_interp_efield_value(antenna_position,
-                                                                                                        core)
+                    res_efield, res_trace_start_time = self.coreas_interpolator.get_interp_efield_value(antenna_position - core)
                     smooth_res_efield = apply_hanning(res_efield)
                     if smooth_res_efield is None:
                         smooth_res_efield = self.coreas_interpolator.get_empty_efield()
