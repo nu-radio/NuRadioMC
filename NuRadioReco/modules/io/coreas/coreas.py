@@ -199,47 +199,6 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, zenith, azimuth, ma
     return obs_positions_geo.T
 
 
-def convert_obs_positions_to_vxB_vxvxB(observer_pos, zenith, azimuth, magnetic_field_vector):
-    """
-    Convert observer position from CORSIKA CS to the showerplane CS.
-
-    The showerplane CS has the basis (vxB, vxvxB, v).
-    The position is first transformed to the NRR ground CS, using `convert_obs_positions_to_nuradio_on_ground()`.
-    Then the radiotools function `coordinatesystems.cstrafo.transform_to_vxB_vxvxB()` is used to go to the showerplane.
-    If multiple observers are to be converted, the `observer` array should have the shape (n_observers, 3).
-
-    Parameters
-    ----------
-    observer_pos : np.ndarray
-        The observer's position as extracted from the HDF5 file, e.g. corsika['CoREAS']['my_observer'].attrs['position']
-    zenith : float
-        zenith angle (in internal units)
-    azimuth : float
-        azimuth angle (in internal units)
-    magnetic_field_vector : np.ndarray
-        magnetic field vector
-  
-    Returns
-    -------
-    obs_positions_vxB_vxvxB: np.ndarray
-        observer positions in (vxB, vxvxB, v) CS, shaped as (n_observers, 3).
-    
-    """
-    cs = coordinatesystems.cstrafo(
-        zenith / units.rad, azimuth / units.rad,
-        magnetic_field_vector
-    )
-
-    obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(
-        observer_pos, zenith, azimuth, magnetic_field_vector
-    )  # This will have shape (n_observers, 3)
-
-    # transforms the coreas observer positions into the vxB, vxvxB shower plane
-    obs_positions_vxB_vxvxB = cs.transform_to_vxB_vxvxB(obs_positions_geo)
-
-    return obs_positions_vxB_vxvxB.T
-
-
 def read_CORSIKA7(input_file, declination=None):
     """
     this function reads the corsika hdf5 file and returns a sim_station with all relevent information from the file
@@ -258,7 +217,7 @@ def read_CORSIKA7(input_file, declination=None):
     """
     if declination is None:
         declination = 0
-        logger.status(
+        logger.warning(
             "No declination given, assuming 0 degrees. This might need to incorrect electric field polarizations."
         )
 
