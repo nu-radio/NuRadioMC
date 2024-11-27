@@ -297,7 +297,7 @@ def read_CORSIKA7(input_file, declination=None):
         shp.magnetic_field_rotation, corsika['CoREAS'].attrs["RotationAngleForMagfieldDeclination"] * units.degree
     )
 
-    if 'ATMOD' in corsika['inputs'].attrs.keys():
+    if 'ATMOD' in corsika['inputs'].attrs.keys():  # this can be false is left on default or when using GDAS atmosphere
         sim_shower.set_parameter(shp.atmospheric_model, corsika["inputs"].attrs["ATMOD"])
 
     if 'highlevel' in corsika.keys():
@@ -366,91 +366,61 @@ def plot_footprint_onsky(sim_station, fig=None, ax=None):
     return fig, ax
 
 
-def make_sim_station(station_id, corsika, weight=None):
-    """
-    deprecated as it uses coreas hdf5 file as input, use set_sim_station() instead.
-
-    creates an NuRadioReco sim station with the information from the coreas hdf5 file.
-    To add an electric field the function add_electric_field_to_sim_station() has to be used.
-
-    Parameters
-    ----------
-    station_id : station id
-        the id of the station to create
-    corsika : hdf5 file object
-        the open hdf5 file object of the corsika hdf5 file
-    weight : weight of individual station
-        weight corresponds to area covered by station
-
-    Returns
-    -------
-    sim_station: sim station
-        simulated station object
-    """
-    logger.warning("make_sim_station() is deprecated, use create_sim_station() instead.")
-    zenith, azimuth, magnetic_field_vector = get_angles(corsika)
-    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
-    sim_station.set_parameter(stnp.azimuth, azimuth)
-    sim_station.set_parameter(stnp.zenith, zenith)
-    energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV
-    sim_station.set_parameter(stnp.cr_energy, energy)
-    sim_station.set_magnetic_field_vector(magnetic_field_vector)
-    sim_station.set_parameter(stnp.cr_xmax, corsika['CoREAS'].attrs['DepthOfShowerMaximum'])
-    try:
-        sim_station.set_parameter(stnp.cr_energy_em, corsika["highlevel"].attrs["Eem"])
-    except:
-        global warning_printed_coreas_py
-        if (not warning_printed_coreas_py):
-            logger.warning(
-                "No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
-            warning_printed_coreas_py = True
-    sim_station.set_is_cosmic_ray()
-    sim_station.set_simulation_weight(weight)
-    return sim_station
-
-
 def create_sim_station(station_id, evt, weight=None):
     """
-    creates an NuRadioReco sim station with the information from an event object created with e.g. read_CORSIKA7().
-    An weight per station can be added.
+    Creates an NuRadioReco `SimStation` with the information from an `Event` object created with e.g. read_CORSIKA7().
+
+    Optionally, station can be assigned a weight.
     To add an electric field the function add_electric_field_to_sim_station() has to be used.
 
     Parameters
     ----------
-    station_id : station id
-        the id of the station to create
-    evt : Event object
-        event object containing the CoREAS output, e.g. created with read_CORSIKA7()
-    weight : weight of individual station
+    station_id : int
+        The id to assign to the new station
+    evt : Event
+        event object containing the CoREAS output
+    weight : float
         weight corresponds to area covered by station
 
     Returns
     -------
-    sim_station: sim station
+    sim_station: SimStation
         simulated station object
     """
-    coreas_sta = evt.get_station(station_id=0)  # read_coreas has only station id 0
-    coreas_sim_station = coreas_sta.get_sim_station()
+    coreas_station = evt.get_station(station_id=0)  # read_coreas has only station id 0
+    coreas_shower = list(evt.get_sim_showers())[0]
+    coreas_sim_station = coreas_station.get_sim_station()
 
+    # Make the SimStation and store the parameters extracted from the SimShower
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
-    sim_station.set_parameter(stnp.azimuth, coreas_sim_station.get_parameter(stnp.azimuth))
-    sim_station.set_parameter(stnp.zenith, coreas_sim_station.get_parameter(stnp.zenith))
-    sim_station.set_parameter(stnp.cr_energy, coreas_sim_station.get_parameter(stnp.cr_energy))
-    sim_station.set_parameter(stnp.cr_xmax, coreas_sim_station.get_parameter(stnp.cr_xmax))
-    magnetic_field_vector = coreas_sim_station.get_magnetic_field_vector()
-    sim_station.set_magnetic_field_vector(magnetic_field_vector)
+
+    sim_station.set_parameter(stnp.azimuth, coreas_shower.get_parameter(shp.azimuth))
+    sim_station.set_parameter(stnp.zenith, coreas_shower.get_parameter(shp.zenith))
+
+    sim_station.set_parameter(stnp.cr_energy, coreas_shower.get_parameter(shp.energy))
+    sim_station.set_parameter(stnp.cr_xmax, coreas_shower.get_parameter(shp.shower_maximum))
+
+    sim_station.set_magnetic_field_vector(
+        coreas_shower.get_parameter(shp.magnetic_field_vector)
+    )
+
+    # Check if the high-level attribute is present in the Event
     try:
-        sim_station.set_parameter(stnp.cr_energy_em, coreas_sim_station.get_parameter(stnp.cr_energy_em))
-    except:
+        sim_station.set_parameter(stnp.cr_energy_em, coreas_shower.get_parameter(stnp.cr_energy_em))
+    except KeyError:
         global warning_printed_coreas_py
-        if (not warning_printed_coreas_py):
+        if not warning_printed_coreas_py:
             logger.warning(
-                "No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
+                "No high-level quantities in Event, not setting EM energy, this warning will be only printed once"
+            )
             warning_printed_coreas_py = True
+
     if coreas_sim_station.is_cosmic_ray():
         sim_station.set_is_cosmic_ray()
 
+    # Set simulation weight
     sim_station.set_simulation_weight(weight)
+
     return sim_station
 
 
