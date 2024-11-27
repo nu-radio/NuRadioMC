@@ -28,7 +28,7 @@ def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_chan
 
     vrms_per_channel = []
     for channel_id in trigger_channels:
-        resp = hardwareResponseIncorporator.get_trigger_channel_response(det, station_id, channel_id)
+        resp = det.get_signal_chain_response(station_id, channel_id, trigger=True)
 
         freqs = np.linspace(10, 1200, 1000) * units.MHz
         filt = resp(freqs)
