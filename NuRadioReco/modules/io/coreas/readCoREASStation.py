@@ -96,7 +96,9 @@ class readCoREASStation:
                     efield_cor = efield_trace
                     efield_times_cor = efield_times
 
-                coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield_cor, efield_times_cor, sim_station.get_parameter(stnp.zenith), sim_station.get_parameter(stnp.azimuth), efield_sampling_rate)
+                coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield_cor, efield_times_cor[0],
+                                                         sim_station.get_parameter(stnp.zenith),
+                                                         sim_station.get_parameter(stnp.azimuth), efield_sampling_rate)
                 station.set_sim_station(sim_station)
                 sim_shower = coreas.create_sim_shower(corsika_evt, detector, self.__station_id)
                 evt.add_sim_shower(sim_shower)

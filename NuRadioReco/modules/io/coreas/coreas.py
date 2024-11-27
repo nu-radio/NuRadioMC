@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from radiotools import helper as hp
 from radiotools import coordinatesystems
+
+from NuRadioReco.examples.StandAloneScripts.A02retrieve_detector_info import position
 from NuRadioReco.utilities import units
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.event
@@ -283,19 +285,12 @@ def read_CORSIKA7(input_file, declination=None):
         obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(
             observer.attrs['position'], zenith, azimuth, magnetic_field_vector
         )
-        efield, efield_time = convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vector)
-
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(
-            np.array([j_obs]), position=obs_positions_geo
+        efield, efield_time = convert_obs_to_nuradio_efield(
+            observer, zenith, azimuth, magnetic_field_vector
         )
-        electric_field.set_trace(efield.T, sampling_rate)
-        electric_field.set_trace_start_time(efield_time[0])
 
-        electric_field.set_parameter(efp.ray_path_type, 'direct')
-        electric_field.set_parameter(efp.zenith, zenith)
-        electric_field.set_parameter(efp.azimuth, azimuth)
-
-        sim_station.add_electric_field(electric_field)
+        add_electric_field_to_sim_station(sim_station, [j_obs], efield, efield_time[0], zenith, azimuth, sampling_rate,
+                                          efield_position=obs_positions_geo)
 
     evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
     stn = NuRadioReco.framework.station.Station(0)  # set station id to 0
@@ -496,41 +491,45 @@ def create_sim_shower(evt, detector=None, station_id=None):
     return sim_shower
 
 
-def add_electric_field_to_sim_station(sim_station, channel_ids, efield, efield_times, zenith, azimuth, sampling_rate,
-                                      fluence=None):
+def add_electric_field_to_sim_station(
+        sim_station, channel_ids, efield, efield_start_time, zenith, azimuth, sampling_rate, efield_position=None
+):
     """
-    adds an electric field trace to an existing sim station
+    Adds an electric field trace to an existing SimStation, with the provided attributes.
+
+    All variables should be provided in internal units.
 
     Parameters
     ----------
-    sim_station : sim station object
-         simulated station object, e.g. from make_empty_sim_station()
-    channel_ids : list or int
-        channel_ids for which the efield is to be used
-    efield : 3d array (3, n_samples)
-        efield with three polarizations (r, theta, phi) for channel
-    efield_times : 1d array (n_samples)
-        time array for efield
+    sim_station : SimStation
+         The simulated station object, e.g. from make_empty_sim_station()
+    channel_ids : list of int
+        Channel IDs to associate to the electric field
+    efield : np.ndarray
+        Electric field trace, shaped as (3, n_samples)
+    efield_start_time : float
+        Start time of the electric field trace
     zenith : float
-        zenith angle in radians
+        Zenith angle
     azimuth : float
-        azimuth angle in radians
+        Azimuth angle
     sampling_rate : float
-        sampling rate of the efield
-    fluence : float
-        inserted fluence of the signal, if None, the fluence is not set
+        Sampling rate of the trace
+    efield_position : np.ndarray or list of float
+        Position to associate to the electric field
     """
     if type(channel_ids) is not list:
         channel_ids = [channel_ids]
 
-    electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids)
+    electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids, position=efield_position)
+
     electric_field.set_trace(efield, sampling_rate)
-    electric_field.set_trace_start_time(efield_times[0])
+    electric_field.set_trace_start_time(efield_start_time)
+
     electric_field.set_parameter(efp.ray_path_type, 'direct')
     electric_field.set_parameter(efp.zenith, zenith)
     electric_field.set_parameter(efp.azimuth, azimuth)
-    if fluence is not None:
-        electric_field.set_parameter(efp.signal_energy_fluence, fluence)
+
     sim_station.add_electric_field(electric_field)
 
 

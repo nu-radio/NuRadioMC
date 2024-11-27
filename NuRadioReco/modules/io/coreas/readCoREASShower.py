@@ -118,7 +118,9 @@ class readCoREASShower:
                     else:
                         channel_ids = self.__det.get_channel_ids(self.__det.get_reference_station_ids()[0])
 
-                coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield_cor, efield_times_cor, sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth), efield_sampling_rate)
+                coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield_cor, efield_times_cor[0],
+                                                         sim_shower.get_parameter(shp.zenith),
+                                                         sim_shower.get_parameter(shp.azimuth), efield_sampling_rate)
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
                 
