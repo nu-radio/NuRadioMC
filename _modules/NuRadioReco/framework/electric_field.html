@@ -618,6 +618,8 @@
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.base_trace</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="k">as</span> <span class="nn">parameters</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.parameter_serialization</span>
+<span class="kn">import</span> <span class="nn">radiotools.coordinatesystems</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities.trace_utilities</span> <span class="kn">import</span> <span class="n">get_stokes</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">cPickle</span> <span class="k">as</span> <span class="nn">pickle</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -742,6 +744,76 @@
 <span class="sd">        set position of the electric field relative to station position</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">position</span></div>
+
+<div class="viewcode-block" id="ElectricField.get_stokes_parameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.get_stokes_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_stokes_parameters</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">window_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vxB_vxvxB</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">site</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_kwargs</span><span class="o">=</span><span class="kc">None</span>
+        <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the stokes parameters for the electric field.</span>
+
+<span class="sd">        By default, the stokes parameters are returned in (eTheta, ePhi);</span>
+<span class="sd">        this assumes the 3d efield trace is stored in (eR, eTheta, ePhi).</span>
+<span class="sd">        To return the stokes parameters in (vxB, vxvxB) coordinates instead,</span>
+<span class="sd">        one has to specify the magnetic field vector.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        window_samples : int | None, default: None</span>
+<span class="sd">            If None, return the stokes parameters over the full traces.</span>
+<span class="sd">            If not None, returns a rolling average of the stokes parameters</span>
+<span class="sd">            over ``window_samples``. This may be more optimal if the duration</span>
+<span class="sd">            of the signal is much shorter than the length of the full trace.</span>
+<span class="sd">        vxB_vxvxB : bool, default: False</span>
+<span class="sd">            If False, returns the stokes parameters for the</span>
+<span class="sd">            (assumed) (eTheta, ePhi) coordinates of the electric field.</span>
+<span class="sd">            If True, convert to (vxB, vxvxB) first. In this case,</span>
+<span class="sd">            one has to additionally specify either the magnetic field vector</span>
+<span class="sd">            or the sit.</span>
+<span class="sd">        magnetic_field_vector : 3-tuple of floats | None, default: None</span>
+<span class="sd">            The direction of the magnetic field (in x,y,z)</span>
+<span class="sd">        site : string | None, default: None</span>
+<span class="sd">            The site of the detector. Can be used instead of the ``magnetic_field_vector``</span>
+<span class="sd">            if the magnetic field vector for this site is included in ``radiotools``</span>
+<span class="sd">        filter_kwargs : dict | None, default: None</span>
+<span class="sd">            Optional arguments to bandpass filter the trace</span>
+<span class="sd">            before computing the stokes parameters. They are passed on to</span>
+<span class="sd">            `get_filtered_trace(**filter_kwargs)`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        stokes : array of floats</span>
+<span class="sd">            The stokes parameters. If ``window_samples=None`` (default), the shape of</span>
+<span class="sd">            the returned array is ``(4,)`` and corresponds to the I, Q, U and V parameters.</span>
+<span class="sd">            Otherwise, the array will have shape ``(4, len(efield) - window_samples + 1)``</span>
+<span class="sd">            and correspond to the values of the stokes parameters over the specified</span>
+<span class="sd">            window sizes.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        NuRadioReco.utilities.trace_utilities.get_stokes : Function that computes the stokes parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filter_kwargs</span><span class="p">:</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filtered_trace</span><span class="p">(</span><span class="o">**</span><span class="n">filter_kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">vxB_vxvxB</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">get_stokes</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">window_samples</span><span class="o">=</span><span class="n">window_samples</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">zenith</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">electricFieldParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span>
+                <span class="n">azimuth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">electricFieldParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
+                <span class="n">cs</span> <span class="o">=</span> <span class="n">radiotools</span><span class="o">.</span><span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span>
+                    <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="n">magnetic_field_vector</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="n">site</span><span class="p">)</span>
+                <span class="n">efield_trace_vxB_vxvxB</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_to_vxB_vxvxB</span><span class="p">(</span>
+                    <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_onsky_to_ground</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">get_stokes</span><span class="p">(</span><span class="o">*</span><span class="n">efield_trace_vxB_vxvxB</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">window_samples</span><span class="o">=</span><span class="n">window_samples</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to compute stokes parameters in (vxB, vxvxB), electric field does not have a signal direction&quot;</span><span class="p">)</span>
+                <span class="k">raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="ElectricField.serialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_trace</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">save_trace</span><span class="p">:</span>

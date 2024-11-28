@@ -672,19 +672,22 @@ channel separately)</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.get_sampling_rate" title="NuRadioReco.framework.electric_field.ElectricField.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
 <td><p>Returns the sampling rate of the trace.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.get_trace" title="NuRadioReco.framework.electric_field.ElectricField.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.get_stokes_parameters" title="NuRadioReco.framework.electric_field.ElectricField.get_stokes_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_stokes_parameters</span></code></a>([window_samples, ...])</p></td>
+<td><p>Return the stokes parameters for the electric field.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.get_trace" title="NuRadioReco.framework.electric_field.ElectricField.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
 <td><p>Returns the time trace.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.get_unique_identifier" title="NuRadioReco.framework.electric_field.ElectricField.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.get_unique_identifier" title="NuRadioReco.framework.electric_field.ElectricField.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
 <td><p>returns a unique identifier consisting of the tuple channel_ids, shower_id and ray_tracing_id</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.set_frequency_spectrum" title="NuRadioReco.framework.electric_field.ElectricField.set_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_frequency_spectrum</span></code></a>(frequency_spectrum, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.set_frequency_spectrum" title="NuRadioReco.framework.electric_field.ElectricField.set_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_frequency_spectrum</span></code></a>(frequency_spectrum, ...)</p></td>
 <td><p>Sets the frequency spectrum.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.set_position" title="NuRadioReco.framework.electric_field.ElectricField.set_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_position</span></code></a>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.set_position" title="NuRadioReco.framework.electric_field.ElectricField.set_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_position</span></code></a>(position)</p></td>
 <td><p>set position of the electric field relative to station position</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.set_trace" title="NuRadioReco.framework.electric_field.ElectricField.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.set_trace" title="NuRadioReco.framework.electric_field.ElectricField.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
 <td><p>Sets the time trace.</p></td>
 </tr>
 </tbody>
@@ -832,6 +835,59 @@ channel separately)</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.electric_field.ElectricField.set_position">
 <span class="sig-name descname"><span class="pre">set_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/electric_field.html#ElectricField.set_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.electric_field.ElectricField.set_position" title="Permalink to this definition"></a></dt>
 <dd><p>set position of the electric field relative to station position</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.electric_field.ElectricField.get_stokes_parameters">
+<span class="sig-name descname"><span class="pre">get_stokes_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vxB_vxvxB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetic_field_vector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/electric_field.html#ElectricField.get_stokes_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.electric_field.ElectricField.get_stokes_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Return the stokes parameters for the electric field.</p>
+<p>By default, the stokes parameters are returned in (eTheta, ePhi);
+this assumes the 3d efield trace is stored in (eR, eTheta, ePhi).
+To return the stokes parameters in (vxB, vxvxB) coordinates instead,
+one has to specify the magnetic field vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>window_samples</strong><span class="classifier">int | None, default: None</span></dt><dd><p>If None, return the stokes parameters over the full traces.
+If not None, returns a rolling average of the stokes parameters
+over <code class="docutils literal notranslate"><span class="pre">window_samples</span></code>. This may be more optimal if the duration
+of the signal is much shorter than the length of the full trace.</p>
+</dd>
+<dt><strong>vxB_vxvxB</strong><span class="classifier">bool, default: False</span></dt><dd><p>If False, returns the stokes parameters for the
+(assumed) (eTheta, ePhi) coordinates of the electric field.
+If True, convert to (vxB, vxvxB) first. In this case,
+one has to additionally specify either the magnetic field vector
+or the sit.</p>
+</dd>
+<dt><strong>magnetic_field_vector</strong><span class="classifier">3-tuple of floats | None, default: None</span></dt><dd><p>The direction of the magnetic field (in x,y,z)</p>
+</dd>
+<dt><strong>site</strong><span class="classifier">string | None, default: None</span></dt><dd><p>The site of the detector. Can be used instead of the <code class="docutils literal notranslate"><span class="pre">magnetic_field_vector</span></code>
+if the magnetic field vector for this site is included in <code class="docutils literal notranslate"><span class="pre">radiotools</span></code></p>
+</dd>
+<dt><strong>filter_kwargs</strong><span class="classifier">dict | None, default: None</span></dt><dd><p>Optional arguments to bandpass filter the trace
+before computing the stokes parameters. They are passed on to
+<em class="xref py py-obj">get_filtered_trace(**filter_kwargs)</em></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>stokes</strong><span class="classifier">array of floats</span></dt><dd><p>The stokes parameters. If <code class="docutils literal notranslate"><span class="pre">window_samples=None</span></code> (default), the shape of
+the returned array is <code class="docutils literal notranslate"><span class="pre">(4,)</span></code> and corresponds to the I, Q, U and V parameters.
+Otherwise, the array will have shape <code class="docutils literal notranslate"><span class="pre">(4,</span> <span class="pre">len(efield)</span> <span class="pre">-</span> <span class="pre">window_samples</span> <span class="pre">+</span> <span class="pre">1)</span></code>
+and correspond to the values of the stokes parameters over the specified
+window sizes.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_stokes" title="NuRadioReco.utilities.trace_utilities.get_stokes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.utilities.trace_utilities.get_stokes</span></code></a></dt><dd><p>Function that computes the stokes parameters</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">

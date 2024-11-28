@@ -671,6 +671,58 @@ at the air/ice boundary are already being taken into account.</p>
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_stokes">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_stokes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">squeeze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_stokes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_stokes" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the stokes parameters for electric field traces</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace_u</strong><span class="classifier">1d array (float)</span></dt><dd><p>The u component of the electric field trace</p>
+</dd>
+<dt><strong>trace_v</strong><span class="classifier">1d array (float)</span></dt><dd><p>The v component of the electric field trace.
+The two components should have equal lengths,
+and the (u, v) coordinates should be perpendicular.
+Common choices are (theta, phi) or (vxB, vxvxB)</p>
+</dd>
+<dt><strong>window_samples</strong><span class="classifier">int | None, default: 128</span></dt><dd><p>If not None, return a running average
+of the stokes parameters over <code class="docutils literal notranslate"><span class="pre">window_samples</span></code>.
+If None, compute the stokes parameters over the
+whole trace (equivalent to <code class="docutils literal notranslate"><span class="pre">window_samples=len(trace_u)</span></code>).</p>
+</dd>
+<dt><strong>squeeze</strong><span class="classifier">bool, default: True</span></dt><dd><p>Only relevant if <code class="docutils literal notranslate"><span class="pre">window_samples=None</span></code>. Squeezes
+out the second axis (which has a length of one)
+and returns an array of shape (4,)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>stokes</strong><span class="classifier">2d array of floats</span></dt><dd><p>The stokes parameters I, Q, U, V. The shape of
+the returned array is <code class="docutils literal notranslate"><span class="pre">(4,</span> <span class="pre">len(trace_u)</span> <span class="pre">-</span> <span class="pre">window_samples</span> <span class="pre">+1)</span></code>,
+i.e. stokes[0] returns the I parameter,
+stokes[1] corresponds to Q, and so on.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>For an electric field defined in (eR, eTheta, ePhi) components,
+the stokes parameters can be given simply by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">get_stokes</span><span class="p">(</span><span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>To instead get the stokes parameters in vxB and vxvxB, we need to first obtain
+the appropriate electric field components</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cs</span> <span class="o">=</span> <span class="n">radiotools</span><span class="o">.</span><span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="p">)</span>
+
+<span class="n">efield_trace_vxB_vxvxB</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_to_vxB_vxvxB</span><span class="p">(</span>
+    <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_onsky_to_ground</span><span class="p">(</span><span class="n">efield</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.upsampling_fir">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">upsampling_fir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#upsampling_fir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.upsampling_fir" title="Permalink to this definition"></a></dt>
 <dd><p>This function performs an upsampling by inserting a number of zeroes
