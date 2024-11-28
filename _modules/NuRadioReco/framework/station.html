@@ -724,8 +724,30 @@
 <div class="viewcode-block" id="Station.get_number_of_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_number_of_channels">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Station.get_channel_ids"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+<div class="viewcode-block" id="Station.get_channel_ids"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_group_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return all channel ids in the station</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        return_group_ids : bool, default: False</span>
+<span class="sd">            If True, return a list of channel_group_ids</span>
+<span class="sd">            instead of channel ids. Note that if no channel group ids</span>
+<span class="sd">            are defined, these are the same as the channel ids</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        channel_ids : list</span>
+<span class="sd">            List of all channel ids</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">return_group_ids</span><span class="p">:</span>
+            <span class="n">channel_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span> <span class="c1"># we use a set to avoid duplicates</span>
+            <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+                <span class="n">channel_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_group_id</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">channel_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">channel_ids</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Station.add_channel"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_channel">[docs]</a>    <span class="k">def</span> <span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">channel</span></div>
