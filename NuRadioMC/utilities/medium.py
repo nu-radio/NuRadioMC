@@ -1,3 +1,11 @@
+"""
+Module providing the ice models in NuRadioMC.
+
+For more details on the implementation, and the available modules,
+see the documentation :doc:`here </NuRadioMC/pages/Manuals/icemodels>`.
+
+"""
+
 from NuRadioMC.utilities import medium_base
 import itertools
 import numpy as np
