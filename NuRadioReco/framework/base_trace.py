@@ -5,7 +5,7 @@ import fractions
 import decimal
 import numbers
 import functools
-from NuRadioReco.utilities import fft, bandpass_filter
+from NuRadioReco.utilities import fft, bandpass_filter, trace_utilities
 import NuRadioReco.detector.response
 import scipy.signal
 import copy
@@ -258,9 +258,9 @@ class BaseTrace:
         """
         if delta_t > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
             logger.warning('Trace is shifted by more than 10% of its length')
-        spec = self.get_frequency_spectrum()
-        spec *= np.exp(-2.j * np.pi * delta_t * self.get_frequencies())
-        self.set_frequency_spectrum(spec, self._sampling_rate)
+
+        delayed_trace = trace_utilities.apply_time_shift(self, self._sampling_rate, delta_t, crop_trace=False)
+        self.set_trace(delayed_trace, self._sampling_rate)
 
     def resample(self, sampling_rate):
         if sampling_rate == self.get_sampling_rate():
@@ -299,9 +299,9 @@ class BaseTrace:
 
     def add_to_trace(self, channel):
         """
-        Adds the trace of another channel to the trace of this channel. The trace is only added within the 
+        Adds the trace of another channel to the trace of this channel. The trace is only added within the
         time window of "this" channel.
-        If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a 
+        If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a
         _time_trace containing zeros, this function can be seen as recording a channel in the specified
         readout window.
 
@@ -354,7 +354,7 @@ class BaseTrace:
             t_end_readout = tt_readout[i_end_readout]
             i_end_channel = n_samples_channel - 1
             t_end_channel = t1_channel
-        
+
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
         tmp_channel = copy.deepcopy(channel)
