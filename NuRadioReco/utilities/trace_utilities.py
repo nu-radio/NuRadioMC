@@ -1,10 +1,9 @@
+from NuRadioReco.utilities import units, ice, geometryUtilities as geo_utl, fft
+import NuRadioReco.framework.base_trace
+
 import numpy as np
 import scipy.constants
 import scipy.signal
-from NuRadioReco.utilities import units
-from NuRadioReco.utilities import ice
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import fft
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
 
@@ -242,7 +241,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
 
     Parameters
     ----------
-    trace: array of floats
+    trace: array of floats or `NuRadioReco.framework.base_trace.BaseTrace`
         Array containing the trace
     sampling_frequency: float
         Sampling rate for the trace
@@ -259,10 +258,13 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     dt_start: float (optional)
         The delta t of the trace start time. Only returned if crop_trace is True.
     """
-    n_samples = len(trace)
-
-    spectrum = fft.time2freq(trace, sampling_frequency)
-    frequencies = np.fft.rfftfreq(n_samples, 1 / sampling_frequency)
+    if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+        spectrum = trace.get_frequency_spectrum()
+        frequencies = trace.get_frequencies()
+    else:
+        n_samples = len(trace)
+        spectrum = fft.time2freq(trace, sampling_frequency)
+        frequencies = np.fft.rfftfreq(n_samples, 1 / sampling_frequency)
 
     spectrum *= np.exp(-1j * 2 * np.pi * frequencies * time_delay)
 
