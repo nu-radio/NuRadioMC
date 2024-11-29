@@ -375,10 +375,7 @@ def make_sim_shower(corsika, declination=0):
     sim_shower.set_parameter(shp.energy, energy)
 
     sim_shower.set_parameter(
-        shp.core_coordinate_vertical, corsika['CoREAS'].attrs["CoreCoordinateVertical"] * units.cm
-    )
-    sim_shower.set_parameter(
-        shp.coreas_GPSSecs, corsika['CoREAS'].attrs["GPSSecs"]
+        shp.core, np.array([0, 0, corsika['CoREAS'].attrs["CoreCoordinateVertical"]]) * units.cm
     )
     sim_shower.set_parameter(
         shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2
@@ -393,10 +390,10 @@ def make_sim_shower(corsika, declination=0):
         shp.magnetic_field_rotation, corsika['CoREAS'].attrs["RotationAngleForMagfieldDeclination"] * units.degree
     )
 
-    if 'ATMOD' in corsika['inputs'].attrs.keys():  # this can be false is left on default or when using GDAS atmosphere
+    if 'ATMOD' in corsika['inputs'].attrs:  # this can be false is left on default or when using GDAS atmosphere
         sim_shower.set_parameter(shp.atmospheric_model, corsika["inputs"].attrs["ATMOD"])
 
-    if 'highlevel' in corsika.keys():
+    if 'highlevel' in corsika:
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)
     else:
         global warning_printed_coreas_py
@@ -662,7 +659,9 @@ class coreasInterpolator:
         self.sampling_rate = 1. / (self.efield_times[0][1] - self.efield_times[0][0])
 
         self.obs_positions_ground = np.array(obs_positions)  # (n_observers, 3)
-        self.obs_positions_showerplane = self.cs.transform_to_vxB_vxvxB(self.obs_positions_ground)
+        self.obs_positions_showerplane = self.cs.transform_to_vxB_vxvxB(
+            self.obs_positions_ground, core=self.shower.get_parameter(shp.core)
+        )
 
         self.star_shape_initialized = True
 

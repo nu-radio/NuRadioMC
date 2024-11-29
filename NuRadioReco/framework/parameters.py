@@ -105,8 +105,6 @@ class showerParameters(Enum):
     distance_shower_maximum_geometric = 10  #: distance to xmax in meter
     distance_shower_maximum_grammage = 11  #: distance to xmax in g / cm^2
     parent_id = 12 #: id of parent in sim particles
-    core_coordinate_vertical = 13  #: vertical coordinate of the shower core used in corsika
-    coreas_GPSSecs = 14  #: Event time in GPS time of the shower in coreas
 
     #: dedicated parameter for sim showers
     refractive_index_at_ground = 100  #: refractivity at sea level
