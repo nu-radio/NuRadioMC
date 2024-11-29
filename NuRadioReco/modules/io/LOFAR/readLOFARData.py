@@ -622,7 +622,6 @@ class readLOFARData:
         time = Time(self.__lora_timestamp, format='unix')
         detector.update(time)
 
-        station_ids = []
         # Add all Detector stations to Event
         for station_name, station_dict in self.__stations.items():
             station_id = int(station_name[2:])
@@ -720,12 +719,13 @@ class readLOFARData:
 
             # Add station to Event
             evt.set_station(station)
-            station_ids.append(station_id)
 
             lofar_trace_access.close_file()
             
         # Add general event radio shower to event to store reconstruction values later
-        radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=self.__event_id, station_ids=station_ids)
+        radio_shower = NuRadioReco.framework.radio_shower.RadioShower(
+            shower_id=evt.get_id(), station_ids=evt.get_station_ids()
+        )
         evt.add_shower(radio_shower)
         yield evt
 
