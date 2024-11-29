@@ -58,7 +58,7 @@ efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldTo
 channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-eventWriter = NuRadioReco.modules.eventWriter.eventWriter()
+eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 
 
