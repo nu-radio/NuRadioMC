@@ -1354,7 +1354,8 @@ class simulation:
                                   f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
                                   f'max. filter amplification = {max_amplification:.2e} '
                                   f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz -> Vrms = '
-                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.4f} mV -> efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
+                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV -> efield Vrms = '
+                                  f'{self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
 
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
 
@@ -1608,20 +1609,12 @@ class simulation:
                         logger.debug(f"adding sim_station to station {station_id} for event group {event_group.get_run_number()}, channel {channel_id}")
                         station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
                         for evt in output_buffer[station_id].values():
-                            # we need to use any existing channel to get the correct trace_start_time. All channels have the same start time at the end
-                            # of the simulation.
-                            trace_start_time = evt.get_station().get_channel(channel_ids[0]).get_trace_start_time()
-                            # # determine the trigger that was used to determine the readout window
+                            # determine the trigger that was used to determine the readout window
 
                             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
                                 if not station.has_channel(sim_channel.get_id()):
                                     # add empty channel with the correct length and time if it doesn't exist yet.
-                                    channel = NuRadioReco.framework.channel.Channel(channel_id)
-                                    n_samples = int(round(self._det.get_number_of_samples(station_id, channel_id)) * self._config['sampling_rate'] /
-                                                    self._det.get_sampling_frequency(station_id, sim_channel.get_id()))
-                                    channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
-                                    channel.set_trace_start_time(trace_start_time)
-                                    station.add_channel(channel)
+                                    self._add_empty_channel(station, channel_id)
 
                                 # Add the sim_channel to the station channel:
                                 channel = station.get_channel(sim_channel.get_id())
@@ -1632,26 +1625,24 @@ class simulation:
                                 channel.add_to_trace(sim_channel_copy)
 
                 for evt in output_buffer[station_id].values():
+                    # we might not have a channel object in case there was no ray tracing solution to this channel, or if the timing did not match
+                    # the readout window. In this case we need to create a channel object and add it to the station
+                    for channel_id in non_trigger_channels:
+                        if not station.has_channel(channel_id):
+                            self._add_empty_channel(station, channel_id)
+
                     # the only thing left is to add noise to the non-trigger traces
-                    # we need to do it a bit differently than for the trigger traces, because we need to add noise to traces where the amplifier response
+                    # we need to do it a bit differently than for the trigger traces,
+                    # because we need to add noise to traces where the amplifier response
                     # was already applied to.
                     station = evt.get_station()
                     if bool(self._config['noise']):
                         for channel_id in non_trigger_channels:
+                            channel = station.get_channel(channel_id)
+
                             if channel_id in self._noiseless_channels[station_id]:
                                 continue
-                            # we might not have a channel object in case there was no ray tracing solution to this channel, or if the timing did not match
-                            # the readout window. In this case we need to create a channel object and add it to the station
-                            if station.has_channel(channel_id):
-                                channel = station.get_channel(channel_id)
-                            else:
-                                channel = NuRadioReco.framework.channel.Channel(channel_id)
-                                n_samples = int(round(self._det.get_number_of_samples(station_id, channel_id)) * self._config['sampling_rate'] / self._det.get_sampling_frequency(station_id, channel_id))
-                                channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
-                                # we need to use any other channel to get the correct trace_start_time. All channels have the same start time at the end
-                                # of the simulation.
-                                channel.set_trace_start_time(station.get_channel(station.get_channel_ids()[0]).get_trace_start_time())
-                                station.add_channel(channel)
+
                             # logger.status(f"norm  = {norm}, Vrms = {Vrms[channel_id]}, max_freq = {max_freq}")
                             ff = channel.get_frequencies()
                             filt = np.ones_like(ff, dtype=complex)
@@ -1704,6 +1695,16 @@ class simulation:
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
+    def _add_empty_channel(self, station, channel_id):
+        """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
+        channel = NuRadioReco.framework.channel.Channel(channel_id)
+        n_samples = int(round(self._det.get_number_of_samples(station.get_id(), channel_id))
+                        * self._config['sampling_rate'] / self._det.get_sampling_frequency(station.get_id(), channel_id))
+        channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
+        # we need to use any other channel to get the correct trace_start_time. All channels have the same start time at the end
+        # of the simulation.
+        channel.set_trace_start_time(station.get_channel(station.get_channel_ids()[0]).get_trace_start_time())
+        station.add_channel(channel)
 
     def _is_in_fiducial_volume(self, pos):
         """ Checks if pos is in fiducial volume """
