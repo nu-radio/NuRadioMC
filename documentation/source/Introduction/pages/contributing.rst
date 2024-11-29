@@ -10,7 +10,7 @@ If you intend to contribute significantly to NuRadioMC, please contact
 activities. Both will also be able to provide commit access to the repository.
 
 Workflow
---------------
+--------
 If you find an issue or bug in NuRadioMC, please `create an issue on GitHub <https://github.com/nu-radio/NuRadioMC/issues>`_.
 If you want to contribute to NuRadioMC, please provide your code addition in a new branch and `make a pull request <https://github.com/nu-radio/NuRadioMC/pulls>`_.
 
@@ -51,13 +51,14 @@ on your local machine).
 Once you are ready for your code to be merged into ``develop`` (for features and hotfixes) and/or
 ``master`` (for hotfixes only), you should `create a pull request <https://github.com/nu-radio/NuRadioMC/pulls>`_.
 
-Before you make a pull request, make that your code:
+Before you make a pull request, make sure that your code:
 
 * is correct - it should fix bugs, not introduce more of them!
 * is clearly documented - functions should have
   :ref:`correctly written docstrings <Introduction/pages/contributing:Writing docstrings>`
   , and comments where appropriate.
-* is reflected both in the **changelog** and by an appropriate update of the
+* is reflected in the **changelog**
+* (**Only for a new release to** ``master``) appropriately updates the
   :ref:`version number <Introduction/pages/contributing:Update the version number / dependencies>`.
 
 You will only be able to merge your pull request once:
@@ -157,6 +158,9 @@ open the ``pyproject.toml`` file in the NuRadioMC root directory, and update ``v
   version = "2.1.0"
 
 We use `semantic versioning <https://semver.org/>`_, i.e. MAJOR.MINOR.PATCH.
+The ``develop`` version additionally has the suffix ``-dev``, which gets dropped for full releases on ``master``.
+The version number should be updated before and after making a release to ``master``.
+
 Dependencies are also maintained in ``pyproject.toml``. To update the dependencies:
 
 * If you are adding a **core** dependency, first ensure that the core developers agree!
