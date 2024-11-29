@@ -16,8 +16,6 @@ from NuRadioReco.framework.parameters import stationParameters, channelParameter
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.LOFAR.beamforming_utilities import geometric_delay_far_field, lightspeed
 
-from NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR import check_for_good_ant
-    
 
 def average_direction(event, detector, mode='normal'):
     """
@@ -30,7 +28,8 @@ def average_direction(event, detector, mode='normal'):
     detector : Detector object
         The detector for which to calculate the average direction.
     mode : str, default='normal'
-        The mode to use for the calculation. Can be 'normal' (just raw mean) or 'weighted' (with number of good antennas as weight per station).
+        The mode to use for the calculation. Can be 'normal' (just raw mean) or 'weighted'
+        (with number of good antennas as weight per station).
 
     Returns
     -------
@@ -42,10 +41,12 @@ def average_direction(event, detector, mode='normal'):
     zeniths = []
     azimuths = []
     num_good_antennas = []
-    good_antennas = check_for_good_ant(event, detector)
     for station in event.get_stations():
         if station.get_parameter(stationParameters.triggered):
-            num_good_antennas.append(len(good_antennas[station.get_id()]))
+            flagged_channels = station.get_parameter(stationParameters.flagged_channels)
+            num_good_antennas.append(
+                detector.get_number_of_channels(station.get_id()) - len(flagged_channels)
+            )
             zeniths.append(station.get_parameter(stationParameters.cr_zenith))
             azimuths.append(station.get_parameter(stationParameters.cr_azimuth))
 
