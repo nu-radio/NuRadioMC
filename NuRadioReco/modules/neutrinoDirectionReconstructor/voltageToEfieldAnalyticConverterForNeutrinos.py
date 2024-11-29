@@ -40,7 +40,7 @@ from NuRadioReco.utilities import geometryUtilities as geo_utl
 import time
 
 channelResampler = CchannelResampler.channelResampler()
-channelResampler.begin(debug=False)
+channelResampler.begin()
 
 class voltageToAnalyticEfieldConverterNeutrinos:
     """
