@@ -7,7 +7,8 @@ import argparse
 import logging
 import sys
 
-logger = logging.getLogger('ProposalTablesManager')
+logger = logging.getLogger('NuRadioMC.EvtGen.ProposalTablesManager')
+
 
 def produce_proposal_tables(config_file, tables_path=None):
     """

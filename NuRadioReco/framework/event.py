@@ -11,7 +11,7 @@ import NuRadioReco.utilities.version
 from six import itervalues
 import collections
 import logging
-logger = logging.getLogger('Event')
+logger = logging.getLogger('NuRadioReco.Event')
 
 
 class Event:
@@ -158,6 +158,12 @@ class Event:
 
         return self.__stations[station_id]
 
+    def set_event_time(self, event_time):
+        self.__event_time = event_time
+
+    def get_event_time(self):
+        return self.__event_time
+
     def get_stations(self):
         for station in itervalues(self.__stations):
             yield station
@@ -232,7 +238,7 @@ class Event:
         if len(self.__particles) == 0:
             return None
 
-        return self.get_particle(0)
+        return next(iter(self.__particles.values()))
 
     def get_parent(self, particle_or_shower):
         """
@@ -375,9 +381,13 @@ class Event:
     def get_sim_showers(self):
         """
         Get an iterator over all simulated showers in the event
+
+        Returns
+        -------
+        sim_showers: iterator
+            An iterator over all simulated showers in the event
         """
-        for shower in self.__sim_showers.values():
-            yield shower
+        return self.__sim_showers.values()
 
     def get_sim_shower(self, shower_id):
         """
