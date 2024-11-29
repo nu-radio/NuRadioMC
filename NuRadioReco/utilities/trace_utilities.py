@@ -229,7 +229,7 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
     return filtered_spectrum
 
 
-def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
+def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     """
     Delays a trace by transforming it to frequency and multiplying by phases.
 
@@ -248,16 +248,16 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
         Sampling rate for the trace
     time_delay: float
         Time delay used for transforming the trace. Must be positive or 0
-    delayed_samples: integer or None
-        Number of samples that the delayed trace must contain
-        if None: the trace is not cut
+    crop_trace: bool
+        If True (default), the trace is cropped to remove samples
+        what are unphysical after delaying (rolling) the trace.
 
     Returns
     -------
     delayed_trace: array of floats
         The delayed, cropped trace
-    dt_start: float
-        The time change of the trace start time.
+    dt_start: float (optional)
+        The delta t of the trace start time. Only returned if crop_trace is True.
     """
     n_samples = len(trace)
 
@@ -269,14 +269,26 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
     delayed_trace = fft.freq2time(spectrum, sampling_frequency)
 
     cycled_samples = int(round(time_delay * sampling_frequency))
-    if time_delay > 0:
-        delayed_trace = delayed_trace[cycled_samples:]
-        dt_start = cycled_samples * sampling_frequency
+
+    if crop_trace:
+        if time_delay > 0:
+            delayed_trace = delayed_trace[cycled_samples:]
+            dt_start = cycled_samples * sampling_frequency
+        else:
+            delayed_trace = delayed_trace[:-cycled_samples]
+            dt_start = 0
+
+        return delayed_trace, dt_start
+
     else:
-        delayed_trace = delayed_trace[:cycled_samples]
-        dt_start = 0
+        # Check if unphysical samples contain any signal and if so, throw a warning
+        if time_delay > 0:
+            if np.any(np.abs(delayed_trace[:cycled_samples]) > 0.01 * units.microvolt):
+                logger.warning("The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples.")
+        else:
+            if np.any(np.abs(delayed_trace[-cycled_samples:]) > 0.01 * units.microvolt):
+                logger.warning("The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples.")
 
-    if delayed_samples is not None:
-        delayed_trace = delayed_trace[:delayed_samples]
-
-    return delayed_trace, dt_start
+        return delayed_trace
