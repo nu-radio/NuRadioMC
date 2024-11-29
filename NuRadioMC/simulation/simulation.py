@@ -346,7 +346,8 @@ def calculate_sim_efield_for_emitter(emitters, station_id, channel_id,
         propagator.find_solutions()
         time_logger.stop_time('ray tracing')
         if not propagator.has_solution():
-            logger.debug(f"emitter {emitter.get_id()} and station {station_id}, channel {channel_id} from {x1} to {x2} does not have any ray tracing solution")
+            logger.debug(f"emitter {emitter.get_id()} and station {station_id}, "
+                        f"channel {channel_id} from {x1} to {x2} does not have any ray tracing solution")
             continue
 
         n = propagator.get_number_of_solutions()
@@ -357,8 +358,10 @@ def calculate_sim_efield_for_emitter(emitters, station_id, channel_id,
             wave_propagation_time = propagator.get_travel_time(iS)  # calculate travel time
             time_logger.stop_time('ray tracing (time)')
             if wave_propagation_distance is None or wave_propagation_time is None:
-                logger.warning(f'travel distance or travel time could not be calculated, skipping ray tracing solution. Emitter ID: {emitter.get_id()} Station ID: {station_id} Channel ID: {channel_id}')
+                logger.warning('travel distance or travel time could not be calculated, skipping ray tracing solution. '
+                            f'Emitter ID: {emitter.get_id()} Station ID: {station_id} Channel ID: {channel_id}')
                 continue
+
             # if the input file specifies a specific shower realization, or
             # if the shower was already simulated (e.g. for a different channel or ray tracing solution)
             # use that realization
@@ -445,15 +448,17 @@ def calculate_sim_efield_for_emitter(emitters, station_id, channel_id,
                     sim_station.set_candidate(True)
 
             sim_station.add_electric_field(electric_field)
+
     return sim_station
 
 
-def apply_det_response_sim(sim_station, det, config,
-                        detector_simulation_filter_amp=None,
-                        evt=None,
-                        event_time=None,
-                        detector_simulation_part1=None,
-                        time_logger=None):
+def apply_det_response_sim(
+        sim_station, det, config,
+        detector_simulation_filter_amp=None,
+        evt=None,
+        event_time=None,
+        detector_simulation_part1=None,
+        time_logger=None):
     """
     Apply the detector response to the simulated electric field, i.e., calculate the voltage traces as
     seen by the readout system, per shower, raytracing solution and channel.
@@ -880,13 +885,14 @@ def calculate_particle_weight(event_group, idx, cfg, fin=None):
     elif cfg['weights']['weight_mode'] is None:
         primary[simp.weight][simp.weight] = 1.
     else:
-        primary[simp.weight] = get_weight(primary[simp.zenith],
-                                          primary[simp.energy],
-                                          primary[simp.flavor],
-                                          mode=cfg['weights']['weight_mode'],
-                                          cross_section_type=cfg['weights']['cross_section_type'],
-                                          vertex_position=primary[simp.vertex],
-                                          phi_nu=primary[simp.azimuth])
+        primary[simp.weight] = get_weight(
+            primary[simp.zenith],
+            primary[simp.energy],
+            primary[simp.flavor],
+            mode=cfg['weights']['weight_mode'],
+            cross_section_type=cfg['weights']['cross_section_type'],
+            vertex_position=primary[simp.vertex],
+            phi_nu=primary[simp.azimuth])
     # all entries for the event for this primary get the calculated primary's weight
     return primary[simp.weight]
 
@@ -932,7 +938,8 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     iSplit = np.atleast_1d(np.squeeze(np.argwhere(delta_start_times > split_event_time_diff)))
     n_sub_events = len(iSplit) + 1
     if n_sub_events > 1:
-        logger.info(f"splitting event group id {event_group_id} into {n_sub_events} sub events because time separation larger than {split_event_time_diff/units.ns}ns")
+        logger.info(f"splitting event group id {event_group_id} into {n_sub_events} "
+                    f"sub events because time separation larger than {split_event_time_diff/units.ns}ns")
 
     tmp_station = copy.deepcopy(station)
     events = []
@@ -950,7 +957,9 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             for start_time in start_times[indices]:
                 tmp += f"{start_time/units.ns:.0f}, "
             tmp = tmp[:-2] + " ns"
-            logger.info(f"creating event {iEvent} of event group {event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
+            logger.info(f"creating event {iEvent} of event group {event_group_id} ranging "
+                        f"from {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
+
         evt = NuRadioReco.framework.event.Event(event_group_id, iEvent)  # create new event
         if particle_mode:
             # add MC particles that belong to this (sub) event to event structure
@@ -990,6 +999,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
         evt.set_station(station)
         if bool(zerosignal):
             increase_signal(station, None, 0)
+
         events.append(evt)
 
     logger.info(f"created {len(events)} events from event group {event_group_id}")
@@ -1067,25 +1077,26 @@ def remove_all_traces(evt):
 
 class simulation:
 
-    def __init__(self, inputfilename,
-                 outputfilename,
-                 detectorfile=None,
-                 det=None,
-                 det_kwargs={},
-                 outputfilenameNuRadioReco=None,
-                 debug=False,
-                 evt_time=datetime.datetime(2018, 1, 1),
-                 config_file=None,
-                 log_level=LOGGING_STATUS,
-                 default_detector_station=None,
-                 default_detector_channel=None,
-                 file_overwrite=False,
-                 write_detector=True,
-                 event_list=None,
-                 log_level_propagation=logging.WARNING,
-                 ice_model=None,
-                 trigger_channels = None,
-                 **kwargs):
+    def __init__(
+            self, inputfilename,
+            outputfilename,
+            detectorfile=None,
+            det=None,
+            det_kwargs={},
+            outputfilenameNuRadioReco=None,
+            debug=False,
+            evt_time=datetime.datetime(2018, 1, 1),
+            config_file=None,
+            log_level=LOGGING_STATUS,
+            default_detector_station=None,
+            default_detector_channel=None,
+            file_overwrite=False,
+            write_detector=True,
+            event_list=None,
+            log_level_propagation=logging.WARNING,
+            ice_model=None,
+            trigger_channels = None,
+            **kwargs):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -1142,8 +1153,8 @@ class simulation:
 
         self.__trigger_channel_ids = trigger_channels
         if self.__trigger_channel_ids is None:
-            logger.warning("No trigger channels specified. All channels will be simulated even if they don't contribute to any trigger. This can be inefficient. \
-                           Processing time can be saved by specifying the trigger channels.")
+            logger.warning("No trigger channels specified. All channels will be simulated even if they don't contribute to any trigger. "
+                        "This can be inefficient. Processing time can be saved by specifying the trigger channels.")
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
