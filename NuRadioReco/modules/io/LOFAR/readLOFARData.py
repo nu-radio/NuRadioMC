@@ -380,7 +380,6 @@ class getLOFARtraces:
         return
 
 
-# TODO: make reader only read certain stations
 class readLOFARData:
     """
     This class reads in the data from the TBB files and puts them into an Event structure. It relies on the KRATOS
