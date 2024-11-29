@@ -5,7 +5,7 @@ import pickle
 import collections
 import math
 import logging
-logger = logging.getLogger('Particle')
+logger = logging.getLogger('NuRadioReco.Particle')
 
 
 class Particle:
@@ -37,6 +37,9 @@ class Particle:
         )
 
         return msg
+
+    def get_parameters(self):
+        return self._parameters
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.particleParameters):

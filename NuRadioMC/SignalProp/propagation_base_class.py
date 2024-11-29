@@ -3,7 +3,6 @@ from NuRadioReco.utilities import units
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import numpy as np
 import logging
-logging.basicConfig()
 
 """
 Structure of a ray-tracing module. For documentation and development purposes.
@@ -15,8 +14,8 @@ class ray_tracing_base:
     """
 
 
-    def __init__(self, medium, attenuation_model=None, log_level=logging.WARNING, 
-                 n_frequencies_integration=None, n_reflections=None, config=None, 
+    def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
+                 n_frequencies_integration=None, n_reflections=None, config=None,
                  detector=None, ray_tracing_2D_kwards={}):
         """
         class initilization
@@ -35,7 +34,7 @@ class ray_tracing_base:
             * logging.INFO
             * logging.DEBUG
 
-            default is WARNING
+            default is NOTSET (ie global control)
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
@@ -48,7 +47,7 @@ class ray_tracing_base:
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
         """
-        self.__logger = logging.getLogger('ray_tracing_base')
+        self.__logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_base')
         self.__logger.setLevel(log_level)
 
         self._medium = medium
@@ -65,7 +64,14 @@ class ray_tracing_base:
         self._max_detector_frequency = None
         if self._detector is not None:
             for station_id in self._detector.get_station_ids():
-                sampling_frequency = self._detector.get_sampling_frequency(station_id, 0)
+                channel_id_1st = self._detector.get_channel_ids(station_id)[0]
+                sampling_frequency = self._detector.get_sampling_frequency(station_id, channel_id_1st)
+                for channel_id in self._detector.get_channel_ids(station_id):
+                    if self._detector.get_sampling_frequency(station_id, channel_id) != sampling_frequency:
+                        self.__logger.warning(f"Different channels have different sampling frequencies. Channel {channel_id} has sampling frequency" \
+                                               f"{self._detector.get_sampling_frequency(station_id, channel_id)/units.GHz:.1f}." \
+                                                f"Using the sampoing frequency of the first channel with id {channel_id_1st} with {sampling_frequency/units.GHz:.1f} GHz." \
+                                                    "to calculate the maximum relevant frequency for calculating signal attenuation.")
                 if self._max_detector_frequency is None or sampling_frequency * .5 > self._max_detector_frequency:
                     self._max_detector_frequency = sampling_frequency * .5
 
@@ -88,7 +94,7 @@ class ray_tracing_base:
         ----------
         x1: np.array of shape (3,), default unit
             start point of the ray
-        x2: np.array of shape (3,), default unit 
+        x2: np.array of shape (3,), default unit
             stop point of the ray
         """
         self.reset_solutions()
@@ -103,7 +109,7 @@ class ray_tracing_base:
 
     def use_optional_function(self, function_name, *args, **kwargs):
         """
-        Use optional function which may be different for each ray tracer. 
+        Use optional function which may be different for each ray tracer.
         If the name of the function is not present for the ray tracer this function does nothing.
 
         Parameters
@@ -119,10 +125,10 @@ class ray_tracing_base:
         Examples
         --------
         .. code-block::
-        
+
             use_optional_function('set_shower_axis',np.array([0,0,1]))
             use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
-        
+
         """
         if not hasattr(self,function_name):
             pass

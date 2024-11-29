@@ -94,9 +94,8 @@ class beamFormingDirectionFitter:
         self.begin()
         self.logger = logging.getLogger("NuRadioReco.beamFormingDirectionFitter")
 
-    def begin(self, debug=False, log_level=None):
-        if(log_level is not None):
-            self.logger.setLevel(log_level)
+    def begin(self, debug=False, log_level=logging.NOTSET):
+        self.logger.setLevel(log_level)
         self.__debug = debug
 
     def run(self, evt, station, det, polarization, n_index=None, channels=None, ZenLim=None,

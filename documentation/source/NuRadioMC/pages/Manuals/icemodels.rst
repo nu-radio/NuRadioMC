@@ -114,7 +114,7 @@ _________________
 In the table below we can find the different parameters for the simple ice refractive index models available in NuRadioMC.
 
     .. csv-table:: Simple Ice Models
-        :header: "Name", ":math:`n_{ice}`", ":math:`\Delta_n`", ":math:`z_0$ [m]`"
+        :header: "Name", ":math:`n_{ice}`", ":math:`\Delta_n`", ":math:`z_0 [m]`"
 
         `southpole_simple <https://iopscience.iop.org/article/10.1088/1475-7516/2018/07/055>`__ (RICE2014/SP), 1.78, 0.425, 71
         `southpole_2015 <https://iopscience.iop.org/article/10.1088/1475-7516/2018/07/055>`__ (SPICE2015/SP), 1.78, 0.423, 77

@@ -969,7 +969,7 @@ def get_E2_limit_figure(diffuse=True,
 #         labels.append(_plt4)
     if show_PUEO_100:
         ax.annotate('PUEO (3 flights)', xy=(3e18 * units.eV / plotUnitsEnergy, 2.1e-8),
-                    xycoords='data', horizontalalignment='left', color='goldenrod', rotation=0, fontsize=legendfontsize)
+                    xycoords='data', horizontalalignment='left', color='#EA5A06', rotation=0, fontsize=legendfontsize)
         ax.plot(PUEO100_energy / plotUnitsEnergy, PUEO100 / plotUnitsFlux, linestyle=(0, (3, 1, 1, 1, 1, 1)), color='#EA5A06', label='PUEO (3 flights, 100 days)',
                 lw=2)
 
