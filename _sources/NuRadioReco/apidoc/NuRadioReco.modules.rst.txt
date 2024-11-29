@@ -37,6 +37,7 @@ Submodules
    NuRadioReco.modules.channelAddCableDelay
    NuRadioReco.modules.channelAntennaDedispersion
    NuRadioReco.modules.channelBandPassFilter
+   NuRadioReco.modules.channelCWNotchFilter
    NuRadioReco.modules.channelGalacticNoiseAdder
    NuRadioReco.modules.channelGenericNoiseAdder
    NuRadioReco.modules.channelLengthAdjuster

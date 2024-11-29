@@ -308,6 +308,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelAddCableDelay.html">NuRadioReco.modules.channelAddCableDelay module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelAntennaDedispersion.html">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html">NuRadioReco.modules.channelBandPassFilter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html">NuRadioReco.modules.channelCWNotchFilter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
@@ -905,6 +906,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.begin">(NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter.begin">(NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin">(NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.begin">(NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder method)</a>
@@ -1084,6 +1087,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets">channelBlockOffsets (class in NuRadioReco.modules.RNO_G.channelBlockOffsetFitter)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter">channelCWNotchFilter (class in NuRadioReco.modules.channelCWNotchFilter)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder">channelGalacticNoiseAdder (class in NuRadioReco.modules.channelGalacticNoiseAdder)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder">channelGenericNoiseAdder (class in NuRadioReco.modules.channelGenericNoiseAdder)</a>
@@ -1108,10 +1113,10 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelTimeWindow.html#NuRadioReco.modules.channelTimeWindow.channelTimeWindow">channelTimeWindow (class in NuRadioReco.modules.channelTimeWindow)</a>
 </li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.charge_excess_profile_id">charge_excess_profile_id (NuRadioReco.framework.parameters.showerParameters attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.charge_excess_profile_id">charge_excess_profile_id (NuRadioReco.framework.parameters.showerParameters attribute)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces.check_trace_quality">check_trace_quality() (NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.check_vertical_string">check_vertical_string() (NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator method)</a>
@@ -1580,7 +1585,13 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.NuRadioLogger.filter">filter() (NuRadioReco.utilities.logging.NuRadioLogger method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.filter_cws">filter_cws() (in module NuRadioReco.modules.channelCWNotchFilter)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.find_and_set_polarization_delay">find_and_set_polarization_delay() (NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1 method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.find_frequency_peaks">find_frequency_peaks() (in module NuRadioReco.modules.channelCWNotchFilter)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.find_frequency_peaks_from_trace">find_frequency_peaks_from_trace() (in module NuRadioReco.modules.channelCWNotchFilter)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.find_maximum_in_plane">find_maximum_in_plane() (NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco method)</a>
 </li>
@@ -1592,10 +1603,10 @@
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_ray_type">find_ray_type() (NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor method)</a>
 </li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_receiving_zenith">find_receiving_zenith() (NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_receiving_zenith">find_receiving_zenith() (NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationPulseFinder.html#NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries">find_snr_of_timeseries() (in module NuRadioReco.modules.LOFAR.stationPulseFinder)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions">find_solutions() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
@@ -2250,9 +2261,11 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_filenames">get_filenames() (NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio method)</a>
 </li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter">get_filter() (NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator method)</a>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.get_filter">get_filter() (in module NuRadioReco.modules.channelCWNotchFilter)</a>
 
       <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter">(NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter">(NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter">(NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator method)</a>
@@ -2636,10 +2649,10 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules">get_modules() (NuRadioMC.utilities.medium_base.RadioPropaIceWrapper method)</a>
 </li>
-      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#NuRadioMC.utilities.muon_flux.MuonFlux.get_mu_flux">get_mu_flux() (NuRadioMC.utilities.muon_flux.MuonFlux method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#NuRadioMC.utilities.muon_flux.MuonFlux.get_mu_flux">get_mu_flux() (NuRadioMC.utilities.muon_flux.MuonFlux method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.get_multiple_high_low_trigger">get_multiple_high_low_trigger() (in module NuRadioReco.modules.trigger.multiHighLowThreshold)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalGen.HCRB2017.html#NuRadioMC.SignalGen.HCRB2017.get_N_AskDepthA">get_N_AskDepthA() (in module NuRadioMC.SignalGen.HCRB2017)</a>
@@ -4200,6 +4213,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html#module-NuRadioReco.modules.channelBandPassFilter">NuRadioReco.modules.channelBandPassFilter</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#module-NuRadioReco.modules.channelCWNotchFilter">NuRadioReco.modules.channelCWNotchFilter</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#module-NuRadioReco.modules.channelGalacticNoiseAdder">NuRadioReco.modules.channelGalacticNoiseAdder</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#module-NuRadioReco.modules.channelGenericNoiseAdder">NuRadioReco.modules.channelGenericNoiseAdder</a>
@@ -5222,6 +5237,13 @@
 </li>
       </ul></li>
       <li>
+    NuRadioReco.modules.channelCWNotchFilter
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#module-NuRadioReco.modules.channelCWNotchFilter">module</a>
+</li>
+      </ul></li>
+      <li>
     NuRadioReco.modules.channelGalacticNoiseAdder
 
       <ul>
@@ -6054,6 +6076,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.plot">plot() (NuRadioReco.detector.response.Response method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.plot_ft">plot_ft() (in module NuRadioReco.modules.channelCWNotchFilter)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.plot_lateral_cross_section">plot_lateral_cross_section() (in module NuRadioReco.modules.efieldRadioInterferometricReconstruction)</a>
 </li>
   </ul></td>
@@ -6061,6 +6085,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.plot_measured_spectrum">plot_measured_spectrum() (in module NuRadioReco.utilities.cr_flux)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.plot_result">plot_result() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.plot_trace">plot_trace() (in module NuRadioReco.modules.channelCWNotchFilter)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html#NuRadioMC.utilities.plotting.plot_vertex_distribution">plot_vertex_distribution() (in module NuRadioMC.utilities.plotting)</a>
 </li>
@@ -6294,10 +6320,10 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_slicing">rolled_sum_slicing() (in module NuRadioReco.utilities.noise)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_take">rolled_sum_take() (in module NuRadioReco.utilities.noise)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolling_indices">rolling_indices() (in module NuRadioReco.utilities.noise)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.NuRadioLogger.root">root (NuRadioReco.utilities.logging.NuRadioLogger attribute)</a>
@@ -6334,6 +6360,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelAntennaDedispersion.html#NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.run">(NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.run">(NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter.run">(NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run">(NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder method)</a>
 </li>

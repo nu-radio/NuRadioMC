@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelCWNotchFilter module
+===============================================
+
+.. automodule:: NuRadioReco.modules.channelCWNotchFilter
+   :members:
+   :undoc-members:
+   :show-inheritance:
