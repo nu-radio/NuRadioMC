@@ -57,6 +57,7 @@ for the phasing_mode == "slice"
 - Improved logging: created NuRadioLogger class which is now used by default, the NRR and NRMC loggers
 are created automatically when importing the packages, and a new STATUS logging level was added.
 - Updating the ray_tracing_2D class in order to be able to use Numba optimization
+- Add new cw filter module to NuRadioReco using notch filters on peaks in the frequency spectrum
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
