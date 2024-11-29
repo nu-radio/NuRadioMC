@@ -5,8 +5,8 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('raytracing')
+logger = logging.getLogger('NuRadioMC.SignalProp.raytracing')
+logger.setLevel(logging.INFO)
 
 x1 = [-2 * units.km, -1500. * units.m]  # pulser position
 x2 = [0., -200. * units.m]  # ARA antanna

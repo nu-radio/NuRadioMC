@@ -34,7 +34,7 @@ class readCoREAS:
         self.__random_generator = None
         self.logger = logging.getLogger('NuRadioReco.readCoREAS')
 
-    def begin(self, input_files, xmin, xmax, ymin, ymax, n_cores=10, seed=None, log_level=logging.INFO):
+    def begin(self, input_files, xmin, xmax, ymin, ymax, n_cores=10, seed=None, log_level=logging.NOTSET):
         """
         begin method
 

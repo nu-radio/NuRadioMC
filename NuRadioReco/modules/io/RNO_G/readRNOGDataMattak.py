@@ -156,7 +156,7 @@ def _convert_to_astropy_time(t):
 
 class readRNOGData:
 
-    def __init__(self, run_table_path=None, load_run_table=True, log_level=logging.INFO):
+    def __init__(self, run_table_path=None, load_run_table=True, log_level=logging.NOTSET):
         """
         Reader for RNO-G ``.root`` files
 
@@ -175,7 +175,7 @@ class readRNOGData:
 
         log_level: enum
             Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
-            (Default: logging.INFO)
+            (Default: logging.NOTSET, ie adhere to general log level)
 
         Examples
         --------
@@ -194,7 +194,7 @@ class readRNOGData:
                 pass
 
         """
-        self.logger = logging.getLogger('NuRadioReco.readRNOGData')
+        self.logger = logging.getLogger('NuRadioReco.RNOG.readRNOGData')
         self.logger.setLevel(log_level)
 
         self._blockoffsetfitter = channelBlockOffsets()
@@ -568,13 +568,13 @@ class readRNOGData:
         skip: bool
             Returns False to skip/reject event, return True to keep/read event
         """
-        self.logger.debug(f"Processing event number {self._event_idx} out of total {self._n_events_total}")
+        self.logger.debug(f"Processing event number {self.__counter} out of total {self._n_events_total}")
 
         self.__counter += 1  # for logging
         if self._selectors is not None:
             for selector in self._selectors:
                 if not selector(evtinfo):
-                    self.logger.debug(f"Event {self._event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
+                    self.logger.debug(f"Event {self.__counter - 1} (station {evtinfo.station}, run {evtinfo.run}, "
                                       f"event number {evtinfo.eventNumber}) did not pass a filter. Skip it ...")
                     self.__skipped += 1
                     return False
@@ -691,7 +691,7 @@ class readRNOGData:
                 selectors=self._select_events)):
 
                 if self._read_calibrated_data:
-                    wfs = wfs * units.mV
+                    wfs = wfs * units.V
                 else:
                     # wf stores ADC counts
                     if self._convert_to_voltage:
@@ -791,7 +791,7 @@ class readRNOGData:
         for channel_id, wf in enumerate(waveforms):
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             if self._read_calibrated_data:
-                channel.set_trace(wf * units.mV, sampling_rate * units.GHz)
+                channel.set_trace(wf * units.V, sampling_rate * units.GHz)
             else:
                 # wf stores ADC counts
                 if self._convert_to_voltage:
