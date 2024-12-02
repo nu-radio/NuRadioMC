@@ -380,7 +380,6 @@ class getLOFARtraces:
         return
 
 
-# TODO: make reader only read certain stations
 class readLOFARData:
     """
     This class reads in the data from the TBB files and puts them into an Event structure. It relies on the KRATOS
@@ -635,8 +634,6 @@ class readLOFARData:
 
             station = NuRadioReco.framework.station.Station(station_id)
             station.set_station_time(time)
-            radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
-                                                                          station_ids=[station_id])
 
             # Use KRATOS io functions to access trace
             lofar_trace_access = getLOFARtraces(
@@ -719,12 +716,16 @@ class readLOFARData:
             # store set of flagged nrr channel ids as station parameter
             station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
 
-            # Add station to Event, together with RadioShower to store reconstruction values later on
+            # Add station to Event
             evt.set_station(station)
-            evt.add_shower(radio_shower)
 
             lofar_trace_access.close_file()
-
+            
+        # Add general event radio shower to event to store reconstruction values later
+        radio_shower = NuRadioReco.framework.radio_shower.RadioShower(
+            shower_id=evt.get_id(), station_ids=evt.get_station_ids()
+        )
+        evt.add_shower(radio_shower)
         yield evt
 
     def end(self):
