@@ -306,12 +306,12 @@ class analogToDigitalConverter:
 
             trace = np.fft.irfft(trace_fft * trigger_filter)
 
-        # Random clock offset
-        trace, dt_tstart = delay_trace(trace, MC_sampling_frequency, adc_time_delay)
-
-        if dt_tstart > 0:
-            times = times[dt_tstart / MC_sampling_frequency:]
-        times = times[:len(trace)]
+        if adc_time_delay:
+            # Random clock offset
+            trace, dt_tstart = delay_trace(trace, MC_sampling_frequency, adc_time_delay)
+            if dt_tstart > 0:
+                times = times[dt_tstart / MC_sampling_frequency:]
+            times = times[:len(trace)]
 
         # Upsampling to 5 GHz before downsampling using interpolation.
         # We cannot downsample with a Fourier method because we want to keep
