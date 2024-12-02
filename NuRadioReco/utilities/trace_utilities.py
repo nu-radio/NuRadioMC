@@ -258,6 +258,13 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     dt_start: float (optional)
         The delta t of the trace start time. Only returned if crop_trace is True.
     """
+    if not time_delay:
+        # If time delay is 0
+        if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+            return trace.get_trace(), 0
+        else:
+            return trace, 0
+
     if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
         spectrum = trace.get_frequency_spectrum()
         frequencies = trace.get_frequencies()
@@ -273,7 +280,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     cycled_samples = int(round(time_delay * sampling_frequency))
 
     if crop_trace:
-        if time_delay > 0:
+        if time_delay >= 0:
             delayed_trace = delayed_trace[cycled_samples:]
             dt_start = cycled_samples * sampling_frequency
         else:
