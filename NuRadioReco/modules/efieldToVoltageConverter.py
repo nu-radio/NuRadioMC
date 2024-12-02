@@ -103,6 +103,7 @@ class efieldToVoltageConverter():
         times_max = []
         if channel_ids is None:
             channel_ids = det.get_channel_ids(sim_station_id)
+        
         for channel_id in channel_ids:
             for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
                 time_resolution = 1. / electric_field.get_sampling_rate()
@@ -111,7 +112,7 @@ class efieldToVoltageConverter():
 
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
-                    travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, iCh)
+                    travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
                     t0 += travel_time_shift
 
                 if not np.isnan(t0):
@@ -164,7 +165,7 @@ class efieldToVoltageConverter():
                     cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                     if sim_station.is_cosmic_ray():
                         travel_time_shift = calculate_time_shift_for_cosmic_ray(
-                            det, sim_station, electric_field, iCh)
+                            det, sim_station, electric_field, channel_id)
                     else:
                         travel_time_shift = 0
 
@@ -173,7 +174,8 @@ class efieldToVoltageConverter():
 
                     # calculate error by using discret bins
                     time_remainder = start_time - start_bin * time_resolution
-                    self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
+                    self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(
+                        channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
 
                     new_efield = NuRadioReco.framework.base_trace.BaseTrace()  # create new data structure with new efield length
                     new_efield.set_trace(copy.copy(electric_field.get_trace()), electric_field.get_sampling_rate())
