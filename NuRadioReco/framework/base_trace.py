@@ -259,7 +259,7 @@ class BaseTrace:
         if delta_t > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
             logger.warning('Trace is shifted by more than 10% of its length')
 
-        delayed_trace = trace_utilities.apply_time_shift(self, self._sampling_rate, delta_t, crop_trace=False)
+        delayed_trace = trace_utilities.delay_trace(self, self._sampling_rate, delta_t, crop_trace=False)
         self.set_trace(delayed_trace, self._sampling_rate)
 
     def resample(self, sampling_rate):
