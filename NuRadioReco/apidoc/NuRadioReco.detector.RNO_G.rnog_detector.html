@@ -691,7 +691,7 @@ new connection. Set to True to create a new database connection.</p>
 <td><p>Returns type of antenna, i.e., &quot;VPol&quot; or &quot;HPol&quot; or &quot;LPDA&quot;, ...</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code></a>(station_id, channel_id[, ...])</p></td>
-<td><p>Return the cable delay of a signal chain as stored in the detector description.</p></td>
+<td><p>Same as <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code></a>(station_id, channel_id)</p></td>
 <td><p>Returns a dictionary of all channel parameters</p></td>
@@ -756,7 +756,7 @@ new connection. Set to True to create a new database connection.</p>
 <td><p>Returns the list of all commissioned stations.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>(station_id, channel_id[, ...])</p></td>
-<td><p>Return the sum of the time delay of all components in the signal chain calculated from the phase</p></td>
+<td><p>Return the sum of the time delay of all components in the signal chain calculated from the phase.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
 <td><p>Returns true if the station is commission.</p></td>
@@ -1291,23 +1291,19 @@ it here for consistency with other detector classes.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay">
 <span class="sig-name descname"><span class="pre">get_cable_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_cable_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="Permalink to this definition"></a></dt>
-<dd><p>Return the cable delay of a signal chain as stored in the detector description.</p>
-<p>This interface is required by simulation.py. See <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a> for description of
-arguments.</p>
+<dd><p>Same as <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>. Only here to keep the same interface as the other detector classes.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay">
-<span class="sig-name descname"><span class="pre">get_time_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cable_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_time_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="Permalink to this definition"></a></dt>
-<dd><p>Return the sum of the time delay of all components in the signal chain calculated from the phase</p>
+<span class="sig-name descname"><span class="pre">get_time_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_time_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="Permalink to this definition"></a></dt>
+<dd><p>Return the sum of the time delay of all components in the signal chain calculated from the phase.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
 </dd>
 <dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
-</dd>
-<dt><strong>cable_only: bool</strong></dt><dd><p>If True: Consider only cables to calculate delay. (Default: False)</p>
 </dd>
 <dt><strong>use_stored: bool</strong></dt><dd><p>If True, take time delay as stored in DB rather than calculated from response. (Default: True)</p>
 </dd>

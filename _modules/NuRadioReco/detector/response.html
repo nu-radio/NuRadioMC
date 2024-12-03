@@ -726,10 +726,14 @@
         <span class="k">if</span> <span class="n">y_unit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;deg&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_phase</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Is the phase really in deg? Does not look like it... &quot;</span>
-                                    <span class="sa">f</span><span class="s2">&quot;Do not convert to rad. Phase: </span><span class="si">{</span><span class="n">y_phase</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                    <span class="sa">f</span><span class="s2">&quot;Do not convert </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> to rad: </span><span class="si">{</span><span class="n">y_phase</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">y_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">y_phase</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">y_unit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;rad&quot;</span><span class="p">:</span>
+            <span class="c1"># We can not make this test because the phase might be already unwrapped</span>
+            <span class="c1"># if np.amax(y_phase) - np.amin(y_phase) &gt; 2 * np.pi:</span>
+            <span class="c1">#     self.logger.warning(&quot;Is the phase really in rad? Does not look like it... &quot;</span>
+            <span class="c1">#                         f&quot;Do convert {name} to rad: {y_phase}&quot;)</span>
             <span class="n">y_phase</span> <span class="o">=</span> <span class="n">y_phase</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span>
@@ -1001,6 +1005,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get time delay from DB &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Response.get_time_delays"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.get_time_delays">[docs]</a>    <span class="k">def</span> <span class="nf">get_time_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get time delay from DB &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span></div>
+
     <span class="k">def</span> <span class="nf">_calculate_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate time delay from phase of the stored complex response function.</span>
@@ -1017,15 +1025,13 @@
 <span class="sd">            The time delay at ~ 200 MHz</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
 
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
-
         <span class="n">delta_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
-
         <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-        <span class="n">time_delay</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">phase</span><span class="p">))</span> <span class="o">/</span> <span class="n">delta_freq</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
 
+        <span class="n">time_delay</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">phase</span><span class="p">))</span> <span class="o">/</span> <span class="n">delta_freq</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="mi">195</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="o">&lt;</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">freqs</span> <span class="o">&lt;</span> <span class="mi">250</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">time_delay1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">time_delay</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
 
