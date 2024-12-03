@@ -385,6 +385,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
             new_device = copy.copy(device)
             new_device['station_id'] = station_dict['station_id']
             self._buffered_devices[station_dict['station_id']][device['device_id']] = new_device
+        self._db.table('stations', cache_size=1000).insert(station_dict)
 
     def add_station_properties_for_event(self, properties, station_id, run_number, event_id):
         """
