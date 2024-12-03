@@ -61,20 +61,24 @@ def get_angles(corsika, declination):
     magnetic_field_vector : np.ndarray
         magnetic field vector
     """
+    # TODO: verify sign of declination
+
     zenith = corsika['inputs'].attrs["THETAP"][0] * units.deg
     azimuth = hp.get_normalized_angle(
         3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]) + declination / units.rad
-    ) * units.rad  # TODO: check if sign of declination is correct is correct
+    ) * units.rad
 
-    Bx, Bz = corsika['inputs'].attrs["MAGNET"]
-    B_inclination = np.arctan2(Bz, Bx)
+    # in CORSIKA convention, the first component points North (y in NRR) and the second component points down (minus z)
+    By, minBz = corsika['inputs'].attrs["MAGNET"]
+    B_inclination = np.arctan2(minBz, By)  # angle from y-axis towards negative z-axis
 
-    B_strength = (Bx ** 2 + Bz ** 2) ** 0.5 * units.micro * units.tesla
+    B_strength = np.sqrt(By ** 2 + minBz ** 2) * units.micro * units.tesla
 
-    # in local coordinates north is + 90 deg
+    # zenith of the magnetic field vector is 90 deg + inclination, as inclination proceeds downwards from horizontal
+    # azimuth of the magnetic field vector is 90 deg - declination, as declination proceeds clockwise from North
     magnetic_field_vector = B_strength * hp.spherical_to_cartesian(
-        B_inclination, declination / units.rad
-    ) * units.rad + np.pi / 2 # TODO: check if sign of declination is correct is correct
+        np.pi / 2 + B_inclination, np.pi / 2 - declination / units.rad
+    )
 
     return zenith, azimuth, magnetic_field_vector
 
