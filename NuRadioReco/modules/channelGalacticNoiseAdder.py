@@ -7,18 +7,7 @@ import logging
 import numpy as np
 import scipy.constants
 import scipy.interpolate
-
-logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
-
-try:
-    from radiocalibrationtoolkit import *  # Documentation: https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main contains SSM, GMOSS, ULSA
-except:
-    raise ImportError("radiocalibrationtoolkit import failed. Consider installing it to use more sky models.")
-
-try:
-    from pylfmap import LFmap  # Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
-except:
-    raise ImportError("LFmap import failed. Consider installing it to use LFmap as sky model.")
+import functools
 
 from pygdsm import (
     GlobalSkyModel16,
@@ -32,6 +21,16 @@ import astropy.coordinates
 import astropy.units
 
 logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
+
+try:
+    from radiocalibrationtoolkit import *  # Documentation: https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main contains SSM, GMOSS, ULSA
+except Exception as _:
+    logger.info("radiocalibrationtoolkit import failed. Consider installing it to use more sky models.")
+
+try:
+    from pylfmap import LFmap  # Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
+except ImportError:
+    logger.info("LFmap import failed. Consider installing it to use LFmap as sky model.")
 
 
 class channelGalacticNoiseAdder:
@@ -94,9 +93,12 @@ class channelGalacticNoiseAdder:
         self.__debug = debug
         self.__n_side = n_side
 
+        self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
+
+
         if interpolation_frequencies is None:
             if freq_range is None:
-                freq_range = np.array([10,1100])
+                freq_range = np.array([10, 1100]) * units.MHz
 
             # define interpolation frequencies. Set in logarithmic range from freq_range[0] to freq_range[1],
             # rounded to 0 decimal places to avoid import errors from LFmap abd tabulated models.
@@ -104,9 +106,9 @@ class channelGalacticNoiseAdder:
                 np.logspace(
                     *np.log10(freq_range), num=15
                 ), 0
-            ) * units.MHz
+            )
         else:
-            self.__interpolation_frequencies = interpolation_frequencies * units.MHz
+            self.__interpolation_frequencies = interpolation_frequencies
             logger.warning("DeprecationWarning: Optional argument 'interpolation_frequencies' was replaced by 'freq_range'.")
 
         # initialise sky model
@@ -208,22 +210,9 @@ class channelGalacticNoiseAdder:
         passband_filter = (freqs > passband[0]) & (freqs < passband[1])
 
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
-        site_location = astropy.coordinates.EarthLocation(lat=site_latitude * astropy.units.deg,
-                                                          lon=site_longitude * astropy.units.deg)
         station_time = station.get_station_time()
 
-        local_cs = astropy.coordinates.AltAz(location=site_location, obstime=station_time)
-        solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
-
-        pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(self.__n_side,
-                                                                     range(healpy.pixelfunc.nside2npix(self.__n_side)),
-                                                                     lonlat=True)
-        pixel_longitudes *= units.deg
-        pixel_latitudes *= units.deg
-
-        galactic_coordinates = astropy.coordinates.Galactic(l=pixel_longitudes * astropy.units.rad,
-                                                            b=pixel_latitudes * astropy.units.rad)
-        local_coordinates = galactic_coordinates.transform_to(local_cs)
+        local_coordinates = get_local_coordinates((site_latitude, site_longitude), station_time, self.__n_side)
 
         n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         n_air = 1.000292  # TODO: This value applies under standard conditions. Does it hold for Greenland?
@@ -250,7 +239,7 @@ class channelGalacticNoiseAdder:
 
             # calculate spectral radiance of radio signal using rayleigh-jeans law
             S = 2. * (scipy.constants.Boltzmann * units.joule / units.kelvin) * freqs[passband_filter] ** 2 / (
-                        scipy.constants.c * units.m / units.s) ** 2 * noise_temperature * solid_angle
+                        scipy.constants.c * units.m / units.s) ** 2 * noise_temperature * self.solid_angle
             S[np.isnan(S)] = 0
 
             # calculate radiance per energy bin
@@ -320,4 +309,23 @@ class channelGalacticNoiseAdder:
                 channel_spectrum += channel_noise_spectrum
                 channel.set_frequency_spectrum(channel_spectrum, channel.get_sampling_rate())
 
-        return
+
+@functools.lru_cache(maxsize=128)
+def get_local_coordinates(coordinates, time, n_side):
+    site_latitude, site_longitude = coordinates
+    site_location = astropy.coordinates.EarthLocation(lat=site_latitude * astropy.units.deg,
+                                                        lon=site_longitude * astropy.units.deg)
+
+    local_cs = astropy.coordinates.AltAz(location=site_location, obstime=time)
+
+    pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(n_side,
+                                                                    range(healpy.pixelfunc.nside2npix(n_side)),
+                                                                    lonlat=True)
+    pixel_longitudes *= units.deg
+    pixel_latitudes *= units.deg
+
+    galactic_coordinates = astropy.coordinates.Galactic(l=pixel_longitudes * astropy.units.rad,
+                                                        b=pixel_latitudes * astropy.units.rad)
+    local_coordinates = galactic_coordinates.transform_to(local_cs)
+
+    return local_coordinates
