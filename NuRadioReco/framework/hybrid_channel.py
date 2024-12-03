@@ -21,6 +21,7 @@ logger = logging.getLogger('NuRadioReco.hybrid_channel')
 class Channel:
 
     def __init__(self, channel_id, channel_group_id=None):
+        self._parameters = {}
         self.__channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id)
 
     def get_parameter(self, key):
