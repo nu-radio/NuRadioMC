@@ -1264,20 +1264,15 @@ if __name__ == "__main__":
 
     det.update(datetime.datetime(2023, 7, 2, 0, 0))
 
-    print(det.get_time_delay(13, 0))
-    print(det.get_time_delay(13, 0, cable_only=True))
-    # print(det.get_time_delay(13, 0, cable_only=False, use_stored=False))
-    print(det.get_time_delay(13, 0, cable_only=True, use_stored=False))
+    response = det.get_signal_chain_response(station_id=13, channel_id=0)
 
-    # response = det.get_signal_chain_response(station_id=24, channel_id=0)
+    from NuRadioReco.framework import electric_field
+    ef = electric_field.ElectricField(channel_ids=[0])
+    ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
 
-    # from NuRadioReco.framework import electric_field
-    # ef = electric_field.ElectricField(channel_ids=[0])
-    # ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
+    # Multipy the response to a trace. The multiply operator takes care of everything
+    trace_at_readout = ef * response
 
-    # # Multipy the response to a trace. The multiply operator takes care of everything
-    # trace_at_readout = ef * response
-
-    # # getting the complex response as array
-    # freq = np.arange(50, 1000) * units.MHz
-    # complex_resp = response(freq)
+    # getting the complex response as array
+    freq = np.arange(50, 1000) * units.MHz
+    complex_resp = response(freq)
