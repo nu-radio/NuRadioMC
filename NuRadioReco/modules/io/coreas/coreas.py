@@ -751,7 +751,7 @@ class coreasInterpolator:
             self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
                 self.obs_positions_showerplane[:, 0],
                 self.obs_positions_showerplane[:, 1],
-                self.electric_field_on_sky,
+                self.electric_field_on_sky,  # TODO: this should be a rotated version for showers from zenith or N-S
                 signals_start_times=self.efield_times[:, 0] / units.s,
                 lowfreq=(interp_lowfreq - 0.01) / units.MHz,
                 highfreq=(interp_highfreq + 0.01) / units.MHz,
