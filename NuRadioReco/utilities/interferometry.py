@@ -15,7 +15,6 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
 
     Parameters
     ----------
-
     sum_trace : np.array(m,)
         beam-formed waveform with m samples
 
@@ -30,7 +29,6 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
 
     Returns
     -------
-
     signal : double
         Signal calculated according to the specified metric
     """
@@ -69,15 +67,12 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
         sys.exit("get_signal(), kind = '{}' not supported".format(kind))
 
 
-def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
+def interfere_traces_rit(target_pos, positions, traces, times, tab):
     """
-    Calculate sum of time shifted waveforms.
-
-    Performs a linear interpolation between samples.
+    Shifts the waveforms of observers to the source location and sums them up.
 
     Parameters
     ----------
-
     target_pos : np.array(3,)
         source/traget location
 
@@ -95,25 +90,39 @@ def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
 
     Returns
     -------
-
     sum_trace : np.array(n, m)
         Summed trace
+    """
+    tshifts = get_time_shifts_rit(target_pos, positions, tab)
+    times_new = times - tshifts[:, None]
+    return interfere_traces_interpolation(traces, times_new)
 
+
+def interfere_traces_interpolation(traces, times):
+    """
+    Calculate sum of time shifted waveforms. Performs a linear interpolation between samples.
+
+    Parameters
+    ----------
+    traces : np.array(n, m)
+        waveforms of n observers with m samples
+
+    times : np.array(n, m)
+        (Shifted) time stampes of the waveforms of each observer
+
+    Returns
+    -------
+    sum_trace : np.array(n, m)
+        Summed trace
     """
 
-    # positions all have to be in sea level plane coordinates!
-    times = times
     tstep = times[0, 1] - times[0, 0]
-
-    tshifts = get_time_shifts(target_pos, positions, tab)
-
-    times_new = times - tshifts[:, None]
-    first_time = np.amin(times_new)
-    last_time = np.amax(times_new)
+    first_time = np.amin(times)
+    last_time = np.amax(times)
 
     time_sum = np.arange(first_time, last_time + tstep, tstep)
     sum_trace = np.zeros(len(time_sum))
-    for trace, time in zip(traces, times_new):
+    for trace, time in zip(traces, times):
 
         fidx = np.around((time[1:] - time_sum[0]) / tstep, 4)  # TODO: check if that makes sense
         idx = np.array(fidx, dtype=int)
@@ -131,14 +140,13 @@ def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
     return sum_trace
 
 
-def get_time_shifts(target_pos, positions, tab):
+def get_time_shifts_rit(target_pos, positions, tab):
     """
     Calculates the time delay of an electromagnetic wave along a straight trajectories between
     a source/traget location and several observers.
 
     Parameters
     ----------
-
     target_pos : np.array(3,)
         source/traget location
 
@@ -150,10 +158,8 @@ def get_time_shifts(target_pos, positions, tab):
 
     Returns
     -------
-
     tshifts : np.array(n,)
         Time delay in sec
-
     """
 
     tshifts = np.zeros(len(positions))
@@ -164,6 +170,52 @@ def get_time_shifts(target_pos, positions, tab):
         dt = np.linalg.norm(target_pos - pos) * \
             (effective_refractivity + 1) / constants.c
         tshifts[idx] = dt
+
+    return tshifts * units.s
+
+
+def get_time_shifts_plane(positions, zenith, azimuth, n0):
+    """
+    Calculate time shifts for a plane wavefront for a given set of observers.
+
+    Parameters
+    ----------
+    positions : np.array(n, 3)
+        observer positions (n observers)
+
+    zenith : float
+        Zenith angle of the plane wavefront
+
+    azimuth : float
+        Azimuth angle of the plane wavefront
+
+    n0 : float
+        Refractivity at observation level
+
+    Returns
+    -------
+    tshifts : np.array(n,)
+        Time delay for n observers
+    """
+
+    # Rotation around z-axis -> shower axis (projected on ground) along the y-axis
+    c = np.cos(-azimuth + np.pi / 2)
+    s = np.sin(-azimuth + np.pi / 2)
+    e1 = np.matrix([[c, -s, 0],
+                    [s, c, 0],
+                    [0, 0, 1]])
+
+    # Rotation around x-axis -> rotation into "shower plane"
+    c = np.cos(-zenith)
+    s = np.sin(-zenith)
+    e2 = np.matrix([[1, 0, 0],
+                    [0, c, -s],
+                    [0, s, c]])
+
+    rotation_matrix = np.matmul(e2, e1)
+
+    pos_sp = np.squeeze(np.asarray(np.dot(rotation_matrix, positions.T)))
+    tshifts = pos_sp[2] / (constants.c / n0)  # n0 is the refractivity at observation level
 
     return tshifts * units.s
 
@@ -180,7 +232,6 @@ def fit_axis(z, theta, phi, coreX, coreY):
 
     Parameters
     ----------
-
     z : array
         The height(s) for which the position on the defined axis should be evaluated.
 
@@ -198,7 +249,6 @@ def fit_axis(z, theta, phi, coreX, coreY):
 
     Returns
     -------
-
     points : array
         The flatten array of the positions on along the defined axis at heights given by "z"
     """
@@ -235,10 +285,8 @@ def get_intersection_between_line_and_plane(plane_normal, plane_anchor, line_dir
 
     Returns
     -------
-
     psi : array(3,)
         Position of the intersection between plane and line
-
     """
     ndotu = plane_normal.dot(line_direction)
     if abs(ndotu) < epsilon:
