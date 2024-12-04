@@ -57,7 +57,7 @@ def Detector(*args, **kwargs):
             - kwargs["source"] == "rnog_mongo" -> `NuRadioReco.detector.RNO_G.rnog_detector`
             - kwargs["source"] == "sql" -> `NuRadioReco.detector.detector_base`
             - kwargs["source"] == "json" or "dictionary" -> `NuRadioReco.detector.detector_base` or
-              `NuRadioReco.detector.generic_detector`
+            `NuRadioReco.detector.generic_detector`
 
         For 'kwargs["source"] == "json"', whether to use "detector_base" or "generic_detector"
         depends on whether a reference station / channel is defined in the json file / dictionary
@@ -170,7 +170,7 @@ def Detector(*args, **kwargs):
                                 f'{kwargs["default_station"]}) -> Using generic detector')
 
             return generic_detector.GenericDetector(
-                json_filename=filename, source=source, dictionary=dictionary,
+                json_filename=filename, source=source, dictionary=station_dict,
                 assume_inf=_if_not_None(assume_inf, True),
                 antenna_by_depth=_if_not_None(antenna_by_depth, False), **kwargs)
         else:
@@ -179,6 +179,6 @@ def Detector(*args, **kwargs):
                 kwargs.pop(key, "None")
 
             return detector_base.DetectorBase(
-                json_filename=filename, source=source, dictionary=dictionary,
+                json_filename=filename, source=source, dictionary=station_dict,
                 assume_inf=_if_not_None(assume_inf, True),
                 antenna_by_depth=_if_not_None(antenna_by_depth, True), **kwargs)
