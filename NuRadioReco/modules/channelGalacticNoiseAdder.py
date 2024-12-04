@@ -4,6 +4,7 @@ import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 import NuRadioReco.detector.antennapattern
 import logging
+import warnings
 import numpy as np
 import scipy.constants
 import scipy.interpolate
@@ -25,7 +26,8 @@ logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
 try:
     from radiocalibrationtoolkit import *  # Documentation: https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main contains SSM, GMOSS, ULSA
 except Exception as _:
-    logger.info("radiocalibrationtoolkit import failed. Consider installing it to use more sky models.")
+    logger.info("Import of `radiocalibrationtoolkit` failed. Consider installing it to use more sky models. "
+                "See documentation at https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main")
 
 try:
     from pylfmap import LFmap  # Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
@@ -47,7 +49,6 @@ class channelGalacticNoiseAdder:
     """
 
     def __init__(self):
-        self.__debug = None
         self.__zenith_sample = None
         self.__azimuth_sample = None
         self.__n_side = None
@@ -70,10 +71,10 @@ class channelGalacticNoiseAdder:
 
         Parameters
         ----------
-        debug: bool, default: False
-            It True, debug plots will be shown
         skymodel: {'lfmap', 'lfss', 'gsm2016', 'haslam', 'ssm', 'gmoss', 'ulsa_fdi', 'ulsa_dpi', 'ulsa_ci'}, optional
             Choose the sky model to use. If none is provided, the Global Sky Model (2008) is used as a default.
+        debug: bool, default: False
+            Deprecated. Will be removed in future versions.
         n_side: int, default: 4
             The n_side parameter of the healpix map. Has to be power of 2
             The radio skymap is downsized to the resolution specified by the n_side
@@ -90,23 +91,19 @@ class channelGalacticNoiseAdder:
         interpolation_frequencies: array of frequencies to interpolate to.
             Kept for historic purposes with intention to deprecate in the future.
         """
-        self.__debug = debug
+        if debug:
+            warnings.warn("This argument is deprecated and will be removed in future versions.", DeprecationWarning)
+
         self.__n_side = n_side
-
         self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
-
 
         if interpolation_frequencies is None:
             if freq_range is None:
                 freq_range = np.array([10, 1100]) * units.MHz
 
             # define interpolation frequencies. Set in logarithmic range from freq_range[0] to freq_range[1],
-            # rounded to 0 decimal places to avoid import errors from LFmap abd tabulated models.
-            self.__interpolation_frequencies = np.around(
-                np.logspace(
-                    *np.log10(freq_range), num=15
-                ), 0
-            )
+            # rounded to 0 decimal places to avoid import errors from LFmap and tabulated models.
+            self.__interpolation_frequencies = np.around(np.logspace(*np.log10(freq_range), num=15), 0)
         else:
             self.__interpolation_frequencies = interpolation_frequencies
             logger.warning("DeprecationWarning: Optional argument 'interpolation_frequencies' was replaced by 'freq_range'.")
@@ -116,7 +113,7 @@ class channelGalacticNoiseAdder:
             if skymodel is None:
                 sky_model = GlobalSkyModel(freq_unit="MHz")
                 logger.info("No sky model specified. Using standard: Global Sky Model (2008). Available models: "
-                               "lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci")
+                            "lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci")
             elif skymodel == 'lfss':
                 sky_model = LowFrequencySkyModel(freq_unit="MHz")
                 logger.info("Using LFSS as sky model")
@@ -153,7 +150,7 @@ class channelGalacticNoiseAdder:
 
         except ImportError:
             logger.error(f"Could not find {skymodel} skymodel. Do you have the correct package installed? \n"
-                         f"Defaulting to Global Sky Model (2008) as sky model.")
+                        f"Defaulting to Global Sky Model (2008) as sky model.")
             sky_model = GlobalSkyModel(freq_unit="MHz")
 
         self.__noise_temperatures = np.zeros(
@@ -195,7 +192,7 @@ class channelGalacticNoiseAdder:
         # check that or all channels channel.get_frequencies() is identical
         last_freqs = None
         for channel in station.iter_channels():
-            if (not last_freqs is None) and (
+            if last_freqs is not None and (
                     not np.allclose(last_freqs, channel.get_frequencies(), rtol=0, atol=0.1 * units.MHz)):
                 logger.error("The frequencies of each channel must be the same, but they are not!")
                 return
@@ -207,6 +204,7 @@ class channelGalacticNoiseAdder:
 
         if passband is None:
             passband = [10 * units.MHz, 1100 * units.MHz]
+
         passband_filter = (freqs > passband[0]) & (freqs < passband[1])
 
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
@@ -216,6 +214,8 @@ class channelGalacticNoiseAdder:
 
         n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         n_air = 1.000292  # TODO: This value applies under standard conditions. Does it hold for Greenland?
+        c_vac = scipy.constants.c * units.m / units.s
+        c_air = c_vac / n_air
 
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
@@ -238,20 +238,20 @@ class channelGalacticNoiseAdder:
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
 
             # calculate spectral radiance of radio signal using rayleigh-jeans law
-            S = 2. * (scipy.constants.Boltzmann * units.joule / units.kelvin) * freqs[passband_filter] ** 2 / (
-                        scipy.constants.c * units.m / units.s) ** 2 * noise_temperature * self.solid_angle
-            S[np.isnan(S)] = 0
+            spectral_radiance = (2. * (scipy.constants.Boltzmann * units.joule / units.kelvin)
+                * freqs[passband_filter] ** 2 * noise_temperature * self.solid_angle / c_vac ** 2)
+            spectral_radiance[np.isnan(spectral_radiance)] = 0
 
             # calculate radiance per energy bin
-            S_per_bin = S * d_f
+            S_per_bin = spectral_radiance * d_f
 
             # calculate electric field per energy bin from the radiance per bin
-            E = np.sqrt(S_per_bin / (scipy.constants.c * units.m / units.s * scipy.constants.epsilon_0 * (
+            E = np.sqrt(S_per_bin / (c_vac * scipy.constants.epsilon_0 * (
                         units.coulomb / units.V / units.m))) / d_f
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex128)
-            phases = np.random.uniform(0, 2. * np.pi, len(S))
+            phases = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
 
             noise_spectrum[1][passband_filter] = np.exp(1j * phases) * E
             noise_spectrum[2][passband_filter] = np.exp(1j * phases) * E
@@ -275,12 +275,12 @@ class channelGalacticNoiseAdder:
                 # calculate the phase offset in comparison to station center
                 # consider additional distance in air & ice
                 # assume for air & ice constant index of refraction
-                channel_pos_x, channel_pos_y = detector.get_relative_position(station.get_id(), channel.get_id())[
-                    [0, 1]]
+                channel_pos_x, channel_pos_y, _ = detector.get_relative_position(station.get_id(), channel.get_id())
+                # positive value, 0 for above surface antennas
                 channel_depth = abs(min(detector.get_relative_position(station.get_id(), channel.get_id())[2], 0))
                 sin_zenith = np.sin(zenith)
                 delta_phases = (
-                        2 * np.pi * freqs[passband_filter] / (scipy.constants.c * units.m / units.s) * n_air *
+                        2 * np.pi * freqs[passband_filter] / c_air *
                         (
                                 sin_zenith *
                                 (np.cos(azimuth) * channel_pos_x + channel_pos_y * np.sin(azimuth)) +
@@ -310,17 +310,34 @@ class channelGalacticNoiseAdder:
                 channel.set_frequency_spectrum(channel_spectrum, channel.get_sampling_rate())
 
 
-@functools.lru_cache(maxsize=128)
+@functools.lru_cache(maxsize=1)
 def get_local_coordinates(coordinates, time, n_side):
+    """
+    Calculates the local coordinates of the pixels of a healpix map given the site coordinates and time.
+
+    Parameters
+    ----------
+    coordinates: tuple of float
+        The latitude and longitude of the site
+    time: astropy.time.Time
+        The time at which the observation is made (station time)
+    n_side: int
+        The n_side parameter of the healpix map
+
+    Returns
+    -------
+    local_coordinates: astropy.coordinates.SkyCoord
+        The local coordinates of the pixels of the healpix map
+    """
     site_latitude, site_longitude = coordinates
     site_location = astropy.coordinates.EarthLocation(lat=site_latitude * astropy.units.deg,
                                                         lon=site_longitude * astropy.units.deg)
 
     local_cs = astropy.coordinates.AltAz(location=site_location, obstime=time)
 
-    pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(n_side,
-                                                                    range(healpy.pixelfunc.nside2npix(n_side)),
-                                                                    lonlat=True)
+    pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(
+        n_side, range(healpy.pixelfunc.nside2npix(n_side)), lonlat=True)
+
     pixel_longitudes *= units.deg
     pixel_latitudes *= units.deg
 
