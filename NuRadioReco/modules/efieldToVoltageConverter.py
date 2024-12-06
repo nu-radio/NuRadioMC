@@ -106,11 +106,11 @@ class efieldToVoltageConverter():
         times_max = []
         if channel_ids is None:
             channel_ids = det.get_channel_ids(sim_station_id)
+
         for channel_id in channel_ids:
             for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
                 time_resolution = 1. / electric_field.get_sampling_rate()
-                cab_delay = det.get_cable_delay(sim_station_id, channel_id)
-                t0 = electric_field.get_trace_start_time() + cab_delay
+                t0 = electric_field.get_trace_start_time()
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
                     site = det.get_site(sim_station_id)
@@ -132,7 +132,7 @@ class efieldToVoltageConverter():
                 if(not np.isnan(t0)):  # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
-                    self.logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
+                    self.logger.debug("trace start time {}, tracelength {}".format(electric_field.get_trace_start_time(), electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
 
         # pad event times by pre/post pulse time
         times_min = np.array(times_min) - self.__pre_pulse_time
@@ -169,7 +169,6 @@ class efieldToVoltageConverter():
                 new_trace = np.zeros((3, trace_length_samples))
                 # calculate the start bin
                 if(not np.isnan(electric_field.get_trace_start_time())):
-                    cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                     if sim_station.is_cosmic_ray():
                         site = det.get_site(sim_station_id)
                         antenna_position = det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position()
@@ -183,14 +182,14 @@ class efieldToVoltageConverter():
                             antenna_position,
                             index_of_refraction
                         )
-                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift
+                        start_time = electric_field.get_trace_start_time() - times_min.min() + travel_time_shift
                         start_bin = int(round(start_time / time_resolution))
                         time_remainder = start_time - start_bin * time_resolution
                     else:
-                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min()
+                        start_time = electric_field.get_trace_start_time() - times_min.min()
                         start_bin = int(round(start_time / time_resolution))
                         time_remainder = start_time - start_bin * time_resolution
-                    self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
+                    self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time(), start_bin, electric_field[efp.ray_path_type]))
                     new_efield.apply_time_shift(time_remainder)
 
                     tr = new_efield.get_trace()
