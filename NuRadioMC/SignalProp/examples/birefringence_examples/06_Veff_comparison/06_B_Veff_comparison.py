@@ -5,6 +5,8 @@ from NuRadioMC.utilities import Veff
 # import detector simulation modules
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
+import NuRadioReco.modules.channelAddCableDelay
+
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 
@@ -14,17 +16,19 @@ import logging
 logger = logging.getLogger("NuRadioMC.SignalProp.runstrawman")
 
 ###-----------------------------------------
-#   EXAMPLE: Script to calculate the effects of birefringence on the effective volume. 
+#   EXAMPLE: Script to calculate the effects of birefringence on the effective volume.
 #            A full study of this calculation was published here: DOI: https://doi.org/10.22323/1.444.1101
 ###-----------------------------------------
 
 # initialize detector sim modules
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
+        channelAddCableDelay.run(evt, station, det, mode='add')
         channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
                                   filter_type='butter', order=2)
         channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
@@ -38,7 +42,7 @@ class mySimulation(simulation.simulation):
                              triggered_channels=None,  # run trigger on all channels
                              number_concidences=1,
                              trigger_name='simple_threshold1')  # the name of the trigger
-        
+
 energies = np.array([19])
 
 Veff_birefringence = []
@@ -81,4 +85,3 @@ plt.ylabel(r'$V_{eff.-bir.} / V_{eff.-iso.}$ [%]')
 plt.xlabel(r'$\log (E)$')
 plt.tight_layout()
 plt.savefig('06_Veff_comp_plot.png', dpi=400)
-
