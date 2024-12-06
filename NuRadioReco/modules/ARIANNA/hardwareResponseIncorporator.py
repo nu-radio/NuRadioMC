@@ -89,6 +89,36 @@ class hardwareResponseIncorporator:
         else:
             return 1. / (amp_response * cable_response)
 
+    def add_cable_delay(self, station, det, channel, sim_to_data):
+        """
+        Add or subtract cable delay to a channel.
+
+        Parameters
+        ----------
+        station: Station
+            The station to add the cable delay to.
+
+        det: Detector
+            The detector description
+
+        channel: Channel
+            The channel to add the cable delay to.
+
+        sim_to_data: bool
+            If True, the cable delay is added. If False, the cable delay is subtracted.
+        """
+        cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
+
+        if sim_to_data:
+            channel.add_trace_start_time(cable_delay)
+            self.logger.debug(f"Add {cable_delay / units.ns:.2f}ns "
+                            f"of cable delay to channel {channel.get_id()}")
+
+        else:
+            channel.add_trace_start_time(-cable_delay)
+            self.logger.debug(f"Subtract {cable_delay / units.ns:.2f}ns "
+                            f"of cable delay to channel {channel.get_id()}")
+
     @register_run()
     def run(self, evt, station, det, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
@@ -110,14 +140,14 @@ class hardwareResponseIncorporator:
             if True, only the phases response is applied but not the amplitude response
         mode: string or None, default None
             Options:
-            
+
             * 'phase_only': only the phases response is applied but not the amplitude response
                 (identical to phase_only=True )
             * 'relativ': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
                 filter response is 1 (before applying cable response). This makes it easier
                 to compare the filtered to unfiltered signal
             * None : default, gain and phase effects are applied 'normally'
-            
+
         mingainlin: float
             In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by
             dividing the measured signal by the gain) leads to excessively high values, due to the effect of
@@ -146,12 +176,7 @@ class hardwareResponseIncorporator:
             # hardwareResponse incorporator should always be used in conjunction with bandpassfilter
             # otherwise, noise will be blown up
             channel.set_frequency_spectrum(trace_fft, channel.get_sampling_rate())
-
-            if not sim_to_data:
-                # Include cable delays
-                cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-                self.logger.debug("cable delay of channel {} is {}ns".format(channel.get_id(), cable_delay / units.ns))
-                channel.add_trace_start_time(-cable_delay)
+            self.add_cable_delay(station, det, channel, sim_to_data)
 
         self.__t += time.time() - t
 

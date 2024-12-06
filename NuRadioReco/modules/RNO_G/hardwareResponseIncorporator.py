@@ -129,6 +129,47 @@ class hardwareResponseIncorporator:
         else:
             return 1. / (amp_response * cable_response)
 
+    def add_cable_delay(self, station, det, channel, sim_to_data, trigger=False):
+        """
+        Add or subtract cable delay to a channel.
+
+        Parameters
+        ----------
+        station: Station
+            The station to add the cable delay to.
+
+        det: Detector
+            The detector description
+
+        channel: Channel
+            The channel to add the cable delay to.
+
+        sim_to_data: bool
+            If True, the cable delay is added. If False, the cable delay is subtracted.
+
+        trigger: bool
+            If True, the channel is a trigger channel. (Default: False)
+        """
+
+        if trigger and not isinstance(det, detector.rnog_detector.Detector):
+            raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
+
+        if trigger:
+            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
+        else:
+            # Only the RNOG detector has the argument `trigger`. Default is false
+            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
+
+        if sim_to_data:
+            channel.add_trace_start_time(cable_delay)
+            self.logger.debug(f"Add {cable_delay / units.ns:.2f}ns "
+                            f"of cable delay to channel {channel.get_id()}")
+
+        else:
+            channel.add_trace_start_time(-cable_delay)
+            self.logger.debug(f"Subtract {cable_delay / units.ns:.2f}ns "
+                            f"of cable delay to channel {channel.get_id()}")
+
     @register_run()
     def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
@@ -195,14 +236,9 @@ class hardwareResponseIncorporator:
                 frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
 
             if self.trigger_channels is not None and channel.get_id() in self.trigger_channels:
-                # There is an issue with how we simulate the hardware reponse for trigger channels atm.
-                # The entire time delay is not added here but mostly already in the efieldToVoltage module.
-                # Here only the "residual" time delay inprinted in the S21 response is added. If the
-                # time delay which is already added in the efieldToVoltage module is different between
-                # trigger and daq channels this will not be correctly reflected (afaict this is not the case atm).
                 trig_filter = self.get_filter(
-                    frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin,
-                    is_trigger=True)
+                    frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
+                    phase_only, mode, mingainlin, is_trigger=True)
 
                 trig_trace_fft = trace_fft * trig_filter
                 # zero first bins to avoid DC offset
@@ -212,6 +248,8 @@ class hardwareResponseIncorporator:
                 trig_channel = copy.deepcopy(channel)
                 trig_channel.set_frequency_spectrum(
                     trig_trace_fft, channel.get_sampling_rate())
+
+                self.add_cable_delay(station, det, trig_channel, sim_to_data, trigger=True)
                 channel.set_trigger_channel(trig_channel)
 
             trace_fft *= filter
@@ -223,12 +261,7 @@ class hardwareResponseIncorporator:
             channel.set_frequency_spectrum(
                 trace_fft, channel.get_sampling_rate())
 
-            if not sim_to_data:
-                # Include cable delays
-                cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-                channel.add_trace_start_time(-cable_delay)
-                self.logger.debug("cable delay of channel {} is {}ns".format(
-                    channel.get_id(), cable_delay / units.ns))
+            self.add_cable_delay(station, det, channel, sim_to_data)
 
         self.__t += time.time() - t
 

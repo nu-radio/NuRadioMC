@@ -1198,19 +1198,18 @@ class Detector():
         return is_noiseless
 
 
-    def get_cable_delay(self, station_id, channel_id, use_stored=True):
+    def get_cable_delay(self, station_id, channel_id, use_stored=True, trigger=False):
         """ Same as `get_time_delay`. Only here to keep the same interface as the other detector classes. """
         # FS: For the RNO-G detector description it is not easy to determine the cable delay alone
         # because it is not clear which reference components may need to be substraced.
         # However, having the cable delay without amplifiers is anyway weird.
-        return self.get_time_delay(station_id, channel_id, use_stored=use_stored)
+        return self.get_time_delay(station_id, channel_id, use_stored=use_stored, trigger=trigger)
 
-    def get_time_delay(self, station_id, channel_id, use_stored=True):
+    def get_time_delay(self, station_id, channel_id, use_stored=True, trigger=False):
         """ Return the sum of the time delay of all components in the signal chain calculated from the phase.
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -1220,9 +1219,12 @@ class Detector():
         use_stored: bool
             If True, take time delay as stored in DB rather than calculated from response. (Default: True)
 
+        trigger: bool
+            If True, the trigger channel resonse is returned. An error is raised if no trigger response exists.
+            (Default: False)
+
         Returns
         -------
-
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
         """
@@ -1230,11 +1232,15 @@ class Detector():
             station_id, channel_id)
 
         if use_stored:
-            resp = self.get_signal_chain_response(station_id, channel_id)
+            resp = self.get_signal_chain_response(station_id, channel_id, trigger=trigger)
             return resp.get_time_delay()
         else:
             time_delay = 0
-            for key, value in signal_chain_dict["response_chain"].items():
+            if trigger and "trigger_response_chain" not in signal_chain_dict:
+                raise KeyError(f"No trigger response for station.channel {station_id}.{channel_id}")
+
+            prefix = "trigger_" if trigger else ""
+            for key, value in signal_chain_dict[f"{prefix}response_chain"].items():
 
                 ydata = [value["mag"], value["phase"]]
                 # This is different from within `get_signal_chain_response` because we do set the time delay here
