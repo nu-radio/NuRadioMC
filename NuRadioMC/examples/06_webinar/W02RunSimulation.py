@@ -5,6 +5,8 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.channelAddCableDelay
+
 from NuRadioReco.utilities import units
 import numpy as np
 from NuRadioMC.simulation import simulation
@@ -61,6 +63,7 @@ if __name__ == "__main__":
     channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
     channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
     channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+    channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
     """
     A typical NuRadioMC simulation uses the simulation class from the simulation
@@ -68,14 +71,14 @@ if __name__ == "__main__":
     functions that controls what the detector does after the electric field arrives
     at the antenna. That allows us to create our own class that inherits from
     the simulation class that we will call mySimulation, and define in it a
-    _detector_simulation_filter_amp and _detector_simulation_trigger 
+    _detector_simulation_filter_amp and _detector_simulation_trigger
     function with all the characteristics of our detector setup.
     """
 
 
     class mySimulation(simulation.simulation):
         """
-        
+
         """
 
         def _detector_simulation_filter_amp(self, evt, station, det):
@@ -87,6 +90,7 @@ if __name__ == "__main__":
             we will only implement a couple of filters, one that acts as a low-pass
             and another one that acts as a high-pass.
             """
+            channelAddCableDelay.run(evt, station, det, mode='add')
             channelBandPassFilter.run(evt, station, det,
                                     passband=[1 * units.MHz, 700 * units.MHz], filter_type="butter", order=10)
             channelBandPassFilter.run(evt, station, det,

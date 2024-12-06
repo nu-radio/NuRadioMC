@@ -50,6 +50,9 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.utilities.diodeSimulator
+import NuRadioReco.modules.channelAddCableDelay
+
+
 from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
@@ -96,6 +99,7 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 ADC = NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter()
+channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
@@ -144,6 +148,8 @@ bandwidth_Vrms = (300 * 50 * constants.k * (high_freq - low_freq) / units.Hz) **
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
+        channelAddCableDelay.run(evt, station, det, mode='add')
+
         channelBandPassFilter.run(
             evt,
             station,
