@@ -217,6 +217,10 @@ class channelGalacticNoiseAdder:
         c_vac = scipy.constants.c * units.m / units.s
         c_air = c_vac / n_air
 
+        channel_spectra = {}
+        for channel in station.iter_channels():
+            channel_spectra[channel.get_id()] = channel.get_frequency_spectrum()
+
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
             zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad
@@ -243,18 +247,18 @@ class channelGalacticNoiseAdder:
             spectral_radiance[np.isnan(spectral_radiance)] = 0
 
             # calculate radiance per energy bin
-            S_per_bin = spectral_radiance * d_f
+            spectral_radiance_per_bin = spectral_radiance * d_f
 
-            # calculate electric field per energy bin from the radiance per bin
-            E = np.sqrt(S_per_bin / (c_vac * scipy.constants.epsilon_0 * (
+            # calculate electric field per frequency bin from the radiance per bin
+            efield_amplitude = np.sqrt(spectral_radiance_per_bin / (c_vac * scipy.constants.epsilon_0 * (
                         units.coulomb / units.V / units.m))) / d_f
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex128)
             phases = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
 
-            noise_spectrum[1][passband_filter] = np.exp(1j * phases) * E
-            noise_spectrum[2][passband_filter] = np.exp(1j * phases) * E
+            noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
+            noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
 
             channel_noise_spec = np.zeros_like(noise_spectrum)
 
@@ -291,7 +295,7 @@ class channelGalacticNoiseAdder:
                 )
 
                 # add random polarizations and phase to electric field
-                polarizations = np.random.uniform(0, 2. * np.pi, len(S))
+                polarizations = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
 
                 channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
                     1j * delta_phases) * np.cos(polarizations)
@@ -304,10 +308,12 @@ class channelGalacticNoiseAdder:
                 channel_noise_spectrum = antenna_response['theta'] * channel_noise_spec[1] * curr_t_theta + \
                                          antenna_response['phi'] * channel_noise_spec[2] * curr_t_phi
 
-                # add noise spectrum to channel freq spectrum
-                channel_spectrum = channel.get_frequency_spectrum()
-                channel_spectrum += channel_noise_spectrum
-                channel.set_frequency_spectrum(channel_spectrum, channel.get_sampling_rate())
+                # add noise spectrum from pixel in the sky to channel spectrum
+                channel_spectra[channel.get_id()] += channel_noise_spectrum
+
+        # store the updated channel spectra
+        for channel in station.iter_channels():
+            channel.set_frequency_spectrum(channel_spectra[channel.get_id()], "same")
 
 
 @functools.lru_cache(maxsize=1)
