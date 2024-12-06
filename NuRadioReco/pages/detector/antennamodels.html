@@ -156,7 +156,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="detector_database_fields.html">Properties of Detector Description</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="detector_database_fields.html#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="detector_database_fields.html#antennas">Antennas</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
 </ul>
 </li>
@@ -629,6 +629,7 @@ the antenna model so that he can put it on our central server.</p>
 </section>
 <section id="implemetation-of-antenna-models">
 <h1>Implemetation of Antenna Models<a class="headerlink" href="#implemetation-of-antenna-models" title="Permalink to this heading"></a></h1>
+<p>For the antenna orientation and rotation, the conventions are described in <a class="reference internal" href="detector_database_fields.html#properties-of-detector-description"><span class="std std-ref">Properties of Detector Description</span></a></p>
 <p>The antenna models are accessed in the <em class="xref py py-obj">AntennaPattern</em> class in the <em class="xref py py-obj">nuradioreco.detector.antennapattern.py</em> module.
 Different software packages are used to simulate the antennas, internally, NuRadioReco converts the data to a common pickle format in which they are
 stored.</p>
@@ -682,7 +683,6 @@ stored.</p>
 </li>
 </ul>
 </div></blockquote>
-<p>For the antenna orientation and rotation, the conventions are described in <a class="reference internal" href="detector_database_fields.html#properties-of-detector-description"><span class="std std-ref">Properties of Detector Description</span></a></p>
 <p>The calculation of the vector effective length is described in Appendix A.1, A.2 and A.3 of the NuRadioReco paper <a class="reference external" href="https://arxiv.org/abs/1903.07023">arxiv:1903.07023</a>.</p>
 </section>
 <section id="overview-of-available-antenna-models">

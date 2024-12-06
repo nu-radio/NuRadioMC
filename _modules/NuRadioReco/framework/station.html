@@ -153,7 +153,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html">Properties of Detector Description</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html#antennas">Antennas</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
 </ul>
 </li>
@@ -636,8 +636,7 @@
 
 <div class="viewcode-block" id="Station.set_sim_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.set_sim_station">[docs]</a>    <span class="k">def</span> <span class="nf">set_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets the SimStation of the Station.</span>
-<span class="sd">        If a SimStation is already present, it is overwritten.</span>
+<span class="sd">        Sets the SimStation of the Station. If a SimStation is already present, it is overwritten.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -656,7 +655,10 @@
 <span class="sd">        sim_station : NuRadioReco.framework.sim_station.SimStation</span>
 <span class="sd">            The SimStation to add to the Station.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">+</span> <span class="n">sim_station</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">=</span> <span class="n">sim_station</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">+</span> <span class="n">sim_station</span></div>
 
 <div class="viewcode-block" id="Station.get_sim_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_sim_station">[docs]</a>    <span class="k">def</span> <span class="nf">get_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

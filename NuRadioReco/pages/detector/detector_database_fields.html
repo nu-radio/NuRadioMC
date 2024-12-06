@@ -156,7 +156,7 @@
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Properties of Detector Description</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#antennas">Antennas</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
 </ul>
 </li>
@@ -622,28 +622,14 @@
   <section id="properties-of-detector-description">
 <h1>Properties of Detector Description<a class="headerlink" href="#properties-of-detector-description" title="Permalink to this heading"></a></h1>
 <p>This pages documents and defines the properties that are part of the detector description</p>
-<section id="antenna-table">
-<h2>Antenna Table<a class="headerlink" href="#antenna-table" title="Permalink to this heading"></a></h2>
-<ul class="simple">
-<li><p>position_x: The x position of the antenna feed point relative to the station position</p></li>
-<li><p>position_y: The y position of the antenna feed point relative to the station position</p></li>
-<li><p>position_z: The z position of the antenna feed point relative to the station position</p></li>
-</ul>
-<p>The orientation of the antenna is described with 2 vectors. The first vector (referred to as ‘orientation’) is the orientation of the antenna, in case
-of an LPDA the boresight direction (pointing into the main sensitivity direction) and in case of dipoles this vector is
-parallel to the rod.
-The second vector describes a rotation around the first vector and needs to be perpendicular to the ‘orientation’ vector.
-For LPDAs, it is perpendicular to the antenna tines and points into the same direction as the connector of the create LPDAs.
-For dipoles, it can point in any direction that is perpendicular to the first vector because of the radial symmetry of dipoles.</p>
+<section id="antennas">
+<h2>Antennas<a class="headerlink" href="#antennas" title="Permalink to this heading"></a></h2>
+<p>Position:
+- <em class="xref py py-obj">ant_position_{x,y,z}`</em>: The x, y, and z position of the antenna feed point relative to the station position</p>
+<p>Orientation:</p>
+<p>The orientation of the antenna is described with 2 unit vectors. The first vector (referred to as ‘orientation’) defines the orientation of the antenna. The second vector (referred to as ‘rotation’) defines the rotation around the orientation. The vectors are each described by two angles. The <em class="xref py py-obj">theta</em> angle defines the vectors like a zenith angle (0deg is the zenith, 180deg is straight down) and the <em class="xref py py-obj">phi</em> angle defines the azimuth angle (counting from East counterclockwise). Please note that the rotation vector has to be perpendicular to the orientation vector.</p>
+<p>For LPDAs, the orientation vector (<em class="xref py py-obj">ant_orientation_theta</em> and <em class="xref py py-obj">ant_orientation_phi</em>) defines the boresight direction (the main sensitivity direction, see sketch below). The rotation vector (<em class="xref py py-obj">ant_rotation_theta</em> and <em class="xref py py-obj">ant_rotation_phi</em>) is perpendicular to the antenna tines and points into the same direction as the connector of the create LPDAs. For dipoles, the orientation vector is parallel to the rod, the rotation vector can point in any direction that is perpendicular to the first vector because of the radial symmetry of dipoles. The user must specify <em>both</em> the orientation vector and the rotation vector. See the illustration of the two vectors for an LPDA and dipole.</p>
 <a class="reference internal image-reference" href="../../../_images/orientation_sketch.png"><img alt="../../../_images/orientation_sketch.png" src="../../../_images/orientation_sketch.png" style="width: 600px;" /></a>
-<p>The vectors are each described by two angles:</p>
-<ul class="simple">
-<li><p>orientation_theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p></li>
-<li><p>orientation_phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p></li>
-<li><p>rotation_theta: rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p></li>
-<li><p>rotation_phi: rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p></li>
-</ul>
-<p>The user must specify <em>both</em> the orientation vector and the rotation vector.</p>
 <p>Here are a few examples.</p>
 <p>1. For an LPDA, the following points the LPDA straight down, with tines aligned with
 (parallel to) the x-axis (i.e. the east-west direction), and therefore the orientation vector points northwards.</p>
