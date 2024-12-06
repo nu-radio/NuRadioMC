@@ -9,7 +9,7 @@ conversion_factor_integrated_signal = 1 / units.s * \
     constants.c * constants.epsilon_0 / units.eSI
 
 
-def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
+def get_signal(sum_trace, tstep=None, window_width=100 * units.ns, kind="power"):
     """
     Calculates signal quantity from beam-formed waveform
 
@@ -41,6 +41,7 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
         return hilbenv[peak_idx]
 
     elif kind == "power" or kind == "hilbert_sum":
+        assert tstep is not None, "Pass `tstep`"
         trace_length = len(sum_trace)
         # shift peak in middle of trace
         sum_trace = np.roll(sum_trace, trace_length // 2 - peak_idx)
@@ -97,6 +98,39 @@ def interfere_traces_rit(target_pos, positions, traces, times, tab):
     times_new = times - tshifts[:, None]
     return interfere_traces_interpolation(traces, times_new)
 
+
+def interfere_traces_plane(positions, traces, times, zenith, azimuth, n0=1.000292):
+    """
+    Shifts the waveforms of observers onto a plane wave.
+
+    Parameters
+    ----------
+    positions : np.array(n, 3)
+        Observer positions at observation height
+
+    traces : np.array(n, m)
+        waveforms of n observers with m samples
+
+    times : np.array(n, m)
+        time stampes of the waveforms of each observer
+
+    zenith : float
+        Zenith angle of the plane wavefront
+
+    azimuth : float
+        Azimuth angle of the plane wavefront
+
+    n0 : float (default: 1.000292)
+        Refractivity at observation level
+
+    Returns
+    -------
+    sum_trace : np.array(n, m)
+        Summed trace
+    """
+    tshifts = get_time_shifts_plane(positions, zenith, azimuth, n0)
+    times_new = times - tshifts[:, None]
+    return interfere_traces_interpolation(traces, times_new)
 
 def interfere_traces_interpolation(traces, times):
     """
@@ -197,7 +231,6 @@ def get_time_shifts_plane(positions, zenith, azimuth, n0):
     tshifts : np.array(n,)
         Time delay for n observers
     """
-
     # Rotation around z-axis -> shower axis (projected on ground) along the y-axis
     c = np.cos(-azimuth + np.pi / 2)
     s = np.sin(-azimuth + np.pi / 2)
