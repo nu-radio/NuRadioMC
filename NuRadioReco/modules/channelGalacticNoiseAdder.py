@@ -217,6 +217,10 @@ class channelGalacticNoiseAdder:
         c_vac = scipy.constants.c * units.m / units.s
         c_air = c_vac / n_air
 
+        channel_spectra = {}
+        for channel in station.iter_channels():
+            channel_spectra[channel.get_id()] = channel.get_frequency_spectrum()
+
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
             zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad
@@ -304,10 +308,12 @@ class channelGalacticNoiseAdder:
                 channel_noise_spectrum = antenna_response['theta'] * channel_noise_spec[1] * curr_t_theta + \
                                          antenna_response['phi'] * channel_noise_spec[2] * curr_t_phi
 
-                # add noise spectrum to channel freq spectrum
-                channel_spectrum = channel.get_frequency_spectrum()
-                channel_spectrum += channel_noise_spectrum
-                channel.set_frequency_spectrum(channel_spectrum, channel.get_sampling_rate())
+                # add noise spectrum from pixel in the sky to channel spectrum
+                channel_spectra[channel.get_id()] += channel_noise_spectrum
+
+        # store the updated channel spectra
+        for channel in station.iter_channels():
+            channel.set_frequency_spectrum(channel_spectra[channel.get_id()], "same")
 
 
 @functools.lru_cache(maxsize=1)
