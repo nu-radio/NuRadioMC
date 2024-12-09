@@ -1,5 +1,5 @@
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, signal_processing
 
 from NuRadioReco.detector.RNO_G import analog_components
 from NuRadioReco.detector import detector
@@ -129,47 +129,6 @@ class hardwareResponseIncorporator:
         else:
             return 1. / (amp_response * cable_response)
 
-    def add_cable_delay(self, station, det, channel, sim_to_data, trigger=False):
-        """
-        Add or subtract cable delay to a channel.
-
-        Parameters
-        ----------
-        station: Station
-            The station to add the cable delay to.
-
-        det: Detector
-            The detector description
-
-        channel: Channel
-            The channel to add the cable delay to.
-
-        sim_to_data: bool
-            If True, the cable delay is added. If False, the cable delay is subtracted.
-
-        trigger: bool
-            If True, the channel is a trigger channel. (Default: False)
-        """
-
-        if trigger and not isinstance(det, detector.rnog_detector.Detector):
-            raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
-
-        if trigger:
-            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
-        else:
-            # Only the RNOG detector has the argument `trigger`. Default is false
-            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-
-        if sim_to_data:
-            channel.add_trace_start_time(cable_delay)
-            self.logger.debug(f"Add {cable_delay / units.ns:.2f}ns "
-                            f"of cable delay to channel {channel.get_id()}")
-
-        else:
-            channel.add_trace_start_time(-cable_delay)
-            self.logger.debug(f"Subtract {cable_delay / units.ns:.2f}ns "
-                            f"of cable delay to channel {channel.get_id()}")
-
     @register_run()
     def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
@@ -228,6 +187,7 @@ class hardwareResponseIncorporator:
         if self.trigger_channels is not None and not isinstance(det, detector.rnog_detector.Detector):
             raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
 
+        has_trigger_channels = False
         for channel in station.iter_channels():
             frequencies = channel.get_frequencies()
             trace_fft = channel.get_frequency_spectrum()
@@ -249,8 +209,8 @@ class hardwareResponseIncorporator:
                 trig_channel.set_frequency_spectrum(
                     trig_trace_fft, channel.get_sampling_rate())
 
-                self.add_cable_delay(station, det, trig_channel, sim_to_data, trigger=True)
                 channel.set_trigger_channel(trig_channel)
+                has_trigger_channels = True
 
             trace_fft *= filter
             # zero first bins to avoid DC offset
@@ -261,7 +221,10 @@ class hardwareResponseIncorporator:
             channel.set_frequency_spectrum(
                 trace_fft, channel.get_sampling_rate())
 
-            self.add_cable_delay(station, det, channel, sim_to_data)
+        signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
+        if has_trigger_channels:
+            signal_processing.add_cable_delay(
+                    station, det, sim_to_data, trigger=True, logger=self.logger)
 
         self.__t += time.time() - t
 

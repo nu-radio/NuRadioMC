@@ -1,7 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector.ARIANNA import analog_components
 import numpy as np
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, signal_processing
 import time
 import logging
 
@@ -89,36 +89,6 @@ class hardwareResponseIncorporator:
         else:
             return 1. / (amp_response * cable_response)
 
-    def add_cable_delay(self, station, det, channel, sim_to_data):
-        """
-        Add or subtract cable delay to a channel.
-
-        Parameters
-        ----------
-        station: Station
-            The station to add the cable delay to.
-
-        det: Detector
-            The detector description
-
-        channel: Channel
-            The channel to add the cable delay to.
-
-        sim_to_data: bool
-            If True, the cable delay is added. If False, the cable delay is subtracted.
-        """
-        cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-
-        if sim_to_data:
-            channel.add_trace_start_time(cable_delay)
-            self.logger.debug(f"Add {cable_delay / units.ns:.2f}ns "
-                            f"of cable delay to channel {channel.get_id()}")
-
-        else:
-            channel.add_trace_start_time(-cable_delay)
-            self.logger.debug(f"Subtract {cable_delay / units.ns:.2f}ns "
-                            f"of cable delay to channel {channel.get_id()}")
-
     @register_run()
     def run(self, evt, station, det, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
@@ -176,7 +146,8 @@ class hardwareResponseIncorporator:
             # hardwareResponse incorporator should always be used in conjunction with bandpassfilter
             # otherwise, noise will be blown up
             channel.set_frequency_spectrum(trace_fft, channel.get_sampling_rate())
-            self.add_cable_delay(station, det, channel, sim_to_data)
+
+        signal_processing.add_cable_delay(station, det, None, sim_to_data, logger=self.logger)
 
         self.__t += time.time() - t
 

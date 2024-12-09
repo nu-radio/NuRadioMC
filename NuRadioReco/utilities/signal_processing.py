@@ -1,5 +1,8 @@
-import numpy as np
+from NuRadioReco.utilities import units
+from NuRadioReco.detector import detector
+
 from scipy.signal.windows import hann
+import numpy as np
 
 
 def half_hann_window(length, half_percent=None, hann_window_length=None):
@@ -27,3 +30,71 @@ def half_hann_window(length, half_percent=None, hann_window_length=None):
     half_hann_widow[-hann_window_length:] = hann_window[hann_window_length:]
 
     return half_hann_widow
+
+
+def add_cable_delay(station, det, sim_to_data, trigger=False, logger=None):
+        """
+        Add or subtract cable delay to a channel.
+
+        Parameters
+        ----------
+        station: Station
+            The station to add the cable delay to.
+
+        det: Detector
+            The detector description
+        sim_to_data: bool
+            If True, the cable delay is added. If False, the cable delay is subtracted.
+
+        trigger: bool
+            If True, take the time delay from the trigger channel response.
+            Only possible if `det` is of type `rnog_detector.Detector`. (Default: False)
+
+        logger: logging.Logger, default=None
+            If set, use `logger.debug(..)` to log the cable delay.
+        """
+
+        if trigger and not isinstance(det, detector.rnog_detector.Detector):
+            raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
+
+        if sim_to_data:
+            new_trace_start_times = []
+            for channel in station.iter_channels():
+                if trigger:
+                    if not channel.has_extra_trigger_channel():
+                        continue
+                    cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
+                    new_trace_start_times.append(channel.get_trigger_channel().get_trace_start_time() + cable_delay)
+
+                else:
+                    # Only the RNOG detector has the argument `trigger`. Default is false
+                    cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
+                    new_trace_start_times.append(channel.get_trace_start_time() + cable_delay)
+
+            new_trace_start_time = np.min(new_trace_start_times)
+            delta_times = np.array(new_trace_start_times) - new_trace_start_time
+            if logger is not None:
+                logger.info(f"New traces start time after adding the cable delay is {new_trace_start_time / units.ns:.2f}ns ")
+
+            for channel, delta_time in zip(station.iter_channels(), delta_times):
+                if trigger:
+                    if channel.has_extra_trigger_channel():
+                        channel = channel.get_trigger_channel()
+                    else:
+                        continue
+
+                if logger is not None:
+                    logger.debug(f"Shift channel {channel.get_id()} by {delta_time / units.ns:.2f}ns")
+
+                if delta_time:
+                    channel.apply_time_shift(delta_time)
+
+                channel.set_trace_start_time(new_trace_start_time)
+        else:
+            for channel in station.iter_channels():
+                cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
+                if logger is not None:
+                    logger.debug(f"Subtract {cable_delay / units.ns:.2f}ns "
+                                f"of cable delay to channel {channel.get_id()}")
+
+                channel.add_trace_start_time(-cable_delay)
