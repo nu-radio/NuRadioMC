@@ -2,7 +2,7 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 
 from NuRadioReco.detector.RNO_G import analog_components
-from NuRadioReco.detector import detector, response
+from NuRadioReco.detector import detector
 
 import numpy as np
 import copy
@@ -12,7 +12,8 @@ import logging
 
 class hardwareResponseIncorporator:
     """
-    Incorporates the gain and phase induced by the RNO-G hardware.
+    Incorporates the compex response of the RNO-G hardware. The response is obtained from the detector description.
+    The response is applied in the frequency domain. This module also adds the cable delay to the channels.
     """
 
     def __init__(self):
@@ -28,7 +29,6 @@ class hardwareResponseIncorporator:
         ----------
         trigger_channels: list of int
             List of channels for which an extra trigger channel with a different response is used. (Default: None)
-
         """
         self.trigger_channels = trigger_channels
 
