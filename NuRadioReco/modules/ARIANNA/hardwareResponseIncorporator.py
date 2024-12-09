@@ -147,7 +147,7 @@ class hardwareResponseIncorporator:
             # otherwise, noise will be blown up
             channel.set_frequency_spectrum(trace_fft, channel.get_sampling_rate())
 
-        signal_processing.add_cable_delay(station, det, None, sim_to_data, logger=self.logger)
+        signal_processing.add_cable_delay(station, det, sim_to_data=sim_to_data, logger=self.logger)
 
         self.__t += time.time() - t
 
