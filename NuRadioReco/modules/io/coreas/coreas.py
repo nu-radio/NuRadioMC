@@ -379,7 +379,11 @@ def make_sim_shower(corsika, declination=0):
     sim_shower.set_parameter(shp.energy, energy)
 
     sim_shower.set_parameter(
-        shp.core, np.array([0, 0, corsika['CoREAS'].attrs["CoreCoordinateVertical"]]) * units.cm
+        shp.core, np.array([
+            corsika['CoREAS'].attrs["CoreCoordinateWest"] * -1,
+            corsika['CoREAS'].attrs["CoreCoordinateNorth"],
+            corsika['CoREAS'].attrs["CoreCoordinateVertical"]
+        ]) * units.cm
     )
     sim_shower.set_parameter(
         shp.shower_maximum, corsika['CoREAS'].attrs['DepthOfShowerMaximum'] * units.g / units.cm2
@@ -846,7 +850,7 @@ class coreasInterpolator:
             This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the
             z-coordinate is automatically set to the observation level of the simulation.
         """
-        core = np.array([0, 0, self.shower[shp.observation_level]])  # by definition of CoREAS simulation (?)
+        core = self.shower.get_parameter(shp.core)
 
         if len(position_on_ground) == 2:
             position_on_ground = np.append(position_on_ground, core[2])
