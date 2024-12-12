@@ -119,6 +119,7 @@ class outputWriterHDF5:
                     station_key_pairs = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"],
                         [chp.Vrms_trigger_NuRadioMC_simulation, "Vrms_trigger"]]
 
+
                     for (key_cp, key_hdf5) in station_key_pairs:
                         channel_values = [channel[key_cp] for channel in stn.iter_channels(sorted=True)]
 
