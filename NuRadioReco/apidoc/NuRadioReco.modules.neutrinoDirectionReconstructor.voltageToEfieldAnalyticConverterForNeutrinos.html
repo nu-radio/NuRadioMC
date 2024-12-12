@@ -621,8 +621,95 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="nuradioreco-modules-neutrinodirectionreconstructor-voltagetoefieldanalyticconverterforneutrinos-module">
-<h1>NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos module<a class="headerlink" href="#nuradioreco-modules-neutrinodirectionreconstructor-voltagetoefieldanalyticconverterforneutrinos-module" title="Permalink to this heading"></a></h1>
+  <section id="module-NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos">
+<span id="nuradioreco-modules-neutrinodirectionreconstructor-voltagetoefieldanalyticconverterforneutrinos-module"></span><h1>NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos module<a class="headerlink" href="#module-NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.</span></span><span class="sig-name descname"><span class="pre">voltageToAnalyticEfieldConverterNeutrinos</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoDirectionReconstructor/voltageToEfieldAnalyticConverterForNeutrinos.html#voltageToAnalyticEfieldConverterNeutrinos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>This module reconstructs the electric-field by forward folding an analytic
+pulse function through the antenna.</p>
+<p>This module is specified for neutrinos.</p>
+<p>Before the reconstruction, the channels are upsampled.</p>
+<p>The module is optimized for an electric-field reconstruction using two
+channels. First, the energy and the viewing angle are fitted using a Vpol
+antenna. Then the viewing angle is fixed in the Hpol antenna, and the energy
+is fitted.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.begin" title="NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>()</p></td>
+<td><p>begin method.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.run" title="NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det, icemodel[, ...])</p></td>
+<td><p>run method.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>end</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoDirectionReconstructor/voltageToEfieldAnalyticConverterForNeutrinos.html#voltageToAnalyticEfieldConverterNeutrinos.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.begin" title="Permalink to this definition"></a></dt>
+<dd><p>begin method. This function is executed before the event loop.
+The antenna pattern provieder is initialized here.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icemodel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HAD'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2,</span> <span class="pre">3]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parametrization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Alvarez2000'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hilbert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_bandpass_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_focusing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_MC</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_multiplication_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_traces_with_true_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoDirectionReconstructor/voltageToEfieldAnalyticConverterForNeutrinos.html#voltageToAnalyticEfieldConverterNeutrinos.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.run" title="Permalink to this definition"></a></dt>
+<dd><p>run method. This function is executed for each event</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt</strong></dt><dd></dd>
+<dt><strong>station</strong></dt><dd></dd>
+<dt><strong>det</strong></dt><dd></dd>
+<dt><strong>icemodel</strong></dt><dd></dd>
+<dt><strong>shower_type: string</strong></dt><dd><p>determines the shower type during reconstructing the voltage traces.</p>
+</dd>
+<dt><strong>use_channels: array of ints</strong></dt><dd><p>the channel ids for the antennas used for reconstructing voltage traces.</p>
+</dd>
+<dt><strong>attenuation_model: string</strong></dt><dd><p>the frequency dependent ice attenuation model used</p>
+</dd>
+<dt><strong>parametrization: string</strong></dt><dd><p>neutrino parametrization model used for the reconstruction.</p>
+</dd>
+<dt><strong>hilbert: bool</strong></dt><dd><p>if True, use the hilbert envelope of the traces in the chi2 fit</p>
+</dd>
+<dt><strong>use_bandpass_filter: bool</strong></dt><dd><p>if True, the voltage traces are filtered according to the passband_low and passband_high inputs</p>
+</dd>
+<dt><strong>passband_low: dictionary</strong></dt><dd><p>map between channel id and complex filter amplitudes which themselves are array of complex floats.</p>
+</dd>
+<dt><strong>passband_high: dictionary</strong></dt><dd><p>map between channel id and complex filter amplitudes which themselves are array of complex floats</p>
+</dd>
+<dt><strong>include_focusing: bool</strong></dt><dd><p>if True, include amplification of signal due to focusing effects.</p>
+</dd>
+<dt><strong>use_MC: bool</strong></dt><dd><p>if True use simulated properties such as vertex position instead of reconstructed properties</p>
+</dd>
+<dt><strong>n_samples_multiplication_factor: int</strong></dt><dd><p>expands the time window length by n. It is used to consider all ray tracing solutions when fitting reconstructed traces against event. The value of
+n is site dependent and can speed up the algorithm and save space considerably.</p>
+</dd>
+<dt><strong>plot_traces_with_true_input: bool,</strong></dt><dd><p>for simulated events only, if True produces a figure overlaying the simulated voltage traces with the reconstructed voltage traces using the true nu direction and energy</p>
+</dd>
+<dt><strong>debug: bool</strong></dt><dd><p>if True debug plotting is enabled</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoDirectionReconstructor/voltageToEfieldAnalyticConverterForNeutrinos.html#voltageToAnalyticEfieldConverterNeutrinos.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos.end" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 
 
