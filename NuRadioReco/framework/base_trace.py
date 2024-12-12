@@ -5,7 +5,7 @@ import fractions
 import decimal
 import numbers
 import functools
-from NuRadioReco.utilities import fft, bandpass_filter, trace_utilities
+from NuRadioReco.utilities import fft, bandpass_filter
 import NuRadioReco.detector.response
 import scipy.signal
 import copy
@@ -259,8 +259,9 @@ class BaseTrace:
         if delta_t > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
             logger.warning('Trace is shifted by more than 10% of its length')
 
-        delayed_trace = trace_utilities.delay_trace(self, self._sampling_rate, delta_t, crop_trace=False)
-        self.set_trace(delayed_trace, self._sampling_rate)
+        spec = self.get_frequency_spectrum()
+        spec *= np.exp(-2.j * np.pi * delta_t * self.get_frequencies())
+        self.set_frequency_spectrum(spec, self._sampling_rate)
 
     def resample(self, sampling_rate):
         if sampling_rate == self.get_sampling_rate():
