@@ -19,8 +19,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def set_sim_station(self, sim_station):
         """
-        Sets the SimStation of the Station.
-        If a SimStation is already present, it is overwritten.
+        Sets the SimStation of the Station. If a SimStation is already present, it is overwritten.
 
         Parameters
         ----------
@@ -39,7 +38,10 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         sim_station : NuRadioReco.framework.sim_station.SimStation
             The SimStation to add to the Station.
         """
-        self.__sim_station = self.__sim_station + sim_station
+        if self.__sim_station is None:
+            self.__sim_station = sim_station
+        else:
+            self.__sim_station = self.__sim_station + sim_station
 
     def get_sim_station(self):
         """
@@ -134,8 +136,30 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def get_number_of_channels(self):
         return len(self.__channels)
 
-    def get_channel_ids(self):
-        return list(self.__channels.keys())
+    def get_channel_ids(self, return_group_ids=False):
+        """
+        Return all channel ids in the station
+
+        Parameters
+        ----------
+        return_group_ids : bool, default: False
+            If True, return a list of channel_group_ids
+            instead of channel ids. Note that if no channel group ids
+            are defined, these are the same as the channel ids
+
+        Returns
+        -------
+        channel_ids : list
+            List of all channel ids
+        """
+        if return_group_ids:
+            channel_ids = set() # we use a set to avoid duplicates
+            for channel in self.iter_channels():
+                channel_ids.add(channel.get_group_id())
+        else:
+            channel_ids = self.__channels.keys()
+
+        return list(channel_ids)
 
     def add_channel(self, channel):
         self.__channels[channel.get_id()] = channel

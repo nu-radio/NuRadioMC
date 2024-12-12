@@ -1241,7 +1241,6 @@ class Detector():
 
             prefix = "trigger_" if trigger else ""
             for key, value in signal_chain_dict[f"{prefix}response_chain"].items():
-
                 ydata = [value["mag"], value["phase"]]
                 # This is different from within `get_signal_chain_response` because we do set the time delay here
                 # and thus we do not remove it from the response.
@@ -1266,6 +1265,17 @@ class Detector():
             Returns "summit"
         """
         return "summit"
+
+    def get_site_coordinates(self, station_id=None):
+        """
+        Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.
+
+        Parameters
+        ----------
+        station_id: int
+            the station ID (not used, only for compatibility with other detector classes)
+        """
+        return (72.57, -38.46)
 
 
     def get_database(self):
@@ -1316,12 +1326,7 @@ if __name__ == "__main__":
 
     det.update(datetime.datetime(2023, 7, 2, 0, 0))
 
-    print(det.get_time_delay(13, 0))
-    print(det.get_time_delay(13, 0, cable_only=True))
-    # print(det.get_time_delay(13, 0, cable_only=False, use_stored=False))
-    print(det.get_time_delay(13, 0, cable_only=True, use_stored=False))
-
-    # response = det.get_signal_chain_response(station_id=24, channel_id=0)
+    response = det.get_signal_chain_response(station_id=13, channel_id=0)
 
     # from NuRadioReco.framework import electric_field
     # ef = electric_field.ElectricField(channel_ids=[0])
