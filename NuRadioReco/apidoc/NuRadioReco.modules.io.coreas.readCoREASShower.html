@@ -628,6 +628,12 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.readCoREASShower.</span></span><span class="sig-name descname"><span class="pre">readCoREASShower</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>This module can be used to read in all simulated “observers” from a CoREAS simulation and return them as stations.
+This is in particular useful for air shower array experiments like Auger, LOFAR or SKA. However, it is important
+to stress that this module will return a <em class="xref py py-obj">station</em> object per simulated observer. That fits well the terminology
+used in Auger were a “Station” is a dual-polerized antenna. However, for other experiments like LOFAR or SKA where
+a “Station” is a cluster of (dual-polerized) antennas, the user has to be aware that this module will return a <em class="xref py py-obj">station</em>
+object per antenna.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -635,7 +641,7 @@
 <td><p>begin method</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run" title="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
-<td><p>Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.</p></td>
+<td><p>Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</p></td>
 </tr>
 </tbody>
 </table>
@@ -675,9 +681,18 @@ This can be used to avoid ambiguities values (default: False)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run" title="Permalink to this definition"></a></dt>
-<dd><p>Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.
-A detector description is not needed to run this module. If a genericDetector is passed to the begin method, 
-the stations are added to it and the run method returns both the event and the detector.</p>
+<dd><p>Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</p>
+<dl class="field-list">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>evt</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.event.Event</span></code></a></span></dt><dd><p>The event containing the simulated observer as sim. stations.</p>
+</dd>
+<dt><strong>det</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector" title="NuRadioReco.detector.generic_detector.GenericDetector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.generic_detector.GenericDetector</span></code></a></span></dt><dd><p>Optional, only if a detector description is passed to the begin method.
+Contains the detector description with the on-the-fly added stations.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

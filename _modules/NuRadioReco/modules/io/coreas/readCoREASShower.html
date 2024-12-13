@@ -631,6 +631,14 @@
 
 
 <div class="viewcode-block" id="readCoREASShower"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower">[docs]</a><span class="k">class</span> <span class="nc">readCoREASShower</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This module can be used to read in all simulated &quot;observers&quot; from a CoREAS simulation and return them as stations.</span>
+<span class="sd">    This is in particular useful for air shower array experiments like Auger, LOFAR or SKA. However, it is important</span>
+<span class="sd">    to stress that this module will return a `station` object per simulated observer. That fits well the terminology</span>
+<span class="sd">    used in Auger were a &quot;Station&quot; is a dual-polerized antenna. However, for other experiments like LOFAR or SKA where</span>
+<span class="sd">    a &quot;Station&quot; is a cluster of (dual-polerized) antennas, the user has to be aware that this module will return a `station`</span>
+<span class="sd">    object per antenna.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
@@ -672,9 +680,16 @@
 
 <div class="viewcode-block" id="readCoREASShower.run"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.</span>
-<span class="sd">        A detector description is not needed to run this module. If a genericDetector is passed to the begin method, </span>
-<span class="sd">        the stations are added to it and the run method returns both the event and the detector.</span>
+<span class="sd">        Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</span>
+
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        evt : `NuRadioReco.framework.event.Event`</span>
+<span class="sd">            The event containing the simulated observer as sim. stations.</span>
+
+<span class="sd">        det : `NuRadioReco.detector.generic_detector.GenericDetector`</span>
+<span class="sd">            Optional, only if a detector description is passed to the begin method.</span>
+<span class="sd">            Contains the detector description with the on-the-fly added stations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">):</span>
             <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -715,12 +730,14 @@
             <span class="c1"># create sim shower, no core is set since no external detector description is given</span>
             <span class="n">sim_shower</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">make_sim_shower</span><span class="p">(</span><span class="n">corsika</span><span class="p">)</span>
             <span class="n">sim_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">core</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">f_coreas</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateVertical&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">100</span><span class="p">]))</span>  <span class="c1"># set core</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">f_coreas</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateWest&quot;</span><span class="p">],</span> <span class="n">f_coreas</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateNorth&quot;</span><span class="p">],</span> <span class="n">f_coreas</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateVertical&quot;</span><span class="p">]]</span>
+                <span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span>  <span class="c1"># set core</span>
             <span class="n">evt</span><span class="o">.</span><span class="n">add_sim_shower</span><span class="p">(</span><span class="n">sim_shower</span><span class="p">)</span>
 
             <span class="c1"># initialize coordinate transformation</span>
-            <span class="n">cs</span> <span class="o">=</span> <span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
-                                           <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">))</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span>
+                <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
+                <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">))</span>
 
             <span class="c1"># add simulated pulses as sim station</span>
             <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">observer</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f_coreas</span><span class="p">[</span><span class="s1">&#39;observers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
@@ -730,20 +747,20 @@
                 <span class="n">station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">sim_station</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">make_sim_station</span><span class="p">(</span>
-                        <span class="n">station_id</span><span class="p">,</span> <span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+                        <span class="n">station_id</span><span class="p">,</span> <span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">sim_station</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">make_sim_station</span><span class="p">(</span>
-                        <span class="n">station_id</span><span class="p">,</span> <span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="p">,</span> 
+                        <span class="n">station_id</span><span class="p">,</span> <span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="p">,</span>
                         <span class="n">channel_ids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">get_default_station_id</span><span class="p">()))</span>
-                
+
                 <span class="n">station</span><span class="o">.</span><span class="n">set_sim_station</span><span class="p">(</span><span class="n">sim_station</span><span class="p">)</span>
                 <span class="n">evt</span><span class="o">.</span><span class="n">set_station</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
-                
+
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">position</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]</span>
                     <span class="n">antenna_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span>
                     <span class="n">antenna_position</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_magnetic_to_geographic</span><span class="p">(</span><span class="n">antenna_position</span><span class="p">)</span>
-                    
+
                     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">has_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">add_generic_station</span><span class="p">({</span>
                             <span class="s1">&#39;station_id&#39;</span><span class="p">:</span> <span class="n">station_id</span><span class="p">,</span>
