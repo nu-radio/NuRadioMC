@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Any
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
 import astropy
@@ -17,6 +19,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters
 from NuRadioReco.framework.electric_field import ElectricField
 import pickle
 import os
+import NuRadioReco.modules.channelBandPassFilter
 
 
 class crRNOGTemplateCreator:
@@ -50,8 +53,10 @@ class crRNOGTemplateCreator:
 
         self.__efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
         self.__hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
+        self.__channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
-    def begin(self, detector_file, template_save_path, debug=False, logger_level=logging.NOTSET):
+
+    def begin(self, detector_file:str, template_save_path:str, debug:bool=False, logger_level:logging.Logger=logging.NOTSET) -> None:
         """
                 begin method
 
@@ -76,9 +81,11 @@ class crRNOGTemplateCreator:
 
         self.__template_save_path = template_save_path
 
-    def set_template_parameter(self, template_run_id=[0, 0, 0], template_event_id=[0, 1, 2], template_station_id=[101, 101, 101], template_channel_id=[0, 0, 0], Efield_width=[5, 4, 2],
-                                antenna_rotation=[160, 160, 160], Efield_amplitudes=[-0.2, 0.8], cr_zenith=[55, 55, 55], cr_azimuth=[0, 0, 0],
-                                sampling_rate=3.2 * units.GHz, number_of_samples=2048):
+
+    def set_template_parameter(self, template_run_id:list[int]=[0, 0, 0], template_event_id:list[int]=[0, 1, 2], template_station_id:list[int]=[101, 101, 101], 
+                               template_channel_id:list[int]=[0, 0, 0], Efield_width:list[float]=[5, 4, 2], antenna_rotation:list[float]=[160, 160, 160], 
+                               Efield_amplitudes:list[float]=[-0.2, 0.8], cr_zenith:list[float]=[55, 55, 55], cr_azimuth:list[float]=[0, 0, 0],
+                               sampling_rate:float=3.2 * units.GHz, number_of_samples:int=2048) ->None:
         """
         set_parameter_templates method
 
@@ -125,7 +132,9 @@ class crRNOGTemplateCreator:
         self.__cr_zenith = cr_zenith
         self.__cr_azimuth = cr_azimuth
 
-    def run(self, template_filename='templates_cr_station_101.p', include_hardware_response=True, hardware_response_source='json', return_templates=False):
+
+    def run(self, template_filename:str='templates_cr_station_101.p', include_hardware_response:bool=True, hardware_response_source:str='json', 
+            return_templates:bool=False, bandpass_filter:None|dict[str,Any]=None) -> None|list[Event]:
         """
         run method
 
@@ -178,6 +187,11 @@ class crRNOGTemplateCreator:
                                 rnog_det.update(datetime.datetime(2023, 3, 4, 0, 0))
                                 self.__hardwareResponseIncorporator.run(temp_evt, temp_evt.get_station(sid), rnog_det, sim_to_data=True)
 
+
+                        if bandpass_filter is not None:
+                            # apply the channelBandPassFilter
+                            self.__channelBandPassFilter.run(temp_evt, temp_evt.get_station(sid), det_temp, **bandpass_filter)
+
                         if self.__debug:
                             plt.plot(temp_evt.get_station(sid).get_channel(cid).get_times() / units.ns, temp_evt.get_station(sid).get_channel(cid).get_trace())
                             plt.xlabel('times [ns]')
@@ -205,7 +219,9 @@ def _gaussian_func(x, A, mu, sigma):
     return A * np.exp(-(x - mu) ** 2 / (2 * sigma ** 2))
 
 
-def _create_Efield(detector, run_id, event_id, channel_id, station_id, station_time, trace_samples, gaussian_width, e_phi, e_theta, cr_zenith, cr_azimuth, sampling_rate, debug):
+def _create_Efield(detector:detector.generic_detector.GenericDetector, run_id:int, event_id:int, channel_id:int, station_id:int, 
+                   station_time:datetime.datetime, trace_samples:int, gaussian_width:float, e_phi:float, e_theta:float, cr_zenith:float, 
+                   cr_azimuth:float, sampling_rate:float, debug:bool) -> Event:
     """ function that creates an event with a gaussian electric field """
     event = Event(run_id, event_id)
 
