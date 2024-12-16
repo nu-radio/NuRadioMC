@@ -3,7 +3,7 @@ import numpy as np
 import sys
 
 # Add the directory where your library is located
-sys.path.append('/Users/nozdrina.1/Documents/phys/software/NuRadioMC')
+#sys.path.append('/Users/nozdrina.1/Documents/phys/software/NuRadioMC')
 
 import NuRadioReco.utilities as ut
 import matplotlib.pyplot as plt
