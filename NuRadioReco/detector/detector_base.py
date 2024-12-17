@@ -31,95 +31,80 @@ class DateTimeSerializer():
         return datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')
 
 
-# def buffer_db(in_memory, filename=None):  # TODO remove TinyDB 
-#     """
-#     buffers the complete SQL database into a TinyDB object (either in memory or into a local JSON file)
+def buffer_db():  
+    """
+    buffers the complete SQL database into a dictionary
+    """
+    logger.info("buffering SQL database on-the-fly")
 
-#     Parameters
-#     ----------
-#     in_memory: bool
-#         if True: the mysql database will be buffered as a tiny tb object that only exists in memory
-#         if False: the mysql database will be buffered as a tiny tb object and saved in a local json file
-#     filename: string
-#         only relevant if `in_memory = True`: the filename of the json file of the tiny db object
-#     """
-#     serialization = SerializationMiddleware()
-#     serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
-#     logger.info("buffering SQL database on-the-fly")
-#     if in_memory:
-#         db = TinyDB(storage=MemoryStorage)
-#     else:
-#         db = TinyDB(filename, storage=serialization, sort_keys=True, indent=4, separators=(',', ': '))
-#     db.truncate()
+    db = {}
+    from NuRadioReco.detector import detector_sql
+    sqldet = detector_sql.Detector()
+    results = sqldet.get_everything_stations()
+    db['stations'] = {}
+    for result in results:
+        db['stations'][result['st.station_id']] = {'station_id': result['st.station_id'],
+                               'commission_time': result['st.commission_time'],
+                               'decommission_time': result['st.decommission_time'],
+                               'station_type': result['st.station_type'],
+                               'position': result['st.position'],
+                               'board_number': result['st.board_number'],
+                               'MAC_address': result['st.MAC_address'],
+                               'MBED_type': result['st.MBED_type'],
+                               'pos_position': result['pos.position'],
+                               'pos_measurement_time': result['pos.measurement_time'],
+                               'pos_easting': result['pos.easting'],
+                               'pos_northing': result['pos.northing'],
+                               'pos_altitude': result['pos.altitude'],
+                               'pos_zone': result['pos.zone'],
+                               'pos_site': result['pos.site']}
 
-#     from NuRadioReco.detector import detector_sql
-#     sqldet = detector_sql.Detector()
-#     results = sqldet.get_everything_stations()
-#     table_stations = db.table('stations')
-#     table_stations.truncate()
-#     for result in results:
-#         table_stations.insert({'station_id': result['st.station_id'],
-#                                'commission_time': result['st.commission_time'],
-#                                'decommission_time': result['st.decommission_time'],
-#                                'station_type': result['st.station_type'],
-#                                'position': result['st.position'],
-#                                'board_number': result['st.board_number'],
-#                                'MAC_address': result['st.MAC_address'],
-#                                'MBED_type': result['st.MBED_type'],
-#                                'pos_position': result['pos.position'],
-#                                'pos_measurement_time': result['pos.measurement_time'],
-#                                'pos_easting': result['pos.easting'],
-#                                'pos_northing': result['pos.northing'],
-#                                'pos_altitude': result['pos.altitude'],
-#                                'pos_zone': result['pos.zone'],
-#                                'pos_site': result['pos.site']})
+    db['channels'] = {}
+    results = sqldet.get_everything_channels()
+    for channel in results:
+        db['channels'][result['ch.channel_id']] = {'station_id': channel['st.station_id'],
+                               'channel_id': channel['ch.channel_id'],
+                               'commission_time': channel['ch.commission_time'],
+                               'decommission_time': channel['ch.decommission_time'],
+                               'ant_type': channel['ant.antenna_type'],
+                               'ant_orientation_phi': channel['ant.orientation_phi'],
+                               'ant_orientation_theta': channel['ant.orientation_theta'],
+                               'ant_rotation_phi': channel['ant.rotation_phi'],
+                               'ant_rotation_theta': channel['ant.rotation_theta'],
+                               'ant_position_x': channel['ant.position_x'],
+                               'ant_position_y': channel['ant.position_y'],
+                               'ant_position_z': channel['ant.position_z'],
+                               'ant_deployment_time': channel['ant.deployment_time'],
+                               'ant_comment': channel['ant.comment'],
+                               'cab_length': channel['cab.cable_length'],
+                               'cab_reference_measurement': channel['cab.reference_measurement'],
+                               'cab_time_delay': channel['cab.time_delay'],
+                               'cab_id': channel['cab.cable_id'],
+                               'cab_type': channel['cab.cable_type'],
+                               'amp_type': channel['amps.amp_type'],
+                               'amp_reference_measurement': channel['amps.reference_measurement'],
+                               'adc_id': channel['adcs.adc_id'],
+                               'adc_time_delay': channel['adcs.time_delay'],
+                               'adc_nbits': channel['adcs.nbits'],
+                               'adc_n_samples': channel['adcs.n_samples'],
+                               'adc_sampling_frequency': channel['adcs.sampling_frequency']}
 
-#     table_channels = db.table('channels')
-#     table_channels.truncate()
-#     results = sqldet.get_everything_channels()
-#     for channel in results:
-#         table_channels.insert({'station_id': channel['st.station_id'],
-#                                'channel_id': channel['ch.channel_id'],
-#                                'commission_time': channel['ch.commission_time'],
-#                                'decommission_time': channel['ch.decommission_time'],
-#                                'ant_type': channel['ant.antenna_type'],
-#                                'ant_orientation_phi': channel['ant.orientation_phi'],
-#                                'ant_orientation_theta': channel['ant.orientation_theta'],
-#                                'ant_rotation_phi': channel['ant.rotation_phi'],
-#                                'ant_rotation_theta': channel['ant.rotation_theta'],
-#                                'ant_position_x': channel['ant.position_x'],
-#                                'ant_position_y': channel['ant.position_y'],
-#                                'ant_position_z': channel['ant.position_z'],
-#                                'ant_deployment_time': channel['ant.deployment_time'],
-#                                'ant_comment': channel['ant.comment'],
-#                                'cab_length': channel['cab.cable_length'],
-#                                'cab_reference_measurement': channel['cab.reference_measurement'],
-#                                'cab_time_delay': channel['cab.time_delay'],
-#                                'cab_id': channel['cab.cable_id'],
-#                                'cab_type': channel['cab.cable_type'],
-#                                'amp_type': channel['amps.amp_type'],
-#                                'amp_reference_measurement': channel['amps.reference_measurement'],
-#                                'adc_id': channel['adcs.adc_id'],
-#                                'adc_time_delay': channel['adcs.time_delay'],
-#                                'adc_nbits': channel['adcs.nbits'],
-#                                'adc_n_samples': channel['adcs.n_samples'],
-#                                'adc_sampling_frequency': channel['adcs.sampling_frequency']})
+    # TODO implement positions
+    # results = sqldet.get_everything_positions()
+    # table_positions = db.table('positions')
+    # table_positions.truncate()
+    # for result in results:
+    #     table_positions.insert({
+    #         'pos_position': result['pos.position'],
+    #         'pos_measurement_time': result['pos.measurement_time'],
+    #         'pos_easting': result['pos.easting'],
+    #         'pos_northing': result['pos.northing'],
+    #         'pos_altitude': result['pos.altitude'],
+    #         'pos_zone': result['pos.zone'],
+    #         'pos_site': result['pos.site']})
 
-#     results = sqldet.get_everything_positions()
-#     table_positions = db.table('positions')
-#     table_positions.truncate()
-#     for result in results:
-#         table_positions.insert({
-#             'pos_position': result['pos.position'],
-#             'pos_measurement_time': result['pos.measurement_time'],
-#             'pos_easting': result['pos.easting'],
-#             'pos_northing': result['pos.northing'],
-#             'pos_altitude': result['pos.altitude'],
-#             'pos_zone': result['pos.zone'],
-#             'pos_site': result['pos.site']})
-
-#     logger.info("sql database buffered")
-#     return db
+    logger.info("sql database buffered")
+    return db
 
 
 def convert_to_datetime(time):
@@ -173,8 +158,7 @@ class DetectorBase(object):
         # self._serialization = SerializationMiddleware()
         # self._serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
         if source == 'sql':
-            # self._db = buffer_db(in_memory=True)
-            raise NotImplementedError("SQL database is not supported anymore. Please use json or dictionary")
+            self._db = buffer_db()
         elif source == 'dictionary':
             self._db = dictionary
         else:
@@ -386,7 +370,6 @@ class DetectorBase(object):
         self.__buffered_positions[position_id] = self.__query_position(position_id)
 
     def __get_t0_t1(self, station_id):
-        Station = Query()
         res = self._get_station(station_id)
         t0 = None
         t1 = None
