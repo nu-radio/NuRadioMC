@@ -16,11 +16,7 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 import cr_pulse_interpolator.interpolation_fourier
 import cr_pulse_interpolator.signal_interpolation_fourier
 import logging
-import copy
-import h5py
-
 logger = logging.getLogger('NuRadioReco.coreas')
-logger.setLevel(logging.INFO)
 
 warning_printed_coreas_py = False
 

@@ -12,7 +12,7 @@ import healpy
 import astropy.coordinates
 import astropy.units
 
-logger = logging.getLogger('channelGalacticNoiseAdder')
+logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
 
 
 class channelGalacticNoiseAdder:

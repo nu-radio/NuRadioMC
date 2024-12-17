@@ -14,7 +14,7 @@ except ImportError:
 import logging
 import collections
 
-logger = logging.getLogger('BaseStation')
+logger = logging.getLogger('NuRadioReco.BaseStation')
 
 
 class BaseStation():
@@ -131,16 +131,67 @@ class BaseStation():
         return self._station_id
 
     def remove_triggers(self):
+        """
+        removes all triggers from the station
+        """
         self._triggers = collections.OrderedDict()
 
     def get_trigger(self, name):
-        if (name not in self._triggers):
+        """
+        returns the trigger with the name 'name'
+
+        Parameters
+        ----------
+        name: string
+            the name of the trigger
+
+        Returns
+        -------
+            trigger: Trigger
+        """
+        if name not in self._triggers:
             raise ValueError("trigger with name {} not present".format(name))
         return self._triggers[name]
 
+    def get_primary_trigger(self):
+        """
+        Returns the primary trigger of the station. If no primary trigger exists, it returns None
+        """
+        trigger = None
+        primary_trigger_count = 0
+        # test if only one primary trigger exists
+        for trig in self.get_triggers().values():
+            if trig.is_primary():
+                primary_trigger_count += 1
+                trigger = trig
+
+        if primary_trigger_count > 1:
+            logger.error(
+                'More than one primary trigger exists. Only one trigger can be the primary trigger. '
+                'Please check your code.')
+            raise ValueError
+
+        return trigger
+
+    def get_first_trigger(self):
+        """
+        Returns the first/earliest trigger. Returns None if no trigger fired.
+        """
+        if not self._triggered:
+            return None
+
+        min_trigger_time = float('inf')
+        for trig in self._triggers.values():
+            if trig.has_triggered() and trig.get_trigger_time() < min_trigger_time:
+                min_trigger_time = trig.get_trigger_time()
+                min_trig = trig
+
+        return min_trig
+
     def has_trigger(self, trigger_name):
         """
-        checks if station has a trigger with a certain name
+        Checks if station has a trigger with a certain name.
+        WARNING: This function does not check if the trigger has triggered.
 
         Parameters
         ----------
@@ -153,21 +204,29 @@ class BaseStation():
 
     def get_triggers(self):
         """
-        returns a dictionary of the triggers. key is the trigger name, value is a trigger object
+        Returns a dictionary of the triggers. key is the trigger name, value is a trigger object
         """
         return self._triggers
 
     def set_trigger(self, trigger):
-        if (trigger.get_name() in self._triggers):
+        """
+        sets a trigger for the station. If a trigger with the same name already exists, it will be overridden
+
+        Parameters
+        ----------
+        trigger: Trigger
+            the trigger object to set
+        """
+        if trigger.get_name() in self._triggers:
             logger.warning(
-                "station has already a trigger with name {}. The previous trigger will be overridden!".format(
-                    trigger.get_name()))
+                f"Station has already a trigger with name {trigger.get_name()}. The previous trigger will be overridden!")
+
         self._triggers[trigger.get_name()] = trigger
         self._triggered = trigger.has_triggered() or self._triggered
 
     def has_triggered(self, trigger_name=None):
         """
-        convenience function.
+        Checks if the station has triggered. If trigger_name is set, check if the trigger with that name has triggered.
 
         Parameters
         ----------
@@ -176,17 +235,17 @@ class BaseStation():
                        it returns True if any of those triggers triggered
             * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
         """
-        if (trigger_name is None):
+        if trigger_name is None:
             return self._triggered
         else:
             return self.get_trigger(trigger_name).has_triggered()
 
     def set_triggered(self, triggered=True):
         """
-        convenience function to set a simple trigger. The recommended interface is to set triggers through the
+        Convenience function to set a simple trigger. The recommended interface is to set triggers through the
         set_trigger() interface.
         """
-        if (len(self._triggers) > 1):
+        if len(self._triggers) > 1:
             raise ValueError("more then one trigger were set. Request is ambiguous")
         trigger = NuRadioReco.framework.trigger.Trigger('default')
         trigger.set_triggered(triggered)
@@ -198,13 +257,27 @@ class BaseStation():
     def get_electric_fields(self):
         return self._electric_fields
 
+    def get_electric_field_ids(self):
+        """
+        returns a sorted list with the electric field IDs of all simElectricFields of the simStation
+
+        Returns
+        -------
+        efield_ids: list
+        """
+        efield_ids = []
+        for efield in self._electric_fields:
+            efield_ids.append(efield.get_unique_identifier())
+        efield_ids.sort()
+        return efield_ids
+
     def add_electric_field(self, electric_field):
         self._electric_fields.append(electric_field)
 
     def get_electric_fields_for_channels(self, channel_ids=None, ray_path_type=None):
         for e_field in self._electric_fields:
             channel_ids2 = channel_ids
-            if (channel_ids is None):
+            if channel_ids is None:
                 channel_ids2 = e_field.get_channel_ids()
             if e_field.has_channel_ids(channel_ids2):
                 if ray_path_type is None:
@@ -322,3 +395,28 @@ class BaseStation():
                 self.set_station_time(data['_station_time'])
 
         self._particle_type = data['_particle_type']
+
+
+    def __add__(self, x):
+        """
+        adds a BaseStation object to another BaseStation object
+        WARNING: Only channel and efield objects are added but no other meta information
+
+        Parameters
+        ----------
+        x: BaseStation
+            the BaseStation object to add
+        """
+        if not isinstance(x, BaseStation):
+            raise AttributeError("Can only add BaseStation to BaseStation")
+        if self.get_id() != x.get_id():
+            raise AttributeError("Can only add BaseStations with the same ID")
+        for trigger in x.get_triggers().values():
+            self.set_trigger(trigger)
+        for efield in x.get_electric_fields():
+            self.add_electric_field(efield)
+        for key, value in x.get_parameters().items():
+            self.set_parameter(key, value)
+        for key, value in x.get_ARIANNA_parameters().items():
+            self.set_ARIANNA_parameter(key, value)
+        return self
