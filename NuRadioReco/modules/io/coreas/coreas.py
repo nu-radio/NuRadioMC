@@ -13,6 +13,8 @@ import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
+import copy
+import h5py
 import cr_pulse_interpolator.interpolation_fourier
 import cr_pulse_interpolator.signal_interpolation_fourier
 import logging
@@ -327,7 +329,7 @@ def create_sim_station(station_id, evt, weight=None):
 
     # Check if the high-level attribute is present in the Event
     try:
-        sim_station.set_parameter(stnp.cr_energy_em, coreas_shower.get_parameter(stnp.cr_energy_em))
+        sim_station.set_parameter(stnp.cr_energy_em, coreas_shower.get_parameter(shp.electromagnetic_energy))
     except KeyError:
         global warning_printed_coreas_py
         if not warning_printed_coreas_py:
