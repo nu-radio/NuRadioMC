@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, print_function
 import argparse
-import NuRadioReco.modules.triggerTimeAdjuster
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.trigger.highLowThreshold
@@ -13,10 +12,7 @@ import NuRadioReco.modules.ARA.hardwareResponseIncorporator
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation as simulation
 
-# Setup logging
 import logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
 
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin()
@@ -30,7 +26,6 @@ electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFiel
 calculateAmplitudePerRaySolution = NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.calculateAmplitudePerRaySolution()
 hardwareResponseIncorporator = NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 triggerSimulator.begin(log_level=logging.WARNING)
 
 
@@ -61,8 +56,6 @@ class mySimulation(simulation.simulation):
                            number_concidences=4,
                            trigger_name='highlow_2sigma_Hpol',
                            triggered_channels=[8, 9, 10, 11, 12, 13, 14, 15])
-
-        triggerTimeAdjuster.run(evt, station, det)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')

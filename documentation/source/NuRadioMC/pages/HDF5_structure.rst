@@ -162,7 +162,7 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``ray_tracing_solution_type`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
             ``receive_vectors`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the receive vector of each ray tracing solution, per shower and channel.
             ``shower_id`` | (``m_showers``) | The Shower ids of showers that triggered the selected station
-            ``time_shower_and_ray`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
+            ``time_shower_and_ray`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The "signal time" per shower and raytracing solution. I.e., the time of the signal arriving at the DAQ including, e.g., cable delay, ...
             ``travel_distances`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The distance travelled by each ray tracing solution to a specific channel
             ``travel_times`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The time travelled by each ray tracing solution to a specific channel
             ``triggered`` | (``m_showers``) | Whether each shower contributed to an event that satisfied any trigger condition

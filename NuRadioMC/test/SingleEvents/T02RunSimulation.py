@@ -7,14 +7,11 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.triggerTimeAdjuster
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.logging import LOGGING_STATUS
 from NuRadioMC.simulation import simulation
-
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
 import logging
-logger = setup_logger(name="")
+
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -23,7 +20,6 @@ triggerSimulatorHighLow = NuRadioReco.modules.trigger.highLowThreshold.triggerSi
 triggerSimulatorSimple = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 
 
 class mySimulation(simulation.simulation):
@@ -60,7 +56,6 @@ class mySimulation(simulation.simulation):
                                     number_concidences=4,  # 4/4 majority logic
                                     trigger_name='surface_dipoles_4of4_3sigma',
                                     set_not_triggered=(not station.has_triggered("simple_threshold")))  # calculate more time consuming ARIANNA trigger only if station passes simple trigger
-        triggerTimeAdjuster.run(evt, station, det)
 
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
@@ -84,7 +79,7 @@ sim = mySimulation(inputfilename=args.inputfilename,
                             write_mode='mini',
                             default_detector_station=101,
                             file_overwrite=True,
-                            log_level=logging.STATUS,
-                            log_level_propagation=logging.WARNING)
+                            log_level=LOGGING_STATUS,
+                            log_level_propagation=LOGGING_STATUS)
 sim.run()
 

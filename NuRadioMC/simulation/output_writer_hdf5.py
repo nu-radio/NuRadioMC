@@ -5,7 +5,9 @@ import h5py
 import yaml
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrans
+import NuRadioMC
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
+from NuRadioReco.utilities import version
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 from NuRadioReco.framework.parameters import showerParameters as shp
@@ -13,9 +15,8 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import emitterParameters as ep
 from NuRadioReco.framework.parameters import particleParameters as pap
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.logging import setup_logger
-
-logger = setup_logger("NuRadioMC.HDF5OutputWriter")
+import logging
+logger = logging.getLogger("NuRadioMC.HDF5OutputWriter")
 
 class outputWriterHDF5:
     """
@@ -38,7 +39,7 @@ class outputWriterHDF5:
         # self._n_showers = len(self._fin['shower_ids'])
 
         # self._hdf5_keys = ['event_group_ids', 'xx', 'yy', 'zz', 'vertex_times',
-        #                    'azimuths', 'zemiths', 'energies', 
+        #                    'azimuths', 'zemiths', 'energies',
         #                    'shower_energies', ''n_interaction',
         #                    'shower_ids', 'event_ids', 'triggered', 'n_samples',
         #                    'dt', 'Tnoise', 'Vrms', 'bandwidth', 'trigger_names']
@@ -97,37 +98,40 @@ class outputWriterHDF5:
         """
         logger.debug("adding event group to output file")
 
-
-
-        # first add atributes to the output file. Attributes of all events should be the same, 
-        # raising an error if not. 
+        # first add atributes to the output file. Attributes of all events should be the same,
+        # raising an error if not.
         trigger_names = []
         extent_array_by = 0
         for sid in event_buffer:
             for eid in event_buffer[sid]:
                 evt = event_buffer[sid][eid]
+
+                # save event attributes
                 for enum_entry in genattrs:
-                    if(evt.has_generator_info(enum_entry)):
+                    if evt.has_generator_info(enum_entry):
                         if enum_entry.name not in self._mout_attributes:
                             self._mout_attributes[enum_entry.name] = evt.get_generator_info(enum_entry)
                         else:  # if the attribute is already present, we need to check if it is the same for all events
                             assert all(np.atleast_1d(self._mout_attributes[enum_entry.name] == evt.get_generator_info(enum_entry)))
+
+                # save station attributes
                 for stn in evt.get_stations():
-                    # save station attributes
-                    tmp_keys = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"]]
-                    for (key_cp, key_hdf5) in tmp_keys:
-                        channel_values = []
-                        for channel in stn.iter_channels():
-                            channel_values.append(channel[key_cp])
+                    station_key_pairs = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"]]
+                    for (key_cp, key_hdf5) in station_key_pairs:
+                        channel_values = [channel[key_cp] for channel in stn.iter_channels(sorted=True)]
+
                         if key_hdf5 not in self._mout_groups_attributes[sid]:
                             self._mout_groups_attributes[sid][key_hdf5] = np.array(channel_values)
                         else:
-                            assert all(np.atleast_1d(self._mout_groups_attributes[sid][key_hdf5] == np.array(channel_values))), f"station {sid} key {key_hdf5} is {self._mout_groups_attributes[sid][key_hdf5]}, but current channel is {np.array(channel_values)}"
+                            assert all(np.atleast_1d(self._mout_groups_attributes[sid][key_hdf5] == np.array(channel_values))), \
+                                f"station {sid} key {key_hdf5} is {self._mout_groups_attributes[sid][key_hdf5]}, but current channel is {np.array(channel_values)}"
+
                     for trigger in stn.get_triggers().values():
                         if trigger.get_name() not in trigger_names:
                             trigger_names.append(trigger.get_name())
                             logger.debug(f"extending data structure by trigger {trigger.get_name()} to output file")
                             extent_array_by += 1
+
         # the available triggers are not available from the start because a certain trigger
         # might only trigger a later event. Therefore we need to extend the array
         # if we find a new trigger
@@ -139,6 +143,7 @@ class outputWriterHDF5:
                     for i in range(len(self._mout[key])):
                         logger.debug(f"extending data structure by {extent_array_by} to output file for key {key}")
                         self._mout[key][i] = self._mout[key][i] + [False] * extent_array_by
+
             for station_id in self._station_ids:
                 sg = self._mout_groups[station_id]
                 if keys[0] in sg:
@@ -155,7 +160,7 @@ class outputWriterHDF5:
                 evt = event_buffer[sid][eid]
                 if self._particle_mode:
                     for shower in evt.get_sim_showers():
-                        if not shower.get_id() in shower_ids:
+                        if shower.get_id() not in shower_ids:
                             logger.debug(f"adding shower {shower.get_id()} to output file")
                             # shower ids might not be in increasing order. We need to sort the hdf5 output later
                             shower_ids.append(shower.get_id())
@@ -184,7 +189,9 @@ class outputWriterHDF5:
                             self.__first_event = False
                 else:  # emitters have different properties, so we need to treat them differently than showers
                     for emitter in evt.get_sim_emitters():
-                        if not emitter.get_id() in shower_ids:  # the key "shower_ids" is also used for emitters and identifies the emitter id. This is done because it is the only way to have the same input files for both shower/particle and emitter simulations. 
+                        # the key "shower_ids" is also used for emitters and identifies the emitter id. This is done because it is
+                        # the only way to have the same input files for both shower/particle and emitter simulations.
+                        if emitter.get_id() not in shower_ids:
                             logger.debug(f"adding shower {emitter.get_id()} to output file")
                             # shower ids might not be in increasing order. We need to sort the hdf5 output later
                             shower_ids.append(emitter.get_id())
@@ -203,14 +210,15 @@ class outputWriterHDF5:
                                             self.__add_parameter(self._mout, keyname, emitter[key], self.__first_event)
 
                             self.__first_event = False
+
                 # now save station data
-                stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash. 
+                stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash.
                 sg = self._mout_groups[sid]
                 self.__add_parameter(sg, 'event_group_ids', evt.get_run_number())
                 self.__add_parameter(sg, 'event_ids', evt.get_id())
                 maximum_amplitudes = []
                 maximum_amplitudes_envelope = []
-                for channel in stn.iter_channels():
+                for channel in stn.iter_channels(sorted=True):
                     maximum_amplitudes.append(channel[chp.maximum_amplitude])
                     maximum_amplitudes_envelope.append(channel[chp.maximum_amplitude_envelope])
                 self.__add_parameter(sg, 'maximum_amplitudes', maximum_amplitudes)
@@ -231,8 +239,8 @@ class outputWriterHDF5:
 
                 self.__add_parameter(sg, 'triggered', stn.has_triggered())
 
-                # depending on the simulation mode we have either showers or emitters but we can 
-                # treat them the same way as long as we only call common member functions such as 
+                # depending on the simulation mode we have either showers or emitters but we can
+                # treat them the same way as long as we only call common member functions such as
                 # `get_id()`
                 iterable = None
                 if self._particle_mode:
@@ -249,9 +257,9 @@ class outputWriterHDF5:
                         # we need to save data per shower, channel and ray tracing solution. Due to the simple table structure
                         # of the hdf5 files we need to preserve the ordering of the showers and channels. As the order in the
                         # NuRadio data structure is different, we need to go through some effort to get the right order.
-                        # The shower ids will be sorted at the very end. 
-                        # The channel ids already have the correct ordering. 
-                        # The ray tracing solutions are also ordered, because the efield object contains the correct ray tracing solution id. 
+                        # The shower ids will be sorted at the very end.
+                        # The channel ids already have the correct ordering.
+                        # The ray tracing solutions are also ordered, because the efield object contains the correct ray tracing solution id.
                         channel_rt_data = {}
                         keys_channel_rt_data = ['travel_times', 'travel_distances']
                         if self._mout_attributes['config']['speedup']['amp_per_ray_solution']:
@@ -265,10 +273,10 @@ class outputWriterHDF5:
                         # important: we need to loop over the channels of the station object, not
                         # the channels present in the sim_station object. This is because the sim
                         # channel object only contains the channels that have a signal, i.e., a ray
-                        # tracing solution and a strong enough Askaryan signal. But we want to loop over all 
+                        # tracing solution and a strong enough Askaryan signal. But we want to loop over all
                         # channels of the station, because we want to save the data for all channels, not only
                         # the ones that have a signal. This also preserves the order of the channels.
-                        for iCh, channel in enumerate(stn.iter_channels()):
+                        for iCh, channel in enumerate(stn.iter_channels(sorted=True)):
                             for efield in stn.get_sim_station().get_electric_fields_for_channels([channel.get_id()]):
                                 if efield.get_shower_id() == shower.get_id():
                                     iS = efield.get_ray_tracing_solution_id()
@@ -279,7 +287,7 @@ class outputWriterHDF5:
                                     channel_rt_data['launch_vectors'][iCh, iS] = efield[efp.launch_vector]
                                     receive_vector = hp.spherical_to_cartesian(efield[efp.zenith], efield[efp.azimuth])
                                     channel_rt_data['receive_vectors'][iCh, iS] = receive_vector
-                                    channel_rt_data['travel_times'][iCh, iS] = efield[efp.nu_vertex_travel_time]
+                                    channel_rt_data['travel_times'][iCh, iS] = efield[efp.nu_vertex_propagation_time]
                                     channel_rt_data['travel_distances'][iCh, iS] = efield[efp.nu_vertex_distance]
 
                                     if self._particle_mode:
@@ -309,9 +317,9 @@ class outputWriterHDF5:
             trigger_times = np.ones((len(shower_ids_stn), len(self._mout_attributes['trigger_names'])), dtype=float) * np.nan
             for eid in event_buffer[sid]:
                 evt = event_buffer[sid][eid]
-                stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash. 
-                # depending on the simulation mode we have either showers or emitters but we can 
-                # treat them the same way as long as we only call common member functions such as 
+                stn = evt.get_station()  # there can only ever be one station per event! If there are more than one station, this line will crash.
+                # depending on the simulation mode we have either showers or emitters but we can
+                # treat them the same way as long as we only call common member functions such as
                 # `get_id()`
                 iterable = None
                 if self._particle_mode:
@@ -371,7 +379,7 @@ class outputWriterHDF5:
 
         if self._particle_mode:
             # we also want to save the first interaction even if it didn't contribute to any trigger
-            # this is important to know the initial neutrino properties (only relevant for the simulation of 
+            # this is important to know the initial neutrino properties (only relevant for the simulation of
             # secondary interactions)
             stn_buffer = event_buffer[self._station_ids[0]]
             evt = stn_buffer[list(stn_buffer.keys())[0]]
@@ -409,45 +417,73 @@ class outputWriterHDF5:
                         self.__add_parameter(self._mout, key, np.nan)
 
 
+    def write_empty_output_file(self, fin_attrs):
+        """
+        Write an empty output file with the given file attributes.
 
+        Parameters:
+            fin_attrs (callable): A function that returns a dictionary of file attributes.
 
-    def end(self):
-        self.write_output_file()
-
-
-    def write_output_file(self, empty=False):
+        Returns:
+            None
+        """
         folder = os.path.dirname(self._output_filename)
         if not os.path.exists(folder) and folder != '':
             logger.warning(f"output folder {folder} does not exist, creating folder...")
             os.makedirs(folder)
         fout = h5py.File(self._output_filename, 'w')
+        # save meta arguments
+        for (key, value) in fin_attrs.items():
+            fout.attrs[key] = value
+        # save NuRadioMC and NuRadioReco versions
+        fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
+        fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
+        fout.close()
 
-        if not empty:
-            logger.status("start saving events")
-            # save data sets
-            # all arrays need to be sorted by shower id
-            sort = np.argsort(np.array(self._mout['shower_ids']))
-            for (key, value) in self._mout.items():
-                logger.debug(f"saving {key} {value} {type(value)}")
-                if np.array(value).dtype.char == 'U':
-                    fout[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))[sort]
+
+    def write_output_file(self):
+        """
+        Write the output file in HDF5 format.
+
+        Returns:
+            bool: False if there are no events to save, True otherwise.
+        """
+        if 'shower_ids' not in self._mout or len(self._mout['shower_ids']) == 0:
+            logger.warning("no events to save, not writing output file")
+            return False
+
+        folder = os.path.dirname(self._output_filename)
+        if not os.path.exists(folder) and folder != '':
+            logger.warning(f"output folder {folder} does not exist, creating folder...")
+            os.makedirs(folder)
+
+        logger.status("Start saving events to hdf5 ...")
+        fout = h5py.File(self._output_filename, 'w')
+
+        # save data sets
+        # all arrays need to be sorted by shower id
+        sort = np.argsort(np.array(self._mout['shower_ids']))
+        for (key, value) in self._mout.items():
+            logger.debug(f"saving {key} {value} {type(value)}")
+            if np.array(value).dtype.char == 'U':
+                fout[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))[sort]
+            else:
+                fout[key] = np.array(value)[sort]
+
+        # save all data sets of the station groups
+        keys_per_event = ['event_group_ids', 'event_ids', 'multiple_triggers_per_event', 'trigger_times_per_event',
+                            'maximum_amplitudes', 'maximum_amplitudes_envelope', 'triggered_per_event']
+        for (key, value) in self._mout_groups.items():
+            sg = fout.create_group("station_{:d}".format(key))
+            if 'shower_id' not in value:
+                continue
+            sort = np.argsort(np.array(value['shower_id']))
+            for (key2, value2) in value.items():
+                # a few arrays are counting values for different events, so we need to sort them
+                if key2 not in keys_per_event:
+                    sg[key2] = np.array(value2)[sort]
                 else:
-                    fout[key] = np.array(value)[sort]
-
-            # save all data sets of the station groups
-            keys_per_event = ['event_group_ids', 'event_ids', 'multiple_triggers_per_event', 'trigger_times_per_event',
-                              'maximum_amplitudes', 'maximum_amplitudes_envelope', 'triggered_per_event']
-            for (key, value) in self._mout_groups.items():
-                sg = fout.create_group("station_{:d}".format(key))
-                if 'shower_id' not in value:
-                    continue
-                sort = np.argsort(np.array(value['shower_id']))
-                for (key2, value2) in value.items():
-                    # a few arrays are counting values for different events, so we need to sort them
-                    if(key2 not in keys_per_event):
-                        sg[key2] = np.array(value2)[sort]
-                    else:
-                        sg[key2] = np.array(value2)
+                    sg[key2] = np.array(value2)
 
         # TODO save detector
         # if isinstance(self._det, detector.rnog_detector.Detector):
@@ -456,29 +492,22 @@ class outputWriterHDF5:
         #     with open(self._detectorfile, 'r') as fdet:
         #         fout.attrs['detector'] = fdet.read()
 
-        if not empty:
-            # save antenna position separately to hdf5 output
-            for station_id in self._mout_groups:
-                n_channels = self._det.get_number_of_channels(station_id)
-                positions = np.zeros((n_channels, 3))
-                for channel_id in range(n_channels):
-                    positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
-                fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
 
-# TODO: Save these attributes
-            #     fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
-            #     fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._integrated_channel_response[station_id].values())
+        # Save station level attributes
+        for station_id in self._mout_groups:
+            n_channels = self._det.get_number_of_channels(station_id)
+            positions = np.zeros((n_channels, 3))
+            for iCh, channel_id in enumerate(self._det.get_channel_ids(station_id)):
+                positions[iCh] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
+            fout[f"station_{station_id:d}"].attrs['antenna_positions'] = positions
+            for key in self._mout_groups_attributes[station_id]:
+                if key not in fout[f"station_{station_id:d}"].attrs:
+                    fout[f"station_{station_id:d}"].attrs[key] = self._mout_groups_attributes[station_id][key]
 
-            # fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
-            # fout.attrs.create("Vrms", self._Vrms, dtype=float)
-            # fout.attrs.create("dt", self._dt, dtype=float)
-            # fout.attrs.create("bandwidth", self._bandwidth, dtype=float)
-            # fout.attrs['n_samples'] = self._n_samples
+        # Store top level attributes
         fout.attrs['config'] = yaml.dump(self._mout_attributes['config'])
 
         # save NuRadioMC and NuRadioReco versions
-        from NuRadioReco.utilities import version
-        import NuRadioMC
         fout.attrs['NuRadioMC_version'] = NuRadioMC.__version__
         fout.attrs['NuRadioMC_version_hash'] = version.get_NuRadioMC_commit_hash()
 
@@ -488,7 +517,9 @@ class outputWriterHDF5:
                     fout.attrs[key] = self._mout_attributes[key]
                 else:
                     logger.warning(f"attribute {key} is None, not saving it")
+
         fout.close()
+        return True
 
     def calculate_Veff(self):
         """
@@ -498,7 +529,7 @@ class outputWriterHDF5:
             float: The calculated effective volume (Veff)
         """
         # calculate effective
-        try: # sometimes not all relevant attributes are set, e.g. for emitter simulations. 
+        try: # sometimes not all relevant attributes are set, e.g. for emitter simulations.
             triggered = remove_duplicate_triggers(self._mout['triggered'], self._mout['event_group_ids'])
             n_triggered = np.sum(triggered)
             n_triggered_weighted = np.sum(np.array(self._mout['weights'])[triggered])

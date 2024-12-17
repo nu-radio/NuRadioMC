@@ -1,15 +1,18 @@
 import os
 import yaml
 import numpy as np
-from NuRadioMC.simulation import simulation2 as sim
+from NuRadioMC.simulation import simulation as sim
 from NuRadioReco.detector import detector
 from NuRadioMC.SignalProp import propagation
+import NuRadioMC.simulation.time_logger
 from NuRadioMC.utilities import medium
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import units
 from datetime import datetime
+import logging
+logger = logging.getLogger('test_raytracing')
 
 """
 This script is an example of how to calculate the efield at observer positions
@@ -20,7 +23,7 @@ General config settings are defined in the NuRadioMC yaml config file.
 The user also needs to specify the medium model (i.e. ice model) and the
 propagation module to use (e.g. the analytic ray tracer).
 """
-
+time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
 # set the ice model
 ice = medium.get_ice_model('southpole_simple')
 # set the propagation module
@@ -52,7 +55,8 @@ showers.append(shower)
 
 # calculate the electric fields at the observer positions from the showers
 sim_station = sim.calculate_sim_efield(showers, sid, cid,
-                         det, propagator, ice, cfg)
+                         det, propagator, ice, cfg,
+                         time_logger=time_logger)
 
 # now let's apply the detector response (antennas and signal chain)
 
@@ -66,7 +70,8 @@ def detector_simulation_filter_amp(evt, station, det):
 
 # applies the detector response to the electric fields (the antennas are defined
 # in the json detector description file)
-sim.apply_det_response_sim(sim_station, det, cfg, detector_simulation_filter_amp)
+sim.apply_det_response_sim(sim_station, det, cfg, detector_simulation_filter_amp,
+                           time_logger=time_logger)
 
 
 # calculate the signal in each channel after antenna and detector response

@@ -5,14 +5,12 @@ import datetime
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.triggerTimeAdjuster
 import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("NuRadioMC.runstrawman")
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -21,7 +19,6 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 triggerSimulator.begin(log_level=logging.WARNING)
 
 class mySimulation(simulation.simulation):
@@ -31,13 +28,12 @@ class mySimulation(simulation.simulation):
 
     def _detector_simulation_trigger(self, evt, station, det):
         triggerSimulator.run(evt, station, det,
-                           threshold_high=0.5 * units.mV,
-                           threshold_low=-0.5 * units.mV,
+                           threshold_high=0.03 * units.V,
+                           threshold_low=-0.03 * units.V,
                            high_low_window=5 * units.ns,
                            coinc_window=30 * units.ns,
                            number_concidences=2,
                            triggered_channels=range(8))
-        triggerTimeAdjuster.run(evt, station, det)
 
 if __name__ == "__main__":
     sim = mySimulation(inputfilename='input_spice.hdf5',

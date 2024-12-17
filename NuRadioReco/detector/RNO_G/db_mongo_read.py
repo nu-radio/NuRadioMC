@@ -12,7 +12,6 @@ import NuRadioReco.utilities.metaclasses
 import astropy.time
 
 import logging
-logging.basicConfig()
 logger = logging.getLogger("NuRadioReco.MongoDBRead")
 logger.setLevel(logging.INFO)
 
@@ -298,11 +297,9 @@ class Database(object):
         # filter out all decommissioned channels and devices
         commissioned_info = copy.deepcopy(stations_for_buffer)
         for key in ['channels', 'devices']:
-            for ientry, entry in enumerate(stations_for_buffer[0][key]):
-                if entry['commission_time'] <= detector_time and entry['decommission_time'] >= detector_time:
-                    pass
-                else:
-                    commissioned_info[0][key].pop(ientry)
+            for entry in stations_for_buffer[0][key]:
+                if not entry['commission_time'] <= detector_time <= entry['decommission_time']:
+                    commissioned_info[0][key].remove(entry)
 
         # transform the output of db.aggregate to a dict
         # dictionarize the channel information
@@ -885,15 +882,15 @@ class Database(object):
             supp_info = {k.replace(component + "_", ""): additional_information[k] for k in additional_information
                          if re.search(component, k)}
 
-            if re.search("golden", component, re.IGNORECASE):
-                collection_component = component.replace("_1", "").replace("_2", "")
-                # load the s21 parameter measurement
-                component_data = self.get_component_data(
-                    collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
+            if re.search("_[0-9]+", component, re.IGNORECASE):
+                collection_suffix = re.findall("(_[0-9]+)", component, re.IGNORECASE)[0]
+                collection_component = component.replace(collection_suffix, "")
             else:
-                # load the s21 parameter measurement
-                component_data = self.get_component_data(
-                    component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
+                collection_component = component
+
+            # load the s21 parameter measurement
+            component_data = self.get_component_data(
+                collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
 
             # add the component name, the weight of the s21 measurement and the actual s21 measurement (component_data) to a combined dictionary
             components_data[component] = {'name': component_id}

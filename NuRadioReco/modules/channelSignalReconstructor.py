@@ -9,8 +9,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
 import logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger('NuRadioReco.channelSignalReconstructor')
+logger = logging.getLogger('NuRadioReco.channelSignalReconstructor')
 
 
 class channelSignalReconstructor:
@@ -19,7 +18,7 @@ class channelSignalReconstructor:
 
     """
 
-    def __init__(self, log_level=logging.WARNING):
+    def __init__(self, log_level=logging.NOTSET):
         self.__t = 0
         logger.setLevel(log_level)
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
@@ -124,9 +123,9 @@ class channelSignalReconstructor:
         SNR = {}
         if (noise_rms == 0) or (noise_int == 0):
             logger.info("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to infinity.")
-            SNR['peak_2_peak_amplitude'] = np.infty
-            SNR['peak_amplitude'] = np.infty
-            SNR['integrated_power'] = np.infty
+            SNR['peak_2_peak_amplitude'] = np.inf
+            SNR['peak_amplitude'] = np.inf
+            SNR['integrated_power'] = np.inf
         else:
 
             SNR['integrated_power'] = np.sum(np.square(trace[signal_window_mask])) - noise_int
@@ -200,7 +199,6 @@ class channelSignalReconstructor:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

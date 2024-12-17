@@ -6,7 +6,7 @@ from six import iteritems
 import pickle
 import logging
 import collections
-logger = logging.getLogger('Station')
+logger = logging.getLogger('NuRadioReco.Station')
 
 
 class Station(NuRadioReco.framework.base_station.BaseStation):
@@ -18,36 +18,143 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         self.__sim_station = None
 
     def set_sim_station(self, sim_station):
+        """
+        Sets the SimStation of the Station. If a SimStation is already present, it is overwritten.
+
+        Parameters
+        ----------
+        sim_station : NuRadioReco.framework.sim_station.SimStation
+            The SimStation to set as the SimStation of the Station.
+        """
         self.__sim_station = sim_station
 
     def add_sim_station(self, sim_station):
-        self.__sim_station = self.__sim_station + sim_station
+        """
+        Adds a SimStation to the Station. If a SimStation is already present, the new SimStation is merged to the existing
+        one.
+
+        Parameters
+        ----------
+        sim_station : NuRadioReco.framework.sim_station.SimStation
+            The SimStation to add to the Station.
+        """
+        if self.__sim_station is None:
+            self.__sim_station = sim_station
+        else:
+            self.__sim_station = self.__sim_station + sim_station
 
     def get_sim_station(self):
+        """
+        Returns the SimStation of the Station.
+
+        Returns
+        -------
+        NuRadioReco.framework.sim_station.SimStation
+            The SimStation of the Station.
+        """
         return self.__sim_station
 
     def has_sim_station(self):
+        """
+        Returns whether the Station has a SimStation.
+
+        Returns
+        -------
+        bool
+            True if the Station has a SimStation, False otherwise.
+        """
         return self.__sim_station is not None
 
-    def iter_channels(self, use_channels=None):
-        for channel_id, channel in iteritems(self.__channels):
-            if(use_channels is None):
-                yield channel
-            else:
-                if channel_id in use_channels:
-                    yield channel
+    def iter_channels(self, use_channels=None, sorted=False):
+        """
+        Iterates over all channels of the station. If `use_channels` is not None, only the channels with the ids in
+        `use_channels` are iterated over. If `sorted` is True, the channels are iterated over in ascending order of their
+        ids.
+
+        Parameters
+        ----------
+        use_channels : list of int, optional
+            List of channel ids to iterate over. If None, all channels are iterated over.
+        sorted : bool, optional
+            If True, the channels are iterated over in ascending order of their ids.
+
+        Yields
+        ------
+        NuRadioReco.framework.channel.Channel
+            The next channel in the iteration.
+        """
+        channel_ids = self.get_channel_ids()
+
+        if use_channels is not None:
+            channel_ids = [channel_id for channel_id in use_channels if channel_id in channel_ids]
+
+        if sorted:
+            channel_ids.sort()
+
+        for channel_id in channel_ids:
+            yield self.get_channel(channel_id)
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
 
+    def iter_channel_group(self, channel_group_id):
+        found_channel_group = False
+        for channel_id, channel in iteritems(self.__channels):
+            if(channel.get_group_id() == channel_group_id):
+                found_channel_group = True
+                yield channel
+        if found_channel_group == False:
+            msg = f"channel group id {channel_group_id} is not present"
+            raise ValueError(msg)
+
     def get_number_of_channels(self):
         return len(self.__channels)
 
-    def get_channel_ids(self):
-        return list(self.__channels.keys())
+    def get_channel_ids(self, return_group_ids=False):
+        """
+        Return all channel ids in the station
+
+        Parameters
+        ----------
+        return_group_ids : bool, default: False
+            If True, return a list of channel_group_ids
+            instead of channel ids. Note that if no channel group ids
+            are defined, these are the same as the channel ids
+
+        Returns
+        -------
+        channel_ids : list
+            List of all channel ids
+        """
+        if return_group_ids:
+            channel_ids = set() # we use a set to avoid duplicates
+            for channel in self.iter_channels():
+                channel_ids.add(channel.get_group_id())
+        else:
+            channel_ids = self.__channels.keys()
+
+        return list(channel_ids)
 
     def add_channel(self, channel):
         self.__channels[channel.get_id()] = channel
+
+    def has_channel(self, channel_id):
+        return channel_id in self.__channels
+
+    def remove_channel(self, channel_id):
+        """
+        Removes a channel from the station by deleting is from the channels dictionary. The `channel_id`
+        should be the id of the Channel, but supplying the Channel object itself is also supported.
+
+        Parameters
+        ----------
+        channel_id : int or NuRadioReco.framework.channel.Channel
+            The Channel (id) to remove from the Station.
+        """
+        if isinstance(channel_id, NuRadioReco.framework.channel.Channel):
+            del self.__channels[channel_id.get_id()]
+        else:
+            del self.__channels[channel_id]
 
     def set_reference_reconstruction(self, reference):
         if reference not in ['RD', 'MC']:
