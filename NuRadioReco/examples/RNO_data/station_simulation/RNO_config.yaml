@@ -1,0 +1,5 @@
+propagation:
+  ice_model: greenland_simple
+  attenuation_model: GL1
+
+noise: True

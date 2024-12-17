@@ -13,7 +13,7 @@ from datetime import datetime
 from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 import warnings
-from astropy.utils.exceptions import ErfaWarning
+from erfa import ErfaWarning
 import NuRadioReco.utilities.metaclasses
 
 logger = logging.getLogger('NuRadioReco.detector')
@@ -607,9 +607,10 @@ class DetectorBase(object):
             'mooresbay': (-78.74, 165.09),
             'southpole': (-90., 0.),
             'summit': (72.57, -38.46),
-            'lofar': (52.92, 6.87)
+            'lofar': (52.92, 6.87),
+            'ska': (-26.825, 116.764),
         }
-        site = self.get_site(station_id)
+        site = self.get_site(station_id).lower()
         if site in sites.keys():
             return sites[site]
         return (None, None)

@@ -10,7 +10,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import logging
-logger = logging.getLogger('stationSignalReconstructor')
+logger = logging.getLogger('NuRadioReco.stationSignalReconstructor')
 
 
 class electricFieldSignalReconstructor:
@@ -26,12 +26,11 @@ class electricFieldSignalReconstructor:
         self.begin()
 
     def begin(self, signal_window_pre=10 * units.ns, signal_window_post=40 * units.ns, noise_window=100 * units.ns,
-              log_level=None):
+              log_level=logging.NOTSET):
         self.__signal_window_pre = signal_window_pre
         self.__signal_window_post = signal_window_post
         self.__noise_window = noise_window
-        if(log_level is not None):
-            logger.setLevel(log_level)
+        logger.setLevel(log_level)
 
     @register_run()
     def run(self, evt, station, det, debug=False):

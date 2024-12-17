@@ -5,7 +5,7 @@ import NuRadioReco.framework.station
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.framework.parameters import stationParameters as stnp
 import logging
-logger = logging.getLogger('readCoREASStation')
+logger = logging.getLogger('NuRadioReco.coreas.readCoREASStation')
 
 
 class readCoREASStation:

@@ -22,13 +22,12 @@ class correlationDirectionFitter:
         self.__azimuth = []
         self.__delta_zenith = []
         self.__delta_azimuth = []
-        self.logger = logging.getLogger('correlationDirectionFitter')
+        self.logger = logging.getLogger('NuRadioReco.correlationDirectionFitter')
         self.__debug = None
         self.begin()
 
-    def begin(self, debug=False, log_level=None):
-        if(log_level is not None):
-            self.logger.setLevel(log_level)
+    def begin(self, debug=False, log_level=logging.NOTSET):
+        self.logger.setLevel(log_level)
         self.__debug = debug
 
     @register_run()
