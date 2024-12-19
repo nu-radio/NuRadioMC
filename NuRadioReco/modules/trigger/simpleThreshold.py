@@ -1,28 +1,31 @@
+import numpy as np
+import time
+import logging
+from datetime import timedelta
+
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import SimpleThresholdTrigger
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
-import numpy as np
-import time
-import logging
+
 
 
 def get_threshold_triggers(trace, threshold):
     """
-    calculats a simple threshold trigger
+    Calculats a simple threshold trigger.
 
     Parameters
     ----------
     trace: array of floats
-        the signal trace
+        The signal trace
     threshold: float
-        the threshold
-    
+        The threshold
+
     Returns
     -------
     triggered bins: array of bools
-        the bins where the trigger condition is satisfied
+        The bins where the trigger condition is satisfied
     """
 
     return np.abs(trace) >= threshold
@@ -49,7 +52,7 @@ class triggerSimulator:
             coinc_window=200 * units.ns,
             trigger_name='default_simple_threshold'):
         """
-        simulate simple trigger logic, no time window, just threshold in all channels
+        Simulate simple trigger logic, no time window, just threshold in all channels
 
         Parameters
         ----------
@@ -75,56 +78,64 @@ class triggerSimulator:
 
         sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
         dt = 1. / sampling_rate
-        triggerd_bins_channels = []
+
         if triggered_channels is None:
             for channel in station.iter_channels():
                 channel_trace_start_time = channel.get_trace_start_time()
                 break
         else:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+
+        triggerd_bins_channels = []
         channels_that_passed_trigger = []
         for channel in station.iter_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 self.logger.debug("skipping channel {}".format(channel_id))
                 continue
+
             if channel.get_trace_start_time() != channel_trace_start_time:
                 self.logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
+
             trace = channel.get_trace()
-            if(isinstance(threshold, dict)):
+
+            if isinstance(threshold, dict):
                 threshold_tmp = threshold[channel_id]
             else:
                 threshold_tmp = threshold
+
             triggerd_bins = get_threshold_triggers(trace, threshold_tmp)
             triggerd_bins_channels.append(triggerd_bins)
-            if True in triggerd_bins:
+
+            if np.any(triggerd_bins):
                 channels_that_passed_trigger.append(channel.get_id())
 
         has_triggered, triggered_bins, triggered_times = get_majority_logic(
             triggerd_bins_channels, number_concidences, coinc_window, dt)
+
         # set maximum signal aplitude
         max_signal = 0
-        if(has_triggered):
+        if has_triggered:
             for channel in station.iter_channels():
                 max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
-        trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels,
-                                         number_concidences)
+
+        trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels, number_concidences)
         trigger.set_triggered_channels(channels_that_passed_trigger)
+
         if has_triggered:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time) #trigger_time= earliest trigger_time from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction
+            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time)
             self.logger.debug("station has triggered")
         else:
             trigger.set_triggered(False)
             self.logger.debug("station has NOT triggered")
+
         station.set_trigger(trigger)
 
         self.__t += time.time() - t
 
     def end(self):
-        from datetime import timedelta
-        self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         self.logger.info("total time used by this module is {}".format(dt))
         return dt

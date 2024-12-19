@@ -179,10 +179,10 @@ def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
     elif window_samples is None:
         window_samples = len(h1)
 
-    stokes = np.array([[
-            np.sum(i[j:j+window_samples]) for j in range(len(h1)-window_samples+1)]
-        for i in stokes]
-    ) / window_samples
+    stokes = np.asarray([
+        scipy.signal.convolve(i, np.ones(window_samples), mode='valid') for i in stokes
+    ])
+    stokes /= window_samples
 
     if squeeze:
         return np.squeeze(stokes)
