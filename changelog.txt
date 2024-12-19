@@ -4,7 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 2.3.0-dev
 new features:
-- added module to create CR templates for shallow RNO-G channels
+- added module to create CR templates for RNO-G channels
 - added function to calculate correlation between two traces using a sliding window (with variable window size)
 - Enhanced detector_browser to allow display RNO-G database detector
 - Added download utility unifying download of antenna models/proposal tables/shower

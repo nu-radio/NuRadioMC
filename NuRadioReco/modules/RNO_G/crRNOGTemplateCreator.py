@@ -40,8 +40,8 @@ class crRNOGTemplateCreator:
         self.__template_sample_number = None
 
         self.__antenna_rotation = None
-        self.__Efield_width = None
-        self.__Efield_amplitudes = None
+        self.__efield_width = None
+        self.__efield_amplitudes = None
         self.__template_event_id = None
 
         self.__cr_zenith = None
@@ -62,11 +62,13 @@ class crRNOGTemplateCreator:
 
                 Parameters
                 ----------
-                detector_file: string
+                detector_file: str
                     path to the detector file used for the template set
-                template_save_path: string
+                template_save_path: str
                     path to a folder where the templates are stored
-                logger_level: string or logging variable
+                debug: bool, default: False
+                    enable/disable debug mode
+                logger_level: str or int, optional
                     Set verbosity level for logger (default: logging.NOTSET)
                 """
 
@@ -75,7 +77,7 @@ class crRNOGTemplateCreator:
         self.logger.setLevel(logger_level)
 
         # set up the efield to voltage converter
-        self.__efieldToVoltageConverter.begin(debug=False)
+        self.__efieldToVoltageConverter.begin(debug=debug)
 
         self.__debug = debug
 
@@ -83,8 +85,8 @@ class crRNOGTemplateCreator:
 
 
     def set_template_parameter(self, template_run_id:list[int]=[0, 0, 0], template_event_id:list[int]=[0, 1, 2], template_station_id:list[int]=[101, 101, 101], 
-                               template_channel_id:list[int]=[0, 0, 0], Efield_width:list[float]=[5, 4, 2], antenna_rotation:list[float]=[160, 160, 160], 
-                               Efield_amplitudes:list[float]=[-0.2, 0.8], cr_zenith:list[float]=[55, 55, 55], cr_azimuth:list[float]=[0, 0, 0],
+                               template_channel_id:list[int]=[0, 0, 0], efield_width:list[float]=[5, 4, 2], antenna_rotation:list[float]=[160, 160, 160], 
+                               efield_amplitudes:list[float]=[-0.2, 0.8], cr_zenith:list[float]=[55, 55, 55], cr_azimuth:list[float]=[0, 0, 0],
                                sampling_rate:float=3.2 * units.GHz, number_of_samples:int=2048) ->None:
         """
         set_parameter_templates method
@@ -93,27 +95,27 @@ class crRNOGTemplateCreator:
 
         Parameters
         ----------
-        template_run_id: list of int
+        template_run_id: list of int, default: [0,0,0]
             run ids of the artificial templates
-        template_event_id: list of int
+        template_event_id: list of int, default: [0,1,2]
             event ids of the artificial templates
-        template_station_id:
+        template_station_id: list of int, default: [101,101,101]
             station ids of the artificial templates
-        template_channel_id:
+        template_channel_id: list of int, default: [0,0,0]
             channel ids of the artificial templates
-        Efield_width: list of int
+        efield_width: list of int, default: [5,4,2]
             width (in samples) of the gaussian function used to create the Efield
-        antenna_rotation: list of int
+        antenna_rotation: list of int, default: [160,160,160]
             rotation angle of the LPDA
-        Efield_ratio: list
+        efield_amplitudes: list of float, default:[-0.2,0.8]
             array with the amplitudes of the Efield components [E_theta, E_phi]
-        cr_zenith: list of int
+        cr_zenith: list of int, default: [55,55,55]
             zenith angle of the cr for the template
-        cr_azimuth: list of int
+        cr_azimuth: list of int, default: [0,0,0]
             azimuth angle of the cr for the template
-        sampling_rate: float
+        sampling_rate: float, default: 3.2
             sampling rate used to build the template
-        number_of_samples: int
+        number_of_samples: int, default: 2048
             number of samples used for the trace
         """
 
@@ -122,8 +124,8 @@ class crRNOGTemplateCreator:
         self.__template_station_id = template_station_id
         self.__template_channel_id = template_channel_id
 
-        self.__Efield_width = Efield_width
-        self.__Efield_amplitudes = Efield_amplitudes
+        self.__efield_width = efield_width
+        self.__efield_amplitudes = efield_amplitudes
         self.__antenna_rotation = antenna_rotation
 
         self.__sampling_rate = sampling_rate
@@ -142,18 +144,26 @@ class crRNOGTemplateCreator:
 
         Parameters
         ----------
-        template_filename: string
+        template_filename: str, default: 'templates_cr_station_101.p'
             filename of the pickle file that will be used to store the templates
-        include_hardware_response: boolean
+        include_hardware_response: bool, default: True
             if true, the hardware response of the surface amps (hardwareResponseIncorporator) is applied
-        hardware_response_source: string
+        hardware_response_source: str, default: "json"
             define if the hardware response is loaded from the json ('json') or from the database ('database')
-        return_templates: boolean
+        return_templates: bool, default: False
             if true, the template traces are returned in an addition to saving them in a pickle file
+        bandpass_filter: dict, optional
+            If a dictionary is given, a bandpass filter will be applied to the templates. The dictionary should hold all arguments that are needed for the channelBandPassFilter.
+        
+        Returns
+        -------
+        template_event: list of `NuRadioReco.framework.event.Event` or None
+            If return templates is True, a list with the templates is returned.
         """
 
         # if no parameters are set, the standard parameters are used
-        if self.__Efield_width is None:
+        if self.__efield_width is None:
+            self.logger.info("The default parameters are used for template creation.")
             self.set_template_parameter()
 
         template_events = []
@@ -163,7 +173,7 @@ class crRNOGTemplateCreator:
             for cra in list(set(self.__cr_azimuth)):
                 # loop over the different antenna rotation angles:
                 templates = {}
-                for rid, eid, sid, cid, e_width, antrot, cr_zen, cr_az in zip(self.__template_run_id, self.__template_event_id, self.__template_station_id, self.__template_channel_id, self.__Efield_width, self.__antenna_rotation, self.__cr_zenith, self.__cr_azimuth):
+                for rid, eid, sid, cid, e_width, antrot, cr_zen, cr_az in zip(self.__template_run_id, self.__template_event_id, self.__template_station_id, self.__template_channel_id, self.__efield_width, self.__antenna_rotation, self.__cr_zenith, self.__cr_azimuth):
                     if cr_zen == crz and cr_az == cra:
                         # create the detector
                         det_temp = detector.generic_detector.GenericDetector(json_filename=self.__detector_file, antenna_by_depth=False, create_new=True, log_level='ERROR')
@@ -173,14 +183,16 @@ class crRNOGTemplateCreator:
                         station_time = datetime.datetime(2025, 10, 1)
 
                         temp_evt = _create_Efield(det_temp, rid, eid, cid, sid, station_time, self.__template_sample_number, e_width,
-                                                 self.__Efield_amplitudes[1], self.__Efield_amplitudes[0], cr_zen, cr_az, self.__sampling_rate, self.__debug)
+                                                 self.__efield_amplitudes[1], self.__efield_amplitudes[0], cr_zen, cr_az, self.__sampling_rate, self.__debug)
 
                         self.__efieldToVoltageConverter.run(temp_evt, temp_evt.get_station(sid), det_temp)
 
                         if include_hardware_response:
                             if hardware_response_source == 'json':
+                                self.logger.info("The placeholder hardware response from NuRadioMC is applied to the templates.")
                                 self.__hardwareResponseIncorporator.run(temp_evt, temp_evt.get_station(sid), det_temp, sim_to_data=True)
                             elif hardware_response_source == 'database':
+                                self.logger.info("The hardware response from the database is applied to the templates.")
                                 # create a rno-g detetcor to load the hardware response
                                 rnog_det = detector.Detector(source="rnog_mongo", log_level=logging.WARNING, always_query_entire_description=False,
                                                              database_connection='RNOG_public', select_stations=sid)
@@ -190,6 +202,7 @@ class crRNOGTemplateCreator:
 
                         if bandpass_filter is not None:
                             # apply the channelBandPassFilter
+                            self.logger.info("The channelBandPassFilter is applied.")
                             self.__channelBandPassFilter.run(temp_evt, temp_evt.get_station(sid), det_temp, **bandpass_filter)
 
                         if self.__debug:
@@ -211,6 +224,7 @@ class crRNOGTemplateCreator:
         # write as pickle file
         with open(os.path.join(self.__template_save_path, template_filename), "wb") as pickle_file:
             pickle.dump([save_dic], pickle_file)
+            self.logger.info(f"The templates are saved to {os.path.join(self.__template_save_path, template_filename)}")
         if return_templates:
             return template_events
 
