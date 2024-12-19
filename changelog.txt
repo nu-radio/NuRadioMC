@@ -2,6 +2,23 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 3.1.0-dev
+new features:
+- created module and files to retrieve cable and RCU responses for LOFAR
+- added module to incorporate the LOFAR hardware response into the signals
+- added files containing the coefficients for the LOFAR Galactic calibration module in utilities/data/galactic_calibration
+- added LOFAR modules to fit the arrival direction using a planewave fit and to visualize the results of the pipeline
+- added support for LBA INNER in the LOFAR reader
+- added LOFAR detector description in JSON format
+- cleaned up the LOFAR beamforming utilities module
+- updated logging in all LOFAR modules
+- added support for more Galactic noise models in channelGalacticNoiseAdder
+- added support for "ant_mode" keyword in detector description
+- added option to choose dipole orientation when creating the LOFAR LBA antenna pattern
+
+bugfixes:
+-
+
 version 3.0
 NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enabling long-awaited features such as:
 - exposing functions to calculate voltage traces from showers for stand-alone use (needed e.g. for Likelihood forward folding reconstruction)
