@@ -2,7 +2,7 @@ import numpy as np
 import os
 from NuRadioReco.utilities import units
 import logging
-import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 
 logger = logging.getLogger('analog_components')
 

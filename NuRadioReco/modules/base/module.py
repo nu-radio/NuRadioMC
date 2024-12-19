@@ -5,7 +5,7 @@ import NuRadioReco.framework.base_station
 import NuRadioReco.detector.detector_base
 import logging
 import inspect
-import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 
 def setup_logger(name="NuRadioReco", level=logging.WARNING):
 

@@ -3,7 +3,7 @@ from six import iteritems
 try:
     import cPickle as pickle
 except ImportError:
-    import pickle
+    from NuRadioReco.utilities.io_utilities import pickle
 import numpy as np
 
 

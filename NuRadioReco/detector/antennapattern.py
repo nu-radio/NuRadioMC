@@ -6,7 +6,7 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems as cs
 from scipy import constants
 import logging
-import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 import csv
 import cmath
 
