@@ -1,4 +1,4 @@
-import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 import NuRadioReco.framework.hybrid_shower
 
 

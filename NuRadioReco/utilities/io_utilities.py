@@ -1,4 +1,44 @@
 import pickle
+import numpy as np
+import io
+
+# we overwrite the default pickling mechanism for numpy arrays
+# and scalars. We store arrays using np.save / np.load,
+# and scalars by explicit casting to built-in Python types
+# (note that this upcasts some types, e.g. np.float32 to float)
+# This allows to maintain compatibility across numpy 2.0
+
+def _pickle_numpy_array(arr):
+    dummy_file = io.BytesIO()
+    np.save(dummy_file, arr)
+    return _unpickle_numpy_array, (dummy_file.getvalue(),)
+
+def _unpickle_numpy_array(data):
+    dummy_file = io.BytesIO(data)
+    return np.load(dummy_file)
+
+def _pickle_numpy_scalar(i):
+    if isinstance(i, float):
+        return float, (float(i),)
+    elif isinstance(i, int):
+        return int, (int(i),)
+    elif isinstance(i, complex):
+        return complex, (complex(i),)
+    elif isinstance(i, bool):
+        return bool, (bool(i),)
+    else:
+        raise TypeError(f"Type of scalar {i} ({type(i)}) is not one of float, int, complex or bool.")
+
+# the __reduce__ methods are overwritten by pickle.dispatch_table
+# see https://docs.python.org/3/library/pickle.html#pickle.Pickler.dispatch_table
+pickle.dispatch_table[np.ndarray] = _pickle_numpy_array
+
+# there are multiple numpy scalar types (float64, float32 etc.)
+# we overwrite the pickling __reduce__ for all of them
+# note that this might upcast in some cases
+for dtype in np.ScalarType:
+    if dtype.__module__ == 'numpy':
+        pickle.dispatch_table[dtype] = _pickle_numpy_scalar
 
 
 def read_pickle(filename, encoding='latin1'):

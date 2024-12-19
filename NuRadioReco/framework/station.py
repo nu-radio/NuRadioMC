@@ -3,7 +3,7 @@ import NuRadioReco.framework.base_station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
 from six import iteritems
-import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 import logging
 import collections
 logger = logging.getLogger('Station')

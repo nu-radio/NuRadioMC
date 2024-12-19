@@ -4,7 +4,7 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import io_utilities, units
 import logging
-import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 from numpy import testing
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('test_raytracing')

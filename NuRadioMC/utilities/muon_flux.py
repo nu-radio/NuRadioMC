@@ -1,7 +1,7 @@
 from NuRadioReco.utilities import units
 import numpy as np
 import os
-import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 from scipy.interpolate import interp1d
 from MCEq.core import MCEqRun
 import crflux.models as crf

@@ -10,7 +10,7 @@ from scipy.interpolate import interp1d
 from NuRadioMC.simulation.simulation import pretty_time_delta
 from NuRadioMC.EvtGen.generator import write_events_to_hdf5
 from NuRadioMC.utilities import inelasticities
-import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 import os
 import time
 import logging

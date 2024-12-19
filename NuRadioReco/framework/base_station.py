@@ -10,7 +10,7 @@ import NuRadioReco.framework.parameter_serialization
 try:
     import cPickle as pickle
 except ImportError:
-    import pickle
+    from NuRadioReco.utilities.io_utilities import pickle
 import logging
 import collections
 
