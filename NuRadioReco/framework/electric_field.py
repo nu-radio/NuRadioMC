@@ -2,10 +2,7 @@ from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
-try:
-    import cPickle as pickle
-except ImportError:
-    from NuRadioReco.utilities.io_utilities import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 import logging
 logger = logging.getLogger('electric_field')
 

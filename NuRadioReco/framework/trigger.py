@@ -1,9 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from six import iteritems
-try:
-    import cPickle as pickle
-except ImportError:
-    from NuRadioReco.utilities.io_utilities import pickle
+from NuRadioReco.utilities.io_utilities import pickle
 import numpy as np
 
 
