@@ -48,7 +48,7 @@ Sphinx = "*"
 sphinx-rtd-theme = "*"
 numpydoc = "*"
 proposal = "7.6.2"
-pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
+pygdsm = {git = "https://github.com/sjoerd-bouma/pygdsm"}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
 pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
 MCEq = "*"
