@@ -2681,6 +2681,23 @@ class ray_tracing(ray_tracing_base):
         ]
 
     def get_raytracing_output(self, i_solution):
+        """
+        Get the output of the ray tracing for a specific solution
+
+        Parameters
+        ----------
+        i_solution: int
+            Index of the raytracing solution
+
+        Returns
+        -------
+        output_dict: dict
+            Dictionary containing the output of the ray tracing.
+            The C_0 and C_1 parameters are the parameters of the analytic function that describes the ray path.
+            The solution type is the type of the solution (1: direct, 2:refracted, 3: reflected off the surface).
+            The reflection parameter specifies the number of bottom reflections (in case of reflective layers in the ice).
+            The reflection case specifies if the ray starts upward or downward (1: upward, 2: downward) (only relevant if bottom reflection > 0).
+        """
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
         else:
