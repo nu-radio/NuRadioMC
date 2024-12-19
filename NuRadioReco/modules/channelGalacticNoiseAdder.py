@@ -286,7 +286,7 @@ class channelGalacticNoiseAdder:
                 dt = geometryUtilities.get_time_delay_from_direction(
                     curr_fresnel_zenith, azimuth, channel_pos, n=curr_n)
 
-                delta_phases = - 2*np.pi * freqs[passband_filter] * dt
+                delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 # add random polarizations and phase to electric field
                 polarizations = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
