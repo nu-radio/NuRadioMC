@@ -18,13 +18,13 @@ def _unpickle_numpy_array(data):
     return np.load(dummy_file)
 
 def _pickle_numpy_scalar(i):
-    if isinstance(i, float):
+    if isinstance(i, np.floating):
         return float, (float(i),)
-    elif isinstance(i, int):
+    elif isinstance(i, np.integer):
         return int, (int(i),)
-    elif isinstance(i, complex):
+    elif isinstance(i, np.complexfloating):
         return complex, (complex(i),)
-    elif isinstance(i, bool):
+    elif isinstance(i, np.bool_):
         return bool, (bool(i),)
     else:
         raise TypeError(f"Type of scalar {i} ({type(i)}) is not one of float, int, complex or bool.")
