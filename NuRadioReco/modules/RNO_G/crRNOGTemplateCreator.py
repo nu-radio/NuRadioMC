@@ -135,7 +135,7 @@ class crRNOGTemplateCreator:
         self.__cr_azimuth = cr_azimuth
 
 
-    def run(self, template_filename:str='templates_cr_station_101.p', include_hardware_response:bool=True, hardware_response_source:str='json', 
+    def run(self, template_filename:str='templates_cr_station_101.pickle', include_hardware_response:bool=True, hardware_response_source:str='json', 
             return_templates:bool=False, bandpass_filter:None|dict[str,Any]=None) -> None|list[Event]:
         """
         run method
@@ -144,7 +144,7 @@ class crRNOGTemplateCreator:
 
         Parameters
         ----------
-        template_filename: str, default: 'templates_cr_station_101.p'
+        template_filename: str, default: 'templates_cr_station_101.pickle'
             filename of the pickle file that will be used to store the templates
         include_hardware_response: bool, default: True
             if true, the hardware response of the surface amps (hardwareResponseIncorporator) is applied
