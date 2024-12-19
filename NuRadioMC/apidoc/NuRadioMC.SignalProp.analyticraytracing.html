@@ -1719,7 +1719,7 @@ ray tracing solutions in 3D for two arbitrary points x1 and x2</p>
 <td><p>Function for the time trace propagation according to the polarization change due to birefringence.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
-<td><p>Write parameters that are specific to this raytracer into the output data.</p></td>
+<td><p>Get the output of the ray tracing for a specific solution</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
 <td><p>calculates the receive vector (in 3D) of solution iS</p></td>
@@ -1864,7 +1864,7 @@ default: True if CPP version is available</p>
 <td><p>Function for the time trace propagation according to the polarization change due to birefringence.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
-<td><p>Write parameters that are specific to this raytracer into the output data.</p></td>
+<td><p>Get the output of the ray tracing for a specific solution</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
 <td><p>calculates the receive vector (in 3D) of solution iS</p></td>
@@ -2419,18 +2419,22 @@ to this raytracer</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output">
 <span class="sig-name descname"><span class="pre">get_raytracing_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_raytracing_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="Permalink to this definition"></a></dt>
-<dd><p>Write parameters that are specific to this raytracer into the output data.</p>
+<dd><p>Get the output of the ray tracing for a specific solution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>i_solution: int</strong></dt><dd><p>The index of the raytracing solution</p>
+<dt><strong>i_solution: int</strong></dt><dd><p>Index of the raytracing solution</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>dictionary with the keys matching the parameter names specified in get_output_parameters and the values being</dt><dd></dd>
-<dt>the results from the raytracing</dt><dd></dd>
+<dt>output_dict: dict</dt><dd><p>Dictionary containing the output of the ray tracing.
+The C_0 and C_1 parameters are the parameters of the analytic function that describes the ray path.
+The solution type is the type of the solution (1: direct, 2:refracted, 3: reflected off the surface).
+The reflection parameter specifies the number of bottom reflections (in case of reflective layers in the ice).
+The reflection case specifies if the ray starts upward or downward (1: upward, 2: downward) (only relevant if bottom reflection &gt; 0).</p>
+</dd>
 </dl>
 </dd>
 </dl>

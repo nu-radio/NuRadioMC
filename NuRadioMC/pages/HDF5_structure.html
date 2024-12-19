@@ -878,65 +878,65 @@ station triggered, with which amplitude, etc. The same approach works for <code 
 <td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>)</p></td>
 <td><p>The event ids of each event that triggered in that station. This one is for every shower</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">shower_id</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>)</p></td>
+<td><p>The Shower ids of showers that triggered the selected station</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_amp_shower_and_ray</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
+<td><p>Maximum amplitude per shower, channel and ray tracing solution.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">maximum_amplitudes</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_events</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>)</p></td>
+<td><p>Maximum amplitude per event and channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">maximum_amplitudes_envelope</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_events</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>)</p></td>
+<td><p>Maximum amplitude of the hilbert envelope for each event and channel</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">multiple_triggers</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>)</p></td>
+<td><p>A boolean array that specifies if a shower contributed to an event that fulfills a certain trigger. The index of the trigger can be translated to the trigger name via the attribute <code class="docutils literal notranslate"><span class="pre">trigger_names</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">multiple_triggers_per_event</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_events</span></code>, <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>)</p></td>
+<td><p>A boolean array that specifies if each event fulfilled a certain trigger. The index of the trigger can be translated to the trigger name via the attribute <code class="docutils literal notranslate"><span class="pre">trigger_names</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">polarization</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>, <code class="docutils literal notranslate"><span class="pre">3</span></code>)</p></td>
+<td><p>3D coordinates of the polarization vector at the antenna in cartesian coordinates. (The receive vector (which is opposite to the propagation direction) was used to rotate from spherical/on-sky coordinates to cartesian coordinates). The polarization vector does not include any propagation effects that could change the polarization, such as different reflectivities at the surface for the p and s polarization component.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_C0</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
+<td><p>One of two parameters specifying the <strong>analytic</strong> ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_C1</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
+<td><p>One of two parameters specifying the <strong>analytic</strong> ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_reflection</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
+<td><p>The number of bottom reflections (This variable is only non-zero if a reflection layer was defined in the ice model and if ‘propagation.n_reflections’ was set to a value larger than 0 in the config.yaml file.)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_reflection_case</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
+<td><p>Only relevant for bottom reflections. 1: rays start upwards, 2: rays start downwards</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_solution_type</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
+<td><p>The type of the ray tracing solution. 0: direct, 1: refracted, 2: reflected (off the surface)  (A refracted ray is defined as a ray that has a turning point, i.e. if it transitions from upward going to downward going; a reflected ray is defined if it has a surface reflection.)</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">focusing_factor</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
-<td></td>
+<td><p>The focusing factor calculated by the propagation module.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">launch_vectors</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>, <code class="docutils literal notranslate"><span class="pre">3</span></code>)</p></td>
 <td><p>3D (Cartesian) coordinates of the launch vector of each ray tracing solution, per shower and channel.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_amp_shower_and_ray</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
-<td><p>Maximum amplitude per shower, channel and ray tracing solution.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">maximum_amplitudes</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_events</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>)</p></td>
-<td><p>Maximum amplitude per event and channel</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">maximum_amplitudes_envelope</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_events</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>)</p></td>
-<td><p>Maximum amplitude of the hilbert envelope for each event and channel</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">multiple_triggers</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>)</p></td>
-<td><p>A boolean array that specifies if a shower contributed to an event that fulfills a certain trigger. The index of the trigger can be translated to the trigger name via the attribute <code class="docutils literal notranslate"><span class="pre">trigger_names</span></code>.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">multiple_triggers_per_event</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_events</span></code>, <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>)</p></td>
-<td><p>A boolean array that specifies if each event fulfilled a certain trigger. The index of the trigger can be translated to the trigger name via the attribute <code class="docutils literal notranslate"><span class="pre">trigger_names</span></code>.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">polarization</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>, <code class="docutils literal notranslate"><span class="pre">3</span></code>)</p></td>
-<td><p>3D coordinates of the polarization vector at the antenna in cartesian coordinates. (The receive vector (which is opposite to the propagation direction) was used to rotate from spherical/on-sky coordinates to cartesian coordinates). The polarization vector does not include any propagation effects that could change the polarization, such as different reflectivities at the surface for the p and s polarization component.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_C0</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
-<td><p>One of two parameters specifying the <strong>analytic</strong> ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_C1</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
-<td><p>One of two parameters specifying the <strong>analytic</strong> ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_reflection</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_reflection_case</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_solution_type</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">receive_vectors</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">receive_vectors</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>, <code class="docutils literal notranslate"><span class="pre">3</span></code>)</p></td>
 <td><p>3D (Cartesian) coordinates of the receive vector of each ray tracing solution, per shower and channel.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">shower_id</span></code></p></td>
-<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>)</p></td>
-<td><p>The Shower ids of showers that triggered the selected station</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">time_shower_and_ray</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>

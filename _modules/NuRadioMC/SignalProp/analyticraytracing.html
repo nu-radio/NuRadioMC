@@ -3298,6 +3298,23 @@
         <span class="p">]</span></div>
 
 <div class="viewcode-block" id="ray_tracing.get_raytracing_output"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output">[docs]</a>    <span class="k">def</span> <span class="nf">get_raytracing_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the output of the ray tracing for a specific solution</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        i_solution: int</span>
+<span class="sd">            Index of the raytracing solution</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        output_dict: dict</span>
+<span class="sd">            Dictionary containing the output of the ray tracing.</span>
+<span class="sd">            The C_0 and C_1 parameters are the parameters of the analytic function that describes the ray path.</span>
+<span class="sd">            The solution type is the type of the solution (1: direct, 2:refracted, 3: reflected off the surface).</span>
+<span class="sd">            The reflection parameter specifies the number of bottom reflections (in case of reflective layers in the ice).</span>
+<span class="sd">            The reflection case specifies if the ray starts upward or downward (1: upward, 2: downward) (only relevant if bottom reflection &gt; 0).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing&#39;</span><span class="p">]:</span>
             <span class="n">focusing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_focusing</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing_limit&#39;</span><span class="p">]))</span>
         <span class="k">else</span><span class="p">:</span>
