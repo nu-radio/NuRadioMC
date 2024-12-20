@@ -85,7 +85,9 @@ class beamformingDirectionFitter:
                                     station.get_parameter(stationParameters.azimuth) / units.rad])
         self.logger.debug(f"Initial guess for fit routine is {start_direction}")
 
-        # TODO: adding Bounds changes result of fitting routine!
+        # Using "minimize" with the "Powell" method allows to use the same minimization routine as before,
+        # but also add bounds to the fit. However, this changes the result of the fitting routine, even if
+        # without bounds the fit converges within the bounds. So currently we stick to the "fmin_powell" method.
         # fit_result = minimize(negative_beamed_signal, start_direction,
         #                       method='Powell', bounds=Bounds((0, -np.pi), (np.pi / 2, np.pi), (True, True)),
         #                       options={'maxiter': self.__max_iter, 'xtol': 1.0, 'disp': False,
@@ -98,13 +100,13 @@ class beamformingDirectionFitter:
         #
         # fit_direction = fit_result.x
 
-        all = fmin_powell(negative_beamed_signal, start_direction,
+        fit_result = fmin_powell(negative_beamed_signal, start_direction,
                           maxiter=self.__max_iter, xtol=1.0 * units.deg,
                           direc=np.array([[2.0 * units.deg, 0], [0, 2.0 * units.deg]]),
                           disp=False, full_output=True)
-        fit_direction = all[0]
+        fit_direction = fit_result[0]
 
-        self.logger.debug(f"Fit finished with following direc vector: {all[2]}")
+        self.logger.debug(f"Fit finished with following direc vector: {fit_result[2]}")
 
         direction_cartesian = hp.spherical_to_cartesian(*fit_direction)
 
