@@ -5,17 +5,19 @@ from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
 from radiotools import helper as hp
 
-logger = logging.getLogger("NuRadioReco.LOFAR_analog_components")
+logger = logging.getLogger("NuRadioReco.LOFAR.analog_components")
 
 
 def load_cable_response(cable_length):
     """
     Parameters
     ----------
-    path: string
-        Path to the folder containing the cable response
     cable_length: int
         length of the coax cable of the corresponding channel
+
+    Returns
+    -------
+
     """
     module_dir = os.path.dirname(__file__)
     file_path = os.path.join(module_dir, "signalchain", f"attenuation_RG58_{cable_length}m.txt")
@@ -44,10 +46,9 @@ def get_cable_response(frequencies, cable_length):
 
 def load_RCU_response():
     """
-    Parameters
+    Returns
     ----------
-    path: string
-        Path to the folder containing the RCU response
+
     """
 
     module_dir = os.path.dirname(__file__)
