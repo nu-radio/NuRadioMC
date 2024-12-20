@@ -26,8 +26,12 @@ def _pickle_numpy_scalar(i):
         return complex, (complex(i),)
     elif isinstance(i, np.bool_):
         return bool, (bool(i),)
+    elif isinstance(i, np.str_):
+        return str, (str(i),)
+    elif isinstance(i, np.bytes_):
+        return bytes, (bytes(i),)
     else:
-        raise TypeError(f"Type of scalar {i} ({type(i)}) is not one of float, int, complex or bool.")
+        raise TypeError(f"Unsupported type of numpy scalar {i} (type {type(i)})")
 
 # the __reduce__ methods are overwritten by pickle.dispatch_table
 # see https://docs.python.org/3/library/pickle.html#pickle.Pickler.dispatch_table
