@@ -1,4 +1,5 @@
-# Galactic noise LST time variation Fourier coefficients for LOFAR (30-80 MHz)
+# Galactic noise LST time variation curve Fourier coefficients for LOFAR LBA (30-80 MHz)
+# - see stationGalacticCalibrator.py for details
 polarization 1, polarization 0
 1.489468000000000042e-02, 1.347391000000000040e-02
 -1.293050000000000015e-03, -8.876500000000000275e-04

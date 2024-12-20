@@ -1,4 +1,6 @@
-# Galactic calibration curve for LOFAR (30-80 MHz)
+# Measured absolute calibration curve for LOFAR
+# This file contains the calibration factor per frequency going from 0 to 100 MHz in steps of 1 MHz
+# - see stationGalacticCalibrator.py for details
 0.000000000000000000e+00
 0.000000000000000000e+00
 0.000000000000000000e+00
