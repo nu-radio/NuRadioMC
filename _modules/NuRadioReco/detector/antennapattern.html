@@ -1230,8 +1230,8 @@
 
         <span class="n">download_from_dataserver</span><span class="p">(</span><span class="n">remote_path</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
-    <span class="c1">#         # does not exist yet -&gt; precalculating WIPLD simulations from raw WIPLD output</span>
-    <span class="c1">#         preprocess_WIPLD(path)</span>
+    <span class="c1"># # does not exist yet -&gt; precalculating WIPLD simulations from raw WIPLD output</span>
+    <span class="c1"># preprocess_WIPLD(path)</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;bytes&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">res</span></div>
 
@@ -1777,8 +1777,10 @@
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
             <span class="n">freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">freq</span><span class="p">])</span>
-        <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_theta_and_phi</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">orientation_theta</span><span class="p">,</span> <span class="n">orientation_phi</span><span class="p">,</span> <span class="n">rotation_theta</span><span class="p">,</span>
-                                             <span class="n">rotation_phi</span><span class="p">)</span>
+
+        <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_theta_and_phi</span><span class="p">(</span>
+            <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">orientation_theta</span><span class="p">,</span> <span class="n">orientation_phi</span><span class="p">,</span>
+            <span class="n">rotation_theta</span><span class="p">,</span> <span class="n">rotation_phi</span><span class="p">)</span>
 
         <span class="n">Vtheta_raw</span><span class="p">,</span> <span class="n">Vphi_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_antenna_response_vectorized_raw</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
 
@@ -1788,14 +1790,16 @@
         <span class="n">cstrans</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="n">zenith</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">azimuth</span><span class="o">=</span><span class="n">phi</span><span class="p">)</span>
         <span class="n">V_xyz_raw</span> <span class="o">=</span> <span class="n">cstrans</span><span class="o">.</span><span class="n">transform_from_onsky_to_ground</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Vtheta_raw</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">Vtheta_raw</span><span class="p">,</span> <span class="n">Vphi_raw</span><span class="p">]))</span>
-        <span class="n">rot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_antenna_rotation</span><span class="p">(</span><span class="n">orientation_theta</span><span class="p">,</span> <span class="n">orientation_phi</span><span class="p">,</span> <span class="n">rotation_theta</span><span class="p">,</span> <span class="n">rotation_phi</span><span class="p">)</span>
-        <span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">inv</span>
-        <span class="n">V_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">inv</span><span class="p">(</span><span class="n">rot</span><span class="p">),</span> <span class="n">V_xyz_raw</span><span class="p">)</span>
+
+        <span class="n">rot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_antenna_rotation</span><span class="p">(</span>
+            <span class="n">orientation_theta</span><span class="p">,</span> <span class="n">orientation_phi</span><span class="p">,</span> <span class="n">rotation_theta</span><span class="p">,</span> <span class="n">rotation_phi</span><span class="p">)</span>
+        <span class="n">V_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">rot</span><span class="p">),</span> <span class="n">V_xyz_raw</span><span class="p">)</span>
 
         <span class="n">cstrans2</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="n">zenith</span><span class="o">=</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="o">=</span><span class="n">azimuth</span><span class="p">)</span>
         <span class="n">V_onsky</span> <span class="o">=</span> <span class="n">cstrans2</span><span class="o">.</span><span class="n">transform_from_ground_to_onsky</span><span class="p">(</span><span class="n">V_xyz</span><span class="p">)</span>
         <span class="n">VEL</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="n">V_onsky</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                <span class="s1">&#39;phi&#39;</span><span class="p">:</span> <span class="n">V_onsky</span><span class="p">[</span><span class="mi">2</span><span class="p">]}</span>
+
         <span class="k">return</span> <span class="n">VEL</span></div></div>
 
 
@@ -1828,7 +1832,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antenna_model</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path_to_antennamodels</span><span class="p">,</span>
-                 <span class="n">interpolation_method</span><span class="o">=</span><span class="s1">&#39;complex&#39;</span><span class="p">):</span>
+                 <span class="n">interpolation_method</span><span class="o">=</span><span class="s1">&#39;complex&#39;</span><span class="p">,</span> <span class="n">do_consistency_check</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Parameters</span>
@@ -1881,26 +1885,27 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">VEL_phi</span> <span class="o">=</span> <span class="n">H_phi</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">VEL_theta</span> <span class="o">=</span> <span class="n">H_theta</span>
 
-        <span class="c1"># additional consistency check</span>
-        <span class="k">for</span> <span class="n">iFreq</span><span class="p">,</span> <span class="n">freq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">iPhi</span><span class="p">,</span> <span class="n">phi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_angles</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">iTheta</span><span class="p">,</span> <span class="n">theta</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_angles</span><span class="p">):</span>
-                    <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_index</span><span class="p">(</span><span class="n">iFreq</span><span class="p">,</span> <span class="n">iTheta</span><span class="p">,</span> <span class="n">iPhi</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">do_consistency_check</span><span class="p">:</span>
+            <span class="c1"># additional consistency check</span>
+            <span class="k">for</span> <span class="n">iFreq</span><span class="p">,</span> <span class="n">freq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">iPhi</span><span class="p">,</span> <span class="n">phi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_angles</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">iTheta</span><span class="p">,</span> <span class="n">theta</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_angles</span><span class="p">):</span>
+                        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_index</span><span class="p">(</span><span class="n">iFreq</span><span class="p">,</span> <span class="n">iTheta</span><span class="p">,</span> <span class="n">iPhi</span><span class="p">)</span>
 
-                    <span class="k">if</span> <span class="n">phi</span> <span class="o">!=</span> <span class="n">phis</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;phi angle has changed during theta loop </span><span class="si">{0}</span><span class="s2">, </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">phi</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">phis</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
-                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;phi angle has changed during theta loop&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">phi</span> <span class="o">!=</span> <span class="n">phis</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;phi angle has changed during theta loop </span><span class="si">{0}</span><span class="s2">, </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                <span class="n">phi</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">phis</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
+                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;phi angle has changed during theta loop&quot;</span><span class="p">)</span>
 
-                    <span class="k">if</span> <span class="n">theta</span> <span class="o">!=</span> <span class="n">thetas</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;theta angle has changed during theta loop </span><span class="si">{0}</span><span class="s2">, </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">theta</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">thetas</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
-                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;theta angle has changed during theta loop&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">theta</span> <span class="o">!=</span> <span class="n">thetas</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;theta angle has changed during theta loop </span><span class="si">{0}</span><span class="s2">, </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                <span class="n">theta</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">thetas</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
+                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;theta angle has changed during theta loop&quot;</span><span class="p">)</span>
 
-                    <span class="k">if</span> <span class="n">freq</span> <span class="o">!=</span> <span class="n">ff</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;frequency has changed </span><span class="si">{0}</span><span class="s2">, </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">freq</span><span class="p">,</span> <span class="n">ff</span><span class="p">[</span><span class="n">index</span><span class="p">]))</span>
-                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;frequency has changed&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">freq</span> <span class="o">!=</span> <span class="n">ff</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;frequency has changed </span><span class="si">{0}</span><span class="s2">, </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                <span class="n">freq</span><span class="p">,</span> <span class="n">ff</span><span class="p">[</span><span class="n">index</span><span class="p">]))</span>
+                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;frequency has changed&quot;</span><span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s1">&#39;loading antenna file </span><span class="si">{}</span><span class="s1"> took </span><span class="si">{:.0f}</span><span class="s1"> seconds&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">antenna_model</span><span class="p">,</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span><span class="p">))</span>
 
@@ -2189,18 +2194,20 @@
 <span class="sd">            key word arguments that are passed to the init function of the `AntennaPattern` class (see</span>
 <span class="sd">            documentation of this class for further information)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_antenna_model_replacements</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_antenna_model_replacements</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_antenna_patterns</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;local replacement of antenna model requsted: replacing </span><span class="si">{}</span><span class="s2"> with </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span>
-                                                                                                          <span class="bp">self</span><span class="o">.</span><span class="n">_antenna_model_replacements</span><span class="p">[</span>
-                                                                                                              <span class="n">name</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_antenna_model_replacements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_antenna_model_replacements</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_antenna_patterns</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;local replacement of antenna model requsted: replacing </span><span class="si">{}</span><span class="s2"> with </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_antenna_model_replacements</span><span class="p">[</span><span class="n">name</span><span class="p">]))</span>
+
             <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_antenna_model_replacements</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_antenna_patterns</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_antenna_patterns</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;analytic&quot;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_open_antenna_patterns</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">AntennaPatternAnalytic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;loading analytic antenna model </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_open_antenna_patterns</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">AntennaPattern</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_antenna_patterns</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div></div>
 </pre></div>
 
