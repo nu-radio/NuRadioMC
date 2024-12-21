@@ -121,9 +121,7 @@ class triggerSimulator:
                 delays += [-(ant_z[key] - ref_z) / cspeed * ref_index * np.sin(angle) - cable_delays[key]]
 
             delays -= np.max(delays)
-
             roll = np.array(np.round(np.array(delays) / time_step)).astype(int)
-
             subbeam_rolls = dict(zip(triggered_channels, roll))
 
             # logger.debug("angle:", angle / units.deg)
@@ -154,8 +152,10 @@ class triggerSimulator:
 
         channel_trace_start_time = None
         for channel in station.iter_trigger_channels(use_channels=triggered_channels):
+
             if channel_trace_start_time is None:
                 channel_trace_start_time = channel.get_trace_start_time()
+
             elif channel_trace_start_time != channel.get_trace_start_time():
                 error_msg = 'Phased array channels do not have matching trace start times. '
                 error_msg += 'This module is not prepared for this case.'
@@ -184,6 +184,7 @@ class triggerSimulator:
         diff_x = np.abs(ant_x - ant_x[0])
         ant_y = np.fromiter(self.get_antenna_positions(station, det, triggered_channels, 1).values(), dtype=float)
         diff_y = np.abs(ant_y - ant_y[0])
+
         if (sum(diff_x) > cut or sum(diff_y) > cut):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
@@ -226,8 +227,8 @@ class triggerSimulator:
             coh_sum_squared = (coh_sum * coh_sum).astype(float)
         else: #(adc_output == 'counts'):
             if rnog_like:
-                coh_sum[coh_sum>2**6-1]=2**6-1
-                coh_sum[coh_sum<-2**6]=-2**6
+                coh_sum[coh_sum>2**6-1] = 2**6 - 1
+                coh_sum[coh_sum<-2**6] = -2**6
             coh_sum_squared = (coh_sum * coh_sum).astype(int)
 
         coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, window),
@@ -236,14 +237,14 @@ class triggerSimulator:
         power = np.sum(coh_sum_windowed, axis=1)
         return_power=power.astype(float) / window
 
-        if adc_output=='counts': return_power=np.floor(return_power)
+        if adc_output=='counts': return_power = np.floor(return_power)
 
         return return_power, num_frames
 
-    def hilbert_envelope(self,coh_sum,adc_output='voltage',coeff_gain=1,rnog_like=False):
+    def hilbert_envelope(self, coh_sum, adc_output='voltage', coeff_gain=1, rnog_like=False):
 
         if rnog_like:
-            coeff_gain=128
+            coeff_gain = 128
 
         #31 sample fir transformer
         #hil=[ -0.0424413 , 0. , -0.0489708 , 0. , -0.0578745 , 0. , -0.0707355 , 0. , -0.0909457 , 0. , -0.127324 , 0. 
@@ -251,24 +252,24 @@ class triggerSimulator:
         #       , 0. , 0.0578745 , 0. , 0.0489708 , 0. , 0.0424413 ]
 
         #middle 15 coefficients ^
-        hil=np.array([ -0.0909457  , 0. , -0.127324 , 0. , -0.2122066 , 0. , -0.6366198 , 0. , 0.6366198 , 0. , 0.2122066 ,
-                       0. , 0.127324 , 0. , 0.0909457 ])
+        hil = np.array([ -0.0909457 , 0. , -0.127324 , 0. , -0.2122066 , 0. , -0.6366198 , 0. , 0.6366198 , 0. , 0.2122066 ,
+                        0. , 0.127324 , 0. , 0.0909457 ])
 
         if coeff_gain!=1:
-            hil=np.round(hil*coeff_gain)/coeff_gain
+            hil = np.round(hil * coeff_gain) / coeff_gain
 
-        imag_an=np.convolve(coh_sum,hil,mode='full')[len(hil)//2:len(coh_sum)+len(hil)//2]
+        imag_an = np.convolve(coh_sum, hil, mode='full')[len(hil)//2 : len(coh_sum) + len(hil)//2]
 
         if adc_output:
-            imag_an=np.round(imag_an)
+            imag_an = np.round(imag_an)
 
         if rnog_like:
-            envelope=np.max(np.array((coh_sum,imag_an)),axis=0)+3/8*min(np.array((coh_sum,imag_an)),axis=0)
+            envelope = np.max(np.array((coh_sum,imag_an)), axis=0) + (3 / 8) * min(np.array((coh_sum,imag_an)), axis=0)
         else:
-            envelope=np.sqrt(coh_sum**2+imag_an**2)
+            envelope = np.sqrt(coh_sum**2 + imag_an**2)
 
         if adc_output=='counts':
-            envelope=np.round(envelope)
+            envelope = np.round(envelope)
 
         return envelope
 
@@ -451,8 +452,8 @@ class triggerSimulator:
             if(upsampling_factor >= 2):
 
                 new_len = len(trace) * upsampling_factor 
-                cur_t=np.arange(0,1/adc_sampling_frequency*len(trace),1/adc_sampling_frequency)
-                new_t=np.arange(0,1/adc_sampling_frequency*len(trace),1/adc_sampling_frequency/upsampling_factor)
+                cur_t = np.arange(0, 1/adc_sampling_frequency*len(trace), 1/adc_sampling_frequency)
+                new_t = np.arange(0, 1/adc_sampling_frequency*len(trace), 1/adc_sampling_frequency/upsampling_factor)
 
                 if upsampling_method=='fft':
                     upsampled_trace = scipy.signal.resample(trace, new_len)
@@ -462,26 +463,27 @@ class triggerSimulator:
 
                 elif upsampling_method=='fir':
                     if rnog_like:
-                        up_filt=np.array([ 0.0, 0.0 , 0.0 , 0.0 , 0.0078125 , 0.0078125 , 0.0078125 , -0.0 , -0.015625 , 
-                                    -0.0390625 , -0.03125 , 0.0 , 0.0703125 , 0.15625 , 0.2265625 , 0.25 , 0.2265625 , 0.15625 ,
-                                    0.0703125 , 0.0 , -0.03125 , -0.0390625 , -0.015625 , 0.0 , 0.0078125 , 0.0078125 , 0.0078125 ,
-                                    0.0 , 0.0 , 0.0 , 0.0 ])
+                        #I think I can do better than this in firmware
+                        up_filt = np.array([ 0.0, 0.0 , 0.0 , 0.0 , 0.0078125 , 0.0078125 , 0.0078125 , -0.0 , -0.015625 , 
+                                            -0.0390625 , -0.03125 , 0.0 , 0.0703125 , 0.15625 , 0.2265625 , 0.25 , 0.2265625 , 0.15625 ,
+                                            0.0703125 , 0.0 , -0.03125 , -0.0390625 , -0.015625 , 0.0 , 0.0078125 , 0.0078125 , 0.0078125 ,
+                                            0.0 , 0.0 , 0.0 , 0.0 ])
                     else:
-                        cutoff=.5
-                        base_freq_filter_length=8
-                        filter_length=base_freq_filter_length*upsampling_factor-1
-                        up_filt=scipy.signal.firwin(filter_length,adc_sampling_frequency*cutoff,pass_zero='lowpass',
+                        cutoff = .5
+                        base_freq_filter_length = 8
+                        filter_length = base_freq_filter_length * upsampling_factor - 1
+                        up_filt = scipy.signal.firwin(filter_length, adc_sampling_frequency*cutoff, pass_zero='lowpass',
                                                     fs=adc_sampling_frequency*upsampling_factor)
                         if coeff_gain!=1:
-                            up_filt=np.round(up_filt*coeff_gain)/coeff_gain
+                            up_filt = np.round(up_filt*coeff_gain)/coeff_gain
 
-                    zero_pad=np.zeros(len(trace)*upsampling_factor)
-                    zero_pad[::upsampling_factor]=trace[:]
-                    upsampled_trace=np.convolve(zero_pad,up_filt,mode='full')[len(up_filt)//2:len(zero_pad)+len(up_filt)//2]*upsampling_factor
+                    zero_pad = np.zeros(len(trace)*upsampling_factor)
+                    zero_pad[::upsampling_factor] = trace[:]
+                    upsampled_trace = np.convolve(zero_pad, up_filt, mode='full')[len(up_filt)//2 : len(zero_pad) + len(up_filt)//2] * upsampling_factor
 
                 else:
-                    error_msg = 'Interpolation method must be lin, fft, fir, ...'
-                    raise ValueError(error_msg)
+                    error_msg = 'Interpolation method must be lin, fft, or fir'
+                    raise NotImplementedError(error_msg)
 
                 if adc_output=='counts' and rnog_like==True: upsampled_trace=np.trunc(upsampled_trace)
 
@@ -502,6 +504,7 @@ class triggerSimulator:
                                                 phasing_angles,
                                                 ref_index=ref_index,
                                                 sampling_frequency=adc_sampling_frequency)
+
         phased_traces = self.phase_signals(traces, beam_rolls)
 
         trigger_time = None
@@ -510,8 +513,8 @@ class triggerSimulator:
 
         trigger_delays = {}
         maximum_amps = np.zeros(len(phased_traces))
-        n_trigs=0
-        triggered_beams=[]
+        n_trigs = 0
+        triggered_beams = []
 
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered=False
@@ -521,7 +524,7 @@ class triggerSimulator:
                 maximum_amps[iTrace] = np.max(squared_mean)
 
                 if True in (squared_mean > threshold):
-                    n_trigs+=len(np.where((squared_mean > threshold)==True)[0])
+                    n_trigs += len(np.where((squared_mean > threshold)==True)[0])
                     trigger_delays[iTrace] = {}
 
                     for channel_id in beam_rolls[iTrace]:
@@ -536,16 +539,16 @@ class triggerSimulator:
                     logger.debug(f"trigger times  = {trigger_times[iTrace]}")
 
             elif trig_type=='envelope':
-                hilbert_env = self.hilbert_envelope(coh_sum=phased_trace,adc_output=adc_output,rnog_like=rnog_like)
+                hilbert_env = self.hilbert_envelope(coh_sum=phased_trace, adc_output=adc_output, rnog_like=rnog_like)
                 maximum_amps[iTrace] = np.max(hilbert_env)
 
                 if True in (hilbert_env>threshold):
-                    n_trigs+=len(np.where((hilbert_env > threshold)==True)[0])
+                    n_trigs += len(np.where((hilbert_env > threshold)==True)[0])
                     trigger_delays[iTrace] = {}
                     for channel_id in beam_rolls[iTrace]:
                         trigger_delays[iTrace][channel_id] = beam_rolls[iTrace][channel_id] * time_step
-                    triggered_bins=np.atleast_1d(np.squeeze(np.argwhere(hilbert_env > threshold)))
-                    is_triggered=True
+                    triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(hilbert_env > threshold)))
+                    is_triggered = True
                     trigger_times[iTrace] = trigger_delays[iTrace][triggered_channels[0]] + triggered_bins * step * time_step + channel_trace_start_time
 
             else:
