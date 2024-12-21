@@ -101,6 +101,12 @@ class hardwareResponseIncorporator:
             amp_response = analog_components.load_amp_response(amp_type)
             amp_response = amp_response['gain'](
                 frequencies, temp) * amp_response['phase'](frequencies)
+            if is_trigger:
+                trig_amp_type = det.get_trigger_amplifier_type(station_id, channel_id)
+                trig_amp_response = analog_components.load_amp_response(trig_amp_type)
+                trig_amp_response= trig_amp_response['gain'](
+                frequencies, temp) * trig_amp_response['phase'](frequencies)
+                amp_response=amp_response*trig_amp_response
         else:
             raise NotImplementedError("Detector type not implemented")
 
@@ -183,9 +189,6 @@ class hardwareResponseIncorporator:
                 'Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out')
 
         t = time.time()
-
-        if self.trigger_channels is not None and not isinstance(det, detector.rnog_detector.Detector):
-            raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
 
         has_trigger_channels = False
         for channel in station.iter_channels():
@@ -280,22 +283,22 @@ if __name__ == "__main__":
     file_dir = os.path.dirname(__file__)
 
     detectorfile = os.path.join(
-        file_dir, "../../detector/RNO_G/RNO_single_station.json")
+        file_dir, "../../detector/RNO_G/RNO_single_station_only_PA.json")
     det_old = detector.generic_detector.GenericDetector(
         json_filename=detectorfile,
         default_station=11, antenna_by_depth=False)
 
     det = detector.rnog_detector.Detector(log_level=logging.DEBUG, over_write_handset_values={
-        "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=True)
+        "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
     det.update(datetime.datetime(2022, 8, 2, 0, 0))
 
     hri = hardwareResponseIncorporator()
-
+    hri.begin(trigger_channels=[0,1,2,3])
     frequencies = np.linspace(0, 1) * units.GHz
     filter_old = hri.get_filter(
-        frequencies, station_id=11, channel_id=0, det=det_old, sim_to_data=True)
+        frequencies, station_id=11, channel_id=0, det=det_old, sim_to_data=True,is_trigger=True)
     filter = hri.get_filter(frequencies, station_id=11,
-                            channel_id=0, det=det, sim_to_data=True)
+                            channel_id=0, det=det, sim_to_data=True,is_trigger=True)
 
     fig, ax = plt.subplots()
 

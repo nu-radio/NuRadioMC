@@ -36,9 +36,7 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
     digital_trace: array of floats
         Digitised voltage trace in volts or ADC counts
     """
-
-    lsb_voltage = adc_ref_voltage / (2 ** (adc_n_bits - 1) - 1)
-
+    lsb_voltage = adc_ref_voltage / (2 ** (adc_n_bits) - 1)
     if (mode == 'floor'):
         digital_trace = np.floor(trace / lsb_voltage)
     elif (mode == 'ceiling'):
@@ -290,7 +288,7 @@ class analogToDigitalConverter:
 
             adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
         else:
-            adc_ref_voltage = Vrms * (2 ** (adc_n_bits - 1) - 1) / (2 ** (adc_noise_n_bits - 1) - 1)
+            adc_ref_voltage = Vrms * (2 ** (adc_n_bits) - 1) / (2 ** (adc_noise_n_bits ) - 1)
 
         if(adc_sampling_frequency > channel.get_sampling_rate()):
             error_msg = 'The ADC sampling rate is greater than '

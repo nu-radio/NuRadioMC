@@ -54,20 +54,20 @@ def add_cable_delay(station, det, sim_to_data, trigger=False, logger=None):
             If set, use `logger.debug(..)` to log the cable delay.
         """
 
-        if trigger and not isinstance(det, detector.rnog_detector.Detector):
-            raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
-
         if sim_to_data:
             new_trace_start_times = []
             for channel in station.iter_channels():
                 if trigger:
                     if not channel.has_extra_trigger_channel():
                         continue
-                    cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
+
+                    if isinstance(det,detector.detector_base.DetectorBase):
+                        cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
+                    else:
+                        cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
                     new_trace_start_times.append(channel.get_trigger_channel().get_trace_start_time() + cable_delay)
 
                 else:
-                    # Only the RNOG detector has the argument `trigger`. Default is false
                     cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
                     new_trace_start_times.append(channel.get_trace_start_time() + cable_delay)
 
@@ -88,11 +88,10 @@ def add_cable_delay(station, det, sim_to_data, trigger=False, logger=None):
 
                 if delta_time:
                     # tmp code block to try to get the same results as before
-                    roll_samples = int(delta_time / channel.get_sampling_rate())
+                    roll_samples = int(delta_time * channel.get_sampling_rate())
                     delta_time = delta_time - roll_samples * channel.get_sampling_rate()
                     trace = np.roll(channel.get_trace(), roll_samples)
                     channel.set_trace(trace, channel.get_sampling_rate())
-
                     channel.apply_time_shift(delta_time)
 
                 channel.set_trace_start_time(new_trace_start_time)

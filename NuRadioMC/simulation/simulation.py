@@ -1152,15 +1152,6 @@ class simulation:
         self.detector_simulation_part2 = getattr(self, "_detector_simulation_part2", None)
         self.detector_simulation_filter_amp = getattr(self, "_detector_simulation_filter_amp", None)
         self.detector_simulation_trigger = getattr(self, "_detector_simulation_trigger", None)
-        if((self.detector_simulation_filter_amp is None) ^ (self.detector_simulation_trigger is None)):
-            logger.error("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
-            raise ValueError("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
-        if((self.detector_simulation_part1 is None) ^ (self.detector_simulation_part2 is None)):
-            logger.error("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
-            raise ValueError("Please provide both detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
-        if((self.detector_simulation_part1 is not None) and (self.detector_simulation_filter_amp is not None)):
-            logger.error("Please provide either detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
-            raise ValueError("Please provide either detector_simulation_filter_amp and detector_simulation_trigger or detector_simulation_part1 and detector_simulation_part2")
 
         # Initialize detector
         self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()

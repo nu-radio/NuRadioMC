@@ -3,7 +3,8 @@ import numpy as np
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
+#from scipy.signal import resample, firwin, hilbert
 
 logger = logging.getLogger("NuRadioReco.triggerBoardResponse")
 
@@ -74,7 +75,7 @@ class triggerBoardResponse:
             filt = trigger_filter(freqs)
             channel.set_frequency_spectrum(channel.get_frequency_spectrum() * filt, channel.get_sampling_rate())
 
-    def get_avg_vrms(self, station, trigger_channels, trace_split=20):
+    def get_vrms(self, station, trigger_channels, trace_split=20):
         """
         Estimates the RMS voltage of the triggering antennas by splitting the waveforms
         into chunks and taking the median of standard deviation of the chunks
@@ -96,18 +97,17 @@ class triggerBoardResponse:
 
         """
 
-        avg_vrms = 0
+        vrms=[]
         for channel_id in trigger_channels:
             channel = station.get_trigger_channel(channel_id)
             trace = np.array(channel.get_trace())
             trace = trace[: int(trace_split * int(len(trace) / trace_split))].reshape((trace_split, -1))
             approx_vrms = np.median(np.std(trace, axis=1))
             logger.debug(f"    Ch: {channel_id}\tObser Vrms: {approx_vrms / units.mV:0.3f} mV")
-            avg_vrms += approx_vrms
+            vrms.append(approx_vrms)
 
-        avg_vrms /= len(trigger_channels)
-        self.logger.debug(f"Average Vrms: {avg_vrms / units.mV:0.3f} mV")
-        return approx_vrms
+        self.logger.debug(vrms)
+        return vrms
 
     def apply_adc_gain(self, station, det, trigger_channels, avg_vrms=None):
         """
@@ -138,7 +138,7 @@ class triggerBoardResponse:
         """
 
         if avg_vrms is None:
-            avg_vrms = self.get_avg_vrms(station, trigger_channels)
+            avg_vrms = self.get_vrms(station, trigger_channels)
 
         self.logger.debug("Applying gain at ADC level")
 
@@ -151,8 +151,8 @@ class triggerBoardResponse:
 
             noise_bits = det_channel["trigger_adc_noise_nbits"]
             total_bits = det_channel["trigger_adc_nbits"]
-            volts_per_adc = self._adc_input_range / (2 ** total_bits - 1)
-            ideal_vrms = volts_per_adc * (2 ** (noise_bits - 1))
+            volts_per_adc = self._adc_input_range / (2 ** total_bits)
+            ideal_vrms = volts_per_adc * (2 ** (noise_bits) - 1)
 
             msg = f"\t Ch: {channel_id}\t Target Vrms: {ideal_vrms / units.mV:0.3f} mV"
             msg += f"\t V/ADC: {volts_per_adc / units.mV:0.3f} mV"
@@ -232,16 +232,17 @@ class triggerBoardResponse:
         self.logger.debug("Applying the RNO-G trigger board response")
 
         if vrms is None:
-            vrms = self.get_avg_vrms(station, trigger_channels)
+            vrms = self.get_vrms(station, trigger_channels)
 
         if apply_adc_gain:
             trigger_board_vrms, ideal_vrms = self.apply_adc_gain(station, det, trigger_channels, vrms)
         else:
             trigger_board_vrms = vrms
-            ideal_vrms = vrms
+            ideal_vrms = np.mean(vrms)
 
         if digitize_trace:
             self.digitize_trace(station, det, trigger_channels, ideal_vrms)
+            trigger_board_vrms=self.get_vrms(station, trigger_channels)
 
         return trigger_board_vrms
 
@@ -252,3 +253,102 @@ class triggerBoardResponse:
         dt = timedelta(seconds=self.__t)
         self.logger.info("total time used by this module is {}".format(dt))
         return dt
+
+if __name__=='__main__':
+
+    from NuRadioReco.detector import detector
+    import NuRadioReco.modules.channelGenericNoiseAdder
+    import NuRadioReco.modules.channelBandPassFilter
+    from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator
+    import matplotlib.pyplot as plt
+    from scipy import constants
+
+    rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
+    rnogHarwareResponse.begin(trigger_channels=[0,1,2,3])
+    rnogADCResponse = triggerBoardResponse(log_level=logging.ERROR)
+    rnogADCResponse.begin(adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="counts")
+    channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+
+    det_file='RNO_G/RNO_single_station_only_PA.json'
+    det = detector.Detector(source='json',json_filename=det_file)
+
+    station_id=11
+    channel_ids = np.arange(4)
+
+    n_samples=1024
+    sampling_rate=472*units.MHz
+    dt = 1 / sampling_rate
+    ff = np.fft.rfftfreq(n_samples, dt)
+    max_freq = ff[-1]
+    min_freq = 0
+    fff = np.linspace(min_freq, max_freq, 10000)
+
+    four_filters={}
+    rf_filter=rnogHarwareResponse.get_filter(ff,station_id,channel_ids[0],det,sim_to_data=True,is_trigger=True)
+    chain_filter=rf_filter
+
+    for i in range(4):
+        four_filters[i]=chain_filter
+
+    four_filters_highres={}
+    rf_filter_highres=rnogHarwareResponse.get_filter(fff,station_id,channel_ids[0],det,sim_to_data=True,is_trigger=True)
+    chain_filter_highres=rf_filter_highres
+
+    for i in channel_ids:
+        four_filters_highres[i]=chain_filter_highres
+
+    Vrms = 1
+    noise_temp=300
+    bandwidth={}
+    Vrms_ratio = {}
+    amplitude = {}
+    per_channel_vrms=[]
+    for i in channel_ids:
+        integrated_channel_response = np.trapz(np.abs(four_filters_highres[i]) ** 2, fff)
+        rel_channel_response=np.trapz(np.abs(four_filters_highres[i]) ** 2, fff)
+        bandwidth[i]=integrated_channel_response
+        Vrms_ratio[i] = np.sqrt(rel_channel_response / (max_freq - min_freq))    
+        chan_vrms=(noise_temp * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
+        per_channel_vrms.append(chan_vrms)
+        amplitude[i] = chan_vrms / Vrms_ratio[i]
+
+    station = NuRadioReco.framework.station.Station(station_id)
+    evt = NuRadioReco.framework.event.Event(0, 0)
+
+    channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+    channelGenericNoiseAdder.begin()
+
+    for channel_id in channel_ids:
+
+        spectrum = channelGenericNoiseAdder.bandlimited_noise(min_freq, max_freq, n_samples, sampling_rate, amplitude[channel_id],
+                                                              type="rayleigh", time_domain=False)
+
+        trace=fft.freq2time(spectrum*four_filters[channel_id], sampling_rate)
+
+        channel = NuRadioReco.framework.channel.Channel(channel_id)
+        channel.set_trace(trace, sampling_rate)
+        station.add_trigger_channel(channel)
+
+    fig,ax=plt.subplots(1,2,sharex=True,figsize=(11,7))
+
+    for channel_id in channel_ids:
+        ch=station.get_channel(channel_id)
+        ax[0].plot(ch.get_times(),ch.get_trace(),label='ch %i'%channel_id)
+
+    chan_rms=rnogADCResponse.run(evt,station,det,requested_channels=channel_ids,
+                                 digitize_trace=True,apply_adc_gain=True)
+
+    for channel_id in channel_ids:
+        ch=station.get_channel(channel_id)
+        ax[1].plot(ch.get_times(),ch.get_trace(),label='ch %i'%channel_id)
+
+    ax[0].set_title('Raw Voltage Trace')
+    ax[0].set_ylabel('Voltage [V]')
+    ax[0].set_xlabel('Samples')
+    ax[0].legend(loc='upper right')
+    ax[1].set_xlabel('Samples')
+    ax[1].set_ylabel('Voltage [ADC]')
+    ax[1].legend(loc='upper right')
+    ax[1].set_title('Gain Eq. and Digitized Trace')
+    fig.tight_layout()
+    plt.show()
