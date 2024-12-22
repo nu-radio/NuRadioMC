@@ -32,4 +32,5 @@ Submodules
    NuRadioReco.utilities.traceWindows
    NuRadioReco.utilities.trace_utilities
    NuRadioReco.utilities.units
+   NuRadioReco.utilities.variableWindowSizeCorrelation
    NuRadioReco.utilities.version

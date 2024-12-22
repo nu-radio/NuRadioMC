@@ -1,0 +1,7 @@
+NuRadioReco.modules.RNO\_G.crRNOGTemplateCreator module
+=======================================================
+
+.. automodule:: NuRadioReco.modules.RNO_G.crRNOGTemplateCreator
+   :members:
+   :undoc-members:
+   :show-inheritance:
