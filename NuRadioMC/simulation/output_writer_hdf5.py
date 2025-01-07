@@ -542,6 +542,6 @@ class outputWriterHDF5:
             V = self._mout_attributes['volume']
             Veff = V * n_triggered_weighted / n_events
             logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
-            return Veff
+            return Veff, n_triggered
         except:
-            return None
+            return 0, 0
