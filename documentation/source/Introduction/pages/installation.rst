@@ -205,10 +205,11 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
   
 
 - To use the channelGalacticNoiseAdder, you need the `PyGDSM <https://github.com/telegraphic/pygdsm>`_ package.
+  Some additional galactic noise models used by LOFAR for calibration purposes are provided by ``pylfmap``.
 
   .. code-block:: Bash
 
-    pip install git+https://github.com/telegraphic/pygdsm
+    pip install git+https://github.com/telegraphic/pygdsm pylfmap
 
 Not pip-installable packages
 ____________________________
