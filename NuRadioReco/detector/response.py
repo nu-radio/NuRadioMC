@@ -227,7 +227,7 @@ class Response:
                     if name not in component_names:  # if name *not* in whitelist skip
                         continue
 
-            _gain = gain(freq / units.GHz)
+            _gain = gain([f / units.GHz for f in freq])
 
             # to avoid RunTime warning and NANs in total reponse
             if weight == -1:
