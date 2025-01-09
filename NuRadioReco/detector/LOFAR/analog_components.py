@@ -31,6 +31,23 @@ def load_cable_response(cable_length):
 
 def get_cable_response(frequencies, cable_length):
 
+    """
+    Calculate the cable response for given frequencies and cable length.
+
+    This function loads the LOFAR cable response based on the provided cable length,
+    interpolates the attenuation values for the specified frequencies, and returns
+    the interpolated cable response.
+
+    Parameters:
+    frequencies (array-like): An array of frequency values for which the cable response is to be calculated.
+    cable_length (float): The length of the cable for which the response is to be loaded.
+
+    Returns:
+    dict: A dictionary containing the interpolated cable attenuation values for the specified frequencies.
+          The dictionary has the following key:
+          - 'attenuation': An array of interpolated attenuation values corresponding to the input frequencies.
+    """
+
     cable_response = {}
     cable_response['default'] = load_cable_response(cable_length=cable_length)
 
@@ -45,14 +62,22 @@ def get_cable_response(frequencies, cable_length):
 
 
 def load_RCU_response():
-    """
-    Returns
-    ----------
 
+    """
+    Load the RCU (Receiver Control Unit) response data.
+
+    This function reads the RCU gain data from a text file located in the "signalchain" directory
+    relative to the current module's directory. It then constructs a dictionary containing the
+    frequency range and the corresponding gain values.
+
+    Returns:
+    dict: A dictionary containing the RCU response data with the following keys:
+          - 'frequencies': An array of frequency values ranging from 30 MHz to 80 MHz.
+          - 'gain': An array of gain values in dB corresponding to the frequencies.
     """
 
     module_dir = os.path.dirname(__file__)
-    file_path = os.path.join(module_dir, "signalchain/RCU_gain_new_5.txt")
+    file_path = os.path.join(module_dir, "signalchain/RCU_gain.txt")
 
     data = np.loadtxt(file_path)
 
@@ -64,6 +89,20 @@ def load_RCU_response():
 
 def get_RCU_response(frequencies):
 
+    """
+    Fetches the RCU response for given frequencies.
+
+    This function loads the LOFAR RCU response, interpolates the gain values for the specified
+    frequencies, and returns the interpolated RCU response.
+
+    Parameters:
+    frequencies (array-like): An array of frequency values for which the RCU response is to be calculated.
+
+    Returns:
+    dict: A dictionary containing the interpolated RCU gain values for the specified frequencies.
+          The dictionary has the following key:
+          - 'gain': An array of interpolated gain values corresponding to the input frequencies.
+    """
 
     RCU_response = {}
     RCU_response['default'] = load_RCU_response()
