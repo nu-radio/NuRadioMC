@@ -213,6 +213,9 @@ class Response:
         """
         response = np.ones_like(freq, dtype=np.complex128)
 
+        if type(freq) is list:
+            freq = np.array(freq)
+
         if component_names is not None:
             if isinstance(component_names, str):
                 component_names = [component_names]
@@ -227,7 +230,7 @@ class Response:
                     if name not in component_names:  # if name *not* in whitelist skip
                         continue
 
-            _gain = gain([f / units.GHz for f in freq])
+            _gain = gain(freq / units.GHz)
 
             # to avoid RunTime warning and NANs in total reponse
             if weight == -1:
