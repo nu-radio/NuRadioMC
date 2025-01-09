@@ -977,7 +977,7 @@ class DetectorBase(object):
         
     def get_antenna_mode(self, station_id, channel_id):
         """
-        returns the antenna mode of a given channel - this is specific to LOFAR antennae, as they operate in either inner or outer mode.
+        returns the antenna mode of a given channel - this is specific to LOFAR antennas, as they operate in either inner or outer mode.
 
         Parameters
         ----------
