@@ -133,7 +133,14 @@ class cosmicRayEnergyReconstructor:
         energy_fluence = NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence(efield_trace_vxB_vxvxB, electric_field.get_times())
         energy_fluence = np.abs(energy_fluence[0]) + np.abs(energy_fluence[1])
         xmax_distance = self.__atmosphere.get_distance_xmax_geometric(zenith, 750., elevation)  # parametrization is for Xmax of 750g/cm^2
-        xmax_distance = np.abs(xmax_distance) #np.max([xmax_distance, 200*units.m]) # for some zeniths and altitudes the parameterization can become negative
+        if np.any(xmax_distance) < 0:
+            self.logger.warning(
+                f"Estimated distance to Xmax is negative for zenith {zenith/units.deg:.0f} and elevation {elevation}. "
+                "This means Xmax may be below the detector elevation. The absolute value "
+                "of the distance will be used instead, but note that the resulting energy estimates may be inaccurate"
+            )
+
+            xmax_distance = np.abs(xmax_distance) # for some zeniths and altitudes the parameterization can become negative
 
         # find out if we are inside or outside of the Cherenkov ring
         second_order_spectrum_parameter = electric_field.get_parameter(efp.cr_spectrum_quadratic_term)
