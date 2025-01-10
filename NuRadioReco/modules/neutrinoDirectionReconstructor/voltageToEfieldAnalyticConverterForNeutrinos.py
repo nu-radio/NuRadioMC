@@ -1,46 +1,24 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-from NuRadioReco.modules.base.module import register_run
-import os
-import time
-import random
+
 import numpy as np
 from scipy import signal
-from scipy.signal import correlate
+
 from scipy import optimize as opt
 import matplotlib.pyplot as plt
-from scipy.optimize import Bounds
-from types import SimpleNamespace
-import collections
 
-from radiotools import helper as hp
-from radiotools import plthelpers as php
-from radiotools import coordinatesystems as cs
-
-from NuRadioReco.detector import detector
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units, fft, trace_utilities
-
-
-from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.modules import channelResampler as CchannelResampler
-import NuRadioReco.framework.electric_field
-from NuRadioReco.utilities.geometryUtilities import get_time_delay_from_direction
-
-from NuRadioMC.SignalProp import propagation
-from NuRadioMC.SignalGen.parametrizations import get_time_trace
-
-from NuRadioMC.utilities import medium
-from radiotools import coordinatesystems as cstrans
-from NuRadioMC.SignalProp import analyticraytracing as ray
-from radiotools import plthelpers as php
+from NuRadioReco.utilities import units, fft, geometryUtilities as geo_utl
 from NuRadioMC.SignalGen import askaryan as ask
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-import time
+from NuRadioMC.SignalProp import analyticraytracing as ray
+from NuRadioReco.framework.parameters import stationParameters as stnp, showerParameters as shp
 
-channelResampler = CchannelResampler.channelResampler()
-channelResampler.begin()
+import NuRadioReco.modules.channelResampler
+import NuRadioReco.framework.electric_field
+
+from radiotools import plthelpers as php, coordinatesystems as cstrans, helper as hp
+
+
+channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 
 class voltageToAnalyticEfieldConverterNeutrinos:
     """

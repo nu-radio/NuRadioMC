@@ -19,8 +19,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def set_sim_station(self, sim_station):
         """
-        Sets the SimStation of the Station.
-        If a SimStation is already present, it is overwritten.
+        Sets the SimStation of the Station. If a SimStation is already present, it is overwritten.
 
         Parameters
         ----------
@@ -39,7 +38,10 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         sim_station : NuRadioReco.framework.sim_station.SimStation
             The SimStation to add to the Station.
         """
-        self.__sim_station = self.__sim_station + sim_station
+        if self.__sim_station is None:
+            self.__sim_station = sim_station
+        else:
+            self.__sim_station = self.__sim_station + sim_station
 
     def get_sim_station(self):
         """
