@@ -5,15 +5,12 @@ import datetime
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.triggerTimeAdjuster
 import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.trigger.highLowThreshold
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
-#logging.basicConfig(level=logging.WARNING)
-logging.basicConfig(level=logging.ERROR)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("NuRadioMC.runstrawman")
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -22,7 +19,6 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 #triggerSimulator.begin(log_level=logging.WARNING)
 triggerSimulator.begin(log_level=logging.ERROR)
 
@@ -40,7 +36,6 @@ class mySimulation(simulation.simulation):
                            coinc_window=30 * units.ns,
                            number_concidences=2,
                            triggered_channels=range(4))
-        triggerTimeAdjuster.run(evt, station, det)
 
 """
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')

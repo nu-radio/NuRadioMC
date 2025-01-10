@@ -10,10 +10,18 @@ import time
 import re
 import os
 import logging
-logger = logging.getLogger('readCoREASShower')
+logger = logging.getLogger('NuRadioReco.coreas.readCoREASShower')
 
 
 class readCoREASShower:
+    """
+    This module can be used to read in all simulated "observers" from a CoREAS simulation and return them as stations.
+    This is in particular useful for air shower array experiments like Auger, LOFAR or SKA. However, it is important
+    to stress that this module will return a `station` object per simulated observer. That fits well the terminology
+    used in Auger were a "Station" is a dual-polerized antenna. However, for other experiments like LOFAR or SKA where
+    a "Station" is a cluster of (dual-polerized) antennas, the user has to be aware that this module will return a `station`
+    object per antenna.
+    """
 
     def __init__(self):
         self.__t = 0
@@ -55,9 +63,16 @@ class readCoREASShower:
 
     def run(self):
         """
-        Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.
-        A detector description is not needed to run this module. If a genericDetector is passed to the begin method,
-        the stations are added to it and the run method returns both the event and the detector.
+        Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.
+
+        Yields
+        ------
+        evt : `NuRadioReco.framework.event.Event`
+            The event containing the simulated observer as sim. stations.
+
+        det : `NuRadioReco.detector.generic_detector.GenericDetector`
+            Optional, only if a detector description is passed to the begin method.
+            Contains the detector description with the on-the-fly added stations.
         """
         while self.__current_input_file < len(self.__input_files):
             t = time.time()
@@ -98,12 +113,14 @@ class readCoREASShower:
             # create sim shower, no core is set since no external detector description is given
             sim_shower = coreas.make_sim_shower(corsika)
             sim_shower.set_parameter(shp.core, np.array(
-                [0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))  # set core
+                [-f_coreas.attrs["CoreCoordinateWest"], f_coreas.attrs["CoreCoordinateNorth"], f_coreas.attrs["CoreCoordinateVertical"]]
+                ) * units.cm)  # set core
             evt.add_sim_shower(sim_shower)
 
             # initialize coordinate transformation
-            cs = coordinatesystems.cstrafo(sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
-                                           magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
+            cs = coordinatesystems.cstrafo(
+                sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
+                magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
 
             # add simulated pulses as sim station
             for idx, (name, observer) in enumerate(f_coreas['observers'].items()):
@@ -113,7 +130,7 @@ class readCoREASShower:
                 station = NuRadioReco.framework.station.Station(station_id)
                 if self.__det is None:
                     sim_station = coreas.make_sim_station(
-                        station_id, corsika, observer, channel_ids=[0, 1, 2])
+                        station_id, corsika, observer, channel_ids=[0, 1])
                 else:
                     sim_station = coreas.make_sim_station(
                         station_id, corsika, observer,
@@ -154,7 +171,6 @@ class readCoREASShower:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         logger.info("\tcreate event structure {}".format(

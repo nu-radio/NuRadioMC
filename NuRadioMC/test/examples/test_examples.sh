@@ -2,14 +2,25 @@ set -e
 cd NuRadioMC/examples/01_Veff_simulation
 mkdir -p output
 python3 T01generate_event_list.py
-python3 T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml output/output.hdf5 output.nur
+python3 T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml output/output.hdf5 output/output.nur
 python3 T03visualizeVeff.py
 rm 1e18_n1e4.hdf5
 rm 1e19_n1e3.hdf5
 rm Veff.pdf
 rm limits.pdf
-rm output.nur
 rm -r output
+
+cd ../01_Veff_simulation_B
+mkdir -p output
+python3 T01generate_event_list.py
+python3 T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml output/output.hdf5 output/output.nur
+python3 T04PlotTraces.py output/output.nur
+rm 1e18_n1e4.hdf5
+rm 1e19_n1e3.hdf5
+rm Veff.pdf
+rm limits.pdf
+rm -r output
+
 
 #cd ../02_DnR
 #python3 E01detector_simulation.py event_input/1e19_n1e3comparison1.hdf5 detector/string_to_100m.json config.yaml output.hdf5

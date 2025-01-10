@@ -2,12 +2,14 @@ from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
+import radiotools.coordinatesystems
+from NuRadioReco.utilities.trace_utilities import get_stokes
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 import logging
-logger = logging.getLogger('electric_field')
+logger = logging.getLogger('NuRadioReco.ElectricField')
 
 
 class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
@@ -126,6 +128,76 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         set position of the electric field relative to station position
         """
         self._position = position
+
+    def get_stokes_parameters(
+            self, window_samples=None, vxB_vxvxB=False, magnetic_field_vector=None,
+            site=None, filter_kwargs=None
+        ):
+        """
+        Return the stokes parameters for the electric field.
+
+        By default, the stokes parameters are returned in (eTheta, ePhi);
+        this assumes the 3d efield trace is stored in (eR, eTheta, ePhi).
+        To return the stokes parameters in (vxB, vxvxB) coordinates instead,
+        one has to specify the magnetic field vector.
+
+        Parameters
+        ----------
+        window_samples : int | None, default: None
+            If None, return the stokes parameters over the full traces.
+            If not None, returns a rolling average of the stokes parameters
+            over ``window_samples``. This may be more optimal if the duration
+            of the signal is much shorter than the length of the full trace.
+        vxB_vxvxB : bool, default: False
+            If False, returns the stokes parameters for the
+            (assumed) (eTheta, ePhi) coordinates of the electric field.
+            If True, convert to (vxB, vxvxB) first. In this case,
+            one has to additionally specify either the magnetic field vector
+            or the sit.
+        magnetic_field_vector : 3-tuple of floats | None, default: None
+            The direction of the magnetic field (in x,y,z)
+        site : string | None, default: None
+            The site of the detector. Can be used instead of the ``magnetic_field_vector``
+            if the magnetic field vector for this site is included in ``radiotools``
+        filter_kwargs : dict | None, default: None
+            Optional arguments to bandpass filter the trace
+            before computing the stokes parameters. They are passed on to
+            `get_filtered_trace(**filter_kwargs)`
+
+        Returns
+        -------
+        stokes : array of floats
+            The stokes parameters. If ``window_samples=None`` (default), the shape of
+            the returned array is ``(4,)`` and corresponds to the I, Q, U and V parameters.
+            Otherwise, the array will have shape ``(4, len(efield) - window_samples + 1)``
+            and correspond to the values of the stokes parameters over the specified
+            window sizes.
+
+        See Also
+        --------
+        NuRadioReco.utilities.trace_utilities.get_stokes : Function that computes the stokes parameters
+        """
+        if filter_kwargs:
+            trace = self.get_filtered_trace(**filter_kwargs)
+        else:
+            trace = self.get_trace()
+
+        if not vxB_vxvxB:
+            return get_stokes(trace[1], trace[2], window_samples=window_samples)
+        else:
+            try:
+                zenith = self.get_parameter(parameters.electricFieldParameters.zenith)
+                azimuth = self.get_parameter(parameters.electricFieldParameters.azimuth)
+                cs = radiotools.coordinatesystems.cstrafo(
+                    zenith, azimuth, magnetic_field_vector=magnetic_field_vector, site=site)
+                efield_trace_vxB_vxvxB = cs.transform_to_vxB_vxvxB(
+                    cs.transform_from_onsky_to_ground(trace)
+                )
+                return get_stokes(*efield_trace_vxB_vxvxB[:2], window_samples=window_samples)
+            except KeyError as e:
+                logger.error("Failed to compute stokes parameters in (vxB, vxvxB), electric field does not have a signal direction")
+                raise(e)
+
 
     def serialize(self, save_trace):
         if save_trace:

@@ -14,7 +14,7 @@ except ImportError:
 import logging
 import collections
 
-logger = logging.getLogger('BaseStation')
+logger = logging.getLogger('NuRadioReco.BaseStation')
 
 
 class BaseStation():
@@ -131,16 +131,51 @@ class BaseStation():
         return self._station_id
 
     def remove_triggers(self):
+        """
+        removes all triggers from the station
+        """
         self._triggers = collections.OrderedDict()
 
     def get_trigger(self, name):
+        """
+        returns the trigger with the name 'name'
+
+        Parameters
+        ----------
+        name: string
+            the name of the trigger
+
+        Returns
+        -------
+            trigger: Trigger
+        """
         if name not in self._triggers:
             raise ValueError("trigger with name {} not present".format(name))
         return self._triggers[name]
 
+    def get_primary_trigger(self):
+        """
+        Returns the primary trigger of the station. If no primary trigger exists, it returns None
+        """
+        trigger = None
+        primary_trigger_count = 0
+        # test if only one primary trigger exists
+        for trig in self.get_triggers().values():
+            if trig.is_primary():
+                primary_trigger_count += 1
+                trigger = trig
+
+        if primary_trigger_count > 1:
+            logger.error(
+                'More than one primary trigger exists. Only one trigger can be the primary trigger. '
+                'Please check your code.')
+            raise ValueError
+
+        return trigger
+
     def get_first_trigger(self):
         """
-        Returns the first trigger. Returns None if no trigger is present.
+        Returns the first/earliest trigger. Returns None if no trigger fired.
         """
         if not self._triggered:
             return None
@@ -174,6 +209,14 @@ class BaseStation():
         return self._triggers
 
     def set_trigger(self, trigger):
+        """
+        sets a trigger for the station. If a trigger with the same name already exists, it will be overridden
+
+        Parameters
+        ----------
+        trigger: Trigger
+            the trigger object to set
+        """
         if trigger.get_name() in self._triggers:
             logger.warning(
                 f"Station has already a trigger with name {trigger.get_name()}. The previous trigger will be overridden!")
@@ -216,7 +259,11 @@ class BaseStation():
 
     def get_electric_field_ids(self):
         """
-        returns a list with the electric field IDs of all simElectricFields of the simStation
+        returns a sorted list with the electric field IDs of all simElectricFields of the simStation
+
+        Returns
+        -------
+        efield_ids: list
         """
         efield_ids = []
         for efield in self._electric_fields:
@@ -348,3 +395,28 @@ class BaseStation():
                 self.set_station_time(data['_station_time'])
 
         self._particle_type = data['_particle_type']
+
+
+    def __add__(self, x):
+        """
+        adds a BaseStation object to another BaseStation object
+        WARNING: Only channel and efield objects are added but no other meta information
+
+        Parameters
+        ----------
+        x: BaseStation
+            the BaseStation object to add
+        """
+        if not isinstance(x, BaseStation):
+            raise AttributeError("Can only add BaseStation to BaseStation")
+        if self.get_id() != x.get_id():
+            raise AttributeError("Can only add BaseStations with the same ID")
+        for trigger in x.get_triggers().values():
+            self.set_trigger(trigger)
+        for efield in x.get_electric_fields():
+            self.add_electric_field(efield)
+        for key, value in x.get_parameters().items():
+            self.set_parameter(key, value)
+        for key, value in x.get_ARIANNA_parameters().items():
+            self.set_ARIANNA_parameter(key, value)
+        return self
