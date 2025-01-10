@@ -1,6 +1,22 @@
+"""
+IO utilities for NuRadioReco/NuRadioMC
+
+This module overwrites some pickling functions to allow
+for faster, numpy 2 cross-compatible pickled numpy arrays. This mostly happens
+'internally', so end users normally do not need to use this module.
+
+Developers should import `pickle` from this module when adding new NuRadioMC functionality
+which relies on IO in order to ensure that the correct pickling functions are used, i.e.
+
+.. code-block::
+
+  from NuRadioReco.utilities.io_utilities import pickle
+
+"""
+
 import pickle
 import numpy as np
-import io
+from ._fastnumpyio import pack, unpack # these are essentially faster alternatives for np.load/save
 
 # we overwrite the default pickling mechanism for numpy arrays
 # and scalars. We store arrays using np.save / np.load,
@@ -9,13 +25,10 @@ import io
 # This allows to maintain compatibility across numpy 2.0
 
 def _pickle_numpy_array(arr):
-    dummy_file = io.BytesIO()
-    np.save(dummy_file, arr)
-    return _unpickle_numpy_array, (dummy_file.getvalue(),)
+    return _unpickle_numpy_array, (pack(arr),)
 
 def _unpickle_numpy_array(data):
-    dummy_file = io.BytesIO(data)
-    return np.load(dummy_file)
+    return unpack(data)
 
 def _pickle_numpy_scalar(i):
     if isinstance(i, np.floating):
