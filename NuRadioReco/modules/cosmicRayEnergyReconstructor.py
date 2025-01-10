@@ -1,3 +1,16 @@
+"""
+Module to reconstruct the energy of an air shower from its radio signal
+
+To reconstruct the air-shower energy, the radio signals should be bandpass filtered
+between 80 to 300 MHz with a 10th order Butterworth filter, and both the cosmic ray
+direction and the unfolded electric field should be present. The latter can be obtained
+(after the signal direction has been reconstructed) by running the
+`NuRadioReco.modules.voltageToAnalyticEfieldConverter` module.
+
+For more details on this algorithm, see https://dx.doi.org/10.1088/1475-7516/2019/10/075
+
+"""
+
 import numpy as np
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters as stnp
