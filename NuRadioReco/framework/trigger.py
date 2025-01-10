@@ -103,7 +103,19 @@ class Trigger:
 
     def get_trigger_time(self):
         """
-        get the trigger time (absolute time with respect to the beginning of the event)
+        Get the trigger time
+
+        Returns the absolute time of the trigger with respect to the beginning of the event,
+        i.e. the first time in the event where the trigger condition was fulfilled
+
+        Returns
+        -------
+        trigger_time : float
+            The trigger time
+
+        See Also
+        --------
+        get_trigger_times : function to return all times where the trigger condition was fulfilled
         """
         return self._trigger_time
 
@@ -119,7 +131,22 @@ class Trigger:
 
     def get_trigger_times(self):
         """
-        get the trigger times (time with respect to beginning of trace)
+        Get the trigger times
+
+        For some triggers, in addition to the time of the first trigger,
+        also all subsequent times where the trigger condition were fulfilled are
+        stored. For triggers that do not store this information, this method
+        is equivalent to `get_trigger_time` with the exception that it returns
+        an array (of shape (1,)) instead of a scalar.
+
+        Returns
+        -------
+        trigger_times : np.ndarray
+            Array of all times where the trigger condition was satisfied
+
+        See Also
+        --------
+        get_trigger_time : method to return the (first) trigger time
         """
         if self._trigger_times is None and not np.isnan(self._trigger_time):
             return np.array(self._trigger_time)
