@@ -148,8 +148,7 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``event_group_id_per_shower`` | (``m_showers``) | The event group id of every shower that triggered the selected station
             ``event_ids`` | (``m_events``) | The event ids of each event that triggered in that station for every event group id. These are unique only within each separate event group, and start from 0.
             ``event_id_per_shower`` | (``m_showers``) | The event ids of each event that triggered in that station. This one is for every shower
-            ``focusing_factor`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
-            ``launch_vectors`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the launch vector of each ray tracing solution, per shower and channel.
+            ``shower_id`` | (``m_showers``) | The Shower ids of showers that triggered the selected station
             ``max_amp_shower_and_ray`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | Maximum amplitude per shower, channel and ray tracing solution.
             ``maximum_amplitudes`` | (``m_events``, ``n_channels``) | Maximum amplitude per event and channel
             ``maximum_amplitudes_envelope`` | (``m_events``, ``n_channels``) | Maximum amplitude of the hilbert envelope for each event and channel
@@ -158,11 +157,12 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``polarization`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D coordinates of the polarization vector at the antenna in cartesian coordinates. (The receive vector (which is opposite to the propagation direction) was used to rotate from spherical/on-sky coordinates to cartesian coordinates). The polarization vector does not include any propagation effects that could change the polarization, such as different reflectivities at the surface for the p and s polarization component.
             ``ray_tracing_C0`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
             ``ray_tracing_C1`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
-            ``ray_tracing_reflection`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
-            ``ray_tracing_reflection_case`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
-            ``ray_tracing_solution_type`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
+            ``ray_tracing_reflection`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The number of bottom reflections (This variable is only non-zero if a reflection layer was defined in the ice model and if 'propagation.n_reflections' was set to a value larger than 0 in the config.yaml file.)
+            ``ray_tracing_reflection_case`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | Only relevant for bottom reflections. 1: rays start upwards, 2: rays start downwards
+            ``ray_tracing_solution_type`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The type of the ray tracing solution. 0: direct, 1: refracted, 2: reflected (off the surface)  (A refracted ray is defined as a ray that has a turning point, i.e. if it transitions from upward going to downward going; a reflected ray is defined if it has a surface reflection.)
+            ``focusing_factor`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |  The focusing factor calculated by the propagation module.
+            ``launch_vectors`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the launch vector of each ray tracing solution, per shower and channel.
             ``receive_vectors`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the receive vector of each ray tracing solution, per shower and channel.
-            ``shower_id`` | (``m_showers``) | The Shower ids of showers that triggered the selected station
             ``time_shower_and_ray`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The "signal time" per shower and raytracing solution. I.e., the time of the signal arriving at the DAQ including, e.g., cable delay, ...
             ``travel_distances`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The distance travelled by each ray tracing solution to a specific channel
             ``travel_times`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The time travelled by each ray tracing solution to a specific channel
