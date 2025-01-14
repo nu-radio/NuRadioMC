@@ -53,7 +53,24 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def get_channel_ids(self):
         return list(self.__channels.keys())
 
-    def add_channel(self, channel):
+    def add_channel(self, channel, overwrite=True):
+        """
+        Adds a channel to the station. If a channel with the same id is already present, it is overwritten.
+
+        Parameters
+        ----------
+        channel : `NuRadioReco.framework.channel.Channel`
+            The channel to add to the station.
+        overwrite : bool, (Default: True)
+            If True, allow to overwrite an existing channel (i.e., a channel with the same id). If False, raise AttributeError
+            if a channel with the same id is being added.
+        """
+        if not isinstance(channel, NuRadioReco.framework.channel.Channel):
+            raise AttributeError("`Channel` needs to be of type `NuRadioReco.framework.channel.Channel`")
+
+        if not overwrite and channel.get_id() in self.__channels:
+            raise AttributeError(f"Channel with the id {channel.get_id()} is already present in Station")
+
         self.__channels[channel.get_id()] = channel
 
     def remove_channel(self, channel_id):
