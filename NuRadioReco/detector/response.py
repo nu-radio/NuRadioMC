@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 import NuRadioReco.framework.base_trace
 
 from scipy import interpolate
@@ -507,6 +507,13 @@ class Response:
         #                         f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
 
         return time_delay1
+
+    def calculate_thermal_noise_amplitude(self, temperature=300):
+        freqs = np.arange(50, 2000, 0.5) * units.MHz
+        filter = self(freqs)
+
+        vrms = signal_processing.calculate_filtered_thermal_noise_amplitude(temperature=300, frequencies=freqs, filter=filter)
+        return vrms
 
 
 def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=None):
