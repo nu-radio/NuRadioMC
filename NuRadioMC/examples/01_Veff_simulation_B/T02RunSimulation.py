@@ -19,7 +19,7 @@ channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableD
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelAddCableDelay.run(evt, station, det, mode='add')
+        #channelAddCableDelay.run(evt, station, det, mode='add')
         channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
                                   filter_type='butter', order=2)
         channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
