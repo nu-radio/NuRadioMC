@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
-import NuRadioReco.framework.base_station
-import NuRadioReco.framework.sim_station
-import NuRadioReco.framework.channel
+from NuRadioReco import framework as fwk
+
 from six import iteritems
 import pickle
 import logging
@@ -9,10 +8,10 @@ import collections
 logger = logging.getLogger('NuRadioReco.Station')
 
 
-class Station(NuRadioReco.framework.base_station.BaseStation):
+class Station(fwk.BaseStation):
 
     def __init__(self, station_id):
-        NuRadioReco.framework.base_station.BaseStation.__init__(self, station_id)
+        fwk.BaseStation.__init__(self, station_id)
         self.__channels = collections.OrderedDict()
         self.__reference_reconstruction = 'RD'
         self.__sim_station = None
@@ -23,7 +22,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
         Parameters
         ----------
-        sim_station : NuRadioReco.framework.sim_station.SimStation
+        sim_station : fwk.SimStation
             The SimStation to set as the SimStation of the Station.
         """
         self.__sim_station = sim_station
@@ -35,7 +34,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
         Parameters
         ----------
-        sim_station : NuRadioReco.framework.sim_station.SimStation
+        sim_station : fwk.SimStation
             The SimStation to add to the Station.
         """
         if self.__sim_station is None:
@@ -49,7 +48,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
         Returns
         -------
-        NuRadioReco.framework.sim_station.SimStation
+        fwk.SimStation
             The SimStation of the Station.
         """
         return self.__sim_station
@@ -80,7 +79,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
         Yields
         ------
-        NuRadioReco.framework.channel.Channel
+        fwk.Channel
             The next channel in the iteration.
         """
         channel_ids = self.get_channel_ids()
@@ -148,10 +147,10 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
         Parameters
         ----------
-        channel_id : int or NuRadioReco.framework.channel.Channel
+        channel_id : int or fwk.Channel
             The Channel (id) to remove from the Station.
         """
-        if isinstance(channel_id, NuRadioReco.framework.channel.Channel):
+        if isinstance(channel_id, fwk.Channel):
             del self.__channels[channel_id.get_id()]
         else:
             del self.__channels[channel_id]
@@ -183,7 +182,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def serialize(self, mode):
         save_efield_traces = 'ElectricFields' in mode and mode['ElectricFields'] is True
-        base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, save_efield_traces=save_efield_traces)
+        base_station_pkl = fwk.BaseStation.serialize(self, save_efield_traces=save_efield_traces)
         channels_pkl = []
         save_channel_trace = 'Channels' in mode and mode['Channels'] is True
         for channel in self.iter_channels():
@@ -203,14 +202,14 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        NuRadioReco.framework.base_station.BaseStation.deserialize(self, data['base_station'])
+        fwk.BaseStation.deserialize(self, data['base_station'])
         if(data['sim_station'] is None):
             self.__sim_station = None
         else:
-            self.__sim_station = NuRadioReco.framework.sim_station.SimStation(None)
+            self.__sim_station = fwk.SimStation(None)
             self.__sim_station.deserialize(data['sim_station'])
         for channel_pkl in data['channels']:
-            channel = NuRadioReco.framework.channel.Channel(0)
+            channel = fwk.Channel(0)
             channel.deserialize(channel_pkl)
             self.add_channel(channel)
 

@@ -1,8 +1,8 @@
-import NuRadioReco.framework.base_shower
+from NuRadioReco import framework as fwk
 import pickle
 
 
-class RadioShower(NuRadioReco.framework.base_shower.BaseShower):
+class RadioShower(fwk.BaseShower):
 
     def __init__(self, shower_id=0, station_ids=None):
         self.__station_ids = station_ids
@@ -18,7 +18,7 @@ class RadioShower(NuRadioReco.framework.base_shower.BaseShower):
         return True
 
     def serialize(self):
-        base_shower_pickle = NuRadioReco.framework.base_shower.BaseShower.serialize(self)
+        base_shower_pickle = fwk.BaseShower.serialize(self)
         data = {
             'station_ids': self.__station_ids,
             'base_shower': base_shower_pickle
@@ -27,5 +27,5 @@ class RadioShower(NuRadioReco.framework.base_shower.BaseShower):
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        NuRadioReco.framework.base_shower.BaseShower.deserialize(self, data['base_shower'])
+        fwk.BaseShower.deserialize(self, data['base_shower'])
         self.__station_ids = data['station_ids']

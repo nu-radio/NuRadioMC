@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
-import NuRadioReco.framework.base_station
-import NuRadioReco.framework.channel
-import NuRadioReco.framework.sim_channel
+
+from NuRadioReco import framework as fwk
+
 import collections
 try:
     import cPickle as pickle
@@ -11,31 +11,31 @@ import logging
 logger = logging.getLogger('NuRadioReco.SimStation')
 
 
-class SimStation(NuRadioReco.framework.base_station.BaseStation):
+class SimStation(fwk.BaseStation):
 
     def __init__(self, station_id):
-        NuRadioReco.framework.base_station.BaseStation.__init__(self, station_id)
+        fwk.BaseStation.__init__(self, station_id)
         self.__magnetic_field_vector = None
         self.__simulation_weight = None
         self.__channels = collections.OrderedDict()
         self.__candidate = None
 
     def set_candidate(self, candidate_status):
-            """
-            Set the candidate for the simulation station. True means the station is a candidate for producing a trigger.
+        """
+        Set the candidate for the simulation station. True means the station is a candidate for producing a trigger.
 
-            Parameters
-            ----------
-            candidate_status : bool
-                If the station is a candidate for producing a trigger.
+        Parameters
+        ----------
+        candidate_status : bool
+            If the station is a candidate for producing a trigger.
 
-            Returns
-            -------
-            None
-            """
-            if not isinstance(candidate_status, bool) and candidate_status is not None:
-                raise ValueError("The candidate_status must be a bool or None.")
-            self.__candidate = candidate_status
+        Returns
+        -------
+        None
+        """
+        if not isinstance(candidate_status, bool) and candidate_status is not None:
+            raise ValueError("The candidate_status must be a bool or None.")
+        self.__candidate = candidate_status
 
     def is_candidate(self):
         """
@@ -70,10 +70,8 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         """
         adds a NuRadioReco.framework.sim_channel to the SimStation object
         """
-        if not isinstance(channel, NuRadioReco.framework.sim_channel.SimChannel):
-            raise AttributeError("channel needs to be of type NuRadioReco.framework.sim_channel")
-        if(channel.get_unique_identifier() in self.__channels):
-            raise AttributeError(f"channel with the unique identifier {channel.get_unique_identifier()} is already present in SimStation")
+        if not isinstance(channel, fwk.SimChannel):
+            raise AttributeError("`Channel` needs to be of type `fwk.SimChannel`")
         self.__channels[channel.get_unique_identifier()] = channel
 
     def get_channel(self, unique_identifier):
@@ -140,7 +138,7 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
                 yield channel
 
     def serialize(self, save_channel_traces, save_efield_traces):
-        base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, save_efield_traces=save_efield_traces)
+        base_station_pkl = fwk.BaseStation.serialize(self, save_efield_traces=save_efield_traces)
         channels_pkl = []
         for channel in self.iter_channels():
             channels_pkl.append(channel.serialize(save_trace=save_channel_traces))
@@ -152,12 +150,12 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        NuRadioReco.framework.base_station.BaseStation.deserialize(self, data['base_station'])
+        fwk.BaseStation.deserialize(self, data['base_station'])
         self.__magnetic_field_vector = data['__magnetic_field_vector']
         self.__simulation_weight = data['__simulation_weight']
         if 'channels' in data.keys():
             for channel_pkl in data['channels']:
-                channel = NuRadioReco.framework.sim_channel.SimChannel(0, 0, 0)
+                channel = fwk.SimChannel(0, 0, 0)
                 channel.deserialize(channel_pkl)
                 self.add_channel(channel)
 
