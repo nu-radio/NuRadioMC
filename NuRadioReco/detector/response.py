@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 import NuRadioReco.framework.base_trace
 
 from scipy import interpolate
@@ -422,11 +422,18 @@ class Response:
         popt = np.polyfit(freqs, np.unwrap(phase), 1)
         time_delay2 = -popt[0] / (2 * np.pi)
 
-        if np.abs(time_delay1 - time_delay2) > 0.1 * units.ns:
-            self.logger.warning("Calculation of time delay. The two methods yield different results: "
-                                f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
+        # if np.abs(time_delay1 - time_delay2) > 0.1 * units.ns:
+        #     self.logger.warning("Calculation of time delay. The two methods yield different results: "
+        #                         f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
 
         return time_delay1
+
+    def calculate_thermal_noise_amplitude(self, temperature=300):
+        freqs = np.arange(50, 2000, 0.5) * units.MHz
+        filter = self(freqs)
+
+        vrms = signal_processing.calculate_filtered_thermal_noise_amplitude(temperature=300, frequencies=freqs, filter=filter)
+        return vrms
 
 
 def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=None):
