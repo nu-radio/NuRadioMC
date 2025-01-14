@@ -4,17 +4,11 @@ import numpy as np
 import scipy.optimize as opt
 import logging
 import NuRadioReco.framework.base_trace
-from NuRadioReco.utilities import ice
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
+
+from NuRadioReco.utilities import ice, geometryUtilities as geo_utl, units
 from NuRadioReco.framework.parameters import stationParameters as stnp
-import NuRadioReco.modules.voltageToEfieldConverterPerChannel
-import NuRadioReco.modules.electricFieldBandPassFilter
 
-
-electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
-voltageToEfieldConverterPerChannel = NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel()
-voltageToEfieldConverterPerChannel.begin()
+from NuRadioReco import modules
 
 
 def get_array_of_channels(station, det, zenith, azimuth, polarization):
@@ -93,6 +87,10 @@ class beamFormingDirectionFitter:
         self.__debug = None
         self.begin()
         self.logger = logging.getLogger("NuRadioReco.beamFormingDirectionFitter")
+
+        self.electricFieldBandPassFilter = modules.electricFieldBandPassFilter()
+        self.voltageToEfieldConverterPerChannel = modules.voltageToEfieldConverterPerChannel()
+        self.voltageToEfieldConverterPerChannel.begin()
 
     def begin(self, debug=False, log_level=logging.NOTSET):
         self.logger.setLevel(log_level)
