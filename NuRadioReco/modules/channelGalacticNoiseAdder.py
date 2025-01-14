@@ -7,13 +7,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants
 import scipy.interpolate
-import healpy
 import astropy.coordinates
 import astropy.units
 
 # Since pygdsm is an optional dependency, we need to catch the ImportError
 try:
     import pygdsm
+    import healpy
     pygdsm_available = True
 except ImportError:
     pygdsm_available = False
