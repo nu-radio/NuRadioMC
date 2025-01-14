@@ -148,7 +148,7 @@ bandwidth_Vrms = (300 * 50 * constants.k * (high_freq - low_freq) / units.Hz) **
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelAddCableDelay.run(evt, station, det, mode='add')
+        #channelAddCableDelay.run(evt, station, det, mode='add')
 
         channelBandPassFilter.run(
             evt,

@@ -44,7 +44,7 @@ for i_event, event in enumerate(readRNOGData.run()):
 	print("reconstruction for event", i_event)
 	station_id = event.get_station_ids()[0]
 	station = event.get_station(station_id)
-	channelAddCableDelay.run(event, station, det, mode = 'subtract')
+	#channelAddCableDelay.run(event, station, det, mode = 'subtract')
 	channelBandPassFilter.run(event, station, det, passband = [5*units.MHz, 450*units.MHz])
 	sphericalWaveFitter.run(event, station, det, start_pulser_position = rel_pulser_position, n_index = 1.78, debug =True)
 
@@ -61,8 +61,3 @@ for i_event, event in enumerate(readRNOGData.run()):
 
 		fig.tight_layout()
 		fig.savefig("trace_{}.pdf".format(i_event))
-
-
-
-
-
