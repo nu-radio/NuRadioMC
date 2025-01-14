@@ -7,10 +7,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants
 import scipy.interpolate
-import pygdsm
 import healpy
 import astropy.coordinates
 import astropy.units
+
+# Since pygdsm is an optional dependency, we need to catch the ImportError
+try:
+    import pygdsm
+    pygdsm_available = True
+except ImportError:
+    pygdsm_available = False
 
 logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
 
@@ -28,6 +34,10 @@ class channelGalacticNoiseAdder:
     of the brightness temperature is interpolated in between.
     """
     def __init__(self):
+        if not pygdsm_available:
+            logger.error('pygdsm not available. Please install pygdsm to use this module.')
+            raise ImportError('pygdsm not available. Please install pygdsm to use this module.')
+
         self.__debug = None
         self.__zenith_sample = None
         self.__azimuth_sample = None
