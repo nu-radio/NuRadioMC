@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.framework.sim_channel module &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -626,10 +620,10 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioReco.framework.sim_channel">
-<span id="nuradioreco-framework-sim-channel-module"></span><h1>NuRadioReco.framework.sim_channel module<a class="headerlink" href="#module-NuRadioReco.framework.sim_channel" title="Permalink to this heading"></a></h1>
+<span id="nuradioreco-framework-sim-channel-module"></span><h1>NuRadioReco.framework.sim_channel module<a class="headerlink" href="#module-NuRadioReco.framework.sim_channel" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.sim_channel.</span></span><span class="sig-name descname"><span class="pre">SimChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_tracing_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_group_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.sim_channel.</span></span><span class="sig-name descname"><span class="pre">SimChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_tracing_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_group_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel" title="NuRadioReco.framework.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a></p>
 <p>Object to store simulated channels.</p>
 <p>This class is the same as the regular channel trace but has apart from the channel id (and possible group id) also
@@ -838,33 +832,33 @@ the channels of a single dual or triple polarized antenna as common in air showe
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_shower_id">
-<span class="sig-name descname"><span class="pre">get_shower_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.get_shower_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_shower_id" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_shower_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.get_shower_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_shower_id" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_ray_tracing_solution_id">
-<span class="sig-name descname"><span class="pre">get_ray_tracing_solution_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.get_ray_tracing_solution_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_ray_tracing_solution_id" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ray_tracing_solution_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.get_ray_tracing_solution_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_ray_tracing_solution_id" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier">
-<span class="sig-name descname"><span class="pre">get_unique_identifier</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.get_unique_identifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_unique_identifier</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.get_unique_identifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="Link to this definition"></a></dt>
 <dd><p>returns a unique identifier consisting of the tuple channel_id, shower_id and ray_tracing_id</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.serialize">
-<span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_trace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.serialize" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_trace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.deserialize">
-<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.deserialize" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.add_to_trace">
-<span class="sig-name descname"><span class="pre">add_to_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.add_to_trace" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_to_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.add_to_trace" title="Link to this definition"></a></dt>
 <dd><p>Adds the trace of another channel to the trace of this channel. The trace is only added within the 
 time window of “this” channel.
 If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a 
@@ -882,12 +876,12 @@ readout window.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.add_trace_start_time">
-<span class="sig-name descname"><span class="pre">add_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.add_trace_start_time" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.add_trace_start_time" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift">
-<span class="sig-name descname"><span class="pre">apply_time_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">apply_time_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift" title="Link to this definition"></a></dt>
 <dd><p>Uses the fourier shift theorem to apply a time shift to the trace
 Note that this is a cyclic shift, which means the trace will wrap
 around, which might lead to problems, especially for large time shifts.</p>
@@ -907,7 +901,7 @@ to acommodate the time shift</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace">
-<span class="sig-name descname"><span class="pre">get_filtered_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'butter'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_filtered_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'butter'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace" title="Link to this definition"></a></dt>
 <dd><p>Returns the trace after applying a filter to it. This does not change the stored trace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -925,7 +919,7 @@ to acommodate the time shift</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_frequencies">
-<span class="sig-name descname"><span class="pre">get_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_frequencies" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_frequencies" title="Link to this definition"></a></dt>
 <dd><p>Returns the frequencies of the frequency spectrum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -945,7 +939,7 @@ to acommodate the time shift</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_frequency_spectrum">
-<span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_frequency_spectrum" title="Link to this definition"></a></dt>
 <dd><p>Returns the frequency spectrum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -965,7 +959,7 @@ to acommodate the time shift</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_group_id">
-<span class="sig-name descname"><span class="pre">get_group_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_group_id" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_group_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_group_id" title="Link to this definition"></a></dt>
 <dd><p>channel group id
 If no group id is specified, the channel id is returned. This allows using modules that use the <em class="xref py py-obj">group_id</em>
 feature also on detector setups that don’t use this feature.</p>
@@ -973,22 +967,22 @@ feature also on detector setups that don’t use this feature.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope">
-<span class="sig-name descname"><span class="pre">get_hilbert_envelope</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_hilbert_envelope</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope_mag">
-<span class="sig-name descname"><span class="pre">get_hilbert_envelope_mag</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope_mag" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_hilbert_envelope_mag</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope_mag" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_id">
-<span class="sig-name descname"><span class="pre">get_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_id" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_id" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_number_of_samples">
-<span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_number_of_samples" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_number_of_samples" title="Link to this definition"></a></dt>
 <dd><p>Returns the number of samples in the time domain.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1002,17 +996,17 @@ feature also on detector setups that don’t use this feature.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_parameter">
-<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_parameters">
-<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameters" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameters" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate">
-<span class="sig-name descname"><span class="pre">get_sampling_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_sampling_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate" title="Link to this definition"></a></dt>
 <dd><p>Returns the sampling rate of the trace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1026,12 +1020,12 @@ feature also on detector setups that don’t use this feature.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_times">
-<span class="sig-name descname"><span class="pre">get_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_times" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_times" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_trace">
-<span class="sig-name descname"><span class="pre">get_trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="Link to this definition"></a></dt>
 <dd><p>Returns the time trace.</p>
 <p>If the frequency spectrum was modified before,
 an ifft is performed automatically to have the time domain representation
@@ -1048,22 +1042,22 @@ up to date.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_trace_start_time">
-<span class="sig-name descname"><span class="pre">get_trace_start_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace_start_time" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_trace_start_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace_start_time" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.has_parameter">
-<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.resample">
-<span class="sig-name descname"><span class="pre">resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.resample" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.resample" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_frequency_spectrum">
-<span class="sig-name descname"><span class="pre">set_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency_spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_frequency_spectrum" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency_spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_frequency_spectrum" title="Link to this definition"></a></dt>
 <dd><p>Sets the frequency spectrum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1080,12 +1074,12 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_parameter">
-<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_trace">
-<span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="Link to this definition"></a></dt>
 <dd><p>Sets the time trace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1102,7 +1096,7 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_trace_start_time">
-<span class="sig-name descname"><span class="pre">set_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace_start_time" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace_start_time" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

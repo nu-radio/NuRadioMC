@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.utilities.runner_example &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,17 +614,17 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.utilities.runner_example</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.modules.trigger.simpleThreshold</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen</span> <span class="kn">import</span> <span class="n">generator</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.simulation</span> <span class="kn">import</span> <span class="n">simulation</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">secrets</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">runner</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.trigger.simpleThreshold</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.EvtGen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.simulation</span><span class="w"> </span><span class="kn">import</span> <span class="n">simulation</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">secrets</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">runner</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Example of how to use the runner class to run NuRadioMC on a cluster.</span>
@@ -680,10 +674,12 @@
 <span class="n">order_high</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
 
 
-<div class="viewcode-block" id="task"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner_example.html#NuRadioMC.utilities.runner_example.task">[docs]</a><span class="k">def</span> <span class="nf">task</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">iSim</span><span class="p">,</span> <span class="n">nu_energy</span><span class="p">,</span> <span class="n">nu_energy_max</span><span class="p">,</span> <span class="n">detectordescription</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">,</span>
+<div class="viewcode-block" id="task">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner_example.html#NuRadioMC.utilities.runner_example.task">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">iSim</span><span class="p">,</span> <span class="n">nu_energy</span><span class="p">,</span> <span class="n">nu_energy_max</span><span class="p">,</span> <span class="n">detectordescription</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">,</span>
          <span class="n">flavor</span><span class="p">,</span> <span class="n">interaction_type</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">get_max_radius</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_max_radius</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
         <span class="k">if</span><span class="p">(</span><span class="n">E</span> <span class="o">&lt;=</span> <span class="mi">10</span> <span class="o">**</span> <span class="mf">16.6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span><span class="p">):</span>
             <span class="k">return</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
         <span class="k">elif</span><span class="p">(</span><span class="n">E</span> <span class="o">&lt;=</span> <span class="mf">1e17</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span><span class="p">):</span>
@@ -708,15 +704,15 @@
     <span class="n">highLowThreshold</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">highLowThreshold</span><span class="o">.</span><span class="n">triggerSimulator</span><span class="p">()</span>
     <span class="n">channelBandPassFilter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="p">()</span>
 
-    <span class="k">class</span> <span class="nc">mySimulation</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation</span><span class="p">):</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">mySimulation</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation</span><span class="p">):</span>
 
-        <span class="k">def</span> <span class="nf">_detector_simulation_filter_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_detector_simulation_filter_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
             <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
                                   <span class="n">passband</span><span class="o">=</span><span class="n">passband_low</span><span class="p">,</span> <span class="n">filter_type</span><span class="o">=</span><span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order_low</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
             <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
                                   <span class="n">passband</span><span class="o">=</span><span class="n">passband_high</span><span class="p">,</span> <span class="n">filter_type</span><span class="o">=</span><span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order_high</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">_detector_simulation_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_detector_simulation_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
             <span class="c1"># noiseless trigger</span>
             <span class="n">simpleThreshold</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
                                          <span class="n">threshold</span><span class="o">=</span><span class="mf">2.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms_per_channel</span><span class="p">[</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="mi">4</span><span class="p">],</span>
@@ -791,6 +787,7 @@
     <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">n_trig</span><span class="p">)</span></div>
 
 
+
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Run NuRadioMC simulation&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;energy_min&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
@@ -825,10 +822,10 @@
     <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">)):</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
 
-    <span class="k">class</span> <span class="nc">myrunner</span><span class="p">(</span><span class="n">runner</span><span class="o">.</span><span class="n">NuRadioMCRunner</span><span class="p">):</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">myrunner</span><span class="p">(</span><span class="n">runner</span><span class="o">.</span><span class="n">NuRadioMCRunner</span><span class="p">):</span>
 
         <span class="c1"># if required override the get_outputfilename function for a custom output file</span>
-        <span class="k">def</span> <span class="nf">get_outputfilename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_outputfilename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">runner</span><span class="o">.</span><span class="n">NuRadioMCRunner</span><span class="o">.</span><span class="n">get_outputfilename</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="c1"># start a simulation on two cores with a runtime of 23h</span>

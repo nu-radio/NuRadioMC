@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.framework.station &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,26 +614,30 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.framework.station</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.base_station</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.sim_station</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.channel</span>
-<span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">iteritems</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">collections</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_station</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_station</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.channel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">six</span><span class="w"> </span><span class="kn">import</span> <span class="n">iteritems</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.Station&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station">[docs]</a><span class="k">class</span> <span class="nc">Station</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="p">):</span>
+<div class="viewcode-block" id="Station">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Station</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">=</span> <span class="s1">&#39;RD&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="Station.set_sim_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.set_sim_station">[docs]</a>    <span class="k">def</span> <span class="nf">set_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">):</span>
+<div class="viewcode-block" id="Station.set_sim_station">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.set_sim_station">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the SimStation of the Station. If a SimStation is already present, it is overwritten.</span>
 
@@ -650,7 +648,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">=</span> <span class="n">sim_station</span></div>
 
-<div class="viewcode-block" id="Station.add_sim_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_sim_station">[docs]</a>    <span class="k">def</span> <span class="nf">add_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.add_sim_station">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_sim_station">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a SimStation to the Station. If a SimStation is already present, the new SimStation is merged to the existing</span>
 <span class="sd">        one.</span>
@@ -665,7 +666,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">+</span> <span class="n">sim_station</span></div>
 
-<div class="viewcode-block" id="Station.get_sim_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_sim_station">[docs]</a>    <span class="k">def</span> <span class="nf">get_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.get_sim_station">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_sim_station">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the SimStation of the Station.</span>
 
@@ -676,7 +680,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span></div>
 
-<div class="viewcode-block" id="Station.has_sim_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.has_sim_station">[docs]</a>    <span class="k">def</span> <span class="nf">has_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.has_sim_station">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.has_sim_station">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns whether the Station has a SimStation.</span>
 
@@ -687,7 +694,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="Station.iter_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_channels">[docs]</a>    <span class="k">def</span> <span class="nf">iter_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.iter_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iter_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iterates over all channels of the station. If `use_channels` is not None, only the channels with the ids in</span>
 <span class="sd">        `use_channels` are iterated over. If `sorted` is True, the channels are iterated over in ascending order of their</span>
@@ -716,10 +726,16 @@
         <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">:</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Station.get_channel"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.get_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Station.iter_channel_group"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_channel_group">[docs]</a>    <span class="k">def</span> <span class="nf">iter_channel_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_group_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.iter_channel_group">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_channel_group">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iter_channel_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_group_id</span><span class="p">):</span>
         <span class="n">found_channel_group</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">):</span>
             <span class="k">if</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_group_id</span><span class="p">()</span> <span class="o">==</span> <span class="n">channel_group_id</span><span class="p">):</span>
@@ -729,10 +745,16 @@
             <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;channel group id </span><span class="si">{</span><span class="n">channel_group_id</span><span class="si">}</span><span class="s2"> is not present&quot;</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Station.get_number_of_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_number_of_channels">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.get_number_of_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_number_of_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Station.get_channel_ids"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_group_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.get_channel_ids">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel_ids">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_group_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return all channel ids in the station</span>
 
@@ -757,13 +779,22 @@
 
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">channel_ids</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Station.add_channel"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_channel">[docs]</a>    <span class="k">def</span> <span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.add_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">channel</span></div>
 
-<div class="viewcode-block" id="Station.has_channel"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.has_channel">[docs]</a>    <span class="k">def</span> <span class="nf">has_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.has_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.has_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span></div>
 
-<div class="viewcode-block" id="Station.remove_channel"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.remove_channel">[docs]</a>    <span class="k">def</span> <span class="nf">remove_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.remove_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.remove_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes a channel from the station by deleting is from the channels dictionary. The `channel_id`</span>
 <span class="sd">        should be the id of the Channel, but supplying the Channel object itself is also supported.</span>
@@ -778,32 +809,47 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Station.set_reference_reconstruction"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.set_reference_reconstruction">[docs]</a>    <span class="k">def</span> <span class="nf">set_reference_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.set_reference_reconstruction">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.set_reference_reconstruction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_reference_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">reference</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;RD&#39;</span><span class="p">,</span> <span class="s1">&#39;MC&#39;</span><span class="p">]:</span>
-            <span class="kn">import</span> <span class="nn">sys</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;reference reconstructions other than RD and MC are not supported&quot;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">=</span> <span class="n">reference</span></div>
 
-<div class="viewcode-block" id="Station.get_reference_reconstruction"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_reference_reconstruction">[docs]</a>    <span class="k">def</span> <span class="nf">get_reference_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.get_reference_reconstruction">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_reference_reconstruction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_reference_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span></div>
 
-<div class="viewcode-block" id="Station.get_reference_direction"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_reference_direction">[docs]</a>    <span class="k">def</span> <span class="nf">get_reference_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.get_reference_direction">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_reference_direction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_reference_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;RD&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;azimuth&#39;</span><span class="p">)</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;MC&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;azimuth&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Station.get_magnetic_field_vector"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_magnetic_field_vector">[docs]</a>    <span class="k">def</span> <span class="nf">get_magnetic_field_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.get_magnetic_field_vector">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_magnetic_field_vector">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_magnetic_field_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;MC&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_magnetic_field_vector</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;RD&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;time dependent magnetic field model not yet implemented, returning static magnetic field for the ARIANNA site&quot;</span><span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span>
             <span class="k">return</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_magnetic_field_vector</span><span class="p">(</span><span class="s1">&#39;arianna&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Station.serialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.serialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.serialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
         <span class="n">save_efield_traces</span> <span class="o">=</span> <span class="s1">&#39;ElectricFields&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">mode</span><span class="p">[</span><span class="s1">&#39;ElectricFields&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
         <span class="n">base_station_pkl</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_efield_traces</span><span class="o">=</span><span class="n">save_efield_traces</span><span class="p">)</span>
         <span class="n">channels_pkl</span> <span class="o">=</span> <span class="p">[]</span>
@@ -823,7 +869,10 @@
                 <span class="s1">&#39;sim_station&#39;</span><span class="p">:</span> <span class="n">sim_station_pkl</span><span class="p">}</span>
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Station.deserialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.deserialize">[docs]</a>    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Station.deserialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.deserialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_station&#39;</span><span class="p">])</span>
         <span class="k">if</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;sim_station&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
@@ -836,7 +885,9 @@
             <span class="n">channel</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">channel_pkl</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__reference_reconstruction&#39;</span><span class="p">]</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__reference_reconstruction&#39;</span><span class="p">]</span></div>
+</div>
+
 </pre></div>
 
            </div>

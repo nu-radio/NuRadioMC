@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.RNO_G.channelBlockOffsetFitter &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -631,15 +625,17 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.base_trace</span> <span class="kn">import</span> <span class="n">BaseTrace</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">channelParameters</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">scipy.optimize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_trace</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseTrace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">channelParameters</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.optimize</span>
 
-<div class="viewcode-block" id="channelBlockOffsets"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets">[docs]</a><span class="k">class</span> <span class="nc">channelBlockOffsets</span><span class="p">:</span>
+<div class="viewcode-block" id="channelBlockOffsets">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">channelBlockOffsets</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mi">51</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mi">51</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add or remove block offsets to channel traces</span>
 
@@ -661,7 +657,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_offset_inject</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_frequency</span> <span class="o">=</span> <span class="n">max_frequency</span>
 
-<div class="viewcode-block" id="channelBlockOffsets.add_offsets"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets">[docs]</a>    <span class="k">def</span> <span class="nf">add_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">offsets</span><span class="o">=</span><span class="mi">1</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="channelBlockOffsets.add_offsets">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">offsets</span><span class="o">=</span><span class="mi">1</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add (simulated or reconstructed) block offsets to an event.</span>
 
@@ -717,7 +715,10 @@
                 <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="channelBlockOffsets.remove_offsets"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets">[docs]</a>    <span class="k">def</span> <span class="nf">remove_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+
+<div class="viewcode-block" id="channelBlockOffsets.remove_offsets">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove block offsets from an event</span>
 
@@ -769,10 +770,14 @@
                 <span class="p">)</span>
                 <span class="n">offsets</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">block_offsets</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_offsets</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_offsets</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="fit_block_offsets"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets">[docs]</a><span class="k">def</span> <span class="nf">fit_block_offsets</span><span class="p">(</span>
+
+<div class="viewcode-block" id="fit_block_offsets">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fit_block_offsets</span><span class="p">(</span>
         <span class="n">trace</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="mf">3.2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">,</span>
         <span class="n">max_frequency</span><span class="o">=</span><span class="mi">50</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="n">return_trace</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">maxiter</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
@@ -862,7 +867,7 @@
             <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">frequencies_oob</span><span class="o">*</span><span class="n">dt</span><span class="p">)[</span><span class="kc">None</span><span class="p">]</span>
         <span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">pedestal_fit</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">pedestal_fit</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
             <span class="n">fit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">a</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">const_fft_term</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">chi2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fit</span><span class="o">-</span><span class="n">spectrum_oob</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">chi2</span>
@@ -883,6 +888,7 @@
         <span class="k">return</span> <span class="n">block_offsets</span><span class="p">,</span> <span class="n">output_trace</span>
 
     <span class="k">return</span> <span class="n">block_offsets</span></div>
+
 </pre></div>
 
            </div>

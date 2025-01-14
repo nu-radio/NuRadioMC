@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.framework.parameters &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -628,10 +622,12 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">aenum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aenum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
 
 
-<div class="viewcode-block" id="stationParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters">[docs]</a><span class="k">class</span> <span class="nc">stationParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="stationParameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">stationParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">nu_zenith</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: the zenith angle of the incoming neutrino direction</span>
     <span class="n">nu_azimuth</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: the azimuth angle of the incoming neutrino direction</span>
     <span class="n">nu_energy</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1">#: the energy of the neutrino</span>
@@ -664,7 +660,10 @@
     <span class="n">cr_dominant_polarisation</span> <span class="o">=</span> <span class="mi">61</span>  <span class="c1">#: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)</span>
     <span class="n">dirty_fft_channels</span> <span class="o">=</span> <span class="mi">62</span>  <span class="c1">#: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)</span></div>
 
-<div class="viewcode-block" id="channelParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParameters">[docs]</a><span class="k">class</span> <span class="nc">channelParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+
+<div class="viewcode-block" id="channelParameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParameters">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">channelParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">zenith</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: zenith angle of the incoming signal direction</span>
     <span class="n">azimuth</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: azimuth angle of the incoming signal direction</span>
     <span class="n">maximum_amplitude</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1">#: the maximum ampliude of the magnitude of the trace</span>
@@ -686,7 +685,10 @@
     <span class="n">bandwidth_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1">#: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation</span></div>
 
 
-<div class="viewcode-block" id="electricFieldParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.electricFieldParameters">[docs]</a><span class="k">class</span> <span class="nc">electricFieldParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+
+<div class="viewcode-block" id="electricFieldParameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.electricFieldParameters">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">electricFieldParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">ray_path_type</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: the type of the ray tracing solution (&#39;direct&#39;, &#39;refracted&#39; or &#39;reflected&#39;)</span>
     <span class="n">polarization_angle</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi</span>
     <span class="n">polarization_angle_expectation</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1">#: expected polarization based on shower geometry. Defined analogous to polarization_angle</span>
@@ -707,7 +709,10 @@
     <span class="n">raytracing_solution</span> <span class="o">=</span> <span class="mi">19</span>  <span class="c1">#: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)</span>
     <span class="n">launch_vector</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1">#: the launch vector of the ray from which this efield originates (only available for in-ice simulations)</span></div>
 
-<div class="viewcode-block" id="ARIANNAParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.ARIANNAParameters">[docs]</a><span class="k">class</span> <span class="nc">ARIANNAParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>  <span class="c1">#: this class stores parameters specific to the ARIANNA data taking</span>
+
+<div class="viewcode-block" id="ARIANNAParameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.ARIANNAParameters">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ARIANNAParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>  <span class="c1">#: this class stores parameters specific to the ARIANNA data taking</span>
     <span class="n">seq_start_time</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: the start time of a sequence</span>
     <span class="n">seq_stop_time</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: the stop time of a sequence</span>
     <span class="n">seq_num</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1">#: the sequence number of the current event</span>
@@ -718,7 +723,10 @@
     <span class="n">internal_clock_time</span> <span class="o">=</span> <span class="mi">8</span>  <span class="c1">#: time since last trigger with ms precision</span></div>
 
 
-<div class="viewcode-block" id="showerParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters">[docs]</a><span class="k">class</span> <span class="nc">showerParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+
+<div class="viewcode-block" id="showerParameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">showerParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">zenith</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: zenith angle of the shower axis pointing towards xmax</span>
     <span class="n">azimuth</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: azimuth angle of the shower axis pointing towards xmax</span>
     <span class="n">core</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1">#: position of the intersection between shower axis and an observer plane</span>
@@ -754,7 +762,10 @@
     <span class="n">interferometric_core</span> <span class="o">=</span> <span class="mi">122</span>  <span class="c1">#: core (intersection of shower axis with obs plane) derived from beam-formed signal</span></div>
 
 
-<div class="viewcode-block" id="emitterParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters">[docs]</a><span class="k">class</span> <span class="nc">emitterParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+
+<div class="viewcode-block" id="emitterParameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">emitterParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">position</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: the interaction vertex (for air showers this corresponds to the point of X0)</span>
     <span class="n">model</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: the emitter model used to simulate the emission (as defined in NuRadioMC/SignalGen/emitter.py)</span>
     <span class="n">amplitude</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1">#: the amplitude of the signal</span>
@@ -770,7 +781,10 @@
     <span class="n">time</span> <span class="o">=</span> <span class="mi">13</span>  <span class="c1">#: the time when the signal was emitted</span></div>
 
 
-<div class="viewcode-block" id="particleParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.particleParameters">[docs]</a><span class="k">class</span> <span class="nc">particleParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+
+<div class="viewcode-block" id="particleParameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.particleParameters">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">particleParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">parent_id</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1">#: the entry number of the parent particle, None if primary.</span>
     <span class="n">zenith</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: the zenith angle of the incoming neutrino direction</span>
     <span class="n">azimuth</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1">#: the azimuth angle of the incoming neutrino direction</span>
@@ -789,7 +803,10 @@
     <span class="n">cr_azimuth</span> <span class="o">=</span> <span class="mi">103</span>  <span class="c1">#: azimuth angle of the cosmic-ray incoming direction</span>
     <span class="n">cr_energy_em</span> <span class="o">=</span> <span class="mi">104</span>  <span class="c1">#: the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)</span></div>
 
-<div class="viewcode-block" id="generatorAttributes"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes">[docs]</a><span class="k">class</span> <span class="nc">generatorAttributes</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+
+<div class="viewcode-block" id="generatorAttributes">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">generatorAttributes</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">Emax</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1">#: maximum simulated energy</span>
     <span class="n">Emin</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1">#: minimum simulated energy</span>
 
@@ -844,10 +861,14 @@
     <span class="n">NuRadioMC_version</span> <span class="o">=</span> <span class="mi">202</span>
     <span class="n">NuRadioMC_version_hash</span> <span class="o">=</span> <span class="mi">203</span></div>
 
-<div class="viewcode-block" id="eventParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.eventParameters">[docs]</a><span class="k">class</span> <span class="nc">eventParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+
+<div class="viewcode-block" id="eventParameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.eventParameters">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">eventParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">sim_config</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1">#: contents of the config file that the NuRadioMC simulation was run with</span>
     <span class="n">hash_NuRadioReco</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1">#: deprecated, since NuRadioReco is no longer its own repository</span>
     <span class="n">hash_NuRadioMC</span> <span class="o">=</span> <span class="mi">3</span> <span class="c1">#: git hash of the NuRadioMC commit that the file was created with</span></div>
+
 </pre></div>
 
            </div>

@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.io.event_parser_factory &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,17 +614,19 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.io.event_parser_factory</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.event</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.event</span>
 
 
-<div class="viewcode-block" id="scan_files_function"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.event_parser_factory.html#NuRadioReco.modules.io.event_parser_factory.scan_files_function">[docs]</a><span class="k">def</span> <span class="nf">scan_files_function</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">):</span>
+<div class="viewcode-block" id="scan_files_function">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.event_parser_factory.html#NuRadioReco.modules.io.event_parser_factory.scan_files_function">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">scan_files_function</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the function to scan a file with the given file version</span>
 <span class="sd">    Convention for function names is scan_files_MAJORVERSION_MINORVERSION,</span>
 <span class="sd">    specifying the first version that function is for</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">scan_files_2_0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iF</span><span class="p">,</span> <span class="n">current_byte</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scan_files_2_0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iF</span><span class="p">,</span> <span class="n">current_byte</span><span class="p">):</span>
         
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_detector</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scanning a file of version 2.0 which does not contain a detector object. &quot;</span>
@@ -670,7 +666,7 @@
         <span class="n">current_byte</span> <span class="o">+=</span> <span class="n">bytes_to_read</span>
         <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">iF</span><span class="p">,</span> <span class="n">current_byte</span>
 
-    <span class="k">def</span> <span class="nf">scan_files_2_2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iF</span><span class="p">,</span> <span class="n">current_byte</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scan_files_2_2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iF</span><span class="p">,</span> <span class="n">current_byte</span><span class="p">):</span>
         <span class="n">object_type_hex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
         <span class="n">object_type</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">object_type_hex</span><span class="p">,</span> <span class="s1">&#39;little&#39;</span><span class="p">)</span>
         <span class="n">current_byte</span> <span class="o">+=</span> <span class="mi">6</span>
@@ -775,9 +771,12 @@
 
 
 
-<div class="viewcode-block" id="iter_events_function"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.event_parser_factory.html#NuRadioReco.modules.io.event_parser_factory.iter_events_function">[docs]</a><span class="k">def</span> <span class="nf">iter_events_function</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">iter_events_2_0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="iter_events_function">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.event_parser_factory.html#NuRadioReco.modules.io.event_parser_factory.iter_events_function">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">iter_events_function</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">iter_events_2_0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">bytes_to_read_hex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_file_id</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
             <span class="n">bytes_to_read</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">bytes_to_read_hex</span><span class="p">,</span> <span class="s1">&#39;little&#39;</span><span class="p">)</span>
@@ -798,7 +797,7 @@
             <span class="n">event</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">evtstr</span><span class="p">)</span>
             <span class="k">yield</span> <span class="n">event</span>
 
-    <span class="k">def</span> <span class="nf">iter_events_2_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iter_events_2_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">object_type_hex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_file_id</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
             <span class="n">object_type</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">object_type_hex</span><span class="p">,</span> <span class="s1">&#39;little&#39;</span><span class="p">)</span>
@@ -834,6 +833,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File version is </span><span class="si">{</span><span class="n">version_major</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">version_major</span><span class="si">}</span><span class="s1"> which might indicate the file is empty&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;File version </span><span class="si">{}</span><span class="s1">.</span><span class="si">{}</span><span class="s1"> is not supported. Major version needs to be 2 but is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">,</span> <span class="n">version_major</span><span class="p">))</span></div>
+
 </pre></div>
 
            </div>

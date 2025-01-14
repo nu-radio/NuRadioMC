@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.efieldRadioInterferometricReconstruction &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,22 +614,22 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.efieldRadioInterferometricReconstruction</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">interferometry</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">interferometry</span>
 
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
 
-<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span><span class="p">,</span> <span class="n">coordinatesystems</span>
-<span class="kn">from</span> <span class="nn">radiotools.atmosphere</span> <span class="kn">import</span> <span class="n">models</span><span class="p">,</span> <span class="n">refractivity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span><span class="p">,</span> <span class="n">coordinatesystems</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools.atmosphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span><span class="p">,</span> <span class="n">refractivity</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">curve_fit</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.efieldRadioInterferometricReconstruction&#39;</span><span class="p">)</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -651,7 +645,9 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="efieldInterferometricDepthReco"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco">[docs]</a><span class="k">class</span> <span class="nc">efieldInterferometricDepthReco</span><span class="p">:</span>
+<div class="viewcode-block" id="efieldInterferometricDepthReco">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">efieldInterferometricDepthReco</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class reconstructs the depth of the maximum of the longitudinal profile of the</span>
 <span class="sd">    beam-formed radio emission: X_RIT along a given axis. X_RIT is found to correlate with X_max.</span>
@@ -663,7 +659,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_at</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tab</span> <span class="o">=</span> <span class="kc">None</span>
@@ -671,7 +667,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_signal_kind</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="efieldInterferometricDepthReco.begin"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">signal_kind</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="efieldInterferometricDepthReco.begin">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">signal_kind</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set module config.</span>
 
@@ -697,7 +695,10 @@
         <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="efieldInterferometricDepthReco.sample_longitudinal_profile"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.sample_longitudinal_profile">[docs]</a>    <span class="k">def</span> <span class="nf">sample_longitudinal_profile</span><span class="p">(</span>
+
+<div class="viewcode-block" id="efieldInterferometricDepthReco.sample_longitudinal_profile">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.sample_longitudinal_profile">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_longitudinal_profile</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span>
             <span class="n">shower_axis</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span> <span class="n">depths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distances</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -783,7 +784,10 @@
         <span class="k">return</span> <span class="n">signals</span></div>
 
 
-<div class="viewcode-block" id="efieldInterferometricDepthReco.reconstruct_interferometric_depth"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.reconstruct_interferometric_depth">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct_interferometric_depth</span><span class="p">(</span>
+
+<div class="viewcode-block" id="efieldInterferometricDepthReco.reconstruct_interferometric_depth">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.reconstruct_interferometric_depth">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reconstruct_interferometric_depth</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span> <span class="n">shower_axis</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span>
             <span class="n">lower_depth</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">upper_depth</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">bin_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">return_profile</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -887,7 +891,7 @@
         <span class="n">signals_final</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_longitudinal_profile</span><span class="p">(</span>
             <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span> <span class="n">shower_axis</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span> <span class="n">depths</span><span class="o">=</span><span class="n">depths_final</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">normal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">normal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot; Gauss curve &quot;&quot;&quot;</span>
             <span class="k">return</span> <span class="n">A</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> \
                 <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
@@ -901,7 +905,10 @@
         <span class="k">return</span> <span class="n">popt</span></div>
 
 
-<div class="viewcode-block" id="efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table">[docs]</a>    <span class="k">def</span> <span class="nf">update_atmospheric_model_and_refractivity_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shower</span><span class="p">):</span>
+
+<div class="viewcode-block" id="efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_atmospheric_model_and_refractivity_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shower</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.</span>
 
@@ -929,8 +936,11 @@
             <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="efieldInterferometricDepthReco.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">use_MC_geometry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_MC_pulses</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="efieldInterferometricDepthReco.run">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">use_MC_geometry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_MC_pulses</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run interferometric reconstruction of depth of coherent signal.</span>
 
@@ -991,7 +1001,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;xmax&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">shower_maximum</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm2</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;zenith&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="efieldInterferometricDepthReco.end"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="efieldInterferometricDepthReco.end">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.end">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot reconstructed depth vs true depth of shower maximum (Xmax).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1005,18 +1018,24 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$X_\mathrm</span><span class="si">{RIT}</span><span class="s2">$ / g$\,$cm$^{-2}$&quot;</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-        <span class="k">pass</span></div></div>
+        <span class="k">pass</span></div>
+</div>
 
 
-<div class="viewcode-block" id="efieldInterferometricAxisReco"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco">[docs]</a><span class="k">class</span> <span class="nc">efieldInterferometricAxisReco</span><span class="p">(</span><span class="n">efieldInterferometricDepthReco</span><span class="p">):</span>
+
+<div class="viewcode-block" id="efieldInterferometricAxisReco">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">efieldInterferometricAxisReco</span><span class="p">(</span><span class="n">efieldInterferometricDepthReco</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class to reconstruct the shower axis with beamforming.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="efieldInterferometricAxisReco.find_maximum_in_plane"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.find_maximum_in_plane">[docs]</a>    <span class="k">def</span> <span class="nf">find_maximum_in_plane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">p_axis</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">cs</span><span class="p">):</span>
+<div class="viewcode-block" id="efieldInterferometricAxisReco.find_maximum_in_plane">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.find_maximum_in_plane">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_maximum_in_plane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">p_axis</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">cs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sample interferometric signals in 2-d plane (vxB-vxvxB) perpendicular to a given axis on a rectangular/quadratic grid.</span>
 <span class="sd">        The orientation of the plane is defined by the radiotools.coordinatesytem.cstrafo argument.</span>
@@ -1071,7 +1090,10 @@
         <span class="k">return</span> <span class="n">idx</span><span class="p">,</span> <span class="n">signals</span></div>
 
 
-<div class="viewcode-block" id="efieldInterferometricAxisReco.sample_lateral_cross_section"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_lateral_cross_section">[docs]</a>    <span class="k">def</span> <span class="nf">sample_lateral_cross_section</span><span class="p">(</span>
+
+<div class="viewcode-block" id="efieldInterferometricAxisReco.sample_lateral_cross_section">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_lateral_cross_section">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_lateral_cross_section</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span>
             <span class="n">shower_axis_inital</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span>
@@ -1229,7 +1251,10 @@
         <span class="k">return</span> <span class="n">point_found</span><span class="p">,</span> <span class="n">weight</span></div>
 
 
-<div class="viewcode-block" id="efieldInterferometricAxisReco.reconstruct_shower_axis"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_shower_axis">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct_shower_axis</span><span class="p">(</span>
+
+<div class="viewcode-block" id="efieldInterferometricAxisReco.reconstruct_shower_axis">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_shower_axis">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reconstruct_shower_axis</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span>
             <span class="n">shower_axis</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span>
@@ -1310,7 +1335,7 @@
         <span class="n">relative</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">centered_around_truth</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="k">def</span> <span class="nf">sample_lateral_cross_section_placeholder</span><span class="p">(</span><span class="n">dep</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">sample_lateral_cross_section_placeholder</span><span class="p">(</span><span class="n">dep</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Run sample_lateral_cross_section for a particular depth.</span>
 
@@ -1372,8 +1397,11 @@
 
         <span class="k">return</span> <span class="n">direction_rec</span><span class="p">,</span> <span class="n">core_rec</span></div>
 
-<div class="viewcode-block" id="efieldInterferometricAxisReco.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">use_MC_geometry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_MC_pulses</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="efieldInterferometricAxisReco.run">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">use_MC_geometry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_MC_pulses</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run interferometric reconstruction of depth of coherent signal.</span>
 
@@ -1414,11 +1442,18 @@
         <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">interferometric_shower_axis</span><span class="p">,</span> <span class="n">direction_rec</span><span class="p">)</span>
         <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">interferometric_core</span><span class="p">,</span> <span class="n">core_rec</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="efieldInterferometricAxisReco.end"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span></div></div>
+
+<div class="viewcode-block" id="efieldInterferometricAxisReco.end">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.end">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+</div>
 
 
-<div class="viewcode-block" id="get_geometry_and_transformation"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_geometry_and_transformation">[docs]</a><span class="k">def</span> <span class="nf">get_geometry_and_transformation</span><span class="p">(</span><span class="n">shower</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_geometry_and_transformation">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_geometry_and_transformation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_geometry_and_transformation</span><span class="p">(</span><span class="n">shower</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns core (def. as intersection between shower axis and observation plane,</span>
 <span class="sd">    shower axis, and radiotools.coordinatesytem for given shower.</span>
@@ -1447,7 +1482,10 @@
     <span class="k">return</span> <span class="n">core</span><span class="p">,</span> <span class="n">shower_axis</span><span class="p">,</span> <span class="n">cs</span></div>
 
 
-<div class="viewcode-block" id="get_station_data"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_station_data">[docs]</a><span class="k">def</span> <span class="nf">get_station_data</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">use_MC_pulses</span><span class="p">,</span> <span class="n">n_sampling</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_station_data">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_station_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_station_data</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">use_MC_pulses</span><span class="p">,</span> <span class="n">n_sampling</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns station data in a proper format</span>
 
@@ -1519,7 +1557,10 @@
     <span class="k">return</span> <span class="n">traces_vxB</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">pos</span></div>
 
 
-<div class="viewcode-block" id="plot_lateral_cross_section"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.plot_lateral_cross_section">[docs]</a><span class="k">def</span> <span class="nf">plot_lateral_cross_section</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">signals</span><span class="p">,</span> <span class="n">mc_pos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="plot_lateral_cross_section">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.plot_lateral_cross_section">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_lateral_cross_section</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">signals</span><span class="p">,</span> <span class="n">mc_pos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot the lateral distribution of the beamformed singal (in the vxB, vxvxB directions).</span>
 
@@ -1576,6 +1617,7 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
 </pre></div>
 
            </div>

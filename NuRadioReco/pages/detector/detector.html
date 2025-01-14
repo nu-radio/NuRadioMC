@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Detector Description &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -625,7 +619,7 @@
            <div itemprop="articleBody">
              
   <section id="detector-description">
-<h1>Detector Description<a class="headerlink" href="#detector-description" title="Permalink to this heading"></a></h1>
+<h1>Detector Description<a class="headerlink" href="#detector-description" title="Link to this heading"></a></h1>
 <p>NuRadioReco provides detector description classes that allow access to any
 relevant information about the state of the radio detector at a given time.
 There are two classes that provide this functionality: The
@@ -638,7 +632,7 @@ simulation studies.</p>
 Some more details about this detector class and its implementation are given
 <a class="reference internal" href="rnog.html"><span class="doc">here</span></a>.</p>
 <section id="the-detector-class">
-<h2>The Detector Class<a class="headerlink" href="#the-detector-class" title="Permalink to this heading"></a></h2>
+<h2>The Detector Class<a class="headerlink" href="#the-detector-class" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">Detector</span></code> class provides easy access to information about a given detector.
 Instead of manually sending requests to an SQL database or parsing through
 JSON files, a <code class="docutils literal notranslate"><span class="pre">Detector</span></code> object is created and given the appropriate SQL
@@ -646,8 +640,8 @@ configuration or JSON detector description and information about the detector
 is requested via <em>get</em>-methods. By setting the <code class="docutils literal notranslate"><span class="pre">Detector</span></code> to a specific time
 via the <code class="docutils literal notranslate"><span class="pre">update</span></code> function, it provides the detector configuration as it was
 at  specific time.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector</span>
-<span class="kn">import</span> <span class="nn">astropy.time</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.detector</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
 
 <span class="n">det</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="s1">&#39;path/to/json/file&#39;</span><span class="p">)</span>
 <span class="n">detector_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="s1">&#39;2018-01-01 20:00:00&#39;</span><span class="p">)</span>
@@ -662,7 +656,7 @@ at  specific time.</p>
 </div>
 </section>
 <section id="detector-description-formats">
-<h2>Detector Description Formats<a class="headerlink" href="#detector-description-formats" title="Permalink to this heading"></a></h2>
+<h2>Detector Description Formats<a class="headerlink" href="#detector-description-formats" title="Link to this heading"></a></h2>
 <p>The detector description consists of several tables for the different component
 types that can reference each other by their IDs. For example, each channel
 in the channels table has a Channel ID and a Station ID that associates it
@@ -679,14 +673,14 @@ The components itself do not carry a comission/decomission time. This reflects t
 every component is calibrated and its information is added into the database. Later on, each channel is constructed out
 of the different components, and finally a station is composted out of multiple channels.</p>
 <section id="database">
-<h3>DataBase<a class="headerlink" href="#database" title="Permalink to this heading"></a></h3>
+<h3>DataBase<a class="headerlink" href="#database" title="Link to this heading"></a></h3>
 <p>Information about the detector can be stored in a remote MySQL database, which has
 the advantage that one always uses the latest detector information, as long as the
 database is properly maintained. Since MySQL requests can be rather slow, entries
 are buffered once they have been requested from the MySQL server.</p>
 </section>
 <section id="json">
-<h3>JSON<a class="headerlink" href="#json" title="Permalink to this heading"></a></h3>
+<h3>JSON<a class="headerlink" href="#json" title="Link to this heading"></a></h3>
 <p>In some situations, e.g. when doing a simulation study, it is useful to be able
 to use a variety of detector descriptions without the need to set up a MySQL database
 every time. Therefore, the NuRadioReco <code class="docutils literal notranslate"><span class="pre">Detector</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> class
@@ -696,18 +690,18 @@ with NuRadioReco and can be modified to simulate different detector configuratio
 <p>We also provide a converter that dumps the SQL database into a JSON file that then can be used offline.</p>
 </section>
 <section id="dictionary">
-<h3>Dictionary<a class="headerlink" href="#dictionary" title="Permalink to this heading"></a></h3>
+<h3>Dictionary<a class="headerlink" href="#dictionary" title="Link to this heading"></a></h3>
 <p>In principle, the detector description can also be passed to the <code class="docutils literal notranslate"><span class="pre">Detector</span></code>
 or <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> as a python dictionary. This is used internally by NuRadioReco,
 e.g. when loading the detector description from an event file. For most applications,
 we recommend not using this feature and storing the description in a JSON file instead.</p>
 </section>
 <section id="signal-chain-responses">
-<h3>Signal Chain Responses<a class="headerlink" href="#signal-chain-responses" title="Permalink to this heading"></a></h3>
+<h3>Signal Chain Responses<a class="headerlink" href="#signal-chain-responses" title="Link to this heading"></a></h3>
 </section>
 </section>
 <section id="genericdetector">
-<h2>GenericDetector<a class="headerlink" href="#genericdetector" title="Permalink to this heading"></a></h2>
+<h2>GenericDetector<a class="headerlink" href="#genericdetector" title="Link to this heading"></a></h2>
 <p>For simulation studies, it is sometimes necessary to simulate a detector
 consisting of a large number of mostly identical stations. In another situation,
 a station may have a large number of channels that only differ by a few characteristics,
@@ -791,7 +785,7 @@ It can therefore not give a time-dependent detector description and should only 
 for simulation studies, never to reconstruct real data.</p>
 </div>
 <section id="event-specific-changes">
-<h3>Event-Specific Changes<a class="headerlink" href="#event-specific-changes" title="Permalink to this heading"></a></h3>
+<h3>Event-Specific Changes<a class="headerlink" href="#event-specific-changes" title="Link to this heading"></a></h3>
 <p>In some situations, events in the same file can have a different detector description.
 While these situations should be avoided, doing so would sometimes be too cumbersome,
 so the <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> offers a way to store event-specific changes to the
@@ -811,20 +805,20 @@ description.</p>
 </section>
 </section>
 <section id="detector-description-in-event-files">
-<h2>Detector Description in Event Files<a class="headerlink" href="#detector-description-in-event-files" title="Permalink to this heading"></a></h2>
+<h2>Detector Description in Event Files<a class="headerlink" href="#detector-description-in-event-files" title="Link to this heading"></a></h2>
 <p>To make it easier to keep track of which detector description was used in the reconstruction
 of a given event file, it is possible to store the detector description in an
 event file and read it along with the events.</p>
 <section id="writing-the-detector">
-<h3>Writing the Detector<a class="headerlink" href="#writing-the-detector" title="Permalink to this heading"></a></h3>
+<h3>Writing the Detector<a class="headerlink" href="#writing-the-detector" title="Link to this heading"></a></h3>
 <p>To write a detector description into an event file, the detector description
 is passed to the <code class="docutils literal notranslate"><span class="pre">run</span></code> method of the <code class="docutils literal notranslate"><span class="pre">EventWriter</span></code> module. In order to
 keep the file size small, only information about channels and stations that
 are used in the saved events are written into the event file.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">NuRadioReco.modules.io.eventReader</span>
-<span class="kn">import</span> <span class="nn">NuradioReco.modules.io.eventWriter</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector</span>
-<span class="kn">import</span> <span class="nn">astropy.time</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.eventReader</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuradioReco.modules.io.eventWriter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.detector</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
 
 <span class="n">det</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="s1">&#39;path/to/json/file&#39;</span><span class="p">)</span>
 <span class="n">detector_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="s1">&#39;2018-01-01 20:00:00&#39;</span><span class="p">)</span>
@@ -841,7 +835,7 @@ are used in the saved events are written into the event file.</p>
 </div>
 </section>
 <section id="reading-the-detector">
-<h3>Reading the Detector<a class="headerlink" href="#reading-the-detector" title="Permalink to this heading"></a></h3>
+<h3>Reading the Detector<a class="headerlink" href="#reading-the-detector" title="Link to this heading"></a></h3>
 <p>To access the detector description in an event file, the <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> and
 <code class="docutils literal notranslate"><span class="pre">NuRadioRecoio</span></code> modules provide the <code class="docutils literal notranslate"><span class="pre">get_detector</span></code> method, which always
 returns the detector for the last file from which an event was requested. If
@@ -851,7 +845,7 @@ the detector.</p>
 <p>In order to use this feature, the parameters <code class="docutils literal notranslate"><span class="pre">parse_detector</span></code> and <code class="docutils literal notranslate"><span class="pre">read_detector</span></code>
 have to be set to <code class="docutils literal notranslate"><span class="pre">True</span></code> for  constructors of the <code class="docutils literal notranslate"><span class="pre">NuRadioRecoio</span></code> and
 <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> modules, respectively.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">NuRadioReco.modules.io.eventReader</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.eventReader</span>
 <span class="n">event_reader</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">eventReader</span><span class="o">.</span><span class="n">EventReader</span><span class="p">()</span>
 <span class="n">event_reader</span><span class="o">.</span><span class="n">begin</span><span class="p">([</span><span class="s1">&#39;path/to/file&#39;</span><span class="p">],</span> <span class="n">read_detector</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">event_reader</span><span class="o">.</span><span class="n">run</span><span class="p">():</span>
@@ -866,7 +860,7 @@ each time an event from another file is read to get the correct <code class="doc
 </div>
 </section>
 <section id="detector-viewer">
-<h3>Detector Viewer<a class="headerlink" href="#detector-viewer" title="Permalink to this heading"></a></h3>
+<h3>Detector Viewer<a class="headerlink" href="#detector-viewer" title="Link to this heading"></a></h3>
 <p>NuRadioReco provides a visualization for detector description. It is stored in the folder
 <code class="docutils literal notranslate"><span class="pre">NuRadioReco/detector/detector_browser</span></code> and works similar to the <a class="reference internal" href="../event_display.html"><span class="doc">event viewer</span></a>.</p>
 <p>To start it, execute the command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">index.py</span> <span class="pre">/path/to/folder</span></code>. Then open

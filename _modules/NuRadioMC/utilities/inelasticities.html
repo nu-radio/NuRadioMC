@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.utilities.inelasticities &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,9 +614,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.utilities.inelasticities</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">constants</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 
 <span class="n">e_mass</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;electron mass energy equivalent in MeV&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
 <span class="n">mu_mass</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;muon mass energy equivalent in MeV&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
@@ -636,7 +630,9 @@
 <span class="n">G_F</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;Fermi coupling constant&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="get_neutrino_inelasticity"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity">[docs]</a><span class="k">def</span> <span class="nf">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_neutrino_inelasticity">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Standard inelasticity for deep inelastic scattering used so far.</span>
 <span class="sd">    Ported from ShelfMC</span>
@@ -661,7 +657,10 @@
     <span class="k">return</span> <span class="n">inelasticities</span></div>
 
 
-<div class="viewcode-block" id="get_ccnc"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.get_ccnc">[docs]</a><span class="k">def</span> <span class="nf">get_ccnc</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_ccnc">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.get_ccnc">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ccnc</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the nature of the interaction current: cc or nc</span>
 <span class="sd">    Ported from Shelf MC</span>
@@ -692,7 +691,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ccnc</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="random_tau_branch"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.random_tau_branch">[docs]</a><span class="k">def</span> <span class="nf">random_tau_branch</span><span class="p">(</span><span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="random_tau_branch">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.random_tau_branch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">random_tau_branch</span><span class="p">(</span><span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates a random tau branch decay</span>
 <span class="sd">    See http://dx.doi.org/10.1016/j.cpc.2013.04.001</span>
@@ -723,7 +725,10 @@
     <span class="k">return</span> <span class="n">branch</span></div>
 
 
-<div class="viewcode-block" id="inelasticity_tau_decay"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.inelasticity_tau_decay">[docs]</a><span class="k">def</span> <span class="nf">inelasticity_tau_decay</span><span class="p">(</span><span class="n">tau_energy</span><span class="p">,</span> <span class="n">branch</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="inelasticity_tau_decay">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.inelasticity_tau_decay">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">inelasticity_tau_decay</span><span class="p">(</span><span class="n">tau_energy</span><span class="p">,</span> <span class="n">branch</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the hadronic or electromagnetic inelasticity for the tau decay</span>
 <span class="sd">    See http://dx.doi.org/10.1016/j.cpc.2013.04.001</span>
@@ -750,25 +755,25 @@
         <span class="n">branching</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.12</span><span class="p">,</span> <span class="mf">0.26</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">])</span>
         <span class="n">rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pi_mass</span><span class="p">,</span> <span class="n">rho770_mass</span><span class="p">,</span> <span class="n">a1_mass</span><span class="p">,</span> <span class="n">rho1450_mass</span><span class="p">])</span> <span class="o">/</span> <span class="n">tau_mass</span>
 
-        <span class="k">def</span> <span class="nf">g_pi</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">g_pi</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">r</span> <span class="o">**</span> <span class="mi">2</span><span class="p">):</span>
                 <span class="k">return</span> <span class="mf">0.</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">r</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">r</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
 
-        <span class="k">def</span> <span class="nf">g_1</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">g_1</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">r</span> <span class="o">**</span> <span class="mi">2</span><span class="p">):</span>
                 <span class="k">return</span> <span class="mf">0.</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">r</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">r</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">g_0</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">g_0</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">r</span> <span class="o">**</span> <span class="mi">2</span><span class="p">):</span>
                 <span class="k">return</span> <span class="mf">0.</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">y_distribution</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">y_distribution</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
             <span class="n">pi_term</span> <span class="o">=</span> <span class="n">branching</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">g_pi</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">rs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">g_0</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">rs</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
             <span class="c1"># rest_terms = branching[1:]*(g_1(y,rs)+g_0(y,rs))</span>
             <span class="n">rest_terms</span> <span class="o">=</span> <span class="p">[</span> <span class="n">branch</span> <span class="o">*</span> <span class="p">(</span><span class="n">g_1</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="n">g_0</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span> <span class="k">for</span> <span class="n">branch</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">branching</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">rs</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="p">]</span>
@@ -790,7 +795,7 @@
         <span class="n">nu_max</span> <span class="o">=</span> <span class="p">(</span><span class="n">mu</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">m_l</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">mu</span>
 
         <span class="c1"># Fraction energy distibution in the decaying particle rest frame</span>
-        <span class="k">def</span> <span class="nf">x_distribution</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">x_distribution</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">m_l</span> <span class="o">/</span> <span class="n">nu_max</span> <span class="ow">or</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
                 <span class="k">return</span> <span class="mf">0.</span>
             <span class="k">else</span><span class="p">:</span>
@@ -807,7 +812,10 @@
         <span class="k">return</span> <span class="n">y_lab</span></div>
 
 
-<div class="viewcode-block" id="rejection_sampling"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.rejection_sampling">[docs]</a><span class="k">def</span> <span class="nf">rejection_sampling</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="rejection_sampling">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.rejection_sampling">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rejection_sampling</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Draws a random number following a given distribution using</span>
 <span class="sd">    a rejection sampling algorithm.</span>
@@ -841,6 +849,7 @@
         <span class="n">reject</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">y</span>
 
     <span class="k">return</span> <span class="n">x</span></div>
+
 </pre></div>
 
            </div>

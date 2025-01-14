@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.detector.detector_sql &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,27 +614,29 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.detector.detector_sql</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">MySQLdb</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MySQLdb</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.sql_detector&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Detector"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector">[docs]</a><span class="k">class</span> <span class="nc">Detector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Detector">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Detector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">__instance</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">Detector</span><span class="o">.</span><span class="n">__instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">Detector</span><span class="o">.</span><span class="n">__instance</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Detector</span><span class="o">.</span><span class="n">__instance</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>  <span class="c1"># get the directory of this file</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dir_path</span><span class="p">,</span> <span class="s2">&quot;detector_sql_auth.json&quot;</span><span class="p">)</span>
@@ -662,7 +658,7 @@
         <span class="c1"># just for testing</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="n">args</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargvalues</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="s1">&#39;request </span><span class="si">{}</span><span class="s1"> with arguments</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getframeinfo</span><span class="p">(</span><span class="n">frame</span><span class="p">)[</span><span class="mi">2</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
@@ -670,11 +666,16 @@
         <span class="n">out</span> <span class="o">+=</span> <span class="s2">&quot;   at time </span><span class="si">{}</span><span class="se">\n</span><span class="s2"> returned not result.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Detector.update"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
+<div class="viewcode-block" id="Detector.update">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;updating detector time to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestamp</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="o">=</span> <span class="n">timestamp</span></div>
 
-<div class="viewcode-block" id="Detector.get_everything"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_everything">[docs]</a>    <span class="k">def</span> <span class="nf">get_everything</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_everything">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_everything">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_everything</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
 
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;st.station_id&#39;</span><span class="p">,</span> <span class="s1">&#39;st.commission_time&#39;</span><span class="p">,</span> <span class="s1">&#39;st.decommission_time&#39;</span><span class="p">,</span>
@@ -720,7 +721,10 @@
             <span class="n">result_dict</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result_dict</span></div>
 
-<div class="viewcode-block" id="Detector.get_everything_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_everything_channels">[docs]</a>    <span class="k">def</span> <span class="nf">get_everything_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_everything_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_everything_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_everything_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
 
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;st.station_id&#39;</span><span class="p">,</span> <span class="s1">&#39;ch.channel_id&#39;</span><span class="p">,</span> <span class="s1">&#39;ch.commission_time&#39;</span><span class="p">,</span> <span class="s1">&#39;ch.decommission_time&#39;</span><span class="p">,</span>
@@ -758,7 +762,10 @@
             <span class="n">result_dict</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result_dict</span></div>
 
-<div class="viewcode-block" id="Detector.get_everything_stations"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_everything_stations">[docs]</a>    <span class="k">def</span> <span class="nf">get_everything_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_everything_stations">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_everything_stations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_everything_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
 
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;st.station_id&#39;</span><span class="p">,</span> <span class="s1">&#39;st.commission_time&#39;</span><span class="p">,</span> <span class="s1">&#39;st.decommission_time&#39;</span><span class="p">,</span>
@@ -787,7 +794,10 @@
             <span class="n">result_dict</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result_dict</span></div>
 
-<div class="viewcode-block" id="Detector.get_everything_positions"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_everything_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_everything_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_everything_positions">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_everything_positions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_everything_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
 
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pos.position&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.measurement_time&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.easting&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.northing&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.zone&#39;</span><span class="p">,</span>
@@ -812,7 +822,10 @@
             <span class="n">result_dict</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result_dict</span></div>
 
-<div class="viewcode-block" id="Detector.get_absolute_position_site"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_absolute_position_site">[docs]</a>    <span class="k">def</span> <span class="nf">get_absolute_position_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_absolute_position_site">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_absolute_position_site">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_absolute_position_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the UTM coordinates</span>
 
@@ -841,7 +854,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">position</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Detector.get_relative_position"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_relative_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_relative_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_relative_position">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_relative_position">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_relative_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT position_x, position_y, position_z FROM stations AS st</span>
@@ -858,7 +874,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">position</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Detector.get_relative_positions"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_relative_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_relative_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_relative_positions">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_relative_positions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_relative_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT position_x, position_y, position_z FROM stations AS st</span>
@@ -876,7 +895,10 @@
         <span class="c1">#         logger.debug(&#39;station {}: {}&#39;.format(station_id, position))</span>
         <span class="k">return</span> <span class="n">position</span></div>
 
-<div class="viewcode-block" id="Detector.get_site"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_site">[docs]</a>    <span class="k">def</span> <span class="nf">get_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_site">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_site">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT site FROM stations AS st</span>
@@ -894,7 +916,10 @@
         <span class="c1">#         logger.debug(&#39;station {}: {}&#39;.format(station_id, position))</span>
         <span class="k">return</span> <span class="n">site</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Detector.get_number_of_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_number_of_channels">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_number_of_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_number_of_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT channel_id FROM stations AS st</span>
@@ -910,7 +935,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">channel_ids</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Detector.get_cable_delay"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_cable_delay">[docs]</a>    <span class="k">def</span> <span class="nf">get_cable_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_cable_delay">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_cable_delay">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT time_delay FROM stations AS st</span>
@@ -928,7 +956,10 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Detector.get_cable_type_and_length"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_cable_type_and_length">[docs]</a>    <span class="k">def</span> <span class="nf">get_cable_type_and_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_cable_type_and_length">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_cable_type_and_length">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_type_and_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT cable_type, cable_length FROM stations AS st</span>
@@ -946,7 +977,10 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">type_length</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">type_length</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span></div>
 
-<div class="viewcode-block" id="Detector.get_antenna_type"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_antenna_type">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT antenna_type FROM stations AS st</span>
@@ -966,7 +1000,10 @@
                 <span class="s2">&quot;more than one antenna type return for station channel combination -&gt; bug in detector description, only first element is returned&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">antenna_type</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Detector.get_antenna_deployment_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_deployment_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_deployment_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_antenna_deployment_time">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_deployment_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_deployment_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT deployment_time FROM stations AS st</span>
@@ -986,7 +1023,10 @@
                 <span class="s2">&quot;more than one antenna deployment_time return for station channel combination -&gt; bug in detector description, only first element is returned&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">deployment_time</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Detector.get_antenna_orientation"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_orientation">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_orientation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_antenna_orientation">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_orientation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_orientation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; returns the orientation of a specific antenna</span>
 <span class="sd">        * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)</span>
 <span class="sd">        * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)</span>
@@ -1009,7 +1049,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="Detector.get_amplifier_type"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_amplifier_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_amplifier_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_amplifier_type">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_amplifier_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_amplifier_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT amp_type FROM stations AS st</span>
@@ -1027,7 +1070,10 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;get_amplifier_type(</span><span class="si">{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">) returns </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">amp_type</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]))</span>
         <span class="k">return</span> <span class="n">amp_type</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Detector.get_sampling_frequency"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_sampling_frequency">[docs]</a>    <span class="k">def</span> <span class="nf">get_sampling_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_sampling_frequency">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_sampling_frequency">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sampling_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT sampling_frequency FROM stations AS st</span>
@@ -1044,7 +1090,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sampling_frequency</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span></div>
 
-<div class="viewcode-block" id="Detector.get_number_of_samples"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_number_of_samples">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_number_of_samples">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_number_of_samples">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT n_samples FROM stations AS st</span>
@@ -1061,7 +1110,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">n_samples</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Detector.get_antenna_model"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Detector.get_antenna_model">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_model">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        determine correct antenna model from antenna type, position and orientation of antenna</span>
 
@@ -1076,7 +1128,9 @@
             <span class="n">antenna_model</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_infiniteair&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">antenna_type</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">antenna_model</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_infinitefirn&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">antenna_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">antenna_model</span></div></div>
+        <span class="k">return</span> <span class="n">antenna_model</span></div>
+</div>
+
 
 
 <span class="n">relative_positions</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
@@ -1091,7 +1145,9 @@
                                   <span class="s1">&#39;dummy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;DEW&#39;</span><span class="p">,</span> <span class="s1">&#39;DEW&#39;</span><span class="p">,</span> <span class="s1">&#39;DEW&#39;</span><span class="p">]}</span>
 
 
-<div class="viewcode-block" id="get_cable_delays"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_cable_delays">[docs]</a><span class="k">def</span> <span class="nf">get_cable_delays</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
+<div class="viewcode-block" id="get_cable_delays">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_cable_delays">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cable_delays</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">station_id</span> <span class="o">==</span> <span class="mi">41</span><span class="p">:</span>
         <span class="n">cable_delays</span> <span class="o">=</span> <span class="p">[</span><span class="mf">19.95</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">19.86</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">18.82</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">19.86</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">]</span>
     <span class="k">elif</span> <span class="n">station_id</span> <span class="o">==</span> <span class="mi">51</span><span class="p">:</span>
@@ -1103,7 +1159,10 @@
     <span class="k">return</span> <span class="n">cable_delays</span></div>
 
 
-<div class="viewcode-block" id="get_antenna_model_file"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_antenna_model_file">[docs]</a><span class="k">def</span> <span class="nf">get_antenna_model_file</span><span class="p">(</span><span class="n">station_type</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_antenna_model_file">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_antenna_model_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_model_file</span><span class="p">(</span><span class="n">station_type</span><span class="p">):</span>
     <span class="c1"># dummy module</span>
     <span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>  <span class="c1"># get the directory of this file</span>
     <span class="n">antenna_model</span> <span class="o">=</span> <span class="s1">&#39;WIPLD_antennamodel_firn_v2.root&#39;</span>
@@ -1112,7 +1171,10 @@
     <span class="k">return</span> <span class="n">antenna_model_file</span></div>
 
 
-<div class="viewcode-block" id="get_relative_positions"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_relative_positions">[docs]</a><span class="k">def</span> <span class="nf">get_relative_positions</span><span class="p">(</span><span class="n">station</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_relative_positions">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_relative_positions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_relative_positions</span><span class="p">(</span><span class="n">station</span><span class="p">):</span>
     <span class="c1"># default 4 antenna station</span>
     <span class="k">if</span> <span class="n">station</span> <span class="o">==</span> <span class="mi">41</span><span class="p">:</span>
         <span class="n">rel_pos</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
@@ -1124,12 +1186,18 @@
     <span class="k">return</span> <span class="n">rel_pos</span></div>
 
 
-<div class="viewcode-block" id="get_relative_position"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_relative_position">[docs]</a><span class="k">def</span> <span class="nf">get_relative_position</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_relative_position">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_relative_position">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_relative_position</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
     <span class="n">rel_pos</span> <span class="o">=</span> <span class="n">get_relative_positions</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rel_pos</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="get_antenna_type"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_antenna_type">[docs]</a><span class="k">def</span> <span class="nf">get_antenna_type</span><span class="p">(</span><span class="n">station_type</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_antenna_type">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_antenna_type">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_type</span><span class="p">(</span><span class="n">station_type</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">station_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">antenna_types_for_station_type</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Station type </span><span class="si">{}</span><span class="s2"> not known&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_type</span><span class="p">))</span>
         <span class="n">antenna_type</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1144,13 +1212,19 @@
     <span class="k">return</span> <span class="n">antenna_type</span></div>
 
 
-<div class="viewcode-block" id="get_amplifier_type"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_amplifier_type">[docs]</a><span class="k">def</span> <span class="nf">get_amplifier_type</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_amplifier_type">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_amplifier_type">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_amplifier_type</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
     <span class="c1"># dummy module</span>
     <span class="c1"># currently a choice of 100, 200 and 300 series</span>
     <span class="k">return</span> <span class="s1">&#39;100&#39;</span></div>
 
 
-<div class="viewcode-block" id="get_station_type"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_station_type">[docs]</a><span class="k">def</span> <span class="nf">get_station_type</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_station_type">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_station_type">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_station_type</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
     <span class="c1"># dummy module</span>
     <span class="k">if</span> <span class="n">station_id</span> <span class="o">==</span> <span class="mi">41</span><span class="p">:</span>
         <span class="n">station_type</span> <span class="o">=</span> <span class="n">station_types</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -1166,7 +1240,10 @@
     <span class="k">return</span> <span class="n">station_type</span></div>
 
 
-<div class="viewcode-block" id="get_number_of_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_number_of_channels">[docs]</a><span class="k">def</span> <span class="nf">get_number_of_channels</span><span class="p">(</span><span class="n">station_type</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_number_of_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_number_of_channels">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_channels</span><span class="p">(</span><span class="n">station_type</span><span class="p">):</span>
     <span class="c1"># dummy module</span>
     <span class="k">if</span> <span class="n">station_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">number_of_channels_for_station_type</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Station type </span><span class="si">{}</span><span class="s2"> not known&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_type</span><span class="p">))</span>
@@ -1175,6 +1252,7 @@
         <span class="n">n_channels</span> <span class="o">=</span> <span class="n">number_of_channels_for_station_type</span><span class="p">[</span><span class="n">station_type</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">n_channels</span></div>
+
 </pre></div>
 
            </div>

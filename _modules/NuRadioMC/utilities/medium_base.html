@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.utilities.medium_base &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,27 +614,29 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.utilities.medium_base</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">integrate</span><span class="p">,</span> <span class="n">linalg</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">integrate</span><span class="p">,</span> <span class="n">linalg</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">radiopropa</span> <span class="k">as</span> <span class="nn">RP</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">radiopropa</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">RP</span>
     <span class="n">radiopropa_is_imported</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">radiopropa_is_imported</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ice_model&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="IceModel"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel">[docs]</a><span class="k">class</span> <span class="nc">IceModel</span><span class="p">():</span>
+<div class="viewcode-block" id="IceModel">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IceModel</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class from which all ice models should inheret</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z_air_boundary</span><span class="o">=</span><span class="mi">0</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> <span class="n">z_bottom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z_air_boundary</span><span class="o">=</span><span class="mi">0</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> <span class="n">z_bottom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initiaion of a basic ice model</span>
 
@@ -662,7 +658,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection_phase_shift</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="IceModel.add_reflective_bottom"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom">[docs]</a>    <span class="k">def</span> <span class="nf">add_reflective_bottom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refl_z</span><span class="p">,</span> <span class="n">refl_coef</span><span class="p">,</span> <span class="n">refl_phase_shift</span><span class="p">):</span>
+<div class="viewcode-block" id="IceModel.add_reflective_bottom">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_reflective_bottom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refl_z</span><span class="p">,</span> <span class="n">refl_coef</span><span class="p">,</span> <span class="n">refl_phase_shift</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        function which adds a reflective bottom to your ice model</span>
 
@@ -683,7 +681,10 @@
             <span class="c1"># bottom should always be below the reflective layer</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">z_bottom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reflection</span> <span class="o">-</span> <span class="mi">1</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">m</span></div>
 
-<div class="viewcode-block" id="IceModel.get_index_of_refraction"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction">[docs]</a>    <span class="k">def</span> <span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IceModel.get_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the index of refraction at position.</span>
 <span class="sd">        Reimplement everytime in the specific model</span>
@@ -701,7 +702,10 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IceModel.get_average_index_of_refraction"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_average_index_of_refraction">[docs]</a>    <span class="k">def</span> <span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position1</span><span class="p">,</span> <span class="n">position2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IceModel.get_average_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_average_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position1</span><span class="p">,</span> <span class="n">position2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the average index of refraction between two points</span>
 <span class="sd">        Reimplement everytime in the specific model</span>
@@ -720,7 +724,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Using general implementation of function which might be slow. For faster calculation, overwrite with an ice model specific function&#39;</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">):</span>
             <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">])</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
 
@@ -731,7 +735,10 @@
         <span class="n">n_average</span> <span class="o">=</span> <span class="n">int_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">position2</span><span class="o">-</span><span class="n">position1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">n_average</span></div>
 
-<div class="viewcode-block" id="IceModel.get_gradient_of_index_of_refraction"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_gradient_of_index_of_refraction">[docs]</a>    <span class="k">def</span> <span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IceModel.get_gradient_of_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_gradient_of_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the gradient of index of refraction at position</span>
 <span class="sd">        Reimplement everytime in the specific model</span>
@@ -750,7 +757,8 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes a default object holding the radiopropa scalarfield and necessary radiopropa</span>
 <span class="sd">        moduldes that define the medium in radiopropa. It uses the parameters of the medium</span>
@@ -774,7 +782,9 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="IceModel.get_ice_model_radiopropa"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa">[docs]</a>    <span class="k">def</span> <span class="nf">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="IceModel.get_ice_model_radiopropa">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes</span>
 <span class="sd">        that define the medium in radiopropa. If no specific model is set by the user it returns</span>
@@ -799,7 +809,10 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span></div>
 
-<div class="viewcode-block" id="IceModel.set_ice_model_radiopropa"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa">[docs]</a>    <span class="k">def</span> <span class="nf">set_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ice_model_radiopropa</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IceModel.set_ice_model_radiopropa">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ice_model_radiopropa</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If radiopropa is installed, this function can be used</span>
 <span class="sd">        to set a specific RadioPropaIceWrapper object as the</span>
@@ -817,14 +830,18 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependancy was not import and can therefore not be used. </span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span> <span class="o">=</span> <span class="n">ice_model_radiopropa</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span> <span class="o">=</span> <span class="n">ice_model_radiopropa</span></div>
+</div>
 
 
-<div class="viewcode-block" id="IceModelSimple"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple">[docs]</a><span class="k">class</span> <span class="nc">IceModelSimple</span><span class="p">(</span><span class="n">IceModel</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IceModelSimple">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IceModelSimple</span><span class="p">(</span><span class="n">IceModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    predefined ice model (to inherit from) with exponential shape</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">n_ice</span><span class="p">,</span>
                  <span class="n">delta_n</span><span class="p">,</span>
                  <span class="n">z_0</span><span class="p">,</span>
@@ -868,7 +885,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">=</span> <span class="n">z_0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span> <span class="o">=</span> <span class="n">z_shift</span>
 
-<div class="viewcode-block" id="IceModelSimple.get_index_of_refraction"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction">[docs]</a>    <span class="k">def</span> <span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+<div class="viewcode-block" id="IceModelSimple.get_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the index of refraction at position.</span>
 <span class="sd">        Overwrites function of the mother class</span>
@@ -895,7 +914,10 @@
             <span class="n">ior</span><span class="p">[</span><span class="n">position</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
             <span class="k">return</span> <span class="n">ior</span></div>
 
-<div class="viewcode-block" id="IceModelSimple.get_average_index_of_refraction"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_average_index_of_refraction">[docs]</a>    <span class="k">def</span> <span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position1</span><span class="p">,</span> <span class="n">position2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IceModelSimple.get_average_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_average_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position1</span><span class="p">,</span> <span class="n">position2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the average index of refraction between two points</span>
 <span class="sd">        Overwrites function of the mother class</span>
@@ -917,7 +939,7 @@
 <span class="sd">                    averaged index of refraction between the two points</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">exp_average</span><span class="p">(</span><span class="n">z_max</span><span class="p">,</span> <span class="n">z_min</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">exp_average</span><span class="p">(</span><span class="n">z_max</span><span class="p">,</span> <span class="n">z_min</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_ice</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">/</span> <span class="p">(</span><span class="n">z_max</span> <span class="o">-</span> <span class="n">z_min</span><span class="p">)</span>
                     <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">z_max</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">z_min</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="p">)))</span>
 
@@ -940,7 +962,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function cannot handle averages accros boundary when using arrays of positions.&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IceModelSimple.get_gradient_of_index_of_refraction"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction">[docs]</a>    <span class="k">def</span> <span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IceModelSimple.get_gradient_of_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the gradient of index of refraction at position</span>
 <span class="sd">        Overwrites function of the mother class</span>
@@ -957,7 +982,7 @@
 <span class="sd">        n_nabla:    1D (3,) or 2D (n,3) numpy array</span>
 <span class="sd">                    gradient of index of refraction at the point</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">def</span> <span class="nf">gradient_z</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">gradient_z</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
             <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
@@ -971,7 +996,8 @@
 
         <span class="k">return</span> <span class="n">gradient</span></div>
 
-    <span class="k">def</span> <span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If radiopropa is installed this will compute and return a default object holding the</span>
 <span class="sd">        radiopropa scalarfield and necessary radiopropa moduldes that define the medium in</span>
@@ -998,11 +1024,14 @@
         <span class="k">return</span> <span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="IceModelBirefringence"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence">[docs]</a><span class="k">class</span> <span class="nc">IceModelBirefringence</span><span class="p">(</span><span class="n">IceModelSimple</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IceModelBirefringence">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IceModelBirefringence</span><span class="p">(</span><span class="n">IceModelSimple</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    predefined birefringence ice model (to inherit from) including different indieces of refraction for differnt directions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bir_model</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bir_model</span><span class="p">):</span>
 
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initiaion of a birefringent ice model with an interpolation of the data as described in:</span>
@@ -1020,7 +1049,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">f2</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">UnivariateSpline</span><span class="o">.</span><span class="n">_from_tck</span><span class="p">(</span><span class="n">bir_model</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f3</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">UnivariateSpline</span><span class="o">.</span><span class="n">_from_tck</span><span class="p">(</span><span class="n">bir_model</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
-<div class="viewcode-block" id="IceModelBirefringence.get_birefringence_index_of_refraction"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_birefringence_index_of_refraction">[docs]</a>    <span class="k">def</span> <span class="nf">get_birefringence_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+<div class="viewcode-block" id="IceModelBirefringence.get_birefringence_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_birefringence_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_birefringence_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the birefringent index of refraction at any position, no density effects are included at this point.</span>
@@ -1040,7 +1071,9 @@
         <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f2</span><span class="p">(</span> <span class="o">-</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="n">nz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f3</span><span class="p">(</span> <span class="o">-</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span></div></div>
+        <span class="k">return</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span></div>
+</div>
+
 
 
 <span class="k">if</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
@@ -1064,13 +1097,15 @@
 <span class="sd">        --&gt; this converts the distance from SI unit meter into NuRadio units</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="RadioPropaIceWrapper"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper">[docs]</a>    <span class="k">class</span> <span class="nc">RadioPropaIceWrapper</span><span class="p">():</span>
+<div class="viewcode-block" id="RadioPropaIceWrapper">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">RadioPropaIceWrapper</span><span class="p">():</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This class holds all the necessary variables for the radiopropa raytracer to work.</span>
 <span class="sd">        When radiopropa is installed, this object will automatically be generated for a</span>
 <span class="sd">        smooth handeling of the radiopropa ice model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ice_model_nuradio</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ice_model_nuradio</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">):</span>
             <span class="c1"># the ice model of NuRadioMC on which this object is based</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span> <span class="o">=</span> <span class="n">ice_model_nuradio</span>
             <span class="c1"># this hold a radiopropa.scalarfield of the refractive index</span>
@@ -1120,7 +1155,9 @@
                                                       <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="s2">&quot;bottom reflection&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">bottom_reflection</span>
 
-<div class="viewcode-block" id="RadioPropaIceWrapper.get_modules"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules">[docs]</a>        <span class="k">def</span> <span class="nf">get_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RadioPropaIceWrapper.get_modules">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            returns the predefined modules (like reflective or transmissive layers,</span>
 <span class="sd">            a discontinuity in refractive index, observers ...) of the ice for</span>
@@ -1133,7 +1170,10 @@
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span></div>
 
-<div class="viewcode-block" id="RadioPropaIceWrapper.get_module"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module">[docs]</a>        <span class="k">def</span> <span class="nf">get_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RadioPropaIceWrapper.get_module">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            returns the predefined module with that name (like reflective or</span>
 <span class="sd">            transmissive layers, a discontinuity in refractive index, observers</span>
@@ -1150,7 +1190,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="RadioPropaIceWrapper.add_module"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module">[docs]</a>        <span class="k">def</span> <span class="nf">add_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RadioPropaIceWrapper.add_module">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">add_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            add predefined modules (like reflective or transmissive layers,</span>
 <span class="sd">            a discontinuity in refractive index, observers ...) of the ice</span>
@@ -1169,7 +1212,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">module</span></div>
 
-<div class="viewcode-block" id="RadioPropaIceWrapper.remove_module"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.remove_module">[docs]</a>        <span class="k">def</span> <span class="nf">remove_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RadioPropaIceWrapper.remove_module">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.remove_module">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">remove_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            removes predefined modules (like reflective or transmissive layers,</span>
 <span class="sd">            a discontinuity in refractive index, observers ...) of the ice</span>
@@ -1183,7 +1229,10 @@
             <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="RadioPropaIceWrapper.replace_module"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module">[docs]</a>        <span class="k">def</span> <span class="nf">replace_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">new_module</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RadioPropaIceWrapper.replace_module">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">replace_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">new_module</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            replaces predefined modules (like reflective or transmissive layers,</span>
 <span class="sd">            a discontinuity in refractive index, observers ...) of the ice</span>
@@ -1200,7 +1249,10 @@
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Module with name </span><span class="si">{}</span><span class="s1"> does not exist yet and thus cannot be replaced, module just added&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_module</span></div>
 
-<div class="viewcode-block" id="RadioPropaIceWrapper.get_scalar_field"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_scalar_field">[docs]</a>        <span class="k">def</span> <span class="nf">get_scalar_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RadioPropaIceWrapper.get_scalar_field">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_scalar_field">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_scalar_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            add predefined modules (like reflective or transmissive layers,</span>
 <span class="sd">            a discontinuity in refractive index, observers ...) of the ice</span>
@@ -1211,19 +1263,25 @@
 <span class="sd">            scalar_field: radiopropa.ScalarField</span>
 <span class="sd">                          scalar field that holds the refractive index to use in radiopropa</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__scalar_field</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__scalar_field</span></div>
+</div>
 
-<div class="viewcode-block" id="ScalarFieldBuilder"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.ScalarFieldBuilder">[docs]</a>    <span class="k">class</span> <span class="nc">ScalarFieldBuilder</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">ScalarField</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ScalarFieldBuilder">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.ScalarFieldBuilder">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">ScalarFieldBuilder</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">ScalarField</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If the requested ice model does not exist in radiopropa, this class can build</span>
 <span class="sd">        one in stead. It is a radiopropa object but constructed through the python</span>
 <span class="sd">        wrapper which is much slower.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ice_model_nuradio</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ice_model_nuradio</span><span class="p">):</span>
             <span class="n">RP</span><span class="o">.</span><span class="n">ScalarField</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span> <span class="o">=</span> <span class="n">ice_model_nuradio</span>
 
-<div class="viewcode-block" id="ScalarFieldBuilder.getValue"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getValue">[docs]</a>        <span class="k">def</span> <span class="nf">getValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">):</span> <span class="c1">#name may not be changed because linked to c++ radiopropa module</span>
+<div class="viewcode-block" id="ScalarFieldBuilder.getValue">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getValue">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">getValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">):</span> <span class="c1">#name may not be changed because linked to c++ radiopropa module</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            returns the index of refraction at position for radiopropa tracer</span>
 
@@ -1240,7 +1298,10 @@
             <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ScalarFieldBuilder.getGradient"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getGradient">[docs]</a>        <span class="k">def</span> <span class="nf">getGradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">):</span> <span class="c1">#name may not be changed because linked to c++ radiopropa module</span>
+
+<div class="viewcode-block" id="ScalarFieldBuilder.getGradient">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getGradient">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">getGradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">):</span> <span class="c1">#name may not be changed because linked to c++ radiopropa module</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            returns the gradient of index of refraction at position for radiopropa tracer</span>
 
@@ -1256,7 +1317,9 @@
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
             <span class="n">gradient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="n">gradient</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="n">gradient</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
            </div>

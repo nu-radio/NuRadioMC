@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.framework.particle &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,35 +614,40 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.framework.particle</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="k">as</span> <span class="nn">parameters</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.parameter_serialization</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">collections</span>
-<span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">parameters</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_serialization</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.Particle&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Particle"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle">[docs]</a><span class="k">class</span> <span class="nc">Particle</span><span class="p">:</span>
+<div class="viewcode-block" id="Particle">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Particle</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle_index</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle_index</span><span class="p">):</span>
         <span class="c1"># &quot;_id&quot; is not the PDG code but a hierarchical index</span>
         <span class="c1"># (PDG code is stored in _parameters[&quot;flavor&quot;])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">particle_index</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Particle.get_id"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.get_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Particle.get_id">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.get_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns hierarchical index &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span></div>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
             <span class="s2">&quot;Particle (</span><span class="si">{}</span><span class="s2">): &quot;</span>
             <span class="s2">&quot;Flavor: </span><span class="si">{: 3}</span><span class="s2">, lgE = </span><span class="si">{:.1f}</span><span class="s2">, cos(theta) = </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -660,28 +659,42 @@
 
         <span class="k">return</span> <span class="n">msg</span>
 
-<div class="viewcode-block" id="Particle.get_parameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.get_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Particle.get_parameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.get_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span></div>
 
-<div class="viewcode-block" id="Particle.get_parameter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.get_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Particle.get_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.get_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">particleParameters</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Particle.set_parameter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.set_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Particle.set_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.set_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">particleParameters</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
 
-<div class="viewcode-block" id="Particle.has_parameter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.has_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">has_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Particle.has_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.has_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">particleParameters</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.particleParameters&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span></div>
 
-<div class="viewcode-block" id="Particle.as_hdf5_dict"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.as_hdf5_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_hdf5_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Particle.as_hdf5_dict">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.as_hdf5_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">as_hdf5_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">hdf5_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">hdf5_dict</span><span class="p">[</span><span class="s1">&#39;azimuths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">particleParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
         <span class="n">hdf5_dict</span><span class="p">[</span><span class="s1">&#39;energies&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">particleParameters</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
@@ -698,12 +711,18 @@
         <span class="n">hdf5_dict</span><span class="p">[</span><span class="s1">&#39;zz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">particleParameters</span><span class="o">.</span><span class="n">vertex</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">hdf5_dict</span></div>
 
-<div class="viewcode-block" id="Particle.serialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Particle.serialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.serialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_parameters&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">),</span>
                 <span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">}</span>
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Particle.deserialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.deserialize">[docs]</a>    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Particle.deserialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.deserialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;_id&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
@@ -712,7 +731,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameters&#39;</span><span class="p">],</span>
             <span class="n">parameters</span><span class="o">.</span><span class="n">particleParameters</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+</div>
+
 </pre></div>
 
            </div>

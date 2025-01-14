@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HDF5 output structure (v2.2) &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -37,9 +34,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -621,7 +615,7 @@
            <div itemprop="articleBody">
              
   <section id="hdf5-output-structure-v2-2">
-<h1>HDF5 output structure (v2.2)<a class="headerlink" href="#hdf5-output-structure-v2-2" title="Permalink to this heading"></a></h1>
+<h1>HDF5 output structure (v2.2)<a class="headerlink" href="#hdf5-output-structure-v2-2" title="Link to this heading"></a></h1>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>This version of the HDF5 output structure is outdated. To see the current HDF5 output structure, click <a class="reference internal" href="../HDF5_structure.html"><span class="doc">here</span></a>.</p>
@@ -630,9 +624,9 @@
 The data structure of <code class="docutils literal notranslate"><span class="pre">.nur</span></code> files is explained <a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html"><span class="doc">here</span></a>.
 This page outlines the structure of the HDF5 files.</p>
 <section id="opening-the-hdf5-file">
-<h2>Opening the HDF5 file<a class="headerlink" href="#opening-the-hdf5-file" title="Permalink to this heading"></a></h2>
+<h2>Opening the HDF5 file<a class="headerlink" href="#opening-the-hdf5-file" title="Link to this heading"></a></h2>
 <p>The HDF5 file can be opened using the <code class="docutils literal notranslate"><span class="pre">h5py</span></code> module:</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">h5py</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
 
 <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;/path/to/hdf5_file&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
 <span class="n">attributes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span>
@@ -646,7 +640,7 @@ NuRadioMC contains a convenience function to correctly merge these files -
 see <a class="reference internal" href="../Manuals/running_on_a_cluster.html#merge-individual-hdf5-output-files"><span class="std std-ref">here</span></a> for instructions.</p>
 </section>
 <section id="what-s-behind-the-hdf5-files">
-<h2>What’s behind the HDF5 files<a class="headerlink" href="#what-s-behind-the-hdf5-files" title="Permalink to this heading"></a></h2>
+<h2>What’s behind the HDF5 files<a class="headerlink" href="#what-s-behind-the-hdf5-files" title="Link to this heading"></a></h2>
 <p>The hdf5 file is created in NuRadioMC/simulation/simulation.py A list of vertices with different arrival direction
 (zenith and azimuth) and energy is provided by the event generator. Starting from the vertex, several sub-showers are
 created along the track. These are not simulated, but the electric field per sub-shower is provided. Sub-showers that
@@ -656,11 +650,12 @@ they are summed up.</p>
 The <code class="docutils literal notranslate"><span class="pre">shower_id</span></code> is unique for every shower. Shower which interfere constructively are combined into one event and have
 the same <code class="docutils literal notranslate"><span class="pre">event_id</span></code> starting from 0.</p>
 <blockquote>
-<div><a class="reference internal image-reference" href="../../../_images/event_sketch.png"><img alt="../../../_images/event_sketch.png" src="../../../_images/event_sketch.png" style="width: 70%;" /></a>
+<div><a class="reference internal image-reference" href="../../../_images/event_sketch.png"><img alt="../../../_images/event_sketch.png" src="../../../_images/event_sketch.png" style="width: 70%;" />
+</a>
 </div></blockquote>
 </section>
 <section id="hdf5-structure">
-<h2>HDF5 structure<a class="headerlink" href="#hdf5-structure" title="Permalink to this heading"></a></h2>
+<h2>HDF5 structure<a class="headerlink" href="#hdf5-structure" title="Link to this heading"></a></h2>
 <p>The HDF5 files can be thought of as a structured dictionary:</p>
 <ul class="simple">
 <li><p>The top level <a class="reference internal" href="../HDF5_structure.html#hdf5-file-attributes"><span class="std std-ref">attributes</span></a>, which can be accessed through <code class="docutils literal notranslate"><span class="pre">f.attrs</span></code>, contain some top-level information about the simulation.</p></li>
@@ -668,7 +663,7 @@ the same <code class="docutils literal notranslate"><span class="pre">event_id</
 <li><p>Finally, the <code class="docutils literal notranslate"><span class="pre">station_&lt;station_id&gt;</span></code> key contains slightly more detailed information (triggers, propagation times, amplitudes…) at the level of individual channels <a class="reference internal" href="../HDF5_structure.html#station-data"><span class="std std-ref">for each station</span></a>.</p></li>
 </ul>
 <section id="hdf5-file-attributes">
-<h3>HDF5 file attributes<a class="headerlink" href="#hdf5-file-attributes" title="Permalink to this heading"></a></h3>
+<h3>HDF5 file attributes<a class="headerlink" href="#hdf5-file-attributes" title="Link to this heading"></a></h3>
 <p>The top-level attributes can be accessed using <code class="docutils literal notranslate"><span class="pre">f.attrs</span></code>. These contain:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">Emax</span></code>, <code class="docutils literal notranslate"><span class="pre">Emin</span></code></p>
@@ -717,7 +712,7 @@ This is not necessarily the same as the sampling rate of the simulated channels!
 </ul>
 </section>
 <section id="hdf5-file-contents">
-<h3>HDF5 file contents<a class="headerlink" href="#hdf5-file-contents" title="Permalink to this heading"></a></h3>
+<h3>HDF5 file contents<a class="headerlink" href="#hdf5-file-contents" title="Link to this heading"></a></h3>
 <p>The HDF5 file contains the following items. Listed are the <code class="docutils literal notranslate"><span class="pre">key</span></code> and the <code class="docutils literal notranslate"><span class="pre">shape</span></code> of
 each HDF5 dataset, where <code class="docutils literal notranslate"><span class="pre">n_events</span></code> is the number of events in the file, <code class="docutils literal notranslate"><span class="pre">n_showers</span></code>
 is the number of showers (which may be larger than the number of events), and <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>
@@ -750,7 +745,7 @@ was used for signal generation).</p>
 </ul>
 </section>
 <section id="station-data">
-<h3>Station data<a class="headerlink" href="#station-data" title="Permalink to this heading"></a></h3>
+<h3>Station data<a class="headerlink" href="#station-data" title="Link to this heading"></a></h3>
 <p>In addition, the HDF5 file contains a key for each station in the simulation.
 The station contains more detailed information for each event that triggered it:
 <code class="docutils literal notranslate"><span class="pre">n_events</span></code> and <code class="docutils literal notranslate"><span class="pre">n_shower</span></code> refer to the number of events and showers that triggered the station.

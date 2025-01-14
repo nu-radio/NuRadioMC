@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
-        <script src="../../../../../_static/jquery.js"></script>
-        <script src="../../../../../_static/underscore.js"></script>
-        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../../_static/doctools.js"></script>
-        <script src="../../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,16 +614,18 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
-<span class="kn">import</span> <span class="nn">ROOT</span>
-<span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ROOT</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.ARIANNA.noiseImporterARIANNAROOT&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="noiseImporter"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.noiseImporter">[docs]</a><span class="k">class</span> <span class="nc">noiseImporter</span><span class="p">:</span>
+<div class="viewcode-block" id="noiseImporter">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.noiseImporter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">noiseImporter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Imports recorded noise from ARIANNA station. The recorded noise needs to match the station geometry and sampling</span>
 <span class="sd">    as chosen with channelResampler and channelLengthAdjuster</span>
@@ -642,7 +638,9 @@
 <span class="sd">    if run several times.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="noiseImporter.begin"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.noiseImporter.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise_files</span><span class="p">):</span>
+<div class="viewcode-block" id="noiseImporter.begin">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.noiseImporter.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise_files</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">nt</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TChain</span><span class="p">(</span><span class="s2">&quot;CalibTree&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">noise_files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -654,8 +652,11 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">nevts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="o">.</span><span class="n">GetEntries</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="noiseImporter.run"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.noiseImporter.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
+
+<div class="viewcode-block" id="noiseImporter.run">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.noiseImporter.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
         <span class="c1"># loop over stations in simulation</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
@@ -675,8 +676,13 @@
 
                 <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">noise_trace</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="noiseImporter.end"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.noiseImporter.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span></div></div>
+
+<div class="viewcode-block" id="noiseImporter.end">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.noiseImporter.end">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+</div>
+
 </pre></div>
 
            </div>

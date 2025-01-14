@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.utilities.logging module &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -626,10 +620,10 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioReco.utilities.logging">
-<span id="nuradioreco-utilities-logging-module"></span><h1>NuRadioReco.utilities.logging module<a class="headerlink" href="#module-NuRadioReco.utilities.logging" title="Permalink to this heading"></a></h1>
+<span id="nuradioreco-utilities-logging-module"></span><h1>NuRadioReco.utilities.logging module<a class="headerlink" href="#module-NuRadioReco.utilities.logging" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">NuRadioLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#NuRadioLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">NuRadioLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#NuRadioLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Logger</span></code></a></p>
 <p>Custom logging class for NuRadio modules and applications. It adds a custom log level STATUS,
 which has level=`LOGGING_STATUS` as defined in <em class="xref py py-obj">logging.py</em> (as of February 2024, its value is 25).
@@ -659,12 +653,12 @@ The associated <em class="xref py py-obj">status()</em> call is also implemented
 <td><p>Convenience method for logging an ERROR with exception information.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.fatal" title="NuRadioReco.utilities.logging.NuRadioLogger.fatal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fatal</span></code></a>(msg, *args, **kwargs)</p></td>
-<td><p>Log 'msg % args' with severity 'CRITICAL'.</p></td>
+<td><p>Don't use this method, use critical() instead.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.filter" title="NuRadioReco.utilities.logging.NuRadioLogger.filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter</span></code></a>(record)</p></td>
 <td><p>Determine if a record is loggable by consulting all the filters.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.findCaller" title="NuRadioReco.utilities.logging.NuRadioLogger.findCaller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">findCaller</span></code></a>([stack_info])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.findCaller" title="NuRadioReco.utilities.logging.NuRadioLogger.findCaller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">findCaller</span></code></a>([stack_info, stacklevel])</p></td>
 <td><p>Find the stack frame of the caller so that we can note the source file name, line number and function name.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.getChild" title="NuRadioReco.utilities.logging.NuRadioLogger.getChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getChild</span></code></a>(suffix)</p></td>
@@ -741,12 +735,12 @@ The associated <em class="xref py py-obj">status()</em> call is also implemented
 <td><p>Convenience method for logging an ERROR with exception information.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.fatal" title="NuRadioReco.utilities.logging.NuRadioLogger.fatal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fatal</span></code></a>(msg, *args, **kwargs)</p></td>
-<td><p>Log 'msg % args' with severity 'CRITICAL'.</p></td>
+<td><p>Don't use this method, use critical() instead.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.filter" title="NuRadioReco.utilities.logging.NuRadioLogger.filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter</span></code></a>(record)</p></td>
 <td><p>Determine if a record is loggable by consulting all the filters.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.findCaller" title="NuRadioReco.utilities.logging.NuRadioLogger.findCaller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">findCaller</span></code></a>([stack_info])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.findCaller" title="NuRadioReco.utilities.logging.NuRadioLogger.findCaller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">findCaller</span></code></a>([stack_info, stacklevel])</p></td>
 <td><p>Find the stack frame of the caller so that we can note the source file name, line number and function name.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.logging.NuRadioLogger.getChild" title="NuRadioReco.utilities.logging.NuRadioLogger.getChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getChild</span></code></a>(suffix)</p></td>
@@ -799,24 +793,24 @@ The associated <em class="xref py py-obj">status()</em> call is also implemented
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.status">
-<span class="sig-name descname"><span class="pre">status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#NuRadioLogger.status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.status" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#NuRadioLogger.status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.status" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.addFilter">
-<span class="sig-name descname"><span class="pre">addFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.addFilter" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">addFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.addFilter" title="Link to this definition"></a></dt>
 <dd><p>Add the specified filter to this handler.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.addHandler">
-<span class="sig-name descname"><span class="pre">addHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdlr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.addHandler" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">addHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdlr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.addHandler" title="Link to this definition"></a></dt>
 <dd><p>Add the specified handler to this logger.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.callHandlers">
-<span class="sig-name descname"><span class="pre">callHandlers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.callHandlers" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">callHandlers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.callHandlers" title="Link to this definition"></a></dt>
 <dd><p>Pass a record to all relevant handlers.</p>
 <p>Loop through all handlers for this logger and its parents in the
 logger hierarchy. If no handler was found, output a one-off error
@@ -827,7 +821,7 @@ will be the last logger whose handlers are called.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.critical">
-<span class="sig-name descname"><span class="pre">critical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.critical" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">critical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.critical" title="Link to this definition"></a></dt>
 <dd><p>Log ‘msg % args’ with severity ‘CRITICAL’.</p>
 <p>To pass exception information, use the keyword argument exc_info with
 a true value, e.g.</p>
@@ -836,7 +830,7 @@ a true value, e.g.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.debug">
-<span class="sig-name descname"><span class="pre">debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.debug" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.debug" title="Link to this definition"></a></dt>
 <dd><p>Log ‘msg % args’ with severity ‘DEBUG’.</p>
 <p>To pass exception information, use the keyword argument exc_info with
 a true value, e.g.</p>
@@ -845,7 +839,7 @@ a true value, e.g.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.error">
-<span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.error" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.error" title="Link to this definition"></a></dt>
 <dd><p>Log ‘msg % args’ with severity ‘ERROR’.</p>
 <p>To pass exception information, use the keyword argument exc_info with
 a true value, e.g.</p>
@@ -854,22 +848,19 @@ a true value, e.g.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.exception">
-<span class="sig-name descname"><span class="pre">exception</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.exception" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">exception</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.exception" title="Link to this definition"></a></dt>
 <dd><p>Convenience method for logging an ERROR with exception information.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.fatal">
-<span class="sig-name descname"><span class="pre">fatal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.fatal" title="Permalink to this definition"></a></dt>
-<dd><p>Log ‘msg % args’ with severity ‘CRITICAL’.</p>
-<p>To pass exception information, use the keyword argument exc_info with
-a true value, e.g.</p>
-<p>logger.critical(“Houston, we have a %s”, “major disaster”, exc_info=1)</p>
+<span class="sig-name descname"><span class="pre">fatal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.fatal" title="Link to this definition"></a></dt>
+<dd><p>Don’t use this method, use critical() instead.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.filter">
-<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.filter" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.filter" title="Link to this definition"></a></dt>
 <dd><p>Determine if a record is loggable by consulting all the filters.</p>
 <p>The default is to allow the record to be logged; any filter can veto
 this and the record is then dropped. Returns a zero value if a record
@@ -881,14 +872,14 @@ is to be dropped, else non-zero.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.findCaller">
-<span class="sig-name descname"><span class="pre">findCaller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.findCaller" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">findCaller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stacklevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.findCaller" title="Link to this definition"></a></dt>
 <dd><p>Find the stack frame of the caller so that we can note the source
 file name, line number and function name.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.getChild">
-<span class="sig-name descname"><span class="pre">getChild</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">suffix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.getChild" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">getChild</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">suffix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.getChild" title="Link to this definition"></a></dt>
 <dd><p>Get a logger which is a descendant to this one.</p>
 <p>This is a convenience method, such that</p>
 <p>logging.getLogger(‘abc’).getChild(‘def.ghi’)</p>
@@ -900,7 +891,7 @@ __name__ rather than a literal string.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.getEffectiveLevel">
-<span class="sig-name descname"><span class="pre">getEffectiveLevel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.getEffectiveLevel" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">getEffectiveLevel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.getEffectiveLevel" title="Link to this definition"></a></dt>
 <dd><p>Get the effective level for this logger.</p>
 <p>Loop through this logger and its parents in the logger hierarchy,
 looking for a non-zero logging level. Return the first one found.</p>
@@ -908,7 +899,7 @@ looking for a non-zero logging level. Return the first one found.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.handle">
-<span class="sig-name descname"><span class="pre">handle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.handle" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">handle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.handle" title="Link to this definition"></a></dt>
 <dd><p>Call the handlers for the specified record.</p>
 <p>This method is used for unpickled records received from a socket, as
 well as those created locally. Logger-level filtering is applied.</p>
@@ -916,7 +907,7 @@ well as those created locally. Logger-level filtering is applied.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.hasHandlers">
-<span class="sig-name descname"><span class="pre">hasHandlers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.hasHandlers" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">hasHandlers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.hasHandlers" title="Link to this definition"></a></dt>
 <dd><p>See if this logger has any handlers configured.</p>
 <p>Loop through all handlers for this logger and its parents in the
 logger hierarchy. Return True if a handler was found, else False.
@@ -927,7 +918,7 @@ is checked for the existence of handlers.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.info">
-<span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.info" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.info" title="Link to this definition"></a></dt>
 <dd><p>Log ‘msg % args’ with severity ‘INFO’.</p>
 <p>To pass exception information, use the keyword argument exc_info with
 a true value, e.g.</p>
@@ -936,13 +927,13 @@ a true value, e.g.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.isEnabledFor">
-<span class="sig-name descname"><span class="pre">isEnabledFor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.isEnabledFor" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">isEnabledFor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.isEnabledFor" title="Link to this definition"></a></dt>
 <dd><p>Is this logger enabled for level ‘level’?</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.log">
-<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.log" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.log" title="Link to this definition"></a></dt>
 <dd><p>Log ‘msg % args’ with the integer severity ‘level’.</p>
 <p>To pass exception information, use the keyword argument exc_info with
 a true value, e.g.</p>
@@ -951,47 +942,47 @@ a true value, e.g.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.makeRecord">
-<span class="sig-name descname"><span class="pre">makeRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lno</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sinfo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.makeRecord" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">makeRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lno</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sinfo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.makeRecord" title="Link to this definition"></a></dt>
 <dd><p>A factory method which can be overridden in subclasses to create
 specialized LogRecords.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.manager">
-<span class="sig-name descname"><span class="pre">manager</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;logging.Manager</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.manager" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">manager</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;logging.Manager</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.manager" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.removeFilter">
-<span class="sig-name descname"><span class="pre">removeFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.removeFilter" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">removeFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.removeFilter" title="Link to this definition"></a></dt>
 <dd><p>Remove the specified filter from this handler.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.removeHandler">
-<span class="sig-name descname"><span class="pre">removeHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdlr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.removeHandler" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">removeHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdlr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.removeHandler" title="Link to this definition"></a></dt>
 <dd><p>Remove the specified handler from this logger.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.root">
-<span class="sig-name descname"><span class="pre">root</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;RootLogger</span> <span class="pre">root</span> <span class="pre">(WARNING)&gt;</span></em><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.root" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">root</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;RootLogger</span> <span class="pre">root</span> <span class="pre">(WARNING)&gt;</span></em><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.root" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.setLevel">
-<span class="sig-name descname"><span class="pre">setLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.setLevel" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">setLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.setLevel" title="Link to this definition"></a></dt>
 <dd><p>Set the logging level of this logger.  level must be an int or a str.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.warn">
-<span class="sig-name descname"><span class="pre">warn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.warn" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">warn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.warn" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.NuRadioLogger.warning">
-<span class="sig-name descname"><span class="pre">warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.warning" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.utilities.logging.NuRadioLogger.warning" title="Link to this definition"></a></dt>
 <dd><p>Log ‘msg % args’ with severity ‘WARNING’.</p>
 <p>To pass exception information, use the keyword argument exc_info with
 a true value, e.g.</p>
@@ -1002,7 +993,7 @@ a true value, e.g.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.addLoggingLevel">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">addLoggingLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">levelName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levelNum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#addLoggingLevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.addLoggingLevel" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">addLoggingLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">levelName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levelNum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#addLoggingLevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.addLoggingLevel" title="Link to this definition"></a></dt>
 <dd><p>Comprehensively adds a new logging level to the <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module and the
 currently configured logging class.</p>
 <p><em class="xref py py-obj">levelName</em> becomes an attribute of the <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module with the value
@@ -1029,7 +1020,7 @@ raise an <em class="xref py py-obj">AttributeError</em> if the level name is alr
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.get_fancy_formatter">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">get_fancy_formatter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#get_fancy_formatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.get_fancy_formatter" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">get_fancy_formatter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#get_fancy_formatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.get_fancy_formatter" title="Link to this definition"></a></dt>
 <dd><p>Returns the formatter used in the NuRadio logger.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1042,7 +1033,7 @@ raise an <em class="xref py py-obj">AttributeError</em> if the level name is alr
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.logging.set_general_log_level">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">set_general_log_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#set_general_log_level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.set_general_log_level" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">set_general_log_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/logging.html#set_general_log_level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.logging.set_general_log_level" title="Link to this definition"></a></dt>
 <dd><p>Set the logging level of the NuRadioMC and NuRadioReco loggers to <em class="xref py py-obj">level</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

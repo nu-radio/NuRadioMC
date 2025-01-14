@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.utilities.cr_flux &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,11 +614,11 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.cr_flux</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">import</span> <span class="nn">scipy.interpolate</span> <span class="k">as</span> <span class="nn">interpolate</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">quad</span>
-<span class="kn">import</span> <span class="nn">os.path</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">interpolate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">quad</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os.path</span>
 
 
 <span class="c1"># References</span>
@@ -633,7 +627,9 @@
 <span class="c1"># analytic spectrum TA_19: https://pos.sissa.it/358/298/pdf</span>
 <span class="c1"># analytic spectrum auger: https://git.rwth-aachen.de/astro/astrotools/-/blob/master/astrotools</span>
 
-<div class="viewcode-block" id="get_measured_data"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_measured_data">[docs]</a><span class="k">def</span> <span class="nf">get_measured_data</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;data_auger_19&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="get_measured_data">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_measured_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_measured_data</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;data_auger_19&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function get data points in NuRadio base units</span>
 
@@ -679,7 +675,10 @@
     <span class="k">return</span> <span class="n">E</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">J_err_low</span><span class="p">,</span> <span class="n">J_err_up</span></div>
 
 
-<div class="viewcode-block" id="get_interpolated_cr_flux"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_interpolated_cr_flux">[docs]</a><span class="k">def</span> <span class="nf">get_interpolated_cr_flux</span><span class="p">(</span><span class="n">log10_energy</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;data_auger_19&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_interpolated_cr_flux">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_interpolated_cr_flux">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_interpolated_cr_flux</span><span class="p">(</span><span class="n">log10_energy</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;data_auger_19&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Evaluates the scipy interpolation of the measured data at a given energy</span>
 
@@ -699,7 +698,10 @@
     <span class="k">return</span> <span class="n">flux_interpolation</span><span class="p">(</span><span class="n">log10_energy</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_analytic_cr_flux"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_analytic_cr_flux">[docs]</a><span class="k">def</span> <span class="nf">get_analytic_cr_flux</span><span class="p">(</span><span class="n">log10_energy</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;auger_19&quot;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_analytic_cr_flux">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_analytic_cr_flux">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_analytic_cr_flux</span><span class="p">(</span><span class="n">log10_energy</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;auger_19&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -753,7 +755,10 @@
     <span class="k">return</span> <span class="n">spectrum</span></div>
 
 
-<div class="viewcode-block" id="get_flux_per_energy_bin"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_flux_per_energy_bin">[docs]</a><span class="k">def</span> <span class="nf">get_flux_per_energy_bin</span><span class="p">(</span><span class="n">log10e_min</span><span class="p">,</span> <span class="n">log10e_max</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;auger_19&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_flux_per_energy_bin">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_flux_per_energy_bin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_flux_per_energy_bin</span><span class="p">(</span><span class="n">log10e_min</span><span class="p">,</span> <span class="n">log10e_max</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;auger_19&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns an scipy integration of the measured data or the analytic spectrum over given interval.</span>
 
@@ -771,7 +776,7 @@
 <span class="sd">    scipy integration of data in NuRadio base units (which are 1/(eV m^2 sr ns))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auger_17&#39;</span><span class="p">,</span> <span class="s1">&#39;auger_19&#39;</span><span class="p">,</span> <span class="s1">&#39;TA_19&#39;</span><span class="p">]:</span>
-        <span class="k">def</span> <span class="nf">flux</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">flux</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot; Bring parametrized energy spectrum in right shape for quad() function &quot;&quot;&quot;</span>
             <span class="k">return</span> <span class="n">get_analytic_cr_flux</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">])),</span> <span class="nb">type</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -782,7 +787,10 @@
     <span class="k">return</span> <span class="n">integrated_flux</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="get_cr_event_rate"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_cr_event_rate">[docs]</a><span class="k">def</span> <span class="nf">get_cr_event_rate</span><span class="p">(</span><span class="n">log10energy</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">zenith</span><span class="o">=</span><span class="mi">50</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">a_eff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;auger_19&quot;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_cr_event_rate">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_cr_event_rate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cr_event_rate</span><span class="p">(</span><span class="n">log10energy</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">zenith</span><span class="o">=</span><span class="mi">50</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">a_eff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;auger_19&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cosmic ray event rate at a specific energy and zenith angle assuming a detector with effective area</span>
 <span class="sd">    &#39;A_eff&#39;. The detector projection and solid range are taken into account.</span>
@@ -814,7 +822,10 @@
     <span class="k">return</span> <span class="n">flux</span> <span class="o">*</span> <span class="n">projected_area</span> <span class="o">*</span> <span class="n">solid_angle</span> <span class="o">*</span> <span class="n">a_eff</span></div>
 
 
-<div class="viewcode-block" id="plot_measured_spectrum"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.plot_measured_spectrum">[docs]</a><span class="k">def</span> <span class="nf">plot_measured_spectrum</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">2.7</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;data_auger_19&#39;</span><span class="p">,</span>
+
+<div class="viewcode-block" id="plot_measured_spectrum">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.plot_measured_spectrum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_measured_spectrum</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">2.7</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;data_auger_19&#39;</span><span class="p">,</span>
                            <span class="n">base_units</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot measured spectrum. Attention: time unit is year instead of ns.</span>
@@ -835,7 +846,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    plot of data without plt.show()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
@@ -861,6 +872,7 @@
     <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span></div>
+
 </pre></div>
 
            </div>

@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The RNO-G detector class and database interface &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -625,7 +619,7 @@
            <div itemprop="articleBody">
              
   <section id="the-rno-g-detector-class-and-database-interface">
-<h1>The RNO-G detector class and database interface<a class="headerlink" href="#the-rno-g-detector-class-and-database-interface" title="Permalink to this heading"></a></h1>
+<h1>The RNO-G detector class and database interface<a class="headerlink" href="#the-rno-g-detector-class-and-database-interface" title="Link to this heading"></a></h1>
 <p>This page describes the RNO-G detector class and database which it is using.
 The description of the database will be limited to its data structure and reading interface, i.e., what is important in the context of the detector class.
 It is important to understand that the detector description of the RNO-G detector has to be time dependent for two reasons:</p>
@@ -635,28 +629,29 @@ It is important to understand that the detector description of the RNO-G detecto
 </ol>
 <p>These two reasons for the need of a time dependent detector description also bring us to the first concept to understand:</p>
 <section id="detector-time-and-database-time">
-<h2>Detector time and database time<a class="headerlink" href="#detector-time-and-database-time" title="Permalink to this heading"></a></h2>
+<h2>Detector time and database time<a class="headerlink" href="#detector-time-and-database-time" title="Link to this heading"></a></h2>
 <p>To describe the detector at any time we use two different time variables, the <em class="xref py py-obj">detector_time</em> and the <em class="xref py py-obj">database_time</em>. The former is easy to understand, it defines the point in time at which we want to describe the detector (e.g., which station were deployed at that time? Which channels were commissioned and which electronic did those channel use?). The latter might not be immediately intuitive: It is used to define what measurment (or estimate) to use for each detector property. Imagine that you have only a poor estimation of the antenna positions initially due to the lack of a dedicated calibration campaign. However, for the time being this is your <em class="xref py py-obj">primary</em> estimation (or measurement) for this property until you do better.</p>
 <p>Once you have done some calibration measurements and estimated more accurately the antenna positions, you will add them to the database as new primaries but keep the old values. The <em class="xref py py-obj">database_time</em> will allow you to select the primary measurement, i.e., the best estimation of a certain property at the time you are running your reconstruction or simulation. Hence, by default the <em class="xref py py-obj">database_time</em> will be set to <em class="xref py py-obj">datatime.utcnow()</em>. That means also when you want to reanalyze older data (where at the time the detector was not know that well) you will select the best description of today. However, for special reason it might be interesting to reconstruct old or new data with the detector description known at an earlier point in time, the <em class="xref py py-obj">database_time</em> allows you to do that by specifying it to some value in the past*.</p>
 </section>
 <section id="database-structure">
-<h2>Database structure<a class="headerlink" href="#database-structure" title="Permalink to this heading"></a></h2>
+<h2>Database structure<a class="headerlink" href="#database-structure" title="Link to this heading"></a></h2>
 <p>The database is organized in collections. Each collection contains a list of objects which contain our data. The primary collection which contains the <em class="xref py py-obj">station list</em>, which lists the deployed stations and their channels, is the called <em class="xref py py-obj">station_rnog</em>. The information of the stations and channels positions is organized in separate collections. The response of the different components in a channel’s signal chain are stored in other collections. Each component class (i.e. coax cable, fiber, DRAB, IGLU, …) has its own collection. A schematic of the database structure is shown below.</p>
-<a class="reference internal image-reference" href="../../../_images/rnog-mongo-database-structure.png"><img alt="../../../_images/rnog-mongo-database-structure.png" src="../../../_images/rnog-mongo-database-structure.png" style="width: 100%;" /></a>
+<a class="reference internal image-reference" href="../../../_images/rnog-mongo-database-structure.png"><img alt="../../../_images/rnog-mongo-database-structure.png" src="../../../_images/rnog-mongo-database-structure.png" style="width: 100%;" />
+</a>
 </section>
 <section id="signal-chain">
-<h2>Signal Chain<a class="headerlink" href="#signal-chain" title="Permalink to this heading"></a></h2>
+<h2>Signal Chain<a class="headerlink" href="#signal-chain" title="Link to this heading"></a></h2>
 <p>Each channel has a “signal chain” which is basically a list of all the individual reponses which are necessary to describe the entire analog response of this channel. This list is implemented as dictionary, the key of the dictionary is also the name of the collection in which it looks for the specified response (value). The key can have a suffix like <em class="xref py py-obj">_x</em>, with <em class="xref py py-obj">x</em> being an integer, which allows to specify several responses from the same collection to be added to the signal chain.</p>
 </section>
 <section id="response-class">
-<h2>Response class<a class="headerlink" href="#response-class" title="Permalink to this heading"></a></h2>
+<h2>Response class<a class="headerlink" href="#response-class" title="Link to this heading"></a></h2>
 <p>For the response of a channel the detector returns object of the Response class. This class has implemented operators to apply the response to trace objects. These objects store the time delay (= the group delay at ~ 200MHz) and have removed this time delay from the group delay (= the S21 parameter).
 The group delay is calculated by the hardware database as read from there.
 Keep in mind that S21 parameter in the data typically have the full time delay.
 Only when this data is accessed through the detector / response class this time delay is removed from the response function.</p>
 </section>
 <section id="detector-class">
-<h2>Detector class<a class="headerlink" href="#detector-class" title="Permalink to this heading"></a></h2>
+<h2>Detector class<a class="headerlink" href="#detector-class" title="Link to this heading"></a></h2>
 <p>Coming soon (Hopefully).</p>
 </section>
 </section>

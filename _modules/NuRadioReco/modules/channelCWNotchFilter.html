@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.channelCWNotchFilter &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,13 +614,13 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.channelCWNotchFilter</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.channelCWNotchFilter&quot;</span><span class="p">)</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">fft</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">fft</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Contains module to filter continuous wave out of the signal using notch filters</span>
@@ -634,7 +628,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 
-<div class="viewcode-block" id="find_frequency_peaks_from_trace"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.find_frequency_peaks_from_trace">[docs]</a><span class="k">def</span> <span class="nf">find_frequency_peaks_from_trace</span><span class="p">(</span><span class="n">trace</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">fs</span> <span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">threshold</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
+<div class="viewcode-block" id="find_frequency_peaks_from_trace">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.find_frequency_peaks_from_trace">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_frequency_peaks_from_trace</span><span class="p">(</span><span class="n">trace</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">fs</span> <span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">threshold</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function fo find the frequency peaks in the real fourier transform of the input trace.</span>
 
@@ -661,7 +657,10 @@
     <span class="k">return</span> <span class="n">freq_peaks</span></div>
 
 
-<div class="viewcode-block" id="find_frequency_peaks"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.find_frequency_peaks">[docs]</a><span class="k">def</span> <span class="nf">find_frequency_peaks</span><span class="p">(</span><span class="n">freq</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">spectrum</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">threshold</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
+
+<div class="viewcode-block" id="find_frequency_peaks">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.find_frequency_peaks">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_frequency_peaks</span><span class="p">(</span><span class="n">freq</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">spectrum</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">threshold</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function fo find the frequency peaks in the real fourier transform of the input trace.</span>
 
@@ -687,7 +686,10 @@
     <span class="k">return</span> <span class="n">freq</span><span class="p">[</span><span class="n">peak_idxs</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="get_filter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.get_filter">[docs]</a><span class="k">def</span> <span class="nf">get_filter</span><span class="p">(</span><span class="n">freq</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">quality_factor</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_filter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.get_filter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_filter</span><span class="p">(</span><span class="n">freq</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">quality_factor</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function to get single notch filter for a given frequency.</span>
 <span class="sd">    </span>
@@ -722,7 +724,10 @@
     <span class="k">return</span> <span class="nb">filter</span></div>
 
 
-<div class="viewcode-block" id="filter_cws"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.filter_cws">[docs]</a><span class="k">def</span> <span class="nf">filter_cws</span><span class="p">(</span><span class="n">trace</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">freq</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">spectrum</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">fs</span> <span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">quality_factor</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+
+<div class="viewcode-block" id="filter_cws">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.filter_cws">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_cws</span><span class="p">(</span><span class="n">trace</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">freq</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">spectrum</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">fs</span> <span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">quality_factor</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
                <span class="n">cache</span> <span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                <span class="n">filters</span> <span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -777,7 +782,10 @@
     <span class="k">return</span> <span class="n">trace</span></div>
 
 
-<div class="viewcode-block" id="plot_trace"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.plot_trace">[docs]</a><span class="k">def</span> <span class="nf">plot_trace</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="mf">3.2e9</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">()):</span>
+
+<div class="viewcode-block" id="plot_trace">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.plot_trace">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_trace</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="mf">3.2e9</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">()):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function to plot trace of given channel</span>
 <span class="sd">    </span>
@@ -805,7 +813,10 @@
     <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">legendloc</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="plot_ft"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.plot_ft">[docs]</a><span class="k">def</span> <span class="nf">plot_ft</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">()):</span>
+
+<div class="viewcode-block" id="plot_ft">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.plot_ft">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_ft</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">()):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function to plot real frequency spectrum of given channel</span>
 <span class="sd">    </span>
@@ -831,20 +842,28 @@
     <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="n">legendloc</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="channelCWNotchFilter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter">[docs]</a><span class="k">class</span> <span class="nc">channelCWNotchFilter</span><span class="p">():</span>
+
+<div class="viewcode-block" id="channelCWNotchFilter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">channelCWNotchFilter</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Continuous wave (CW) filter module. Uses notch filters from the scipy library &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="channelCWNotchFilter.begin"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quality_factor</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">save_filters</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="channelCWNotchFilter.begin">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quality_factor</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">save_filters</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">quality_factor</span> <span class="o">=</span> <span class="n">quality_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filters</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">save_filters</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="c1"># dictionary to cache known notch filters at specific frequencies</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filter_cache</span> <span class="o">=</span> <span class="p">{}</span></div>
 
-<div class="viewcode-block" id="channelCWNotchFilter.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
+
+<div class="viewcode-block" id="channelCWNotchFilter.run">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">fs</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
             <span class="n">freq</span> <span class="o">=</span>  <span class="n">channel</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
@@ -854,18 +873,20 @@
                 <span class="n">trace</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">quality_factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quality_factor</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> 
                 <span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_cache</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="p">)</span>
             
-            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">trace_fil</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span></div></div>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">trace_fil</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span></div>
+</div>
+
 
 
 <span class="c1"># Standard test for people playing around with module settings, applies the module as one would in a data reading pipeline</span>
 <span class="c1"># using one event in RNO_G_DATA (choose station and run) as a test</span>
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">os</span>
-    <span class="kn">import</span> <span class="nn">logging</span>
-    <span class="kn">import</span> <span class="nn">argparse</span>
-    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
    
-    <span class="kn">from</span> <span class="nn">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak</span> <span class="kn">import</span> <span class="n">readRNOGData</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak</span><span class="w"> </span><span class="kn">import</span> <span class="n">readRNOGData</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(prog)s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;cw filter test&quot;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--station&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>

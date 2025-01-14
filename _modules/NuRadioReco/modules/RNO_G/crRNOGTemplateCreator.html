@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.RNO_G.crRNOGTemplateCreator &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,37 +614,39 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.RNO_G.crRNOGTemplateCreator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">import</span> <span class="nn">astropy</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector</span> <span class="k">as</span> <span class="nn">detector</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.modules.efieldToVoltageConverter</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.modules.RNO_G.hardwareResponseIncorporator</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.event</span> <span class="kn">import</span> <span class="n">Event</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.station</span> <span class="kn">import</span> <span class="n">Station</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.channel</span> <span class="kn">import</span> <span class="n">Channel</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.sim_station</span> <span class="kn">import</span> <span class="n">SimStation</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.sim_channel</span> <span class="kn">import</span> <span class="n">SimChannel</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">stationParameters</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">electricFieldParameters</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.electric_field</span> <span class="kn">import</span> <span class="n">ElectricField</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.detector</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">detector</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.efieldToVoltageConverter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.RNO_G.hardwareResponseIncorporator</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.event</span><span class="w"> </span><span class="kn">import</span> <span class="n">Event</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.station</span><span class="w"> </span><span class="kn">import</span> <span class="n">Station</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_station</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimStation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimChannel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">electricFieldParameters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElectricField</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
 
 
-<div class="viewcode-block" id="crRNOGTemplateCreator"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html#NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.crRNOGTemplateCreator">[docs]</a><span class="k">class</span> <span class="nc">crRNOGTemplateCreator</span><span class="p">:</span>
+<div class="viewcode-block" id="crRNOGTemplateCreator">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html#NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.crRNOGTemplateCreator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">crRNOGTemplateCreator</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates CR templates by assuming a gaussian function for the electric field</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.crRNOGTemplateCreator&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__detector_file</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -678,7 +674,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__channelBandPassFilter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="crRNOGTemplateCreator.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html#NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.crRNOGTemplateCreator.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_file</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">template_save_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger_level</span><span class="p">:</span><span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="crRNOGTemplateCreator.begin">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html#NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.crRNOGTemplateCreator.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_file</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">template_save_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger_level</span><span class="p">:</span><span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                begin method</span>
 
@@ -706,7 +704,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__template_save_path</span> <span class="o">=</span> <span class="n">template_save_path</span></div>
 
 
-<div class="viewcode-block" id="crRNOGTemplateCreator.set_template_parameter"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html#NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.crRNOGTemplateCreator.set_template_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">set_template_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_run_id</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">template_event_id</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">template_station_id</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">101</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">101</span><span class="p">],</span> 
+
+<div class="viewcode-block" id="crRNOGTemplateCreator.set_template_parameter">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html#NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.crRNOGTemplateCreator.set_template_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_template_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_run_id</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">template_event_id</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">template_station_id</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">101</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">101</span><span class="p">],</span> 
                                <span class="n">template_channel_id</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">efield_width</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">antenna_rotation</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">160</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">160</span><span class="p">],</span> 
                                <span class="n">efield_amplitudes</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">],</span> <span class="n">cr_zenith</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">55</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">55</span><span class="p">],</span> <span class="n">cr_azimuth</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
                                <span class="n">sampling_rate</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">3.2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">,</span> <span class="n">number_of_samples</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
@@ -757,7 +758,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__cr_azimuth</span> <span class="o">=</span> <span class="n">cr_azimuth</span></div>
 
 
-<div class="viewcode-block" id="crRNOGTemplateCreator.run"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html#NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.crRNOGTemplateCreator.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_filename</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;templates_cr_station_101.pickle&#39;</span><span class="p">,</span> <span class="n">include_hardware_response</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hardware_response_source</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> 
+
+<div class="viewcode-block" id="crRNOGTemplateCreator.run">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html#NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.crRNOGTemplateCreator.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_filename</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;templates_cr_station_101.pickle&#39;</span><span class="p">,</span> <span class="n">include_hardware_response</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hardware_response_source</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> 
             <span class="n">return_templates</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bandpass_filter</span><span class="p">:</span><span class="kc">None</span><span class="o">|</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="n">Any</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="o">|</span><span class="nb">list</span><span class="p">[</span><span class="n">Event</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        run method</span>
@@ -848,14 +852,16 @@
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">([</span><span class="n">save_dic</span><span class="p">],</span> <span class="n">pickle_file</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The templates are saved to </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__template_save_path</span><span class="p">,</span><span class="w"> </span><span class="n">template_filename</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">return_templates</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">template_events</span></div></div>
+            <span class="k">return</span> <span class="n">template_events</span></div>
+</div>
 
 
-<span class="k">def</span> <span class="nf">_gaussian_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_gaussian_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">A</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">_create_Efield</span><span class="p">(</span><span class="n">detector</span><span class="p">:</span><span class="n">detector</span><span class="o">.</span><span class="n">generic_detector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">event_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">station_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> 
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_Efield</span><span class="p">(</span><span class="n">detector</span><span class="p">:</span><span class="n">detector</span><span class="o">.</span><span class="n">generic_detector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">event_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">station_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> 
                    <span class="n">station_time</span><span class="p">:</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">trace_samples</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">gaussian_width</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">e_phi</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">e_theta</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">cr_zenith</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> 
                    <span class="n">cr_azimuth</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span><span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Event</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; function that creates an event with a gaussian electric field &quot;&quot;&quot;</span>

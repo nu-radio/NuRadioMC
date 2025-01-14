@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.utilities.analytic_pulse module &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -626,10 +620,10 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioReco.utilities.analytic_pulse">
-<span id="nuradioreco-utilities-analytic-pulse-module"></span><h1>NuRadioReco.utilities.analytic_pulse module<a class="headerlink" href="#module-NuRadioReco.utilities.analytic_pulse" title="Permalink to this heading"></a></h1>
+<span id="nuradioreco-utilities-analytic-pulse-module"></span><h1>NuRadioReco.utilities.analytic_pulse module<a class="headerlink" href="#module-NuRadioReco.utilities.analytic_pulse" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.analytic_pulse.amp_from_energy">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">amp_from_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#amp_from_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.amp_from_energy" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">amp_from_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#amp_from_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.amp_from_energy" title="Link to this definition"></a></dt>
 <dd><p>energy is defined as the integral of squared voltage normalized to a time window of 128 ns</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -642,7 +636,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.analytic_pulse.get_analytic_pulse_freq">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">get_analytic_pulse_freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#get_analytic_pulse_freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.get_analytic_pulse_freq" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">get_analytic_pulse_freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#get_analytic_pulse_freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.get_analytic_pulse_freq" title="Link to this definition"></a></dt>
 <dd><p>Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the frequency domain</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -672,7 +666,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.analytic_pulse.get_analytic_pulse">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">get_analytic_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#get_analytic_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.get_analytic_pulse" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">get_analytic_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#get_analytic_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.get_analytic_pulse" title="Link to this definition"></a></dt>
 <dd><p>Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the time domain</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

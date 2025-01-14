@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Properties of Detector Description &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -625,16 +619,17 @@
            <div itemprop="articleBody">
              
   <section id="properties-of-detector-description">
-<h1>Properties of Detector Description<a class="headerlink" href="#properties-of-detector-description" title="Permalink to this heading"></a></h1>
+<h1>Properties of Detector Description<a class="headerlink" href="#properties-of-detector-description" title="Link to this heading"></a></h1>
 <p>This pages documents and defines the properties that are part of the detector description</p>
 <section id="antennas">
-<h2>Antennas<a class="headerlink" href="#antennas" title="Permalink to this heading"></a></h2>
+<h2>Antennas<a class="headerlink" href="#antennas" title="Link to this heading"></a></h2>
 <p>Position:
 - <em class="xref py py-obj">ant_position_{x,y,z}`</em>: The x, y, and z position of the antenna feed point relative to the station position</p>
 <p>Orientation:</p>
 <p>The orientation of the antenna is described with 2 unit vectors. The first vector (referred to as ‘orientation’) defines the orientation of the antenna. The second vector (referred to as ‘rotation’) defines the rotation around the orientation. The vectors are each described by two angles. The <em class="xref py py-obj">theta</em> angle defines the vectors like a zenith angle (0deg is the zenith, 180deg is straight down) and the <em class="xref py py-obj">phi</em> angle defines the azimuth angle (counting from East counterclockwise). Please note that the rotation vector has to be perpendicular to the orientation vector.</p>
 <p>For LPDAs, the orientation vector (<em class="xref py py-obj">ant_orientation_theta</em> and <em class="xref py py-obj">ant_orientation_phi</em>) defines the boresight direction (the main sensitivity direction, see sketch below). The rotation vector (<em class="xref py py-obj">ant_rotation_theta</em> and <em class="xref py py-obj">ant_rotation_phi</em>) is perpendicular to the antenna tines and points into the same direction as the connector of the create LPDAs. For dipoles, the orientation vector is parallel to the rod, the rotation vector can point in any direction that is perpendicular to the first vector because of the radial symmetry of dipoles. The user must specify <em>both</em> the orientation vector and the rotation vector. See the illustration of the two vectors for an LPDA and dipole.</p>
-<a class="reference internal image-reference" href="../../../_images/orientation_sketch.png"><img alt="../../../_images/orientation_sketch.png" src="../../../_images/orientation_sketch.png" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="../../../_images/orientation_sketch.png"><img alt="../../../_images/orientation_sketch.png" src="../../../_images/orientation_sketch.png" style="width: 600px;" />
+</a>
 <p>Here are a few examples.</p>
 <p>1. For an LPDA, the following points the LPDA straight down, with tines aligned with
 (parallel to) the x-axis (i.e. the east-west direction), and therefore the orientation vector points northwards.</p>
@@ -681,7 +676,7 @@ value, and choose 0 for simplicity.</p>
 <li><p>type: the type of antenna. A list of available antenna types and their descriptions is given <a class="reference internal" href="antennamodels.html"><span class="doc">here</span></a></p></li>
 </ul>
 <section id="further-discussion-on-antenna-coordinates">
-<h3>Further Discussion on Antenna Coordinates<a class="headerlink" href="#further-discussion-on-antenna-coordinates" title="Permalink to this heading"></a></h3>
+<h3>Further Discussion on Antenna Coordinates<a class="headerlink" href="#further-discussion-on-antenna-coordinates" title="Link to this heading"></a></h3>
 <p>In principle, the orientation of the antenna is uniquely defined by the three
 <a class="reference external" href="https://en.wikipedia.org/wiki/Euler_angles">Euler angles</a>.
 However, the Euler angles are relatively un-intuitive in everyday use.
@@ -699,7 +694,7 @@ the rotation around the <em>z’’</em>-axis.
 </section>
 </section>
 <section id="adc-table">
-<h2>ADC Table<a class="headerlink" href="#adc-table" title="Permalink to this heading"></a></h2>
+<h2>ADC Table<a class="headerlink" href="#adc-table" title="Link to this heading"></a></h2>
 <p>We document here the properties that are part of the analog-to-digital converter (ADC) description.</p>
 <ul class="simple">
 <li><p><em class="xref py py-obj">adc_nbits</em>: the number of bits of the ADC</p></li>

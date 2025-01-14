@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>overview of times &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -624,32 +618,32 @@
            <div itemprop="articleBody">
              
   <section id="overview-of-times">
-<h1>overview of times<a class="headerlink" href="#overview-of-times" title="Permalink to this heading"></a></h1>
+<h1>overview of times<a class="headerlink" href="#overview-of-times" title="Link to this heading"></a></h1>
 <p>Time delays are introduced by several hardware components. These time delays are often corrected for by folding/unfolding the complex transfer function (for an amp e.g. the measurement of the S12 parameter). The unfolding is typically done in the frequency domain where a convolution becomes a simple multiplication. As a consequence of typically short trace length (&lt;~1000 samples) and because a Fourier transform implies implicitly a periodic signal, a pulse being at the beginning of the trace can end up being at the end of the trace. To avoid this behavior we use the following procedure:</p>
 <p>We smoothly filter the first 5% and last 5% of the trace using a Tukey window function. This is a function that goes smoothly from 0 to 1.
 To avoid rollover of the pulse, we add 128ns of zeros to the beginning and end of the trace. Steps 2) and 3) are performed by the channelStopFilter module
 Both electric fields and channels have a trace_start_time variable. The get_times() function will automatically add the trace_start_time to the time array.</p>
 <section id="arianna-specific-details">
-<h2>ARIANNA specific details:<a class="headerlink" href="#arianna-specific-details" title="Permalink to this heading"></a></h2>
+<h2>ARIANNA specific details:<a class="headerlink" href="#arianna-specific-details" title="Link to this heading"></a></h2>
 <p>Our hardware produces an artifact (a glitch) at the STOP position (i.e. the physical beginning of the trace). Because of the way the hardware works, the STOP position is not at the beginning of the trace but can be anywhere. During read in of the snowshovel calibrated data files, the trace is rolled such that the physical beginning (the STOP position) is at sample zero of the trace. This glitch is removed by the procedure described above.</p>
 </section>
 <section id="station-time">
-<h2>Station time<a class="headerlink" href="#station-time" title="Permalink to this heading"></a></h2>
+<h2>Station time<a class="headerlink" href="#station-time" title="Link to this heading"></a></h2>
 <p>The trace_start_times are all given relative to the station_time of the station the E-field or channel belongs to. The station_time is stored in an astopy.time.Time object for sub nanosecond precision on absolute times.
 The trace_start_time itself is stored as a float. For simulations, the trace_start_time is relative to the vertex time, i.e., the time of the particle interaction.
 For data: TODO, describe how current RNO-G data is handled</p>
 <section id="trace-start-times-in-channels">
-<h3>Trace start times in channels<a class="headerlink" href="#trace-start-times-in-channels" title="Permalink to this heading"></a></h3>
+<h3>Trace start times in channels<a class="headerlink" href="#trace-start-times-in-channels" title="Link to this heading"></a></h3>
 <p>Specify when the trace starts relative to the station time. Effects that change the pulse time for all frequencies equally (for example cable delays) are most often taken into account by changing the trace_start_time.</p>
 </section>
 <section id="trace-start-times-in-e-fields">
-<h3>Trace start times in E-fields<a class="headerlink" href="#trace-start-times-in-e-fields" title="Permalink to this heading"></a></h3>
+<h3>Trace start times in E-fields<a class="headerlink" href="#trace-start-times-in-e-fields" title="Link to this heading"></a></h3>
 <p>Work similar to trace_start_time in channels, but with a caveat: Since EM-waves move, electric_field objects hold a position (relative to the station they are associated with). The E-field is therefore defined as the field an observer would measure at the given position. Note that this position does not necessarily have to coincide with the position of a channel the E-field is associated with. This is the case for (some) cosmic-ray simulations where the same E-field at the surface is used for all surface LPDAs.</p>
 </section>
 </section>
 </section>
 <section id="overview-of-modules-that-alter-time">
-<h1>overview of modules that alter time<a class="headerlink" href="#overview-of-modules-that-alter-time" title="Permalink to this heading"></a></h1>
+<h1>overview of modules that alter time<a class="headerlink" href="#overview-of-modules-that-alter-time" title="Link to this heading"></a></h1>
 <p>We list all relevant modules that is used for a MC simulation and reconstruction. For a pure data reconstruction, the first few modules are just not used</p>
 <ul class="simple">
 <li><p>readCoREAS: CoREAS reader prepends n samples to the simulated trace. This is done so that the trace does not directly start with the pulse and to have a good frequency resolution.</p></li>

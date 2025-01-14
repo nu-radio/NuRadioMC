@@ -1,26 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Event Generation &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -40,9 +37,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -626,7 +620,7 @@
            <div itemprop="articleBody">
              
   <section id="event-generation">
-<h1>Event Generation<a class="headerlink" href="#event-generation" title="Permalink to this heading"></a></h1>
+<h1>Event Generation<a class="headerlink" href="#event-generation" title="Link to this heading"></a></h1>
 <blockquote>
 <div><div class="admonition important">
 <p class="admonition-title">Important</p>
@@ -635,11 +629,11 @@
 </div></blockquote>
 <p>The first thing to do when using NuRadioMC for simulating a realistic experiment is generating events. The module <code class="docutils literal notranslate"><span class="pre">generator.py</span></code> contained in the folder EvtGen allows the user to create input files for different detector geometries and physical assumptions, and constitutes the most important module for event generation.</p>
 <section id="events-in-a-cylindrical-volume">
-<h2>Events in a cylindrical volume<a class="headerlink" href="#events-in-a-cylindrical-volume" title="Permalink to this heading"></a></h2>
+<h2>Events in a cylindrical volume<a class="headerlink" href="#events-in-a-cylindrical-volume" title="Link to this heading"></a></h2>
 <p>Generating input events for calculating effective volumes can be done just by importing the function <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code> and calling it with the minimum number of arguments requested:</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.generator</span> <span class="kn">import</span> <span class="n">generate_eventlist_cylinder</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.EvtGen.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_eventlist_cylinder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;input_file.hdf5&#39;</span>
 <span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e5</span><span class="p">)</span>
 <span class="n">Emin</span> <span class="o">=</span> <span class="mf">1e18</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
@@ -656,10 +650,10 @@
 </div></blockquote>
 <p>These few lines generate a mixture of all-flavour events (1:1:1) in a fiducial cylinder. Each event constitutes a forced neutrino interaction in our fiducial volume. The event vertex distribution is homogeneous, and the flux in any region of the cylinder is isotropic, which is what would be expected in nature were the radius of the Earth small compared to the interaction length. NuRadioMC then uses weights to account for the probability that the neutrino reaches the vertex position.</p>
 <section id="input-parameters">
-<h3>Input parameters<a class="headerlink" href="#input-parameters" title="Permalink to this heading"></a></h3>
+<h3>Input parameters<a class="headerlink" href="#input-parameters" title="Link to this heading"></a></h3>
 <p>We explain here all the different input values for the <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code> function.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_eventlist_cylinder</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">generate_eventlist_cylinder</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
                                 <span class="n">fiducial_rmin</span><span class="p">,</span> <span class="n">fiducial_rmax</span><span class="p">,</span>
                                 <span class="n">fiducial_zmin</span><span class="p">,</span> <span class="n">fiducial_zmax</span><span class="p">,</span>
                                 <span class="n">full_rmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_rmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -859,7 +853,7 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
 </div></blockquote>
 </section>
 <section id="data-sets-and-attributes">
-<h3>Data sets and attributes<a class="headerlink" href="#data-sets-and-attributes" title="Permalink to this heading"></a></h3>
+<h3>Data sets and attributes<a class="headerlink" href="#data-sets-and-attributes" title="Link to this heading"></a></h3>
 <p>The function <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code> creates events according to the input parameters and saves all the relevant parameters to a set of HDF5 files. These files created by the event generator consist of a collection of arrays containing the properties of the neutrinos and other secondary particles. The array keys and contents are the following:</p>
 <blockquote>
 <div><ul class="simple">
@@ -914,7 +908,7 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
 <p>The HDF5 data sets outlined here are what constitute a NuRadioMC input file produced its generator module. However, any HDF5 file containing equally named data sets (and, depending on the purpose, also the attributes) can be processed by NuRadioMC to simulate a detector. This is useful in case one wants to compare the effect of a different input generation on the simulation output. However, although these comparisons are necessary for cross-checking, we encourage our NuRadioMC users to contribute to our projects and expand on our event generators if they consider that a different or complementary way of drawing input events is advisable.</p>
 <blockquote>
 <div><span id="particle-code-table"></span><table class="docutils align-default" id="id1">
-<caption><span class="caption-text">Particle codes used in NuRadioMC</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
+<caption><span class="caption-text">Particle codes used in NuRadioMC</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p>Symbol</p></th>
@@ -1060,10 +1054,10 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
 </section>
 </section>
 <section id="atmospheric-muons-generated-on-a-flat-surface">
-<h2>Atmospheric muons generated on a flat surface<a class="headerlink" href="#atmospheric-muons-generated-on-a-flat-surface" title="Permalink to this heading"></a></h2>
+<h2>Atmospheric muons generated on a flat surface<a class="headerlink" href="#atmospheric-muons-generated-on-a-flat-surface" title="Link to this heading"></a></h2>
 <p>The function <code class="docutils literal notranslate"><span class="pre">generate_surface_muons</span></code> generates muons (leptons, NOT muon neutrinos) at <code class="docutils literal notranslate"><span class="pre">z=0</span></code> and propagates them using PROPOSAL. Please be aware that a functioning installation of PROPOSAL is needed for using this function.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_surface_muons</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">generate_surface_muons</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
                            <span class="n">fiducial_rmin</span><span class="p">,</span> <span class="n">fiducial_rmax</span><span class="p">,</span>
                            <span class="n">fiducial_zmin</span><span class="p">,</span> <span class="n">fiducial_zmax</span><span class="p">,</span>
                            <span class="n">full_rmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_rmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1105,11 +1099,11 @@ explored in one of our papers (<a class="reference external" href="https://arxiv
 <p>For a realistic background simulation for which high statistics are needed, we recommend the use of a cluster to execute this function in parallel to create one or more files for each energy bin. The user should be aware of the following pitfall: if two input files with the same input parameters are going to be used for the same analysis, these two files should not have overlapping event IDs. The number of events for each file is an input parameter, so one can know a priori how many event IDs are going to be in a file. Unlike when using the <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code>, increasing the full volume does not change the total number of events. The user can use the parameter <code class="docutils literal notranslate"><span class="pre">n_events_per_file</span></code> to split the file, but sometimes it is more convenient and faster to execute the function in parallel than calling it once and splitting the file.</p>
 </section>
 <section id="nuradioproposal-as-a-standalone-module">
-<h2>NuRadioProposal as a standalone module<a class="headerlink" href="#nuradioproposal-as-a-standalone-module" title="Permalink to this heading"></a></h2>
+<h2>NuRadioProposal as a standalone module<a class="headerlink" href="#nuradioproposal-as-a-standalone-module" title="Link to this heading"></a></h2>
 <p>The module <code class="docutils literal notranslate"><span class="pre">NuRadioProposal.py</span></code> in EvtGen can also be used standalone to study the propagation of leptons created by neutrino interactions and the radio-detectable showers they produce. For instance, for propagating 1000 taus having 1 EeV of energy in infinite ice, we can use the following code.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.NuRadioProposal</span> <span class="kn">import</span> <span class="n">ProposalFunctions</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.EvtGen.NuRadioProposal</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProposalFunctions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="n">proposal_functions</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;InfIce&#39;</span><span class="p">)</span>
 
 <span class="n">N_taus</span> <span class="o">=</span> <span class="mi">1000</span>
@@ -1125,7 +1119,7 @@ explored in one of our papers (<a class="reference external" href="https://arxiv
 </div></blockquote>
 <p>The minimum energy when the lepton propagation stops can be controlled with <code class="docutils literal notranslate"><span class="pre">low_nu</span></code>, and the minimal energy of the shower-inducing secondaries can be controlled with <code class="docutils literal notranslate"><span class="pre">min_energy_loss_nu</span></code>. <code class="docutils literal notranslate"><span class="pre">get_secondaries_array</span></code> returns a 2D list containing all the secondary particles that induce a shower. The first dimension indicates the primary lepton and the second dimension navigates through the secondaries produced by that primary. Each one of the elements is a member of the SecondaryProperties class, which has the distance from the lepton creation, its energy, the shower type, the PDG code and the name of the secondary particle as class properties.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SecondaryProperties</span><span class="p">:</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SecondaryProperties</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class stores the properties from secondary particles that are</span>
 <span class="sd">    relevant for NuRadioMC, namely:</span>
@@ -1136,7 +1130,7 @@ explored in one of our papers (<a class="reference external" href="https://arxiv
 
 <span class="sd">    Distance and energy are expected to be in NuRadioMC units</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">distance</span><span class="p">,</span>
                  <span class="n">energy</span><span class="p">,</span>
                  <span class="n">shower_type</span><span class="p">,</span>

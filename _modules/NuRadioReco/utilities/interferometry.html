@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.utilities.interferometry &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,18 +614,20 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.interferometry</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span><span class="p">,</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal</span><span class="p">,</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
 <span class="c1"># to convert V**2/m**2 * ns -&gt; V**2/m**2 * s -&gt; J/m**2 -&gt; eV/m**2</span>
 <span class="n">conversion_factor_integrated_signal</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span> <span class="o">*</span> \
     <span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">constants</span><span class="o">.</span><span class="n">epsilon_0</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">eSI</span>
 
 
-<div class="viewcode-block" id="get_signal"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_signal">[docs]</a><span class="k">def</span> <span class="nf">get_signal</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">,</span> <span class="n">tstep</span><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="get_signal">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_signal">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_signal</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">,</span> <span class="n">tstep</span><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates signal quantity from beam-formed waveform</span>
 
@@ -691,7 +687,10 @@
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;get_signal(), kind = &#39;</span><span class="si">{}</span><span class="s2">&#39; not supported&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kind</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="interfere_traces_interpolation"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.interfere_traces_interpolation">[docs]</a><span class="k">def</span> <span class="nf">interfere_traces_interpolation</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
+
+<div class="viewcode-block" id="interfere_traces_interpolation">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.interfere_traces_interpolation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interfere_traces_interpolation</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate sum of time shifted waveforms.</span>
 
@@ -753,7 +752,10 @@
     <span class="k">return</span> <span class="n">sum_trace</span></div>
 
 
-<div class="viewcode-block" id="get_time_shifts"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_time_shifts">[docs]</a><span class="k">def</span> <span class="nf">get_time_shifts</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_time_shifts">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_time_shifts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_time_shifts</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the time delay of an electromagnetic wave along a straight trajectories between</span>
 <span class="sd">    a source/traget location and several observers.</span>
@@ -790,7 +792,10 @@
     <span class="k">return</span> <span class="n">tshifts</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span></div>
 
 
-<div class="viewcode-block" id="fit_axis"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.fit_axis">[docs]</a><span class="k">def</span> <span class="nf">fit_axis</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">coreX</span><span class="p">,</span> <span class="n">coreY</span><span class="p">):</span>
+
+<div class="viewcode-block" id="fit_axis">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.fit_axis">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fit_axis</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">coreX</span><span class="p">,</span> <span class="n">coreY</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Predicts the intersetction of an axis/line with horizontal layers at different heights.</span>
 
@@ -832,7 +837,10 @@
     <span class="k">return</span> <span class="n">points</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="get_intersection_between_line_and_plane"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_intersection_between_line_and_plane">[docs]</a><span class="k">def</span> <span class="nf">get_intersection_between_line_and_plane</span><span class="p">(</span><span class="n">plane_normal</span><span class="p">,</span> <span class="n">plane_anchor</span><span class="p">,</span> <span class="n">line_direction</span><span class="p">,</span> <span class="n">line_anchor</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_intersection_between_line_and_plane">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_intersection_between_line_and_plane">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_intersection_between_line_and_plane</span><span class="p">(</span><span class="n">plane_normal</span><span class="p">,</span> <span class="n">plane_anchor</span><span class="p">,</span> <span class="n">line_direction</span><span class="p">,</span> <span class="n">line_anchor</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find intersection betweem a line and a plane.</span>
 
@@ -871,6 +879,7 @@
     <span class="n">psi</span> <span class="o">=</span> <span class="n">w</span> <span class="o">+</span> <span class="n">si</span> <span class="o">*</span> <span class="n">line_direction</span> <span class="o">+</span> <span class="n">plane_anchor</span>
 
     <span class="k">return</span> <span class="n">psi</span></div>
+
 </pre></div>
 
            </div>

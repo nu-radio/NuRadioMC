@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.utilities.runner &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,15 +614,17 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.utilities.runner</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.simulation</span> <span class="kn">import</span> <span class="n">simulation</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">multiprocessing</span>
-<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Queue</span>
-<span class="kn">import</span> <span class="nn">time</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.simulation</span><span class="w"> </span><span class="kn">import</span> <span class="n">simulation</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 
-<div class="viewcode-block" id="NuRadioMCRunner"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html#NuRadioMC.utilities.runner.NuRadioMCRunner">[docs]</a><span class="k">class</span> <span class="nc">NuRadioMCRunner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="NuRadioMCRunner">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html#NuRadioMC.utilities.runner.NuRadioMCRunner">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NuRadioMCRunner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The purpose of this classe is to run NuRadioMC on a cluster using a full node submission, i.e., a full node with X cores is reserved. </span>
 <span class="sd">    As NuRadioMC is a single-core process, this class will start multiple NuRadioMC simulations and will distribute them on the X cores. As</span>
@@ -636,7 +632,7 @@
 <span class="sd">    The job ends after a fixed time, or after enough triggers are acquired, or after X crashes occurred.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_worker</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">max_runtime</span><span class="o">=</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">8</span><span class="p">,</span> <span class="n">n_triggers_max</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">max_crashes</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_worker</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">max_runtime</span><span class="o">=</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">8</span><span class="p">,</span> <span class="n">n_triggers_max</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">max_crashes</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">task</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_worker</span> <span class="o">=</span> <span class="n">n_worker</span>
@@ -655,13 +651,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">crashed_counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_crashes</span> <span class="o">=</span> <span class="n">max_crashes</span>
 
-<div class="viewcode-block" id="NuRadioMCRunner.get_outputfilename"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html#NuRadioMC.utilities.runner.NuRadioMCRunner.get_outputfilename">[docs]</a>    <span class="k">def</span> <span class="nf">get_outputfilename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NuRadioMCRunner.get_outputfilename">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html#NuRadioMC.utilities.runner.NuRadioMCRunner.get_outputfilename">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_outputfilename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        define how output files are named</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;nu_energy&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">i_task</span><span class="si">:</span><span class="s2">06d</span><span class="si">}</span><span class="s2">.hdf5&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NuRadioMCRunner.run"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html#NuRadioMC.utilities.runner.NuRadioMCRunner.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NuRadioMCRunner.run">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html#NuRadioMC.utilities.runner.NuRadioMCRunner.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">outputfilename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_outputfilename</span><span class="p">()</span>
@@ -718,7 +719,9 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">n_triggers</span> <span class="o">+=</span> <span class="n">n_trig</span>
                     <span class="n">n</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
                     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">iN</span><span class="si">}</span><span class="s2"> has finished with </span><span class="si">{</span><span class="n">n_trig</span><span class="si">}</span><span class="s2"> events, total number of triggered events is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_triggers</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">break</span></div></div>
+                <span class="k">break</span></div>
+</div>
+
 </pre></div>
 
            </div>

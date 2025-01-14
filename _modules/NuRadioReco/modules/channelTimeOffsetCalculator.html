@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.channelTimeOffsetCalculator &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,18 +614,20 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.channelTimeOffsetCalculator</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">radiotools.helper</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">fft</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">channelParameters</span> <span class="k">as</span> <span class="n">chp</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.detector.antennapattern</span>
-<span class="kn">import</span> <span class="nn">NuRadioMC.SignalProp.analyticraytracing</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">radiotools.helper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">fft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">channelParameters</span> <span class="k">as</span> <span class="n">chp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.antennapattern</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.analyticraytracing</span>
 
 
-<div class="viewcode-block" id="channelTimeOffsetCalculator"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator">[docs]</a><span class="k">class</span> <span class="nc">channelTimeOffsetCalculator</span><span class="p">:</span>
+<div class="viewcode-block" id="channelTimeOffsetCalculator">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">channelTimeOffsetCalculator</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determines the difference in signal arrival times between channels, the ray types and the signal</span>
 <span class="sd">    arrival direction from the vertex position.</span>
@@ -651,14 +647,16 @@
 <span class="sd">    ray. Therefore it should only be used for channels that are relatively close to each other.</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__use_sim</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__raytracing_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;direct&#39;</span><span class="p">,</span> <span class="s1">&#39;refracted&#39;</span><span class="p">,</span> <span class="s1">&#39;reflected&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__medium</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">antennapattern</span><span class="o">.</span><span class="n">AntennaPatternProvider</span><span class="p">()</span>
 
-<div class="viewcode-block" id="channelTimeOffsetCalculator.begin"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">electric_field_template</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">use_sim</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="channelTimeOffsetCalculator.begin">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">electric_field_template</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">use_sim</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Setup method for the module</span>
 
@@ -677,8 +675,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span> <span class="o">=</span> <span class="n">electric_field_template</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__medium</span> <span class="o">=</span> <span class="n">medium</span></div>
 
-<div class="viewcode-block" id="channelTimeOffsetCalculator.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">,</span> <span class="n">passband</span><span class="p">):</span>
+
+<div class="viewcode-block" id="channelTimeOffsetCalculator.run">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">,</span> <span class="n">passband</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run the module on a station</span>
 
@@ -782,7 +783,9 @@
             <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
             <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">chp</span><span class="o">.</span><span class="n">signal_time_offset</span><span class="p">,</span> <span class="n">propagation_times</span><span class="p">[</span><span class="n">i_channel</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">correlation_sum_max</span><span class="p">)])</span>
             <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">chp</span><span class="o">.</span><span class="n">signal_receiving_zenith</span><span class="p">,</span> <span class="n">receive_angles</span><span class="p">[</span><span class="n">i_channel</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">correlation_sum_max</span><span class="p">)])</span>
-            <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">chp</span><span class="o">.</span><span class="n">signal_ray_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__raytracing_types</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">correlation_sum_max</span><span class="p">)])</span></div></div>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">chp</span><span class="o">.</span><span class="n">signal_ray_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__raytracing_types</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">correlation_sum_max</span><span class="p">)])</span></div>
+</div>
+
 </pre></div>
 
            </div>

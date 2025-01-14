@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.io.coreas.readCoREASShower module &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -628,10 +622,10 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioReco.modules.io.coreas.readCoREASShower">
-<span id="nuradioreco-modules-io-coreas-readcoreasshower-module"></span><h1>NuRadioReco.modules.io.coreas.readCoREASShower module<a class="headerlink" href="#module-NuRadioReco.modules.io.coreas.readCoREASShower" title="Permalink to this heading"></a></h1>
+<span id="nuradioreco-modules-io-coreas-readcoreasshower-module"></span><h1>NuRadioReco.modules.io.coreas.readCoREASShower module<a class="headerlink" href="#module-NuRadioReco.modules.io.coreas.readCoREASShower" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.readCoREASShower.</span></span><span class="sig-name descname"><span class="pre">readCoREASShower</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.readCoREASShower.</span></span><span class="sig-name descname"><span class="pre">readCoREASShower</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>This module can be used to read in all simulated “observers” from a CoREAS simulation and return them as stations.
 This is in particular useful for air shower array experiments like Auger, LOFAR or SKA. However, it is important
@@ -659,7 +653,7 @@ object per antenna.</p>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_ascending_run_and_event_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.begin" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_ascending_run_and_event_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.begin" title="Link to this definition"></a></dt>
 <dd><p>begin method</p>
 <p>initialize readCoREASShower module</p>
 <dl class="field-list simple">
@@ -685,7 +679,7 @@ This can be used to avoid ambiguities values (default: False)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run" title="Link to this definition"></a></dt>
 <dd><p>Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</p>
 <dl class="field-list">
 <dt class="field-odd">Yields<span class="colon">:</span></dt>
@@ -702,14 +696,14 @@ Contains the detector description with the on-the-fly added stations.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.end" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.end" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.readCoREASShower.</span></span><span class="sig-name descname"><span class="pre">antenna_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#antenna_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.readCoREASShower.</span></span><span class="sig-name descname"><span class="pre">antenna_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#antenna_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id" title="Link to this definition"></a></dt>
 <dd><p>This function parses the antenna names given in a CoREAS simulation and tries to find an ID
 It can be extended to other name patterns</p>
 </dd></dl>

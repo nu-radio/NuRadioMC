@@ -1,26 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.LOFAR.stationGalacticCalibrator module &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -40,9 +37,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -628,10 +622,10 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioReco.modules.LOFAR.stationGalacticCalibrator">
-<span id="nuradioreco-modules-lofar-stationgalacticcalibrator-module"></span><h1>NuRadioReco.modules.LOFAR.stationGalacticCalibrator module<a class="headerlink" href="#module-NuRadioReco.modules.LOFAR.stationGalacticCalibrator" title="Permalink to this heading"></a></h1>
+<span id="nuradioreco-modules-lofar-stationgalacticcalibrator-module"></span><h1>NuRadioReco.modules.LOFAR.stationGalacticCalibrator module<a class="headerlink" href="#module-NuRadioReco.modules.LOFAR.stationGalacticCalibrator" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.fourier_series">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationGalacticCalibrator.</span></span><span class="sig-name descname"><span class="pre">fourier_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#fourier_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.fourier_series" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationGalacticCalibrator.</span></span><span class="sig-name descname"><span class="pre">fourier_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#fourier_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.fourier_series" title="Link to this definition"></a></dt>
 <dd><p>Evaluates the partial Fourier series:</p>
 <div class="math notranslate nohighlight">
 \[F(x) \approx \frac{a_{0}}{2} + \sum_{n=1}^{\mathrm{order}} a_{n} \sin(nx) + b_{n} \cos(nx)\]</div>
@@ -641,7 +635,7 @@ the odd elements.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationGalacticCalibrator.</span></span><span class="sig-name descname"><span class="pre">stationGalacticCalibrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">experiment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LOFAR_LBA'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationGalacticCalibrator.</span></span><span class="sig-name descname"><span class="pre">stationGalacticCalibrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">experiment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LOFAR_LBA'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Apply the galactic calibration to all the channels, to each dipole polarization separately. This function
 assumes the traces have already been cleaned from any RFI. Both the absolute calibration using Galactic noise and
@@ -654,17 +648,6 @@ the relative calibration between antenna’s is applied.</p>
 </dl>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<p>The absolute calibration makes use of a measured calibration curve, which encodes</p>
-<ol class="arabic simple">
-<li><p>The conversion from ADC to Volts,</p></li>
-<li><p>As well as the gains and losses in the amplifiers and coax cables.</p></li>
-</ol>
-<p>The relative calibration makes sure all the antennas are calibrated to the same reference value. On the other
-hand, the calibration correlates this reference value to the Galactic noise in order to make the units
-physically meaningful.</p>
-<p>Further details are described in this <a class="reference external" href="https://arxiv.org/pdf/1311.1399.pdf">overview</a>, and also this
-<a class="reference external" href="https://arxiv.org/pdf/1903.05988.pdf">paper</a> .</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -683,9 +666,20 @@ physically meaningful.</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>The absolute calibration makes use of a measured calibration curve, which encodes</p>
+<ol class="arabic simple">
+<li><p>The conversion from ADC to Volts,</p></li>
+<li><p>As well as the gains and losses in the amplifiers and coax cables.</p></li>
+</ol>
+<p>The relative calibration makes sure all the antennas are calibrated to the same reference value. On the other
+hand, the calibration correlates this reference value to the Galactic noise in order to make the units
+physically meaningful.</p>
+<p>Further details are described in this <a class="reference external" href="https://arxiv.org/pdf/1311.1399.pdf">overview</a>, and also this
+<a class="reference external" href="https://arxiv.org/pdf/1903.05988.pdf">paper</a> .</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.begin" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.begin" title="Link to this definition"></a></dt>
 <dd><p>Loads the experimental parameters (such as longitude and latitude) as well as the Galactic calibration
 curves and Fourier coefficients from the directory <em class="xref py py-obj">NuRadioReco/utilities/data/</em>.</p>
 <dl class="field-list simple">
@@ -700,7 +694,7 @@ curves and Fourier coefficients from the directory <em class="xref py py-obj">Nu
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run" title="Link to this definition"></a></dt>
 <dd><p>Run the calibration on all stations in <em class="xref py py-obj">event</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -714,7 +708,7 @@ curves and Fourier coefficients from the directory <em class="xref py py-obj">Nu
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.end" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.end" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.io.coreas.readCoREASShower &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
-        <script src="../../../../../_static/jquery.js"></script>
-        <script src="../../../../../_static/underscore.js"></script>
-        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../../_static/doctools.js"></script>
-        <script src="../../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,22 +614,24 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.io.coreas.readCoREASShower</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">NuRadioReco.framework.event</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.station</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.modules.io.coreas</span> <span class="kn">import</span> <span class="n">coreas</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">coordinatesystems</span>
-<span class="kn">import</span> <span class="nn">h5py</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.event</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.station</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.coreas</span><span class="w"> </span><span class="kn">import</span> <span class="n">coreas</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">coordinatesystems</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.coreas.readCoREASShower&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="readCoREASShower"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower">[docs]</a><span class="k">class</span> <span class="nc">readCoREASShower</span><span class="p">:</span>
+<div class="viewcode-block" id="readCoREASShower">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">readCoREASShower</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This module can be used to read in all simulated &quot;observers&quot; from a CoREAS simulation and return them as stations.</span>
 <span class="sd">    This is in particular useful for air shower array experiments like Auger, LOFAR or SKA. However, it is important</span>
@@ -645,7 +641,7 @@
 <span class="sd">    object per antenna.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t_event_structure</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t_per_event</span> <span class="o">=</span> <span class="mi">0</span>
@@ -654,7 +650,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__det</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__ascending_run_and_event_number</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="readCoREASShower.begin"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_files</span><span class="p">,</span> <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">set_ascending_run_and_event_number</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="readCoREASShower.begin">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_files</span><span class="p">,</span> <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">set_ascending_run_and_event_number</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        begin method</span>
 
@@ -683,7 +681,10 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__ascending_run_and_event_number</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">set_ascending_run_and_event_number</span> <span class="k">else</span> <span class="mi">0</span></div>
 
-<div class="viewcode-block" id="readCoREASShower.run"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="readCoREASShower.run">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</span>
 
@@ -791,18 +792,25 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">set_event</span><span class="p">(</span><span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
                 <span class="k">yield</span> <span class="n">evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span></div>
 
-<div class="viewcode-block" id="readCoREASShower.end"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+
+<div class="viewcode-block" id="readCoREASShower.end">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.end">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">create event structure </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t_event_structure</span><span class="p">)))</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;per event </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t_per_event</span><span class="p">)))</span>
-        <span class="k">return</span> <span class="n">dt</span></div></div>
+        <span class="k">return</span> <span class="n">dt</span></div>
+</div>
 
 
-<div class="viewcode-block" id="antenna_id"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id">[docs]</a><span class="k">def</span> <span class="nf">antenna_id</span><span class="p">(</span><span class="n">antenna_name</span><span class="p">,</span> <span class="n">default_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="antenna_id">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">antenna_id</span><span class="p">(</span><span class="n">antenna_name</span><span class="p">,</span> <span class="n">default_id</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function parses the antenna names given in a CoREAS simulation and tries to find an ID</span>
 <span class="sd">    It can be extended to other name patterns</span>
@@ -813,6 +821,7 @@
         <span class="k">return</span> <span class="n">new_id</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">default_id</span></div>
+
 </pre></div>
 
            </div>

@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.io.RNO_G.readRNOGDataMattak module &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -628,10 +622,10 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioReco.modules.io.RNO_G.readRNOGDataMattak">
-<span id="nuradioreco-modules-io-rno-g-readrnogdatamattak-module"></span><h1>NuRadioReco.modules.io.RNO_G.readRNOGDataMattak module<a class="headerlink" href="#module-NuRadioReco.modules.io.RNO_G.readRNOGDataMattak" title="Permalink to this heading"></a></h1>
+<span id="nuradioreco-modules-io-rno-g-readrnogdatamattak-module"></span><h1>NuRadioReco.modules.io.RNO_G.readRNOGDataMattak module<a class="headerlink" href="#module-NuRadioReco.modules.io.RNO_G.readRNOGDataMattak" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.get_time_offset">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">get_time_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#get_time_offset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.get_time_offset" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">get_time_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#get_time_offset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.get_time_offset" title="Link to this definition"></a></dt>
 <dd><p>Mapping the offset between trace start time and trigger time (~ signal time).
 Temporary use hard-coded values for each trigger type. In the future this
 information might be time, station, and channel dependent and should come
@@ -655,7 +649,7 @@ from a database (or is already calibrated in mattak)</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">readRNOGData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_table_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_run_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">readRNOGData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_table_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_run_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Reader for RNO-G <code class="docutils literal notranslate"><span class="pre">.root</span></code> files</p>
 <p>This class provides read access to RNO-G <code class="docutils literal notranslate"><span class="pre">.root</span></code> files and converts them
@@ -674,19 +668,6 @@ to NuRadioMC <a class="reference internal" href="NuRadioReco.framework.event.htm
 </dl>
 </dd>
 </dl>
-<p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">readRNOGDataMattak</span><span class="o">.</span><span class="n">readRNOGData</span><span class="p">()</span> <span class="c1"># initialize reader</span>
-<span class="n">reader</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="s1">&#39;/path/to/root_file_or_folder&#39;</span><span class="p">)</span>
-
-<span class="n">evt</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_event_by_index</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># returns the first event in the file</span>
-<span class="c1"># OR</span>
-<span class="n">evt</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_event</span><span class="p">(</span><span class="n">run_nr</span><span class="o">=</span><span class="mi">1100</span><span class="p">,</span> <span class="n">event_id</span><span class="o">=</span><span class="mi">679</span><span class="p">)</span> <span class="c1"># returns the event with run_number 1100 and event_id 679</span>
-<span class="c1"># OR</span>
-<span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">run</span><span class="p">():</span> <span class="c1"># loop over all events in file</span>
-    <span class="c1"># perform some analysis</span>
-    <span class="k">pass</span>
-</pre></div>
-</div>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -694,11 +675,7 @@ to NuRadioMC <a class="reference internal" href="NuRadioReco.framework.event.htm
 <td><p>Add selectors (Callable(eventInfo) -&gt; bool) to an internal list of selectors.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>(dirs_files[, read_calibrated_data, ...])</p></td>
-<td><p><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
-</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event</span></code></a>(run_nr, event_id)</p></td>
 <td><p>Allows to read a specific event identifed by run number and event id</p></td>
@@ -724,9 +701,22 @@ to NuRadioMC <a class="reference internal" href="NuRadioReco.framework.event.htm
 </tr>
 </tbody>
 </table>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">readRNOGDataMattak</span><span class="o">.</span><span class="n">readRNOGData</span><span class="p">()</span> <span class="c1"># initialize reader</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="s1">&#39;/path/to/root_file_or_folder&#39;</span><span class="p">)</span>
+
+<span class="n">evt</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_event_by_index</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># returns the first event in the file</span>
+<span class="c1"># OR</span>
+<span class="n">evt</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_event</span><span class="p">(</span><span class="n">run_nr</span><span class="o">=</span><span class="mi">1100</span><span class="p">,</span> <span class="n">event_id</span><span class="o">=</span><span class="mi">679</span><span class="p">)</span> <span class="c1"># returns the event with run_number 1100 and event_id 679</span>
+<span class="c1"># OR</span>
+<span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">run</span><span class="p">():</span> <span class="c1"># loop over all events in file</span>
+    <span class="c1"># perform some analysis</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirs_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_calibrated_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_baseline_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'approximate'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_to_voltage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['physics']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_time_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_trigger_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mattak_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_in_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirs_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_calibrated_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_baseline_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'approximate'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_to_voltage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['physics']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_time_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_trigger_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mattak_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_in_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -793,7 +783,7 @@ NOTE: This is only relevant for the mattak uproot backend</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.add_selectors">
-<span class="sig-name descname"><span class="pre">add_selectors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.add_selectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.add_selectors" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_selectors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.add_selectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.add_selectors" title="Link to this definition"></a></dt>
 <dd><p>Add selectors (Callable(eventInfo) -&gt; bool) to an internal list of selectors.
 They are used for event filtering.</p>
 <dl class="field-list simple">
@@ -811,7 +801,7 @@ Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == “FORCE�
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information">
-<span class="sig-name descname"><span class="pre">get_events_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['station',</span> <span class="pre">'run',</span> <span class="pre">'eventNumber']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_events_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_events_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['station',</span> <span class="pre">'run',</span> <span class="pre">'eventNumber']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_events_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information" title="Link to this definition"></a></dt>
 <dd><p>Return information of events from the EventInfo. Only information of events passing the
 selectors, which may have been specified, are returned.</p>
 <p>This function is useful to make a pre-selection of events before actually reading them in combination with
@@ -838,7 +828,7 @@ them self containing the information specified with “keys” parameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms">
-<span class="sig-name descname"><span class="pre">get_waveforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">apply_baseline_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_events</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_waveforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_waveforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">apply_baseline_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_events</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_waveforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms" title="Link to this definition"></a></dt>
 <dd><p>Return waveforms of events passing the selectors which may have been specified</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -865,7 +855,7 @@ based on the class config.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.run" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.run" title="Link to this definition"></a></dt>
 <dd><p>Loop over all events.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Yields<span class="colon">:</span></dt>
@@ -878,7 +868,7 @@ based on the class config.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event_by_index">
-<span class="sig-name descname"><span class="pre">get_event_by_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_event_by_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event_by_index" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_event_by_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_event_by_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event_by_index" title="Link to this definition"></a></dt>
 <dd><p>Allows to read a specific event identifed by its index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -898,7 +888,7 @@ number of total events (across all datasets).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event">
-<span class="sig-name descname"><span class="pre">get_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event" title="Link to this definition"></a></dt>
 <dd><p>Allows to read a specific event identifed by run number and event id</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -919,7 +909,7 @@ number of total events (across all datasets).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.end" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.end" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

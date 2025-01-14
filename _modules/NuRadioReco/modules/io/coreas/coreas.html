@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.io.coreas.coreas &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
-        <script src="../../../../../_static/jquery.js"></script>
-        <script src="../../../../../_static/underscore.js"></script>
-        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../../_static/doctools.js"></script>
-        <script src="../../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,20 +614,20 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.io.coreas.coreas</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
-<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">coordinatesystems</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.sim_station</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.base_trace</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.electric_field</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.radio_shower</span>
-<span class="kn">import</span> <span class="nn">radiotools.coordinatesystems</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">coordinatesystems</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_station</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_trace</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.radio_shower</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">radiotools.coordinatesystems</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.coreas&#39;</span><span class="p">)</span>
 
 <span class="n">warning_printed_coreas_py</span> <span class="o">=</span> <span class="kc">False</span>
@@ -641,7 +635,9 @@
 <span class="n">conversion_fieldstrength_cgs_to_SI</span> <span class="o">=</span> <span class="mf">2.99792458e10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">micro</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">volt</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
 
 
-<div class="viewcode-block" id="get_angles"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.get_angles">[docs]</a><span class="k">def</span> <span class="nf">get_angles</span><span class="p">(</span><span class="n">corsika</span><span class="p">):</span>
+<div class="viewcode-block" id="get_angles">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.get_angles">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_angles</span><span class="p">(</span><span class="n">corsika</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converting angles in corsika coordinates to local coordinates</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -659,12 +655,15 @@
     <span class="k">return</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span></div>
 
 
-<div class="viewcode-block" id="calculate_simulation_weights"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.calculate_simulation_weights">[docs]</a><span class="k">def</span> <span class="nf">calculate_simulation_weights</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s1">&#39;summit&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="calculate_simulation_weights">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.calculate_simulation_weights">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_simulation_weights</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s1">&#39;summit&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate weights according to the area that one simulated position represents.</span>
 <span class="sd">    Weights are therefore given in units of area.</span>
 <span class="sd">    Note: The volume of a 2d convex hull is the area.&quot;&quot;&quot;</span>
 
-    <span class="kn">import</span> <span class="nn">scipy.spatial</span> <span class="k">as</span> <span class="nn">spatial</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">spatial</span>
 
     <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
     <span class="n">cstrafo</span> <span class="o">=</span> <span class="n">radiotools</span><span class="o">.</span><span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="n">zenith</span><span class="o">=</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="o">=</span><span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -745,7 +744,10 @@
     <span class="k">return</span> <span class="n">weights</span></div>
 
 
-<div class="viewcode-block" id="make_sim_station"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.make_sim_station">[docs]</a><span class="k">def</span> <span class="nf">make_sim_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="make_sim_station">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.make_sim_station">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_sim_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file</span>
 
@@ -819,7 +821,10 @@
     <span class="k">return</span> <span class="n">sim_station</span></div>
 
 
-<div class="viewcode-block" id="make_sim_shower"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.make_sim_shower">[docs]</a><span class="k">def</span> <span class="nf">make_sim_shower</span><span class="p">(</span><span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="make_sim_shower">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.make_sim_shower">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_sim_shower</span><span class="p">(</span><span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    creates an NuRadioReco sim shower from the coreas hdf5 file</span>
 
@@ -878,6 +883,7 @@
             <span class="n">warning_printed_coreas_py</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">return</span> <span class="n">sim_shower</span></div>
+
 </pre></div>
 
            </div>

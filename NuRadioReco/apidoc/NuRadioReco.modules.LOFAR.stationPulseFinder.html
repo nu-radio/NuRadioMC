@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.LOFAR.stationPulseFinder module &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -627,10 +621,10 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioReco.modules.LOFAR.stationPulseFinder">
-<span id="nuradioreco-modules-lofar-stationpulsefinder-module"></span><h1>NuRadioReco.modules.LOFAR.stationPulseFinder module<a class="headerlink" href="#module-NuRadioReco.modules.LOFAR.stationPulseFinder" title="Permalink to this heading"></a></h1>
+<span id="nuradioreco-modules-lofar-stationpulsefinder-module"></span><h1>NuRadioReco.modules.LOFAR.stationPulseFinder module<a class="headerlink" href="#module-NuRadioReco.modules.LOFAR.stationPulseFinder" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationPulseFinder.</span></span><span class="sig-name descname"><span class="pre">find_snr_of_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeseries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#find_snr_of_timeseries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationPulseFinder.</span></span><span class="sig-name descname"><span class="pre">find_snr_of_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeseries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#find_snr_of_timeseries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries" title="Link to this definition"></a></dt>
 <dd><p>Return the signal-to-noise ratio (SNR) of a given time trace. The additional parameters allow to
 select a window where the signal is and a separate window where there is only noise.</p>
 <dl class="field-list simple">
@@ -656,7 +650,7 @@ select a window where the signal is and a separate window where there is only no
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationPulseFinder.</span></span><span class="sig-name descname"><span class="pre">stationPulseFinder</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationPulseFinder.</span></span><span class="sig-name descname"><span class="pre">stationPulseFinder</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Look for significant pulses in every station. The module uses beamforming to enhance the sensitivity in
 direction estimated from the LORA particle data. It also identifies the channels which have an SNR good
@@ -681,7 +675,7 @@ enough to use for direction fitting later.</p>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cr_snr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">good_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cr_snr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">good_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin" title="Link to this definition"></a></dt>
 <dd><p>Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
 to use for noise measurements. The function also defines what an acceptable SNR is to consider a
 cosmic-ray signal to be in the trace, as well as the number of good channels a station should have
@@ -707,7 +701,7 @@ window minus this number.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.run" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.run" title="Link to this definition"></a></dt>
 <dd><p>Run a beamformer on all stations in <em class="xref py py-obj">event</em> to search for significant pulses.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -723,7 +717,7 @@ window minus this number.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.end" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.end" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

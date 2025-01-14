@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.utilities.medium_base module &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -626,10 +620,10 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioMC.utilities.medium_base">
-<span id="nuradiomc-utilities-medium-base-module"></span><h1>NuRadioMC.utilities.medium_base module<a class="headerlink" href="#module-NuRadioMC.utilities.medium_base" title="Permalink to this heading"></a></h1>
+<span id="nuradiomc-utilities-medium-base-module"></span><h1>NuRadioMC.utilities.medium_base module<a class="headerlink" href="#module-NuRadioMC.utilities.medium_base" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_air_boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_air_boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Base class from which all ice models should inheret</p>
 <p class="rubric">Methods</p>
@@ -694,7 +688,7 @@ The latter can be added using the <em class="xref py py-obj">add_reflective_laye
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom">
-<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.add_reflective_bottom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.add_reflective_bottom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom" title="Link to this definition"></a></dt>
 <dd><p>function which adds a reflective bottom to your ice model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -712,7 +706,7 @@ The latter can be added using the <em class="xref py py-obj">add_reflective_laye
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.get_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.get_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the index of refraction at position.
 Reimplement everytime in the specific model</p>
 <dl class="field-list simple">
@@ -733,7 +727,7 @@ Reimplement everytime in the specific model</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel.get_average_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.get_average_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.get_average_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.get_average_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the average index of refraction between two points
 Reimplement everytime in the specific model</p>
 <dl class="field-list simple">
@@ -756,7 +750,7 @@ Reimplement everytime in the specific model</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel.get_gradient_of_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.get_gradient_of_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.get_gradient_of_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.get_gradient_of_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the gradient of index of refraction at position
 Reimplement everytime in the specific model</p>
 <dl class="field-list simple">
@@ -777,7 +771,7 @@ Reimplement everytime in the specific model</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.get_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.get_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes
 that define the medium in radiopropa. If no specific model is set by the user it returns
 the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
@@ -796,7 +790,7 @@ ice model in case they need it, without losing the access to the default model.<
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.set_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.set_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>If radiopropa is installed, this function can be used
 to set a specific RadioPropaIceWrapper object as the
 ice model used for RadioPropa.</p>
@@ -815,7 +809,7 @@ ice model used for RadioPropa.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModelSimple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_ice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_air_boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModelSimple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_ice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_air_boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel" title="NuRadioMC.utilities.medium_base.IceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModel</span></code></a></p>
 <p>predefined ice model (to inherit from) with exponential shape</p>
 <p class="rubric">Methods</p>
@@ -893,7 +887,7 @@ of the snow at the surface</p>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple.get_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple.get_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the index of refraction at position.
 Overwrites function of the mother class</p>
 <dl class="field-list simple">
@@ -916,7 +910,7 @@ of refraction are returned</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple.get_average_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple.get_average_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple.get_average_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_average_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the average index of refraction between two points
 Overwrites function of the mother class</p>
 <dl class="field-list simple">
@@ -943,7 +937,7 @@ of average refraction are returned</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple.get_gradient_of_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple.get_gradient_of_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the gradient of index of refraction at position
 Overwrites function of the mother class</p>
 <dl class="field-list simple">
@@ -966,7 +960,7 @@ of index of refraction is returned</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple.add_reflective_bottom">
-<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.add_reflective_bottom" title="Link to this definition"></a></dt>
 <dd><p>function which adds a reflective bottom to your ice model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -984,7 +978,7 @@ of index of refraction is returned</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes
 that define the medium in radiopropa. If no specific model is set by the user it returns
 the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
@@ -1003,7 +997,7 @@ ice model in case they need it, without losing the access to the default model.<
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple.set_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.set_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>If radiopropa is installed, this function can be used
 to set a specific RadioPropaIceWrapper object as the
 ice model used for RadioPropa.</p>
@@ -1022,7 +1016,7 @@ ice model used for RadioPropa.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelBirefringence">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModelBirefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bir_model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelBirefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModelBirefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bir_model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelBirefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
 <p>predefined birefringence ice model (to inherit from) including different indieces of refraction for differnt directions</p>
 <p class="rubric">Methods</p>
@@ -1090,7 +1084,7 @@ options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadi
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelBirefringence.get_birefringence_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_birefringence_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelBirefringence.get_birefringence_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_birefringence_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_birefringence_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelBirefringence.get_birefringence_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_birefringence_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the birefringent index of refraction at any position, no density effects are included at this point.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1110,7 +1104,7 @@ options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadi
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelBirefringence.add_reflective_bottom">
-<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.add_reflective_bottom" title="Link to this definition"></a></dt>
 <dd><p>function which adds a reflective bottom to your ice model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1128,7 +1122,7 @@ options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadi
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelBirefringence.get_average_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_average_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the average index of refraction between two points
 Overwrites function of the mother class</p>
 <dl class="field-list simple">
@@ -1155,7 +1149,7 @@ of average refraction are returned</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelBirefringence.get_gradient_of_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_gradient_of_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the gradient of index of refraction at position
 Overwrites function of the mother class</p>
 <dl class="field-list simple">
@@ -1178,7 +1172,7 @@ of index of refraction is returned</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelBirefringence.get_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes
 that define the medium in radiopropa. If no specific model is set by the user it returns
 the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
@@ -1197,7 +1191,7 @@ ice model in case they need it, without losing the access to the default model.<
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelBirefringence.get_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.get_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>returns the index of refraction at position.
 Overwrites function of the mother class</p>
 <dl class="field-list simple">
@@ -1220,7 +1214,7 @@ of refraction are returned</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelBirefringence.set_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence.set_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>If radiopropa is installed, this function can be used
 to set a specific RadioPropaIceWrapper object as the
 ice model used for RadioPropa.</p>
@@ -1239,7 +1233,7 @@ ice model used for RadioPropa.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">RadioPropaIceWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_nuradio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalar_field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">RadioPropaIceWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_nuradio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalar_field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>This class holds all the necessary variables for the radiopropa raytracer to work.
 When radiopropa is installed, this object will automatically be generated for a
@@ -1269,7 +1263,7 @@ smooth handeling of the radiopropa ice model.</p>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules">
-<span class="sig-name descname"><span class="pre">get_modules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.get_modules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_modules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.get_modules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules" title="Link to this definition"></a></dt>
 <dd><p>returns the predefined modules (like reflective or transmissive layers,
 a discontinuity in refractive index, observers …) of the ice for
 to use in the radiopropa tracer</p>
@@ -1285,7 +1279,7 @@ to use in the radiopropa tracer</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module">
-<span class="sig-name descname"><span class="pre">get_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.get_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.get_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module" title="Link to this definition"></a></dt>
 <dd><p>returns the predefined module with that name (like reflective or
 transmissive layers, a discontinuity in refractive index, observers
 …) of the ice for to use in the radiopropa tracer</p>
@@ -1301,7 +1295,7 @@ transmissive layers, a discontinuity in refractive index, observers
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module">
-<span class="sig-name descname"><span class="pre">add_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.add_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.add_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module" title="Link to this definition"></a></dt>
 <dd><p>add predefined modules (like reflective or transmissive layers,
 a discontinuity in refractive index, observers …) of the ice
 to the dictionary</p>
@@ -1319,7 +1313,7 @@ to the dictionary</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.remove_module">
-<span class="sig-name descname"><span class="pre">remove_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.remove_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.remove_module" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">remove_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.remove_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.remove_module" title="Link to this definition"></a></dt>
 <dd><p>removes predefined modules (like reflective or transmissive layers,
 a discontinuity in refractive index, observers …) of the ice
 to the dictionary</p>
@@ -1335,7 +1329,7 @@ to the dictionary</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module">
-<span class="sig-name descname"><span class="pre">replace_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.replace_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">replace_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.replace_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module" title="Link to this definition"></a></dt>
 <dd><p>replaces predefined modules (like reflective or transmissive layers,
 a discontinuity in refractive index, observers …) of the ice
 to the dictionary</p>
@@ -1353,7 +1347,7 @@ to the dictionary</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_scalar_field">
-<span class="sig-name descname"><span class="pre">get_scalar_field</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.get_scalar_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_scalar_field" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_scalar_field</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.get_scalar_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_scalar_field" title="Link to this definition"></a></dt>
 <dd><p>add predefined modules (like reflective or transmissive layers,
 a discontinuity in refractive index, observers …) of the ice
 to the dictionary</p>
@@ -1371,7 +1365,7 @@ to the dictionary</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.ScalarFieldBuilder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">ScalarFieldBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#ScalarFieldBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.ScalarFieldBuilder" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">ScalarFieldBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#ScalarFieldBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.ScalarFieldBuilder" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ScalarField</span></code></p>
 <p>If the requested ice model does not exist in radiopropa, this class can build
 one in stead. It is a radiopropa object but constructed through the python
@@ -1392,7 +1386,7 @@ wrapper which is much slower.</p>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getValue">
-<span class="sig-name descname"><span class="pre">getValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#ScalarFieldBuilder.getValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getValue" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">getValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#ScalarFieldBuilder.getValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getValue" title="Link to this definition"></a></dt>
 <dd><p>returns the index of refraction at position for radiopropa tracer</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1412,7 +1406,7 @@ wrapper which is much slower.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getGradient">
-<span class="sig-name descname"><span class="pre">getGradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#ScalarFieldBuilder.getGradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getGradient" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">getGradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#ScalarFieldBuilder.getGradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getGradient" title="Link to this definition"></a></dt>
 <dd><p>returns the gradient of index of refraction at position for radiopropa tracer</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

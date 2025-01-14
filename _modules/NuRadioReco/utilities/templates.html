@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.utilities.templates &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,21 +614,23 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.templates</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities.io_utilities</span> <span class="kn">import</span> <span class="n">read_pickle</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 
-<div class="viewcode-block" id="Templates"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates">[docs]</a><span class="k">class</span> <span class="nc">Templates</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Templates">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Templates</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">__instance</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">Templates</span><span class="o">.</span><span class="n">__instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">Templates</span><span class="o">.</span><span class="n">__instance</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Templates</span><span class="o">.</span><span class="n">__instance</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__ref_cr_templates</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cr_templates</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cr_template_set</span> <span class="o">=</span> <span class="p">{}</span>
@@ -645,10 +641,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__path</span> <span class="o">=</span> <span class="n">path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.Templates&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Templates.set_template_directory"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.set_template_directory">[docs]</a>    <span class="k">def</span> <span class="nf">set_template_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="Templates.set_template_directory">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.set_template_directory">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_template_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__path</span> <span class="o">=</span> <span class="n">path</span></div>
 
-    <span class="k">def</span> <span class="nf">__load_cr_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__load_cr_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__path</span><span class="p">,</span> <span class="s1">&#39;templates_cr_station_</span><span class="si">{}</span><span class="s1">.pickle&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
         <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__cr_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_pickle</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
@@ -659,7 +658,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;template file </span><span class="si">{}</span><span class="s2"> not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IOError</span>
 
-<div class="viewcode-block" id="Templates.get_cr_ref_templates"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_cr_ref_templates">[docs]</a>    <span class="k">def</span> <span class="nf">get_cr_ref_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<div class="viewcode-block" id="Templates.get_cr_ref_templates">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_cr_ref_templates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cr_ref_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns one cosmic ray template per channel for the reference direction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -667,7 +668,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__load_cr_template</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ref_cr_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Templates.get_cr_ref_template"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_cr_ref_template">[docs]</a>    <span class="k">def</span> <span class="nf">get_cr_ref_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Templates.get_cr_ref_template">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_cr_ref_template">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cr_ref_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns one cosmic ray template for the reference direction, the same for all channels</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -684,7 +688,10 @@
 
         <span class="k">return</span> <span class="n">tmpl</span></div>
 
-<div class="viewcode-block" id="Templates.get_set_of_cr_templates_full"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates_full">[docs]</a>    <span class="k">def</span> <span class="nf">get_set_of_cr_templates_full</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Templates.get_set_of_cr_templates_full">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates_full">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_set_of_cr_templates_full</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        gets set of n templates to allow for the calculation of average templates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -708,7 +715,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cr_template_set_full</span></div>
 
-<div class="viewcode-block" id="Templates.get_set_of_cr_templates"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates">[docs]</a>    <span class="k">def</span> <span class="nf">get_set_of_cr_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Templates.get_set_of_cr_templates">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_set_of_cr_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        gets set of n templates to allow for the calculation of average templates</span>
 
@@ -733,7 +743,10 @@
                             <span class="k">break</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cr_template_set</span></div>
 
-<div class="viewcode-block" id="Templates.get_set_of_nu_templates"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_set_of_nu_templates">[docs]</a>    <span class="k">def</span> <span class="nf">get_set_of_nu_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Templates.get_set_of_nu_templates">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_set_of_nu_templates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_set_of_nu_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        gets set of n templates to allow for the calculation of average templates</span>
 
@@ -759,7 +772,8 @@
                             <span class="k">break</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nu_template_set</span></div>
 
-    <span class="k">def</span> <span class="nf">__load_nu_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__load_nu_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__path</span><span class="p">,</span> <span class="s1">&#39;templates_nu_station_</span><span class="si">{}</span><span class="s1">.pickle&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
         <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__nu_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_pickle</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
@@ -770,7 +784,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;template file </span><span class="si">{}</span><span class="s2"> not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IOError</span>
 
-<div class="viewcode-block" id="Templates.get_nu_ref_templates"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_nu_ref_templates">[docs]</a>    <span class="k">def</span> <span class="nf">get_nu_ref_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<div class="viewcode-block" id="Templates.get_nu_ref_templates">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_nu_ref_templates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_nu_ref_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns one neutrino template per channel for the reference direction and on the cherenkov cone</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -778,11 +794,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__load_nu_template</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ref_nu_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="mf">0.0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Templates.get_nu_ref_template"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_nu_ref_template">[docs]</a>    <span class="k">def</span> <span class="nf">get_nu_ref_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Templates.get_nu_ref_template">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_nu_ref_template">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_nu_ref_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns one neutrino template for the reference direction and on the cherenkov cone, the same for all channels</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nu_ref_templates</span><span class="p">(</span><span class="n">station_id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># FIXME: hardcoded that channel 0 is a neutrino sensitive channel</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nu_ref_templates</span><span class="p">(</span><span class="n">station_id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># FIXME: hardcoded that channel 0 is a neutrino sensitive channel</span></div>
+</div>
+
 </pre></div>
 
            </div>

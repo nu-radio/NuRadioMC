@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.phasedarray.triggerSimulator &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,15 +614,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.phasedarray.triggerSimulator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.trigger</span> <span class="kn">import</span> <span class="n">SimplePhasedTrigger</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.modules.analogToDigitalConverter</span> <span class="kn">import</span> <span class="n">analogToDigitalConverter</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">scipy</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.trigger</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimplePhasedTrigger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.analogToDigitalConverter</span><span class="w"> </span><span class="kn">import</span> <span class="n">analogToDigitalConverter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.phasedTriggerSimulator&#39;</span><span class="p">)</span>
 
@@ -639,7 +633,9 @@
 <span class="n">default_angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">main_low_angle</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">main_high_angle</span><span class="p">),</span> <span class="mi">11</span><span class="p">))</span>
 
 
-<div class="viewcode-block" id="triggerSimulator"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator">[docs]</a><span class="k">class</span> <span class="nc">triggerSimulator</span><span class="p">:</span>
+<div class="viewcode-block" id="triggerSimulator">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">triggerSimulator</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the trigger for a phased array with a primary beam.</span>
 
@@ -649,18 +645,23 @@
 <span class="sd">    See https://arxiv.org/pdf/1809.04573.pdf</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
-<div class="viewcode-block" id="triggerSimulator.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pre_trigger_time</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
+<div class="viewcode-block" id="triggerSimulator.begin">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pre_trigger_time</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span> <span class="o">=</span> <span class="n">pre_trigger_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span></div>
 
-<div class="viewcode-block" id="triggerSimulator.get_antenna_positions"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_antenna_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="triggerSimulator.get_antenna_positions">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_antenna_positions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates the vertical coordinates of the antennas of the detector</span>
 
@@ -689,7 +690,10 @@
 
         <span class="k">return</span> <span class="n">ant_pos</span></div>
 
-<div class="viewcode-block" id="triggerSimulator.calculate_time_delays"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.calculate_time_delays">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_time_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
+
+<div class="viewcode-block" id="triggerSimulator.calculate_time_delays">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.calculate_time_delays">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_time_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
                               <span class="n">triggered_channels</span><span class="p">,</span>
                               <span class="n">phasing_angles</span><span class="o">=</span><span class="n">default_angles</span><span class="p">,</span>
                               <span class="n">ref_index</span><span class="o">=</span><span class="mf">1.75</span><span class="p">,</span>
@@ -754,7 +758,10 @@
 
         <span class="k">return</span> <span class="n">beam_rolls</span></div>
 
-<div class="viewcode-block" id="triggerSimulator.get_channel_trace_start_time"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_channel_trace_start_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel_trace_start_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">):</span>
+
+<div class="viewcode-block" id="triggerSimulator.get_channel_trace_start_time">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_channel_trace_start_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_channel_trace_start_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Finds the start time of the desired traces.</span>
 <span class="sd">        Throws an error if all the channels dont have the same start time.</span>
@@ -784,7 +791,10 @@
 
         <span class="k">return</span> <span class="n">channel_trace_start_time</span></div>
 
-<div class="viewcode-block" id="triggerSimulator.check_vertical_string"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.check_vertical_string">[docs]</a>    <span class="k">def</span> <span class="nf">check_vertical_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">):</span>
+
+<div class="viewcode-block" id="triggerSimulator.check_vertical_string">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.check_vertical_string">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_vertical_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if the triggering antennas lie in a straight vertical line</span>
 <span class="sd">        Throws error if not.</span>
@@ -808,7 +818,10 @@
         <span class="k">if</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">diff_x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">cut</span> <span class="ow">or</span> <span class="nb">sum</span><span class="p">(</span><span class="n">diff_y</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">cut</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;The phased triggering array should lie on a vertical line&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="triggerSimulator.power_sum"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.power_sum">[docs]</a>    <span class="k">def</span> <span class="nf">power_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coh_sum</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">adc_output</span><span class="o">=</span><span class="s1">&#39;voltage&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="triggerSimulator.power_sum">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.power_sum">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">power_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coh_sum</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">adc_output</span><span class="o">=</span><span class="s1">&#39;voltage&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate power summed over a length defined by &#39;window&#39;, overlapping at intervals defined by &#39;step&#39;</span>
 
@@ -854,7 +867,10 @@
 
         <span class="k">return</span> <span class="n">power</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">window</span><span class="p">,</span> <span class="n">num_frames</span></div>
 
-<div class="viewcode-block" id="triggerSimulator.phase_signals"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.phase_signals">[docs]</a>    <span class="k">def</span> <span class="nf">phase_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">beam_rolls</span><span class="p">):</span>
+
+<div class="viewcode-block" id="triggerSimulator.phase_signals">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.phase_signals">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phase_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">beam_rolls</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Phase signals together given the rolls</span>
 
@@ -887,7 +903,10 @@
 
         <span class="k">return</span> <span class="n">phased_traces</span></div>
 
-<div class="viewcode-block" id="triggerSimulator.phased_trigger"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.phased_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">phased_trigger</span><span class="p">(</span>
+
+<div class="viewcode-block" id="triggerSimulator.phased_trigger">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.phased_trigger">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phased_trigger</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
             <span class="n">Vrms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">threshold</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span>
@@ -1073,8 +1092,11 @@
 
         <span class="k">return</span> <span class="n">is_triggered</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">trigger_times</span><span class="p">,</span> <span class="n">maximum_amps</span></div>
 
-<div class="viewcode-block" id="triggerSimulator.run"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
+
+<div class="viewcode-block" id="triggerSimulator.run">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
             <span class="n">Vrms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">threshold</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span>
             <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1220,8 +1242,13 @@
 
         <span class="k">return</span> <span class="n">is_triggered</span></div>
 
-<div class="viewcode-block" id="triggerSimulator.end"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span></div></div>
+
+<div class="viewcode-block" id="triggerSimulator.end">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.end">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+</div>
+
 </pre></div>
 
            </div>

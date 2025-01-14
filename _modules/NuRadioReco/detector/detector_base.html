@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.detector.detector_base &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,42 +614,53 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.detector.detector_base</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.detector.RNO_G.analog_components</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.detector.ARIANNA.analog_components</span>
-<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">TinyDB</span><span class="p">,</span> <span class="n">Query</span>
-<span class="kn">from</span> <span class="nn">tinydb_serialization</span> <span class="kn">import</span> <span class="n">SerializationMiddleware</span>
-<span class="kn">from</span> <span class="nn">tinydb.storages</span> <span class="kn">import</span> <span class="n">MemoryStorage</span>
-<span class="kn">import</span> <span class="nn">astropy.time</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">tinydb_serialization</span> <span class="kn">import</span> <span class="n">Serializer</span>
-<span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># # used for compatibility between py2 and py3</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">erfa</span> <span class="kn">import</span> <span class="n">ErfaWarning</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.utilities.metaclasses</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.RNO_G.analog_components</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.ARIANNA.analog_components</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tinydb</span><span class="w"> </span><span class="kn">import</span> <span class="n">TinyDB</span><span class="p">,</span> <span class="n">Query</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tinydb_serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">SerializationMiddleware</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tinydb.storages</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemoryStorage</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tinydb_serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Serializer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">six</span>  <span class="c1"># # used for compatibility between py2 and py3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">erfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">ErfaWarning</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.metaclasses</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.detector&#39;</span><span class="p">)</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">ErfaWarning</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="DateTimeSerializer"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer">[docs]</a><span class="k">class</span> <span class="nc">DateTimeSerializer</span><span class="p">(</span><span class="n">Serializer</span><span class="p">):</span>
+<div class="viewcode-block" id="DateTimeSerializer">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DateTimeSerializer</span><span class="p">(</span><span class="n">Serializer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    helper class to serialize datetime objects with TinyDB</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">OBJ_CLASS</span> <span class="o">=</span> <span class="n">datetime</span>  <span class="c1"># The class this serializer handles</span>
 
-<div class="viewcode-block" id="DateTimeSerializer.encode"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer.encode">[docs]</a>    <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="DateTimeSerializer.encode">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer.encode">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DateTimeSerializer.decode"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer.decode">[docs]</a>    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S&#39;</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="DateTimeSerializer.decode">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer.decode">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S&#39;</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="buffer_db"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.buffer_db">[docs]</a><span class="k">def</span> <span class="nf">buffer_db</span><span class="p">(</span><span class="n">in_memory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="buffer_db">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.buffer_db">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">buffer_db</span><span class="p">(</span><span class="n">in_memory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    buffers the complete SQL database into a TinyDB object (either in memory or into a local JSON file)</span>
 
@@ -676,7 +681,7 @@
         <span class="n">db</span> <span class="o">=</span> <span class="n">TinyDB</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">storage</span><span class="o">=</span><span class="n">serialization</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
     <span class="n">db</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
 
-    <span class="kn">from</span> <span class="nn">NuRadioReco.detector</span> <span class="kn">import</span> <span class="n">detector_sql</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">detector_sql</span>
     <span class="n">sqldet</span> <span class="o">=</span> <span class="n">detector_sql</span><span class="o">.</span><span class="n">Detector</span><span class="p">()</span>
     <span class="n">results</span> <span class="o">=</span> <span class="n">sqldet</span><span class="o">.</span><span class="n">get_everything_stations</span><span class="p">()</span>
     <span class="n">table_stations</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="s1">&#39;stations&#39;</span><span class="p">)</span>
@@ -746,15 +751,18 @@
     <span class="k">return</span> <span class="n">db</span></div>
 
 
-<div class="viewcode-block" id="DetectorBase"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">metaclasses</span><span class="o">.</span><span class="n">Singleton</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">DetectorBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase">[docs]</a>
+<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">metaclasses</span><span class="o">.</span><span class="n">Singleton</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DetectorBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    main detector class which provides access to the detector description</span>
 
 <span class="sd">    This class provides functions for all relevant detector properties.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="s1">&#39;ARIANNA/arianna_detector_db.json&#39;</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="s1">&#39;ARIANNA/arianna_detector_db.json&#39;</span><span class="p">,</span>
                  <span class="n">dictionary</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assume_inf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the stations detector properties.</span>
@@ -831,14 +839,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_antenna_by_depth</span> <span class="o">=</span> <span class="n">antenna_by_depth</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">assume_inf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assume_inf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Getter function for the `assume_inf` attribute</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__assume_inf</span>
 
     <span class="nd">@assume_inf</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">assume_inf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assume_inf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Setter function for the `assume_inf` attribute. Checks whether new value is boolean before assigning</span>
 <span class="sd">        the value to the attribute.</span>
@@ -849,14 +857,14 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Value for assume_inf should be boolean, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">antenna_by_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">antenna_by_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Getter function for the `antenna_by_depth` attribute</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_antenna_by_depth</span>
 
     <span class="nd">@antenna_by_depth</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">antenna_by_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">antenna_by_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Setter function for the `antenna_by_depth` attribute. Checks whether new value is boolean before assigning</span>
 <span class="sd">        the value to the attribute.</span>
@@ -866,7 +874,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Value for antenna_by_depth should be boolean, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__query_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__query_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">Channel</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -881,7 +889,7 @@
             <span class="k">raise</span> <span class="ne">LookupError</span>
         <span class="k">return</span> <span class="n">res</span>
 
-    <span class="k">def</span> <span class="nf">_query_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_query_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">Channel</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -890,7 +898,7 @@
                                      <span class="o">&amp;</span> <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">commission_time</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span>
                                      <span class="o">&amp;</span> <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">decommission_time</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="o">.</span><span class="n">datetime</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_query_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_query_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">Device</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -899,7 +907,7 @@
                                      <span class="o">&amp;</span> <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">commission_time</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span>
                                      <span class="o">&amp;</span> <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">decommission_time</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="o">.</span><span class="n">datetime</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_query_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_query_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">Station</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -914,7 +922,7 @@
                 <span class="s2">&quot;query for station </span><span class="si">{}</span><span class="s2"> at time </span><span class="si">{}</span><span class="s2"> returned no results&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="o">.</span><span class="n">datetime</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">res</span>
 
-    <span class="k">def</span> <span class="nf">__query_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__query_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_id</span><span class="p">):</span>
         <span class="n">Position</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__positions</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">Position</span><span class="o">.</span><span class="n">pos_position</span> <span class="o">==</span> <span class="n">position_id</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -927,7 +935,9 @@
                                                                                             <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="o">.</span><span class="n">datetime</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">res</span>
 
-<div class="viewcode-block" id="DetectorBase.get_station_ids"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_station_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_station_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DetectorBase.get_station_ids">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_station_ids">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns a sorted list of all station ids present in the database</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -941,41 +951,45 @@
                 <span class="n">station_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">station_ids</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_get_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span>
 
-<div class="viewcode-block" id="DetectorBase.get_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_station">[docs]</a>    <span class="k">def</span> <span class="nf">get_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<div class="viewcode-block" id="DetectorBase.get_station">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_station">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_id</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">position_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_positions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__buffer_position</span><span class="p">(</span><span class="n">position_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_positions</span><span class="p">[</span><span class="n">position_id</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__get_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span>
 
 
-    <span class="k">def</span> <span class="nf">__get_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">device_id</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__valid_t0</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s1">&#39;commission_time&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__valid_t1</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">])</span>
@@ -993,10 +1007,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__valid_t1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__valid_t1</span><span class="p">,</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">]))</span>
 
 
-    <span class="k">def</span> <span class="nf">__buffer_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__buffer_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_id</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_positions</span><span class="p">[</span><span class="n">position_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query_position</span><span class="p">(</span><span class="n">position_id</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__get_t0_t1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_t0_t1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">Station</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Station</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">station_id</span><span class="p">)</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1016,7 +1030,9 @@
             <span class="n">t1</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">t0</span><span class="p">),</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span>
 
-<div class="viewcode-block" id="DetectorBase.has_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.has_station">[docs]</a>    <span class="k">def</span> <span class="nf">has_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<div class="viewcode-block" id="DetectorBase.has_station">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.has_station">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        checks if a station is present in the database</span>
 
@@ -1031,7 +1047,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Station</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_unique_time_periods"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods">[docs]</a>    <span class="k">def</span> <span class="nf">get_unique_time_periods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_unique_time_periods">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_unique_time_periods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the time periods in which the station configuration (including all channels) was constant</span>
 
@@ -1055,7 +1074,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__valid_t1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">up</span></div>
 
-<div class="viewcode-block" id="DetectorBase.update"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.update">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        updates the detector description to a new time</span>
 
@@ -1077,13 +1099,19 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__valid_t0</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="s1">&#39;2100-1-1&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__valid_t1</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="s1">&#39;1970-1-1&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_detector_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_detector_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_detector_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_detector_time">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_detector_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_detector_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the time that the detector is currently set to</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_channel"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_channel">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns a dictionary of all channel parameters</span>
 
@@ -1101,7 +1129,10 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="DetectorBase.get_device"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_device">[docs]</a>    <span class="k">def</span> <span class="nf">get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_device">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_device">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns a dictionary of all device parameters</span>
 
@@ -1118,7 +1149,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_device</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_absolute_position"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_absolute_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_absolute_position">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_absolute_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the absolute position of a specific station</span>
 
@@ -1145,7 +1179,10 @@
             <span class="n">altitude</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;pos_altitude&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">easting</span><span class="p">,</span> <span class="n">northing</span><span class="p">,</span> <span class="n">altitude</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_absolute_position_site"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position_site">[docs]</a>    <span class="k">def</span> <span class="nf">get_absolute_position_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">site</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_absolute_position_site">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position_site">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_absolute_position_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">site</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the absolute position of a specific station</span>
 
@@ -1172,7 +1209,10 @@
             <span class="n">altitude</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;pos_altitude&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">easting</span><span class="p">,</span> <span class="n">northing</span><span class="p">,</span> <span class="n">altitude</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_relative_position"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_relative_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_relative_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;channel&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_relative_position">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_relative_position">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_relative_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;channel&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the relative position of a specific channels/antennas with respect to the station center</span>
 
@@ -1199,7 +1239,10 @@
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_position_x&#39;</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_position_y&#39;</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_position_z&#39;</span><span class="p">]])</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_site"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_site">[docs]</a>    <span class="k">def</span> <span class="nf">get_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_site">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_site">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the site where the station is deployed (e.g. MooresBay or South Pole)</span>
 
@@ -1214,7 +1257,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;pos_site&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_site_coordinates"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">get_site_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_site_coordinates">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_site_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the (latitude, longitude) coordinates (in degrees) for a given</span>
 <span class="sd">        detector site.</span>
@@ -1237,7 +1283,10 @@
             <span class="k">return</span> <span class="n">sites</span><span class="p">[</span><span class="n">site</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_number_of_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_channels">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_number_of_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the number of channels per station</span>
 
@@ -1251,7 +1300,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channels</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_channel_ids"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_channel_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_channel_ids">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_channel_ids">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the channel ids of a station</span>
 
@@ -1267,7 +1319,10 @@
             <span class="n">channel_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="s1">&#39;channel_id&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">channel_ids</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_parallel_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_parallel_channels">[docs]</a>    <span class="k">def</span> <span class="nf">get_parallel_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_parallel_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_parallel_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parallel_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get a list of parallel antennas</span>
 
@@ -1307,7 +1362,10 @@
 
 
 
-<div class="viewcode-block" id="DetectorBase.get_number_of_devices"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_devices">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_number_of_devices">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_devices">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the number of devices per station</span>
 
@@ -1321,7 +1379,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_devices</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_device_ids"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_device_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_device_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_device_ids">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_device_ids">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_device_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the device ids of a station</span>
 
@@ -1337,7 +1398,10 @@
             <span class="n">device_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">device</span><span class="p">[</span><span class="s1">&#39;device_id&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">device_ids</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_cable_delay"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_cable_delay">[docs]</a>    <span class="k">def</span> <span class="nf">get_cable_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_cable_delay">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_cable_delay">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the cable delay of a channel</span>
 
@@ -1359,7 +1423,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;cab_time_delay&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_cable_type_and_length"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_cable_type_and_length">[docs]</a>    <span class="k">def</span> <span class="nf">get_cable_type_and_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_cable_type_and_length">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_cable_type_and_length">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_type_and_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the cable type (e.g. LMR240) and its length</span>
 
@@ -1375,7 +1442,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;cab_type&#39;</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;cab_length&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_antenna_type"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_antenna_type">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the antenna type</span>
 
@@ -1391,7 +1461,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_type&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_antenna_deployment_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_deployment_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_deployment_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_antenna_deployment_time">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_deployment_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_deployment_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the time of antenna deployment</span>
 
@@ -1407,7 +1480,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_deployment_time&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_antenna_orientation"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_orientation">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_orientation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_antenna_orientation">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_orientation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_orientation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the orientation of a specific antenna</span>
 
@@ -1430,7 +1506,10 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">([</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_orientation_theta&#39;</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_orientation_phi&#39;</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_rotation_theta&#39;</span><span class="p">],</span>
                            <span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_rotation_phi&#39;</span><span class="p">]])</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_amplifier_type"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_amplifier_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_amplifier_type">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_amplifier_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the type of the amplifier</span>
 
@@ -1446,7 +1525,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;amp_type&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_amplifier_measurement"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_measurement">[docs]</a>    <span class="k">def</span> <span class="nf">get_amplifier_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_amplifier_measurement">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_measurement">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_amplifier_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns a unique reference to the amplifier measurement</span>
 
@@ -1462,7 +1544,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;amp_reference_measurement&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_amplifier_response"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_response">[docs]</a>    <span class="k">def</span> <span class="nf">get_amplifier_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_amplifier_response">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_response">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_amplifier_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the amplifier response for the amplifier of a given channel</span>
 
@@ -1498,7 +1583,10 @@
         <span class="n">amp_phase</span> <span class="o">=</span> <span class="n">amp_response_functions</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">](</span><span class="n">frequencies</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">amp_gain</span> <span class="o">*</span> <span class="n">amp_phase</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_sampling_frequency"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_sampling_frequency">[docs]</a>    <span class="k">def</span> <span class="nf">get_sampling_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_sampling_frequency">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_sampling_frequency">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sampling_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the sampling frequency</span>
 
@@ -1514,7 +1602,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;adc_sampling_frequency&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_number_of_samples"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_samples">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_number_of_samples">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_samples">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the number of samples of a channel</span>
 
@@ -1530,7 +1621,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;adc_n_samples&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_antenna_model"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_antenna_model">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_model">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        determines the correct antenna model from antenna type, position and orientation of antenna</span>
 
@@ -1572,7 +1666,10 @@
             <span class="n">antenna_model</span> <span class="o">=</span> <span class="n">antenna_type</span>
         <span class="k">return</span> <span class="n">antenna_model</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_channel_group_id"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_channel_group_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel_group_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_channel_group_id">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_channel_group_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_channel_group_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the group ID of a channel. If the channel has no group ID, the channel ID is returned.</span>
 
@@ -1597,7 +1694,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;channel_group_id&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_noise_RMS"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_noise_RMS">[docs]</a>    <span class="k">def</span> <span class="nf">get_noise_RMS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s1">&#39;amp&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_noise_RMS">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_noise_RMS">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_noise_RMS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s1">&#39;amp&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the noise RMS that was precomputed from forced triggers</span>
 
@@ -1621,7 +1721,7 @@
 <span class="sd">            the noise RMS (actually it is the standard deviation but as the mean should be zero its the same)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_RMS</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">json</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
             <span class="n">detector_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">detector_directory</span><span class="p">,</span> <span class="s1">&#39;noise_RMS.json&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__noise_RMS</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>
@@ -1635,7 +1735,10 @@
             <span class="k">return</span> <span class="n">rms</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_RMS</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">stage</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.get_noise_temperature"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_noise_temperature">[docs]</a>    <span class="k">def</span> <span class="nf">get_noise_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.get_noise_temperature">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_noise_temperature">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_noise_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the noise temperature of the channel</span>
 
@@ -1653,7 +1756,10 @@
                 <span class="sa">f</span><span class="s2">&quot;field noise_temperature not present in detector description of station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> and channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;noise_temperature&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectorBase.is_channel_noiseless"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless">[docs]</a>    <span class="k">def</span> <span class="nf">is_channel_noiseless</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DetectorBase.is_channel_noiseless">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_channel_noiseless</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns true if the detector description has the field `noiseless` and if this field is True.</span>
 
@@ -1671,7 +1777,9 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;noiseless&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;noiseless&#39;</span><span class="p">]</span></div></div>
+        <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;noiseless&#39;</span><span class="p">]</span></div>
+</div>
+
 </pre></div>
 
            </div>

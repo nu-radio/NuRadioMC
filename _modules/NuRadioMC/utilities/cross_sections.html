@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.utilities.cross_sections &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,16 +614,18 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.utilities.cross_sections</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.cross_sections&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="param"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.param">[docs]</a><span class="k">def</span> <span class="nf">param</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">&#39;cc&#39;</span><span class="p">,</span> <span class="n">parameterization</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="param">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.param">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">param</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">&#39;cc&#39;</span><span class="p">,</span> <span class="n">parameterization</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameterization and constants as used in</span>
 <span class="sd">    get_nu_cross_section()</span>
@@ -705,7 +701,10 @@
     <span class="k">return</span> <span class="n">crscn</span></div>
 
 
-<div class="viewcode-block" id="csms"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.csms">[docs]</a><span class="k">def</span> <span class="nf">csms</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">inttype</span><span class="p">,</span> <span class="n">flavors</span><span class="p">):</span>
+
+<div class="viewcode-block" id="csms">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.csms">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">csms</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">inttype</span><span class="p">,</span> <span class="n">flavors</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Neutrino cross sections according to</span>
 <span class="sd">    Amanda Cooper-Sarkar, Philipp Mertsch, Subir Sarkar</span>
@@ -814,7 +813,10 @@
     <span class="k">return</span> <span class="n">crscn</span></div>
 
 
-<div class="viewcode-block" id="get_nu_cross_section"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_nu_cross_section">[docs]</a><span class="k">def</span> <span class="nf">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_nu_cross_section">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_nu_cross_section">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    return neutrino cross-section</span>
 
@@ -937,7 +939,10 @@
     <span class="k">return</span> <span class="n">crscn</span></div>
 
 
-<div class="viewcode-block" id="get_interaction_length"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_interaction_length">[docs]</a><span class="k">def</span> <span class="nf">get_interaction_length</span><span class="p">(</span><span class="n">Enu</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">.917</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">3</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">,</span>
+
+<div class="viewcode-block" id="get_interaction_length">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_interaction_length">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_interaction_length</span><span class="p">(</span><span class="n">Enu</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">.917</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">3</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">,</span>
                            <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    calculates interaction length from cross section</span>
@@ -983,6 +988,7 @@
     <span class="k">return</span> <span class="n">L_int</span></div>
 
 
+
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>  <span class="c1"># this part of the code gets only executed it the script is directly called</span>
 
     <span class="n">n_points</span> <span class="o">=</span> <span class="mi">100</span>
@@ -1000,7 +1006,7 @@
     <span class="n">cc_new</span> <span class="o">=</span> <span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="n">inttype</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;csms&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span>
     <span class="n">cc_hedis_bgr18</span> <span class="o">=</span> <span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="n">inttype</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span>
 
-    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
     <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span><span class="p">,</span> <span class="n">cc</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CTW&#39;</span><span class="p">)</span>

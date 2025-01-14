@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.EvtGen.NuRadioProposal &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,15 +614,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.EvtGen.NuRadioProposal</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">proposal</span> <span class="k">as</span> <span class="nn">pp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">particle_names</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.utilities.metaclasses</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">proposal</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">particle_names</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.metaclasses</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">six</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">glob</span><span class="w"> </span><span class="kn">import</span> <span class="n">glob</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module takes care of the PROPOSAL implementation. Some important things</span>
@@ -664,7 +658,9 @@
 <span class="n">pp_km</span> <span class="o">=</span> <span class="mf">1.e5</span>
 
 
-<div class="viewcode-block" id="SecondaryProperties"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties">[docs]</a><span class="k">class</span> <span class="nc">SecondaryProperties</span><span class="p">:</span>
+<div class="viewcode-block" id="SecondaryProperties">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SecondaryProperties</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class stores the properties from secondary particles that are</span>
 <span class="sd">    relevant for NuRadioMC, namely:</span>
@@ -677,7 +673,7 @@
 <span class="sd">    Distance and energy are in NuRadioMC units</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">distance</span><span class="p">,</span>
                  <span class="n">energy</span><span class="p">,</span>
                  <span class="n">shower_type</span><span class="p">,</span>
@@ -691,13 +687,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_energy</span> <span class="o">=</span> <span class="n">parent_energy</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span>  <span class="s2">&quot;Particle and code    : </span><span class="si">{:}</span><span class="s2"> (</span><span class="si">{:}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Energy               : </span><span class="si">{:}</span><span class="s2"> PeV</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Distance from vertex : </span><span class="si">{:}</span><span class="s2"> km</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Shower type          : </span><span class="si">{:}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shower_type</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Parent energy        : </span><span class="si">{:}</span><span class="s2"> PeV&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">s</span></div>
+
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Codes for the InteractionType class from PROPOSAL. These represent interactions</span>
@@ -738,7 +735,9 @@
                                <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">decay</span><span class="p">):</span> <span class="mi">91</span> <span class="p">}</span>
 
 
-<div class="viewcode-block" id="particle_code"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.particle_code">[docs]</a><span class="k">def</span> <span class="nf">particle_code</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
+<div class="viewcode-block" id="particle_code">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.particle_code">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">particle_code</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    For an integer, corresponding to a proposal.particle.Interaction_Type or </span>
 <span class="sd">    proposal.particle.Particle_Type, it returns the corresponding PDG </span>
@@ -762,7 +761,10 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="is_em_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_em_primary">[docs]</a><span class="k">def</span> <span class="nf">is_em_primary</span> <span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
+
+<div class="viewcode-block" id="is_em_primary">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_em_primary">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_em_primary</span> <span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    For an integer corresponding to a particle type or interaction type of </span>
 <span class="sd">    proposal, returns True if the object can be an electromagnetic shower primary </span>
@@ -785,7 +787,10 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="is_had_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_had_primary">[docs]</a><span class="k">def</span> <span class="nf">is_had_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
+
+<div class="viewcode-block" id="is_had_primary">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_had_primary">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_had_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given an integer corresponding to a particle type or interaction type of </span>
 <span class="sd">    proposal, returns True if the object can be a hadronic shower primary </span>
@@ -808,7 +813,10 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="is_shower_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary">[docs]</a><span class="k">def</span> <span class="nf">is_shower_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
+
+<div class="viewcode-block" id="is_shower_primary">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_shower_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given an integer corresponding to a particle type or interaction type of </span>
 <span class="sd">    proposal, returns True if the object can be a shower primary and False otherwise</span>
@@ -830,15 +838,18 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="ProposalFunctions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">metaclasses</span><span class="o">.</span><span class="n">Singleton</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">ProposalFunctions</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ProposalFunctions">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions">[docs]</a>
+<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">metaclasses</span><span class="o">.</span><span class="n">Singleton</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProposalFunctions</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class serves as a container for PROPOSAL functions. The functions that</span>
 <span class="sd">    start with double underscore take PROPOSAL units as an argument and should</span>
 <span class="sd">    not be used from the outside to avoid mismatching units.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">upper_energy_limit</span><span class="o">=</span><span class="mf">1e14</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MeV</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">upper_energy_limit</span><span class="o">=</span><span class="mf">1e14</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MeV</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -920,7 +931,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">__download_tables</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">__calculate_distance</span><span class="p">(</span><span class="n">pp_position</span><span class="p">,</span> <span class="n">pos_arr</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__calculate_distance</span><span class="p">(</span><span class="n">pp_position</span><span class="p">,</span> <span class="n">pos_arr</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">        Calculates distance between secondary and lepton position (both in proposal units).</span>
 <span class="sd">        </span>
@@ -941,7 +952,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pp_position</span><span class="o">.</span><span class="n">cartesian_coordinates</span> <span class="o">-</span> <span class="n">pos_arr</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span>
 
 
-    <span class="k">def</span> <span class="nf">__get_propagator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle_code</span><span class="o">=</span><span class="mi">13</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_propagator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle_code</span><span class="o">=</span><span class="mi">13</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a PROPOSAL propagator for muons or taus. If it does not exist yet it is being generated.</span>
 
@@ -961,7 +972,7 @@
             <span class="n">pp</span><span class="o">.</span><span class="n">InterpolationSettings</span><span class="o">.</span><span class="n">tables_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tables_path</span>
             <span class="c1"># download pre-calculated tables for default configs, but not more than once</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__download_tables</span><span class="p">:</span>
-                <span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.proposal_table_manager</span> <span class="kn">import</span> <span class="n">download_proposal_tables</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.EvtGen.proposal_table_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_proposal_tables</span>
 
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">download_proposal_tables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tables_path</span><span class="p">)</span>
@@ -984,7 +995,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__produces_shower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__produces_shower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                           <span class="n">pp_type</span><span class="p">,</span>
                           <span class="n">energy</span><span class="p">,</span>
                           <span class="n">min_energy_loss</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">pp_PeV</span><span class="p">):</span>
@@ -1013,7 +1024,7 @@
         <span class="k">return</span> <span class="n">is_shower_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">)</span>
 
 
-    <span class="k">def</span> <span class="nf">__shower_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pp_type</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__shower_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pp_type</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates shower properties for the shower created by the input particle</span>
 
@@ -1046,7 +1057,7 @@
 
         <span class="k">return</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span>
 
-    <span class="k">def</span> <span class="nf">__propagate_particle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__propagate_particle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                              <span class="n">energy_lepton</span><span class="p">,</span>
                              <span class="n">lepton_code</span><span class="p">,</span>
                              <span class="n">lepton_position</span><span class="p">,</span>
@@ -1099,7 +1110,7 @@
                                                                   <span class="n">min_energy</span><span class="o">=</span><span class="n">low</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">secondaries</span>
 
-    <span class="k">def</span> <span class="nf">__filter_secondaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__filter_secondaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                              <span class="n">secondaries</span><span class="p">,</span>
                              <span class="n">min_energy_loss</span><span class="p">,</span>
                              <span class="n">lepton_position</span><span class="p">):</span>
@@ -1141,7 +1152,7 @@
 
         <span class="k">return</span> <span class="n">shower_inducing_prods</span>
 
-    <span class="k">def</span> <span class="nf">__group_decay_products</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__group_decay_products</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                <span class="n">decay_products</span><span class="p">,</span>
                                <span class="n">min_energy_loss</span><span class="p">,</span>
                                <span class="n">lepton_position</span><span class="p">,</span>
@@ -1188,7 +1199,9 @@
         <span class="k">return</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="ProposalFunctions.get_secondaries_array"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_secondaries_array">[docs]</a>    <span class="k">def</span> <span class="nf">get_secondaries_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="ProposalFunctions.get_secondaries_array">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_secondaries_array">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_secondaries_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                               <span class="n">energy_leptons_nu</span><span class="p">,</span>
                               <span class="n">lepton_codes</span><span class="p">,</span>
                               <span class="n">lepton_positions_nu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1295,7 +1308,10 @@
 
         <span class="k">return</span> <span class="n">secondaries_array</span></div>
 
-<div class="viewcode-block" id="ProposalFunctions.get_decays"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays">[docs]</a>    <span class="k">def</span> <span class="nf">get_decays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+
+<div class="viewcode-block" id="ProposalFunctions.get_decays">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_decays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                    <span class="n">energy_leptons_nu</span><span class="p">,</span>
                    <span class="n">lepton_codes</span><span class="p">,</span>
                    <span class="n">lepton_positions_nu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1371,7 +1387,9 @@
                 <span class="n">decay_prop</span> <span class="o">=</span> <span class="p">(</span><span class="n">decay_distance</span><span class="p">,</span> <span class="n">decay_energy</span><span class="p">)</span>
                 <span class="n">decays_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decay_prop</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">decays_array</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">decays_array</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
            </div>

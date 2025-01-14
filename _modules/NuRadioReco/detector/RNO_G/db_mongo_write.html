@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.detector.RNO_G.db_mongo_write &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,24 +614,28 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.detector.RNO_G.db_mongo_write</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">NuRadioReco.detector.RNO_G.db_mongo_read</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.utilities.metaclasses</span>
-<span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.RNO_G.db_mongo_read</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.metaclasses</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">six</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
 
-<span class="kn">from</span> <span class="nn">bson</span> <span class="kn">import</span> <span class="n">ObjectId</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bson</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObjectId</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.MongoDBWrite&quot;</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Database"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">metaclasses</span><span class="o">.</span><span class="n">Singleton</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Database</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">RNO_G</span><span class="o">.</span><span class="n">db_mongo_read</span><span class="o">.</span><span class="n">Database</span><span class="p">):</span>
+<div class="viewcode-block" id="Database">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database">[docs]</a>
+<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">metaclasses</span><span class="o">.</span><span class="n">Singleton</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Database</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">RNO_G</span><span class="o">.</span><span class="n">db_mongo_read</span><span class="o">.</span><span class="n">Database</span><span class="p">):</span>
 
     <span class="c1"># operation changing collections</span>
 
-<div class="viewcode-block" id="Database.rename_database_collection"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.rename_database_collection">[docs]</a>    <span class="k">def</span> <span class="nf">rename_database_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_name</span><span class="p">,</span> <span class="n">new_name</span><span class="p">):</span>
+<div class="viewcode-block" id="Database.rename_database_collection">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.rename_database_collection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rename_database_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_name</span><span class="p">,</span> <span class="n">new_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        changes the name of a collection of the database</span>
 <span class="sd">        If the new name already exists, the operation fails.</span>
@@ -651,16 +649,25 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">old_name</span><span class="p">]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Database.create_empty_collection"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.create_empty_collection">[docs]</a>    <span class="k">def</span> <span class="nf">create_empty_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.create_empty_collection">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.create_empty_collection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_empty_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">create_collection</span><span class="p">(</span><span class="n">collection_name</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Database.clone_collection_to_collection"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.clone_collection_to_collection">[docs]</a>    <span class="k">def</span> <span class="nf">clone_collection_to_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_collection</span><span class="p">,</span> <span class="n">new_collection</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.clone_collection_to_collection">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.clone_collection_to_collection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clone_collection_to_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_collection</span><span class="p">,</span> <span class="n">new_collection</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">old_collection</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
             <span class="p">[{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{}},</span> <span class="p">{</span><span class="s1">&#39;$out&#39;</span><span class="p">:</span> <span class="n">new_collection</span><span class="p">}])</span></div>
 
+
     <span class="c1"># operation adding documents to a collection</span>
 
-<div class="viewcode-block" id="Database.set_not_working"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.set_not_working">[docs]</a>    <span class="k">def</span> <span class="nf">set_not_working</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">primary_measurement</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Database.set_not_working">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.set_not_working">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_not_working</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">primary_measurement</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        inserts that the input unit is broken.</span>
 <span class="sd">        If the input unit dosn&#39;t exist yet, it will be created.</span>
@@ -718,7 +725,10 @@
                                          <span class="s1">&#39;primary_measurement&#39;</span><span class="p">:</span> <span class="n">primary_measurement_times</span>
                                      <span class="p">}}},</span> <span class="n">upsert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Database.add_entry_to_database"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_entry_to_database">[docs]</a>    <span class="k">def</span> <span class="nf">add_entry_to_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">identification_key</span><span class="p">,</span> <span class="n">identification_value</span><span class="p">,</span> <span class="n">primary_measurement</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="n">primary_measurement_start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.add_entry_to_database">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_entry_to_database">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_entry_to_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">identification_key</span><span class="p">,</span> <span class="n">identification_value</span><span class="p">,</span> <span class="n">primary_measurement</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="n">primary_measurement_start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        inserts a entry into the database.</span>
 <span class="sd">        If the measurement dosn&#39;t exist yet, it will be created.</span>
@@ -761,7 +771,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="n">identification_key</span><span class="p">:</span> <span class="n">identification_value</span><span class="p">},</span>
                                        <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">}},</span> <span class="n">upsert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Database.add_general_station_info"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_station_info">[docs]</a>    <span class="k">def</span> <span class="nf">add_general_station_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">station_name</span><span class="p">,</span> <span class="n">station_comment</span><span class="p">,</span> <span class="n">number_of_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">,</span> <span class="n">decommission_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2080</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+
+<div class="viewcode-block" id="Database.add_general_station_info">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_station_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_general_station_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">station_name</span><span class="p">,</span> <span class="n">station_comment</span><span class="p">,</span> <span class="n">number_of_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">,</span> <span class="n">decommission_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2080</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
         <span class="c1"># check if an active station exist; if true, the active station will be decommissioned</span>
         <span class="c1"># filter to get all active stations with the correct id</span>
         <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span>
@@ -791,7 +804,10 @@
                                         <span class="s1">&#39;devices&#39;</span><span class="p">:</span> <span class="p">[]</span>
                                         <span class="p">})</span></div>
 
-<div class="viewcode-block" id="Database.add_general_channel_info_to_station"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_channel_info_to_station">[docs]</a>    <span class="k">def</span> <span class="nf">add_general_channel_info_to_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">signal_chain</span><span class="p">,</span> <span class="n">ant_type</span><span class="p">,</span> <span class="n">channel_comment</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">,</span> <span class="n">decommission_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2080</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+
+<div class="viewcode-block" id="Database.add_general_channel_info_to_station">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_channel_info_to_station">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_general_channel_info_to_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">signal_chain</span><span class="p">,</span> <span class="n">ant_type</span><span class="p">,</span> <span class="n">channel_comment</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">,</span> <span class="n">decommission_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2080</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
         <span class="c1"># get the current active station</span>
         <span class="c1"># filter to get all active stations with the correct id</span>
         <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span>
@@ -837,7 +853,10 @@
                                        <span class="p">}}</span>
         <span class="p">})</span></div>
 
-<div class="viewcode-block" id="Database.add_general_device_info_to_station"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_device_info_to_station">[docs]</a>    <span class="k">def</span> <span class="nf">add_general_device_info_to_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="n">device_name</span><span class="p">,</span> <span class="n">device_comment</span><span class="p">,</span> <span class="n">amp_name</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">,</span> <span class="n">decommission_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2080</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+
+<div class="viewcode-block" id="Database.add_general_device_info_to_station">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_device_info_to_station">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_general_device_info_to_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="n">device_name</span><span class="p">,</span> <span class="n">device_comment</span><span class="p">,</span> <span class="n">amp_name</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">,</span> <span class="n">decommission_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2080</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
         <span class="c1"># get the current active station</span>
         <span class="c1"># filter to get all active stations with the correct id</span>
         <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span>
@@ -881,14 +900,20 @@
                                        <span class="p">}}</span>
         <span class="p">})</span></div>
 
-<div class="viewcode-block" id="Database.add_measurement_protocol"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_measurement_protocol">[docs]</a>    <span class="k">def</span> <span class="nf">add_measurement_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol_name</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.add_measurement_protocol">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_measurement_protocol">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_measurement_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol_name</span><span class="p">):</span>
         <span class="c1"># insert the new measurement protocol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="s1">&#39;measurement_protocol&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">insert_one</span><span class="p">({</span><span class="s1">&#39;protocol&#39;</span><span class="p">:</span> <span class="n">protocol_name</span><span class="p">,</span>
                                                    <span class="s1">&#39;inserted&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()})</span></div>
 
+
     <span class="c1"># operation that change the primary status of a measurement</span>
 
-<div class="viewcode-block" id="Database.update_current_primary"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.update_current_primary">[docs]</a>    <span class="k">def</span> <span class="nf">update_current_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">identification_label</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="Database.update_current_primary">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.update_current_primary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_current_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">identification_label</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()</span>
 
@@ -933,7 +958,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">obj_id</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;$set&quot;</span><span class="p">:</span> <span class="p">{</span>
                                          <span class="s2">&quot;measurements.$[updateIndex].primary_measurement&quot;</span><span class="p">:</span> <span class="n">primary_times</span><span class="p">}},</span> <span class="n">array_filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;updateIndex.id_measurement&quot;</span><span class="p">:</span> <span class="n">m_id</span><span class="p">}])</span></div>
 
-    <span class="k">def</span> <span class="nf">__change_primary_object_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_type</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">search_filter</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__change_primary_object_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_type</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">search_filter</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        helper function to change the current active primary measurement for a single antenna measurement</span>
@@ -1009,7 +1035,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;S parameter not selected to be changed.&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Database.change_primary_antenna_measurement"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_antenna_measurement">[docs]</a>    <span class="k">def</span> <span class="nf">change_primary_antenna_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antenna_type</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
+<div class="viewcode-block" id="Database.change_primary_antenna_measurement">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_antenna_measurement">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_primary_antenna_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antenna_type</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        changes the current active primary measurement for a single antenna measurement</span>
 
@@ -1040,7 +1068,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__change_primary_object_measurement</span><span class="p">(</span>
             <span class="n">antenna_type</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">,</span> <span class="n">search_filter</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Database.change_primary_cable_measurement"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_cable_measurement">[docs]</a>    <span class="k">def</span> <span class="nf">change_primary_cable_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cable_type</span><span class="p">,</span> <span class="n">cable_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.change_primary_cable_measurement">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_cable_measurement">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_primary_cable_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cable_type</span><span class="p">,</span> <span class="n">cable_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        changes the current active primary measurement for a single cable measurement</span>
 
@@ -1071,7 +1102,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__change_primary_object_measurement</span><span class="p">(</span>
             <span class="n">cable_type</span><span class="p">,</span> <span class="n">cable_name</span><span class="p">,</span> <span class="n">search_filter</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Database.change_primary_iglu_measurement"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_iglu_measurement">[docs]</a>    <span class="k">def</span> <span class="nf">change_primary_iglu_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">,</span> <span class="n">drab_id</span><span class="p">,</span> <span class="n">laser_id</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.change_primary_iglu_measurement">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_iglu_measurement">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_primary_iglu_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">,</span> <span class="n">drab_id</span><span class="p">,</span> <span class="n">laser_id</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        changes the current active primary measurement for a single board measurement</span>
 
@@ -1112,7 +1146,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__change_primary_object_measurement</span><span class="p">(</span>
             <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">search_filter</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Database.change_primary_drab_measurement"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_drab_measurement">[docs]</a>    <span class="k">def</span> <span class="nf">change_primary_drab_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">iglu_id</span><span class="p">,</span> <span class="n">photodiode_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.change_primary_drab_measurement">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_drab_measurement">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_primary_drab_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">iglu_id</span><span class="p">,</span> <span class="n">photodiode_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        changes the current active primary measurement for a single board measurement</span>
 
@@ -1154,7 +1191,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__change_primary_object_measurement</span><span class="p">(</span>
             <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">search_filter</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Database.change_primary_surface_measurement"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_surface_measurement">[docs]</a>    <span class="k">def</span> <span class="nf">change_primary_surface_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.change_primary_surface_measurement">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_surface_measurement">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_primary_surface_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        changes the current active primary measurement for a single board measurement</span>
 
@@ -1192,7 +1232,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__change_primary_object_measurement</span><span class="p">(</span>
             <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">search_filter</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Database.change_primary_downhole_measurement"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_downhole_measurement">[docs]</a>    <span class="k">def</span> <span class="nf">change_primary_downhole_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">breakout_id</span><span class="p">,</span> <span class="n">breakout_cha_id</span><span class="p">,</span> <span class="n">iglu_id</span><span class="p">,</span> <span class="n">drab_id</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.change_primary_downhole_measurement">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_downhole_measurement">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_primary_downhole_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">S_parameter</span><span class="p">,</span> <span class="n">breakout_id</span><span class="p">,</span> <span class="n">breakout_cha_id</span><span class="p">,</span> <span class="n">iglu_id</span><span class="p">,</span> <span class="n">drab_id</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">units_arr</span><span class="p">,</span> <span class="n">function_test</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        changes the current active primary measurement for a single board measurement</span>
 
@@ -1239,9 +1282,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__change_primary_object_measurement</span><span class="p">(</span>
             <span class="n">board_type</span><span class="p">,</span> <span class="n">board_name</span><span class="p">,</span> <span class="n">search_filter</span><span class="p">,</span> <span class="n">breakout_id</span><span class="o">=</span><span class="n">breakout_id</span><span class="p">,</span> <span class="n">breakout_channel_id</span><span class="o">=</span><span class="n">breakout_cha_id</span><span class="p">)</span></div>
 
+
     <span class="c1"># operation that decommission a object</span>
 
-<div class="viewcode-block" id="Database.decommission_a_station"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_station">[docs]</a>    <span class="k">def</span> <span class="nf">decommission_a_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">):</span>
+<div class="viewcode-block" id="Database.decommission_a_station">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_station">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decommission_a_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        function to decommission an active station in the db</span>
 
@@ -1273,7 +1319,10 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
                     <span class="p">{</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">:</span> <span class="n">decomm_time</span><span class="p">}})</span></div>
 
-<div class="viewcode-block" id="Database.decommission_a_channel"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_channel">[docs]</a>    <span class="k">def</span> <span class="nf">decommission_a_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.decommission_a_channel">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decommission_a_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        function to decommission an active channel in the db</span>
 
@@ -1307,7 +1356,10 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;channels.$[updateIndex].decommission_time&#39;</span><span class="p">:</span> <span class="n">decomm_time</span><span class="p">}},</span>
                                                <span class="n">array_filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;updateIndex.id&quot;</span><span class="p">:</span> <span class="n">channel_id</span><span class="p">}])</span></div>
 
-<div class="viewcode-block" id="Database.decommission_a_device"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_device">[docs]</a>    <span class="k">def</span> <span class="nf">decommission_a_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.decommission_a_device">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_device">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decommission_a_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        function to decommission an active device in the db</span>
 
@@ -1339,7 +1391,9 @@
 
                 <span class="c1"># change the decommission time of a specific device</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;devices.$[updateIndex].decommission_time&#39;</span><span class="p">:</span> <span class="n">decomm_time</span><span class="p">}},</span>
-                                               <span class="n">array_filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;updateIndex.id&quot;</span><span class="p">:</span> <span class="n">device_id</span><span class="p">}])</span></div></div>
+                                               <span class="n">array_filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;updateIndex.id&quot;</span><span class="p">:</span> <span class="n">device_id</span><span class="p">}])</span></div>
+</div>
+
 </pre></div>
 
            </div>

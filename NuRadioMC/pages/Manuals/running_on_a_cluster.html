@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Running on a cluster &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -625,13 +619,13 @@
            <div itemprop="articleBody">
              
   <section id="running-on-a-cluster">
-<h1>Running on a cluster<a class="headerlink" href="#running-on-a-cluster" title="Permalink to this heading"></a></h1>
+<h1>Running on a cluster<a class="headerlink" href="#running-on-a-cluster" title="Link to this heading"></a></h1>
 <p>NuRadioMC comes with the tools that simplifies running simulations on many cores in parallel on clusters. On this page, we explain the necessary steps using the HPC cluster of UC Irvine as example.</p>
 <section id="generate-input-files">
-<h2>1. Generate input files<a class="headerlink" href="#generate-input-files" title="Permalink to this heading"></a></h2>
+<h2>1. Generate input files<a class="headerlink" href="#generate-input-files" title="Link to this heading"></a></h2>
 <p>The event generator module has the feature to split up the data set into several smaller files. A good number of events per batch is 10,000 - 100,000 which takes a couple of hours to simulate. To simulate the sensitivity of a detector, we need 1M - 10M events per energy, hence, we end up with ~100 jobs per energy that we can all run in parallel. The following example code shows how to generate 1 million events in batches of 10,000 events per file.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.generator</span> <span class="kn">import</span> <span class="n">generate_eventlist_cylinder</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.EvtGen.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_eventlist_cylinder</span>
 
 <span class="c1"># generate one event list at 1e18 eV with 1M neutrinos with 10k events per file</span>
 <span class="n">generate_eventlist_cylinder</span><span class="p">(</span><span class="s1">&#39;/pub/arianna/NuRadioMC/input/1e18/1e18_n1e6.hdf5&#39;</span><span class="p">,</span>
@@ -643,10 +637,10 @@
 <p>This script will create 100 hdf5 input files with filenames <code class="docutils literal notranslate"><span class="pre">1e18_n1e6.hdf5.part0001</span></code> to <code class="docutils literal notranslate"><span class="pre">1e18_n1e6.hdf5.part0100</span></code>.</p>
 </section>
 <section id="generate-job-sh-scripts">
-<h2>2. Generate job *.sh scripts<a class="headerlink" href="#generate-job-sh-scripts" title="Permalink to this heading"></a></h2>
+<h2>2. Generate job *.sh scripts<a class="headerlink" href="#generate-job-sh-scripts" title="Link to this heading"></a></h2>
 <p>Most job schedulers require a bash script that sets the environment and executes the software. In the following script, the details of the NuRadioMC simulation are specified (python steering script, config, detector description, …) and for each input file on job script is created.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">glob</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="c1"># define the base directory of this job</span>
 <span class="n">base_dir</span> <span class="o">=</span><span class="s2">&quot;/pub/arianna/NuRadioMC/station_designs&quot;</span>
@@ -709,14 +703,14 @@
 </div>
 </section>
 <section id="submit-jobs-to-the-cluster">
-<h2>3. Submit jobs to the cluster<a class="headerlink" href="#submit-jobs-to-the-cluster" title="Permalink to this heading"></a></h2>
+<h2>3. Submit jobs to the cluster<a class="headerlink" href="#submit-jobs-to-the-cluster" title="Link to this heading"></a></h2>
 <p>In case of the grid engine scheduler, all job files can be submitted with this bash line</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span>f<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>ls<span class="w"> </span>*.sh<span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span><span class="w"> </span>qsub<span class="w"> </span><span class="nv">$f</span><span class="p">;</span><span class="w"> </span><span class="k">done</span><span class="p">;</span>
 </pre></div>
 </div>
 </section>
 <section id="merge-individual-hdf5-output-files">
-<h2>4. Merge individual hdf5 output files<a class="headerlink" href="#merge-individual-hdf5-output-files" title="Permalink to this heading"></a></h2>
+<h2>4. Merge individual hdf5 output files<a class="headerlink" href="#merge-individual-hdf5-output-files" title="Link to this heading"></a></h2>
 <p>It is often more convenient to work with a single output file (per energy). Each individual hdf5 file is typically small, hence, merging the simulation result back into a single file is convenient. NuRadioMC comes with the tools to do that. One thing that needs special consideration is that by default only triggered events are saved in the output file. To be able to calculate the effective volume, we need to keep track of the total number of simulated events, which is stored in the attribute ‘n_events’. Therefore, third-party merging tools can’t be used out of the box. The NuRadioMC merging tool automatically calculates the sum from all individual files, so that the merged file contains the correct total event count.</p>
 <p>To merge all files execute</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>../NuRadioMC/utilities/merge_hdf5.py<span class="w"> </span>/path/to/my/output/files/

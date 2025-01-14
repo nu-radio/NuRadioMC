@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.framework.hybrid_shower &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,26 +614,39 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.framework.hybrid_shower</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">NuRadioReco.framework.base_shower</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_shower</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 
 
-<div class="viewcode-block" id="HybridShower"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower">[docs]</a><span class="k">class</span> <span class="nc">HybridShower</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_shower</span><span class="o">.</span><span class="n">BaseShower</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridShower">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HybridShower</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_shower</span><span class="o">.</span><span class="n">BaseShower</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_detector</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
-<div class="viewcode-block" id="HybridShower.get_name"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridShower.get_name">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.get_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__name</span></div>
 
-<div class="viewcode-block" id="HybridShower.set_hybrid_detector"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.set_hybrid_detector">[docs]</a>    <span class="k">def</span> <span class="nf">set_hybrid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hybrid_detector</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HybridShower.set_hybrid_detector">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.set_hybrid_detector">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_hybrid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hybrid_detector</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_detector</span> <span class="o">=</span> <span class="n">hybrid_detector</span></div>
 
-<div class="viewcode-block" id="HybridShower.get_hybrid_detector"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.get_hybrid_detector">[docs]</a>    <span class="k">def</span> <span class="nf">get_hybrid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HybridShower.get_hybrid_detector">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.get_hybrid_detector">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_hybrid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_detector</span></div>
 
-<div class="viewcode-block" id="HybridShower.serialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HybridShower.serialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.serialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">base_shower_pickle</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_shower</span><span class="o">.</span><span class="n">BaseShower</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_detector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">det_pickle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_detector</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
@@ -657,14 +664,19 @@
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HybridShower.deserialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.deserialize">[docs]</a>    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HybridShower.deserialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.deserialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_shower</span><span class="o">.</span><span class="n">BaseShower</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_shower&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__name</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">det</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">][</span><span class="s1">&#39;class&#39;</span><span class="p">]()</span>
             <span class="n">det</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_hybrid_detector</span><span class="p">(</span><span class="n">det</span><span class="p">)</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_hybrid_detector</span><span class="p">(</span><span class="n">det</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
            </div>

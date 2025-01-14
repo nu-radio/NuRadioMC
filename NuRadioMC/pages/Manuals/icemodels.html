@@ -1,26 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ice and attenuation models &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -40,9 +37,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -626,31 +620,31 @@
            <div itemprop="articleBody">
              
   <section id="ice-and-attenuation-models">
-<h1>Ice and attenuation models<a class="headerlink" href="#ice-and-attenuation-models" title="Permalink to this heading"></a></h1>
+<h1>Ice and attenuation models<a class="headerlink" href="#ice-and-attenuation-models" title="Link to this heading"></a></h1>
 <section id="ice-model-implementation">
-<h2>Ice model implementation<a class="headerlink" href="#ice-model-implementation" title="Permalink to this heading"></a></h2>
+<h2>Ice model implementation<a class="headerlink" href="#ice-model-implementation" title="Link to this heading"></a></h2>
 <p>Ice models are the object in NuRadioMC that holds all the information of the ice needed to calculate the trajectory, namely: the refractive index at all the relevant points in space, boundary conditions and other special features that determine the ice medium. It can be found in the <strong>utilities</strong> module under <code class="docutils literal notranslate"><span class="pre">medium.py</span></code> and <code class="docutils literal notranslate"><span class="pre">medium_base.py</span></code>.</p>
 <section id="the-icemodel-and-icemodel-simple-class">
-<h3>The IceModel and IceModel_Simple class<a class="headerlink" href="#the-icemodel-and-icemodel-simple-class" title="Permalink to this heading"></a></h3>
+<h3>The IceModel and IceModel_Simple class<a class="headerlink" href="#the-icemodel-and-icemodel-simple-class" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">medium_base.py</span></code> holds the framework of which all the specific ice models depends. The most basic class of ice models is the <code class="docutils literal notranslate"><span class="pre">IceModel</span></code> from which all final models should inherit directly or via some daughter classes. It represents a planar medium with a top and bottom boundary and in between a refractive index. A reflective bottom layer may be added as well.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">IceModel</span><span class="p">():</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">z_airBoundary</span><span class="o">=</span><span class="mi">0</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span><span class="n">z_bottom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">IceModel</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">z_airBoundary</span><span class="o">=</span><span class="mi">0</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span><span class="n">z_bottom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z_airBoundary</span> <span class="o">=</span> <span class="n">z_airBoundary</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z_bottom</span> <span class="o">=</span> <span class="n">z_bottom</span>
 
-    <span class="k">def</span> <span class="nf">add_reflective_bottom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">refl_z</span><span class="p">,</span><span class="n">refl_coef</span><span class="p">,</span><span class="n">refl_phase_shift</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_reflective_bottom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">refl_z</span><span class="p">,</span><span class="n">refl_coef</span><span class="p">,</span><span class="n">refl_phase_shift</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection</span> <span class="o">=</span> <span class="n">refl_z</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection_coefficient</span> <span class="o">=</span> <span class="n">refl_coef</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection_phase_shift</span> <span class="o">=</span> <span class="n">refl_phase_shift</span>
 
-    <span class="k">def</span> <span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">index_of_refraction_at_position</span>
 
-    <span class="k">def</span> <span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position1</span><span class="p">,</span><span class="n">position2</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position1</span><span class="p">,</span><span class="n">position2</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">average_index_of_refraction_between_position1_and_position2</span>
 
-    <span class="k">def</span> <span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">gradient_index_of_refraction_at_position</span>
 </pre></div>
 </div>
@@ -662,8 +656,8 @@
 </div></blockquote>
 <p>where z is the depth and <span class="math notranslate nohighlight">\(n_{ice}\)</span>, <span class="math notranslate nohighlight">\(\Delta_n\)</span>, <em class="xref py py-obj">math:`z_0</em> are the parameters of the model. As an example of how to implement a specific simple ice model into <code class="docutils literal notranslate"><span class="pre">medium.py</span></code> is illustrated below with the help of the <code class="docutils literal notranslate"><span class="pre">greenland_simple</span></code> ice model.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">greenland_simple</span><span class="p">(</span><span class="n">IceModel_Simple</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">greenland_simple</span><span class="p">(</span><span class="n">IceModel_Simple</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># from C. Deaconu, fit to data from Hawley &#39;08, Alley &#39;88</span>
         <span class="c1"># rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
@@ -676,11 +670,11 @@
 </div></blockquote>
 </section>
 <section id="radiopropaicewrapper">
-<h3>RadioPropaIceWrapper<a class="headerlink" href="#radiopropaicewrapper" title="Permalink to this heading"></a></h3>
+<h3>RadioPropaIceWrapper<a class="headerlink" href="#radiopropaicewrapper" title="Link to this heading"></a></h3>
 <p>The analytic ray tracer can only handle simple ice models. For other models you need the RadioPropa ray tracer. However, for this to work, the model needs a translation into proper RadioPropa object. To facilitate this, the <code class="docutils literal notranslate"><span class="pre">RadioPropaIceWrapper</span></code> class is defined in <code class="docutils literal notranslate"><span class="pre">medium_base.py</span></code>. This class hold the index of refraction as a RadioPropa scalar field and the boundary conditions and special features in the relevant RadioPropa modules.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RadioPropaIceWrapper</span><span class="p">():</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ice_model_nuradio</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">):</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">RadioPropaIceWrapper</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ice_model_nuradio</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span> <span class="o">=</span> <span class="n">ice_model_nuradio</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__scalar_field</span> <span class="o">=</span> <span class="n">scalar_field</span>
         <span class="c1"># these are predined modules that are inherent to the ice model like</span>
@@ -692,34 +686,34 @@
 <span class="sd">        here stands some code handling the first modules like air boundary and bottom boundary etc.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">get_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span>
 
-    <span class="k">def</span> <span class="nf">get_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">add_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">module</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">module</span>
 
-    <span class="k">def</span> <span class="nf">remove_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">replace_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">new_module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">replace_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">new_module</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_module</span>
 
-    <span class="k">def</span> <span class="nf">get_scalar_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_scalar_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__scalar_field</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>The most important point is that the index of refraction has to be translated in a RadioPropa scalar field. For simple ice models all this is is handled automatically but for other models one needs to implement specific scalar field of the ice models in RadioPropa (<code class="docutils literal notranslate"><span class="pre">IceModel.h</span></code> and <code class="docutils literal notranslate"><span class="pre">IceModel.cpp</span></code>). To access the RadioPropaIceWrapper object from the ice model, an extra function is implemented in the <code class="docutils literal notranslate"><span class="pre">IceModel</span></code> that is inherited by all the daughter classes but should be adapted to the specific implemented ice models. For the <code class="docutils literal notranslate"><span class="pre">IceModel_Simpe</span></code> class this is already implemented and this is handled automatically when defining a new simple ice model.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">radiopropa</span> <span class="k">as</span> <span class="nn">RP</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">radiopropa</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">RP</span>
 
-<span class="k">class</span> <span class="nc">IceModel_Simple</span><span class="p">():</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IceModel_Simple</span><span class="p">():</span>
     <span class="o">...</span>
 
-    <span class="k">def</span> <span class="nf">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">scalar_field</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Simple</span><span class="p">(</span><span class="n">z_surface</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_airBoundary</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
                                          <span class="n">n_ice</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="n">delta_n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span>
                                          <span class="n">z_0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
@@ -732,17 +726,17 @@
 </section>
 </section>
 <section id="available-models-in-nuradiomc">
-<h2>Available models in NuRadioMC<a class="headerlink" href="#available-models-in-nuradiomc" title="Permalink to this heading"></a></h2>
+<h2>Available models in NuRadioMC<a class="headerlink" href="#available-models-in-nuradiomc" title="Link to this heading"></a></h2>
 <section id="simple-ice-models">
-<h3>Simple ice models<a class="headerlink" href="#simple-ice-models" title="Permalink to this heading"></a></h3>
+<h3>Simple ice models<a class="headerlink" href="#simple-ice-models" title="Link to this heading"></a></h3>
 <p>In the table below we can find the different parameters for the simple ice refractive index models available in NuRadioMC.</p>
 <blockquote>
 <div><table class="docutils align-default" id="id1">
-<caption><span class="caption-text">Simple Ice Models</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
+<caption><span class="caption-text">Simple Ice Models</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p><span class="math notranslate nohighlight">\(n_{ice}\)</span></p></th>
-<th class="head"><p><span class="math notranslate nohighlight">\(Delta_n\)</span></p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\Delta_n\)</span></p></th>
 <th class="head"><p><span class="math notranslate nohighlight">\(z_0 [m]\)</span></p></th>
 </tr>
 </thead>
@@ -783,11 +777,11 @@
 <p>The models <code class="docutils literal notranslate"><span class="pre">mooresbay_simple</span></code> and <code class="docutils literal notranslate"><span class="pre">mooresbay_simple_2</span></code> also contain a reflective layer at -576 m with a reflection coefficient of 0.82, mimicking the bottom layer of Ross Ice Shelf, in Antarctica.</p>
 </section>
 <section id="radiopropa-ice-models">
-<h3>RadioPropa ice models<a class="headerlink" href="#radiopropa-ice-models" title="Permalink to this heading"></a></h3>
+<h3>RadioPropa ice models<a class="headerlink" href="#radiopropa-ice-models" title="Link to this heading"></a></h3>
 <p>Besides the simple ice models above, there is also one other ice model implemented: <a class="reference external" href="https://arxiv.org/abs/1805.12576">greenland_firn</a></p>
 </section>
 <section id="attenuation-model">
-<h3>Attenuation model<a class="headerlink" href="#attenuation-model" title="Permalink to this heading"></a></h3>
+<h3>Attenuation model<a class="headerlink" href="#attenuation-model" title="Link to this heading"></a></h3>
 <p>NuRadioMC has also three attenuation models available. These models provide attenuation lengths that are depth- and frequency-dependent.</p>
 <blockquote>
 <div><ul class="simple">
@@ -798,7 +792,7 @@
 </div></blockquote>
 </section>
 <section id="using-specific-models">
-<h3>Using specific models<a class="headerlink" href="#using-specific-models" title="Permalink to this heading"></a></h3>
+<h3>Using specific models<a class="headerlink" href="#using-specific-models" title="Link to this heading"></a></h3>
 <p>Both the ice model and the attenuation model can be specified in the config file. As an example, if we want to use the <code class="docutils literal notranslate"><span class="pre">greenland_simple</span></code> ice model together with the GL1 attenuation, we have to write on the yaml configuration file:</p>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span>
@@ -810,11 +804,11 @@
 </section>
 </section>
 <section id="example-script">
-<h2>Example script<a class="headerlink" href="#example-script" title="Permalink to this heading"></a></h2>
+<h2>Example script<a class="headerlink" href="#example-script" title="Link to this heading"></a></h2>
 <p>The following snippet shows how the ice properties can be retrieved from NuRadioMC for an independent analysis.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
 <span class="c1"># Retrieving refractive index at a point</span>
 <span class="n">ref_index_model</span> <span class="o">=</span> <span class="s1">&#39;greenland_simple&#39;</span>
@@ -835,7 +829,7 @@
 </div></blockquote>
 </section>
 <section id="birefringence-ice-models">
-<h2>Birefringence Ice Models<a class="headerlink" href="#birefringence-ice-models" title="Permalink to this heading"></a></h2>
+<h2>Birefringence Ice Models<a class="headerlink" href="#birefringence-ice-models" title="Link to this heading"></a></h2>
 <p>Birefringence is an optional propagation setting in NuRadioMC which allows to simulate radio pulses propagating in anisotropic ice. The details about how the calculations in the propagation work can be found here <a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">(Heyer &amp; Glaser, 2023)</a>. When using birefringence several options exist about what birefringence-ice-model to propagate in and what propagation code should be used for the propagation.</p>
 <p>There are several example scripts available demonstrating all available (<code class="docutils literal notranslate"><span class="pre">NuRadioMC/SignalProp/examples/birefringence_examples</span></code>) functions when dealing with birefringent ice. Check read_me.txt for a more detailed description of the examples and data used.</p>
 <div class="admonition warning">
@@ -843,13 +837,13 @@
 <p>Using this code assumes that the ice flow points in the positive x-direction. Therefore, a rotation of the detector geometry into this coordinate system might be necessary. This rotation can be done by either changing the source/antenna positions or by using the ‘angle_to_iceflow’ parameter in the config file.</p>
 </div>
 <section id="available-birefringence-ice-models">
-<h3>Available Birefringence Ice Models<a class="headerlink" href="#available-birefringence-ice-models" title="Permalink to this heading"></a></h3>
+<h3>Available Birefringence Ice Models<a class="headerlink" href="#available-birefringence-ice-models" title="Link to this heading"></a></h3>
 <p>The anisotropy of the ice at the South Pole was published here: <a class="reference external" href="https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39">(Jordan et al., 2020)</a></p>
 <p>The anisotropy of the ice in Greenland was published here: <a class="reference external" href="https://arxiv.org/abs/2212.10285">(RNO-G, 2022)</a></p>
 <p>To use these ice models in NuRadioMC the measurement data was interpolated using splines. As the measurements don’t extend from the ice surface to bedrock or to account for measurement uncertainties, there is some freedom in how to interpolate the data. Different interpolations are indexed via capital letters, <code class="docutils literal notranslate"><span class="pre">A</span></code> always denoting the most reasonable interpolation. The files <code class="docutils literal notranslate"><span class="pre">NuRadioMC/utilities/birefringence_models/IceModel_interpolation_southpole.py</span></code> and <code class="docutils literal notranslate"><span class="pre">NuRadioMC/utilities/birefringence_models/IceModel_interpolation_greenland.py</span></code> can be used to adjust the interpolation method and come up with new ice models.</p>
 <blockquote>
 <div><table class="docutils align-default" id="id2">
-<caption><span class="caption-text">South Pole Birefringence Ice Models</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
+<caption><span class="caption-text">South Pole Birefringence Ice Models</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p>description</p></th>
@@ -874,7 +868,7 @@
 </tbody>
 </table>
 <table class="docutils align-default" id="id3">
-<caption><span class="caption-text">Greenland Birefringence Ice Models</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
+<caption><span class="caption-text">Greenland Birefringence Ice Models</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p>description</p></th>
@@ -895,17 +889,17 @@
 </div></blockquote>
 </section>
 <section id="ice-flow-direction">
-<h3>Ice-Flow Direction<a class="headerlink" href="#ice-flow-direction" title="Permalink to this heading"></a></h3>
+<h3>Ice-Flow Direction<a class="headerlink" href="#ice-flow-direction" title="Link to this heading"></a></h3>
 <p>As birefringence acts in a very specific coordinate system defined by the flow of the ice, one has to be careful when defining source and antenna locations. The standard code assumes an ice flow in the x-direction. In NuRadioMC this corresponds to the east-direction. When defining a detector geometry in terms of northing and easting the angle between the ice-flow direction and the easting direction can be passed by using the <code class="docutils literal notranslate"><span class="pre">angle_to_iceflow</span></code> parameter in the config file. The angle is passed in degrees.</p>
 <p>For the South Pole this angle is measured to be -131 degrees with an uncertainty of 2 degrees <a class="reference external" href="https://www.cambridge.org/core/journals/annals-of-glaciology/article/modeling-ice-birefringence-and-oblique-radio-wave-propagation-for-neutrino-detection-at-the-south-pole/52A9412B1D502F453C3E1C497BA9FE39">(Jordan et al., 2020)</a>. For Greenland this angle is measured to be roughly 180 degrees <a class="reference external" href="https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2020GL088864">(Hawley et al., 2020)</a>.</p>
 </section>
 <section id="available-birefringence-propagation-options">
-<h3>Available Birefringence Propagation Options<a class="headerlink" href="#available-birefringence-propagation-options" title="Permalink to this heading"></a></h3>
+<h3>Available Birefringence Propagation Options<a class="headerlink" href="#available-birefringence-propagation-options" title="Link to this heading"></a></h3>
 <p>There is an option to use RadioPropa <a class="reference external" href="https://github.com/nu-radio/RadioPropa/tree/birefrigence">(birefringence branch)</a>  to speed up the pulse propagation. If both the ray tracing and the birefringence pulse propagation should be handled by the analytical ray tracer, use <code class="docutils literal notranslate"><span class="pre">analytical</span></code> in the config file. If the ray tracing should be handled by the analytical ray tracer but the birefringence pulse propagation by RadioPropa, use <code class="docutils literal notranslate"><span class="pre">numerical</span></code> in the config file. There is also the option to handle everything in RadioPropa.</p>
 <p>Currently, the RadioPropa implementation of birefringence only supports the birefringence-ice-model <code class="docutils literal notranslate"><span class="pre">southpole_A</span></code>.</p>
 </section>
 <section id="using-specific-birefringence-models">
-<h3>Using specific birefringence models<a class="headerlink" href="#using-specific-birefringence-models" title="Permalink to this heading"></a></h3>
+<h3>Using specific birefringence models<a class="headerlink" href="#using-specific-birefringence-models" title="Link to this heading"></a></h3>
 <p>Birefringence is an optional setting in a NuRadioMC simulation. To use it in a simulation the following lines should be added to the config file:</p>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span>

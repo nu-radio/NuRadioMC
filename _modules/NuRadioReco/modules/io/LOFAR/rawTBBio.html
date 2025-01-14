@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.io.LOFAR.rawTBBio &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
-        <script src="../../../../../_static/jquery.js"></script>
-        <script src="../../../../../_static/underscore.js"></script>
-        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../../_static/doctools.js"></script>
-        <script src="../../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -677,15 +671,15 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">import</span> <span class="nn">h5py</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">import</span> <span class="nn">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata</span> <span class="k">as</span> <span class="nn">md</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.modules.io.LOFAR.rawTBBio_utilities</span> <span class="k">as</span> <span class="nn">util</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">md</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.LOFAR.rawTBBio_utilities</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">util</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.LOFAR.rawTBBio&#39;</span><span class="p">)</span>
@@ -704,7 +698,9 @@
 <span class="c1"># Helper functions</span>
 
 <span class="c1"># The following four functions read what I call &quot;correction files&quot; these are corrections made to improve the data</span>
-<div class="viewcode-block" id="read_antenna_pol_flips"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.read_antenna_pol_flips">[docs]</a><span class="k">def</span> <span class="nf">read_antenna_pol_flips</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+<div class="viewcode-block" id="read_antenna_pol_flips">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.read_antenna_pol_flips">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_antenna_pol_flips</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
     <span class="n">antennas_to_flip</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fin</span><span class="p">:</span>
@@ -713,14 +709,17 @@
     <span class="k">return</span> <span class="n">antennas_to_flip</span></div>
 
 
-<div class="viewcode-block" id="read_bad_antennas"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.read_bad_antennas">[docs]</a><span class="k">def</span> <span class="nf">read_bad_antennas</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+
+<div class="viewcode-block" id="read_bad_antennas">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.read_bad_antennas">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_bad_antennas</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
     <span class="n">bad_antenna_data</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">parse_line_v1</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_line_v1</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
         <span class="n">ant_name</span><span class="p">,</span> <span class="n">pol</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">bad_antenna_data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ant_name</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">pol</span><span class="p">)))</span>
 
-    <span class="k">def</span> <span class="nf">parse_line_v2</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_line_v2</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
         <span class="n">ant_name</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">pol</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">util</span><span class="o">.</span><span class="n">antName_is_even</span><span class="p">(</span><span class="n">ant_name</span><span class="p">):</span>
@@ -746,14 +745,17 @@
     <span class="k">return</span> <span class="n">bad_antenna_data</span></div>
 
 
-<div class="viewcode-block" id="read_antenna_delays"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.read_antenna_delays">[docs]</a><span class="k">def</span> <span class="nf">read_antenna_delays</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+
+<div class="viewcode-block" id="read_antenna_delays">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.read_antenna_delays">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_antenna_delays</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
     <span class="n">additional_ant_delays</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="nf">parse_line_v1</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_line_v1</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
         <span class="n">ant_name</span><span class="p">,</span> <span class="n">pol_E_delay</span><span class="p">,</span> <span class="n">pol_O_delay</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
         <span class="n">additional_ant_delays</span><span class="p">[</span><span class="n">ant_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">pol_E_delay</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">pol_O_delay</span><span class="p">)]</span>
 
-    <span class="k">def</span> <span class="nf">parse_line_v2</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_line_v2</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
         <span class="n">ant_name</span><span class="p">,</span> <span class="n">delay</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">pol</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">util</span><span class="o">.</span><span class="n">antName_is_even</span><span class="p">(</span><span class="n">ant_name</span><span class="p">):</span>
@@ -783,7 +785,10 @@
     <span class="k">return</span> <span class="n">additional_ant_delays</span></div>
 
 
-<div class="viewcode-block" id="read_station_delays"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.read_station_delays">[docs]</a><span class="k">def</span> <span class="nf">read_station_delays</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+
+<div class="viewcode-block" id="read_station_delays">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.read_station_delays">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_station_delays</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
     <span class="n">station_delays</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fin</span><span class="p">:</span>
@@ -792,13 +797,19 @@
     <span class="k">return</span> <span class="n">station_delays</span></div>
 
 
-<div class="viewcode-block" id="decode_if_needed"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.decode_if_needed">[docs]</a><span class="k">def</span> <span class="nf">decode_if_needed</span><span class="p">(</span><span class="n">input_decode</span><span class="p">):</span>
+
+<div class="viewcode-block" id="decode_if_needed">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.decode_if_needed">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">decode_if_needed</span><span class="p">(</span><span class="n">input_decode</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_decode</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">input_decode</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">input_decode</span></div>
 
 
-<div class="viewcode-block" id="TBBData_Dal1"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1">[docs]</a><span class="k">class</span> <span class="nc">TBBData_Dal1</span><span class="p">:</span>
+
+<div class="viewcode-block" id="TBBData_Dal1">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TBBData_Dal1</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class for reading one station from one file.</span>
 
@@ -806,7 +817,7 @@
 <span class="sd">    use filePaths_by_stationName combined with :class:`MultiFile_Dal1` below.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">filename</span><span class="p">,</span>
             <span class="n">force_metadata_ant_pos</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -927,20 +938,31 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sample_offsets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sample_number</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">SampleNumbers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nominal_DataLengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DataLengths</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_offsets</span>
 
-<div class="viewcode-block" id="TBBData_Dal1.close_file"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.close_file">[docs]</a>    <span class="k">def</span> <span class="nf">close_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TBBData_Dal1.close_file">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.close_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">return</span></div>
 
+
     <span class="c1"># GETTERS #</span>
-<div class="viewcode-block" id="TBBData_Dal1.needs_metadata"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.needs_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">needs_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TBBData_Dal1.needs_metadata">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.needs_metadata">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">needs_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return true if this file does not have metadata&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">have_metadata</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_station_name"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_station_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_station_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_station_name">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_station_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;returns the name of the station, as a string&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">StationName</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_station_ID"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_station_ID">[docs]</a>    <span class="k">def</span> <span class="nf">get_station_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_station_ID">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_station_ID">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the ID of the station, as an integer.</span>
 
@@ -948,50 +970,80 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">StationID</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_antenna_names"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_antenna_names">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_antenna_names">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_antenna_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return name of antenna as a list of strings. This is really the RCU id, and the physical antenna depends</span>
 <span class="sd">        on the antennaSet &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dipoleNames</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_antenna_set"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_antenna_set">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_antenna_set">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_antenna_set">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the antenna set as a string. Typically &quot;LBA_OUTER&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">antennaSet</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_sample_frequency"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_sample_frequency">[docs]</a>    <span class="k">def</span> <span class="nf">get_sample_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_sample_frequency">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_sample_frequency">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sample_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;gets samples per second. Typically 200 MHz.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SampleFrequency</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_filter_selection"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_filter_selection">[docs]</a>    <span class="k">def</span> <span class="nf">get_filter_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_filter_selection">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_filter_selection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_filter_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return a string that represents the frequency filter used. Typically &quot;LBA_10_90&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FilterSelection</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_timestamp"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_timestamp">[docs]</a>    <span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_timestamp">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_timestamp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the POSIX timestamp of the first data point&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Time</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_full_data_lengths"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_full_data_lengths">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_data_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_full_data_lengths">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_full_data_lengths">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_full_data_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;get the number of samples stored for each antenna. Note that due to the fact that the antennas do not</span>
 <span class="sd">        start recording at the exact same instant (in general), this full data length is not all usable returns array</span>
 <span class="sd">        of ints &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DataLengths</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_all_sample_numbers"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_all_sample_numbers">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_sample_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_all_sample_numbers">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_all_sample_numbers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_sample_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return numpy array that contains the sample numbers of each antenna. Divide this by the sample frequency</span>
 <span class="sd">        to get time since the timestamp of the first data point. Note that since these are, in general, different,</span>
 <span class="sd">        they do NOT refer to sample 0 of &quot;get_data&quot; in general &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SampleNumbers</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_nominal_sample_number"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_nominal_sample_number">[docs]</a>    <span class="k">def</span> <span class="nf">get_nominal_sample_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_nominal_sample_number">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_nominal_sample_number">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_nominal_sample_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the sample number of the 0th data sample returned by get_data.</span>
 <span class="sd">        Divide by sample_frequency to get time from timestamp of the 0th data sample&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sample_number</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_nominal_data_lengths"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_nominal_data_lengths">[docs]</a>    <span class="k">def</span> <span class="nf">get_nominal_data_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_nominal_data_lengths">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_nominal_data_lengths">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_nominal_data_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the number of data samples that are usable for each antenna, accounting for different starting</span>
 <span class="sd">        sample numbers. returns array of ints &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_DataLengths</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_ITRF_antenna_positions"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_ITRF_antenna_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_ITRF_antenna_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_ITRF_antenna_positions">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_ITRF_antenna_positions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ITRF_antenna_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;returns the ITRF positions of the antennas. Returns a 2D numpy array. If copy is False, then this just</span>
 <span class="sd">        returns the internal array of values &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">copy</span><span class="p">:</span>
@@ -999,12 +1051,18 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ITRF_dipole_positions</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_LOFAR_centered_positions"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_LOFAR_centered_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_LOFAR_centered_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_LOFAR_centered_positions">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_LOFAR_centered_positions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_LOFAR_centered_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;returns the positions (as a 2D numpy array) of the antennas with respect to CS002.</span>
 <span class="sd">        if out is a numpy array, it is used to store the antenna positions, otherwise a new array is allocated&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">md</span><span class="o">.</span><span class="n">convertITRFToLocal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ITRF_dipole_positions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata_dir</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_timing_callibration_phases"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_timing_callibration_phases">[docs]</a>    <span class="k">def</span> <span class="nf">get_timing_callibration_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_timing_callibration_phases">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_timing_callibration_phases">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_timing_callibration_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;only a test function for the moment, do not use&quot;&quot;&quot;</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">StationName</span>
         <span class="n">phase_calibration</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">getStationPhaseCalibration</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">StationName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">antennaSet</span><span class="p">,</span>
@@ -1012,7 +1070,10 @@
         <span class="n">phase_calibration</span> <span class="o">=</span> <span class="n">phase_calibration</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">antenna_filter</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">phase_calibration</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_timing_callibration_delays"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_timing_callibration_delays">[docs]</a>    <span class="k">def</span> <span class="nf">get_timing_callibration_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_file_delays</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_timing_callibration_delays">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_timing_callibration_delays">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_timing_callibration_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_file_delays</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the timing calibration of the antennas, as a 1D np array. If not included in the metadata, will look</span>
 <span class="sd">        for a data file in the same directory as this file. Otherwise returns None&quot;&quot;&quot;</span>
 
@@ -1027,7 +1088,10 @@
                 <span class="n">phase_calibration</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">SampleFrequency</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="TBBData_Dal1.get_data"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">num_points</span><span class="p">,</span> <span class="n">antenna_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">antenna_ID</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TBBData_Dal1.get_data">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.TBBData_Dal1.get_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">num_points</span><span class="p">,</span> <span class="n">antenna_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">antenna_ID</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        return the raw data for a specific antenna, as an 1D int16 numpy array, of length num_points.</span>
 
@@ -1048,16 +1112,20 @@
         <span class="n">initial_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_offsets</span><span class="p">[</span><span class="n">antenna_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">start_index</span>
         <span class="n">final_point</span> <span class="o">=</span> <span class="n">initial_point</span> <span class="o">+</span> <span class="n">num_points</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">][</span><span class="n">initial_point</span><span class="p">:</span><span class="n">final_point</span><span class="p">]</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">][</span><span class="n">initial_point</span><span class="p">:</span><span class="n">final_point</span><span class="p">]</span></div>
+</div>
 
 
-<div class="viewcode-block" id="MultiFile_Dal1"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1">[docs]</a><span class="k">class</span> <span class="nc">MultiFile_Dal1</span><span class="p">:</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiFile_Dal1</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class for reading the data from one station from multiple files</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">filename_list</span><span class="p">,</span>
             <span class="n">metadata_dir</span><span class="p">,</span>
@@ -1290,7 +1358,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">set_polarization_flips</span><span class="p">(</span><span class="n">polarization_flips</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">additional_ant_delays</span> <span class="o">=</span> <span class="n">additional_ant_delays</span>
 
-<div class="viewcode-block" id="MultiFile_Dal1.set_polarization_flips"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.set_polarization_flips">[docs]</a>    <span class="k">def</span> <span class="nf">set_polarization_flips</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">even_antenna_names</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiFile_Dal1.set_polarization_flips">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.set_polarization_flips">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_polarization_flips</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">even_antenna_names</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;given a set of names(IDs) of even antennas, flip the data between the even and odd antennas&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">even_ant_pol_flips</span> <span class="o">=</span> <span class="n">even_antenna_names</span>
         <span class="k">for</span> <span class="n">ant_name</span> <span class="ow">in</span> <span class="n">even_antenna_names</span><span class="p">:</span>
@@ -1300,14 +1370,23 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">index_adjusts</span><span class="p">[</span><span class="n">even_antenna_index</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">index_adjusts</span><span class="p">[</span><span class="n">even_antenna_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.set_odd_polarization_delay"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.set_odd_polarization_delay">[docs]</a>    <span class="k">def</span> <span class="nf">set_odd_polarization_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_delay</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.set_odd_polarization_delay">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.set_odd_polarization_delay">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_odd_polarization_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_delay</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">odd_pol_additional_timing_delay</span> <span class="o">=</span> <span class="n">new_delay</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.set_station_delay"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.set_station_delay">[docs]</a>    <span class="k">def</span> <span class="nf">set_station_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_delay</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.set_station_delay">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.set_station_delay">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_station_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_delay</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;set the station delay, should be a number&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">station_delay</span> <span class="o">=</span> <span class="n">station_delay</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.find_and_set_polarization_delay"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.find_and_set_polarization_delay">[docs]</a>    <span class="k">def</span> <span class="nf">find_and_set_polarization_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.find_and_set_polarization_delay">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.find_and_set_polarization_delay">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_and_set_polarization_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">):</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">StationName</span>
         <span class="n">phase_calibration</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">getStationPhaseCalibration</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">StationName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">antennaSet</span><span class="p">,</span>
                                                           <span class="n">metadata_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_dir</span><span class="p">,</span> <span class="n">file_location</span><span class="o">=</span><span class="n">fpath</span><span class="p">)</span>
@@ -1342,35 +1421,53 @@
         <span class="p">]</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">AN</span> <span class="k">for</span> <span class="n">AN</span><span class="p">,</span> <span class="n">AT</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_antenna_names</span><span class="p">(),</span> <span class="n">above_tolerance</span><span class="p">)</span> <span class="k">if</span> <span class="n">AT</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.close_file"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.close_file">[docs]</a>    <span class="k">def</span> <span class="nf">close_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.close_file">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.close_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Properly close all the TBBData_Dal1 files.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
             <span class="n">file</span><span class="o">.</span><span class="n">close_file</span><span class="p">()</span></div>
 
+
     <span class="c1"># GETTERS</span>
-<div class="viewcode-block" id="MultiFile_Dal1.needs_metadata"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.needs_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">needs_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiFile_Dal1.needs_metadata">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.needs_metadata">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">needs_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">TBB_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">TBB_file</span><span class="o">.</span><span class="n">needs_metadata</span><span class="p">():</span>
                 <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_station_name"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_station_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_station_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_station_name">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_station_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;returns the name of the station, as a string&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">StationName</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_station_ID"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_station_ID">[docs]</a>    <span class="k">def</span> <span class="nf">get_station_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_station_ID">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_station_ID">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;returns the ID of the station, as an integer. This is not the same as StationName. Mapping is given in</span>
 <span class="sd">        utilities &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">StationID</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_antenna_names"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_antenna_names">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_antenna_names">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_antenna_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return name of antenna as a list of strings. This is really the RCU id, and the physical antenna depends</span>
 <span class="sd">        on the antennaSet &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dipoleNames</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.has_antenna"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.has_antenna">[docs]</a>    <span class="k">def</span> <span class="nf">has_antenna</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.has_antenna">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.has_antenna">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_antenna</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;if only_complete_pairs is False, then we could have antenna names without the data. Return True if we</span>
 <span class="sd">        actually have the antenna, False otherwise. Account for polarization flips. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">antenna_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dipoleNames</span><span class="p">:</span>
@@ -1382,51 +1479,81 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_antenna_set"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_antenna_set">[docs]</a>    <span class="k">def</span> <span class="nf">get_antenna_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_antenna_set">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_antenna_set">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the antenna set as a string. Typically &quot;LBA_OUTER&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">antennaSet</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_sample_frequency"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_sample_frequency">[docs]</a>    <span class="k">def</span> <span class="nf">get_sample_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_sample_frequency">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_sample_frequency">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sample_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;gets samples per second. Typically 200 MHz.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SampleFrequency</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_filter_selection"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_filter_selection">[docs]</a>    <span class="k">def</span> <span class="nf">get_filter_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_filter_selection">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_filter_selection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_filter_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return a string that represents the frequency filter used. Typically &quot;LBA_10_90&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FilterSelection</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_timestamp"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_timestamp">[docs]</a>    <span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_timestamp">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_timestamp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the POSIX timestamp of the first data point&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Time</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_timestamp_as_datetime"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_timestamp_as_datetime">[docs]</a>    <span class="k">def</span> <span class="nf">get_timestamp_as_datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_timestamp_as_datetime">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_timestamp_as_datetime">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_timestamp_as_datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the POSIX timestamp of the first data point as a python datetime localized to UTC&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">(),</span> <span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_full_data_lengths"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_full_data_lengths">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_data_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_full_data_lengths">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_full_data_lengths">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_full_data_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;get the number of samples stored for each antenna. Note that due to the fact that the antennas do not</span>
 <span class="sd">        start recording at the exact same instant (in general), this full data length is not all usable returns array</span>
 <span class="sd">        of ints &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DataLengths</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_all_sample_numbers"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_all_sample_numbers">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_sample_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_all_sample_numbers">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_all_sample_numbers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_sample_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return numpy array that contains the sample numbers of each antenna. Divide this by the sample frequency</span>
 <span class="sd">        to get time since the timestamp of the first data point. Note that since these are, in general, different,</span>
 <span class="sd">        they do NOT refer to sample 0 of &quot;get_data&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SampleNumbers</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_nominal_sample_number"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_nominal_sample_number">[docs]</a>    <span class="k">def</span> <span class="nf">get_nominal_sample_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_nominal_sample_number">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_nominal_sample_number">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_nominal_sample_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the sample number of the 0th data sample returned by get_data.</span>
 <span class="sd">        Divide by sample_frequency to get time from timestamp of the 0th data sample&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sample_number</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_nominal_data_lengths"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_nominal_data_lengths">[docs]</a>    <span class="k">def</span> <span class="nf">get_nominal_data_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_nominal_data_lengths">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_nominal_data_lengths">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_nominal_data_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the number of data samples that are usable for each antenna, accounting for different starting</span>
 <span class="sd">        sample numbers. returns array of ints &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_DataLengths</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_ITRF_antenna_positions"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_ITRF_antenna_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_ITRF_antenna_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_ITRF_antenna_positions">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_ITRF_antenna_positions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ITRF_antenna_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;returns the ITRF positions of the antennas. Returns a 2D numpy array.</span>
 <span class="sd">        if out is a numpy array, it is used to store the antenna positions, otherwise a new array is allocated.</span>
 <span class="sd">        Does not account for polarization flips, but shouldn&#39;t need too.&quot;&quot;&quot;</span>
@@ -1438,7 +1565,10 @@
 
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_LOFAR_centered_positions"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_LOFAR_centered_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_LOFAR_centered_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_LOFAR_centered_positions">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_LOFAR_centered_positions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_LOFAR_centered_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;returns the positions (as a 2D numpy array) of the antennas with respect to CS002.</span>
 <span class="sd">        if out is a numpy array, it is used to store the antenna positions, otherwise a new array is allocated.</span>
 <span class="sd">        Does not account for polarization flips, but shouldn&#39;t need too.&quot;&quot;&quot;</span>
@@ -1449,7 +1579,10 @@
 
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_timing_callibration_phases"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_timing_callibration_phases">[docs]</a>    <span class="k">def</span> <span class="nf">get_timing_callibration_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_timing_callibration_phases">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_timing_callibration_phases">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_timing_callibration_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;only a test function for the moment, do not use&quot;&quot;&quot;</span>
 
         <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dipoleNames</span><span class="p">))]</span>
@@ -1465,7 +1598,10 @@
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_timing_callibration_delays"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_timing_callibration_delays">[docs]</a>    <span class="k">def</span> <span class="nf">get_timing_callibration_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_file_delays</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_timing_callibration_delays">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_timing_callibration_delays">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_timing_callibration_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_file_delays</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        return the timing calibration of the antennas, as a 1D np array.</span>
 
@@ -1505,7 +1641,10 @@
 
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_total_delays"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_total_delays">[docs]</a>    <span class="k">def</span> <span class="nf">get_total_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_total_delays">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_total_delays">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_total_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the total delay for each antenna, accounting for all antenna delays, polarization delay,</span>
 <span class="sd">        station clock offsets, and trigger time offsets (nominal sample number). This function should be preferred</span>
 <span class="sd">        over &#39;get_timing_callibration_delays&#39;, but the offsets can have a large average. It is recommended to pick one</span>
@@ -1519,14 +1658,20 @@
 
         <span class="k">return</span> <span class="n">delays</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_time_from_second"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_time_from_second">[docs]</a>    <span class="k">def</span> <span class="nf">get_time_from_second</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_time_from_second">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_time_from_second">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_from_second</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;return the time (in units of seconds) since the second of each antenna (which should be get_timestamp).</span>
 <span class="sd">        accounting for delays. This is literally just the opposite of get_total_delays &quot;&quot;&quot;</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_total_delays</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_geometric_delays"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_geometric_delays">[docs]</a>    <span class="k">def</span> <span class="nf">get_geometric_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_location</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">antenna_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_geometric_delays">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_geometric_delays">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_geometric_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_location</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">antenna_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate travel time from a XYZ location to each antenna.</span>
 
@@ -1554,7 +1699,10 @@
         <span class="n">out</span> <span class="o">/=</span> <span class="n">util</span><span class="o">.</span><span class="n">v_air</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="MultiFile_Dal1.get_data"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">num_points</span><span class="p">,</span> <span class="n">antenna_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">antenna_ID</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiFile_Dal1.get_data">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">num_points</span><span class="p">,</span> <span class="n">antenna_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">antenna_ID</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        return the raw data for a specific antenna, as an 1D int16 numpy array, of length num_points.</span>
 
@@ -1589,7 +1737,9 @@
                 <span class="nb">len</span><span class="p">(</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">]),</span>
             <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">TBB_file</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">][</span><span class="n">initial_point</span><span class="p">:</span><span class="n">final_point</span><span class="p">]</span></div></div>
+        <span class="k">return</span> <span class="n">TBB_file</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">][</span><span class="n">initial_point</span><span class="p">:</span><span class="n">final_point</span><span class="p">]</span></div>
+</div>
+
 </pre></div>
 
            </div>

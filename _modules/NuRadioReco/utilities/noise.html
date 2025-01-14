@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.utilities.noise &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,23 +614,25 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.noise</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.modules</span> <span class="kn">import</span> <span class="n">channelGenericNoiseAdder</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.modules.trigger.highLowThreshold</span> <span class="kn">import</span> <span class="n">get_high_low_triggers</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.detector</span> <span class="kn">import</span> <span class="n">generic_detector</span> <span class="k">as</span> <span class="n">detector</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">scipy</span>
-<span class="kn">import</span> <span class="nn">scipy.signal</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">time</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules</span><span class="w"> </span><span class="kn">import</span> <span class="n">channelGenericNoiseAdder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.trigger.highLowThreshold</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_high_low_triggers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">generic_detector</span> <span class="k">as</span> <span class="n">detector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.signal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;noiseTriggerSimulation&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="rolled_sum_roll"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_roll">[docs]</a><span class="k">def</span> <span class="nf">rolled_sum_roll</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
+<div class="viewcode-block" id="rolled_sum_roll">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_roll">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rolled_sum_roll</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    calculates rolled sum via np.roll</span>
 
@@ -660,7 +656,10 @@
     <span class="k">return</span> <span class="n">sumtr</span></div>
 
 
-<div class="viewcode-block" id="rolling_indices"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolling_indices">[docs]</a><span class="k">def</span> <span class="nf">rolling_indices</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
+
+<div class="viewcode-block" id="rolling_indices">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolling_indices">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rolling_indices</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    pre calculates rolling index array for rolled sum via take</span>
 <span class="sd">  </span>
@@ -679,7 +678,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rolling_indices</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="rolled_sum_take"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_take">[docs]</a><span class="k">def</span> <span class="nf">rolled_sum_take</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling_indices</span><span class="p">):</span>
+
+<div class="viewcode-block" id="rolled_sum_take">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_take">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rolled_sum_take</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling_indices</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    calculates rolled sum via np.take</span>
 
@@ -703,7 +705,10 @@
     <span class="k">return</span> <span class="n">sumtr</span></div>
 
 
-<div class="viewcode-block" id="rolled_sum_slicing"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_slicing">[docs]</a><span class="k">def</span> <span class="nf">rolled_sum_slicing</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
+
+<div class="viewcode-block" id="rolled_sum_slicing">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_slicing">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rolled_sum_slicing</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    calculates rolled sum via slicing</span>
 
@@ -735,9 +740,12 @@
     <span class="k">return</span> <span class="n">sumtr</span></div>
 
 
-<div class="viewcode-block" id="thermalNoiseGenerator"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGenerator">[docs]</a><span class="k">class</span> <span class="nc">thermalNoiseGenerator</span><span class="p">():</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">Vrms</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">time_coincidence</span><span class="p">,</span> <span class="n">n_majority</span><span class="p">,</span> <span class="n">time_coincidence_majority</span><span class="p">,</span>
+<div class="viewcode-block" id="thermalNoiseGenerator">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGenerator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">thermalNoiseGenerator</span><span class="p">():</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">Vrms</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">time_coincidence</span><span class="p">,</span> <span class="n">n_majority</span><span class="p">,</span> <span class="n">time_coincidence_majority</span><span class="p">,</span>
                  <span class="n">n_channels</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">filt</span><span class="p">,</span> <span class="n">noise_type</span><span class="o">=</span><span class="s2">&quot;rayleigh&quot;</span><span class="p">,</span> <span class="n">keep_full_band</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Efficient algorithms to generate thermal noise fluctuations that fulfill a high/low trigger + a majority</span>
@@ -801,7 +809,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">keep_full_band</span> <span class="o">=</span> <span class="n">keep_full_band</span>
 
-<div class="viewcode-block" id="thermalNoiseGenerator.generate_noise"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGenerator.generate_noise">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="thermalNoiseGenerator.generate_noise">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGenerator.generate_noise">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
 
@@ -843,15 +853,19 @@
                     <span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">filt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">traces</span></div></div>
+        <span class="k">return</span> <span class="n">traces</span></div>
+</div>
 
 
-<span class="kn">from</span> <span class="nn">NuRadioReco.modules.analogToDigitalConverter</span> <span class="kn">import</span> <span class="n">perfect_floor_comparator</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.analogToDigitalConverter</span><span class="w"> </span><span class="kn">import</span> <span class="n">perfect_floor_comparator</span>
 
 
-<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray">[docs]</a><span class="k">class</span> <span class="nc">thermalNoiseGeneratorPhasedArray</span><span class="p">():</span>
+<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">thermalNoiseGeneratorPhasedArray</span><span class="p">():</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_filename</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_filename</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span>
                  <span class="n">Vrms</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">ref_index</span><span class="p">,</span>
                  <span class="n">noise_type</span><span class="o">=</span><span class="s2">&quot;rayleigh&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
                  <span class="n">pre_trigger_time</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">trace_length</span><span class="o">=</span><span class="mi">512</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">filt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -967,7 +981,7 @@
 
         <span class="c1"># Construct a default filter if one is not supplied</span>
         <span class="k">if</span> <span class="n">filt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
             <span class="n">channelBandPassFilter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">filt</span> <span class="o">=</span> <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">,</span>
                               <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">96</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s1">&#39;cheby1&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
@@ -1002,7 +1016,7 @@
                                                   <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
                                                   <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__generation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__generation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; separated trace generation part for PA noise trigger &quot;&quot;&quot;</span>
 
         <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
@@ -1020,14 +1034,14 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span>
 
-    <span class="k">def</span> <span class="nf">__phasing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__phasing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; separated phasing part for PA noise trigger &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">beam_time_delay</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rolled_sum_slicing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">,</span> <span class="n">beam_time_delay</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__phasing_roll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__phasing_roll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; separated phasing part for PA noise trigger via np.roll &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
@@ -1035,7 +1049,7 @@
             <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">],</span> <span class="n">beam_time_delay</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">__triggering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__triggering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; separated trigger part for PA noise trigger &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1071,7 +1085,7 @@
                     <span class="c1"># print out each beam that has triggered</span>
                     <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
                 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                     <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
@@ -1082,7 +1096,7 @@
             <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">triggered_bin</span><span class="p">,</span> <span class="n">triggered_beam</span>
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">__triggering_strided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__triggering_strided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1099,7 +1113,7 @@
                 <span class="n">triggered_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">):</span>
-                    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+                    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
                     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                         <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
@@ -1110,7 +1124,9 @@
                 <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">triggered_bin</span><span class="p">,</span> <span class="n">iBeam</span>
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phasing_mode</span><span class="o">=</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="o">=</span><span class="s2">&quot;binned_sum&quot;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phasing_mode</span><span class="o">=</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="o">=</span><span class="s2">&quot;binned_sum&quot;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
 
@@ -1195,7 +1211,10 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">,</span> <span class="o">-</span><span class="n">i_low</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples_trigger</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">,</span> <span class="n">triggered_beam</span></div>
 
-<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise2"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise2">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_noise2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
 <span class="sd">        This implementation is slow due to nested python loops each rolling the trace over and over again</span>
@@ -1248,7 +1267,7 @@
                         <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
                             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">shifts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                             <span class="k">if</span><span class="p">(</span><span class="n">debug</span><span class="p">):</span>
-                                <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+                                <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
                                 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                                 <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                                     <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
@@ -1256,7 +1275,9 @@
                                 <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">phased_trace</span><span class="p">)</span>
                                 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
                                 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-                            <span class="k">return</span> <span class="n">traces</span><span class="p">,</span> <span class="n">phased_trace</span></div></div>
+                            <span class="k">return</span> <span class="n">traces</span><span class="p">,</span> <span class="n">phased_trace</span></div>
+</div>
+
 </pre></div>
 
            </div>

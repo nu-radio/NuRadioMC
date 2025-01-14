@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.simulation.time_logger &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,9 +614,11 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.simulation.time_logger</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">astropy.time</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
 
-<div class="viewcode-block" id="pretty_time_delta"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.pretty_time_delta">[docs]</a><span class="k">def</span> <span class="nf">pretty_time_delta</span><span class="p">(</span><span class="n">seconds</span><span class="p">):</span>
+<div class="viewcode-block" id="pretty_time_delta">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.pretty_time_delta">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pretty_time_delta</span><span class="p">(</span><span class="n">seconds</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert a time duration in seconds to a human-readable format.</span>
 
@@ -663,7 +659,10 @@
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">s&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">seconds</span><span class="p">,)</span></div>
 
 
-<div class="viewcode-block" id="timeLogger"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger">[docs]</a><span class="k">class</span> <span class="nc">timeLogger</span><span class="p">:</span>
+
+<div class="viewcode-block" id="timeLogger">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">timeLogger</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class for logging and tracking time durations for different categories.</span>
 
@@ -689,7 +688,7 @@
 <span class="sd">        Display the progress information of a simulation run.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">update_interval</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">update_interval</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the TimeLogger object.</span>
 
@@ -708,7 +707,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logger</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__update_interval</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">TimeDelta</span><span class="p">(</span><span class="n">update_interval</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;sec&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="timeLogger.reset_times"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.reset_times">[docs]</a>    <span class="k">def</span> <span class="nf">reset_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="timeLogger.reset_times">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.reset_times">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reset the time values for the specified categories or all categories.</span>
 
@@ -743,7 +744,10 @@
             <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span></div>
 
-<div class="viewcode-block" id="timeLogger.start_time"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.start_time">[docs]</a>    <span class="k">def</span> <span class="nf">start_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">):</span>
+
+<div class="viewcode-block" id="timeLogger.start_time">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.start_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Start counting times for a specific category. </span>
 
@@ -768,7 +772,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time category </span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2"> not found. Adding category and resetting time to zero.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="timeLogger.stop_time"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.stop_time">[docs]</a>    <span class="k">def</span> <span class="nf">stop_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">):</span>
+
+<div class="viewcode-block" id="timeLogger.stop_time">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.stop_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Stop the timer for the specified category.</span>
 
@@ -791,7 +798,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">])</span><span class="o">.</span><span class="n">sec</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="timeLogger.show_time"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.show_time">[docs]</a>    <span class="k">def</span> <span class="nf">show_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_event_groups</span><span class="p">,</span> <span class="n">i_event_group</span><span class="p">):</span>
+
+<div class="viewcode-block" id="timeLogger.show_time">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.show_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_event_groups</span><span class="p">,</span> <span class="n">i_event_group</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Display the progress information of a simulation run. </span>
 
@@ -822,7 +832,9 @@
                     <span class="n">pretty_time_delta</span><span class="p">(</span><span class="n">projected_time</span><span class="o">.</span><span class="n">sec</span><span class="p">),</span>
                     <span class="n">time_account_string</span>
                 <span class="p">)</span>
-            <span class="p">)</span></div></div>
+            <span class="p">)</span></div>
+</div>
+
 </pre></div>
 
            </div>

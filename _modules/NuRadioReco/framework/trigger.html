@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.framework.trigger &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,16 +614,18 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.framework.trigger</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">iteritems</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">six</span><span class="w"> </span><span class="kn">import</span> <span class="n">iteritems</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">cPickle</span> <span class="k">as</span> <span class="nn">pickle</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">cPickle</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
 
-<div class="viewcode-block" id="deserialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.deserialize">[docs]</a><span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">triggers_pkl</span><span class="p">):</span>
+<div class="viewcode-block" id="deserialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.deserialize">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="n">triggers_pkl</span><span class="p">):</span>
     <span class="n">triggers</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">data_pkl</span> <span class="ow">in</span> <span class="n">triggers_pkl</span><span class="p">:</span>
         <span class="n">trigger_type</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)[</span><span class="s1">&#39;_trigger_type&#39;</span><span class="p">]</span>
@@ -656,12 +652,15 @@
     <span class="k">return</span> <span class="n">triggers</span></div>
 
 
-<div class="viewcode-block" id="Trigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger">[docs]</a><span class="k">class</span> <span class="nc">Trigger</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Trigger">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Trigger</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    base class to store different triggers</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize trigger class</span>
 
@@ -690,30 +689,44 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span> <span class="o">=</span> <span class="n">pre_trigger_times</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_primary_trigger</span> <span class="o">=</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="Trigger.set_primary"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_primary">[docs]</a>    <span class="k">def</span> <span class="nf">set_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">primary_trigger</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Trigger.set_primary">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_primary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">primary_trigger</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        set the trigger to be the primary trigger.</span>
 <span class="sd">        The trigger time of the primary trigger is used to define the readout window. There should only be one primary trigger.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_primary_trigger</span> <span class="o">=</span> <span class="n">primary_trigger</span></div>
 
-<div class="viewcode-block" id="Trigger.is_primary"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.is_primary">[docs]</a>    <span class="k">def</span> <span class="nf">is_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.is_primary">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.is_primary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        return True if this trigger is the primary trigger</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primary_trigger</span></div>
 
-<div class="viewcode-block" id="Trigger.has_triggered"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.has_triggered">[docs]</a>    <span class="k">def</span> <span class="nf">has_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.has_triggered">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.has_triggered">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns true if station has trigger, false otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span></div>
 
-<div class="viewcode-block" id="Trigger.set_triggered"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_triggered">[docs]</a>    <span class="k">def</span> <span class="nf">set_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.set_triggered">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_triggered">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; set the trigger to True or False &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="n">triggered</span></div>
 
-<div class="viewcode-block" id="Trigger.set_trigger_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_trigger_time">[docs]</a>    <span class="k">def</span> <span class="nf">set_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.set_trigger_time">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_trigger_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; set the trigger time</span>
 
 <span class="sd">        Parameters</span>
@@ -723,13 +736,19 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span> <span class="o">=</span> <span class="n">time</span></div>
 
-<div class="viewcode-block" id="Trigger.get_trigger_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.get_trigger_time">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the trigger time (absolute time with respect to the beginning of the event)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span></div>
 
-<div class="viewcode-block" id="Trigger.set_trigger_times"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_trigger_times">[docs]</a>    <span class="k">def</span> <span class="nf">set_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.set_trigger_times">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_trigger_times">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; set the trigger times</span>
 
 <span class="sd">        Parameters</span>
@@ -739,7 +758,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_times</span> <span class="o">=</span> <span class="n">times</span></div>
 
-<div class="viewcode-block" id="Trigger.get_trigger_times"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_times">[docs]</a>    <span class="k">def</span> <span class="nf">get_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.get_trigger_times">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_times">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the trigger times (time with respect to beginning of trace)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -747,22 +769,37 @@
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_times</span></div>
 
-<div class="viewcode-block" id="Trigger.get_name"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.get_name">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; get trigger name &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span></div>
 
-<div class="viewcode-block" id="Trigger.get_type"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.get_type">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; get trigger type &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_type</span></div>
 
-<div class="viewcode-block" id="Trigger.get_triggered_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_triggered_channels">[docs]</a>    <span class="k">def</span> <span class="nf">get_triggered_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.get_triggered_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_triggered_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_triggered_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; get IDs of channels that have triggered &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered_channels</span></div>
 
-<div class="viewcode-block" id="Trigger.set_triggered_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_triggered_channels">[docs]</a>    <span class="k">def</span> <span class="nf">set_triggered_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.set_triggered_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_triggered_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_triggered_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered_channels</span> <span class="o">=</span> <span class="n">triggered_channels</span></div>
 
-<div class="viewcode-block" id="Trigger.set_pre_trigger_times"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times">[docs]</a>    <span class="k">def</span> <span class="nf">set_pre_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.set_pre_trigger_times">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_pre_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the pre-trigger times</span>
 
@@ -776,7 +813,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span> <span class="o">=</span> <span class="n">pre_trigger_times</span></div>
 
-<div class="viewcode-block" id="Trigger.get_pre_trigger_times"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times">[docs]</a>    <span class="k">def</span> <span class="nf">get_pre_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.get_pre_trigger_times">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_pre_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the pre_trigger_time between the start of the trace and the (global) trigger time</span>
 
@@ -792,7 +832,10 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span></div>
 
-<div class="viewcode-block" id="Trigger.get_pre_trigger_time_channel"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel">[docs]</a>    <span class="k">def</span> <span class="nf">get_pre_trigger_time_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.get_pre_trigger_time_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_pre_trigger_time_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the trigger time for a specific channel</span>
 
@@ -812,29 +855,42 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span></div>
 
-<div class="viewcode-block" id="Trigger.serialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.serialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.serialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Trigger.deserialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.deserialize">[docs]</a>    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Trigger.deserialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.deserialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)):</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">):</span>
             <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span>
 
-<div class="viewcode-block" id="Trigger.get_trigger_settings"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_settings">[docs]</a>    <span class="k">def</span> <span class="nf">get_trigger_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Trigger.get_trigger_settings">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_settings">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">):</span>
             <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="k">return</span> <span class="n">output</span></div></div>
+        <span class="k">return</span> <span class="n">output</span></div>
+</div>
 
 
-<div class="viewcode-block" id="SimpleThresholdTrigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.SimpleThresholdTrigger">[docs]</a><span class="k">class</span> <span class="nc">SimpleThresholdTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<div class="viewcode-block" id="SimpleThresholdTrigger">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.SimpleThresholdTrigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleThresholdTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">channel_coincidence_window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize trigger class</span>
@@ -860,9 +916,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_coinc_window</span> <span class="o">=</span> <span class="n">channel_coincidence_window</span></div>
 
 
-<div class="viewcode-block" id="EnvelopePhasedTrigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.EnvelopePhasedTrigger">[docs]</a><span class="k">class</span> <span class="nc">EnvelopePhasedTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold_factor</span><span class="p">,</span> <span class="n">power_mean</span><span class="p">,</span> <span class="n">power_std</span><span class="p">,</span>
+<div class="viewcode-block" id="EnvelopePhasedTrigger">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.EnvelopePhasedTrigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EnvelopePhasedTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold_factor</span><span class="p">,</span> <span class="n">power_mean</span><span class="p">,</span> <span class="n">power_std</span><span class="p">,</span>
                  <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phasing_angles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">output_passband</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -902,9 +961,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_output_passband</span> <span class="o">=</span> <span class="n">output_passband</span></div>
 
 
-<div class="viewcode-block" id="SimplePhasedTrigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.SimplePhasedTrigger">[docs]</a><span class="k">class</span> <span class="nc">SimplePhasedTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">secondary_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="SimplePhasedTrigger">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.SimplePhasedTrigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimplePhasedTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">secondary_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">primary_angles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">secondary_angles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sec_trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -954,9 +1016,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_maximum_amps</span> <span class="o">=</span> <span class="n">maximum_amps</span></div>
 
 
-<div class="viewcode-block" id="HighLowTrigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.HighLowTrigger">[docs]</a><span class="k">class</span> <span class="nc">HighLowTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">,</span> <span class="n">high_low_window</span><span class="p">,</span>
+<div class="viewcode-block" id="HighLowTrigger">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.HighLowTrigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HighLowTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">,</span> <span class="n">high_low_window</span><span class="p">,</span>
                  <span class="n">channel_coincidence_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize trigger class</span>
@@ -988,9 +1053,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_coinc_window</span> <span class="o">=</span> <span class="n">channel_coincidence_window</span></div>
 
 
-<div class="viewcode-block" id="IntegratedPowerTrigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.IntegratedPowerTrigger">[docs]</a><span class="k">class</span> <span class="nc">IntegratedPowerTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channel_coincidence_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<div class="viewcode-block" id="IntegratedPowerTrigger">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.IntegratedPowerTrigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IntegratedPowerTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channel_coincidence_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">power_mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">power_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">integration_window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize trigger class</span>
@@ -1019,9 +1087,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_integration_window</span> <span class="o">=</span> <span class="n">integration_window</span></div>
 
 
-<div class="viewcode-block" id="EnvelopeTrigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.EnvelopeTrigger">[docs]</a><span class="k">class</span> <span class="nc">EnvelopeTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<div class="viewcode-block" id="EnvelopeTrigger">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.EnvelopeTrigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EnvelopeTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                  <span class="n">channel_coincidence_window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize trigger class</span>
@@ -1052,9 +1123,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_coincidences</span> <span class="o">=</span> <span class="n">number_of_coincidences</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coinc_window</span> <span class="o">=</span> <span class="n">channel_coincidence_window</span></div>
 
-<div class="viewcode-block" id="RNOGSurfaceTrigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.RNOGSurfaceTrigger">[docs]</a><span class="k">class</span> <span class="nc">RNOGSurfaceTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+
+<div class="viewcode-block" id="RNOGSurfaceTrigger">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.RNOGSurfaceTrigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RNOGSurfaceTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">channel_coincidence_window</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">250</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">,</span> <span class="n">Vbias</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize trigger class</span>
@@ -1084,6 +1158,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_coinc_window</span> <span class="o">=</span> <span class="n">channel_coincidence_window</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_temperature</span> <span class="o">=</span> <span class="n">temperature</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Vbias</span> <span class="o">=</span> <span class="n">Vbias</span></div>
+
 </pre></div>
 
            </div>

@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,22 +614,24 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">cm</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.utilities.io_utilities</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.electric_field</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.detector.antennapattern</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">trace_utilities</span><span class="p">,</span> <span class="n">fft</span><span class="p">,</span> <span class="n">bandpass_filter</span>
-<span class="kn">import</span> <span class="nn">radiotools.helper</span> <span class="k">as</span> <span class="nn">hp</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">cm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.antennapattern</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">trace_utilities</span><span class="p">,</span> <span class="n">fft</span><span class="p">,</span> <span class="n">bandpass_filter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">radiotools.helper</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hp</span>
 
 
-<div class="viewcode-block" id="neutrino3DVertexReconstructor"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor">[docs]</a><span class="k">class</span> <span class="nc">neutrino3DVertexReconstructor</span><span class="p">:</span>
+<div class="viewcode-block" id="neutrino3DVertexReconstructor">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">neutrino3DVertexReconstructor</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lookup_table_location</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lookup_table_location</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor for the vertex reconstructor</span>
 
@@ -686,7 +682,9 @@
             <span class="p">[</span><span class="s1">&#39;refracted&#39;</span><span class="p">,</span> <span class="s1">&#39;reflected&#39;</span><span class="p">]</span>
         <span class="p">]</span>
 
-<div class="viewcode-block" id="neutrino3DVertexReconstructor.begin"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span>
+<div class="viewcode-block" id="neutrino3DVertexReconstructor.begin">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">station_id</span><span class="p">,</span>
             <span class="n">channel_ids</span><span class="p">,</span>
@@ -787,7 +785,10 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">__header</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">channel_z</span><span class="p">)]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;header&#39;</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__lookup_table</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">channel_z</span><span class="p">))]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;antenna_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_z</span><span class="p">)]</span></div>
 
-<div class="viewcode-block" id="neutrino3DVertexReconstructor.run"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+
+<div class="viewcode-block" id="neutrino3DVertexReconstructor.run">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">event</span><span class="p">,</span>
             <span class="n">station</span><span class="p">,</span>
@@ -1022,7 +1023,10 @@
                 <span class="n">i_max_dnr</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="neutrino3DVertexReconstructor.get_correlation_array_2d"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.get_correlation_array_2d">[docs]</a>    <span class="k">def</span> <span class="nf">get_correlation_array_2d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+
+<div class="viewcode-block" id="neutrino3DVertexReconstructor.get_correlation_array_2d">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.get_correlation_array_2d">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_correlation_array_2d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the correlations corresponding to the different</span>
 <span class="sd">        signal travel times between channels for the given positions.</span>
@@ -1046,7 +1050,10 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_correlation_for_pos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">d_hor1</span><span class="p">,</span> <span class="n">d_hor2</span><span class="p">]),</span> <span class="n">z</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span></div>
 
-<div class="viewcode-block" id="neutrino3DVertexReconstructor.get_correlation_array_3d"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.get_correlation_array_3d">[docs]</a>    <span class="k">def</span> <span class="nf">get_correlation_array_3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+
+<div class="viewcode-block" id="neutrino3DVertexReconstructor.get_correlation_array_3d">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.get_correlation_array_3d">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_correlation_array_3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
         <span class="n">channel_pos1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channel_positions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">channel_pos2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channel_positions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">d_hor1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">channel_pos1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">channel_pos1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
@@ -1055,7 +1062,10 @@
         <span class="n">res</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">.8</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">res</span><span class="p">))]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">res</span></div>
 
-<div class="viewcode-block" id="neutrino3DVertexReconstructor.get_correlation_for_pos"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.get_correlation_for_pos">[docs]</a>    <span class="k">def</span> <span class="nf">get_correlation_for_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_hor</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+
+<div class="viewcode-block" id="neutrino3DVertexReconstructor.get_correlation_for_pos">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.get_correlation_for_pos">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_correlation_for_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_hor</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the correlations corresponding to the different</span>
 <span class="sd">        signal travel times between channels for the given positions.</span>
@@ -1079,7 +1089,10 @@
         <span class="n">res</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">res</span></div>
 
-<div class="viewcode-block" id="neutrino3DVertexReconstructor.get_signal_travel_time"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.get_signal_travel_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_signal_travel_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_hor</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">ray_type</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="neutrino3DVertexReconstructor.get_signal_travel_time">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.get_signal_travel_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_signal_travel_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_hor</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">ray_type</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the signal travel time between a position and the</span>
 <span class="sd">        channel</span>
@@ -1118,7 +1131,8 @@
         <span class="n">travel_times</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
         <span class="k">return</span> <span class="n">travel_times</span></div>
 
-    <span class="k">def</span> <span class="nf">__draw_2d_correlation_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">correlation_map</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__draw_2d_correlation_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">correlation_map</span><span class="p">):</span>
         <span class="n">fig4</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
         <span class="n">ax4_1</span> <span class="o">=</span> <span class="n">fig4</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">311</span><span class="p">)</span>
         <span class="n">d_0</span><span class="p">,</span> <span class="n">z_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__distances_2d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__z_coordinates_2d</span><span class="p">)</span>
@@ -1178,7 +1192,7 @@
         <span class="n">fig4</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
         <span class="n">fig4</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_2D_correlation_maps.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__debug_folder</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
 
-    <span class="k">def</span> <span class="nf">__draw_search_zones</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__draw_search_zones</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">event</span><span class="p">,</span>
             <span class="n">slope</span><span class="p">,</span>
@@ -1352,7 +1366,7 @@
         <span class="n">fig5</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
         <span class="n">fig5</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_search_zones.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__debug_folder</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
 
-    <span class="k">def</span> <span class="nf">__draw_vertex_reco</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__draw_vertex_reco</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">event</span><span class="p">,</span>
             <span class="n">correlation_sum</span><span class="p">,</span>
@@ -1479,7 +1493,7 @@
         <span class="n">fig6</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
         <span class="n">fig6</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_slices.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__debug_folder</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
 
-    <span class="k">def</span> <span class="nf">__draw_dnr_reco</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__draw_dnr_reco</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">event</span><span class="p">,</span>
             <span class="n">correlation_sum</span><span class="p">,</span>
@@ -1617,6 +1631,7 @@
         <span class="n">ax8_2</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
         <span class="n">fig8</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
         <span class="n">fig8</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_dnr_reco.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__debug_folder</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span></div>
+
 </pre></div>
 
            </div>

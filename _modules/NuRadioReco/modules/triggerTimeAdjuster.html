@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.triggerTimeAdjuster &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,15 +614,17 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.triggerTimeAdjuster</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.triggerTimeAdjuster&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="triggerTimeAdjuster"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster">[docs]</a><span class="k">class</span> <span class="nc">triggerTimeAdjuster</span><span class="p">:</span>
+<div class="viewcode-block" id="triggerTimeAdjuster">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">triggerTimeAdjuster</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Modifies channel traces to simulate the effects of the trigger</span>
 
@@ -636,16 +632,21 @@
 <span class="sd">    If no trigger exists, nothing is done.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
-<div class="viewcode-block" id="triggerTimeAdjuster.begin"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="triggerTimeAdjuster.begin">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="triggerTimeAdjuster.get_pre_trigger_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_pre_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_name</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+
+<div class="viewcode-block" id="triggerTimeAdjuster.get_pre_trigger_time">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_pre_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_name</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get the pre_trigger_time for a given trigger_name and channel_id &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span>
@@ -666,8 +667,11 @@
 
         <span class="k">return</span> <span class="n">pre_trigger_time</span></div>
 
-<div class="viewcode-block" id="triggerTimeAdjuster.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sim_to_data&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="triggerTimeAdjuster.run">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sim_to_data&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run the trigger time adjuster.</span>
 
@@ -790,7 +794,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument &#39;</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&#39; for mode is not valid. Options are &#39;sim_to_data&#39; or &#39;data_to_sim&#39;.&quot;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__check_sampling_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">channel_sampling_rate</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__check_sampling_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">channel_sampling_rate</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span><span class="p">:</span> <span class="c1"># we only issue this warning once</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">channel_sampling_rate</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -800,6 +805,7 @@
                     <span class="s1">&#39;Traces may not have the correct trace length after resampling.&#39;</span>
                 <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span> <span class="o">=</span> <span class="kc">True</span></div>
+
 </pre></div>
 
            </div>

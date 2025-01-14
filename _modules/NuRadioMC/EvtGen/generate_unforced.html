@@ -1,24 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.EvtGen.generate_unforced &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +33,6 @@
             NuRadio
               <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -620,24 +614,24 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.EvtGen.generate_unforced</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
-<span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">cross_sections</span> <span class="k">as</span> <span class="n">cs</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">earth_attenuation</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">quad</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">brentq</span>
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.simulation.time_logger</span> <span class="kn">import</span> <span class="n">pretty_time_delta</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.generator</span> <span class="kn">import</span> <span class="n">write_events_to_hdf5</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">inelasticities</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">NuRadioMC</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">version</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_sections</span> <span class="k">as</span> <span class="n">cs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">earth_attenuation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">quad</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">brentq</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.simulation.time_logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">pretty_time_delta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.EvtGen.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_events_to_hdf5</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">inelasticities</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioMC</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
 <span class="c1"># np.random.seed(10)  # just for testing</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -647,7 +641,9 @@
 <span class="n">earth</span> <span class="o">=</span> <span class="n">earth_attenuation</span><span class="o">.</span><span class="n">PREM</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="generate_eventlist_cylinder"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generate_unforced.html#NuRadioMC.EvtGen.generate_unforced.generate_eventlist_cylinder">[docs]</a><span class="k">def</span> <span class="nf">generate_eventlist_cylinder</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
+<div class="viewcode-block" id="generate_eventlist_cylinder">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generate_unforced.html#NuRadioMC.EvtGen.generate_unforced.generate_eventlist_cylinder">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_eventlist_cylinder</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
                                 <span class="n">full_rmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_rmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_zmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_zmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">thetamin</span><span class="o">=</span><span class="mf">0.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">thetamax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
                                 <span class="n">phimin</span><span class="o">=</span><span class="mf">0.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">phimax</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
@@ -759,7 +755,7 @@
 
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cylinder r = </span><span class="si">{</span><span class="n">r_cylinder</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km, h = </span><span class="si">{</span><span class="n">h_cylinder</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km -&gt; dmax = </span><span class="si">{</span><span class="n">d</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">perp</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">perp</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="p">:</span>
         <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
         <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -768,7 +764,7 @@
     <span class="c1"># line segment a given by endpoints a1, a2</span>
     <span class="c1"># line segment b given by endpoints b1, b2</span>
     <span class="c1"># return</span>
-    <span class="k">def</span> <span class="nf">seg_intersect</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seg_intersect</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="p">:</span>
         <span class="n">da</span> <span class="o">=</span> <span class="n">a2</span> <span class="o">-</span> <span class="n">a1</span>
         <span class="n">db</span> <span class="o">=</span> <span class="n">b2</span> <span class="o">-</span> <span class="n">b1</span>
         <span class="n">dp</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">-</span> <span class="n">b1</span>
@@ -777,7 +773,7 @@
         <span class="n">num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dap</span><span class="p">,</span> <span class="n">dp</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">num</span> <span class="o">/</span> <span class="n">denom</span><span class="p">)</span> <span class="o">*</span> <span class="n">db</span> <span class="o">+</span> <span class="n">b1</span>
 
-    <span class="k">def</span> <span class="nf">get_R</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_R</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;&quot;</span>
 <span class="sd">        calculate distance to center of Earth as a function of travel distance</span>
 <span class="sd">        </span>
@@ -792,7 +788,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">t</span> <span class="o">+</span> <span class="n">X</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">get_density</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_density</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        calculates density as a function of travel distance</span>
 <span class="sd">        </span>
@@ -807,7 +803,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span>  <span class="n">earth</span><span class="o">.</span><span class="n">density</span><span class="p">(</span><span class="n">get_R</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">slant_depth</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">slant_depth</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        calculates slant depth (grammage) as a function of travel distance</span>
 <span class="sd">        </span>
@@ -823,7 +819,7 @@
         <span class="n">res</span> <span class="o">=</span> <span class="n">quad</span><span class="p">(</span><span class="n">get_density</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">),</span> <span class="n">limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">slant_depth_num</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">slant_depth_num</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        calculates slant depth (grammage) as a function of travel distance</span>
 <span class="sd">        </span>
@@ -841,16 +837,16 @@
         <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">earth</span><span class="o">.</span><span class="n">density</span><span class="p">(</span><span class="n">rr</span><span class="p">),</span> <span class="n">tt</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span>
 
-    <span class="k">def</span> <span class="nf">obj_dist_to_surface</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">obj_dist_to_surface</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">get_R</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-</span> <span class="n">R_earth</span>
 
-    <span class="k">def</span> <span class="nf">obj</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Lint</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">obj</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Lint</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        objective function to determine at which travel distance we reached the interaction point</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">slant_depth</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-</span> <span class="n">Lint</span>
 
-    <span class="k">def</span> <span class="nf">points_in_cylinder</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">points_in_cylinder</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        determines if point lies within a cylinder</span>
 <span class="sd">        </span>
@@ -967,9 +963,9 @@
         <span class="n">v</span> <span class="o">=</span> <span class="o">-</span><span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="n">zen</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">az</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>  <span class="c1"># neutrino direction</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ay</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">h_cylinder</span><span class="p">])</span>
         <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-            <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">Axes3D</span>
-            <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d.art3d</span> <span class="kn">import</span> <span class="n">Poly3DCollection</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d.art3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly3DCollection</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
             <span class="n">a</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
             <span class="c1"># Cylinder</span>
@@ -1063,8 +1059,8 @@
         <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intersects</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">):</span>
             <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intersects</span><span class="p">))</span>
-                <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-                <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">Axes3D</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span>
                 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
                 <span class="n">a</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
                 <span class="c1"># Cylinder</span>
@@ -1106,8 +1102,8 @@
         <span class="n">argsort</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ss</span><span class="p">))</span>  <span class="c1"># check which intersection happens first along neutrino path</span>
         <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intersects</span><span class="p">)):</span>
-                <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-                <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">Axes3D</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span>
                 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
                 <span class="n">a</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Lh1</span><span class="p">,</span> <span class="n">Lh2</span><span class="p">,</span> <span class="n">Lv1</span><span class="p">,</span> <span class="n">Lv2</span><span class="p">]:</span>
@@ -1150,8 +1146,8 @@
         <span class="n">slant_depth_max</span> <span class="o">=</span> <span class="n">slant_depth</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">X_enter</span><span class="p">)</span> <span class="o">+</span> <span class="n">slant_depth_min</span>  <span class="c1"># full slant depth from outside Earth to point when it leaves the cylinder</span>
 
         <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-            <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">Axes3D</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
             <span class="n">a</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
             <span class="c1"># Cylinder</span>
@@ -1218,6 +1214,7 @@
 
     <span class="n">write_events_to_hdf5</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data_sets</span><span class="p">,</span> <span class="n">attributes</span><span class="p">,</span>
                          <span class="n">n_events_per_file</span><span class="o">=</span><span class="n">n_events_per_file</span><span class="p">,</span> <span class="n">start_file_id</span><span class="o">=</span><span class="n">start_file_id</span><span class="p">)</span></div>
+
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>

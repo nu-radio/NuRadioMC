@@ -1,26 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Some notes on conventions &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -40,9 +37,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -625,21 +619,21 @@
            <div itemprop="articleBody">
              
   <section id="some-notes-on-conventions">
-<h1>Some notes on conventions<a class="headerlink" href="#some-notes-on-conventions" title="Permalink to this heading"></a></h1>
+<h1>Some notes on conventions<a class="headerlink" href="#some-notes-on-conventions" title="Link to this heading"></a></h1>
 <section id="coordinates">
-<h2>Coordinates<a class="headerlink" href="#coordinates" title="Permalink to this heading"></a></h2>
+<h2>Coordinates<a class="headerlink" href="#coordinates" title="Link to this heading"></a></h2>
 <section id="default-coordinate-system">
-<h3>Default coordinate system<a class="headerlink" href="#default-coordinate-system" title="Permalink to this heading"></a></h3>
+<h3>Default coordinate system<a class="headerlink" href="#default-coordinate-system" title="Link to this heading"></a></h3>
 <p>NuRadioMC uses a local cartesian coordinate system.
 The origin is at the surface, where the x axis is towards Easting, the y axis towards Northing, and the z axis upwards.</p>
 </section>
 <section id="points">
-<h3>Points<a class="headerlink" href="#points" title="Permalink to this heading"></a></h3>
+<h3>Points<a class="headerlink" href="#points" title="Link to this heading"></a></h3>
 <p>All points (e.g. antenna positions) are specified with respect to the coordinate origin.
 The position (0,0,0) is at the surface and x = 0, y = 0 is typically at the center of the station.</p>
 </section>
 <section id="angles">
-<h3>Angles<a class="headerlink" href="#angles" title="Permalink to this heading"></a></h3>
+<h3>Angles<a class="headerlink" href="#angles" title="Link to this heading"></a></h3>
 <p>The zenith/theta angle is defined with respect to z axis, i.e.</p>
 <ul class="simple">
 <li><p>0 deg = upwards</p></li>
@@ -649,7 +643,7 @@ The position (0,0,0) is at the surface and x = 0, y = 0 is typically at the cent
 <p>The azimuth/phi angle is counting northwards from East.</p>
 </section>
 <section id="directions">
-<h3>Directions<a class="headerlink" href="#directions" title="Permalink to this heading"></a></h3>
+<h3>Directions<a class="headerlink" href="#directions" title="Link to this heading"></a></h3>
 <p>All direction are pointing to “where it came from”, i.e. opposite to the direction of propagation. E.g.</p>
 <ul class="simple">
 <li><p>0 deg zenith angle = coming from above = propagating downwards</p></li>
@@ -659,27 +653,29 @@ The position (0,0,0) is at the surface and x = 0, y = 0 is typically at the cent
 is defined into the direction of propagation.</p>
 </section>
 <section id="electic-fields">
-<h3>Electic Fields<a class="headerlink" href="#electic-fields" title="Permalink to this heading"></a></h3>
+<h3>Electic Fields<a class="headerlink" href="#electic-fields" title="Link to this heading"></a></h3>
 <p>The electric field is stored in ‘on-sky’ polar coordinates with (r, <span class="math notranslate nohighlight">\(e_\theta\)</span>, <span class="math notranslate nohighlight">\(e_\phi\)</span>) as the components. r is usually small.</p>
-<a class="reference internal image-reference" href="../../_images/cos_shower_plane.png"><img alt="../../_images/cos_shower_plane.png" src="../../_images/cos_shower_plane.png" style="width: 45%;" /></a>
-<a class="reference internal image-reference" href="../../_images/cos_earth.png"><img alt="../../_images/cos_earth.png" src="../../_images/cos_earth.png" style="width: 45%;" /></a>
+<a class="reference internal image-reference" href="../../_images/cos_shower_plane.png"><img alt="../../_images/cos_shower_plane.png" src="../../_images/cos_shower_plane.png" style="width: 45%;" />
+</a>
+<a class="reference internal image-reference" href="../../_images/cos_earth.png"><img alt="../../_images/cos_earth.png" src="../../_images/cos_earth.png" style="width: 45%;" />
+</a>
 <p>Left: Comparison of the coordinate systems important for the polarization of the electic fiel. The orange arrow indicates the shower axis, the purple circle indicates the shower plane. The natural coordinate system for the air shower electric field is given by <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v} \times \vec{B}}\)</span> and <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v} \times \vec{v} \times \vec{B}}\)</span>. On ground, a coordinate system with respect to arrival direction is useful, given by <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\theta\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\phi\)</span>. Therefore the electric field has the components <span class="math notranslate nohighlight">\(E_\theta\)</span>, <span class="math notranslate nohighlight">\(E_\phi\)</span>. Both coordinate systems share <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>. Right: ‘On-sky’ coordinate system as seen from ground. The x-axis is pointing east, the y-axis to the north. The incoming signal corresponds to the air shower axis. <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\theta\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\phi\)</span> are the same as left.</p>
 </section>
 </section>
 <section id="units">
-<h2>Units<a class="headerlink" href="#units" title="Permalink to this heading"></a></h2>
+<h2>Units<a class="headerlink" href="#units" title="Link to this heading"></a></h2>
 <p>Physical quantities in <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> use Auger base units. To print, plot and convert dimensional quantities,
 a convenient module is included in <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code>. Details are given <a class="reference internal" href="../../NuRadioReco/pages/utilities.html#unit-system"><span class="std std-ref">here</span></a>.</p>
 </section>
 <section id="particle-types">
-<h2>Particle types<a class="headerlink" href="#particle-types" title="Permalink to this heading"></a></h2>
+<h2>Particle types<a class="headerlink" href="#particle-types" title="Link to this heading"></a></h2>
 <p>Particle types are encoded using the <a class="reference external" href="https://pdg.lbl.gov/2007/reviews/montecarlorpp.pdf">PDG convention</a>.
 The most relevant particle ids for us are [12,14,16] for the electron, muon and tau neutrino, respectively,
 with an overall minus sign indicating their corresponding anti-particles. A more extensive overview is included
 as a table in the <a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html#particle-code-table"><span class="std std-ref">event generation manual</span></a>.</p>
 </section>
 <section id="fourier-transformations">
-<h2>Fourier transformations<a class="headerlink" href="#fourier-transformations" title="Permalink to this heading"></a></h2>
+<h2>Fourier transformations<a class="headerlink" href="#fourier-transformations" title="Link to this heading"></a></h2>
 <p>To ensure Fourier transforms have the correct units, please use the convenience functions provided
 in NuRadioReco detailed <a class="reference internal" href="../../NuRadioReco/pages/utilities.html#fourier-transformation"><span class="std std-ref">here</span></a>.</p>
 </section>

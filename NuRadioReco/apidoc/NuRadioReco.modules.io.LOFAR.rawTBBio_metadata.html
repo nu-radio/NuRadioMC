@@ -1,25 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.io.LOFAR.rawTBBio_metadata module &mdash; NuRadio 2.3.0-dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3451dc04"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -39,9 +36,6 @@
             NuRadio
               <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                2.3.0-dev
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -628,13 +622,13 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioReco.modules.io.LOFAR.rawTBBio_metadata">
-<span id="nuradioreco-modules-io-lofar-rawtbbio-metadata-module"></span><h1>NuRadioReco.modules.io.LOFAR.rawTBBio_metadata module<a class="headerlink" href="#module-NuRadioReco.modules.io.LOFAR.rawTBBio_metadata" title="Permalink to this heading"></a></h1>
+<span id="nuradioreco-modules-io-lofar-rawtbbio-metadata-module"></span><h1>NuRadioReco.modules.io.LOFAR.rawTBBio_metadata module<a class="headerlink" href="#module-NuRadioReco.modules.io.LOFAR.rawTBBio_metadata" title="Link to this heading"></a></h1>
 <p>This module reads in calibration metadata from file in the early phases of LOFAR. In the future this should be replaced
 by reading the metadata from the files.</p>
 <p>Modified by Brian Hare for use with LOFAR for Lightning Imaging.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.make_antennaID_filter">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">make_antennaID_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#make_antennaID_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.make_antennaID_filter" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">make_antennaID_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#make_antennaID_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.make_antennaID_filter" title="Link to this definition"></a></dt>
 <dd><p>For a list of antennaIDs, return a filter to filter data by antenna.</p>
 <p class="rubric">Notes</p>
 <p>Only works for one station at a time.
@@ -648,14 +642,14 @@ Assumes that the array you want to filter includes ALL antennas in the appropria
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.mapAntennasetKeyword">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">mapAntennasetKeyword</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#mapAntennasetKeyword"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.mapAntennasetKeyword" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">mapAntennasetKeyword</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#mapAntennasetKeyword"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.mapAntennasetKeyword" title="Link to this definition"></a></dt>
 <dd><p>Ugly fix to map correct antenna names in input to wrong antenna names
 for metadata module.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getItrfAntennaPosition">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getItrfAntennaPosition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getItrfAntennaPosition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getItrfAntennaPosition" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getItrfAntennaPosition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getItrfAntennaPosition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getItrfAntennaPosition" title="Link to this definition"></a></dt>
 <dd><p>Returns the antenna positions of all the antennas in the station
 in ITRF coordinates for the specified antennaset.
 station can be the name or id of the station.</p>
@@ -675,7 +669,7 @@ station can be the name or id of the station.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getStationPositions">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getStationPositions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getStationPositions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getStationPositions" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getStationPositions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getStationPositions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getStationPositions" title="Link to this definition"></a></dt>
 <dd><p>Returns the antenna positions of all the antennas in the station
 relative to the station center for the specified antenna set.
 station can be the name or id of the station.</p>
@@ -700,7 +694,7 @@ Path to the directory containing the LOFAR static metadata.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.convertITRFToLocal">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">convertITRFToLocal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">itrfpos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_lat_lon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#convertITRFToLocal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.convertITRFToLocal" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">convertITRFToLocal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">itrfpos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_lat_lon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#convertITRFToLocal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.convertITRFToLocal" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -725,7 +719,7 @@ Cannot be same array as itrfpos</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getStationPhaseCalibration">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getStationPhaseCalibration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getStationPhaseCalibration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getStationPhaseCalibration" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getStationPhaseCalibration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getStationPhaseCalibration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getStationPhaseCalibration" title="Link to this definition"></a></dt>
 <dd><p>Read phase calibration data for a station.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -785,7 +779,7 @@ directory relative to <em class="xref py py-obj">xMetaData_directory</em>.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.convertPhase_to_Timing">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">convertPhase_to_Timing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_calibration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5e-09</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#convertPhase_to_Timing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.convertPhase_to_Timing" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">convertPhase_to_Timing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_calibration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5e-09</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#convertPhase_to_Timing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.convertPhase_to_Timing" title="Link to this definition"></a></dt>
 <dd><p>Given the phase calibration of the 512 LOFAR subbands,
 such as the output of getStationPhaseCalibration,
 return the timing callibration of each antenna.
@@ -795,12 +789,12 @@ Sample time should be seconds per sample. Default is 5 ns</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getClockCorrectionFromParsetAddition">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getClockCorrectionFromParsetAddition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getClockCorrectionFromParsetAddition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getClockCorrectionFromParsetAddition" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getClockCorrectionFromParsetAddition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getClockCorrectionFromParsetAddition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getClockCorrectionFromParsetAddition" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getClockCorrections">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getClockCorrections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LBA'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1383263000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getClockCorrections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getClockCorrections" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.</span></span><span class="sig-name descname"><span class="pre">getClockCorrections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LBA'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1383263000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/LOFAR/rawTBBio_metadata.html#getClockCorrections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.getClockCorrections" title="Link to this definition"></a></dt>
 <dd><p>Get clock correction for superterp stations in seconds. Currently static values.</p>
 <p><em>station</em> Station name or number for which to get the correction.
 <em>time</em> Optional. Linux time of observation. As clocks drift the value from the correct time should be given. Not yet implemented.</p>
