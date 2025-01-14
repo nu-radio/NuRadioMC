@@ -66,12 +66,25 @@ class SimStation(fwk.BaseStation):
         for channel in self.__channels.values():
             yield channel
 
-    def add_channel(self, channel):
+    def add_channel(self, channel, overwrite=False):
         """
-        adds a NuRadioReco.framework.sim_channel to the SimStation object
+        Add a `SimChannel` to the `SimStation`.
+
+        Parameters
+        ----------
+        channel: `fwk.SimChannel`
+            Channel to be added.
+        overwrite: bool (Default: False)
+            If True, allow to overwrite a existing channel (i.e., a channel with the same unique identifier).
+            If False, raise AttributeError if a channel with the same identifier is being added
         """
         if not isinstance(channel, fwk.SimChannel):
             raise AttributeError("`Channel` needs to be of type `fwk.SimChannel`")
+
+        if not overwrite and channel.get_unique_identifier() in self.__channels:
+            raise AttributeError(
+                f"Channel with the unique identifier {channel.get_unique_identifier()} is already present in SimStation")
+
         self.__channels[channel.get_unique_identifier()] = channel
 
     def get_channel(self, unique_identifier):
