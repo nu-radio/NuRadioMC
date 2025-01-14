@@ -1,5 +1,5 @@
+from NuRadioReco import framework as fwk
 import pickle
-import NuRadioReco.framework.hybrid_shower
 
 
 class HybridInformation():
@@ -33,6 +33,6 @@ class HybridInformation():
 
     def deserialize(self, data_pkl):
         for shower_pkl in pickle.loads(data_pkl)['shower_pickles']:
-            shower = NuRadioReco.framework.hybrid_shower.HybridShower('')
+            shower = fwk.HybridShower('')
             shower.deserialize(shower_pkl)
             self.add_hybrid_shower(shower)

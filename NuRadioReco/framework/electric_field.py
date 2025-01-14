@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-import NuRadioReco.framework.base_trace
+from NuRadioReco import framework as fwk
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
 import radiotools.coordinatesystems
@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.ElectricField')
 
 
-class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
+class ElectricField(fwk.BaseTrace):
 
     def __init__(self, channel_ids, position=None,
                  shower_id=None, ray_tracing_id=None):
@@ -36,7 +36,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         ray_tracing_id: int or None
             the id of the corresponding ray tracing solution
         """
-        NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
+        fwk.BaseTrace.__init__(self)
         self._channel_ids = channel_ids
         self._parameters = {}
         self._parameter_covariances = {}
@@ -201,7 +201,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
 
     def serialize(self, save_trace):
         if save_trace:
-            base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
+            base_trace_pkl = fwk.BaseTrace.serialize(self)
         else:
             base_trace_pkl = None
 
@@ -219,7 +219,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
         if data['base_trace'] is not None:
-            NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
+            fwk.BaseTrace.deserialize(self, data['base_trace'])
 
         if 'position' in data:  # for backward compatibility
             self._position = data['position']

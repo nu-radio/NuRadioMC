@@ -22,7 +22,7 @@ class BaseShower:
 
     def get_id(self):
         return self._id
-    
+
     def get_parameters(self):
         return self._parameters
 
