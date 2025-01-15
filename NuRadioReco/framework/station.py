@@ -30,8 +30,8 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def add_sim_station(self, sim_station):
         """
-        Adds a SimStation to the Station. If a SimStation is already present, the new SimStation is merged to the existing
-        one.
+        Adds a SimStation to the Station. If a SimStation is already present, 
+        the new SimStation is merged to the existing one.
 
         Parameters
         ----------
@@ -67,9 +67,9 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def iter_channels(self, use_channels=None, sorted=False):
         """
-        Iterates over all channels of the station. If `use_channels` is not None, only the channels with the ids in
-        `use_channels` are iterated over. If `sorted` is True, the channels are iterated over in ascending order of their
-        ids.
+        Iterates over all channels of the station. If `use_channels` is not None, 
+        only the channels with the ids in `use_channels` are iterated over. If `sorted` 
+        is True, the channels are iterated over in ascending order of their ids.
 
         Parameters
         ----------
@@ -144,8 +144,8 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         channel : `NuRadioReco.framework.channel.Channel`
             The channel to add to the station.
         overwrite : bool, (Default: True)
-            If True, allow to overwrite an existing channel (i.e., a channel with the same id). If False, raise AttributeError
-            if a channel with the same id is being added.
+            If True, allow to overwrite an existing channel (i.e., a channel with the same id). 
+            If False, raise AttributeError if a channel with the same id is being added.
         """
         if not isinstance(channel, NuRadioReco.framework.channel.Channel):
             raise AttributeError("`Channel` needs to be of type `NuRadioReco.framework.channel.Channel`")
@@ -184,23 +184,28 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         return self.__reference_reconstruction
 
     def get_reference_direction(self):
-        if(self.__reference_reconstruction == 'RD'):
+        if self.__reference_reconstruction == 'RD':
             return self.get_parameter('zenith'), self.get_parameter('azimuth')
-        if(self.__reference_reconstruction == 'MC'):
-            return self.get_sim_station().get_parameter('zenith'), self.get_sim_station().get_parameter('azimuth')
+        if self.__reference_reconstruction == 'MC':
+            return (
+                self.get_sim_station().get_parameter('zenith'), 
+                self.get_sim_station().get_parameter('azimuth')
+            )
 
     def get_magnetic_field_vector(self, time=None):
         if(self.__reference_reconstruction == 'MC'):
             return self.get_sim_station().get_magnetic_field_vector()
         if(self.__reference_reconstruction == 'RD'):
             if time is not None:
-                logger.warning("time dependent magnetic field model not yet implemented, returning static magnetic field for the ARIANNA site")
+                logger.warning("time dependent magnetic field model not yet implemented, "
+                               "returning static magnetic field for the ARIANNA site")
             from radiotools import helper
             return helper.get_magnetic_field_vector('arianna')
 
     def serialize(self, mode):
         save_efield_traces = 'ElectricFields' in mode and mode['ElectricFields'] is True
-        base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(self, save_efield_traces=save_efield_traces)
+        base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(
+            self, save_efield_traces=save_efield_traces)
         channels_pkl = []
         save_channel_trace = 'Channels' in mode and mode['Channels'] is True
         for channel in self.iter_channels():
@@ -209,8 +214,8 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         save_sim_efield_trace = 'SimElectricFields' in mode and mode['SimElectricFields'] is True
         sim_station_pkl = None
         if(self.has_sim_station()):
-            sim_station_pkl = self.get_sim_station().serialize(save_channel_traces=save_sim_channel_trace,
-                                                               save_efield_traces=save_sim_efield_trace)
+            sim_station_pkl = self.get_sim_station().serialize(
+                save_channel_traces=save_sim_channel_trace, save_efield_traces=save_sim_efield_trace)
 
         data = {'__reference_reconstruction': self.__reference_reconstruction,
                 'channels': channels_pkl,
