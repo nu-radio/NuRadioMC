@@ -97,34 +97,23 @@ def add_cable_delay_by_rolling(station, det, trigger=False, logger=None):
     if trigger and not isinstance(det, detector.rnog_detector.Detector):
         raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
 
-    new_trace_start_times = []
+    # This function assumes that the trace_start_time of all channels is the station is the same
+
+    cable_delays = []
     for channel in station.iter_channels():
         if trigger:
             if not channel.has_extra_trigger_channel():
                 continue
 
-            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
-            new_trace_start_times.append(
-                channel.get_trigger_channel().get_trace_start_time() + cable_delay)
+            cable_delays.append(
+                det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True))
 
         else:
             # Only the RNOG detector has the argument `trigger`. Default is false
-            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-            new_trace_start_times.append(channel.get_trace_start_time() + cable_delay)
+            cable_delays.append(det.get_cable_delay(station.get_id(), channel.get_id()))
 
-    new_trace_start_time = np.min(new_trace_start_times)
-    delta_times = np.array(new_trace_start_times) - new_trace_start_time
-    if not np.any(delta_times):
-        # All channels have the same cable delay.
-        for channel in station.iter_channels():
-            channel.set_trace_start_time(new_trace_start_time)
-        return # No need to roll the traces
-
-    delta_max = np.amax(delta_times)
-    remaining_time_shifts = []
     rolled_samples = []
-
-    for channel, delta_time in zip(station.iter_channels(), delta_times):
+    for channel, delta_time in zip(station.iter_channels(), cable_delays):
         if trigger:
             if channel.has_extra_trigger_channel():
                 channel = channel.get_trigger_channel()
@@ -135,22 +124,24 @@ def add_cable_delay_by_rolling(station, det, trigger=False, logger=None):
             logger.debug(f"Shift channel {channel.get_id()} by {delta_time / units.ns:.2f}ns")
 
         if delta_time:
-            roll_samples = int(delta_time / channel.get_sampling_rate())
+            roll_samples = int(delta_time * channel.get_sampling_rate())
             # Keep the trace length even
             if roll_samples % 2 != 0:
                 roll_samples -= 1
 
-            delta_time = delta_time - roll_samples * channel.get_sampling_rate()
             trace = np.roll(channel.get_trace(), roll_samples)
-            channel.set_trace(trace, channel.get_sampling_rate())
+            channel.set_trace(trace, "same")
             rolled_samples.append(roll_samples)
 
+            delta_time = delta_time - roll_samples * channel.get_sampling_rate()
             channel.apply_time_shift(delta_time)
 
     # Assumes all channels have the same sampling rate
     max_rolled_sample = np.max(rolled_samples)
-    new_trace_start_time += max_rolled_sample * channel.get_sampling_rate()
+    print(max_rolled_sample / channel.get_sampling_rate())
+    new_trace_start_time = channel.get_trace_start_time() + max_rolled_sample / channel.get_sampling_rate()
 
+    print("cable :", new_trace_start_time)
     for channel in station.iter_channels():
 
         for efield in station.get_electric_fields_for_channels([channel.get_id()]):
