@@ -138,10 +138,8 @@ def add_cable_delay_by_rolling(station, det, trigger=False, logger=None):
 
     # Assumes all channels have the same sampling rate
     max_rolled_sample = np.max(rolled_samples)
-    print(max_rolled_sample / channel.get_sampling_rate())
     new_trace_start_time = channel.get_trace_start_time() + max_rolled_sample / channel.get_sampling_rate()
 
-    print("cable :", new_trace_start_time)
     for channel in station.iter_channels():
 
         for efield in station.get_electric_fields_for_channels([channel.get_id()]):
