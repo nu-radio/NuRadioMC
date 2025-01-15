@@ -221,10 +221,14 @@ class hardwareResponseIncorporator:
             channel.set_frequency_spectrum(
                 trace_fft, channel.get_sampling_rate())
 
-        signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
-        if has_trigger_channels:
-            signal_processing.add_cable_delay(
-                    station, det, sim_to_data, trigger=True, logger=self.logger)
+        if not sim_to_data:
+            # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+            # in the efieldToVoltageConverter or with the channelCableDelayAdder
+            # (if efieldToVoltageConverterPerEfield was used).
+            signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
+            if has_trigger_channels:
+                signal_processing.add_cable_delay(
+                        station, det, sim_to_data, trigger=True, logger=self.logger)
 
         self.__t += time.time() - t
 
