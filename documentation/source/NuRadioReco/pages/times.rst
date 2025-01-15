@@ -1,31 +1,48 @@
 Overview of times
 =================
 This page provides an overview of the different times defined in different places in NuRadioMC/NuRadioReco.
-The times corresponding to a voltage or electric field trace can be obtained by the `get_times() <NuRadioReco.framework.base_trace.BaseTrace.get_times>` method,
-which is used by both `electric field <NuRadioReco.framework.electric_field.ElectricField>` and `voltage trace <NuRadioReco.framework.channel.Channel>` classes.
-The start of the trace is also accessible separately as the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>`.
+Generally speaking, the global time of an `Event <NuRadioReco.framework.event.Event>` is stored as
+a :ref:`station or event time <NuRadioReco/pages/times:Station time (Event time)>`. The times corresponding to the `voltage time trace <NuRadioReco.framework.channel.Channel>`,
+`electric fields <NuRadioReco.framework.electric_field.ElectricField>` or `triggers <NuRadioReco.framework.trigger.Trigger>`
+are then stored as floats relative to this global time inside each object. They can be obtained by the
+`get_times() <NuRadioReco.framework.base_trace.BaseTrace.get_times>` method for trace-like objects (`ElectricField <NuRadioReco.framework.electric_field.ElectricField>` ,
+`Channel <NuRadioReco.framework.channel.Channel>`), or by the `get_trigger_time <NuRadioReco.framework.trigger.Trigger.get_trigger_time>`
+method for `Trigger <NuRadioReco.framework.trigger.Trigger>` objects.
 
-Time delays are introduced by several hardware components. These time delays are often corrected for by folding/unfolding the complex transfer function (for an amp e.g. the measurement of the S12 parameter).
+Time delays are introduced by several hardware components. These time delays are often accounted for by folding/unfolding the complex transfer function (for an amplifier e.g. the measurement of the S12 parameter).
 The unfolding is typically done in the frequency domain where a convolution becomes a simple multiplication.
-As a consequence of typically short trace length (<~1000 samples) and because a Fourier transform implies implicitly a periodic signal, a pulse being at the beginning of the trace can end up being at the end of the trace.
-To avoid this behavior we often use the following procedure, through the `NuRadioReco.modules.channelStopFilter` module:
-
-We smoothly filter the first 5% and last 5% of the trace using a Tukey window function. This is a function that goes smoothly from 0 to 1.
-To avoid rollover of the pulse, we add 128ns of zeros to the beginning and end of the trace.
+As a consequence of typically short trace length (<~1000 samples) and because a Fourier transform implies implicitly a periodic signal,
+a pulse being at the beginning of the trace can end up being at the end of the trace.
+This can be avoided by using the `NuRadioReco.modules.channelStopFilter` module, which appends zeros at either end of the trace
+and applies a Tukey window to taper the ends of the trace towards zero.
 
 .. Note::
   For the **ARIANNA** experiment, the hardware produces an artifact (a glitch) at the STOP position (i.e. the physical beginning of the trace).
   Because of the way the hardware works, the STOP position is not at the beginning of the trace but can be anywhere.
   During read in of the snowshovel calibrated data files, the trace is rolled such that the physical beginning (the STOP position) is at sample zero of the trace.
-  This glitch is removed by the `channelStopFilter <NuRadioReco.modules.channelStopFilter>` procedure described above.
+  This glitch is removed by the `channelStopFilter <NuRadioReco.modules.channelStopFilter>` procedure described in the :ref:`module overview below <NuRadioReco/pages/times:Overview of modules that affect time>` .
 
+Station time (Event time)
+-------------------------
+The global time at which the event takes place is stored as the `event time <NuRadioReco.framework.event.Event.get_event_time>`
+in the `Event <NuRadioReco.framework.event.Event>` object.
+This time usually corrsponds to the "vertex time" of the first interaction for simulations,
+and the time at which the data was recorded in the DAQ for data.
+It is stored as an `astropy.time.Time` object to enable sub-ns precision on the absolute time.
+In simulated data, the `event time <NuRadioReco.framework.event.Event.get_event_time>`
+is generally the same as the `station_time <NuRadioReco.framework.station.Station.get_station_time>` stored
+in the `Station <NuRadioReco.framework.station.Station>` object; however, because different stations may operate and trigger independently,
+the station_times of different stations are not guaranteed to agree in data.
 
-Station time
-------------
+Times in `Channel <NuRadioReco.framework.channel.Channel>`, `ElectricField <NuRadioReco.framework.electric_field.ElectricField>` and
+`Trigger <NuRadioReco.framework.trigger.Trigger>` objects are all defined relative to the
+`station_time <NuRadioReco.framework.station.Station.get_station_time>` of the Station they are stored in (see the description
+of the :doc:`NuRadio data structure </NuRadioReco/pages/event_structure>`). These times are stored as an array of floats.
+For trace-like objects (`Channels <NuRadioReco.framework.channel.Channel>` and `ElectricField <NuRadioReco.framework.electric_field.ElectricField>`),
+the times can be obtained through the `get_times() <NuRadioReco.framework.base_trace.BaseTrace.get_times>` method of these classes.
+Additionally, the trace start time (the first value of `get_times() <NuRadioReco.framework.base_trace.BaseTrace.get_times>`)
+is accessible as the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` .
 
-The `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` is always relative to the station_time of the station the E-field or channel belongs to. The station_time is stored in an `astropy.time.Time` object for sub nanosecond precision on absolute times.
-The `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` itself is stored as a float. For simulations, the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` is relative to the vertex time, i.e., the time of the particle interaction.
-For data: TODO, describe how current RNO-G data is handled
 
 Trace start times in channels
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -35,9 +52,19 @@ Trace start times in E-fields
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Work similar to `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` in channels, but with a caveat: Since EM-waves move, electric_field objects hold a position (relative to the station they are associated with). The E-field is therefore defined as the field an observer would measure at the given position. Note that this position does not necessarily have to coincide with the position of a channel the E-field is associated with. This is the case for (some) cosmic-ray simulations where the same E-field at the surface is used for all surface LPDAs.
 
+Trigger times
+^^^^^^^^^^^^^
+The `trigger_time <NuRadioReco.framework.trigger.Trigger.get_trigger_time>`,
+which is the time at which the trigger fired, is stored in the `Trigger <NuRadioReco.framework.trigger.Trigger>`
+object (which can be obtained using `station.get_trigger() <NuRadioReco.framework.station.Station.get_trigger>`).
+This is the time at which the trigger condition was first fulfilled.
+As for the trace_start_time, the trigger time is defined relative to the
+`station_time <NuRadioReco.framework.station.Station.get_station_time>` .
+
+
 Overview of modules that affect time
 ------------------------------------
-We list all relevant modules that is used for a MC simulation and reconstruction. For a pure data reconstruction, the first few modules are just not used
+We list all relevant modules that are used for a MC simulation and reconstruction. For a pure data reconstruction, the first two modules are not used.
 
 * `NuRadioReco.modules.io.coreas`: CoREAS reader prepends n samples to the simulated trace. This is done so that the trace does not directly start with the pulse and to have a good frequency resolution.
 
@@ -59,7 +86,9 @@ We list all relevant modules that is used for a MC simulation and reconstruction
     * ``sim_to_data`` mode: This modules cuts the trace to the correct length (as specified in the detector description) around the trigger time with a pre-trigger time as defined by the respective trigger module. In the case of multiple triggers it used the primary trigger. If no primary trigger is defined, it uses the trigger with the earliest trigger time. In the end, the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` is set to the trigger time. This is done because this reflects what raw experimental data looks like.
     * ``data_to_sim`` mode: The module determines the trigger that was used to cut the trace to its current length (the 'sim_to_data' step above in case of simulations) and adjusts the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` according to the different readout delays. The "primary trigger" defines the readout delays. **After** applying this module in the "data_to_sim" direction, the position in the trace that caused the trigger can be found via the `trigger_time <NuRadioReco.framework.trigger.Trigger.get_trigger_time>`.
 
-* `NuRadioReco.modules.channelStopFilter`: this module prepends and appends all channels with a fixed length (128ns by default). The 'prepend' time is subtracted from the station start time (because all channels get the same time delay)
+* `NuRadioReco.modules.channelStopFilter`: this module prepends and appends all channels with a fixed length (128ns by default).
+  The 'prepend' time is subtracted from the trace start time (because all channels get the same time delay).
+  It additionally applies a tukey window to taper off the start and end (by default, the first and last 5%) of the trace.
 
 * `NuRadioReco.modules.voltageToEfieldConverter`:
     * the traces from all used channels are cut to the overlapping region (including delays due to geometry and differences in delays due to different hardware components, e.g. cables of different length's)
