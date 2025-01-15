@@ -161,6 +161,6 @@ def add_cable_delay_by_rolling(station, det, trigger=False, logger=None):
                 )
 
         trace = channel.get_trace()
-        trace = trace[max_rolled:]
+        trace = trace[max_rolled_sample:]
         channel.set_trace(trace, "same")
         channel.set_trace_start_time(new_trace_start_time)
