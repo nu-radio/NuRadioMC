@@ -27,12 +27,9 @@ class channelAddCableDelay:
         mode : str (default: "add")
             options: 'add' or 'subtract'.
         """
-        if mode not in ['add', 'subtract', 'add_by_rolling']:
+        if mode not in ['add', 'subtract']:
             raise ValueError(f"Unknown mode '{mode}' for channelAddCableDelay. "
-                            "Valid options are 'add', 'add_by_rolling' or 'subtract'.")
+                            "Valid options are 'add' or 'subtract'.")
 
-        if mode == 'add_by_rolling':
-            signal_processing.add_cable_delay_by_rolling(station, det, trigger=False, logger=self.logger)
-        else:
-            sim_to_data = mode == "add"
-            signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
+        sim_to_data = mode == "add"
+        signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
