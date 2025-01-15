@@ -130,7 +130,7 @@ count_events.events = 0
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        #channelAddCableDelay.run(evt, station, det, mode='add')
+        channelAddCableDelay.run(evt, station, det, mode='add_by_rolling')
         channelBandPassFilter.run(evt, station, det, passband=[0.0 * units.MHz, 220.0 * units.MHz],
                                   filter_type='cheby1', order=9, rp=.1)
         channelBandPassFilter.run(evt, station, det, passband=[96.0 * units.MHz, 100.0 * units.GHz],

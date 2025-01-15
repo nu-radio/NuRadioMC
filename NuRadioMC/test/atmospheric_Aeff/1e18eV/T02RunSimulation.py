@@ -21,7 +21,7 @@ channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableD
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        #channelAddCableDelay.run(evt, station, det, mode='add')
+        channelAddCableDelay.run(evt, station, det, mode='add_by_rolling')
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
                                   filter_type='butter', order=2)
