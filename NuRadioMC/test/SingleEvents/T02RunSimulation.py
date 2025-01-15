@@ -12,7 +12,6 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 from NuRadioMC.simulation import simulation
 import logging
-import NuRadioReco.framework.station
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
