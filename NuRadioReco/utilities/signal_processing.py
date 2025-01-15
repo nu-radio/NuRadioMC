@@ -110,12 +110,10 @@ def add_cable_delay_by_rolling(station, det, trigger=False, logger=None):
         else:
             # Only the RNOG detector has the argument `trigger`. Default is false
             cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-            print(cable_delay, channel.get_trace_start_time())
             new_trace_start_times.append(channel.get_trace_start_time() + cable_delay)
 
     new_trace_start_time = np.min(new_trace_start_times)
     delta_times = np.array(new_trace_start_times) - new_trace_start_time
-    # print(delta_times, new_trace_start_time)
     if not np.any(delta_times):
         # All channels have the same cable delay.
         for channel in station.iter_channels():
@@ -136,7 +134,6 @@ def add_cable_delay_by_rolling(station, det, trigger=False, logger=None):
         if logger is not None:
             logger.debug(f"Shift channel {channel.get_id()} by {delta_time / units.ns:.2f}ns")
 
-        # print(channel.get_id(), delta_time)
         if delta_time:
             # tmp code block to try to get the same results as before
             roll_samples = int(delta_time / channel.get_sampling_rate())
