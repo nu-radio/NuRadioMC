@@ -106,7 +106,8 @@ class efieldToVoltageConverter():
 
         for channel_id in channel_ids:
             for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
-                t0 = electric_field.get_trace_start_time() + det.get_cable_delay(sim_station_id, channel_id)
+                cab_delay = det.get_cable_delay(sim_station_id, channel_id)
+                t0 = electric_field.get_trace_start_time() + cab_delay
 
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
@@ -117,8 +118,9 @@ class efieldToVoltageConverter():
                     # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
-                    self.logger.debug("trace start time {}, tracelength {}".format(
-                        electric_field.get_trace_start_time(), electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
+                    self.logger.debug("trace start time {}, cable delay {}, tracelength {}".format(
+                        electric_field.get_trace_start_time(), cab_delay,
+                        electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
 
         times_min = np.min(times_min)
         times_max = np.max(times_max)
@@ -165,20 +167,20 @@ class efieldToVoltageConverter():
 
                 # calculate the start bin
                 if not np.isnan(electric_field.get_trace_start_time()):
+                    cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                     if sim_station.is_cosmic_ray():
                         travel_time_shift = calculate_time_shift_for_cosmic_ray(
                             det, sim_station, electric_field, channel_id)
                     else:
                         travel_time_shift = 0
 
-                    cable_delay = det.get_cable_delay(sim_station_id, channel_id)
-                    start_time = electric_field.get_trace_start_time() - times_min + cable_delay + travel_time_shift
+                    start_time = electric_field.get_trace_start_time() - times_min + cab_delay + travel_time_shift
                     start_bin = int(round(start_time / time_resolution))
 
                     # calculate error by using discret bins
                     time_remainder = start_time - start_bin * time_resolution
                     self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(
-                        channel_id, electric_field.get_trace_start_time(), start_bin, electric_field[efp.ray_path_type]))
+                        channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
 
                     new_efield = NuRadioReco.framework.base_trace.BaseTrace()  # create new data structure with new efield length
                     new_efield.set_trace(copy.copy(electric_field.get_trace()), electric_field.get_sampling_rate())

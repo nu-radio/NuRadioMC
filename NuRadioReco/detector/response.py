@@ -463,7 +463,7 @@ class Response:
         else:
             return fig, ax
 
-    def get_time_delay(self, ):
+    def get_time_delay(self):
         """ Get time delay from DB """
         return np.sum(self.__time_delays)
 
