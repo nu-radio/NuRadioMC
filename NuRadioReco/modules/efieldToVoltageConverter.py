@@ -106,7 +106,7 @@ class efieldToVoltageConverter():
 
         for channel_id in channel_ids:
             for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
-                t0 = electric_field.get_trace_start_time()
+                t0 = electric_field.get_trace_start_time() + det.get_cable_delay(sim_station_id, channel_id)
 
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
@@ -122,12 +122,6 @@ class efieldToVoltageConverter():
 
         times_min = np.min(times_min)
         times_max = np.max(times_max)
-
-        # We have to take into account the cable delay of the channel to get the correct trace length,
-        # however, we don't need add the cable delay in this module. Take all channels (not just the selected once!)
-        max_cable_delay = np.max([det.get_cable_delay(sim_station_id, channel_id) for channel_id in channel_ids])
-        # make sure we have enouth "space" before the pulses to shift them later according to the cable delay
-        times_min -= max_cable_delay
 
         # pad event times by pre/post pulse time
         times_min -= self.__pre_pulse_time
@@ -177,7 +171,8 @@ class efieldToVoltageConverter():
                     else:
                         travel_time_shift = 0
 
-                    start_time = electric_field.get_trace_start_time() - times_min + travel_time_shift
+                    cable_delay = det.get_cable_delay(sim_station_id, channel_id)
+                    start_time = electric_field.get_trace_start_time() - times_min + cable_delay + travel_time_shift
                     start_bin = int(round(start_time / time_resolution))
 
                     # calculate error by using discret bins

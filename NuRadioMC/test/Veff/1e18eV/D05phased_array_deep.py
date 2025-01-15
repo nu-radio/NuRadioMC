@@ -4,7 +4,6 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.phasedarray.triggerSimulator
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.channelAddCableDelay
 
 from NuRadioReco.utilities import units
 import numpy as np
@@ -31,7 +30,6 @@ import yaml
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 phasedArrayTrigger = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
-channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
 # assuming that PA consists out of 8 antennas (channel 0-7)
 main_low_angle = np.deg2rad(-59.54968597864437)
@@ -55,7 +53,6 @@ for channel_id in range(0, 9):
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelAddCableDelay.run(evt, station, det, mode='add_by_rolling')
         channelBandPassFilter.run(evt, station, det,
                                   passband=passband_low, filter_type=filter_type, order=order_low, rp=0.1)
         channelBandPassFilter.run(evt, station, det,
