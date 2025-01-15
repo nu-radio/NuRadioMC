@@ -33,7 +33,7 @@ can be installed by appending ``[option]``, i.e. ``pip install NuRadioMC[option]
   instead, or install it manually (see below).
 
 Development version
----------------------------
+-------------------
 The most recent version of ``NuRadioMC`` is available on `github <https://github.com/nu-radio/NuRadioMC.git>`__.
 It can be downloaded manually from the `repository website <https://github.com/nu-radio/NuRadioMC/releases/latest>`__,
 or cloned using ``git``
@@ -166,15 +166,25 @@ Optional Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
 These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's features.
-They can be installed by including adding ``[option]`` when installing NuRadioMC.
+They can be installed by including adding ``[option]`` when installing NuRadioMC. Alternatively,
+use ``pip install nuradiomc[all]`` to install all optional dependencies.
 
-- ``[RNO_G]``
+- ``[RNO-G]``
 
   `mattak <https://github.com/RNO-G/mattak>`__ is required to open RNO-G root files:
 
   .. code-block:: bash
 
     pip install mattak
+
+- ``[rno-g-extras]``
+
+  Optionally, to filter RNO-G data (during read in) the `RNO-G run table database https://github.com/RNO-G/rnog-runtable`__
+  can be used. Note that this requires membership of the RNO-G Github organisation (not public):
+
+  .. code-block:: bash
+
+    pip install git+ssh://git@github.com/RNO-G/rnog-runtable.git
 
 - ``[proposal]``
 
@@ -198,7 +208,7 @@ They can be installed by including adding ``[option]`` when installing NuRadioMC
 
     pip install git+https://github.com/telegraphic/pygdsm
 
-- ``[muon_flux]``
+- ``[muon-flux]``
 
   Needed for some muon flux calculations
 
