@@ -103,10 +103,10 @@ class Trigger:
 
     def get_trigger_time(self):
         """
-        Get the trigger time
+        Get the trigger time.
 
-        Returns the absolute time of the trigger with respect to the beginning of the event,
-        i.e. the first time in the event where the trigger condition was fulfilled
+        Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+        This is defined relative to the `station_time <NuRadioReco.framework.station.Station.get_station_time>`.
 
         Returns
         -------

@@ -101,7 +101,11 @@ class BaseStation():
 
     def get_station_time(self, format='isot'):
         """
-        Returns a astropy.time.Time object
+        Returns the station time as an astropy.time.Time object
+
+        The station time corresponds to the absolute time at which the event
+        starts, i.e. all times in Channel, Trigger and ElectricField objects
+        are measured relative to this time.
 
         Parameters
         ----------
@@ -112,7 +116,7 @@ class BaseStation():
         Returns
         -------
 
-        _station_time: astropy.time.Time
+        station_time: astropy.time.Time
         """
         if self._station_time is None:
             return None
