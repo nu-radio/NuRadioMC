@@ -123,6 +123,13 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     return weights
 
 
+def observer_to_si_geomagnetic(observer):
+    data = np.copy(observer)
+    data[:, 1], data[:, 2] = -observer[:, 2], observer[:, 1]
+    data[:, 0] *= units.second
+    data[:, 1:4] *= conversion_fieldstrength_cgs_to_SI
+    return data
+
 def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     """
     creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file
