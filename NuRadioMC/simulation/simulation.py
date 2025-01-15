@@ -495,7 +495,7 @@ def apply_det_response_sim(sim_station, det, config,
     else:
         efieldToVoltageConverterPerEfield.run(evt, sim_station, det)  # convolve efield with antenna pattern
         detector_simulation_filter_amp(evt, sim_station, det)
-        # channelAddCableDelay.run(evt, sim_station, det)
+        channelAddCableDelay.run(evt, sim_station, det)  # add cable delay (is not added with efieldToVoltageConverterPerEfield)
 
     if config['speedup']['amp_per_ray_solution']:
         channelSignalReconstructor.run(evt, sim_station, det)
@@ -562,7 +562,7 @@ def apply_det_response(evt, det, config,
     else:
         dt = 1. / (config['sampling_rate'])
         # start detector simulation
-        efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)  # convolve efield with antenna pattern
+        efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)  # convolve efield with antenna pattern and adds cable delay!
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
         # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
         channelResampler.run(evt, station, det, sampling_rate=1. / dt)
@@ -577,7 +577,6 @@ def apply_det_response(evt, det, config,
                                             max_freq=max_freq, type='rayleigh',
                                             excluded_channels=noiseless_channels[station.get_id()])
 
-        # channelAddCableDelay.run(evt, station, det)
         detector_simulation_filter_amp(evt, station, det)
 
     if time_logger is not None:
