@@ -135,8 +135,11 @@ def add_cable_delay_by_rolling(station, det, trigger=False, logger=None):
             logger.debug(f"Shift channel {channel.get_id()} by {delta_time / units.ns:.2f}ns")
 
         if delta_time:
-            # tmp code block to try to get the same results as before
             roll_samples = int(delta_time / channel.get_sampling_rate())
+            # Keep the trace length even
+            if roll_samples % 2 != 0:
+                roll_samples -= 1
+
             delta_time = delta_time - roll_samples * channel.get_sampling_rate()
             trace = np.roll(channel.get_trace(), roll_samples)
             channel.set_trace(trace, channel.get_sampling_rate())
