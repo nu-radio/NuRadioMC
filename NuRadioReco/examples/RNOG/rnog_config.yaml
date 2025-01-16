@@ -1,0 +1,58 @@
+# Config file for the standard RNO-G data processing
+
+readRNOGDataMattak:
+  args:
+    filenames: null
+    # Use mattak to calibrate data on the fly. Requires calibration files to be available
+    read_calibrated_data: False
+    # Only used when read_calibrated_data==False, performs a simple baseline subtraction each 128 bins
+    # This is performed by the dedicated module channelBlockOffsets
+    apply_baseline_correction: 'approximate'
+    # Only used when read_calibrated_data==False, performs a linear voltage calibration with hardcoded values
+    convert_to_voltage: True
+    # Can be used instead of defining a selector (only for triggers)
+    select_triggers: null
+    # If true, and if the RunTable database is available select runs based on the following criteria
+    select_runs: False
+    # Only use runs of a certain run type
+    run_types: ["physics"]
+    # Only use runs with a maximum trigger rate of 1 Hz
+    max_trigger_rate: null
+    # This might be necessary to read older files which have an invalid value stored as sampling rate
+    overwrite_sampling_rate: 3.2
+
+detector:
+  args:
+    # Specify a path to the detector description file. If null (None in python),
+    #the detector description will be queried from the hardware database.
+    detector_file: null
+    # If you want to query information only from a specific station,
+    # you can specify the station ID here.
+    select_stations: null
+
+channelResampler:
+  use: True
+  args:
+    sampling_rate: 5  # GHz
+
+channelAddCableDelay:
+  use: True
+
+hardwareResponseIncorporator:
+  use: True
+  args:
+
+channelCWNotchFilter:
+  use: True
+  args:
+
+channelBandPassFilter:
+  use: True
+  args:
+    passband: [0.1, 0.6]  # GHz
+    filter_type: 'rectangular'
+
+eventWriter:
+  args:
+    mode: null
+    filename: rnog_output.nur
