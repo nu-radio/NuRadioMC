@@ -87,11 +87,12 @@ def merge_config(user, default):
     return user
 
 
-def calculate_sim_efield(showers, station_id, channel_id,
-                         det, propagator, medium, config,
-                         time_logger=None,
-                         min_efield_amplitude=None,
-                         distance_cut=None):
+def calculate_sim_efield(
+        showers, station_id, channel_id,
+        det, propagator, medium, config,
+        time_logger=None,
+        min_efield_amplitude=None,
+        distance_cut=None):
     """
     Calculate the simulated electric field for a given shower and channel.
 
@@ -155,10 +156,9 @@ def calculate_sim_efield(showers, station_id, channel_id,
             mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < config['speedup']['distance_cut_sum_length']
             shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
             if np.linalg.norm(x1 - x2) > distance_cut(shower_energy_sum):
-                # logger.warning(f"shower {shower.get_id()} is too far away ({np.linalg.norm(x1 - x2)/units.km:.2f} > {distance_cut(shower_energy_sum)/units.km:.2f}) from station {station_id} channel {channel_id}, skipping shower")
                 time_logger.stop_time('distance cut')
                 continue
-            # logger.warning(f"shower {shower.get_id()} is close enough ({np.linalg.norm(x1 - x2)/units.km:.2f} < {distance_cut(shower_energy_sum)/units.km:.2f}) to station {station_id} channel {channel_id}, continuing with shower")
+
             time_logger.stop_time('distance cut')
         time_logger.start_time('ray tracing')
         logger.debug(f"Calculating electric field for shower {shower.get_id()} and station {station_id}, channel {channel_id}")
@@ -201,7 +201,8 @@ def calculate_sim_efield(showers, station_id, channel_id,
             wave_propagation_time = propagator.get_travel_time(iS)  # calculate travel time
             time_logger.start_time('ray tracing (time)')
             if wave_propagation_distance is None or wave_propagation_time is None:
-                logger.warning(f'travel distance or travel time could not be calculated, skipping ray tracing solution. Shower ID: {shower.get_id()} Station ID: {station_id} Channel ID: {channel_id}')
+                logger.warning('travel distance or travel time could not be calculated, skipping ray tracing solution. '
+                               f'Shower ID: {shower.get_id()} Station ID: {station_id} Channel ID: {channel_id}')
                 continue
             kwargs = {}
             # if the input file specifies a specific shower realization, or
@@ -261,25 +262,29 @@ def calculate_sim_efield(showers, station_id, channel_id,
             electric_field[efp.nu_vertex_distance] = wave_propagation_distance
             electric_field[efp.nu_vertex_propagation_time] = wave_propagation_time
             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
-            electric_field[efp.polarization_angle] = np.arctan2(*polarization_direction_onsky[1:][::-1]) #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
+            #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
+            electric_field[efp.polarization_angle] = np.arctan2(*polarization_direction_onsky[1:][::-1])
             electric_field[efp.raytracing_solution] = propagator.get_raytracing_output(iS)
             electric_field[efp.launch_vector] = propagator.get_launch_vector(iS)
 
             if min_efield_amplitude is not None:
                 if np.max(np.abs(electric_field.get_trace())) > min_efield_amplitude:
                     sim_station.set_candidate(True)
-                # if np.max(np.abs(electric_field.get_trace())) < min_efield_amplitude:
-                #     logger.debug(f"Amplitude to low: electric field NOT added to SimStation for shower {shower.get_id()} and station {station_id}, channel {channel_id} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
-                #     continue
+
             sim_station.add_electric_field(electric_field)
-            logger.debug(f"Added electric field to SimStation for shower {shower.get_id()} and station {station_id}, channel {channel_id} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
+            logger.debug(
+                f"Added electric field to SimStation for shower {shower.get_id()} and station {station_id}, "
+                f"channel {channel_id} with ray tracing solution {iS} and viewing angle {viewing_angles[iS]/units.deg:.1f}deg")
+
     return sim_station
 
-def calculate_sim_efield_for_emitter(emitters, station_id, channel_id,
-                         det, propagator, medium, config,
-                         rnd, antenna_pattern_provider,
-                         time_logger=None,
-                         min_efield_amplitude=None):
+
+def calculate_sim_efield_for_emitter(
+        emitters, station_id, channel_id,
+        det, propagator, medium, config,
+        rnd, antenna_pattern_provider,
+        time_logger=None,
+        min_efield_amplitude=None):
     """
     Calculate the simulated electric field for a given shower and channel.
 
@@ -439,14 +444,17 @@ def calculate_sim_efield_for_emitter(emitters, station_id, channel_id,
                     sim_station.set_candidate(True)
 
             sim_station.add_electric_field(electric_field)
+
     return sim_station
 
-def apply_det_response_sim(sim_station, det, config,
-                        detector_simulation_filter_amp=None,
-                        evt=None,
-                        event_time=None,
-                        detector_simulation_part1=None,
-                        time_logger=None):
+
+def apply_det_response_sim(
+        sim_station, det, config,
+        detector_simulation_filter_amp=None,
+        evt=None,
+        event_time=None,
+        detector_simulation_part1=None,
+        time_logger=None):
     """
     Apply the detector response to the simulated electric field, i.e., calculate the voltage traces as
     seen by the readout system, per shower, raytracing solution and channel.
@@ -493,23 +501,27 @@ def apply_det_response_sim(sim_station, det, config,
     if detector_simulation_part1 is not None:
         detector_simulation_part1(sim_station, det)
     else:
-        efieldToVoltageConverterPerEfield.run(evt, sim_station, det)  # convolve efield with antenna pattern
+        # convolve efield with antenna pattern and add cable delay (is not added with efieldToVoltageConverterPEREFIELD)
+        efieldToVoltageConverterPerEfield.run(evt, sim_station, det)
+        channelAddCableDelay.run(evt, sim_station, det)
+
         detector_simulation_filter_amp(evt, sim_station, det)
-        channelAddCableDelay.run(evt, sim_station, det)  # add cable delay (is not added with efieldToVoltageConverterPerEfield)
 
     if config['speedup']['amp_per_ray_solution']:
         channelSignalReconstructor.run(evt, sim_station, det)
     if time_logger is not None: time_logger.stop_time('detector response (sim)')
 
-def apply_det_response(evt, det, config,
-                        detector_simulation_filter_amp=None,
-                        add_noise=None,
-                        Vrms_per_channel=None,
-                        integrated_channel_response=None,
-                        noiseless_channels=None,
-                        detector_simulation_part2=None,
-                        time_logger=None,
-                        channel_ids=None):
+
+def apply_det_response(
+        evt, det, config,
+        detector_simulation_filter_amp=None,
+        add_noise=None,
+        Vrms_per_channel=None,
+        integrated_channel_response=None,
+        noiseless_channels=None,
+        detector_simulation_part2=None,
+        time_logger=None,
+        channel_ids=None):
     """
     Apply the detector response to the simulated electric field, i.e., the voltage traces
     seen by the readout system. This function combines all electric fields (from different showers and
@@ -562,7 +574,11 @@ def apply_det_response(evt, det, config,
     else:
         dt = 1. / (config['sampling_rate'])
         # start detector simulation
-        efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)  # convolve efield with antenna pattern and adds cable delay!
+
+        # convolve efield with antenna pattern and add cable delay (this is also done in the efieldToVoltageConverter
+        # (unlike the efieldToVoltageConverterPEREFIELD))
+        efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)
+
         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
         # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
         channelResampler.run(evt, station, det, sampling_rate=1. / dt)
@@ -572,15 +588,19 @@ def apply_det_response(evt, det, config,
             Vrms = {}
             for channel_id in det.get_channel_ids(station.get_id()):
                 norm = integrated_channel_response[station.get_id()][channel_id]
-                Vrms[channel_id] = Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
-            channelGenericNoiseAdder.run(evt, station, det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                            max_freq=max_freq, type='rayleigh',
-                                            excluded_channels=noiseless_channels[station.get_id()])
+                # normalize noise level to the bandwidth its generated for
+                Vrms[channel_id] = Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5
+
+            channelGenericNoiseAdder.run(
+                evt, station, det, amplitude=Vrms, min_freq=0 * units.MHz,
+                max_freq=max_freq, type='rayleigh',
+                excluded_channels=noiseless_channels[station.get_id()])
 
         detector_simulation_filter_amp(evt, station, det)
 
     if time_logger is not None:
         time_logger.stop_time('detector response')
+
 
 def build_dummy_event(station_id, det, config):
     """
