@@ -196,12 +196,16 @@ class hardwareResponseIncorporator:
                 frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
 
             if self.trigger_channels is not None and channel.get_id() in self.trigger_channels:
-                # Create a copy of the channel and apply the readout and trigger channel response respectively.
-                # We do this here under the assumption that up to this point no difference between the two channels
-                # had to be made. This is acutally not strictly true. The cable delay is already added in the
-                # efieldToVoltageConverter module. I.e., the assumption is made that the cable delay is no different
-                # between the two. While this might be true/a good approximation for the moment it is not given that
-                # this holds for the future. You have been warned!
+                """
+                Create a copy of the channel and apply the readout and trigger channel response respectively.
+                We do this here under the assumption that up to this point no difference between the two channels
+                had to be made. This is acutally not strictly true. The cable delay is already added in the
+                efieldToVoltageConverter module. I.e., the assumption is made that the cable delay is no different
+                between the two. While this might be true/a good approximation for the moment it is not given that
+                this holds for the future. You have been warned!
+
+                See also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.
+                """
                 trig_filter = self.get_filter(
                     frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
                     phase_only, mode, mingainlin, is_trigger=True)
