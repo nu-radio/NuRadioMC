@@ -107,7 +107,7 @@ class hardwareResponseIncorporator:
             pass
         elif mode == 'phase_only':
             cable_response = np.ones_like(cable_response) * np.exp(1j * np.angle(cable_response))
-            amp_response = np.ones_like(amp_response) * np.angle(amp_response)
+            amp_response = np.ones_like(amp_response) * np.exp(1j * np.angle(amp_response))
         elif mode == 'relative':
             ampmax = np.max(np.abs(amp_response))
             amp_response /= ampmax
