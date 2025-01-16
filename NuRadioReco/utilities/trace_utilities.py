@@ -111,6 +111,81 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
 
     return f_signal * dt * conversion_factor_integrated_signal
 
+def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
+    """
+    Compute the stokes parameters for electric field traces
+
+    Parameters
+    ----------
+    trace_u : 1d array (float)
+        The u component of the electric field trace
+    trace_v : 1d array (float)
+        The v component of the electric field trace.
+        The two components should have equal lengths,
+        and the (u, v) coordinates should be perpendicular.
+        Common choices are (theta, phi) or (vxB, vxvxB)
+    window_samples : int | None, default: 128
+        If not None, return a running average
+        of the stokes parameters over ``window_samples``.
+        If None, compute the stokes parameters over the
+        whole trace (equivalent to ``window_samples=len(trace_u)``).
+    squeeze : bool, default: True
+        Only relevant if ``window_samples=None``. Squeezes
+        out the second axis (which has a length of one)
+        and returns an array of shape (4,)
+
+    Returns
+    -------
+    stokes : 2d array of floats
+        The stokes parameters I, Q, U, V. The shape of
+        the returned array is ``(4, len(trace_u) - window_samples +1)``,
+        i.e. stokes[0] returns the I parameter,
+        stokes[1] corresponds to Q, and so on.
+
+    Examples
+    --------
+    For an electric field defined in (eR, eTheta, ePhi) components,
+    the stokes parameters can be given simply by:
+
+    .. code-block::
+
+        get_stokes(electric_field.get_trace()[1], electric_field.get_trace()[2])
+
+    To instead get the stokes parameters in vxB and vxvxB, we need to first obtain
+    the appropriate electric field components
+
+    .. code-block::
+
+        cs = radiotools.coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector)
+
+        efield_trace_vxB_vxvxB = cs.transform_to_vxB_vxvxB(
+            cs.transform_from_onsky_to_ground(efield.get_trace())
+        )
+
+    """
+
+    assert len(trace_u) == len(trace_v)
+    h1 = scipy.signal.hilbert(trace_u)
+    h2 = scipy.signal.hilbert(trace_v)
+    stokes_i = np.abs(h1)**2 + np.abs(h2)**2
+    stokes_q = np.abs(h1)**2 - np.abs(h2)**2
+    uv = 2 * h1 * np.conjugate(h2)
+    stokes_u = np.real(uv)
+    stokes_v = np.imag(uv)
+    stokes = np.array([stokes_i, stokes_q, stokes_u, stokes_v])
+    if window_samples == 1: # no need to average
+        return stokes
+    elif window_samples is None:
+        window_samples = len(h1)
+
+    stokes = np.asarray([
+        scipy.signal.convolve(i, np.ones(window_samples), mode='valid') for i in stokes
+    ])
+    stokes /= window_samples
+
+    if squeeze:
+        return np.squeeze(stokes)
+    return stokes
 
 def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 7):
     """
