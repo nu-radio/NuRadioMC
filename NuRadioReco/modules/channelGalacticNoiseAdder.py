@@ -24,12 +24,6 @@ import astropy.units
 logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
 
 try:
-    from radiocalibrationtoolkit import *  # Documentation: https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main contains SSM, GMOSS, ULSA
-except Exception:
-    logger.info("Import of `radiocalibrationtoolkit` failed. Consider installing it to use more sky models. "
-                "See documentation at https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main")
-
-try:
     from pylfmap import LFmap  # Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
 except ImportError:
     logger.info("LFmap import failed. Consider installing it to use LFmap as sky model.")
@@ -72,7 +66,7 @@ class channelGalacticNoiseAdder:
 
         Parameters
         ----------
-        skymodel: {'lfmap', 'lfss', 'gsm2016', 'haslam', 'ssm', 'gmoss', 'ulsa_fdi', 'ulsa_dpi', 'ulsa_ci'}, optional
+        skymodel: {'lfmap', 'lfss', 'gsm2016', 'haslam'}, optional
             Choose the sky model to use. If none is provided, the Global Sky Model (2008) is used as a default.
         debug: bool, default: False
             Deprecated. Will be removed in future versions.
@@ -130,21 +124,6 @@ class channelGalacticNoiseAdder:
             elif skymodel == 'lfmap':
                 sky_model = LFmap()
                 logger.info("Using LFmap as sky model")
-            elif skymodel == 'ssm':
-                sky_model = SSM()
-                logger.info("Using SSM as sky model")
-            elif skymodel == 'gmoss':
-                sky_model = GMOSS()
-                logger.info("Using GMOSS as sky model")
-            elif skymodel == 'ulsa_fdi':
-                sky_model = ULSA(index_type='freq_dependent_index')
-                logger.info("Using ULSA_fdi as sky model")
-            elif skymodel == 'ulsa_ci':
-                sky_model = ULSA(index_type='constant_index')
-                logger.info("Using ULSA_ci as sky model")
-            elif skymodel == 'ulsa_dpi':
-                sky_model = ULSA(index_type='direction_dependent_index')
-                logger.info("Using ULSA_dpi as sky model")
             else:
                 logger.error(f"Sky model {skymodel} unknown. Defaulting to Global Sky Model (2008).")
                 sky_model = GlobalSkyModel(freq_unit="MHz")
