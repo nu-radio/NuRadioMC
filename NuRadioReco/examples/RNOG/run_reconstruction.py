@@ -1,16 +1,23 @@
-import NuRadioReco
+import NuRadioReco.modules.io.RNO_G.readRNOGDataMattak
+import NuRadioReco.modules.channelBandPassFilter
+import NuRadioReco.modules.sphericalWaveFitter
+import NuRadioReco.modules.channelAddCableDelay
+
+from NuRadioReco.detector import detector
+from NuRadioReco.utilities import units
+
 import matplotlib.pyplot as plt
-from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 import pandas as pd
 import numpy as np
-from NuRadioReco.utilities import units
-from NuRadioReco.modules import channelBandPassFilter
-from NuRadioReco.detector import detector
 import datetime
-from NuRadioReco.modules import sphericalWaveFitter
-from NuRadioReco.modules import channelAddCableDelay
+import os
 
-""" An example to show how to read RNO-G data and how to perform simple reconstructions. The data used is pulser data and a simple (brute force, not optimized) spherical wave reconstruction is performed to obtain the pulser position """""
+
+"""
+An example to show how to read RNO-G data and how to perform simple reconstructions.
+The data used is pulser data and a simple (brute force, not optimized) spherical
+wave reconstruction is performed to obtain the pulser position.
+"""
 
 """ Initiazize modules needed"""
 
@@ -23,7 +30,9 @@ sphericalWaveFitter.begin(channel_ids = use_channels)
 
 """ Specify the detector. """
 
-det = detector.Detector(json_filename = "../../../detector/RNO_G/RNO_season_2021.json")
+json_file_path = os.path.dirname(__file__) + "/../../detector/RNO_G/RNO_season_2021.json"
+
+det = detector.Detector(json_filename=json_file_path)
 det.update(datetime.datetime(2022, 10, 1))
 
 """ Get positions for the pulsers from the detector file as starting positions for the fit """
@@ -49,20 +58,12 @@ for i_event, event in enumerate(readRNOGData.run()):
 	sphericalWaveFitter.run(event, station, det, start_pulser_position = rel_pulser_position, n_index = 1.78, debug =True)
 
 	if plots:
-		fig = plt.figure()
-		i = 1
-		for channel in station.iter_channels():
+		fig, axs = plt.subplots(3, 2)
+		for ax, channel in zip(axs.flatten(), station.iter_channels()):
 			if channel.get_id() in use_channels:
-				ax = fig.add_subplot(3, 2, i)
 				ax.plot(channel.get_trace())
 				ax.title.set_text("channel id {}".format(channel.get_id()))
 				ax.grid()
-				i+= 1
 
 		fig.tight_layout()
 		fig.savefig("trace_{}.pdf".format(i_event))
-
-
-
-
-
