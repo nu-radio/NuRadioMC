@@ -99,8 +99,6 @@ class Response:
         if y[0] is None or y[1] is None:
             raise ValueError("Data for response incomplete, detected \"None\"")
 
-        # print(name, y_unit[1], y[1])
-
         y_ampl, y_phase = np.array(y)
         if y_unit[0] == "dB":
             gain = 10 ** (y_ampl / 20)
