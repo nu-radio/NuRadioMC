@@ -5,7 +5,7 @@ import logging
 
 class channelAddCableDelay:
     """
-    Adds the cable delay to channels
+    Adds the cable delay to channels.
     """
 
     def __init__(self):

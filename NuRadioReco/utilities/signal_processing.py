@@ -47,12 +47,16 @@ def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
 
     trigger: bool
         If True, take the time delay from the trigger channel response.
-        Only possible if `det` is of type `rnog_detector.Detector`. (Default: False)
+        Only possible if ``det`` is of type `rnog_detector.Detector`. (Default: False)
 
     logger: logging.Logger, default=None
-        If set, use `logger.debug(..)` to log the cable delay.
+        If set, use ``logger.debug(..)`` to log the cable delay.
+
+    See Also
+    --------
+    `NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay`
     """
-    assert sim_to_data is not None, "`sim_to_data` is None, please specify."
+    assert sim_to_data is not None, "``sim_to_data`` is None, please specify."
 
     add_or_subtract = 1 if sim_to_data else -1
     msg = "Add" if sim_to_data else "Subtract"

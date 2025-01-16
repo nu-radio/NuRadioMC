@@ -1328,13 +1328,13 @@ if __name__ == "__main__":
 
     response = det.get_signal_chain_response(station_id=13, channel_id=0)
 
-    # from NuRadioReco.framework import electric_field
-    # ef = electric_field.ElectricField(channel_ids=[0])
-    # ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
+    from NuRadioReco.framework import electric_field
+    ef = electric_field.ElectricField(channel_ids=[0])
+    ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
 
-    # # Multipy the response to a trace. The multiply operator takes care of everything
-    # trace_at_readout = ef * response
+    # Multipy the response to a trace. The multiply operator takes care of everything
+    trace_at_readout = ef * response
 
-    # # getting the complex response as array
-    # freq = np.arange(50, 1000) * units.MHz
-    # complex_resp = response(freq)
+    # getting the complex response as array
+    freq = np.arange(50, 1000) * units.MHz
+    complex_resp = response(freq)
