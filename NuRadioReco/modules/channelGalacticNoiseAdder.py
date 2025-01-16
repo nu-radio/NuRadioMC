@@ -9,6 +9,7 @@ import numpy as np
 import scipy.constants
 import scipy.interpolate
 import functools
+from contextlib import redirect_stdout
 
 from pygdsm import (
     GlobalSkyModel16,
@@ -24,10 +25,16 @@ import astropy.units
 logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
 
 try:
-    from pylfmap import LFmap  # Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
+    with redirect_stdout(None): # suppress (usually irrelevant) print statements from pylfmap
+        from pylfmap import LFmap  # Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
 except ImportError:
-    logger.info("LFmap import failed. Consider installing it to use LFmap as sky model.")
-
+    logger.info(
+        "pylfmap import failed. Consider installing it from "
+        "https://github.com/F-Tomas/pylfmap to use LFmap as sky model.")
+except IndexError: # this is a common error if cfitsio is not found... there are probably others
+    logger.error(
+        "pylfmap import failed. This might be because you do not have a working "
+        "installation of cfitsio. See https://github.com/F-Tomas/pylfmap/issues/2 for potential tips")
 
 class channelGalacticNoiseAdder:
     """
@@ -44,11 +51,8 @@ class channelGalacticNoiseAdder:
     """
 
     def __init__(self):
-        self.__zenith_sample = None
-        self.__azimuth_sample = None
         self.__n_side = None
         self.__interpolation_frequencies = None
-        self.__gdsm = None
         self.__radio_sky = None
         self.__noise_temperatures = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
@@ -66,7 +70,7 @@ class channelGalacticNoiseAdder:
 
         Parameters
         ----------
-        skymodel: {'lfmap', 'lfss', 'gsm2016', 'haslam'}, optional
+        skymodel: {'gsm2008', 'lfmap', 'lfss', 'gsm2016', 'haslam'}, optional
             Choose the sky model to use. If none is provided, the Global Sky Model (2008) is used as a default.
         debug: bool, default: False
             Deprecated. Will be removed in future versions.
@@ -77,7 +81,7 @@ class channelGalacticNoiseAdder:
             from that direction is calculated. The number of pixels used is
             12 * n_side ** 2, so a larger value for n_side will result better accuracy
             but also greatly increase computing time.
-        freq_range: array of len=2, default: [10, 1100] * units.MHZ
+        freq_range: array of len=2, default: [10, 1000] * units.MHZ
             The sky brightness temperature will be evaluated for the frequencies
             within this limit. Brightness temperature for frequencies in between are
             calculated by interpolation the log10 of the temperature
@@ -94,7 +98,7 @@ class channelGalacticNoiseAdder:
 
         if interpolation_frequencies is None:
             if freq_range is None:
-                freq_range = np.array([10, 1100]) * units.MHz
+                freq_range = np.array([10, 1000]) * units.MHz
 
             # define interpolation frequencies. Set in logarithmic range from freq_range[0] to freq_range[1],
             # rounded to MHz to avoid import errors from LFmap and tabulated models.
@@ -108,20 +112,20 @@ class channelGalacticNoiseAdder:
             if skymodel is None:
                 sky_model = GlobalSkyModel(freq_unit="MHz")
                 logger.info("No sky model specified. Using standard: Global Sky Model (2008). Available models: "
-                            "lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci")
-            elif skymodel == 'lfss':
+                            "gsm2008, lfmap, lfss, gsm2016, haslam")
+            elif skymodel.lower() == 'lfss':
                 sky_model = LowFrequencySkyModel(freq_unit="MHz")
                 logger.info("Using LFSS as sky model")
-            elif skymodel == 'gsm2008':
+            elif skymodel.lower() == 'gsm2008':
                 sky_model = GlobalSkyModel(freq_unit="MHz")
                 logger.info("Using GSM2008 as sky model")
-            elif skymodel == 'gsm2016':
+            elif skymodel.lower() == 'gsm2016':
                 sky_model = GlobalSkyModel16(freq_unit="MHz")
                 logger.info("Using GSM2016 as sky model")
-            elif skymodel == 'haslam':
+            elif skymodel.lower() == 'haslam':
                 sky_model = HaslamSkyModel(freq_unit="MHz", spectral_index=-2.53)
                 logger.info("Using Haslam as sky model")
-            elif skymodel == 'lfmap':
+            elif skymodel.lower() == 'lfmap':
                 sky_model = LFmap()
                 logger.info("Using LFmap as sky model")
             else:
