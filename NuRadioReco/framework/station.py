@@ -22,7 +22,7 @@ class Station(fwk.BaseStation):
 
         Parameters
         ----------
-        sim_station : fwk.SimStation
+        sim_station : `NuRadioReco.framework.sim_station.SimStation`
             The SimStation to set as the SimStation of the Station.
         """
         self.__sim_station = sim_station
@@ -34,7 +34,7 @@ class Station(fwk.BaseStation):
 
         Parameters
         ----------
-        sim_station : fwk.SimStation
+        sim_station : `NuRadioReco.framework.sim_station.SimStation`
             The SimStation to add to the Station.
         """
         if self.__sim_station is None:
@@ -48,7 +48,7 @@ class Station(fwk.BaseStation):
 
         Returns
         -------
-        fwk.SimStation
+        sim_station: `NuRadioReco.framework.sim_station.SimStation`
             The SimStation of the Station.
         """
         return self.__sim_station
@@ -79,7 +79,7 @@ class Station(fwk.BaseStation):
 
         Yields
         ------
-        fwk.Channel
+        channel : `NuRadioReco.framework.channel.Channel`
             The next channel in the iteration.
         """
         channel_ids = self.get_channel_ids()
@@ -147,7 +147,7 @@ class Station(fwk.BaseStation):
 
         Parameters
         ----------
-        channel_id : int or fwk.Channel
+        channel_id : int or `NuRadioReco.framework.channel.Channel`
             The Channel (id) to remove from the Station.
         """
         if isinstance(channel_id, fwk.Channel):
