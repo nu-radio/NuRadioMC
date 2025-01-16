@@ -57,8 +57,22 @@ def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
     add_or_subtract = 1 if sim_to_data else -1
     msg = "Add" if sim_to_data else "Subtract"
 
+    if trigger and not isinstance(det, detector.rnog_detector.Detector):
+        raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
+
     for channel in station.iter_channels():
-        cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
+
+        if trigger:
+            if not channel.has_extra_trigger_channel():
+                continue
+
+            channel = channel.get_trigger_channel()
+            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
+
+        else:
+            # Only the RNOG detector has the argument `trigger`. Default is false
+            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
+
         if logger is not None:
             logger.debug(f"{msg} {cable_delay / units.ns:.2f}ns "
                         f"of cable delay to channel {channel.get_id()}")
