@@ -655,7 +655,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
 
     Returns
     -------
-    event_group : `fwk.Event`
+    event_group : `NuRadioReco.framework.event.Event`
         an event group object containing the showers and particles or emitters
         the output should contain all relevant information from the hdf5 file (except the attributes)
         to perform a NuRadioMC simulation
@@ -906,7 +906,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
 
     Returns:
     --------
-    events : list of fwk.Event
+    events : list of `NuRadioReco.framework.event.Event`
         The list of events created from the grouped signals.
     """
     if time_logger is not None:
@@ -1046,7 +1046,7 @@ def remove_all_traces(evt):
 
     Parameters
     ----------
-    evt : fwk.Event
+    evt : `NuRadioReco.framework.event.Event`
     """
     for station in evt.get_stations():
         sim_station = station.get_sim_station()
