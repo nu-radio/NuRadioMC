@@ -45,7 +45,11 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         self._trigger_channel = trigger_channel
 
     def get_trigger_channel(self):
-        """ Returns the trigger channel of this channel. If no trigger channel is set, this channel is returned. """
+        """ Returns the trigger channel of this channel.
+
+        Not all channels/detectors make use of additional trigger channels.
+        If no trigger channel is set, this just returns ``self``, i.e. the Channel object itself.
+        """
         if self._trigger_channel is None:
             return self
 
