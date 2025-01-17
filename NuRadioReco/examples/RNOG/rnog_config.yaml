@@ -11,7 +11,7 @@ readRNOGDataMattak:
     read_calibrated_data: False
     # Only used when read_calibrated_data==False, performs a simple baseline subtraction each 128 bins
     # This is performed by the dedicated module channelBlockOffsets
-    apply_baseline_correction: 'approximate'
+    apply_baseline_correction: 'fit'
     # Only used when read_calibrated_data==False, performs a linear voltage calibration with hardcoded values
     convert_to_voltage: True
     # Can be used instead of defining a selector (only for triggers)
@@ -43,20 +43,22 @@ channelAddCableDelay:
   use: True
 
 hardwareResponseIncorporator:
-  use: False
+  use: True
   args:
+    mode: 'phase_only'
 
 channelCWNotchFilter:
-  use: True
+  use: False
   args:
 
 channelBandPassFilter:
   use: True
   args:
     passband: [0.1, 0.6]  # GHz
-    filter_type: 'rectangular'
+    filter_type: 'butter'
+    order: 10
 
 eventWriter:
   args:
     mode: null
-    filename: rnog_output.nur
+    filename: rnog_output_test.nur
