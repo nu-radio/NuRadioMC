@@ -92,7 +92,7 @@ class channelGalacticNoiseAdder:
         interpolation_frequencies: array of frequencies to interpolate to.
             Kept for historic purposes with intention to deprecate in the future.
         seed : {None, int, array_like[ints], SeedSequence}, optional
-            The seed that is passed on to the `Philox` bitgenerator used for random
+            The seed that is passed on to the `numpy.random.Philox` bitgenerator used for random
             number generation.
         """
         if debug:
