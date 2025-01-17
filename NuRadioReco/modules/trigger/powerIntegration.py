@@ -25,7 +25,7 @@ def get_power_int_triggers(trace, threshold, window=10 * units.ns, dt=1 * units.
         the time binning of the trace
     full_output: bool (default False)
         if True, the integrated power is returned as second argument
-    
+
     Returns
     -------
     triggered bins: array of bools
@@ -87,17 +87,17 @@ class triggerSimulator:
         """
         t = time.time()
 
-        sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
+        sampling_rate = station.get_trigger_channel(station.get_trigger_channel_ids()[0]).get_sampling_rate()
         dt = 1. / sampling_rate
         triggerd_bins_channels = []
         if triggered_channels is None:
-            for channel in station.iter_channels():
+            for channel in station.iter_trigger_channels():
                 channel_trace_start_time = channel.get_trace_start_time()
                 break
         else:
-            channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+            channel_trace_start_time = station.get_trigger_channel(triggered_channels[0]).get_trace_start_time()
         channels_that_passed_trigger = []
-        for channel in station.iter_channels():
+        for channel in station.iter_trigger_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
@@ -119,7 +119,7 @@ class triggerSimulator:
         # set maximum signal aplitude
         max_signal = 0
         if(has_triggered):
-            for channel in station.iter_channels():
+            for channel in station.iter_trigger_channels():
                 max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
         trigger = IntegratedPowerTrigger(trigger_name, threshold, triggered_channels,
