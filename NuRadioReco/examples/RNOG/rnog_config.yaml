@@ -1,5 +1,9 @@
 # Config file for the standard RNO-G data processing
 
+# Yaml instructions:
+#    - Use always NuRadioReco default units as specifed in `NuRadioReco.utilities.units`
+#    - If you want to use floats with scientific notation, use the following format: 1.0e-9 (not 1e-9!)
+
 readRNOGDataMattak:
   args:
     filenames: null
@@ -17,7 +21,7 @@ readRNOGDataMattak:
     # Only use runs of a certain run type
     run_types: ["physics"]
     # Only use runs with a maximum trigger rate of 1 Hz
-    max_trigger_rate: null
+    max_trigger_rate: 2.0e-9
     # This might be necessary to read older files which have an invalid value stored as sampling rate
     overwrite_sampling_rate: 3.2
 
