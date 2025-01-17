@@ -61,16 +61,7 @@ class SimChannel(NuRadioReco.framework.channel.Channel):
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-
-        channel_data = pickle.loads(data['channel'])
-        trigger_channel_pkl = channel_data.pop('trigger_channel_pkl', None)
-
-        NuRadioReco.framework.channel.Channel.deserialize(self, channel_data)
-
-        if trigger_channel_pkl is not None:
-            trigger_channel = SimChannel(None, None, None)
-            trigger_channel.deserialize(trigger_channel_pkl)
-            self._trigger_channel = trigger_channel
+        NuRadioReco.framework.channel.Channel.deserialize(self, data['channel'])
 
         self._shower_id = data['shower_id']
         self._ray_tracing_id = data['ray_tracing_id']

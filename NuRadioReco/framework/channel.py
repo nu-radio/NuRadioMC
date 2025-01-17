@@ -32,7 +32,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
 
     def set_trigger_channel(self, trigger_channel):
         """ Sets an extra trigger channel of this channel. """
-        if not isinstance(trigger_channel, Channel):
+        if not type(trigger_channel) == Channel:
             logger.error("trigger_channel needs to be of type NuRadioReco.framework.Channel")
             raise ValueError("trigger_channel needs to be of type NuRadioReco.framework.Channel")
 
@@ -122,12 +122,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
-
-        if isinstance(data_pkl, bytes):
-            data = pickle.loads(data_pkl)
-        else:
-            # If a SimChannel is deserialized, the data is already a dictionary
-            data = data_pkl
+        data = pickle.loads(data_pkl)
 
         if data['base_trace'] is not None:
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
