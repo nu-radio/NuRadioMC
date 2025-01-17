@@ -1691,8 +1691,6 @@ class simulation:
                         # Always store this, even when no "extra" trigger channels are simulated
                         if self.__trigger_channel_ids is not None and channel.get_id() in self.__trigger_channel_ids and channel.get_id() in self._Vrms_per_trigger_channel[station_id]:
                             channel[chp.Vrms_trigger_NuRadioMC_simulation] = self._Vrms_per_trigger_channel[station_id][channel.get_id()]
-                        else:
-                            channel[chp.Vrms_trigger_NuRadioMC_simulation] = 0
 
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
