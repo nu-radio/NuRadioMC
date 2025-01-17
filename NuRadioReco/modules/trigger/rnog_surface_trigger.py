@@ -127,20 +127,20 @@ class triggerSimulator:
 
         t = time.time()  # absolute time of system
 
-        sampling_rate = station.get_channel(det.get_channel_ids(station.get_id())[0]).get_sampling_rate()
+        sampling_rate = station.get_trigger_channel(det.get_trigger_channel_ids(station.get_id())[0]).get_sampling_rate()
         dt = 1. / sampling_rate
 
         triggered_bins_channels = []
         channels_that_passed_trigger = []
 
         if triggered_channels is None:  # caveat: all channels start at the same time
-            for channel in station.iter_channels():
+            for channel in station.iter_trigger_channels():
                 channel_trace_start_time = channel.get_trace_start_time()
                 break
         else:
-            channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+            channel_trace_start_time = station.get_trigger_channel(triggered_channels[0]).get_trace_start_time()
 
-        for channel in station.iter_channels():
+        for channel in station.iter_trigger_channels():
             channel_id = channel.get_id()
             logger.debug(f'channel id {channel_id}')
             if triggered_channels is not None and channel_id not in triggered_channels:

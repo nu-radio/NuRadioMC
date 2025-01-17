@@ -77,7 +77,7 @@ class triggerSimulator:
         t = time.time()
 
         if triggered_channels is None:
-            tmp_channel = station.get_trigger_channel(station.get_channel_ids()[0])
+            tmp_channel = station.get_trigger_channel(station.get_trigger_channel_ids()[0])
         else:
             tmp_channel = station.get_trigger_channel(triggered_channels[0])
 
