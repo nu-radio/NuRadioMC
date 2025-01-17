@@ -194,6 +194,7 @@ jobs:
       if: always()
       run: |
         export PYTHONPATH=$(pwd):$PYTHONPATH
+        python install_dev.py --dev galacticnoise --no-interactive
         python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
     - name: "Test all examples"
       if: always()
