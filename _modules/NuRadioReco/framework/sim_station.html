@@ -707,14 +707,25 @@
 
 <div class="viewcode-block" id="SimStation.add_channel">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.add_channel">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        adds a NuRadioReco.framework.sim_channel to the SimStation object</span>
+<span class="sd">        Add a `SimChannel` to the `SimStation`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        channel: `NuRadioReco.framework.sim_channel.SimChannel`</span>
+<span class="sd">            Channel to be added.</span>
+<span class="sd">        overwrite: bool (Default: False)</span>
+<span class="sd">            If True, allow to overwrite a existing channel (i.e., a channel with the same unique identifier).</span>
+<span class="sd">            If False, raise AttributeError if a channel with the same identifier is being added</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">sim_channel</span><span class="o">.</span><span class="n">SimChannel</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;channel needs to be of type NuRadioReco.framework.sim_channel&quot;</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;channel with the unique identifier </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> is already present in SimStation&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;`Channel` needs to be of type `NuRadioReco.framework.sim_channel.SimChannel`&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Channel with the unique identifier </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> is already present in SimStation&quot;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()]</span> <span class="o">=</span> <span class="n">channel</span></div>
 
 

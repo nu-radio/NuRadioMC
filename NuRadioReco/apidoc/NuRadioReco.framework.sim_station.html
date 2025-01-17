@@ -628,8 +628,8 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.add_channel" title="NuRadioReco.framework.sim_station.SimStation.add_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_channel</span></code></a>(channel)</p></td>
-<td><p>adds a NuRadioReco.framework.sim_channel to the SimStation object</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.add_channel" title="NuRadioReco.framework.sim_station.SimStation.add_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_channel</span></code></a>(channel[, overwrite])</p></td>
+<td><p>Add a <em class="xref py py-obj">SimChannel</em> to the <a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation" title="NuRadioReco.framework.sim_station.SimStation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimStation</span></code></a>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter" title="NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ARIANNA_parameter</span></code></a>(key)</p></td>
 <td><p></p></td>
@@ -844,8 +844,19 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.add_channel">
-<span class="sig-name descname"><span class="pre">add_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.add_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.add_channel" title="Link to this definition"></a></dt>
-<dd><p>adds a NuRadioReco.framework.sim_channel to the SimStation object</p>
+<span class="sig-name descname"><span class="pre">add_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.add_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.add_channel" title="Link to this definition"></a></dt>
+<dd><p>Add a <em class="xref py py-obj">SimChannel</em> to the <a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation" title="NuRadioReco.framework.sim_station.SimStation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimStation</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>channel: `NuRadioReco.framework.sim_channel.SimChannel`</strong></dt><dd><p>Channel to be added.</p>
+</dd>
+<dt><strong>overwrite: bool (Default: False)</strong></dt><dd><p>If True, allow to overwrite a existing channel (i.e., a channel with the same unique identifier).
+If False, raise AttributeError if a channel with the same identifier is being added</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

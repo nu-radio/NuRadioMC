@@ -653,8 +653,8 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_sim_station">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds a SimStation to the Station. If a SimStation is already present, the new SimStation is merged to the existing</span>
-<span class="sd">        one.</span>
+<span class="sd">        Adds a SimStation to the Station. If a SimStation is already present, </span>
+<span class="sd">        the new SimStation is merged to the existing one.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -699,9 +699,9 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_channels">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">iter_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Iterates over all channels of the station. If `use_channels` is not None, only the channels with the ids in</span>
-<span class="sd">        `use_channels` are iterated over. If `sorted` is True, the channels are iterated over in ascending order of their</span>
-<span class="sd">        ids.</span>
+<span class="sd">        Iterates over all channels of the station. If `use_channels` is not None, </span>
+<span class="sd">        only the channels with the ids in `use_channels` are iterated over. If `sorted` </span>
+<span class="sd">        is True, the channels are iterated over in ascending order of their ids.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -782,7 +782,26 @@
 
 <div class="viewcode-block" id="Station.add_channel">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_channel">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a channel to the station. If a channel with the same id is already present, it is overwritten.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        channel : `NuRadioReco.framework.channel.Channel`</span>
+<span class="sd">            The channel to add to the station.</span>
+<span class="sd">        overwrite : bool, (Default: True)</span>
+<span class="sd">            If True, allow to overwrite an existing channel (i.e., a channel with the same id). </span>
+<span class="sd">            If False, raise AttributeError if a channel with the same id is being added.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;`Channel` needs to be of type `NuRadioReco.framework.channel.Channel`&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Channel with the id </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> is already present in Station. &quot;</span>
+                <span class="s2">&quot;If you want to add this channel nonetheless please pass `overwrite=True` as argument&quot;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">channel</span></div>
 
 
@@ -829,10 +848,13 @@
 <div class="viewcode-block" id="Station.get_reference_direction">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_reference_direction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_reference_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;RD&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;RD&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;azimuth&#39;</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;MC&#39;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;azimuth&#39;</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;MC&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;azimuth&#39;</span><span class="p">)</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Station.get_magnetic_field_vector">
@@ -842,7 +864,8 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_magnetic_field_vector</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;RD&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;time dependent magnetic field model not yet implemented, returning static magnetic field for the ARIANNA site&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;time dependent magnetic field model not yet implemented, &quot;</span>
+                               <span class="s2">&quot;returning static magnetic field for the ARIANNA site&quot;</span><span class="p">)</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span>
             <span class="k">return</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_magnetic_field_vector</span><span class="p">(</span><span class="s1">&#39;arianna&#39;</span><span class="p">)</span></div>
 
@@ -851,7 +874,8 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.serialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
         <span class="n">save_efield_traces</span> <span class="o">=</span> <span class="s1">&#39;ElectricFields&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">mode</span><span class="p">[</span><span class="s1">&#39;ElectricFields&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
-        <span class="n">base_station_pkl</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_efield_traces</span><span class="o">=</span><span class="n">save_efield_traces</span><span class="p">)</span>
+        <span class="n">base_station_pkl</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">save_efield_traces</span><span class="o">=</span><span class="n">save_efield_traces</span><span class="p">)</span>
         <span class="n">channels_pkl</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">save_channel_trace</span> <span class="o">=</span> <span class="s1">&#39;Channels&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">mode</span><span class="p">[</span><span class="s1">&#39;Channels&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
@@ -860,8 +884,8 @@
         <span class="n">save_sim_efield_trace</span> <span class="o">=</span> <span class="s1">&#39;SimElectricFields&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">mode</span><span class="p">[</span><span class="s1">&#39;SimElectricFields&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
         <span class="n">sim_station_pkl</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">has_sim_station</span><span class="p">()):</span>
-            <span class="n">sim_station_pkl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">save_channel_traces</span><span class="o">=</span><span class="n">save_sim_channel_trace</span><span class="p">,</span>
-                                                               <span class="n">save_efield_traces</span><span class="o">=</span><span class="n">save_sim_efield_trace</span><span class="p">)</span>
+            <span class="n">sim_station_pkl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span>
+                <span class="n">save_channel_traces</span><span class="o">=</span><span class="n">save_sim_channel_trace</span><span class="p">,</span> <span class="n">save_efield_traces</span><span class="o">=</span><span class="n">save_sim_efield_trace</span><span class="p">)</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;__reference_reconstruction&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span><span class="p">,</span>
                 <span class="s1">&#39;channels&#39;</span><span class="p">:</span> <span class="n">channels_pkl</span><span class="p">,</span>
