@@ -107,7 +107,7 @@ def process_data(config):
 
             # Hardware response
             if use_module("hardwareResponseIncorporator", config):
-                hardwareResponseIncorporator.run(evt, station, det, sim_to_data=False)
+                hardwareResponseIncorporator.run(evt, station, det, sim_to_data=False, **config["hardwareResponseIncorporator"]["args"])
 
             # CW notch filter
             if use_module("channelCWNotchFilter", config):
