@@ -43,7 +43,7 @@ channelAddCableDelay:
   use: True
 
 hardwareResponseIncorporator:
-  use: True
+  use: False
   args:
 
 channelCWNotchFilter:
