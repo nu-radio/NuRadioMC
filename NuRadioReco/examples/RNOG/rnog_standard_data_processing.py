@@ -11,7 +11,11 @@ import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.detector.RNO_G.rnog_detector
 
 import argparse
+import logging
 import yaml
+import time
+
+logger = logging.getLogger("NuRadioReco.example.RNOG.rnog_standard_data_processing")
 
 
 def use_module(name, config):
@@ -75,8 +79,9 @@ def process_data(config):
 
     # Loop over all events (the reader module has options to select events -
     # see class documentation or module arguements in config file)
-    for event in readRNOGDataMattak.run():
+    for idx, event in enumerate(readRNOGDataMattak.run()):
 
+        t0 = time.time()
         # Loop over all stations.
         for station in evt.get_stations():
 
@@ -106,6 +111,13 @@ def process_data(config):
 
             # Write event - the RNO-G detector class is not stored within the nur files.
             eventWriter.run(evt, det=None, mode=config["eventWriter"]["args"]['mode'])
+
+        logger.debug("Time for event: %f", time.time() - t0)
+        t_total += time.time() - t0
+
+    self.logger.info(
+        f"\n\tTotal time: {t_total:.2f}s"
+        f"\n\tTime per event: {t_total / (idx + 1):.2f}s")
 
 
 if __name__ == "__main__":
