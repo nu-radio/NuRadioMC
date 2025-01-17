@@ -11,19 +11,25 @@ import scipy.interpolate
 import functools
 from contextlib import redirect_stdout
 from numpy.random import Generator, Philox
-
-from pygdsm import (
-    GlobalSkyModel16,
-    GlobalSkyModel,
-    LowFrequencySkyModel,
-    HaslamSkyModel,
-)
-
 import healpy
 import astropy.coordinates
 import astropy.units
 
 logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
+
+try:
+    from pygdsm import (
+        GlobalSkyModel16,
+        GlobalSkyModel,
+        LowFrequencySkyModel,
+        HaslamSkyModel,
+    )
+except ImportError as e:
+    logger.error(
+        "To use the channelGalacticNoiseAdder, 'pygdsm' needs to be installed:\n\n"
+        "\t pip install git+https://github.com/telegraphic/pygdsm\n"
+        )
+    raise(e)
 
 try:
     with redirect_stdout(None): # suppress (usually irrelevant) print statements from pylfmap
