@@ -10,6 +10,7 @@ import scipy.constants
 import scipy.interpolate
 import functools
 from contextlib import redirect_stdout
+from numpy.random import Generator, Philox
 
 from pygdsm import (
     GlobalSkyModel16,
@@ -63,7 +64,8 @@ class channelGalacticNoiseAdder:
             debug=False,
             n_side=4,
             freq_range=None,
-            interpolation_frequencies=None
+            interpolation_frequencies=None,
+            seed=None
     ):
         """
         Set up important parameters for the module
@@ -89,10 +91,14 @@ class channelGalacticNoiseAdder:
             specified in the run method.
         interpolation_frequencies: array of frequencies to interpolate to.
             Kept for historic purposes with intention to deprecate in the future.
+        seed : {None, int, array_like[ints], SeedSequence}, optional
+            The seed that is passed on to the `Philox` bitgenerator used for random
+            number generation.
         """
         if debug:
             warnings.warn("This argument is deprecated and will be removed in future versions.", DeprecationWarning)
 
+        self.__random_generator = Generator(Philox(seed))
         self.__n_side = n_side
         self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
 
@@ -173,6 +179,11 @@ class channelGalacticNoiseAdder:
             added. The default (no passband specified) is [10, 1000] MHz
         """
 
+        if self.__noise_temperatures is None: # check if .begin has been called, give helpful error message if not
+            msg = "channelGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?"
+            logger.error(msg)
+            raise ValueError(msg)
+
         # check that or all channels channel.get_frequencies() is identical
         last_freqs = None
         for channel in station.iter_channels():
@@ -239,7 +250,7 @@ class channelGalacticNoiseAdder:
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
-            phases = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
+            phases = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
 
             noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
             noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
@@ -272,7 +283,7 @@ class channelGalacticNoiseAdder:
                 delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 # add random polarizations and phase to electric field
-                polarizations = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
+                polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
 
                 channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
                     1j * delta_phases) * np.cos(polarizations)
