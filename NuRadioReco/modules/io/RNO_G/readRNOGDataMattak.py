@@ -764,7 +764,6 @@ class readRNOGData:
 
         evt: NuRadioReco.framework.event
         """
-
         trigger_time = event_info.triggerTime
         # only overwrite sampling rate if the stored value is invalid
         if self._overwrite_sampling_rate is not None and event_info.sampleRate in [0, None]:
@@ -826,12 +825,13 @@ class readRNOGData:
             dataset.setEntries((0, dataset.N()))
 
             # read all event infos of the entire dataset (= run)
-            for evtinfo, wf in dataset.iterate(calibrated=self._read_calibrated_data,
-                                               selectors=self._select_events,
-                                               max_entries_in_mem=self._max_in_mem):
+            for evtinfo, wf in dataset.iterate(
+                    calibrated=self._read_calibrated_data, selectors=self._select_events,
+                    max_entries_in_mem=self._max_in_mem):
 
+                t0 = time.time()
                 evt = self._get_event(evtinfo, wf)
-
+                self._time_run += time.time() - t0
                 yield evt
 
 
@@ -929,8 +929,8 @@ class readRNOGData:
             self.logger.info(
                 f"\n\tRead {self.__counter} events ({self.__skipped} events are skipped (filtered), {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-                f"\n\tTime to read all events       : {self._time_run:.2e}s"
-                f"\n\tTime to per event             : {self._time_run / self.__counter:.2e}s"
+                f"\n\tTime to read all events       : {self._time_run:.4f}s"
+                f"\n\tTime to per event             : {self._time_run / self.__counter:.4f}s"
                 f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
         else:
             self.logger.warning(
