@@ -1,5 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft, signal_processing
+import NuRadioReco.framework.station
 
 from NuRadioReco.detector.RNO_G import analog_components
 from NuRadioReco.detector import detector
@@ -195,7 +196,9 @@ class hardwareResponseIncorporator:
             filter = self.get_filter(
                 frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
 
-            if self.trigger_channels is not None and channel.get_id() in self.trigger_channels:
+            if (self.trigger_channels is not None and
+                channel.get_id() in self.trigger_channels and
+                isinstance(station, NuRadioReco.framework.station.Station)):
                 """
                 Create a copy of the channel and apply the readout and trigger channel response respectively.
                 We do this here under the assumption that up to this point no difference between the two channels
