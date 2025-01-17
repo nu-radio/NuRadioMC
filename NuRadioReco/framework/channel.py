@@ -118,7 +118,13 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
-        data = pickle.loads(data_pkl)
+
+        if isinstance(data_pkl, bytes):
+            data = pickle.loads(data_pkl)
+        else:
+            # If a SimChannel is deserialized, the data is already a dictionary
+            data = data_pkl
+
         if data['base_trace'] is not None:
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
 
@@ -127,7 +133,6 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         self._group_id = data.get('group_id')  # Attempts to load group_id, returns None if not found
 
         trigger_channel_pkl = data.get("trigger_channel_pkl", None)
-
         if trigger_channel_pkl is not None:
             trigger_channel = Channel(None)
             trigger_channel.deserialize(trigger_channel_pkl)
