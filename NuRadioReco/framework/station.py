@@ -108,6 +108,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def get_trigger_channel(self, channel_id):
         """
         Returns the trigger channel of channel with id `channel_id`.
+
         If the trigger channel is not set, the channel itself is returned.
 
         Parameters

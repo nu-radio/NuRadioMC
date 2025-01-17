@@ -35,7 +35,7 @@ def half_hann_window(length, half_percent=None, hann_window_length=None):
 
 def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
     """
-    Add or subtract cable delay by modifying the `trace_start_time`.
+    Add or subtract cable delay by modifying the ``trace_start_time``.
 
     Parameters
     ----------
@@ -54,7 +54,7 @@ def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
 
     See Also
     --------
-    `NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay`
+    NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay : module that automatically applies / corrects for cable delays.
     """
     assert sim_to_data is not None, "``sim_to_data`` is None, please specify."
 
