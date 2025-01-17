@@ -924,14 +924,13 @@ class readRNOGData:
 
         return evt
 
-
     def end(self):
         if self.__counter:
             self.logger.info(
                 f"\n\tRead {self.__counter} events ({self.__skipped} events are skipped (filtered), {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-                f"\n\tTime to read all events       : {self._time_run:.2f}s"
-                f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
+                f"\n\tTime to read all events       : {self._time_run:.2e}s"
+                f"\n\tTime to per event             : {self._time_run / self.__counter:.2e}s"
                 f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
         else:
             self.logger.warning(
@@ -939,6 +938,8 @@ class readRNOGData:
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
 
+    def get_n_events(self):
+        return self._n_events_total
 
 ### we create a wrapper for readRNOGData to mirror the interface of the .nur reader
 class _readRNOGData_eventbrowser(readRNOGData):
@@ -969,9 +970,6 @@ class _readRNOGData_eventbrowser(readRNOGData):
     @lru_cache(maxsize=1)
     def get_event(self, event_id):
         return super().get_event(*event_id)
-
-    def get_n_events(self):
-        return self._n_events_total
 
     def get_detector(self):
         """Not implemented in mattak reader"""
