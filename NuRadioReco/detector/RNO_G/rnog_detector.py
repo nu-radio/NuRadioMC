@@ -1181,20 +1181,14 @@ class Detector():
 
 
     def get_cable_delay(self, station_id, channel_id, use_stored=True):
-        """
-        Return the cable delay of a signal chain as stored in the detector description.
-
-        This interface is required by simulation.py. See `get_time_delay` for description of
-        arguments.
-        """
+        """ Same as `get_time_delay`. Only here to keep the same interface as the other detector classes. """
         # FS: For the RNO-G detector description it is not easy to determine the cable delay alone
         # because it is not clear which reference components may need to be substraced.
         # However, having the cable delay without amplifiers is anyway weird.
-        return self.get_time_delay(station_id, channel_id, cable_only=False, use_stored=use_stored)
+        return self.get_time_delay(station_id, channel_id, use_stored=use_stored)
 
-    def get_time_delay(self, station_id, channel_id, cable_only=False, use_stored=True):
-        """
-        Return the sum of the time delay of all components in the signal chain calculated from the phase
+    def get_time_delay(self, station_id, channel_id, use_stored=True):
+        """ Return the sum of the time delay of all components in the signal chain calculated from the phase.
 
         Parameters
         ----------
@@ -1205,9 +1199,6 @@ class Detector():
         channel_id: int
             The channel id
 
-        cable_only: bool
-            If True: Consider only cables to calculate delay. (Default: False)
-
         use_stored: bool
             If True, take time delay as stored in DB rather than calculated from response. (Default: True)
 
@@ -1217,35 +1208,24 @@ class Detector():
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
         """
-
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
-        time_delay = 0
-        for key, value in signal_chain_dict["response_chain"].items():
+        if use_stored:
+            resp = self.get_signal_chain_response(station_id, channel_id)
+            return resp.get_time_delay()
+        else:
+            time_delay = 0
+            for key, value in signal_chain_dict["response_chain"].items():
 
-            if re.search("cable", key) is None and re.search("fiber", key) and cable_only:
-                continue
-
-            weight = value.get("weight", 1)
-            if use_stored:
-                if "time_delay" not in value and "cable_delay" not in value:
-                    self.logger.warning(
-                        f"The signal chain component \"{key}\" of station.channel "
-                        f"{station_id}.{channel_id} has no cable/time delay stored... (hence return time delay without it)")
-                    continue
-
-                try:
-                    time_delay += weight * value["time_delay"]
-                except KeyError:
-                    time_delay += weight * value["cable_delay"]
-
-            else:
                 ydata = [value["mag"], value["phase"]]
+                # This is different from within `get_signal_chain_response` because we do set the time delay here
+                # and thus we do not remove it from the response.
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
+                weight = value.get("weight", 1)
                 time_delay += weight * response._calculate_time_delay()
 
         return time_delay
@@ -1263,18 +1243,28 @@ class Detector():
         """
         return "summit"
 
+    def get_site_coordinates(self, station_id=None):
+        """
+        Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.
+
+        Parameters
+        ----------
+        station_id: int
+            the station ID (not used, only for compatibility with other detector classes)
+        """
+        return (72.57, -38.46)
+
 
 if __name__ == "__main__":
 
     from NuRadioReco.detector import detector
 
     det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=False,
-                            database_connection='RNOG_public', select_stations=24)
+                            database_connection='RNOG_public', select_stations=13)
 
-    det.update(datetime.datetime(2023, 8, 2, 0, 0))
+    det.update(datetime.datetime(2023, 7, 2, 0, 0))
 
-
-    response = det.get_signal_chain_response(station_id=24, channel_id=0)
+    response = det.get_signal_chain_response(station_id=13, channel_id=0)
 
     from NuRadioReco.framework import electric_field
     ef = electric_field.ElectricField(channel_ids=[0])
