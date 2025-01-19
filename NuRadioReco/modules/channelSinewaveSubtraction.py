@@ -101,12 +101,12 @@ def sinewave_subtraction(wf: np.ndarray, sampling_rate: float = 3.2, peak_promin
     def sinusoid(t, amplitude, noise_frequency, phase):
         return amplitude * np.cos(2 * np.pi * noise_frequency * t + phase)
 
-    fft = abs(fft.time2freq(wf, sampling_rate))
+    spec = abs(fft.time2freq(wf, sampling_rate))
     freqs = fft.freqs(len(wf), sampling_rate)
 
     # find noise frequencies:
-    rms = np.sqrt(np.mean(np.abs(fft) ** 2))
-    peak_idxs = np.where(np.abs(fft) > peak_prominance * rms)[0]
+    rms = np.sqrt(np.mean(np.abs(spec) ** 2))
+    peak_idxs = np.where(np.abs(spec) > peak_prominance * rms)[0]
 
     noise_freqs = []
 
@@ -184,9 +184,11 @@ def plot_ft(channel, ax, label=None, plot_kwargs=dict()):
 
     legendloc = 2
 
-    ax.plot(freqs, np.abs(spec), label=label, **plot_kwargs)
-    ax.set_xlabel("freq / GHz")
+    ax.plot(freqs / units.MHz, np.abs(spec), label=label, **plot_kwargs)
+    ax.set_xlabel("freq / MHz")
     ax.set_ylabel("amplitude / V/GHz")
+    ax.set_yscale("log")
+    ax.set_ylim(np.mean(np.abs(spec)) / 100, None)
     ax.legend(loc=legendloc)
 
 
@@ -217,11 +219,10 @@ def plot_trace(channel, ax, label=None, plot_kwargs=dict()):
 
 
 if __name__ == "__main__":
+
+    from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
     import argparse
     import os
-    from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
-    import requests
-    import aiohttp
 
     parser = argparse.ArgumentParser(prog="%(prog)s", usage="cw filter test")
     parser.add_argument("--station", type=int, default=13)
@@ -230,20 +231,20 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-
     data_dir = os.environ["RNO_G_DATA"] # used deep CR burn sample..
-    rnog_reader = readRNOGData(log_level = logging.DEBUG)
+    rnog_reader = readRNOGData(log_level = logging.INFO)
 
     root_dirs = f"{data_dir}/station{args.station}/run{args.run}"
     rnog_reader.begin(root_dirs,
                       # linear voltage calibration
-                      convert_to_voltage=True,
+                      convert_to_voltage=False,
                       mattak_kwargs=dict(backend="uproot"))
-
 
     sub = channelSinewaveSubtraction()
     sub.begin()
-    ev_num=732
+    ev_num = 66
+
+    logger.setLevel(logging.DEBUG)
 
     for event in rnog_reader.run():
         if event.get_id() == ev_num:
@@ -252,13 +253,13 @@ if __name__ == "__main__":
             #channel = station.get_channel(args.channel)
 
             fig, axs = plt.subplots(1, 2, figsize=(14, 6))
-            plot_trace(station.get_channel(args.channel), axs[0], label="before")
-            plot_ft(station.get_channel(args.channel), axs[1], label="before")
+            plot_trace(station.get_channel(args.channel), axs[0], label="before", plot_kwargs={"lw": 2})
+            plot_ft(station.get_channel(args.channel), axs[1], label="before", plot_kwargs={"lw": 2})
 
             sub.run(event, station, det=0)
 
-            plot_trace(station.get_channel(args.channel), axs[0], label="after")
-            plot_ft(station.get_channel(args.channel), axs[1], label="after")
+            plot_trace(station.get_channel(args.channel), axs[0], label="after", plot_kwargs={"lw": 1})
+            plot_ft(station.get_channel(args.channel), axs[1], label="after", plot_kwargs={"lw": 1})
             # save plot into the current dir
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            fig.savefig(current_dir+"/test_cw_filter", bbox_inches="tight")
+            fig.savefig(current_dir + "/test_cw_filter", bbox_inches="tight")
