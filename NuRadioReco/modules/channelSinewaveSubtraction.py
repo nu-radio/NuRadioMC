@@ -15,7 +15,7 @@ In contrast to the module channelCWNOtchFilter, which uses a notch filter to rem
 """
 
 
-class channelSineSubtraction:
+class channelSinewaveSubtraction:
     """ Continuous wave (CW) filter module. Uses sine subtraction based on scipy curve_fit. """
     def __init__(self):
         pass
@@ -241,7 +241,7 @@ if __name__ == "__main__":
                       mattak_kwargs=dict(backend="uproot"))
 
 
-    sub = channelSineSubtraction()
+    sub = channelSinewaveSubtraction()
     sub.begin()
     ev_num=732
 
