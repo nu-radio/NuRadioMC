@@ -150,7 +150,7 @@ class analogToDigitalConverter:
     3) A type of ADC converter is chosen, which transforms the trace in ADC
         counts (discrete values). The available types are listed in the list
         _adc_types, which are (see functions with the same names for documentation):
-        
+
         * 'perfect_floor_comparator'
         * 'perfect_ceiling_comparator'
 
@@ -189,7 +189,8 @@ class analogToDigitalConverter:
                           adc_type='perfect_floor_comparator',
                           return_sampling_frequency=False,
                           adc_output='voltage',
-                          trigger_filter=None):
+                          trigger_filter=None,
+                          channel_id=None):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -221,10 +222,12 @@ class analogToDigitalConverter:
 
             * 'voltage' to store the ADC output as discretised voltage trace
             * 'counts' to store the ADC output in ADC counts
-        
+
         trigger_filter: array floats
             Freq. domain of the response to be applied to post-ADC traces
             Must be length for "MC freq"
+        channel_id: int
+            If supplied, using this id to request detector description instead of the channel ID in the channel object
 
         Returns
         -------
@@ -235,7 +238,9 @@ class analogToDigitalConverter:
         """
 
         station_id = station.get_id()
-        channel_id = channel.get_id()
+        if channel_id is None or not trigger_adc:
+            channel_id = channel.get_id()
+
         det_channel = det.get_channel(station_id, channel_id)
 
         for field in self._mandatory_fields:
@@ -365,13 +370,13 @@ class analogToDigitalConverter:
 
         adc_type: string
             The type of ADC used. The following are available:
-            
+
             * 'perfect_floor_comparator'
-            
+
             See functions with the same name on this module for documentation
         adc_output: string
             Options:
-            
+
             * 'voltage' to store the ADC output as discretised voltage trace
             * 'counts' to store the ADC output in ADC counts
 
