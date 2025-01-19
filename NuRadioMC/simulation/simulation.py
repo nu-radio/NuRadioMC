@@ -630,7 +630,7 @@ def build_dummy_event(station_id, det, config):
         electric_field[efp.ray_path_type] = 0
         sim_station.add_electric_field(electric_field)
 
-    station = NuRadioReco.framework.station.Station(station_id)
+    station = fwk.Station(station_id)
     station.set_sim_station(sim_station)
     evt.set_station(station)
     return evt
@@ -704,7 +704,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
                 vertex_time = fin['vertex_times'][idx]
 
             # create NuRadioReco event structure
-            sim_shower = NuRadioReco.framework.radio_shower.RadioShower(fin['shower_ids'][idx])
+            sim_shower = fwk.RadioShower(fin['shower_ids'][idx])
             # save relevant neutrino properties
             sim_shower[shp.zenith] = fin['zeniths'][idx]
             sim_shower[shp.azimuth] = fin['azimuths'][idx]
@@ -957,7 +957,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
         # copy over generator information from temporary event to event
         evt._generator_info = event_group._generator_info
 
-        station = NuRadioReco.framework.station.Station(tmp_station.get_id())
+        station = fwk.Station(tmp_station.get_id())
         sim_station = fwk.SimStation(tmp_station.get_id())
         sim_station.set_is_neutrino()
         tmp_sim_station = tmp_station.get_sim_station()
@@ -1473,7 +1473,7 @@ class simulation:
                         logger.debug(f"event group {event_group.get_run_number()} is too far away from station {station_id}, skipping to next station")
                         # continue
                 output_buffer[station_id] = {}
-                station = NuRadioReco.framework.station.Station(station_id)
+                station = fwk.Station(station_id)
                 sim_station = fwk.SimStation(station_id)
                 sim_station.set_is_neutrino()  # naming not ideal, but this function defines in-ice emission (compared to in-air emission from air showers)
                 station.set_sim_station(sim_station)
@@ -1685,7 +1685,7 @@ class simulation:
 
     def _add_empty_channel(self, station, channel_id):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
-        channel = NuRadioReco.framework.channel.Channel(channel_id)
+        channel = fwk.Channel(channel_id)
         n_samples = int(round(self._det.get_number_of_samples(station.get_id(), channel_id))
                         * self._config['sampling_rate'] / self._det.get_sampling_frequency(station.get_id(), channel_id))
         channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
