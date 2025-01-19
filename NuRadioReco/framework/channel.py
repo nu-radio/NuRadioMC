@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
-import NuRadioReco.framework.base_trace
+from NuRadioReco import framework as fwk
+
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
 try:
@@ -10,7 +11,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.Channel')
 
 
-class Channel(NuRadioReco.framework.base_trace.BaseTrace):
+class Channel(fwk.BaseTrace):
 
     def __init__(self, channel_id, channel_group_id=None):
         """
@@ -20,10 +21,10 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
             the id of the channel
         channel_group_id: int (default None)
             optionally, several channels can belong to a "channel group". Use case is to identify
-            the channels of a single dual or triple polarized antenna as common in air shower arrays. 
-        
+            the channels of a single dual or triple polarized antenna as common in air shower arrays.
+
         """
-        NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
+        fwk.BaseTrace.__init__(self)
         self._parameters = {}
         self._id = channel_id
         self._group_id = channel_group_id
@@ -57,7 +58,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
 
     def get_id(self):
         return self._id
-    
+
     def get_group_id(self):
         """
         channel group id
@@ -71,7 +72,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
 
     def serialize(self, save_trace):
         if save_trace:
-            base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
+            base_trace_pkl = fwk.BaseTrace.serialize(self)
         else:
             base_trace_pkl = None
         data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
@@ -84,7 +85,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
         if(data['base_trace'] is not None):
-            NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
+            fwk.BaseTrace.deserialize(self, data['base_trace'])
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
         self._id = data['id']
         self._group_id = data.get('group_id')  # Attempts to load group_id, returns None if not found

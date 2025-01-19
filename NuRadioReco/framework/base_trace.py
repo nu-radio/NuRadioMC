@@ -1,18 +1,22 @@
 from __future__ import absolute_import, division, print_function
+
+from NuRadioReco.utilities import fft, bandpass_filter
+import NuRadioReco.detector.response
+
 import numpy as np
-import logging
 import fractions
 import decimal
 import numbers
 import functools
-from NuRadioReco.utilities import fft, bandpass_filter
-import NuRadioReco.detector.response
 import scipy.signal
 import copy
+
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
+
+import logging
 logger = logging.getLogger("NuRadioReco.BaseTrace")
 
 
@@ -299,9 +303,9 @@ class BaseTrace:
 
     def add_to_trace(self, channel):
         """
-        Adds the trace of another channel to the trace of this channel. The trace is only added within the 
+        Adds the trace of another channel to the trace of this channel. The trace is only added within the
         time window of "this" channel.
-        If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a 
+        If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a
         _time_trace containing zeros, this function can be seen as recording a channel in the specified
         readout window.
 
@@ -354,7 +358,7 @@ class BaseTrace:
             t_end_readout = tt_readout[i_end_readout]
             i_end_channel = n_samples_channel - 1
             t_end_channel = t1_channel
-        
+
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
         tmp_channel = copy.deepcopy(channel)

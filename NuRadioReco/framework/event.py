@@ -1,13 +1,11 @@
 from __future__ import absolute_import, division, print_function
-import pickle
-import NuRadioReco.framework.station
-import NuRadioReco.framework.radio_shower
-import NuRadioReco.framework.emitter
-import NuRadioReco.framework.sim_emitter
-import NuRadioReco.framework.hybrid_information
-import NuRadioReco.framework.particle
+
+from NuRadioReco import framework as fwk
 import NuRadioReco.framework.parameters as parameters
+
 import NuRadioReco.utilities.version
+
+import pickle
 from six import itervalues
 import collections
 import logging
@@ -27,7 +25,7 @@ class Event:
         self.__event_time = 0
         self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
         self._generator_info = {} # copies over the relevant information on event generation from the input file attributes
-        self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
+        self.__hybrid_information = fwk.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
 
@@ -146,7 +144,7 @@ class Event:
         Returns
         -------
 
-        station: NuRadioReco.framework.station
+        station: `NuRadioReco.framework.station.Station`
         """
         if station_id is None:
             if len(self.get_station_ids()) == 1:
@@ -203,16 +201,16 @@ class Event:
 
         Parameters
         ----------
-        particle : NuRadioReco.framework.particle.Particle
+        particle : `NuRadioReco.framework.particle.Particle`
             The MC particle to be added to the event
         """
-        if not isinstance(particle, NuRadioReco.framework.particle.Particle):
-            logger.error("Requested to add non-Particle item to the list of particles. {particle} needs to be an instance of Particle.")
-            raise TypeError("Requested to add non-Particle item to the list of particles. {particle}   needs to be an instance of Particle.")
+        if not isinstance(particle, fwk.Particle):
+            logger.error(f"Requested to add non-Particle item to the list of particles. {particle} needs to be an instance of Particle.")
+            raise TypeError(f"Requested to add non-Particle item to the list of particles. {particle} needs to be an instance of Particle.")
 
         if particle.get_id() in self.__particles:
-            logger.error("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
-            raise AttributeError("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
+            logger.error(f"MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
+            raise AttributeError(f"MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
 
         self.__particles[particle.get_id()] = particle
 
@@ -246,13 +244,17 @@ class Event:
         """
         if isinstance(particle_or_shower, NuRadioReco.framework.base_shower.BaseShower):
             par_id = particle_or_shower[parameters.showerParameters.parent_id]
-        elif isinstance(particle_or_shower, NuRadioReco.framework.particle.Particle):
+        elif isinstance(particle_or_shower, fwk.Particle):
             par_id = particle_or_shower[parameters.particleParameters.parent_id]
         else:
-            raise ValueError("particle_or_shower needs to be an instance of NuRadioReco.framework.base_shower.BaseShower or NuRadioReco.framework.particle.Particle")
+            raise ValueError(
+                "particle_or_shower needs to be an instance of `NuRadioReco.framework.base_shower.BaseShower` "
+                "or `NuRadioReco.framework.particle.Particle`")
+
         if par_id is None:
             logger.info("did not find parent for {particle_or_shower}")
             return None
+
         return self.get_particle(par_id)
 
     def has_particle(self, particle_id=None):
@@ -289,8 +291,6 @@ class Event:
             for particle in self.get_particles():
                 if particle[parameters.particleParameters.parent_id] == parent_id:
                     yield particle
-
-
 
     def add_shower(self, shower):
         """
@@ -368,14 +368,16 @@ class Event:
 
         Parameters
         ----------
-        sim_shower: RadioShower object
+        sim_shower: `NuRadioReco.framework.radio_shower.RadioShower`
             The shower to be added to the event
         """
-        if not isinstance(sim_shower, NuRadioReco.framework.radio_shower.RadioShower):
-            raise AttributeError("sim_shower needs to be of type NuRadioReco.framework.radio_shower.RadioShower")
-        if(sim_shower.get_id() in self.__sim_showers):
+        if not isinstance(sim_shower, fwk.RadioShower):
+            raise AttributeError("sim_shower needs to be of type `NuRadioReco.framework.radio_shower.RadioShower`")
+
+        if sim_shower.get_id() in self.__sim_showers:
             logger.error(f"sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
             raise AttributeError(f"sim shower with id {sim_shower.get_id()} already exists. Shower id needs to be unique per event")
+
         self.__sim_showers[sim_shower.get_id()] = sim_shower
 
     def get_sim_showers(self):
@@ -393,8 +395,9 @@ class Event:
         """
         returns a specific shower identified by its unique id
         """
-        if(shower_id not in self.__sim_showers):
+        if shower_id not in self.__sim_showers:
             raise AttributeError(f"sim shower with id {shower_id} not present")
+
         return self.__sim_showers[shower_id]
 
     def get_first_sim_shower(self, ids=None):
@@ -410,12 +413,15 @@ class Event:
         """
         if len(self.__sim_showers) == 0:
             return None
+
         if ids is None:
             shower_ids = list(self.__sim_showers.keys())
             return self.__sim_showers[shower_ids[0]]
+
         for shower in self.__sim_showers:
             if shower.has_station_ids(ids):
                 return shower
+
         return None
 
     def has_sim_shower(self, shower_id=None):
@@ -424,8 +430,8 @@ class Event:
 
         If shower_id is given, it checks if this particular shower exists
         """
-        if(shower_id is None):
-            return shower_id in self.__sim_showers.keys()
+        if shower_id is None:
+            return shower_id in self.__sim_showers
         else:
             return len(self.__sim_showers) > 0
 
@@ -435,14 +441,16 @@ class Event:
 
         Parameters
         ----------
-        sim_emitter: SimEmitter object
+        sim_emitter: `NuRadioReco.framework.sim_emitter.SimEmitter`
             The emitter to be added to the event
         """
-        if not isinstance(sim_emitter, NuRadioReco.framework.sim_emitter.SimEmitter):
-            raise AttributeError(f"emitter needs to be of type NuRadioReco.framework.sim_emitter.SimEmitter but is of type {type(sim_emitter)}")
-        if(sim_emitter.get_id() in self.__sim_emitters):
+        if not isinstance(sim_emitter, fwk.SimEmitter):
+            raise AttributeError(f"emitter needs to be of type `NuRadioReco.framework.sim_emitter.SimEmitter` but is of type {type(sim_emitter)}")
+
+        if sim_emitter.get_id() in self.__sim_emitters:
             logger.error(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
             raise AttributeError(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
+
         self.__sim_emitters[sim_emitter.get_id()] = sim_emitter
 
     def get_sim_emitters(self):
@@ -553,31 +561,31 @@ class Event:
         data = pickle.loads(data_pkl)
 
         for station_pkl in data['stations']:
-            station = NuRadioReco.framework.station.Station(0)
+            station = fwk.Station(0)
             station.deserialize(station_pkl)
             self.set_station(station)
         if 'showers' in data.keys():
             for shower_pkl in data['showers']:
-                shower = NuRadioReco.framework.radio_shower.RadioShower(None)
+                shower = fwk.RadioShower(None)
                 shower.deserialize(shower_pkl)
                 self.add_shower(shower)
         if 'sim_showers' in data.keys():
             for shower_pkl in data['sim_showers']:
-                shower = NuRadioReco.framework.radio_shower.RadioShower(None)
+                shower = fwk.RadioShower(None)
                 shower.deserialize(shower_pkl)
                 self.add_sim_shower(shower)
         if 'sim_emitters' in data.keys():
             for emmitter_pkl in data['sim_emitters']:
-                emitter = NuRadioReco.framework.sim_emitter.SimEmitter(None)
+                emitter = fwk.SimEmitter(None)
                 emitter.deserialize(emmitter_pkl)
                 self.add_sim_emitter(emitter)
         if 'particles' in data.keys():
             for particle_pkl in data['particles']:
-                particle = NuRadioReco.framework.particle.Particle(None)
+                particle = fwk.Particle(None)
                 particle.deserialize(particle_pkl)
                 self.add_particle(particle)
 
-        self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
+        self.__hybrid_information = fwk.HybridInformation()
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
 

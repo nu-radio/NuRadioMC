@@ -4,17 +4,11 @@ import numpy as np
 import scipy.optimize as opt
 import logging
 import NuRadioReco.framework.base_trace
-from NuRadioReco.utilities import ice
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
+
+from NuRadioReco.utilities import ice, geometryUtilities as geo_utl, units
 from NuRadioReco.framework.parameters import stationParameters as stnp
-import NuRadioReco.modules.voltageToEfieldConverterPerChannel
-import NuRadioReco.modules.electricFieldBandPassFilter
 
-
-electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
-voltageToEfieldConverterPerChannel = NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel()
-voltageToEfieldConverterPerChannel.begin()
+from NuRadioReco import modules
 
 
 def get_array_of_channels(station, det, zenith, azimuth, polarization):
@@ -94,6 +88,10 @@ class beamFormingDirectionFitter:
         self.begin()
         self.logger = logging.getLogger("NuRadioReco.beamFormingDirectionFitter")
 
+        self.electricFieldBandPassFilter = modules.electricFieldBandPassFilter()
+        self.voltageToEfieldConverterPerChannel = modules.voltageToEfieldConverterPerChannel()
+        self.voltageToEfieldConverterPerChannel.begin()
+
     def begin(self, debug=False, log_level=logging.NOTSET):
         self.logger.setLevel(log_level)
         self.__debug = debug
@@ -145,8 +143,8 @@ class beamFormingDirectionFitter:
             station.set_parameter(stnp.zenith, zenith)
             station.set_parameter(stnp.azimuth, azimuth)
             station.set_electric_fields([])     # resets EFields, necessary
-            voltageToEfieldConverterPerChannel.run(evt, station, det, pol=polarization, debug=False)  # Antenna response
-            electricFieldBandPassFilter.run(evt, station, det, passband=[120 * units.MHz, 300 * units.MHz], filter_type='butterabs')
+            self.voltageToEfieldConverterPerChannel.run(evt, station, det, pol=polarization, debug=False)  # Antenna response
+            self.electricFieldBandPassFilter.run(evt, station, det, passband=[120 * units.MHz, 300 * units.MHz], filter_type='butterabs')
 
             Efields_object = get_array_of_channels(station, det, zenith, azimuth, polarization + 1)
             Efields = []

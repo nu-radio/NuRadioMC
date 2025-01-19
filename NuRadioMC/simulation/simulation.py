@@ -21,22 +21,10 @@ from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
-import NuRadioReco.modules.io.eventWriter
-import NuRadioReco.modules.channelAddCableDelay
-import NuRadioReco.modules.electricFieldResampler
-import NuRadioReco.modules.efieldToVoltageConverterPerEfield
-import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.channelSignalReconstructor
-import NuRadioReco.modules.channelResampler
-import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.triggerTimeAdjuster
+from NuRadioReco import modules
 
 from NuRadioReco.detector import detector, antennapattern
-import NuRadioReco.framework.sim_station
-import NuRadioReco.framework.electric_field
-import NuRadioReco.framework.particle
-import NuRadioReco.framework.event
-import NuRadioReco.framework.sim_emitter
+from NuRadioReco import framework as fwk
 
 from NuRadioReco.framework.parameters import (
     electricFieldParameters as efp, showerParameters as shp,
@@ -51,15 +39,15 @@ logger = logging.getLogger("NuRadioMC.simulation")
 # initialize a few NuRadioReco modules
 # TODO: Is this the best way to do it? Better to initialize them on demand
 
-channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
-electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
-efieldToVoltageConverterPerEfield = NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
-efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
-channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
+channelAddCableDelay = modules.ChannelAddCableDelay()
+electricFieldResampler = modules.ElectricFieldResampler()
+efieldToVoltageConverterPerEfield = modules.EfieldToVoltageConverterPerEfield()
+efieldToVoltageConverter = modules.EfieldToVoltageConverter()
+channelSignalReconstructor = modules.ChannelSignalReconstructor()
+channelResampler = modules.ChannelResampler()
+channelGenericNoiseAdder = modules.ChannelGenericNoiseAdder()
+triggerTimeAdjuster = modules.TriggerTimeAdjuster()
+eventWriter = modules.io.EventWriter()
 
 
 def merge_config(user, default):
@@ -137,7 +125,7 @@ def calculate_sim_efield(showers, station_id, channel_id,
         time_logger.stop_time('distance cut')
     logger.debug("Calculating electric field for station %d , channel %d from list of showers", station_id, channel_id)
 
-    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+    sim_station = fwk.SimStation(station_id)
     sim_station.set_candidate(False)
     if min_efield_amplitude is None:
         sim_station.set_candidate(True)
@@ -236,7 +224,7 @@ def calculate_sim_efield(showers, station_id, channel_id,
             time_logger.stop_time('signal generation')
 
             # this is common stuff which is the same between emitters and showers
-            electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
+            electric_field = fwk.ElectricField([channel_id],
                                     position=det.get_relative_position(station_id, channel_id),
                                     shower_id=shower.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
@@ -322,7 +310,7 @@ def calculate_sim_efield_for_emitter(emitters, station_id, channel_id,
     """
     logger.debug(f"Calculating electric field for station {station_id}, channel {channel_id} from list of emitters")
 
-    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+    sim_station = fwk.SimStation(station_id)
     sim_station.set_is_neutrino()  # naming not ideal, but this function defines in-ice emission (compared to in-air emission from air showers)
     sim_station.set_candidate(False)
     if min_efield_amplitude is None:
@@ -413,7 +401,7 @@ def calculate_sim_efield_for_emitter(emitters, station_id, channel_id,
             time_logger.stop_time('signal generation')
 
             # this is common stuff which is the same between emitters and showers. Make sure to do any changes to this code in both places
-            electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
+            electric_field = fwk.ElectricField([channel_id],
                                     position=det.get_relative_position(station_id, channel_id),
                                     shower_id=emitter.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
@@ -494,7 +482,7 @@ def apply_det_response_sim(
         time_logger.start_time('detector response (sim)')
 
     if evt is None:
-        evt = NuRadioReco.framework.event.Event(0, 0)
+        evt = fwk.Event(0, 0)
 
     if event_time is not None:
         sim_station.set_station_time(event_time)
@@ -537,7 +525,7 @@ def apply_det_response(
 
     Parameters
     ----------
-    evt : NuRadioReco.framework.event.Event
+    evt : fwk.Event
         Event object containing all the showers/emitters and electric fields
     det : Detector object
         the detector description defining all channels.
@@ -619,8 +607,8 @@ def build_dummy_event(station_id, det, config):
         object: The built event object.
     """
 
-    evt = NuRadioReco.framework.event.Event(0, 0)
-    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+    evt = fwk.Event(0, 0)
+    sim_station = fwk.SimStation(station_id)
     sim_station.set_is_neutrino()  # naming not ideal, but this function defines in-ice emission (compared to in-air emission from air showers)
 
     dt = 1. / config['sampling_rate']
@@ -630,7 +618,7 @@ def build_dummy_event(station_id, det, config):
     n_samples = int(np.ceil(n_samples / 2.) * 2)  # round to nearest even integer
 
     for channel_id in det.get_channel_ids(station_id):
-        electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
+        electric_field = fwk.ElectricField([channel_id],
                                     det.get_relative_position(sim_station.get_id(), channel_id))
         trace = np.zeros(n_samples)
         trace[n_samples // 2] = 100 * units.V  # set a signal that should satisfy any trigger and speedup cuts
@@ -642,7 +630,7 @@ def build_dummy_event(station_id, det, config):
         electric_field[efp.ray_path_type] = 0
         sim_station.add_electric_field(electric_field)
 
-    station = NuRadioReco.framework.station.Station(station_id)
+    station = fwk.Station(station_id)
     station.set_sim_station(sim_station)
     evt.set_station(station)
     return evt
@@ -676,7 +664,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
 
     parent_id = idxs[0]
     event_group_id = fin['event_group_ids'][parent_id]
-    event_group = NuRadioReco.framework.event.Event(event_group_id, parent_id)
+    event_group = fwk.Event(event_group_id, parent_id)
     # add event generator info event
     for enum_entry in genattrs:
         if enum_entry.name in fin_attrs:
@@ -685,7 +673,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
     particle_mode = "simulation_mode" not in fin_attrs or fin_attrs['simulation_mode'] != "emitter"
     if particle_mode:  # first case: simulation of a particle interaction which produces showers
         # there is only one primary particle per event group
-        input_particle = NuRadioReco.framework.particle.Particle(event_group_id)
+        input_particle = fwk.Particle(event_group_id)
         input_particle[simp.flavor] = fin['flavors'][parent_id]
         input_particle[simp.energy] = fin['energies'][parent_id]
         input_particle[simp.interaction_type] = fin['interaction_type'][parent_id]
@@ -716,7 +704,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
                 vertex_time = fin['vertex_times'][idx]
 
             # create NuRadioReco event structure
-            sim_shower = NuRadioReco.framework.radio_shower.RadioShower(fin['shower_ids'][idx])
+            sim_shower = fwk.RadioShower(fin['shower_ids'][idx])
             # save relevant neutrino properties
             sim_shower[shp.zenith] = fin['zeniths'][idx]
             sim_shower[shp.azimuth] = fin['azimuths'][idx]
@@ -740,7 +728,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
 
     else:  # emitter mode: simulation of one or several artificial emitters
         for idx in idxs:
-            emitter_obj = NuRadioReco.framework.sim_emitter.SimEmitter(fin['shower_ids'][idx])  # shower_id is equivalent to emitter_id in this case
+            emitter_obj = fwk.SimEmitter(fin['shower_ids'][idx])  # shower_id is equivalent to emitter_id in this case
             emitter_obj[ep.position] = np.array([fin['xx'][idx], fin['yy'][idx], fin['zz'][idx]])
             emitter_obj[ep.model] = fin['emitter_model'][idx]
             emitter_obj[ep.amplitude] = fin['emitter_amplitudes'][idx]
@@ -917,7 +905,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
 
     Returns:
     --------
-    events : list of NuRadioReco.framework.event.Event
+    events : list of `NuRadioReco.framework.event.Event`
         The list of events created from the grouped signals.
     """
     if time_logger is not None:
@@ -960,7 +948,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             logger.info(f"creating event {iEvent} of event group {event_group_id} ranging "
                         f"from {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
 
-        evt = NuRadioReco.framework.event.Event(event_group_id, iEvent)  # create new event
+        evt = fwk.Event(event_group_id, iEvent)  # create new event
         if particle_mode:
             # add MC particles that belong to this (sub) event to event structure
             # add only primary for now, since full interaction chain is not typically in the input hdf5s
@@ -969,8 +957,8 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
         # copy over generator information from temporary event to event
         evt._generator_info = event_group._generator_info
 
-        station = NuRadioReco.framework.station.Station(tmp_station.get_id())
-        sim_station = NuRadioReco.framework.sim_station.SimStation(tmp_station.get_id())
+        station = fwk.Station(tmp_station.get_id())
+        sim_station = fwk.SimStation(tmp_station.get_id())
         sim_station.set_is_neutrino()
         tmp_sim_station = tmp_station.get_sim_station()
         shower_ids_of_sub_event = []
@@ -1057,7 +1045,7 @@ def remove_all_traces(evt):
 
     Parameters
     ----------
-    evt : NuRadioReco.framework.event.Event
+    evt : `NuRadioReco.framework.event.Event`
     """
     for station in evt.get_stations():
         sim_station = station.get_sim_station()
@@ -1485,8 +1473,8 @@ class simulation:
                         logger.debug(f"event group {event_group.get_run_number()} is too far away from station {station_id}, skipping to next station")
                         # continue
                 output_buffer[station_id] = {}
-                station = NuRadioReco.framework.station.Station(station_id)
-                sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+                station = fwk.Station(station_id)
+                sim_station = fwk.SimStation(station_id)
                 sim_station.set_is_neutrino()  # naming not ideal, but this function defines in-ice emission (compared to in-air emission from air showers)
                 station.set_sim_station(sim_station)
                 event_group.set_station(station)
@@ -1697,7 +1685,7 @@ class simulation:
 
     def _add_empty_channel(self, station, channel_id):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
-        channel = NuRadioReco.framework.channel.Channel(channel_id)
+        channel = fwk.Channel(channel_id)
         n_samples = int(round(self._det.get_number_of_samples(station.get_id(), channel_id))
                         * self._config['sampling_rate'] / self._det.get_sampling_frequency(station.get_id(), channel_id))
         channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])

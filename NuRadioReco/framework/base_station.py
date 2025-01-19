@@ -1,11 +1,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-import NuRadioReco.framework.base_trace
+from NuRadioReco import framework as fwk
+
 import NuRadioReco.framework.trigger
-import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
+import NuRadioReco.framework.parameter_serialization
+
 import datetime
 import astropy.time
-import NuRadioReco.framework.parameter_serialization
 
 try:
     import cPickle as pickle
@@ -247,7 +248,7 @@ class BaseStation():
         """
         if len(self._triggers) > 1:
             raise ValueError("more then one trigger were set. Request is ambiguous")
-        trigger = NuRadioReco.framework.trigger.Trigger('default')
+        trigger = fwk.Trigger('default')
         trigger.set_triggered(triggered)
         self.set_trigger(trigger)
 
@@ -372,7 +373,7 @@ class BaseStation():
             self._triggered = data['_triggered']
 
         for electric_field in data['electric_fields']:
-            efield = NuRadioReco.framework.electric_field.ElectricField([])
+            efield = fwk.ElectricField([])
             efield.deserialize(electric_field)
             self.add_electric_field(efield)
 
