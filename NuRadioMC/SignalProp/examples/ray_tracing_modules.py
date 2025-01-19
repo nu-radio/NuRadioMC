@@ -7,7 +7,11 @@ import logging
 
 logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_modules')
 solution_types = propagation.solution_types
-ray_tracing_modules = propagation.available_modules
+ray_tracing_modules = propagation.available_modules.copy()
+try:
+    import radiopropa
+except:
+    ray_tracing_modules.remove("radiopropa")
 plot_line_styles = ["-", "--", ":", "-."]
 
 ### This example shows the ray tracing results for the different 
@@ -23,12 +27,7 @@ attenuation_model = 'GL1'
 fig, axs = plt.subplots(1, 2, figsize=(12,6))
 for i_module, ray_tracing_module in enumerate(ray_tracing_modules):
     print('Testing ray tracing module: \'{}\''.format(ray_tracing_module))
-    try:
-        prop = propagation.get_propagation_module(ray_tracing_module)
-    except ImportError as e:
-        logger.warning("Failed to load {}".format(ray_tracing_module))
-        logger.exception(e)
-
+    prop = propagation.get_propagation_module(ray_tracing_module)
     # This function creates a ray tracing instance refracted index, attenuation model, 
     # number of frequencies # used for integrating the attenuation and interpolate afterwards, 
     # and the number of allowed reflections.

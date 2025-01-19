@@ -55,6 +55,11 @@ if __name__ == "__main__":
             " Useful if you are only modifying or adding (not moving/removing) pages.")
     )
     argparser.add_argument(
+        '--skip-apidoc', default=False, const=True, action='store_const', help=(
+            "Skip the compilation of the automatic API documentation. "
+            "Speeds up the compilation of the documentation if no changes were made to the code.")
+    )
+    argparser.add_argument(
         '--debug', '-v', default=0, action='count',
         help="Store full debugging output in make_docs.log."
         )
@@ -73,42 +78,42 @@ if __name__ == "__main__":
 
     doc_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(doc_path)
+    if not parsed_args.skip_apidoc:
+        # we exclude scripts, examples and tests from the code documentation,
+        # as apidoc doesn't really handle those well
+        exclude_modules = []
+        exclude_modules.append('../**/test')
+        exclude_modules.append('../**/tests')
+        exclude_modules.append('../**/scripts')
+        exclude_modules.append('../**/examples')
+        exclude_modules.append('../**/eventbrowser')
+        exclude_modules.append('../**/setup.py')
+        exclude_modules.append('../**/CPPAnalyticRayTracing') # C code also doesn't work right now
+        exclude_modules.append('../**/araroot') # this doesn't work because we don't have the .so files to read ARA data
 
-    # we exclude scripts, examples and tests from the code documentation,
-    # as apidoc doesn't really handle those well
-    exclude_modules = []
-    exclude_modules.append('../**/test')
-    exclude_modules.append('../**/tests')
-    exclude_modules.append('../**/scripts')
-    exclude_modules.append('../**/examples')
-    exclude_modules.append('../**/eventbrowser') 
-    exclude_modules.append('../**/setup.py')
-    exclude_modules.append('../**/CPPAnalyticRayTracing') # C code also doesn't work right now
-    exclude_modules.append('../**/araroot') # this doesn't work because we don't have the .so files to read ARA data
+        # create the automatic code documentation with apidoc
+        for module in ['NuRadioReco', 'NuRadioMC']:
+            output_folder = 'source/{}/apidoc'.format(module)
+            if os.path.exists(output_folder):
+                if not parsed_args.no_clean: # remove old apidoc folder
+                    logger.info('Removing old apidoc folder: {}'.format(output_folder))
+                    subprocess.check_output(['rm', '-rf', output_folder])
 
-    # create the automatic code documentation with apidoc
-    for module in ['NuRadioReco', 'NuRadioMC']:
-        output_folder = 'source/{}/apidoc'.format(module)
-        if os.path.exists(output_folder):
-            if not parsed_args.no_clean: # remove old apidoc folder
-                logger.info('Removing old apidoc folder: {}'.format(output_folder))
-                subprocess.check_output(['rm', '-rf', output_folder])
+            module_path = '../{}/'.format(module)
 
-        module_path = '../{}/'.format(module)
-
-        logger.info("Creating automatic documentation files with apidoc:")
-        logger.info("excluding modules: {}".format(exclude_modules))
-        subprocess.run(
-            [
-                'sphinx-apidoc', '-efMT', '--ext-autodoc', '--ext-intersphinx',
-                '--ext-coverage', '--ext-githubpages', '-o', output_folder,
-                module_path, *exclude_modules
-            ], stdout=pipe_stdout
-        )
-        # We don't use the top level NuRadioReco.rst / NuRadioMC.rst toctrees,
-        # so we remove them to eliminate a sphinx warning
-        subprocess.check_output([
-            'rm', os.path.join(output_folder, '{}.rst'.format(module))])
+            logger.info("Creating automatic documentation files with apidoc:")
+            logger.info("excluding modules: {}".format(exclude_modules))
+            subprocess.run(
+                [
+                    'sphinx-apidoc', '-efMT', '--ext-autodoc', '--ext-intersphinx',
+                    '--ext-coverage', '--ext-githubpages', '-o', output_folder,
+                    module_path, *exclude_modules
+                ], stdout=pipe_stdout
+            )
+            # We don't use the top level NuRadioReco.rst / NuRadioMC.rst toctrees,
+            # so we remove them to eliminate a sphinx warning
+            subprocess.check_output([
+                'rm', os.path.join(output_folder, '{}.rst'.format(module))])
 
     if not parsed_args.no_clean:
         logger.info('Removing old \'build\' directory...')
