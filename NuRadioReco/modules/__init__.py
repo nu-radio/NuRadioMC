@@ -32,3 +32,5 @@ from .triggerTimeAdjuster import triggerTimeAdjuster as TriggerTimeAdjuster
 from .voltageToAnalyticEfieldConverter import voltageToAnalyticEfieldConverter as VoltageToAnalyticEfieldConverter
 from .voltageToEfieldConverter import voltageToEfieldConverter as VoltageToEfieldConverter
 from .voltageToEfieldConverterPerChannel import voltageToEfieldConverterPerChannel as VoltageToEfieldConverterPerChannel
+
+from NuRadioReco.modules import io

@@ -22,7 +22,6 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 from NuRadioReco import modules
-import NuRadioReco.modules.io.eventWriter
 
 from NuRadioReco.detector import detector, antennapattern
 from NuRadioReco import framework as fwk
@@ -47,8 +46,8 @@ efieldToVoltageConverter = modules.EfieldToVoltageConverter()
 channelSignalReconstructor = modules.ChannelSignalReconstructor()
 channelResampler = modules.ChannelResampler()
 channelGenericNoiseAdder = modules.ChannelGenericNoiseAdder()
-eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 triggerTimeAdjuster = modules.TriggerTimeAdjuster()
+eventWriter = modules.io.EventWriter()
 
 
 def merge_config(user, default):
