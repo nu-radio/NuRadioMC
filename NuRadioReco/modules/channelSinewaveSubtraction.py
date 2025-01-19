@@ -1,17 +1,15 @@
+from NuRadioReco.utilities import units, fft
+
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
 
 import numpy as np
 import sys
 
-# Add the directory where your library is located
-#sys.path.append('/Users/nozdrina.1/Documents/phys/software/NuRadioMC')
-
-import NuRadioReco.utilities as ut
-import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-from NuRadioReco.utilities import units, fft
 
 """
-Contains module to filter continuous wave out of the signal using sine subtraction on peaks in frequency spectrum
+This module provides a class for continuous wave (CW) noise filtering using sine subtraction.
+In contrast to the module channelCWNOtchFilter, which uses a notch filter to remove CW noise.
 """
 
 
@@ -214,7 +212,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    data_dir = os.environ["RNO_G_DATA"] # used deep CR burn sample.. 
+    data_dir = os.environ["RNO_G_DATA"] # used deep CR burn sample..
     rnog_reader = readRNOGData(log_level = logging.DEBUG)
 
     root_dirs = f"{data_dir}/station{args.station}/run{args.run}"
@@ -245,5 +243,3 @@ if __name__ == "__main__":
             # save plot into the current dir
             current_dir = os.path.dirname(os.path.abspath(__file__))
             fig.savefig(current_dir+"/test_cw_filter", bbox_inches="tight")
-
-
