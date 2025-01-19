@@ -653,7 +653,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_sim_station">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds a SimStation to the Station. If a SimStation is already present, </span>
+<span class="sd">        Adds a SimStation to the Station. If a SimStation is already present,</span>
 <span class="sd">        the new SimStation is merged to the existing one.</span>
 
 <span class="sd">        Parameters</span>
@@ -699,8 +699,8 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_channels">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">iter_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Iterates over all channels of the station. If `use_channels` is not None, </span>
-<span class="sd">        only the channels with the ids in `use_channels` are iterated over. If `sorted` </span>
+<span class="sd">        Iterates over all channels of the station. If `use_channels` is not None,</span>
+<span class="sd">        only the channels with the ids in `use_channels` are iterated over. If `sorted`</span>
 <span class="sd">        is True, the channels are iterated over in ascending order of their ids.</span>
 
 <span class="sd">        Parameters</span>
@@ -782,7 +782,7 @@
 
 <div class="viewcode-block" id="Station.add_channel">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_channel">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a channel to the station. If a channel with the same id is already present, it is overwritten.</span>
 
@@ -791,7 +791,7 @@
 <span class="sd">        channel : `NuRadioReco.framework.channel.Channel`</span>
 <span class="sd">            The channel to add to the station.</span>
 <span class="sd">        overwrite : bool, (Default: True)</span>
-<span class="sd">            If True, allow to overwrite an existing channel (i.e., a channel with the same id). </span>
+<span class="sd">            If True, allow to overwrite an existing channel (i.e., a channel with the same id).</span>
 <span class="sd">            If False, raise AttributeError if a channel with the same id is being added.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">):</span>
@@ -852,7 +852,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;azimuth&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;MC&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;azimuth&#39;</span><span class="p">)</span>
             <span class="p">)</span></div>
 
