@@ -33,7 +33,7 @@ import numpy as np
 def freqs(num_samples, sampling_rate):
     """
     Returns frequency bins for FFT.
-  
+
     Parameters
     ----------
     num_samples: int

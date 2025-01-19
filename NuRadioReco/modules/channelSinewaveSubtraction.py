@@ -6,6 +6,8 @@ from scipy.optimize import curve_fit
 import numpy as np
 import sys
 
+import logging
+logger = logging.getLogger("NuRadioReco.modules.channelSinewaveSubtraction")
 
 """
 This module provides a class for continuous wave (CW) noise filtering using sine subtraction.
@@ -13,64 +15,99 @@ In contrast to the module channelCWNOtchFilter, which uses a notch filter to rem
 """
 
 
+class channelSineSubtraction:
+    """ Continuous wave (CW) filter module. Uses sine subtraction based on scipy curve_fit. """
+    def __init__(self):
+        pass
+
+    def begin(self, peak_prominance=4, save_filtred_freqs=False):
+        self.peak_prominance = peak_prominance
+        self.save_filtred_freqs = [] if save_filtred_freqs else None
+
+    def run(self, event, station, det=None):
+        for channel in station.iter_channels():
+            sampling_rate = channel.get_sampling_rate()
+
+            trace = channel.get_trace()
+            trace_fil = sinewave_subtraction(
+                trace, sampling_rate=sampling_rate, peak_prominance=self.peak_prominance,
+                saved_noise_freqs=self.save_filtred_freqs)
+
+            channel.set_trace(trace_fil, sampling_rate)
+
+
 def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3.2):
     """
-        Estimate the amplitude of a specific harmonic in the waveform.
+    Estimate the amplitude of a specific harmonic in the waveform.
 
-        Args:
-            wf (np.ndarray): Input waveform (1D array).
-            target_freq (float): Target frequency for which to estimate amplitude.
-            sampling_rate (float): Sampling rate of the waveform (GHz).
+    Paramters
+    ----------
+    wf: np.ndarray
+        Input waveform (1D array).
+    target_freq:  float
+        Target frequency for which to estimate amplitude.
+    sampling_rate: float (default: 3.2)
+        Sampling rate of the waveform (GHz).
 
-        Returns:
-            float: Estimated amplitude of the target frequency.
-        """
+    Returns
+    --------
+    ampl: float
+        Estimated amplitude of the target frequency.
+    """
     if wf.size == 0:
         raise ValueError("Input waveform is empty.")
+
     if target_freq < 0 or target_freq > sampling_rate / 2:
         raise ValueError("Target frequency is out of range (0 to Nyquist frequency).")
 
-    fft_spectrum = np.fft.fft(wf)
-    frequencies = np.fft.fftfreq(len(wf), d=1 / sampling_rate)
+    fft_spectrum = fft.time2freq(wf, sampling_rate)
+    frequencies = fft.freqs(len(wf), sampling_rate)
 
     # Find amplitude of the 50 Hz harmonic
 
     bin_index = np.argmin(np.abs(frequencies - target_freq))
-    amplitude = np.abs(fft_spectrum[bin_index]) / len(wf)  # Normalize
-    if bin_index > 0:
-        amplitude *= 2  # Adjust for double-sided spectrum
-    #print(f"Amplitude of {target_freq} Hz harmonic: {amplitude}")
+    amplitude = np.abs(fft_spectrum[bin_index])
+
     return amplitude
 
 
-def sine_sub(wf: np.ndarray, sampling_rate: float = 3.2, peak_prominance: float = 6.0, saved_noise_freqs : list = None):
+def sinewave_subtraction(wf: np.ndarray, sampling_rate: float = 3.2, peak_prominance: float = 6.0, saved_noise_freqs: list = None):
     """
     Perform sine subtraction on a waveform to remove CW noise.
 
-    Args:
-        wf (np.ndarray): Input waveform (1D array).
-        sampling_rate (float): Sampling rate of the waveform (Hz).
-        peak_prominence (float): Threshold for identifying prominent peaks in the FFT spectrum.
-        saved_noise_freqs (list, optional): A list to store identified noise frequencies.
+    Parameters
+    ----------
+    wf: np.ndarray
+        Input waveform (1D array).
+    sampling_rate: float (default: 3.2)
+        Sampling rate of the waveform (GHz).
+    peak_prominance: float (default: 6.0)
+        Threshold for identifying prominent peaks in the FFT spectrum.
+    saved_noise_freqs: list (default: None)
+        A list to store identified noise frequencies.
 
-    Returns:
-        np.ndarray: Corrected waveform with CW noise removed.
+    Returns
+    -------
+    np.ndarray
+        Corrected waveform with CW noise removed.
     """
+
     dt = 1 / sampling_rate # in ns
     t = np.arange(0, len(wf) * dt, dt) # in ns
+
     # zero meaning, just in case
     wf = wf - np.mean(wf)
 
     def sinusoid(t, amplitude, noise_frequency, phase):
         return amplitude * np.cos(2 * np.pi * noise_frequency * t + phase)
-    # get fft spectrum
-    fft = abs(ut.fft.time2freq(wf, 3.2))
-    freqs = np.fft.rfftfreq(len(wf), dt)
+
+    fft = abs(fft.time2freq(wf, sampling_rate))
+    freqs = fft.freqs(len(wf), sampling_rate)
 
     # find noise frequencies:
     rms = np.sqrt(np.mean(np.abs(fft) ** 2))
     peak_idxs = np.where(np.abs(fft) > peak_prominance * rms)[0]
-    #noise_freqs = freqs[peak_idxs]
+
     noise_freqs = []
 
     # find mean CW freq bean
@@ -98,8 +135,8 @@ def sine_sub(wf: np.ndarray, sampling_rate: float = 3.2, peak_prominance: float 
         corrected_waveform = wf.copy()
         for noise_freq in noise_freqs:
 
-            A_guess = guess_amplitude(wf, noise_freq, sampling_rate)
-            initial_guess = [A_guess, noise_freq, 0.01]
+            ampl_guess = guess_amplitude(wf, noise_freq, sampling_rate)
+            initial_guess = [ampl_guess, noise_freq, 0.01]
 
             # Fit the sinusoidal model to the waveform
             try:
@@ -111,14 +148,18 @@ def sine_sub(wf: np.ndarray, sampling_rate: float = 3.2, peak_prominance: float 
                     2 * np.pi * estimated_freq * t + estimated_phase
                 )
 
+                logger.info(f"Subtract sinewave with a frequency: {estimated_freq / units.MHz:.1f} MHz, "
+                            f"an amplitude: {estimated_amplitude:.1e} V/GHz and a phase: {estimated_phase / units.deg:.1f} deg")
+
                 # Subtract the estimated CW noise
                 corrected_waveform -= estimated_cw_noise
 
                 # Save the identified noise frequency
                 if saved_noise_freqs is not None:
                     saved_noise_freqs.append(noise_freq)
+
             except RuntimeError:
-                print(f"Curve fitting failed for frequency: {noise_freq}")
+                logger.error(f"Curve fitting failed for frequency: {noise_freq / units.MHz} MHz")
 
     return corrected_waveform
 
@@ -129,13 +170,13 @@ def plot_ft(channel, ax, label=None, plot_kwargs=dict()):
 
     Parameters
     ----------
-    channel : NuRadio channel class
-        channel from which to get trace
-    ax : matplotlib.axes
+    channel: `NuRadioReco.framework.channel.Channel`
+        Channel from which to get trace
+    ax: matplotlib.axes
         ax on which to plot
-    label : string
+    label: string
         plotlabel
-    plot_kwargs : dict
+    plot_kwargs: dict
         options for plotting
     """
     freqs = channel.get_frequencies()
@@ -149,52 +190,30 @@ def plot_ft(channel, ax, label=None, plot_kwargs=dict()):
     ax.legend(loc=legendloc)
 
 
-def plot_trace(channel, ax, fs=3.2e9 * units.Hz, label=None, plot_kwargs=dict()):
+def plot_trace(channel, ax, label=None, plot_kwargs=dict()):
     """
-    Function to plot trace of given channel
+    Function to plot trace of given channel.
 
     Parameters
     ----------
-    channel : NuRadio channel class
-        channel from which to get trace
-    ax : matplotlib.axes
+    channel: `NuRadioReco.framework.channel.Channel`
+        Channel from which to get trace
+    ax: matplotlib.axes
         ax on which to plot
-    fs : float, default = 3.2 Hz
+    fs: float, default = 3.2 Hz
         sampling frequency
-    label : string
+    label: string
         plotlabel
-    plot_kwargs : dict
+    plot_kwargs: dict
         options for plotting
     """
-    times = np.arange(2048) / fs / units.ns
+    times = channel.get_times()
     trace = channel.get_trace()
-
-    legendloc = 2
 
     ax.plot(times, trace, label=label, **plot_kwargs)
     ax.set_xlabel("time / ns")
     ax.set_ylabel("trace / V")
-    ax.legend(loc=legendloc)
-
-class channelSineSubtraction:
-    """ Continuous wave (CW) filter module. Uses sine subtraction based on scipy curve_fit  """
-    def __init__(self):
-        pass
-
-    def begin(self, sampling_rate=3.2, peak_prominance=4, save_filtred_freqs=False):
-        self.sampling_rate = sampling_rate
-        self.peak_prominance = peak_prominance
-        self.save_filtred_freqs = [] if save_filtred_freqs else None
-
-    def run(self, event, station, det):
-        for channel in station.iter_channels():
-            fs = channel.get_sampling_rate()
-            # freq = channel.get_frequencies()
-            # spectrum = channel.get_frequency_spectrum()
-            trace = channel.get_trace()
-            trace_fil = sine_sub(trace, sampling_rate=self.sampling_rate,
-                                 peak_prominance=self.peak_prominance, saved_noise_freqs=self.save_filtred_freqs)
-            channel.set_trace(trace_fil, fs)
+    ax.legend(loc=2)
 
 
 if __name__ == "__main__":
