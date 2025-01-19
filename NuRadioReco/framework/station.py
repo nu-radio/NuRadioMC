@@ -146,7 +146,7 @@ class Station(fwk.BaseStation):
             If True, allow to overwrite an existing channel (i.e., a channel with the same id).
             If False, raise AttributeError if a channel with the same id is being added.
         """
-        if not isinstance(channel, NuRadioReco.framework.channel.Channel):
+        if not isinstance(channel, fwk.Channel):
             raise AttributeError("`Channel` needs to be of type `NuRadioReco.framework.channel.Channel`")
 
         if not overwrite and channel.get_id() in self.__channels:
