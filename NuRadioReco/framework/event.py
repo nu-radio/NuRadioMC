@@ -570,10 +570,12 @@ class Event:
                 if len(invalid_keys):
                     logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
 
+        event_time_dict = io_utilities.astropy_to_dict(self.__event_time)
+
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
                 '_id': self._id,
-                '__event_time': self.__event_time,
+                '__event_time': event_time_dict,
                 'stations': stations_pkl,
                 'showers': showers_pkl,
                 'sim_showers': sim_showers_pkl,
@@ -621,7 +623,7 @@ class Event:
         self._parameters = data['_parameters']
         self.__run_number = data['__run_number']
         self._id = data['_id']
-        self.__event_time = data['__event_time']
+        self.__event_time = io_utilities.time_object_to_astropy(data['__event_time'])
 
         if 'generator_info' in data.keys():
             self._generator_info = data['generator_info']

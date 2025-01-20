@@ -86,9 +86,11 @@ def time_object_to_astropy(time_object):
         return None
 
     if isinstance(time_object, astropy.time.Time):
+        # For backward compatibility, we also keep supporting station times stored as astropy.time objects
         return time_object
 
     if isinstance(time_object, datetime.datetime):
+        # For backward compatibility, we also keep supporting station times stored as datetime objects
         logger.warning(
             "Time object created from a `datetime` object. "
             "Nanosecond accuracy is not ensured.")
