@@ -81,7 +81,7 @@ def time_object_to_astropy(time_object):
     if time_object is None:
         return None
 
-    if isinstance(time_object, float) and time_boject == 0:
+    if isinstance(time_object, [int, float]) and time_object == 0:
         # 0 was an old default value for the event time. It was replaced by None.
         return None
 
@@ -95,7 +95,7 @@ def time_object_to_astropy(time_object):
             "Time object created from a `datetime` object. "
             "Nanosecond accuracy is not ensured.")
 
-        return astropy.time.Time(time)
+        return astropy.time.Time(time_object)
 
     if isinstance(time_object, dict):
 
