@@ -213,6 +213,8 @@ class Response:
         """
         response = np.ones_like(freq, dtype=np.complex128)
 
+        freq = np.asarray(freq)
+
         if component_names is not None:
             if isinstance(component_names, str):
                 component_names = [component_names]
