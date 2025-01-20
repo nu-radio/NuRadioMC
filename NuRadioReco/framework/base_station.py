@@ -78,11 +78,9 @@ class BaseStation():
     def set_station_time(self, time, format=None):
         """
         Set the (absolute) time for the station (stored as astropy.time.Time).
-        Not related to the event._event_time.
 
         Parameters
         ----------
-
         time: astropy.time.Time or datetime.datetime or float
             If "time" is a float, you have to specify its format.
 
@@ -97,6 +95,9 @@ class BaseStation():
         elif time is None:
             self._station_time = None
         else:
+            if format is None:
+                logger.error("If you provide a float for the time, you have to specify the format.")
+                raise ValueError("If you provide a float for the time, you have to specify the format.")
             self._station_time = astropy.time.Time(time, format=format)
 
     def get_station_time(self, format='isot'):
@@ -105,7 +106,6 @@ class BaseStation():
 
         Parameters
         ----------
-
         format: str
             Format in which the time object is displayed. (Default: isot)
 
