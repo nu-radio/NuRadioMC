@@ -1,4 +1,10 @@
 import pickle
+import logging
+
+import datetime
+import astropy.time
+
+logger = logging.getLogger('NuRadioReco.utilities.io_utilities')
 
 
 def read_pickle(filename, encoding='latin1'):
@@ -21,3 +27,93 @@ def read_pickle(filename, encoding='latin1'):
     except:
         with open(filename, 'rb') as file:
             return pickle.load(file, encoding=encoding)
+
+
+def astropy_to_dict(time):
+    """
+    Convert an astropy object to a dictionary.
+
+    Parameters
+    ----------
+    time: astropy.time.Time
+        Time object to be converted to a dictionary
+    """
+    if time is None:
+        return None
+
+    if not isinstance(time, astropy.time.Time):
+        logger.error(f'Input is not an astropy object: {time}')
+        raise ValueError(f'Input is not an astropy object: {time}')
+
+    # Internally, astropy stores the time in the modified julian date (mjd) fornat with a tuple of two double-precision floats.
+    # The first float has an integer value and represents the number of days since the epoch (1858-11-17)
+    # and the second float gives the fraction of the day. That means we can reach a precision of (number of nanoseconds in a day) / 2^52:
+    # 3600 * 24 * 1e9 / 2^52 = 0.02 ns. We choose to store the time object in its native format.
+
+    data = {
+        "val": time.jd1,
+        "val2": time.jd2,
+        "scale": time.scale,
+        "format": "mjd",
+    }
+
+    return data
+
+
+def time_object_to_astropy(time_object):
+    """
+    Convert a time_object to an astropy object.
+
+    This function tries to encompases all the different possible ways
+    a time object might have been stored inside a nur file.
+
+    Parameters
+    ----------
+    time_object: dict or float or datetime.datetime or astropy.time.Time
+        The time object to be converted to an astropy object
+
+    Returns
+    -------
+    time: astropy.time.Time
+        The time object
+    """
+
+    if time_object is None:
+        return None
+
+    if isinstance(time_object, float) and time_boject == 0:
+        # 0 was an old default value for the event time. It was replaced by None.
+        return None
+
+    if isinstance(time_object, astropy.time.Time):
+        return time_object
+
+    if isinstance(time_object, datetime.datetime):
+        logger.warning(
+            "Time object created from a `datetime` object. "
+            "Nanosecond accuracy is not ensured.")
+
+        return astropy.time.Time(time)
+
+    if isinstance(time_object, dict):
+
+        if 'value' in time_object and 'format' in time_object:
+            logger.warning(
+                "Time object created from a dictionary which does not store the nano second separately. "
+                "Nanosecond accuracy is not ensured.")
+
+            return astropy.time.Time(time_object['value'], format=time_object['format'])
+
+        elif 'val' in time_object and 'val2' in time_object:
+            if "format" not in time_object or time_object["format"] != "mjd":
+                logger.error(f"Time object is a dictionary but the format is wrong: {time_object}")
+                raise ValueError(f"Time object is a dictionary but the format is wrong: {time_object}")
+
+            return astropy.time.Time(**time_object)
+
+        else:
+            logger.error(f"Time object dictionary not recognized: {time_object}")
+            raise ValueError(f"Time object dictionary not recognized: {time_object}")
+
+    logger.error(f"Time object not recognized: {time_object}")
+    raise ValueError(f"Time object not recognized: {time_object}")
