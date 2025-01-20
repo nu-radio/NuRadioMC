@@ -158,7 +158,7 @@ class Event:
 
         return self.__stations[station_id]
 
-    def set_event_time(self, event_time, format=None):
+    def set_event_time(self, time, format=None):
         """
         Set the (absolute) event time (will be stored as astropy.time.Time).
 
@@ -172,16 +172,16 @@ class Event:
         """
 
         if isinstance(time, datetime.datetime):
-            self._station_time = astropy.time.Time(time)
+            self.__event_time = astropy.time.Time(time)
         elif isinstance(time, astropy.time.Time):
-            self._station_time = time
+            self.__event_time = time
         elif time is None:
-            self._station_time = None
+            self.__event_time = None
         else:
             if format is None:
                 logger.error("If you provide a float for the time, you have to specify the format.")
                 raise ValueError("If you provide a float for the time, you have to specify the format.")
-            self._station_time = astropy.time.Time(time, format=format)
+            self.__event_time = astropy.time.Time(time, format=format)
 
     def get_event_time(self):
         """
