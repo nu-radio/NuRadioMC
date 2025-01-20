@@ -45,8 +45,8 @@ def astropy_to_dict(time):
         logger.error(f'Input is not an astropy object: {time}')
         raise ValueError(f'Input is not an astropy object: {time}')
 
-    # Internally, astropy stores the time in the modified julian date (mjd) fornat with a tuple of two double-precision floats.
-    # The first float has an integer value and represents the number of days since the epoch (1858-11-17)
+    # Internally, astropy stores the time in the julian date (jd) fornat with a tuple of two double-precision floats.
+    # The first float has an integer value and represents the number of days since the epoch (12:00 at January 1, 4713 BC)
     # and the second float gives the fraction of the day. That means we can reach a precision of (number of nanoseconds in a day) / 2^52:
     # 3600 * 24 * 1e9 / 2^52 = 0.02 ns. We choose to store the time object in its native format.
 
@@ -54,7 +54,7 @@ def astropy_to_dict(time):
         "val": time.jd1,
         "val2": time.jd2,
         "scale": time.scale,
-        "format": "mjd",
+        "format": "jd",
     }
 
     return data
@@ -77,11 +77,10 @@ def time_object_to_astropy(time_object):
     time: astropy.time.Time
         The time object
     """
-
     if time_object is None:
         return None
 
-    if isinstance(time_object, [int, float]) and time_object == 0:
+    if isinstance(time_object, (int, float)) and time_object == 0:
         # 0 was an old default value for the event time. It was replaced by None.
         return None
 
@@ -107,7 +106,7 @@ def time_object_to_astropy(time_object):
             return astropy.time.Time(time_object['value'], format=time_object['format'])
 
         elif 'val' in time_object and 'val2' in time_object:
-            if "format" not in time_object or time_object["format"] != "mjd":
+            if "format" not in time_object or time_object["format"] != "jd":
                 logger.error(f"Time object is a dictionary but the format is wrong: {time_object}")
                 raise ValueError(f"Time object is a dictionary but the format is wrong: {time_object}")
 
