@@ -76,7 +76,6 @@ class triggerSimulator(phasedArray):
                        upsampling_method='fft',
                        coeff_gain=128,
                        rnog_like=False,
-                       trig_type='power_integration'
                        ):
         """
         simulates phased array trigger for each event
