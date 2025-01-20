@@ -28,7 +28,6 @@ import NuRadioReco.modules.phasedarray.triggerSimulator
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.channelAddCableDelay
 
 from NuRadioReco.utilities import units
 
@@ -45,7 +44,6 @@ from NuRadioReco.utilities import units
 triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
 main_low_angle = np.deg2rad(-59.55)
 main_high_angle = np.deg2rad(59.55)
@@ -62,8 +60,6 @@ step_8ant = int(8 * units.ns * 0.5 * 4.0)
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelAddCableDelay.run(evt, station, det, mode='add')
-
         channelBandPassFilter.run(evt, station, det, passband=[0.0 * units.MHz, 220.0 * units.MHz],
                                   filter_type='cheby1', order=7, rp=.1)
         channelBandPassFilter.run(evt, station, det, passband=[96.0 * units.MHz, 100.0 * units.GHz],

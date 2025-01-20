@@ -32,7 +32,7 @@ class SimChannel(NuRadioReco.framework.channel.Channel):
             the id of the corresponding ray tracing solution
         channel_group_id: int (default: None)
             optionally, several channels can belong to a "channel group". Use case is to identify
-            the channels of a single dual or triple polarized antenna as common in air shower arrays. 
+            the channels of a single dual or triple polarized antenna as common in air shower arrays.
         """
         NuRadioReco.framework.channel.Channel.__init__(self, channel_id, channel_group_id=channel_group_id)
         self._shower_id = shower_id
@@ -62,5 +62,6 @@ class SimChannel(NuRadioReco.framework.channel.Channel):
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
         NuRadioReco.framework.channel.Channel.deserialize(self, data['channel'])
+
         self._shower_id = data['shower_id']
         self._ray_tracing_id = data['ray_tracing_id']

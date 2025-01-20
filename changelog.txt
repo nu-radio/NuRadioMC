@@ -2,6 +2,11 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 3.0-dev
+- implementation of additional trigger channels. The signals on which the trigger is determined might be passed
+through a different response chain as the signals which are readout. To allow simulating this different response
+we added an optional trigger_channel object which lives within the corresponding channel obejct.
+
 version 3.0
 NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enabling long-awaited features such as:
 - exposing functions to calculate voltage traces from showers for stand-alone use (needed e.g. for Likelihood forward folding reconstruction)
@@ -26,6 +31,8 @@ Only one trigger can be the primary.
 
 version 2.3.0-dev
 new features:
+- added module to create CR templates for RNO-G channels
+- added function to calculate correlation between two traces using a sliding window (with variable window size)
 - Enhanced detector_browser to allow display RNO-G database detector
 - Added download utility unifying download of antenna models/proposal tables/shower
 library with possibility to add/change fallback-server(s). Added Chicago

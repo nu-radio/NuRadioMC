@@ -99,8 +99,6 @@ class Response:
         if y[0] is None or y[1] is None:
             raise ValueError("Data for response incomplete, detected \"None\"")
 
-        # print(name, y_unit[1], y[1])
-
         y_ampl, y_phase = np.array(y)
         if y_unit[0] == "dB":
             gain = 10 ** (y_ampl / 20)
@@ -215,6 +213,8 @@ class Response:
             The complex response at the desired frequencies
         """
         response = np.ones_like(freq, dtype=np.complex128)
+
+        freq = np.asarray(freq)
 
         if component_names is not None:
             if isinstance(component_names, str):
@@ -463,7 +463,7 @@ class Response:
         else:
             return fig, ax
 
-    def get_time_delay(self, ):
+    def get_time_delay(self):
         """ Get time delay from DB """
         return np.sum(self.__time_delays)
 

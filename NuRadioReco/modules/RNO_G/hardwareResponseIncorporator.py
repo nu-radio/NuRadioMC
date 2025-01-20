@@ -1,5 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft, signal_processing
+import NuRadioReco.framework.station
 
 from NuRadioReco.detector.RNO_G import analog_components
 from NuRadioReco.detector import detector
@@ -123,7 +124,7 @@ class hardwareResponseIncorporator:
             pass
         elif mode == 'phase_only':
             cable_response = np.ones_like(cable_response) * np.exp(1j * np.angle(cable_response))
-            amp_response = np.ones_like(amp_response) * np.angle(amp_response)
+            amp_response = np.ones_like(amp_response) * np.exp(1j * np.angle(amp_response))
         elif mode == 'relative':
             ampmax = np.max(np.abs(amp_response))
             amp_response /= ampmax
@@ -198,7 +199,19 @@ class hardwareResponseIncorporator:
             filter = self.get_filter(
                 frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
 
-            if self.trigger_channels is not None and channel.get_id() in self.trigger_channels:
+            if (self.trigger_channels is not None and
+                channel.get_id() in self.trigger_channels and
+                isinstance(station, NuRadioReco.framework.station.Station)):
+                """
+                Create a copy of the channel and apply the readout and trigger channel response respectively.
+                We do this here under the assumption that up to this point no difference between the two channels
+                had to be made. This is acutally not strictly true. The cable delay is already added in the
+                efieldToVoltageConverter module. I.e., the assumption is made that the cable delay is no different
+                between the two. While this might be true/a good approximation for the moment it is not given that
+                this holds for the future. You have been warned!
+
+                See also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.
+                """
                 trig_filter = self.get_filter(
                     frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
                     phase_only, mode, mingainlin, is_trigger=True)
@@ -224,10 +237,14 @@ class hardwareResponseIncorporator:
             channel.set_frequency_spectrum(
                 trace_fft, channel.get_sampling_rate())
 
-        signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
-        if has_trigger_channels:
-            signal_processing.add_cable_delay(
-                    station, det, sim_to_data, trigger=True, logger=self.logger)
+        if not sim_to_data:
+            # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+            # in the efieldToVoltageConverter or with the channelCableDelayAdder
+            # (if efieldToVoltageConverterPerEfield was used).
+            signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
+            if has_trigger_channels:
+                signal_processing.add_cable_delay(
+                        station, det, sim_to_data, trigger=True, logger=self.logger)
 
         self.__t += time.time() - t
 

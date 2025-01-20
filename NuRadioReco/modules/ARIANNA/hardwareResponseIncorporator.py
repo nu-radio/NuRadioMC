@@ -147,7 +147,11 @@ class hardwareResponseIncorporator:
             # otherwise, noise will be blown up
             channel.set_frequency_spectrum(trace_fft, channel.get_sampling_rate())
 
-        signal_processing.add_cable_delay(station, det, sim_to_data=sim_to_data, logger=self.logger)
+        if not sim_to_data:
+            # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+            # in the efieldToVoltageConverter or with the channelCableDelayAdder
+            # (if efieldToVoltageConverterPerEfield was used).
+            signal_processing.add_cable_delay(station, det, sim_to_data=False, logger=self.logger)
 
         self.__t += time.time() - t
 

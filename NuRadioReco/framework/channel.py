@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
-import copy
+
 try:
     import cPickle as pickle
 except ImportError:
@@ -32,7 +32,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
 
     def set_trigger_channel(self, trigger_channel):
         """ Sets an extra trigger channel of this channel. """
-        if not isinstance(trigger_channel, Channel):
+        if not type(trigger_channel) == Channel:
             logger.error("trigger_channel needs to be of type NuRadioReco.framework.Channel")
             raise ValueError("trigger_channel needs to be of type NuRadioReco.framework.Channel")
 
@@ -45,7 +45,11 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         self._trigger_channel = trigger_channel
 
     def get_trigger_channel(self):
-        """ Returns the trigger channel of this channel. If no trigger channel is set, this channel is returned. """
+        """ Returns the trigger channel of this channel.
+
+        Not all channels/detectors make use of additional trigger channels.
+        If no trigger channel is set, this just returns ``self``, i.e. the Channel object itself.
+        """
         if self._trigger_channel is None:
             return self
 
@@ -119,6 +123,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
+
         if data['base_trace'] is not None:
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
 
@@ -127,7 +132,6 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         self._group_id = data.get('group_id')  # Attempts to load group_id, returns None if not found
 
         trigger_channel_pkl = data.get("trigger_channel_pkl", None)
-
         if trigger_channel_pkl is not None:
             trigger_channel = Channel(None)
             trigger_channel.deserialize(trigger_channel_pkl)

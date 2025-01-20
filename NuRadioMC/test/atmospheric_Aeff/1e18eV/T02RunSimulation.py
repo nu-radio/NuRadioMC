@@ -4,7 +4,6 @@ import argparse
 # import detector simulation modules
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.channelAddCableDelay
 
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
@@ -15,13 +14,11 @@ import os
 # initialize detector sim modules
 triggerSimulatorHighLow = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
 
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelAddCableDelay.run(evt, station, det, mode='add')
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
                                   filter_type='butter', order=2)
