@@ -6,7 +6,8 @@ import NuRadioReco.framework.sim_emitter
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.parameters as parameters
-import NuRadioReco.utilities.version
+
+from NuRadioReco.utilities import io_utilities, version
 
 import astropy.time
 import datetime
@@ -542,7 +543,7 @@ class Event:
     def serialize(self, mode):
         stations_pkl = []
         try:
-            commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
+            commit_hash = version.get_NuRadioMC_commit_hash()
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
         except:
             logger.warning("Event is serialized without commit hash!")
