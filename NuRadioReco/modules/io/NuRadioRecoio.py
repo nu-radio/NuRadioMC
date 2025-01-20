@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import NuRadioReco.framework.event
 import NuRadioReco.detector.detector
 import NuRadioReco.modules.io.event_parser_factory
+from NuRadioReco.utilities import io_utilities
 
 import numpy as np
 import astropy.time
@@ -188,18 +189,9 @@ class NuRadioRecoio(object):
                         self.__event_headers[station_id][key] = []
 
                     if key == stnp.station_time:
-                        station_time = None
-                        if value is not None:
-                            if isinstance(value, dict):
-                                station_time = astropy.time.Time(value["value"], format=value["format"])
-                            # For backward compatibility, we also keep supporting station times stored
-                            # as astropy.time objects
-                            elif isinstance(value, astropy.time.Time):
-                                station_time = value
-                            else:
-                                err = f"Station time not stored as dict or astropy.time.Time: ({type(value)})"
-                                self.logger.error(err)
-                                raise ValueError(err)
+                        station_time = io_utilities.time_object_to_astropy(value)
+
+                        if station_time is not None:
                             try:
                                 station_time.format = 'isot'
                             except AttributeError:
