@@ -1,5 +1,4 @@
 from __future__ import absolute_import, division, print_function
-import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.emitter
@@ -8,8 +7,13 @@ import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.utilities.version
+
+import astropy.time
+import datetime
 from six import itervalues
 import collections
+import pickle
+
 import logging
 logger = logging.getLogger('NuRadioReco.Event')
 
