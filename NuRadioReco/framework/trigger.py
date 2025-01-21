@@ -138,6 +138,9 @@ class Trigger:
         stored. For triggers that do not store this information, this method
         is equivalent to `get_trigger_time` with the exception that it returns
         an array (of shape (1,)) instead of a scalar.
+        Note that the trigger times are defined relative to the
+        `station_time <NuRadioReco.framework.station.Station.get_station_time>`.
+
 
         Returns
         -------
