@@ -35,7 +35,6 @@ def load_cable_response(cable_length):
     return default
 
 def get_cable_response(frequencies, cable_length):
-
     """
     Calculate the cable response for given frequencies and cable length.
 
@@ -71,7 +70,6 @@ def get_cable_response(frequencies, cable_length):
 
 
 def load_RCU_response():
-
     """
     Load the RCU (Receiver Control Unit) response data.
 
@@ -100,7 +98,6 @@ def load_RCU_response():
     return rcu_response
 
 def get_RCU_response(frequencies):
-
     """
     Fetches the RCU response for given frequencies.
 
