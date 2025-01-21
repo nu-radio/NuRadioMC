@@ -211,27 +211,56 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, zenith, azimuth, ma
     return obs_positions_geo.T
 
 
-def read_CORSIKA7(input_file, declination=None):
+def read_CORSIKA7(input_file, declination=None, site=None):
     """
-    this function reads the corsika hdf5 file and returns a sim_station with all relevent information from the file
+    This function reads in a CORSIKA/CoREAS HDF5 file and returns an Event object with all relevant information
+    from the file. This Event object can then be used to create an interpolator, for example.
 
-    Note that the function assumes the energy has been fixed to a single value.
+    The structure of the Event is as follows. It contains one station with ID equal to 0, which hosts a SimStation.
+    The SimStation stores the simulated ElectricField objects, which are equipped with a position attribute that
+    contains the position of the simulated antenna (in the NRR ground coordinate system) and are associated to a
+    channel with an ID equal to the index of the channel as it was read from the HDF5 file.
+
+    Next to the (Sim)Station, the Event also contains a SimShower object, which stores the CORSIKA input parameters.
+    For a list of stored parameters, see the `make_sim_shower()` function.
+
+    Note that the function assumes the energy has been fixed to a single value, as is typical with a CoREAS simulation.
 
     Parameters
     ----------
-    input_file : string
-        path to the corsika hdf5 file
+    input_file: str
+        Path to the CORSIKA HDF5 file
+    declination: float, default=0
+        The declination to use for the magnetic field, in internal units
+    site: str, default=None
+        Instead of declination, a site name can be given to retrieve the declination using the magnetic field
+        as obtained from the radiotools.helper.get_magnetic_field_vector() function
 
     Returns
     -------
-    evt : Event
-        event object containing the corsika information
+    evt: Event
+        Event object containing the CORSIKA information
     """
     if declination is None:
-        declination = 0
-        logger.warning(
-            "No declination given, assuming 0 degrees. This might need to incorrect electric field polarizations."
-        )
+        if site is not None:
+            try:
+                magnet = hp.get_magnetic_field_vector(site)
+                declination = hp.get_declination(magnet)
+                logger.info(
+                    f"Declination obtained from site information, is set to {declination / units.degree:.2f} deg"
+                )
+            except KeyError:
+                declination = 0
+                logger.warning(
+                    "Site is not recognised by radiotools. Defaulting to 0 degrees declination. "
+                    "This might lead to incorrect electric field polarizations."
+                )
+        else:
+            declination = 0
+            logger.warning(
+                "No declination or site given, assuming 0 degrees."
+                "This might need to incorrect electric field polarizations."
+            )
 
     corsika = h5py.File(input_file, "r")
 
