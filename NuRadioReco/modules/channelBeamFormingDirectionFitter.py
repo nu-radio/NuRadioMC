@@ -14,6 +14,7 @@ import yaml
 from scipy.interpolate import RegularGridInterpolator
 from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import fit_block_offsets
 import pandas as pd
+import copy
 import json
 from NuRadioReco.modules.base import module
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -88,12 +89,18 @@ class channelBeamFormingDirectionFitter():
         shifted_volt_array = []
         for ch in self.map_info.used_channels:
             waveform = station.get_channel(ch).get_trace()
-            waveform = signal.resample_poly(waveform, upsample, 1)
-            padded_wf = np.pad(waveform, pad_amount)
-            element_shift = int(
-                self.station_info.delays[ch] * self.sampling_rate * upsample
-            )
-            shifted_waveform = np.roll(padded_wf, -element_shift)
+            # it is better to use the channelResampler module to resample the waveform
+            # and the channelStopFilter module to pad the trace with zeros. 
+            # then, the waveform can be shifted in an optimized way (using the Fourier shift theorem) by
+            channel_copy = copy.copy(station.get_channel(ch))
+            channel_copy.apply_time_shift(self.station_info.delays[ch])
+            shifted_waveform = channel_copy.get_trace()
+            # waveform = signal.resample_poly(waveform, upsample, 1)
+            # padded_wf = np.pad(waveform, pad_amount)
+            # element_shift = int(
+            #     self.station_info.delays[ch] * self.sampling_rate * upsample
+            # )
+            # shifted_waveform = np.roll(padded_wf, -element_shift)
 
             scaled_waveform = shifted_waveform / np.max(shifted_waveform)
             scaled_waveform = scaled_waveform / np.std(scaled_waveform)
@@ -123,6 +130,14 @@ class channelBeamFormingDirectionFitter():
                 self.get_surf_corr_ratio(corr_matrix, num_rows_to_10m)
             )
 
+        # to safe output parameters, add new parameters to station or channel level in `NuRadioReco/framework/parameters.py`
+        # then set the parameter like this:
+        # e.g. station.set_parameter(stnp.beamforming_direction, rec_coord0)
+        # the eventWriter module will automatically write them to disk. 
+        # you can also use the `channelParameters` class to set parameters on the channel level.
+        # if you want to access the parameters in a later module, you can use the `get_parameter` method of the station or channel object.
+        # e.g. rec_coord0 = station.get_parameter(stnp.beamforming_direction)
+        
     
     def end(self):
         pass
@@ -216,11 +231,6 @@ def load_interpolator(table_filename):
     return interpolator
 
 
-def load_config(config_file):
-    with open(config_file, "r") as f:
-        return yaml.safe_load(f)
-
-
 class MapInfo:
 
     def __init__(
@@ -254,120 +264,6 @@ class StationInfo:
                 ],
             )
         )
-
-
-class RunInfo:
-
-    def __init__(
-        self,
-        map_info,
-        station_info,
-        run,
-        requested_events,
-        root_file_dir,
-        fix_block_offsets=0,
-    ):
-        self.map_info = map_info
-        self.station_info = station_info
-        self.sampling_rate = 3.2 * units.GHz
-        self.run = run
-
-        tree_names = ["hdr", "header", "hd", "hds", "headers"]
-        self._headers = self.read_tree(
-            uproot.open(
-                root_file_dir
-                + f"station{station_info.station}/run{run}/headers.root"
-            ),
-            tree_names,
-        )
-        self.events = self._headers["event_number"].array()
-
-        # try:
-        #     waveforms_file = uproot.open(root_file_dir + f"station{station_info.station}/run{run}/waveforms.root")
-        #     self.voltages = waveforms_file["waveforms"][
-        #         "waveforms/radiant_data[24][2048]"
-        #     ].array(library="np")
-        # except:
-        #     waveforms_file = uproot.open(root_file_dir + f"station{station_info.station}/run{run}/combined.root")
-        #     self.voltages = waveforms_file["combined"][
-        #         "waveforms/radiant_data[24][2048]"
-        #     ].array(library="np")
-
-        if fix_block_offsets:
-            if requested_events is not None:
-                event_idxs_of_interest = [
-                    np.where(self.events == event)[0][0]
-                    for event in requested_events
-                ]
-            else:
-                event_idxs_of_interest = range(len(self.events))
-            for event_idx in event_idxs_of_interest:
-                for ant in self.station_info.channels:
-                    self.voltages[0, ant, :] = fit_block_offsets(
-                        self.voltages[0, ant, :], return_trace=True
-                    )[1]
-
-        waveforms_file = np.load(
-            f"/storage/group/szw5718/default/rno-g/data/vcal_and_offset_fixed/station{station_info.station}/fixed_wfs_run{run}.npz"
-        )
-        self.voltages = waveforms_file["fixed_wfs"]
-
-        self.times = (
-            np.array(range(np.shape(self.voltages)[2])) / 3.2 * units.GHz
-        )
-
-    def read_tree(self, header_file, tree_names):
-        for tree_name in tree_names:
-            if tree_name in header_file:
-                return header_file[tree_name]
-
-    def get_shifted_wfs(self, event_index, upsample=1):
-        """
-        Assumes waveform taken directly from Chicago servers following the rnogcopy method
-
-        Args:
-            delay (float): cable delays in ns
-        """
-
-        pad_amount = int(
-            max(self.station_info.delays.values())
-            * self.sampling_rate
-            * upsample
-        )
-
-        new_times = np.linspace(
-            self.times[0], self.times[-1], upsample * len(self.times)
-        )
-        dt = new_times[1] - new_times[0]
-
-        # shifted time array only calculated once since time axis is the same
-        #   for all waveforms in a run
-        shifted_time_array = np.array(
-            [
-                float(n) * dt
-                for n in range(1, 2 * pad_amount + len(new_times) + 1)
-            ]
-        )
-
-        shifted_volt_array = []
-        for ch in self.map_info.used_channels:
-            waveform = np.array(
-                self.voltages[event_index, ch, :].T, dtype=np.float64
-            )
-            waveform = signal.resample_poly(waveform, upsample, 1)
-            padded_wf = np.pad(waveform, pad_amount)
-            element_shift = int(
-                self.station_info.delays[ch] * self.sampling_rate * upsample
-            )
-            shifted_waveform = np.roll(padded_wf, -element_shift)
-
-            scaled_waveform = shifted_waveform / np.max(shifted_waveform)
-            scaled_waveform = scaled_waveform / np.std(scaled_waveform)
-            scaled_waveform = scaled_waveform - np.mean(scaled_waveform)
-
-            shifted_volt_array.append(scaled_waveform)
-
-        return shifted_volt_array, shifted_time_array
 
 
 class Positions:
