@@ -26,18 +26,24 @@ Station time (Event time)
 -------------------------
 The global time at which the event takes place is stored as the `event time <NuRadioReco.framework.event.Event.get_event_time>`
 in the `Event <NuRadioReco.framework.event.Event>` object.
-This time usually corrsponds to the "vertex time" of the first interaction for simulations,
+This time usually corresponds to the "vertex time" of the first interaction for simulations,
 and the time at which the data was recorded in the DAQ for data.
 It is stored as an `astropy.time.Time` object to enable sub-ns precision on the absolute time.
-In simulated data, the `event time <NuRadioReco.framework.event.Event.get_event_time>`
+
+In **simulated data**, the `event time <NuRadioReco.framework.event.Event.get_event_time>`
 is generally the same as the `station_time <NuRadioReco.framework.station.Station.get_station_time>` stored
-in the `Station <NuRadioReco.framework.station.Station>` object; however, because different stations may operate and trigger independently,
-the station_times of different stations are not guaranteed to agree in data.
+in the `Station <NuRadioReco.framework.station.Station>` object.
+In **experimental data**, the `station_time <NuRadioReco.framework.station.Station.get_station_time>`
+usually corresponds to the time the data was read out (recorded), and the `event time <NuRadioReco.framework.event.Event.get_event_time>` may not always be defined.
+In this case, because different stations may operate and trigger independently,
+the station_times of different stations are not guaranteed to agree, even if they were triggered by the same source.
+
 
 Times in `Channel <NuRadioReco.framework.channel.Channel>`, `ElectricField <NuRadioReco.framework.electric_field.ElectricField>` and
 `Trigger <NuRadioReco.framework.trigger.Trigger>` objects are all defined relative to the
-`station_time <NuRadioReco.framework.station.Station.get_station_time>` of the Station they are stored in (see the description
-of the :doc:`NuRadio data structure </NuRadioReco/pages/event_structure>`). These times are stored as an array of floats.
+`station_time <NuRadioReco.framework.station.Station.get_station_time>` of the `Station <NuRadioReco.framework.station.Station>`
+they are stored in (see the description of the :doc:`NuRadio data structure </NuRadioReco/pages/event_structure>`).
+These times are stored as an array of floats.
 For trace-like objects (`Channels <NuRadioReco.framework.channel.Channel>` and `ElectricField <NuRadioReco.framework.electric_field.ElectricField>`),
 the times can be obtained through the `get_times() <NuRadioReco.framework.base_trace.BaseTrace.get_times>` method of these classes.
 Additionally, the trace start time (the first value of `get_times() <NuRadioReco.framework.base_trace.BaseTrace.get_times>`)
@@ -68,13 +74,18 @@ We list all relevant modules that are used for a MC simulation and reconstructio
 
 * `NuRadioReco.modules.io.coreas`: CoREAS reader prepends n samples to the simulated trace. This is done so that the trace does not directly start with the pulse and to have a good frequency resolution.
 
-* `NuRadioReco.modules.efieldToVoltageConverter`: the voltage traces are delayed compared to the electric field signal due to the geometric separation of the antennas and cable delays. This is accounted for by shifting the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>`.
+* `NuRadioReco.modules.efieldToVoltageConverter`:
+  the voltage traces are delayed compared to the electric field signal due to the geometric separation of the antennas and cable delays.
+  This is accounted for by shifting the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>`.
+  Note that the very similar `NuRadioReco.modules.efieldToVoltageConverterPerEfield` (which creates one
+  `SimChannel <NuRadioReco.framework.sim_channel.SimChannel>` per electric field instead of combining the induced voltage traces in a single channel) does **not** include the cable delays!
 
 * `NuRadioReco.modules.RNO_G.hardwareResponseIncorporator`, `NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator`, `NuRadioReco.modules.ARA.hardwareResponseIncorporator`:
 
   If ``sim to data=True``:
 
-    * the channel traces are folded with the amplifier response which also includes some time delay
+    * the channel traces are folded with the amplifier response which also includes some time delay.
+      This delay is applied to the trace in the frequency domain (i.e. the signal is shifted within the trace, rather than adjusting the trace_start_time)
     * note that the hardwareResponseIncorporator does not take cable delays into account, as this is done by the efieldToVoltageConverter
 
   If ``sim to data=False``:
@@ -91,5 +102,5 @@ We list all relevant modules that are used for a MC simulation and reconstructio
   It additionally applies a tukey window to taper off the start and end (by default, the first and last 5%) of the trace.
 
 * `NuRadioReco.modules.voltageToEfieldConverter`:
-    * the traces from all used channels are cut to the overlapping region (including delays due to geometry and differences in delays due to different hardware components, e.g. cables of different length's)
+    * the traces from all used channels are cut to the overlapping region (including delays due to geometry and differences in delays due to different group delays in hardware, e.g. different antenna/amplifier responses)
     * the E-field `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` is set accordingly
