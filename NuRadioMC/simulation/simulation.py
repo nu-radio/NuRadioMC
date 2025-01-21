@@ -595,8 +595,9 @@ def build_dummy_event(station_id, det, config):
     config : dict
         The NuRadioMC configuration dictionary (from the yaml file)
 
-    Returns:
-        object: The built event object.
+    Returns
+    -------
+    object: The built event object.
     """
 
     evt = NuRadioReco.framework.event.Event(0, 0)
@@ -869,8 +870,8 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     """
     Group the signals from a station into multiple events based on signal arrival times.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     station : NuRadioReco.framework.station.Station
         The station object containing the signals.
     event_group : NuRadioMC.framework.event.Event
@@ -882,8 +883,8 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     zerosignal : bool, optional
         Flag indicating whether to zero out the signals. Default is False.
 
-    Returns:
-    --------
+    Returns
+    -------
     events : list of NuRadioReco.framework.event.Event
         The list of events created from the grouped signals.
     """
