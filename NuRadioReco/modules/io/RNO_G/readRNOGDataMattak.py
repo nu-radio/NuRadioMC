@@ -775,7 +775,6 @@ class readRNOGData:
         evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
         station = NuRadioReco.framework.station.Station(event_info.station)
         station.set_station_time(astropy.time.Time(trigger_time, format='unix'))
-        evt.set_event_time(astropy.time.Time(trigger_time, format='unix'))  # Typically event time = station time
 
         trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
         trigger.set_triggered()
