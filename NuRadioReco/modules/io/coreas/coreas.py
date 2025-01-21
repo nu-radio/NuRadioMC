@@ -398,43 +398,29 @@ def hdf5_sim_shower(corsika, declination=0):
     return sim_shower
 
 
-def create_sim_shower(evt, detector=None, station_id=None):
+def create_sim_shower(evt, core_shift=None):
     """
     Create an NuRadioReco `SimShower` from an Event object created with e.g. read_CORSIKA7(),
-
-    the core positions are set such that the detector station is on top of
-    each coreas observer position
+    and apply a core shift if desired. If no core shift is given, the returned SimShower will
+    have the same core as used in the CoREAS simulation.
 
     Parameters
     ----------
-    evt : Event object
+    evt: Event
         event object containing the CoREAS output, e.g. created with read_CORSIKA7()
-    detector : detector object
-    station_id : int
-        station id of the station relative to which the shower core is given
+    core_shift: np.ndarray, default=None
+        The core shift to apply to the core position, in internal units. Must be 3D array.
 
     Returns
     -------
-    sim_shower: sim shower
+    sim_shower: RadioShower
         simulated shower object
     """
-    sim_shower = copy.copy(evt.get_first_sim_shower())
-
-    efields = evt.get_station(0).get_sim_station().get_electric_fields()
+    sim_shower = copy.copy(evt.get_first_sim_shower())  # this has the core set to the one defined in the REAS file
 
     # We can only set the shower core relative to the station if we know its position
-    if efields is not None and detector is not None and station_id is not None:
-        efield_pos = []
-        for efield in efields:
-            efield_pos.append(efield.get_position())
-        efield_pos = np.array(efield_pos)
-        station_position = detector.get_absolute_position(station_id)
-        core_position = station_position - efield_pos
-    else:
-        core_position = np.array([0, 0, 0])
-
-    core_position[2] = sim_shower.get_parameter(shp.observation_level)  # do not alter observation level
-    sim_shower.set_parameter(shp.core, core_position)
+    if core_shift is not None:
+        sim_shower.set_parameter(shp.core, sim_shower.get_parameter(shp.core) + core_shift)
 
     return sim_shower
 
