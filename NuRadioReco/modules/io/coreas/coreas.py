@@ -26,6 +26,17 @@ warning_printed_coreas_py = False
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 
 
+# DEPRECATED FUNCTIONS
+def make_sim_shower(*args, **kwargs):
+    """
+    DEPRECATED: This function has been moved to `hdf5_sim_shower()`, however its functionality has been
+    modified heavily. You will probably want to move to `create_sim_shower()` instead, which has an easier
+    interface. Please refer to the documentation of `create_sim_shower()` for more information.
+    """
+    raise DeprecationWarning("This function has been deprecated since version 3.0. "
+                             "You will probably want to move to create_sim_shower() instead.")
+
+
 def get_angles(corsika, declination):
     """
     Converting angles in corsika coordinates to local coordinates. 
@@ -295,7 +306,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     stn.set_sim_station(sim_station)
     evt.set_station(stn)
 
-    sim_shower = make_sim_shower(corsika)
+    sim_shower = hdf5_sim_shower(corsika)
     evt.add_sim_shower(sim_shower)
 
     corsika.close()
@@ -361,7 +372,7 @@ def create_sim_station(station_id, evt, weight=None):
     return sim_station
 
 
-def make_sim_shower(corsika, declination=0):
+def hdf5_sim_shower(corsika, declination=0):
     """
     Creates an NuRadioReco `SimShower` from a CoREAS HDF5 file.
 
