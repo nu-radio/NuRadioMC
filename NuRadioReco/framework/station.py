@@ -30,7 +30,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def add_sim_station(self, sim_station):
         """
-        Adds a SimStation to the Station. If a SimStation is already present, 
+        Adds a SimStation to the Station. If a SimStation is already present,
         the new SimStation is merged to the existing one.
 
         Parameters
@@ -67,8 +67,8 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def iter_channels(self, use_channels=None, sorted=False):
         """
-        Iterates over all channels of the station. If `use_channels` is not None, 
-        only the channels with the ids in `use_channels` are iterated over. If `sorted` 
+        Iterates over all channels of the station. If `use_channels` is not None,
+        only the channels with the ids in `use_channels` are iterated over. If `sorted`
         is True, the channels are iterated over in ascending order of their ids.
 
         Parameters
@@ -162,7 +162,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
         return list(channel_ids)
 
-    def add_channel(self, channel, overwrite=True):
+    def add_channel(self, channel, overwrite=False):
         """
         Adds a channel to the station. If a channel with the same id is already present, it is overwritten.
 
@@ -171,7 +171,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         channel : `NuRadioReco.framework.channel.Channel`
             The channel to add to the station.
         overwrite : bool, (Default: True)
-            If True, allow to overwrite an existing channel (i.e., a channel with the same id). 
+            If True, allow to overwrite an existing channel (i.e., a channel with the same id).
             If False, raise AttributeError if a channel with the same id is being added.
         """
         if not isinstance(channel, NuRadioReco.framework.channel.Channel):
@@ -217,7 +217,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             return self.get_parameter('zenith'), self.get_parameter('azimuth')
         if self.__reference_reconstruction == 'MC':
             return (
-                self.get_sim_station().get_parameter('zenith'), 
+                self.get_sim_station().get_parameter('zenith'),
                 self.get_sim_station().get_parameter('azimuth')
             )
 
