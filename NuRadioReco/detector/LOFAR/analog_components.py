@@ -20,8 +20,9 @@ def load_cable_response(cable_length):
     default: dict
         A dictionary containing the cable attenuation values for the specified cable length.
         The dictionary has the following keys:
-            - 'frequencies': An array of frequency values ranging from 30 MHz to 80 MHz.
-            - 'attenuation': An array of cable attenuation values corresponding to the frequencies.
+
+        - 'frequencies': An array of frequency values ranging from 30 MHz to 80 MHz.
+        - 'attenuation': An array of cable attenuation values corresponding to the frequencies.
     """
     module_dir = os.path.dirname(__file__)
     file_path = os.path.join(module_dir, "signalchain", f"attenuation_RG58_{int(cable_length)}m.txt")
@@ -54,7 +55,8 @@ def get_cable_response(frequencies, cable_length):
     cable: dict
         A dictionary containing the interpolated cable attenuation values for the specified frequencies.
         The dictionary has the following key:
-          - 'attenuation': An array of interpolated attenuation values corresponding to the input frequencies.
+
+        - 'attenuation': An array of interpolated attenuation values corresponding to the input frequencies.
     """
 
     cable_response = load_cable_response(cable_length=cable_length)
@@ -81,8 +83,9 @@ def load_RCU_response():
     -------
     rcu_response: dict
         A dictionary containing the RCU response data with the following keys:
-          - 'frequencies': An array of frequency values ranging from 30 MHz to 80 MHz.
-          - 'gain': An array of gain values in dB corresponding to the frequencies.
+
+        - 'frequencies': An array of frequency values ranging from 30 MHz to 80 MHz.
+        - 'gain': An array of gain values in dB corresponding to the frequencies.
     """
 
     module_dir = os.path.dirname(__file__)
@@ -114,7 +117,8 @@ def get_RCU_response(frequencies):
     system: dict
         A dictionary containing the interpolated RCU gain values for the specified frequencies.
         The dictionary has the following key:
-          - 'gain': An array of interpolated gain values corresponding to the input frequencies.
+
+        - 'gain': An array of interpolated gain values corresponding to the input frequencies.
     """
 
     RCU_response = load_RCU_response()
