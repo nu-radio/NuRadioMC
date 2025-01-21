@@ -1296,6 +1296,26 @@ class Detector():
 
 
     def get_component(self, collection="coax_cable", component="daq_drab_flower_2024_avg"):
+        """ Get the response of a component from the database.
+
+        This function is a wrapper around the same named function in the database class.
+
+        Parameters
+        ----------
+        collection: str (default: "coax_cable")
+            The collection name in the database.
+        component: str (default: "daq_drab_flower_2024_avg")
+            The component name in the collection.
+
+        Returns
+        -------
+        resp: `NuRadioReco.detector.response.Response`
+            Returns the response of a component.
+
+        Also see
+        --------
+        NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data
+        """
         if component in self.additional_data and 'y-axis_units' in self.additional_data[component]:
             component_data = self.additional_data[component]
         else:

@@ -66,10 +66,11 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         return self.__sim_station is not None
 
     def iter_channels(self, use_channels=None, sorted=False):
-        """
-        Iterates over all channels of the station. If `use_channels` is not None,
-        only the channels with the ids in `use_channels` are iterated over. If `sorted`
-        is True, the channels are iterated over in ascending order of their ids.
+        """ Iterates over all channels of the station.
+
+        If `use_channels` is not None, only the channels with the ids in `use_channels`
+        are iterated over. If `sorted` is True, the channels are iterated over in
+        ascending order of their ids.
 
         Parameters
         ----------
@@ -95,6 +96,26 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             yield self.get_channel(channel_id)
 
     def iter_trigger_channels(self, use_channels=None):
+        """ Iterates over all channels of the station and returns `channel.get_trigger_channel().
+
+        If `use_channels` is not None, only the channels with the ids in `use_channels` are iterated over.
+
+        Parameters
+        ----------
+        use_channels : list of int, optional
+            List of channel ids to iterate over. If None, all channels are iterated over.
+
+        Yields
+        ------
+        NuRadioReco.framework.channel.Channel
+            The next (trigger) channel in the iteration.
+
+        Also see
+        --------
+        NuRadioReco.framework.channel.Channel.get_trigger_channel
+        NuRadioReco.framework.station.Station.iter_channels
+        """
+
         for channel_id, channel in iteritems(self.__channels):
             if use_channels is None:
                 yield channel.get_trigger_channel()

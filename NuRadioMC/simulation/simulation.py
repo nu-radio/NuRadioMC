@@ -1688,7 +1688,6 @@ class simulation:
                         channel[chp.Vrms_NuRadioMC_simulation] = self._Vrms_per_channel[station_id][channel.get_id()]
                         channel[chp.bandwidth_NuRadioMC_simulation] = self._integrated_channel_response[station_id][channel.get_id()]
 
-                        # Always store this, even when no "extra" trigger channels are simulated
                         if self.__trigger_channel_ids is not None and channel.get_id() in self.__trigger_channel_ids and channel.get_id() in self._Vrms_per_trigger_channel[station_id]:
                             channel[chp.Vrms_trigger_NuRadioMC_simulation] = self._Vrms_per_trigger_channel[station_id][channel.get_id()]
 
