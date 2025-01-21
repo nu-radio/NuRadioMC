@@ -20,17 +20,17 @@ class channelSinewaveSubtraction:
     def __init__(self):
         pass
 
-    def begin(self, peak_prominance=4, save_filtred_freqs=False):
-        self.peak_prominance = peak_prominance
+    def begin(self,  save_filtred_freqs=False):
+        #self.peak_prominance = peak_prominance
         self.save_filtred_freqs = [] if save_filtred_freqs else None
 
-    def run(self, event, station, det=None):
+    def run(self, event, station, det=None, peak_prominance=4.0):
         for channel in station.iter_channels():
             sampling_rate = channel.get_sampling_rate()
 
             trace = channel.get_trace()
             trace_fil = sinewave_subtraction(
-                trace, sampling_rate=sampling_rate, peak_prominance=self.peak_prominance,
+                trace, peak_prominance, sampling_rate=sampling_rate, 
                 saved_noise_freqs=self.save_filtred_freqs)
 
             channel.set_trace(trace_fil, sampling_rate)
@@ -71,7 +71,7 @@ def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3
     return amplitude
 
 
-def sinewave_subtraction(wf: np.ndarray, sampling_rate: float = 3.2, peak_prominance: float = 6.0, saved_noise_freqs: list = None):
+def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_rate: float = 3.2,  saved_noise_freqs: list = None):
     """
     Perform sine subtraction on a waveform to remove CW noise.
 
@@ -84,7 +84,7 @@ def sinewave_subtraction(wf: np.ndarray, sampling_rate: float = 3.2, peak_promin
     peak_prominance: float (default: 6.0)
         Threshold for identifying prominent peaks in the FFT spectrum.
     saved_noise_freqs: list (default: None)
-        A list to store identified noise frequencies.
+        A list to store identified noise frequencies for each channel.
 
     Returns
     -------
@@ -109,7 +109,7 @@ def sinewave_subtraction(wf: np.ndarray, sampling_rate: float = 3.2, peak_promin
     peak_idxs = np.where(np.abs(spec) > peak_prominance * rms)[0]
 
     noise_freqs = []
-
+    corrected_waveform = wf.copy()
     # find mean CW freq bean
     if len(peak_idxs) > 0:
 
@@ -132,7 +132,9 @@ def sinewave_subtraction(wf: np.ndarray, sampling_rate: float = 3.2, peak_promin
 
         # Convert the list to a NumPy array (optional, if you prefer an array)
         noise_freqs = np.array(noise_freqs)
-        corrected_waveform = wf.copy()
+
+        if saved_noise_freqs is not None:
+            saved_noise_freqs.append(noise_freqs)
         for noise_freq in noise_freqs:
 
             ampl_guess = guess_amplitude(wf, noise_freq, sampling_rate)
@@ -155,8 +157,7 @@ def sinewave_subtraction(wf: np.ndarray, sampling_rate: float = 3.2, peak_promin
                 corrected_waveform -= estimated_cw_noise
 
                 # Save the identified noise frequency
-                if saved_noise_freqs is not None:
-                    saved_noise_freqs.append(noise_freq)
+
 
             except RuntimeError:
                 logger.error(f"Curve fitting failed for frequency: {noise_freq / units.MHz} MHz")
