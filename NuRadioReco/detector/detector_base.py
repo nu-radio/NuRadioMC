@@ -878,7 +878,7 @@ class DetectorBase(object):
 
     def get_trigger_amplifier_type(self, station_id, channel_id):
         """
-        returns the type of the amplifier
+        Returns the type of the amplifier used only for trigger channels.
 
         Parameters
         ----------
@@ -887,7 +887,10 @@ class DetectorBase(object):
         channel_id: int
             the channel id
 
-        Returns string
+        Returns
+        -------
+        amp_type: string
+            The type/name of the amplifier
         """
         res = self.__get_channel(station_id, channel_id)
         return res['trigger_amp_type']

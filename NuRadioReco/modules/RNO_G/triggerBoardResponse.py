@@ -1,11 +1,9 @@
-import logging
-import numpy as np
-
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 from NuRadioReco.utilities import units, fft
-#from scipy.signal import resample, firwin, hilbert
 
+import numpy as np
+import logging
 logger = logging.getLogger("NuRadioReco.triggerBoardResponse")
 
 
@@ -62,24 +60,23 @@ class triggerBoardResponse:
             Station to use
         trigger_channels : list
             Channels that this function should be applied to
-        trace_split : int (default: 9)
+        trace_split : int (default: 20)
             How many chunks each of the waveforms will be split into before calculating
             the standard deviation
 
         Returns
         -------
-        approx_vrms : float
-            the median RMS voltage of the waveforms
-
+        vrms : list of floats
+            RMS voltage of the waveforms
         """
 
-        vrms=[]
+        vrms = []
         for channel_id in trigger_channels:
             channel = station.get_trigger_channel(channel_id)
             trace = np.array(channel.get_trace())
             trace = trace[: int(trace_split * int(len(trace) / trace_split))].reshape((trace_split, -1))
             approx_vrms = np.median(np.std(trace, axis=1))
-            logger.debug(f"    Ch: {channel_id}\tObser Vrms: {approx_vrms / units.mV:0.3f} mV")
+            logger.debug(f"\tCh {channel_id}:\tobs. Vrms {approx_vrms / units.mV:0.3f} mV")
             vrms.append(approx_vrms)
 
         self.logger.debug(vrms)
@@ -104,17 +101,15 @@ class triggerBoardResponse:
             If set to `None`, this will be estimated using the waveforms
         gain_values : list (default: None)
             If set these will be applied to the channel. Otherwise gains are recalculated.
+
         Returns
         -------
         vrms_after_gain : list
             the RMS voltage of the waveforms after the gain has been applied
-
         ideal_vrms: float
             the ideal vrms, as measured on the ADC capacitors
-
         ret_gain_values: list
             gain values applied to each channel
-
         """
 
         if avg_vrms is None:
@@ -140,7 +135,7 @@ class triggerBoardResponse:
                 vrms_after_gain.append(vrms * gain_values[channel_id])
                 channel = station.get_trigger_channel(channel_id)
                 channel.set_trace(channel.get_trace() * gain_values[channel_id], channel.get_sampling_rate())
-                
+                ret_gain_values.append(gain_values[channel_id])
             else:
 
                 msg = f"\t Ch: {channel_id}\t Target Vrms: {ideal_vrms / units.mV:0.3f} mV"
@@ -168,7 +163,7 @@ class triggerBoardResponse:
                 self.logger.debug(f"\t Used Vrms: {vrms_after_gain[-1] / units.mV:0.3f} mV" + f"\tADC Gain {gain_to_use}")
                 self.logger.debug(f"\t Eff noise bits: {eff_noise_bits:0.2f}\tRequested: {noise_bits}")
 
-        return np.array(vrms_after_gain), ideal_vrms, ret_gain_values
+        return np.array(vrms_after_gain), ideal_vrms, np.array(ret_gain_values)
 
     def digitize_trace(self, station, det, trigger_channels, vrms):
         for channel_id in trigger_channels:
@@ -294,7 +289,7 @@ if __name__=='__main__':
         integrated_channel_response = np.trapz(np.abs(four_filters_highres[i]) ** 2, fff)
         rel_channel_response = np.trapz(np.abs(four_filters_highres[i]) ** 2, fff)
         bandwidth[i] = integrated_channel_response
-        Vrms_ratio[i] = np.sqrt(rel_channel_response / (max_freq - min_freq))    
+        Vrms_ratio[i] = np.sqrt(rel_channel_response / (max_freq - min_freq))
         chan_vrms = (noise_temp * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
         per_channel_vrms.append(chan_vrms)
         amplitude[i] = chan_vrms / Vrms_ratio[i]
