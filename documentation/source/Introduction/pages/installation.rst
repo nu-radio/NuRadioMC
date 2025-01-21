@@ -179,7 +179,7 @@ use ``pip install nuradiomc[all]`` to install all optional dependencies.
 
 - ``[rno-g-extras]``
 
-  Optionally, to filter RNO-G data (during read in) the `RNO-G run table database https://github.com/RNO-G/rnog-runtable`__
+  Optionally, to filter RNO-G data (during read in) the `RNO-G run table database <https://github.com/RNO-G/rnog-runtable>`__
   can be used. Note that this requires membership of the RNO-G Github organisation (not public):
 
   .. code-block:: bash
