@@ -301,33 +301,6 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     return evt
 
 
-def plot_footprint_onsky(sim_station, fig=None, ax=None):
-    """
-    plots the footprint of the observer positions in the (vxB, vxvxB) shower plane
-
-    Parameters
-    ----------
-    sim_station : sim station
-        simulated station object
-    """
-    obs_positions = []
-    zz = []
-    for efield in sim_station.get_electric_fields():
-        obs_positions.append(efield.get_position_onsky())
-        zz.append(np.sum(efield[efp.signal_energy_fluence]))
-    obs_positions = np.array(obs_positions)
-    zz = np.array(zz)
-    if fig is None:
-        fig, ax = plt.subplots()
-    ax.set_aspect('equal')
-    sc = ax.scatter(obs_positions[:, 0], obs_positions[:, 1], c=zz, cmap=cm.gnuplot2_r, marker='o', edgecolors='k')
-    cbar = fig.colorbar(sc, ax=ax, orientation='vertical')
-    cbar.set_label('fluence [eV/m^2]')
-    ax.set_xlabel('vxB [m]')
-    ax.set_ylabel('vx(vxB) [m]')
-    return fig, ax
-
-
 def create_sim_station(station_id, evt, weight=None):
     """
     Creates an NuRadioReco `SimStation` with the information from an `Event` object created with e.g. read_CORSIKA7().
@@ -838,44 +811,6 @@ class coreasInterpolator:
 
         return self.fluence_interpolator
 
-    def plot_footprint_fluence(self, radius=300):
-        """
-        plots the interpolated values of the fluence in the shower plane
-
-        Parameters
-        ----------
-        radius : float
-            radius around shower core which should be plotted
-
-        Returns
-        -------
-        fig : figure object
-
-        ax : axis object
-        """
-
-        # Make color plot of f(x, y), using a meshgrid
-        ti = np.linspace(-radius, radius, 500)
-        XI, YI = np.meshgrid(ti, ti)
-
-        # Get interpolated values at each grid point, calling the instance of interp2d_fourier
-        ZI = self.fluence_interpolator(XI, YI)
-
-        # And plot it
-        maxp = np.max(ZI)
-        fig, ax = plt.subplots(figsize=(8, 6))
-        ax.pcolor(XI, YI, ZI, vmax=maxp, vmin=0, cmap=cm.gnuplot2_r)
-        mm = cm.ScalarMappable(cmap=cm.gnuplot2_r)
-        mm.set_array([0.0, maxp])
-        cbar = plt.colorbar(mm, ax=ax)
-        cbar.set_label(r'energy fluence [eV/m^2]', fontsize=14)
-        ax.set_xlabel(r'$\vec{v} \times \vec{B} [m]', fontsize=16)
-        ax.set_ylabel(r'$\vec{v} \times (\vec{v} \times \vec{B})$ [m]', fontsize=16)
-        ax.set_xlim(-radius, radius)
-        ax.set_ylim(-radius, radius)
-        ax.set_aspect('equal')
-        return fig, ax
-
     def get_position_showerplane(self, position_on_ground):
         """
         Transform the position of the antenna on ground to the shower plane.
@@ -1019,3 +954,73 @@ class coreasInterpolator:
             f'which is {distances[index] / units.m:.2f}m away from the antenna'
         )
         return efield
+
+
+# PLOTTING UTILITIES
+def plot_footprint_onsky(sim_station, fig=None, ax=None):
+    """
+    plots the footprint of the observer positions in the (vxB, vxvxB) shower plane
+
+    Parameters
+    ----------
+    sim_station : sim station
+        simulated station object
+    """
+    obs_positions = []
+    zz = []
+    for efield in sim_station.get_electric_fields():
+        obs_positions.append(efield.get_position_onsky())
+        zz.append(np.sum(efield[efp.signal_energy_fluence]))
+    obs_positions = np.array(obs_positions)
+    zz = np.array(zz)
+    if fig is None:
+        fig, ax = plt.subplots()
+    ax.set_aspect('equal')
+    sc = ax.scatter(obs_positions[:, 0], obs_positions[:, 1], c=zz, cmap=cm.gnuplot2_r, marker='o', edgecolors='k')
+    cbar = fig.colorbar(sc, ax=ax, orientation='vertical')
+    cbar.set_label('fluence [eV/m^2]')
+    ax.set_xlabel('vxB [m]')
+    ax.set_ylabel('vx(vxB) [m]')
+    return fig, ax
+
+
+
+def plot_footprint_fluence(interpolator, radius=300):
+    """
+    plots the interpolated values of the fluence in the shower plane
+
+    Parameters
+    ----------
+    interpolator: coreasInterpolator
+        The interpolator object for which to sample the footprint. Must have fluence interpolator initialized!
+    radius : float
+        radius around shower core which should be plotted
+
+    Returns
+    -------
+    fig : figure object
+
+    ax : axis object
+    """
+
+    # Make color plot of f(x, y), using a meshgrid
+    ti = np.linspace(-radius, radius, 500)
+    XI, YI = np.meshgrid(ti, ti)
+
+    # Get interpolated values at each grid point, calling the instance of interp2d_fourier
+    ZI = interpolator.fluence_interpolator(XI, YI)
+
+    # And plot it
+    maxp = np.max(ZI)
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.pcolor(XI, YI, ZI, vmax=maxp, vmin=0, cmap=cm.gnuplot2_r)
+    mm = cm.ScalarMappable(cmap=cm.gnuplot2_r)
+    mm.set_array([0.0, maxp])
+    cbar = plt.colorbar(mm, ax=ax)
+    cbar.set_label(r'energy fluence [eV/m^2]', fontsize=14)
+    ax.set_xlabel(r'$\vec{v} \times \vec{B} [m]', fontsize=16)
+    ax.set_ylabel(r'$\vec{v} \times (\vec{v} \times \vec{B})$ [m]', fontsize=16)
+    ax.set_xlim(-radius, radius)
+    ax.set_ylim(-radius, radius)
+    ax.set_aspect('equal')
+    return fig, ax
