@@ -46,10 +46,11 @@ class channelStopFilter:
             sampling_rate = channel.get_sampling_rate()
             window = scipy.signal.windows.tukey(len(trace), filter_size)
             trace *= window
-            trace = np.append(np.zeros(int(np.round(prepend * sampling_rate))), trace)
+            prepend_samples = int(np.round(prepend * sampling_rate))
+            trace = np.append(np.zeros(prepend_samples), trace)
             trace = np.append(trace, np.zeros(int(np.round(append * sampling_rate))))
             channel.set_trace(trace, sampling_rate)
-            channel.set_trace_start_time(channel.get_trace_start_time() - prepend * sampling_rate)
+            channel.add_trace_start_time(-prepend_samples / sampling_rate)
 
     def end(self):
         pass
