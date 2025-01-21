@@ -5,6 +5,7 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems
 
 from NuRadioReco.utilities import units
+import NuRadioReco.framework.station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.event
 import NuRadioReco.framework.base_trace
@@ -266,17 +267,9 @@ def read_CORSIKA7(input_file, declination=None, site=None):
 
     sampling_rate = 1. / (corsika['CoREAS'].attrs['TimeResolution'] * units.second)
     zenith, azimuth, magnetic_field_vector = get_angles(corsika, declination)
-    energy = corsika['inputs'].attrs["ERANGE"][0] * units.GeV  # Assume fixed energy
-
-    sim_shower = make_sim_shower(corsika)
 
     # The traces are stored in a SimStation
     sim_station = NuRadioReco.framework.sim_station.SimStation(0)  # set sim station id to 0
-
-    sim_station.set_parameter(stnp.azimuth, azimuth)
-    sim_station.set_parameter(stnp.zenith, zenith)
-    sim_station.set_parameter(stnp.cr_energy, energy)
-    sim_station.set_magnetic_field_vector(magnetic_field_vector)
 
     sim_station.set_is_cosmic_ray()
 
@@ -288,14 +281,23 @@ def read_CORSIKA7(input_file, declination=None, site=None):
             observer, zenith, azimuth, magnetic_field_vector
         )
 
-        add_electric_field_to_sim_station(sim_station, [j_obs], efield, efield_time[0], zenith, azimuth, sampling_rate,
-                                          efield_position=obs_positions_geo)
+        add_electric_field_to_sim_station(
+            sim_station, [j_obs],
+            efield, efield_time[0],
+            zenith, azimuth,
+            sampling_rate,
+            efield_position=obs_positions_geo
+        )
 
     evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
+
     stn = NuRadioReco.framework.station.Station(0)  # set station id to 0
     stn.set_sim_station(sim_station)
     evt.set_station(stn)
+
+    sim_shower = make_sim_shower(corsika)
     evt.add_sim_shower(sim_shower)
+
     corsika.close()
 
     return evt
