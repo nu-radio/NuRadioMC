@@ -1312,7 +1312,7 @@ class Detector():
         resp: `NuRadioReco.detector.response.Response`
             Returns the response of a component.
 
-        Also see
+        See Also
         --------
         NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data
         """
