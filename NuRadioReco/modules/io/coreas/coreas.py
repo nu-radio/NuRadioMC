@@ -234,7 +234,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     channel with an ID equal to the index of the channel as it was read from the HDF5 file.
 
     Next to the (Sim)Station, the Event also contains a SimShower object, which stores the CORSIKA input parameters.
-    For a list of stored parameters, see the `make_sim_shower()` function.
+    For a list of stored parameters, see the `hdf5_sim_shower()` function.
 
     Note that the function assumes the energy has been fixed to a single value, as is typical with a CoREAS simulation.
 
@@ -374,7 +374,27 @@ def create_sim_station(station_id, evt, weight=None):
 
 def hdf5_sim_shower(corsika, declination=0):
     """
-    Creates an NuRadioReco `SimShower` from a CoREAS HDF5 file.
+    Creates an NuRadioReco `RadioShower` from a CoREAS HDF5 file, which contains the simulation inputs shower parameters.
+    These include
+
+    - the primary particle type
+    - the observation level
+    - the zenith and azimuth angles
+    - the magnetic field vector
+    - the energy of the primary particle
+
+    The following parameters are retrieved from the REAS file:
+
+    - the core position
+    - the depth of the shower maximum (in g/cm2, converted to internal units)
+    - the distance of the shower maximum (in cm, converted to internal units)
+    - the refractive index at ground level
+    - the declination of the magnetic field
+
+    Lastly, these parameters are also saved IF they are available in the HDF5 file:
+
+    - the atmospheric model used for the simulation
+    - the electromagnetic energy of the shower (only present in high-level quantities are present)
 
     Parameters
     ----------
@@ -384,7 +404,7 @@ def hdf5_sim_shower(corsika, declination=0):
 
     Returns
     -------
-    sim_shower: SimShower
+    sim_shower: RadioShower
         simulated shower object
     """
     zenith, azimuth, magnetic_field_vector = get_angles(corsika, declination)
