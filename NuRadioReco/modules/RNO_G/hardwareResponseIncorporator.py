@@ -14,7 +14,7 @@ import logging
 class hardwareResponseIncorporator:
     """
     Incorporates the compex response of the RNO-G hardware. The response is obtained from the detector description.
-    The response is applied in the frequency domain. This module also adds the cable delay to the channels.
+    The response is applied in the frequency domain.
     """
 
     def __init__(self):
@@ -84,7 +84,7 @@ class hardwareResponseIncorporator:
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
 
-        is_trigger_channel: bool
+        is_trigger: bool
             Use trigger channel response instead. Only relevant for RNO-G. (Default: False)
 
         Returns
