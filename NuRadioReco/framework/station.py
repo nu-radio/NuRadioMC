@@ -96,7 +96,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             yield self.get_channel(channel_id)
 
     def iter_trigger_channels(self, use_channels=None):
-        """ Iterates over all channels of the station and returns `channel.get_trigger_channel().
+        """ Iterates over all channels of the station and yields `channel.get_trigger_channel()` for each.
 
         If `use_channels` is not None, only the channels with the ids in `use_channels` are iterated over.
 
@@ -110,7 +110,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         NuRadioReco.framework.channel.Channel
             The next (trigger) channel in the iteration.
 
-        Also see
+        See Also
         --------
         NuRadioReco.framework.channel.Channel.get_trigger_channel
         NuRadioReco.framework.station.Station.iter_channels
@@ -130,7 +130,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         """
         Returns the trigger channel of channel with id `channel_id`.
 
-        If the trigger channel is not set, the channel itself is returned.
+        If the trigger channel is not set, the channel itself is returned (i.e. this is equivalent to `get_channel`)
 
         Parameters
         ----------
