@@ -314,64 +314,6 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     return evt
 
 
-def create_sim_station(station_id, evt, weight=None):
-    """
-    Creates an NuRadioReco `SimStation` with the information from an `Event` object created with e.g. read_CORSIKA7().
-
-    Optionally, station can be assigned a weight.
-    To add an electric field the function add_electric_field_to_sim_station() has to be used.
-
-    Parameters
-    ----------
-    station_id : int
-        The id to assign to the new station
-    evt : Event
-        event object containing the CoREAS output
-    weight : float
-        weight corresponds to area covered by station
-
-    Returns
-    -------
-    sim_station: SimStation
-        simulated station object
-    """
-    coreas_station = evt.get_station(station_id=0)  # read_coreas has only station id 0
-    coreas_shower = evt.get_first_sim_shower()
-    coreas_sim_station = coreas_station.get_sim_station()
-
-    # Make the SimStation and store the parameters extracted from the SimShower
-    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
-
-    sim_station.set_parameter(stnp.azimuth, coreas_shower.get_parameter(shp.azimuth))
-    sim_station.set_parameter(stnp.zenith, coreas_shower.get_parameter(shp.zenith))
-
-    sim_station.set_parameter(stnp.cr_energy, coreas_shower.get_parameter(shp.energy))
-    sim_station.set_parameter(stnp.cr_xmax, coreas_shower.get_parameter(shp.shower_maximum))
-
-    sim_station.set_magnetic_field_vector(
-        coreas_shower.get_parameter(shp.magnetic_field_vector)
-    )
-
-    # Check if the high-level attribute is present in the Event
-    try:
-        sim_station.set_parameter(stnp.cr_energy_em, coreas_shower.get_parameter(shp.electromagnetic_energy))
-    except KeyError:
-        global warning_printed_coreas_py
-        if not warning_printed_coreas_py:
-            logger.warning(
-                "No high-level quantities in Event, not setting EM energy, this warning will be only printed once"
-            )
-            warning_printed_coreas_py = True
-
-    if coreas_sim_station.is_cosmic_ray():
-        sim_station.set_is_cosmic_ray()
-
-    # Set simulation weight
-    sim_station.set_simulation_weight(weight)
-
-    return sim_station
-
-
 def hdf5_sim_shower(corsika, declination=0):
     """
     Creates an NuRadioReco `RadioShower` from a CoREAS HDF5 file, which contains the simulation inputs shower parameters.
@@ -495,6 +437,64 @@ def create_sim_shower(evt, detector=None, station_id=None):
     sim_shower.set_parameter(shp.core, core_position)
 
     return sim_shower
+
+
+def create_sim_station(station_id, evt, weight=None):
+    """
+    Creates an NuRadioReco `SimStation` with the information from an `Event` object created with e.g. read_CORSIKA7().
+
+    Optionally, station can be assigned a weight. Note that the station is empty. To add an
+    electric field the function add_electric_field_to_sim_station() has to be used.
+
+    Parameters
+    ----------
+    station_id : int
+        The id to assign to the new station
+    evt : Event
+        event object containing the CoREAS output
+    weight : float
+        weight corresponds to area covered by station
+
+    Returns
+    -------
+    sim_station: SimStation
+        simulated station object
+    """
+    coreas_station = evt.get_station(station_id=0)  # read_coreas has only station id 0
+    coreas_shower = evt.get_first_sim_shower()
+    coreas_sim_station = coreas_station.get_sim_station()
+
+    # Make the SimStation and store the parameters extracted from the SimShower
+    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+
+    sim_station.set_parameter(stnp.azimuth, coreas_shower.get_parameter(shp.azimuth))
+    sim_station.set_parameter(stnp.zenith, coreas_shower.get_parameter(shp.zenith))
+
+    sim_station.set_parameter(stnp.cr_energy, coreas_shower.get_parameter(shp.energy))
+    sim_station.set_parameter(stnp.cr_xmax, coreas_shower.get_parameter(shp.shower_maximum))
+
+    sim_station.set_magnetic_field_vector(
+        coreas_shower.get_parameter(shp.magnetic_field_vector)
+    )
+
+    # Check if the high-level attribute is present in the Event
+    try:
+        sim_station.set_parameter(stnp.cr_energy_em, coreas_shower.get_parameter(shp.electromagnetic_energy))
+    except KeyError:
+        global warning_printed_coreas_py
+        if not warning_printed_coreas_py:
+            logger.warning(
+                "No high-level quantities in Event, not setting EM energy, this warning will be only printed once"
+            )
+            warning_printed_coreas_py = True
+
+    if coreas_sim_station.is_cosmic_ray():
+        sim_station.set_is_cosmic_ray()
+
+    # Set simulation weight
+    sim_station.set_simulation_weight(weight)
+
+    return sim_station
 
 
 def add_electric_field_to_sim_station(
