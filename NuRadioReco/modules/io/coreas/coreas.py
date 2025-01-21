@@ -39,9 +39,8 @@ def get_angles(corsika, declination):
     (i.e. with respect to the magnetic north) proceeding counterclockwise.
     
     NRR describes the particle zenith and azimuthal angle in the direction where the particle is coming from.
-    Therefore the zenith angle is the same, but the azimuthal angle has to be shifted by 180 + 90 degrees.
-    The north has to be shifted by 90 degrees plus difference between geomagetic and magnetic north.
-
+    Therefore, the zenith angle is the same, but the azimuthal angle has to be shifted by 180 + 90 degrees.
+    The north has to be shifted by 90 degrees plus difference between geomagnetic and magnetic north.
 
     Parameters
     ----------
@@ -58,9 +57,20 @@ def get_angles(corsika, declination):
         azimuth angle
     magnetic_field_vector : np.ndarray
         magnetic field vector
-    """
-    # TODO: verify sign of declination
 
+    Examples
+    --------
+    The declinations can be obtained using the functions in the radiotools helper package, if you
+    have the magnetic field for the site you are interested in.
+
+    >>> magnet = hp.get_magnetic_field_vector('mooresbay')
+    >>> dec = hp.get_declination(magnet)
+    >>> evt = h5py.File('NuRadioReco/examples/example_data/example_data.hdf5', 'r')
+    >>> get_angles(corsika, dec)[2] / units.gauss
+    array([ 0.05646405, -0.08733734,  0.614     ])
+    >>> magnet
+    array([ 0.058457, -0.09042 ,  0.61439 ])
+    """
     zenith = corsika['inputs'].attrs["THETAP"][0] * units.deg
     azimuth = hp.get_normalized_angle(
         3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]) + declination / units.rad
