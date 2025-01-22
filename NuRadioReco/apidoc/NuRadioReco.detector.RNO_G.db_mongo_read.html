@@ -232,16 +232,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../pages/times.html">overview of times</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pages/times.html">Overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#station-time-event-time">Station time (Event time)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trigger-times">Trigger times</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#overview-of-modules-that-affect-time">Overview of modules that affect time</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
@@ -622,6 +622,15 @@
              
   <section id="module-NuRadioReco.detector.RNO_G.db_mongo_read">
 <span id="nuradioreco-detector-rno-g-db-mongo-read-module"></span><h1>NuRadioReco.detector.RNO_G.db_mongo_read module<a class="headerlink" href="#module-NuRadioReco.detector.RNO_G.db_mongo_read" title="Link to this heading"></a></h1>
+<p>Interface to the MongoDB that contains RNO-G hardware and calibration information</p>
+<p>The <a class="reference internal" href="#module-NuRadioReco.detector.RNO_G.db_mongo_read" title="NuRadioReco.detector.RNO_G.db_mongo_read"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.detector.RNO_G.db_mongo_read</span></code></a> module and the <a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_read.Database" title="NuRadioReco.detector.RNO_G.db_mongo_read.Database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Database</span></code></a> class herein mostly serve as the
+backend of the <a class="reference internal" href="NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector.Detector</span></code></a> class. Most users
+will want to use that class to obtain information about deployed RNO-G stations and hardware.
+<a class="reference internal" href="NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector.Detector</span></code></a> class has an interface similar to that of
+other detector descriptions in NuRadioMC, and is documented there.</p>
+<p>However, for some specific use cases (e.g. finding measurements for individual hardware components
+that have not been deployed to the field), one can use the <a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_read.Database" title="NuRadioReco.detector.RNO_G.db_mongo_read.Database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Database</span></code></a> class directly, using the
+<a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data" title="NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Database.get_component_data</span></code></a> method.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_read.Database">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.RNO_G.db_mongo_read.</span></span><span class="sig-name descname"><span class="pre">Database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_read.Database" title="Link to this definition"></a></dt>
@@ -974,6 +983,29 @@ returns primary unless measurement_name is not None</p>
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data">
 <span class="sig-name descname"><span class="pre">get_component_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supplementary_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'S21'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_component_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data" title="Link to this definition"></a></dt>
 <dd><p>returns the current primary measurement of the component, reads in the component collection</p>
+<p>Returns a single measurement (e.g. gain of an IGLU)</p>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.RNO_G.db_mongo_read</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">RNO_G</span><span class="o">.</span><span class="n">db_mongo_read</span><span class="o">.</span><span class="n">Database</span><span class="p">()</span>
+
+<span class="c1"># gives you the entry in the database</span>
+<span class="n">database_entry</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span>
+    <span class="n">component_type</span><span class="o">=</span><span class="s1">&#39;iglu_board&#39;</span><span class="p">,</span>
+    <span class="n">component_id</span><span class="o">=</span><span class="s1">&#39;C0069&#39;</span><span class="p">,</span>
+    <span class="n">supplementary_info</span><span class="o">=</span><span class="p">{},</span> <span class="c1"># if you want a DRAB you have to specify the channel: {&#39;channel_id&#39;:0}</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">sparameter</span><span class="o">=</span><span class="s1">&#39;S21&#39;</span><span class="p">,</span> <span class="c1"># you can also read the other S parameters</span>
+    <span class="n">primary_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+
+<span class="c1"># extract the gain + phase data</span>
+<span class="n">y_axis_units</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">&#39;y-axis_units&#39;</span><span class="p">]</span>
+<span class="n">frequencies</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">&#39;frequencies&#39;</span><span class="p">]</span>
+<span class="n">gain_data</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">&#39;mag&#39;</span><span class="p">]</span>
+<span class="n">phase_data</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">

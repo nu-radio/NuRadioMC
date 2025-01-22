@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>overview of times &mdash; NuRadio 2.3.0-dev documentation</title>
+  <title>Overview of times &mdash; NuRadio 2.3.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -232,16 +232,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">overview of times</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arianna-specific-details">ARIANNA specific details:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#station-time">Station time</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#station-time-event-time">Station time (Event time)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#trace-start-times-in-channels">Trace start times in channels</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#trigger-times">Trigger times</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#overview-of-modules-that-affect-time">Overview of modules that affect time</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="nur_modules.html#logging">Logging</a></li>
@@ -607,7 +607,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="welcome_page.html">NuRadioReco Documentation</a></li>
-      <li class="breadcrumb-item active">overview of times</li>
+      <li class="breadcrumb-item active">Overview of times</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/NuRadioReco/pages/times.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -618,70 +618,117 @@
            <div itemprop="articleBody">
              
   <section id="overview-of-times">
-<h1>overview of times<a class="headerlink" href="#overview-of-times" title="Link to this heading"></a></h1>
-<p>Time delays are introduced by several hardware components. These time delays are often corrected for by folding/unfolding the complex transfer function (for an amp e.g. the measurement of the S12 parameter). The unfolding is typically done in the frequency domain where a convolution becomes a simple multiplication. As a consequence of typically short trace length (&lt;~1000 samples) and because a Fourier transform implies implicitly a periodic signal, a pulse being at the beginning of the trace can end up being at the end of the trace. To avoid this behavior we use the following procedure:</p>
-<p>We smoothly filter the first 5% and last 5% of the trace using a Tukey window function. This is a function that goes smoothly from 0 to 1.
-To avoid rollover of the pulse, we add 128ns of zeros to the beginning and end of the trace. Steps 2) and 3) are performed by the channelStopFilter module
-Both electric fields and channels have a trace_start_time variable. The get_times() function will automatically add the trace_start_time to the time array.</p>
-<section id="arianna-specific-details">
-<h2>ARIANNA specific details:<a class="headerlink" href="#arianna-specific-details" title="Link to this heading"></a></h2>
-<p>Our hardware produces an artifact (a glitch) at the STOP position (i.e. the physical beginning of the trace). Because of the way the hardware works, the STOP position is not at the beginning of the trace but can be anywhere. During read in of the snowshovel calibrated data files, the trace is rolled such that the physical beginning (the STOP position) is at sample zero of the trace. This glitch is removed by the procedure described above.</p>
-</section>
-<section id="station-time">
-<h2>Station time<a class="headerlink" href="#station-time" title="Link to this heading"></a></h2>
-<p>The trace_start_times are all given relative to the station_time of the station the E-field or channel belongs to. The station_time is stored in an astopy.time.Time object for sub nanosecond precision on absolute times.
-The trace_start_time itself is stored as a float. For simulations, the trace_start_time is relative to the vertex time, i.e., the time of the particle interaction.
-For data: TODO, describe how current RNO-G data is handled</p>
+<h1>Overview of times<a class="headerlink" href="#overview-of-times" title="Link to this heading"></a></h1>
+<p>This page provides an overview of the different times defined in different places in NuRadioMC/NuRadioReco.
+Generally speaking, the global time of an <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Event</span></code></a> is stored as
+a <a class="reference internal" href="#station-time-event-time"><span class="std std-ref">station or event time</span></a>. The times corresponding to the <a class="reference internal" href="../apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel" title="NuRadioReco.framework.channel.Channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voltage</span> <span class="pre">time</span> <span class="pre">trace</span></code></a>,
+<a class="reference internal" href="../apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField" title="NuRadioReco.framework.electric_field.ElectricField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">electric</span> <span class="pre">fields</span></code></a> or <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">triggers</span></code></a>
+are then stored as floats relative to this global time inside each object. They can be obtained by the
+<a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_times" title="NuRadioReco.framework.base_trace.BaseTrace.get_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_times()</span></code></a> method for trace-like objects (<a class="reference internal" href="../apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField" title="NuRadioReco.framework.electric_field.ElectricField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElectricField</span></code></a> ,
+<a class="reference internal" href="../apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel" title="NuRadioReco.framework.channel.Channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Channel</span></code></a>), or by the <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>
+method for <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Trigger</span></code></a> objects.</p>
+<p>Time delays are introduced by several hardware components. These time delays are often accounted for by folding/unfolding the complex transfer function (for an amplifier e.g. the measurement of the S12 parameter).
+The unfolding is typically done in the frequency domain where a convolution becomes a simple multiplication.
+As a consequence of typically short trace length (&lt;~1000 samples) and because a Fourier transform implies implicitly a periodic signal,
+a pulse being at the beginning of the trace can end up being at the end of the trace.
+This can be avoided by using the <a class="reference internal" href="../apidoc/NuRadioReco.modules.channelStopFilter.html#module-NuRadioReco.modules.channelStopFilter" title="NuRadioReco.modules.channelStopFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelStopFilter</span></code></a> module, which appends zeros at either end of the trace
+and applies a Tukey window to taper the ends of the trace towards zero.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For the <strong>ARIANNA</strong> experiment, the hardware produces an artifact (a glitch) at the STOP position (i.e. the physical beginning of the trace).
+Because of the way the hardware works, the STOP position is not at the beginning of the trace but can be anywhere.
+During read in of the snowshovel calibrated data files, the trace is rolled such that the physical beginning (the STOP position) is at sample zero of the trace.
+This glitch is removed by the <a class="reference internal" href="../apidoc/NuRadioReco.modules.channelStopFilter.html#module-NuRadioReco.modules.channelStopFilter" title="NuRadioReco.modules.channelStopFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channelStopFilter</span></code></a> procedure described in the <a class="reference internal" href="#overview-of-modules-that-affect-time"><span class="std std-ref">module overview below</span></a> .</p>
+</div>
+<section id="station-time-event-time">
+<h2>Station time (Event time)<a class="headerlink" href="#station-time-event-time" title="Link to this heading"></a></h2>
+<p>The global time at which the event takes place is stored as the <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_event_time" title="NuRadioReco.framework.event.Event.get_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">event</span> <span class="pre">time</span></code></a>
+in the <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Event</span></code></a> object.
+This time usually corresponds to the “vertex time” of the first interaction for simulations,
+and the time at which the data was recorded in the DAQ for data.
+It is stored as an <a class="reference external" href="https://docs.astropy.org/en/stable/api/astropy.time.Time.html#astropy.time.Time" title="(in Astropy v7.0)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropy.time.Time</span></code></a> object to enable sub-ns precision on the absolute time.</p>
+<p>In <strong>simulated data</strong>, the <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_event_time" title="NuRadioReco.framework.event.Event.get_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">event</span> <span class="pre">time</span></code></a>
+is generally the same as the <a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a> stored
+in the <a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station" title="NuRadioReco.framework.station.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Station</span></code></a> object.
+In <strong>experimental data</strong>, the <a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>
+usually corresponds to the time the data was read out (recorded), and the <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_event_time" title="NuRadioReco.framework.event.Event.get_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">event</span> <span class="pre">time</span></code></a> may not always be defined.
+In this case, because different stations may operate and trigger independently,
+the station_times of different stations are not guaranteed to agree, even if they were triggered by the same source.</p>
+<p>Times in <a class="reference internal" href="../apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel" title="NuRadioReco.framework.channel.Channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Channel</span></code></a>, <a class="reference internal" href="../apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField" title="NuRadioReco.framework.electric_field.ElectricField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElectricField</span></code></a> and
+<a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Trigger</span></code></a> objects are all defined relative to the
+<a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a> of the <a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station" title="NuRadioReco.framework.station.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Station</span></code></a>
+they are stored in (see the description of the <a class="reference internal" href="event_structure.html"><span class="doc">NuRadio data structure</span></a>).
+These times are stored as an array of floats.
+For trace-like objects (<a class="reference internal" href="../apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel" title="NuRadioReco.framework.channel.Channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Channels</span></code></a> and <a class="reference internal" href="../apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField" title="NuRadioReco.framework.electric_field.ElectricField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElectricField</span></code></a>),
+the times can be obtained through the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_times" title="NuRadioReco.framework.base_trace.BaseTrace.get_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_times()</span></code></a> method of these classes.
+Additionally, the trace start time (the first value of <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_times" title="NuRadioReco.framework.base_trace.BaseTrace.get_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_times()</span></code></a>)
+is accessible as the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> .</p>
 <section id="trace-start-times-in-channels">
 <h3>Trace start times in channels<a class="headerlink" href="#trace-start-times-in-channels" title="Link to this heading"></a></h3>
-<p>Specify when the trace starts relative to the station time. Effects that change the pulse time for all frequencies equally (for example cable delays) are most often taken into account by changing the trace_start_time.</p>
+<p>Specify when the trace starts relative to the station time. Effects that change the pulse time for all frequencies equally (for example cable delays) are most often taken into account by changing the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a>.</p>
 </section>
 <section id="trace-start-times-in-e-fields">
 <h3>Trace start times in E-fields<a class="headerlink" href="#trace-start-times-in-e-fields" title="Link to this heading"></a></h3>
-<p>Work similar to trace_start_time in channels, but with a caveat: Since EM-waves move, electric_field objects hold a position (relative to the station they are associated with). The E-field is therefore defined as the field an observer would measure at the given position. Note that this position does not necessarily have to coincide with the position of a channel the E-field is associated with. This is the case for (some) cosmic-ray simulations where the same E-field at the surface is used for all surface LPDAs.</p>
+<p>Work similar to <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> in channels, but with a caveat: Since EM-waves move, electric_field objects hold a position (relative to the station they are associated with). The E-field is therefore defined as the field an observer would measure at the given position. Note that this position does not necessarily have to coincide with the position of a channel the E-field is associated with. This is the case for (some) cosmic-ray simulations where the same E-field at the surface is used for all surface LPDAs.</p>
+</section>
+<section id="trigger-times">
+<h3>Trigger times<a class="headerlink" href="#trigger-times" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trigger_time</span></code></a>,
+which is the time at which the trigger fired, is stored in the <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Trigger</span></code></a>
+object (which can be obtained using <a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_trigger" title="NuRadioReco.framework.station.Station.get_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station.get_trigger()</span></code></a>).
+This is the time at which the trigger condition was first fulfilled.
+As for the trace_start_time, the trigger time is defined relative to the
+<a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a> .</p>
 </section>
 </section>
-</section>
-<section id="overview-of-modules-that-alter-time">
-<h1>overview of modules that alter time<a class="headerlink" href="#overview-of-modules-that-alter-time" title="Link to this heading"></a></h1>
-<p>We list all relevant modules that is used for a MC simulation and reconstruction. For a pure data reconstruction, the first few modules are just not used</p>
-<ul class="simple">
-<li><p>readCoREAS: CoREAS reader prepends n samples to the simulated trace. This is done so that the trace does not directly start with the pulse and to have a good frequency resolution.</p></li>
-<li><p>efieldToVoltageConverter: the traces are rolled (rotated) according to the time delay due to the geometric separation of the antennas and cable delays.</p></li>
-<li><dl class="simple">
-<dt>hardwareResponseIncorporator (sim to data):</dt><dd><ul>
-<li><p>the channel traces are folded with the amplifier response which also includes some time delay</p></li>
+<section id="overview-of-modules-that-affect-time">
+<h2>Overview of modules that affect time<a class="headerlink" href="#overview-of-modules-that-affect-time" title="Link to this heading"></a></h2>
+<p>We list all relevant modules that are used for a MC simulation and reconstruction. For a pure data reconstruction, the first two modules are not used.</p>
+<ul>
+<li><p><a class="reference internal" href="../apidoc/NuRadioReco.modules.io.coreas.html#module-NuRadioReco.modules.io.coreas" title="NuRadioReco.modules.io.coreas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.io.coreas</span></code></a>: CoREAS reader prepends n samples to the simulated trace. This is done so that the trace does not directly start with the pulse and to have a good frequency resolution.</p></li>
+<li><p><a class="reference internal" href="../apidoc/NuRadioReco.modules.efieldToVoltageConverter.html#module-NuRadioReco.modules.efieldToVoltageConverter" title="NuRadioReco.modules.efieldToVoltageConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.efieldToVoltageConverter</span></code></a>:
+the voltage traces are delayed compared to the electric field signal due to the geometric separation of the antennas and cable delays.
+This is accounted for by shifting the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a>.
+Note that the very similar <a class="reference internal" href="../apidoc/NuRadioReco.modules.efieldToVoltageConverterPerEfield.html#module-NuRadioReco.modules.efieldToVoltageConverterPerEfield" title="NuRadioReco.modules.efieldToVoltageConverterPerEfield"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.efieldToVoltageConverterPerEfield</span></code></a> (which creates one
+<a class="reference internal" href="../apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel" title="NuRadioReco.framework.sim_channel.SimChannel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimChannel</span></code></a> per electric field instead of combining the induced voltage traces in a single channel) does <strong>not</strong> include the cable delays!</p></li>
+<li><p><a class="reference internal" href="../apidoc/NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#module-NuRadioReco.modules.RNO_G.hardwareResponseIncorporator" title="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.RNO_G.hardwareResponseIncorporator</span></code></a>, <a class="reference internal" href="../apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#module-NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator" title="NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator</span></code></a>, <a class="reference internal" href="../apidoc/NuRadioReco.modules.ARA.hardwareResponseIncorporator.html#module-NuRadioReco.modules.ARA.hardwareResponseIncorporator" title="NuRadioReco.modules.ARA.hardwareResponseIncorporator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.ARA.hardwareResponseIncorporator</span></code></a>:</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">sim</span> <span class="pre">to</span> <span class="pre">data=True</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>the channel traces are folded with the amplifier response which also includes some time delay.
+This delay is applied to the trace in the frequency domain (i.e. the signal is shifted within the trace, rather than adjusting the trace_start_time)</p></li>
 <li><p>note that the hardwareResponseIncorporator does not take cable delays into account, as this is done by the efieldToVoltageConverter</p></li>
 </ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>triggerTimeAdjuster</dt><dd><ul>
-<li><p>‘sim_to_data’ mode: This modules cuts the trace to the correct length (as specified in the detector description) around the trigger time with a pre-trigger time as defined by the respective trigger module. In the case of multiple triggers it used the primary trigger. If no primary trigger is defined, it uses the trigger with the earliest trigger time. In the end, the trace_start_time is set to the trigger time. This is done because this reflects how raw experimental data looks like.</p></li>
-<li><p>‘data_to_sim’ mode: The module determines the trigger that was used to cut the trace to its current length (the ‘sim_to_data’ step above in case of simulations) and adjusts the trace_start_time according to the different readout delays. The “primary trigger” defines the readout delays. After applying this module in the “data_to_sim” direction, the position in the trace that caused the trigger can be found via <em class="xref py py-obj">trigger_time</em> - <em class="xref py py-obj">trace_start_time</em>.</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p>channelStopFilter: this module prepends and appends all channels with a fixed length (128ns by default). The ‘prepend’ time is subtracted from the station start time (because all channels get the same time delay)</p></li>
-<li><dl class="simple">
-<dt>hardwareResponseIncorporator (data reconstruction):</dt><dd><ul>
+</div></blockquote>
+<p>If <code class="docutils literal notranslate"><span class="pre">sim</span> <span class="pre">to</span> <span class="pre">data=False</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>unfolds amplifier -&gt; also implies a time delay in the channel trace</p></li>
 <li><p>cable delay is subtracted from the trace start time (due to the limited trace length, the trace is not rolled to account for cable delays)</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
 <li><dl class="simple">
-<dt>voltageToEfieldConverter:</dt><dd><ul>
-<li><p>the traces from all used channels are cut to the overlapping region (including delays due to geometry and differences in delays due to different hardware components, e.g. cables of different length’s)</p></li>
-<li><p>the E-field trace_start_time is set accordingly</p></li>
+<dt><a class="reference internal" href="../apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#module-NuRadioReco.modules.triggerTimeAdjuster" title="NuRadioReco.modules.triggerTimeAdjuster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.triggerTimeAdjuster</span></code></a></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sim_to_data</span></code> mode: This modules cuts the trace to the correct length (as specified in the detector description) around the trigger time with a pre-trigger time as defined by the respective trigger module. In the case of multiple triggers it used the primary trigger. If no primary trigger is defined, it uses the trigger with the earliest trigger time. In the end, the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> is set to the trigger time. This is done because this reflects what raw experimental data looks like.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_to_sim</span></code> mode: The module determines the trigger that was used to cut the trace to its current length (the ‘sim_to_data’ step above in case of simulations) and adjusts the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> according to the different readout delays. The “primary trigger” defines the readout delays. <strong>After</strong> applying this module in the “data_to_sim” direction, the position in the trace that caused the trigger can be found via the <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trigger_time</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelStopFilter.html#module-NuRadioReco.modules.channelStopFilter" title="NuRadioReco.modules.channelStopFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelStopFilter</span></code></a>: this module prepends and appends all channels with a fixed length (128ns by default).
+The ‘prepend’ time is subtracted from the trace start time (because all channels get the same time delay).
+It additionally applies a tukey window to taper off the start and end (by default, the first and last 5%) of the trace.</p></li>
+<li><dl class="simple">
+<dt><a class="reference internal" href="../apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#module-NuRadioReco.modules.voltageToEfieldConverter" title="NuRadioReco.modules.voltageToEfieldConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.voltageToEfieldConverter</span></code></a>:</dt><dd><ul class="simple">
+<li><p>the traces from all used channels are cut to the overlapping region (including delays due to geometry and differences in delays due to different group delays in hardware, e.g. different antenna/amplifier responses)</p></li>
+<li><p>the E-field <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> is set accordingly</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 </ul>
+</section>
 </section>
 
 

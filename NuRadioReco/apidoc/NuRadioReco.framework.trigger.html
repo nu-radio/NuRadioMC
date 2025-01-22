@@ -232,16 +232,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../pages/times.html">overview of times</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pages/times.html">Overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#station-time-event-time">Station time (Event time)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trigger-times">Trigger times</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#overview-of-modules-that-affect-time">Overview of modules that affect time</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
@@ -644,10 +644,10 @@
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
-<td><p>get the trigger time (absolute time with respect to the beginning of the event)</p></td>
+<td><p>Get the trigger time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_times" title="NuRadioReco.framework.trigger.Trigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
-<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+<td><p>Get the trigger times</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_triggered_channels" title="NuRadioReco.framework.trigger.Trigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
 <td><p>get IDs of channels that have triggered</p></td>
@@ -725,10 +725,10 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
-<td><p>get the trigger time (absolute time with respect to the beginning of the event)</p></td>
+<td><p>Get the trigger time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_times" title="NuRadioReco.framework.trigger.Trigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
-<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+<td><p>Get the trigger times</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_triggered_channels" title="NuRadioReco.framework.trigger.Trigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
 <td><p>get IDs of channels that have triggered</p></td>
@@ -817,7 +817,24 @@ The trigger time of the primary trigger is used to define the readout window. Th
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.Trigger.get_trigger_time">
 <span class="sig-name descname"><span class="pre">get_trigger_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger.get_trigger_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="Link to this definition"></a></dt>
-<dd><p>get the trigger time (absolute time with respect to the beginning of the event)</p>
+<dd><p>Get the trigger time.</p>
+<p>Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+This is defined relative to the <a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_time</strong><span class="classifier">float</span></dt><dd><p>The trigger time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_times" title="NuRadioReco.framework.trigger.Trigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a></dt><dd><p>function to return all times where the trigger condition was fulfilled</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -837,7 +854,29 @@ The trigger time of the primary trigger is used to define the readout window. Th
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.Trigger.get_trigger_times">
 <span class="sig-name descname"><span class="pre">get_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger.get_trigger_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_times" title="Link to this definition"></a></dt>
-<dd><p>get the trigger times (time with respect to beginning of trace)</p>
+<dd><p>Get the trigger times</p>
+<p>For some triggers, in addition to the time of the first trigger,
+also all subsequent times where the trigger condition were fulfilled are
+stored. For triggers that do not store this information, this method
+is equivalent to <a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a> with the exception that it returns
+an array (of shape (1,)) instead of a scalar.
+Note that the trigger times are defined relative to the
+<a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_times</strong><span class="classifier">np.ndarray</span></dt><dd><p>Array of all times where the trigger condition was satisfied</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a></dt><dd><p>method to return the (first) trigger time</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -955,6 +994,11 @@ default: 1</p>
 </dd>
 <dt><strong>channel_coincidence_window: float or None (default)</strong></dt><dd><p>the coincidence time between triggers of different channels</p>
 </dd>
+<dt><strong>pre_trigger_times: float or dict of floats</strong></dt><dd><p>the time before the trigger time that should be read out
+if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+start of the trace and the trigger time.
+if only a float is given, the same pre_trigger_time is used for all channels</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -971,10 +1015,10 @@ default: 1</p>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
-<td><p>get the trigger time (absolute time with respect to the beginning of the event)</p></td>
+<td><p>Get the trigger time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
-<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+<td><p>Get the trigger times</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_triggered_channels" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
 <td><p>get IDs of channels that have triggered</p></td>
@@ -1078,13 +1122,52 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time">
 <span class="sig-name descname"><span class="pre">get_trigger_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time" title="Link to this definition"></a></dt>
-<dd><p>get the trigger time (absolute time with respect to the beginning of the event)</p>
+<dd><p>Get the trigger time.</p>
+<p>Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+This is defined relative to the <a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_time</strong><span class="classifier">float</span></dt><dd><p>The trigger time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a></dt><dd><p>function to return all times where the trigger condition was fulfilled</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_times">
 <span class="sig-name descname"><span class="pre">get_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_times" title="Link to this definition"></a></dt>
-<dd><p>get the trigger times (time with respect to beginning of trace)</p>
+<dd><p>Get the trigger times</p>
+<p>For some triggers, in addition to the time of the first trigger,
+also all subsequent times where the trigger condition were fulfilled are
+stored. For triggers that do not store this information, this method
+is equivalent to <a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a> with the exception that it returns
+an array (of shape (1,)) instead of a scalar.
+Note that the trigger times are defined relative to the
+<a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_times</strong><span class="classifier">np.ndarray</span></dt><dd><p>Array of all times where the trigger condition was satisfied</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a></dt><dd><p>method to return the (first) trigger time</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1210,6 +1293,11 @@ If there is no trigger, it’s an empty dictionary</p>
 <dt><strong>output_passband: (float, float) tuple</strong></dt><dd><p>Frequencies for a 6th-order Butterworth filter to be applied after
 the diode filtering.</p>
 </dd>
+<dt><strong>pre_trigger_times: float or dict of floats</strong></dt><dd><p>the time before the trigger time that should be read out
+if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+start of the trace and the trigger time.
+if only a float is given, the same pre_trigger_time is used for all channels</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1226,10 +1314,10 @@ the diode filtering.</p>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
-<td><p>get the trigger time (absolute time with respect to the beginning of the event)</p></td>
+<td><p>Get the trigger time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
-<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+<td><p>Get the trigger times</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_triggered_channels" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
 <td><p>get IDs of channels that have triggered</p></td>
@@ -1333,13 +1421,52 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time">
 <span class="sig-name descname"><span class="pre">get_trigger_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time" title="Link to this definition"></a></dt>
-<dd><p>get the trigger time (absolute time with respect to the beginning of the event)</p>
+<dd><p>Get the trigger time.</p>
+<p>Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+This is defined relative to the <a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_time</strong><span class="classifier">float</span></dt><dd><p>The trigger time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a></dt><dd><p>function to return all times where the trigger condition was fulfilled</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_times">
 <span class="sig-name descname"><span class="pre">get_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_times" title="Link to this definition"></a></dt>
-<dd><p>get the trigger times (time with respect to beginning of trace)</p>
+<dd><p>Get the trigger times</p>
+<p>For some triggers, in addition to the time of the first trigger,
+also all subsequent times where the trigger condition were fulfilled are
+stored. For triggers that do not store this information, this method
+is equivalent to <a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a> with the exception that it returns
+an array (of shape (1,)) instead of a scalar.
+Note that the trigger times are defined relative to the
+<a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_times</strong><span class="classifier">np.ndarray</span></dt><dd><p>Array of all times where the trigger condition was satisfied</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a></dt><dd><p>method to return the (first) trigger time</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1469,6 +1596,11 @@ If there is no trigger or no secondary channels, it’s an empty dictionary</p>
 </dd>
 <dt><strong>maximum_amps: list of floats (length equal to that of `phasing_angles`)</strong></dt><dd><p>the maximum value of all the integration windows for each of the phased waveforms</p>
 </dd>
+<dt><strong>pre_trigger_times: float or dict of floats</strong></dt><dd><p>the time before the trigger time that should be read out
+if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+start of the trace and the trigger time.
+if only a float is given, the same pre_trigger_time is used for all channels</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1485,10 +1617,10 @@ If there is no trigger or no secondary channels, it’s an empty dictionary</p>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
-<td><p>get the trigger time (absolute time with respect to the beginning of the event)</p></td>
+<td><p>Get the trigger time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
-<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+<td><p>Get the trigger times</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_triggered_channels" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
 <td><p>get IDs of channels that have triggered</p></td>
@@ -1592,13 +1724,52 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time">
 <span class="sig-name descname"><span class="pre">get_trigger_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time" title="Link to this definition"></a></dt>
-<dd><p>get the trigger time (absolute time with respect to the beginning of the event)</p>
+<dd><p>Get the trigger time.</p>
+<p>Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+This is defined relative to the <a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_time</strong><span class="classifier">float</span></dt><dd><p>The trigger time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a></dt><dd><p>function to return all times where the trigger condition was fulfilled</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_times">
 <span class="sig-name descname"><span class="pre">get_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_times" title="Link to this definition"></a></dt>
-<dd><p>get the trigger times (time with respect to beginning of trace)</p>
+<dd><p>Get the trigger times</p>
+<p>For some triggers, in addition to the time of the first trigger,
+also all subsequent times where the trigger condition were fulfilled are
+stored. For triggers that do not store this information, this method
+is equivalent to <a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a> with the exception that it returns
+an array (of shape (1,)) instead of a scalar.
+Note that the trigger times are defined relative to the
+<a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_times</strong><span class="classifier">np.ndarray</span></dt><dd><p>Array of all times where the trigger condition was satisfied</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a></dt><dd><p>method to return the (first) trigger time</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1719,6 +1890,11 @@ default: None, i.e. all channels</p>
 <dt><strong>number_of_coincidences: int</strong></dt><dd><p>the number of channels that need to fulfill the trigger condition
 default: 1</p>
 </dd>
+<dt><strong>pre_trigger_times: float or dict of floats</strong></dt><dd><p>the time before the trigger time that should be read out
+if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+start of the trace and the trigger time.
+if only a float is given, the same pre_trigger_time is used for all channels</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1735,10 +1911,10 @@ default: 1</p>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
-<td><p>get the trigger time (absolute time with respect to the beginning of the event)</p></td>
+<td><p>Get the trigger time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
-<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+<td><p>Get the trigger times</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_triggered_channels" title="NuRadioReco.framework.trigger.HighLowTrigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
 <td><p>get IDs of channels that have triggered</p></td>
@@ -1842,13 +2018,52 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time">
 <span class="sig-name descname"><span class="pre">get_trigger_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time" title="Link to this definition"></a></dt>
-<dd><p>get the trigger time (absolute time with respect to the beginning of the event)</p>
+<dd><p>Get the trigger time.</p>
+<p>Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+This is defined relative to the <a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_time</strong><span class="classifier">float</span></dt><dd><p>The trigger time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a></dt><dd><p>function to return all times where the trigger condition was fulfilled</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_times">
 <span class="sig-name descname"><span class="pre">get_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_times" title="Link to this definition"></a></dt>
-<dd><p>get the trigger times (time with respect to beginning of trace)</p>
+<dd><p>Get the trigger times</p>
+<p>For some triggers, in addition to the time of the first trigger,
+also all subsequent times where the trigger condition were fulfilled are
+stored. For triggers that do not store this information, this method
+is equivalent to <a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a> with the exception that it returns
+an array (of shape (1,)) instead of a scalar.
+Note that the trigger times are defined relative to the
+<a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_times</strong><span class="classifier">np.ndarray</span></dt><dd><p>Array of all times where the trigger condition was satisfied</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a></dt><dd><p>method to return the (first) trigger time</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1965,6 +2180,11 @@ default: None, i.e. all channels</p>
 <dt><strong>number_of_coincidences: int</strong></dt><dd><p>the number of channels that need to fulfill the trigger condition
 default: 1</p>
 </dd>
+<dt><strong>pre_trigger_times: float or dict of floats</strong></dt><dd><p>the time before the trigger time that should be read out
+if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+start of the trace and the trigger time.
+if only a float is given, the same pre_trigger_time is used for all channels</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1981,10 +2201,10 @@ default: 1</p>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
-<td><p>get the trigger time (absolute time with respect to the beginning of the event)</p></td>
+<td><p>Get the trigger time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
-<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+<td><p>Get the trigger times</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_triggered_channels" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
 <td><p>get IDs of channels that have triggered</p></td>
@@ -2088,13 +2308,52 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time">
 <span class="sig-name descname"><span class="pre">get_trigger_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time" title="Link to this definition"></a></dt>
-<dd><p>get the trigger time (absolute time with respect to the beginning of the event)</p>
+<dd><p>Get the trigger time.</p>
+<p>Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+This is defined relative to the <a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_time</strong><span class="classifier">float</span></dt><dd><p>The trigger time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a></dt><dd><p>function to return all times where the trigger condition was fulfilled</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_times">
 <span class="sig-name descname"><span class="pre">get_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_times" title="Link to this definition"></a></dt>
-<dd><p>get the trigger times (time with respect to beginning of trace)</p>
+<dd><p>Get the trigger times</p>
+<p>For some triggers, in addition to the time of the first trigger,
+also all subsequent times where the trigger condition were fulfilled are
+stored. For triggers that do not store this information, this method
+is equivalent to <a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a> with the exception that it returns
+an array (of shape (1,)) instead of a scalar.
+Note that the trigger times are defined relative to the
+<a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_times</strong><span class="classifier">np.ndarray</span></dt><dd><p>Array of all times where the trigger condition was satisfied</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a></dt><dd><p>method to return the (first) trigger time</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -2215,6 +2474,11 @@ default: 1</p>
 </dd>
 <dt><strong>channel_coincidence_window: float or None (default)</strong></dt><dd><p>the coincidence time between triggers of different channels</p>
 </dd>
+<dt><strong>pre_trigger_times: float or dict of floats</strong></dt><dd><p>the time before the trigger time that should be read out
+if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+start of the trace and the trigger time.
+if only a float is given, the same pre_trigger_time is used for all channels</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -2231,10 +2495,10 @@ default: 1</p>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
-<td><p>get the trigger time (absolute time with respect to the beginning of the event)</p></td>
+<td><p>Get the trigger time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
-<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+<td><p>Get the trigger times</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_triggered_channels" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
 <td><p>get IDs of channels that have triggered</p></td>
@@ -2338,13 +2602,52 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time">
 <span class="sig-name descname"><span class="pre">get_trigger_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time" title="Link to this definition"></a></dt>
-<dd><p>get the trigger time (absolute time with respect to the beginning of the event)</p>
+<dd><p>Get the trigger time.</p>
+<p>Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+This is defined relative to the <a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_time</strong><span class="classifier">float</span></dt><dd><p>The trigger time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a></dt><dd><p>function to return all times where the trigger condition was fulfilled</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_times">
 <span class="sig-name descname"><span class="pre">get_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_times" title="Link to this definition"></a></dt>
-<dd><p>get the trigger times (time with respect to beginning of trace)</p>
+<dd><p>Get the trigger times</p>
+<p>For some triggers, in addition to the time of the first trigger,
+also all subsequent times where the trigger condition were fulfilled are
+stored. For triggers that do not store this information, this method
+is equivalent to <a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a> with the exception that it returns
+an array (of shape (1,)) instead of a scalar.
+Note that the trigger times are defined relative to the
+<a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_times</strong><span class="classifier">np.ndarray</span></dt><dd><p>Array of all times where the trigger condition was satisfied</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a></dt><dd><p>method to return the (first) trigger time</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -2465,6 +2768,11 @@ default: None, i.e. all channels</p>
 </dd>
 <dt><strong>Vbias: float</strong></dt><dd><p>bias voltage on the trigger board</p>
 </dd>
+<dt><strong>pre_trigger_times: float or dict of floats</strong></dt><dd><p>the time before the trigger time that should be read out
+if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+start of the trace and the trigger time.
+if only a float is given, the same pre_trigger_time is used for all channels</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -2481,10 +2789,10 @@ default: None, i.e. all channels</p>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
-<td><p>get the trigger time (absolute time with respect to the beginning of the event)</p></td>
+<td><p>Get the trigger time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
-<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+<td><p>Get the trigger times</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_triggered_channels" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
 <td><p>get IDs of channels that have triggered</p></td>
@@ -2593,13 +2901,52 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time">
 <span class="sig-name descname"><span class="pre">get_trigger_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time" title="Link to this definition"></a></dt>
-<dd><p>get the trigger time (absolute time with respect to the beginning of the event)</p>
+<dd><p>Get the trigger time.</p>
+<p>Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+This is defined relative to the <a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_time</strong><span class="classifier">float</span></dt><dd><p>The trigger time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a></dt><dd><p>function to return all times where the trigger condition was fulfilled</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_times">
 <span class="sig-name descname"><span class="pre">get_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_times" title="Link to this definition"></a></dt>
-<dd><p>get the trigger times (time with respect to beginning of trace)</p>
+<dd><p>Get the trigger times</p>
+<p>For some triggers, in addition to the time of the first trigger,
+also all subsequent times where the trigger condition were fulfilled are
+stored. For triggers that do not store this information, this method
+is equivalent to <a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a> with the exception that it returns
+an array (of shape (1,)) instead of a scalar.
+Note that the trigger times are defined relative to the
+<a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_times</strong><span class="classifier">np.ndarray</span></dt><dd><p>Array of all times where the trigger condition was satisfied</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a></dt><dd><p>method to return the (first) trigger time</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">

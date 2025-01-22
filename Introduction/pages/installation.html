@@ -232,16 +232,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html">overview of times</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html">Overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#station-time-event-time">Station time (Event time)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trigger-times">Trigger times</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#overview-of-modules-that-affect-time">Overview of modules that affect time</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -634,7 +634,8 @@ using <code class="docutils literal notranslate"><span class="pre">pip</span></c
 </div>
 </div></blockquote>
 <p>NuRadioMC/NuRadioReco will then be available from Python using <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">NuRadioMC</span></code> and <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">NuRadioReco</span></code>, respectively.
-The pip installation will also install all core dependencies.</p>
+The pip installation will install all core dependencies. Some <a class="reference internal" href="#optional-dependencies"><span class="std std-ref">optional dependencies</span></a>
+can be installed by appending <code class="docutils literal notranslate"><span class="pre">[option]</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">NuRadioMC[option]</span></code>.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>Some optional dependencies cannot be installed using pip and
@@ -686,7 +687,7 @@ If the installer does not succesfully do this, please manually add</p>
 <section id="pip-installable-dependencies">
 <h3>Pip-installable dependencies<a class="headerlink" href="#pip-installable-dependencies" title="Link to this heading"></a></h3>
 <p>To install all (optional and non-optional) dependencies available in pip at once, use the command</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib<span class="w"> </span>astropy<span class="w"> </span>tinydb<span class="w"> </span>tinydb-serialization<span class="w"> </span>aenum<span class="w"> </span>h5py<span class="w"> </span>mysql-python<span class="w"> </span>pymongo<span class="w"> </span>dash<span class="w"> </span>plotly<span class="w"> </span>toml<span class="w"> </span>peakutils
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib<span class="w"> </span>astropy<span class="w"> </span>tinydb<span class="w"> </span>tinydb-serialization<span class="w"> </span>aenum<span class="w"> </span>h5py<span class="w"> </span>mysql-connector-python<span class="w"> </span>pymongo<span class="w"> </span>dash<span class="w"> </span>plotly<span class="w"> </span>toml<span class="w"> </span>peakutils<span class="w"> </span>future<span class="w"> </span>radiotools<span class="w"> </span>filelock<span class="w"> </span>mattak<span class="w"> </span>pygdsm<span class="w"> </span>MCEq<span class="w"> </span>crflux
 </pre></div>
 </div>
 <p>Note that some optional dependencies are not pip-installable and need to be
@@ -735,27 +736,13 @@ tinydb version 4.1.1 or newer is required.</p>
 </pre></div>
 </div>
 </li>
-</ul>
-</section>
-<section id="optional-dependencies">
-<h4>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading"></a></h4>
-<p>These packages are recommended to be able to use all of NuRadioMC/NuRadioReco’s features:</p>
-<ul class="simple">
-<li><p>h5py to open HDF5 files:</p></li>
-</ul>
+<li><p>h5py to open HDF5 files:</p>
 <div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>h5py
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>uproot to open RNO-G root files:</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>uproot<span class="w"> </span>awkward
-</pre></div>
-</div>
-<ul>
-<li><p>To access some detector databases:</p></li>
-<li><p>For SQL datbases install <a class="reference external" href="https://www.mysql.com/">MySQL</a> and mysql-python:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>mysql-python
+</li>
+<li><p>filelock:</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>filelock
 </pre></div>
 </div>
 </li>
@@ -769,9 +756,53 @@ tinydb version 4.1.1 or newer is required.</p>
 pip<span class="w"> </span>install<span class="w"> </span>plotly
 </pre></div>
 </div>
-<p>If you want templates to show up in the Event Display, you need to set up an environment variable NURADIORECOTEMPLATES and have it point to the template directory.</p>
 </li>
-<li><p>The documentation is created using <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>. We use the <code class="docutils literal notranslate"><span class="pre">readthedocs</span></code> theme, and the <code class="docutils literal notranslate"><span class="pre">numpydoc</span></code> format is used in our docstrings.
+</ul>
+</section>
+<section id="optional-dependencies">
+<h4>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading"></a></h4>
+<p>These packages are recommended to be able to use all of NuRadioMC/NuRadioReco’s features.
+They can be installed by including adding <code class="docutils literal notranslate"><span class="pre">[option]</span></code> when installing NuRadioMC. Alternatively,
+use <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">nuradiomc[all]</span></code> to install all optional dependencies.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">[RNO-G]</span></code></p>
+<p><a class="reference external" href="https://github.com/RNO-G/mattak">mattak</a> is required to open RNO-G root files:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>mattak
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[rno-g-extras]</span></code></p>
+<p>Optionally, to filter RNO-G data (during read in) the <a class="reference external" href="https://github.com/RNO-G/rnog-runtable">RNO-G run table database</a>
+can be used. Note that this requires membership of the RNO-G Github organisation (not public):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+ssh://git@github.com/RNO-G/rnog-runtable.git
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[proposal]</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">proposal</span></code> is needed to use <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#module-NuRadioMC.EvtGen.NuRadioProposal" title="NuRadioMC.EvtGen.NuRadioProposal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal</span></code></a> module (simulating secondary particles):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">proposal</span><span class="o">==</span><span class="m">7</span>.6.2
+</pre></div>
+</div>
+<p>Note that the pip installation for this version of proposal may not work on all systems, in particular:</p>
+<ul class="simple">
+<li><p>conda cannot be used on all systems (eg. on Mac), in that case use a python venv, see details <a class="reference external" href="https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/209">here</a></p></li>
+<li><p>if the linux kernel is too old (eg. on some computing clusters), refer to <a class="reference external" href="https://github.com/tudo-astroparticlephysics/PROPOSAL/wiki/Installing-PROPOSAL-on-a-Linux-kernel---4.11">this step-by-step guide</a></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[galacticnoise]</span></code></p>
+<p>To use the channelGalacticNoiseAdder, you need the <a class="reference external" href="https://github.com/telegraphic/pygdsm">PyGDSM</a> package.</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/telegraphic/pygdsm
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[muon-flux]</span></code></p>
+<p>Needed for some muon flux calculations</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>MCEq<span class="w"> </span>crflux
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[documentation]</span></code></p>
+<p>The documentation is created using <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>. We use the <code class="docutils literal notranslate"><span class="pre">readthedocs</span></code> theme, and the <code class="docutils literal notranslate"><span class="pre">numpydoc</span></code> format is used in our docstrings.
 This dependency is needed only if you want to generate the documentation locally - the <a class="reference external" href="https://nu-radio.github.io/NuRadioMC/main.html">online documentation</a> is generated by a Github action automatically.
 Note that we use the <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#module-sphinx.ext.autodoc">sphinx autodoc</a>
 feature, which tries to import all modules it documents. So if you are missing some optional dependencies, it will not generate correct documentation for all the code.</p>
@@ -784,18 +815,8 @@ feature, which tries to import all modules it documents. So if you are missing s
 </pre></div>
 </div>
 </li>
-<li><p>Proposal to use <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#module-NuRadioMC.EvtGen.NuRadioProposal" title="NuRadioMC.EvtGen.NuRadioProposal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal</span></code></a> module:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">proposal</span><span class="o">==</span><span class="m">7</span>.6.2
-</pre></div>
-</div>
-<p>Note that the pip installation for this version of proposal may not work on all systems, in particular:</p>
-<ul class="simple">
-<li><p>conda cannot be used on all systems (eg. on Mac), in that case use a python venv, see details <a class="reference external" href="https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/209">here</a></p></li>
-<li><p>if the linux kernel is too old (eg. on some computing clusters), refer to <a class="reference external" href="https://github.com/tudo-astroparticlephysics/PROPOSAL/wiki/Installing-PROPOSAL-on-a-Linux-kernel---4.11">this step-by-step guide</a></p></li>
-</ul>
-</li>
-<li><p>To use the channelGalacticNoiseAdder, you need the <a class="reference external" href="https://github.com/telegraphic/pygdsm">PyGDSM</a> package.</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/telegraphic/pygdsm
+<li><p>For SQL databases install <a class="reference external" href="https://www.mysql.com/">MySQL</a> and mysql-python:</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>mysql-connector-python
 </pre></div>
 </div>
 </li>

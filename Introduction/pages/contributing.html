@@ -232,16 +232,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html">overview of times</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html">Overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#station-time-event-time">Station time (Event time)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trigger-times">Trigger times</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#overview-of-modules-that-affect-time">Overview of modules that affect time</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -777,14 +777,14 @@ Then add your dependency (e.g. <code class="docutils literal notranslate"><span 
 <code class="docutils literal notranslate"><span class="pre">&quot;&gt;=4.1.1&quot;</span></code> (4.1.1 or greater), or <code class="docutils literal notranslate"><span class="pre">&quot;*&quot;</span></code> (any version). Please do not use poetry-specific version
 specifiers like <code class="docutils literal notranslate"><span class="pre">^</span></code> or <code class="docutils literal notranslate"><span class="pre">~</span></code>.</p>
 </li>
-<li><p>If you are adding an <strong>optional</strong> dependency, add your dependency under <code class="docutils literal notranslate"><span class="pre">[tool.poetry.dev-dependencies]</span></code>.
+<li><p>If you are adding an <strong>optional</strong> dependency, you can specify this by adding <code class="docutils literal notranslate"><span class="pre">optional=true</span></code>.
 Additionally, please name the feature that requires this dependency, and add it under <code class="docutils literal notranslate"><span class="pre">[tool.poetry.extras]</span></code>.
 E.g. in order to generate the documentation, we require <code class="docutils literal notranslate"><span class="pre">Sphinx</span></code>, <code class="docutils literal notranslate"><span class="pre">sphinx-rtd-theme</span></code> and <code class="docutils literal notranslate"><span class="pre">numpydoc</span></code> to be installed.
 This is specified in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">poetry</span><span class="o">.</span><span class="n">dev</span><span class="o">-</span><span class="n">dependencies</span><span class="p">]</span>
-<span class="n">Sphinx</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
-<span class="n">sphinx</span><span class="o">-</span><span class="n">rtd</span><span class="o">-</span><span class="n">theme</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
-<span class="n">numpydoc</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">poetry</span><span class="o">.</span><span class="n">dependencies</span><span class="p">]</span>
+<span class="n">Sphinx</span> <span class="o">=</span> <span class="p">{</span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">optional</span> <span class="o">=</span> <span class="n">true</span><span class="p">}</span>
+<span class="n">sphinx</span><span class="o">-</span><span class="n">rtd</span><span class="o">-</span><span class="n">theme</span> <span class="o">=</span> <span class="p">{</span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">optional</span> <span class="o">=</span> <span class="n">true</span><span class="p">}</span>
+<span class="n">numpydoc</span> <span class="o">=</span> <span class="p">{</span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">optional</span> <span class="o">=</span> <span class="n">true</span><span class="p">}</span>
 
 <span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">poetry</span><span class="o">.</span><span class="n">extras</span><span class="p">]</span>
 <span class="n">documentation</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Sphinx&quot;</span><span class="p">,</span> <span class="s2">&quot;sphinx-rtd-theme&quot;</span><span class="p">,</span> <span class="s2">&quot;numpydoc&quot;</span><span class="p">]</span>

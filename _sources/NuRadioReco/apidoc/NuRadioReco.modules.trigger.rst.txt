@@ -10,7 +10,7 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    NuRadioReco.modules.trigger.calc_parameters_for_rnog_surface_trigger
    NuRadioReco.modules.trigger.envelopeTrigger

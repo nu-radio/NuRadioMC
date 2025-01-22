@@ -229,16 +229,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html">overview of times</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html">Overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#station-time-event-time">Station time (Event time)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#trigger-times">Trigger times</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#overview-of-modules-that-affect-time">Overview of modules that affect time</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -741,7 +741,19 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        get the trigger time (absolute time with respect to the beginning of the event)</span>
+<span class="sd">        Get the trigger time.</span>
+
+<span class="sd">        Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.</span>
+<span class="sd">        This is defined relative to the `station_time &lt;NuRadioReco.framework.station.Station.get_station_time&gt;`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        trigger_time : float</span>
+<span class="sd">            The trigger time</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_trigger_times : function to return all times where the trigger condition was fulfilled</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span></div>
 
@@ -763,7 +775,25 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_times">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        get the trigger times (time with respect to beginning of trace)</span>
+<span class="sd">        Get the trigger times</span>
+
+<span class="sd">        For some triggers, in addition to the time of the first trigger,</span>
+<span class="sd">        also all subsequent times where the trigger condition were fulfilled are</span>
+<span class="sd">        stored. For triggers that do not store this information, this method</span>
+<span class="sd">        is equivalent to `get_trigger_time` with the exception that it returns</span>
+<span class="sd">        an array (of shape (1,)) instead of a scalar.</span>
+<span class="sd">        Note that the trigger times are defined relative to the</span>
+<span class="sd">        `station_time &lt;NuRadioReco.framework.station.Station.get_station_time&gt;`.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        trigger_times : np.ndarray</span>
+<span class="sd">            Array of all times where the trigger condition was satisfied</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_trigger_time : method to return the (first) trigger time</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_times</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span><span class="p">)</span>
@@ -909,6 +939,12 @@
 <span class="sd">            default: 1</span>
 <span class="sd">        channel_coincidence_window: float or None (default)</span>
 <span class="sd">            the coincidence time between triggers of different channels</span>
+<span class="sd">        pre_trigger_times: float or dict of floats</span>
+<span class="sd">            the time before the trigger time that should be read out</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;simple_threshold&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
@@ -950,6 +986,12 @@
 <span class="sd">        output_passband: (float, float) tuple</span>
 <span class="sd">            Frequencies for a 6th-order Butterworth filter to be applied after</span>
 <span class="sd">            the diode filtering.</span>
+<span class="sd">        pre_trigger_times: float or dict of floats</span>
+<span class="sd">            the time before the trigger time that should be read out</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span> <span class="s1">&#39;envelope_phased&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered_channels</span> <span class="o">=</span> <span class="n">triggered_channels</span>
@@ -1002,6 +1044,12 @@
 <span class="sd">            the size of the stride between calculating the phasing (units of ADC time ticks)</span>
 <span class="sd">        maximum_amps: list of floats (length equal to that of `phasing_angles`)</span>
 <span class="sd">            the maximum value of all the integration windows for each of the phased waveforms</span>
+<span class="sd">        pre_trigger_times: float or dict of floats</span>
+<span class="sd">            the time before the trigger time that should be read out</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;simple_phased&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_primary_channels</span> <span class="o">=</span> <span class="n">channels</span>
@@ -1044,6 +1092,12 @@
 <span class="sd">        number_of_coincidences: int</span>
 <span class="sd">            the number of channels that need to fulfill the trigger condition</span>
 <span class="sd">            default: 1</span>
+<span class="sd">        pre_trigger_times: float or dict of floats</span>
+<span class="sd">            the time before the trigger time that should be read out</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;high_low&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_coincidences</span> <span class="o">=</span> <span class="n">number_of_coincidences</span>
@@ -1077,6 +1131,12 @@
 <span class="sd">        number_of_coincidences: int</span>
 <span class="sd">            the number of channels that need to fulfill the trigger condition</span>
 <span class="sd">            default: 1</span>
+<span class="sd">        pre_trigger_times: float or dict of floats</span>
+<span class="sd">            the time before the trigger time that should be read out</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;int_power&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_coincidences</span> <span class="o">=</span> <span class="n">number_of_coincidences</span>
@@ -1115,6 +1175,12 @@
 <span class="sd">            default: 1</span>
 <span class="sd">        channel_coincidence_window: float or None (default)</span>
 <span class="sd">            the coincidence time between triggers of different channels</span>
+<span class="sd">        pre_trigger_times: float or dict of floats</span>
+<span class="sd">            the time before the trigger time that should be read out</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;envelope_trigger&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_passband</span> <span class="o">=</span> <span class="n">passband</span>
@@ -1129,7 +1195,8 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">RNOGSurfaceTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">channel_coincidence_window</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">250</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">,</span> <span class="n">Vbias</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
+                 <span class="n">channel_coincidence_window</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span>
+                 <span class="n">temperature</span><span class="o">=</span><span class="mi">250</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">,</span> <span class="n">Vbias</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize trigger class</span>
 
@@ -1151,6 +1218,12 @@
 <span class="sd">            temperature of the trigger board</span>
 <span class="sd">        Vbias: float</span>
 <span class="sd">            bias voltage on the trigger board</span>
+<span class="sd">        pre_trigger_times: float or dict of floats</span>
+<span class="sd">            the time before the trigger time that should be read out</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;rnog_surface_trigger&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>

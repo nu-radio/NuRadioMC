@@ -229,16 +229,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html">overview of times</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html">Overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html#station-time-event-time">Station time (Event time)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html#trigger-times">Trigger times</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html#overview-of-modules-that-affect-time">Overview of modules that affect time</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -614,7 +614,22 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.detector.RNO_G.db_mongo_read</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">six</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Interface to the MongoDB that contains RNO-G hardware and calibration information</span>
+
+<span class="sd">The :mod:`NuRadioReco.detector.RNO_G.db_mongo_read` module and the `Database` class herein mostly serve as the</span>
+<span class="sd">backend of the `NuRadioReco.detector.RNO_G.rnog_detector.Detector` class. Most users</span>
+<span class="sd">will want to use that class to obtain information about deployed RNO-G stations and hardware.</span>
+<span class="sd">`NuRadioReco.detector.RNO_G.rnog_detector.Detector` class has an interface similar to that of</span>
+<span class="sd">other detector descriptions in NuRadioMC, and is documented there.</span>
+
+<span class="sd">However, for some specific use cases (e.g. finding measurements for individual hardware components</span>
+<span class="sd">that have not been deployed to the field), one can use the `Database` class directly, using the</span>
+<span class="sd">`Database.get_component_data` method.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">six</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
@@ -1394,7 +1409,38 @@
 <div class="viewcode-block" id="Database.get_component_data">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_component_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_type</span><span class="p">,</span> <span class="n">component_id</span><span class="p">,</span> <span class="n">supplementary_info</span><span class="p">,</span> <span class="n">primary_time</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sparameter</span><span class="o">=</span><span class="s1">&#39;S21&#39;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; returns the current primary measurement of the component, reads in the component collection&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns the current primary measurement of the component, reads in the component collection</span>
+
+<span class="sd">        Returns a single measurement (e.g. gain of an IGLU)</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        .. code-block::</span>
+
+<span class="sd">            import NuRadioReco.detector.RNO_G.db_mongo_read</span>
+<span class="sd">            import datetime</span>
+
+<span class="sd">            db = NuRadioReco.detector.RNO_G.db_mongo_read.Database()</span>
+
+<span class="sd">            # gives you the entry in the database</span>
+<span class="sd">            database_entry = db.get_component_data(</span>
+<span class="sd">                component_type=&#39;iglu_board&#39;,</span>
+<span class="sd">                component_id=&#39;C0069&#39;,</span>
+<span class="sd">                supplementary_info={}, # if you want a DRAB you have to specify the channel: {&#39;channel_id&#39;:0}</span>
+<span class="sd">                verbose=True,</span>
+<span class="sd">                sparameter=&#39;S21&#39;, # you can also read the other S parameters</span>
+<span class="sd">                primary_time=datetime.datetime.now())</span>
+
+
+<span class="sd">            # extract the gain + phase data</span>
+<span class="sd">            y_axis_units = database_entry[&#39;y-axis_units&#39;]</span>
+<span class="sd">            frequencies = database_entry[&#39;frequencies&#39;]</span>
+<span class="sd">            gain_data = database_entry[&#39;mag&#39;]</span>
+<span class="sd">            phase_data = database_entry[&#39;phase&#39;]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># define a search filter</span>
         <span class="n">search_filter</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">component_id</span><span class="p">}},</span> <span class="p">{</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{}}]</span>

@@ -10,7 +10,7 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    NuRadioReco.modules.ARA.hardwareResponseIncorporator
    NuRadioReco.modules.ARA.triggerSimulator

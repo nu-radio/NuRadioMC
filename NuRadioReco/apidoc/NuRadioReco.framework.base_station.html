@@ -232,16 +232,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../pages/times.html">overview of times</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pages/times.html">Overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#station-time-event-time">Station time (Event time)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/times.html#trigger-times">Trigger times</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/times.html#overview-of-modules-that-affect-time">Overview of modules that affect time</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
@@ -641,7 +641,7 @@
 <td><p>Returns the primary trigger of the station.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_station_time" title="NuRadioReco.framework.base_station.BaseStation.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time</span></code></a>([format])</p></td>
-<td><p>Returns a astropy.time.Time object</p></td>
+<td><p>Returns the station time as an astropy.time.Time object</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_station_time_dict" title="NuRadioReco.framework.base_station.BaseStation.get_station_time_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time_dict</span></code></a>()</p></td>
 <td><p>Return the station time as dict {value, format}.</p></td>
@@ -794,7 +794,10 @@ Not related to the event._event_time.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_station.BaseStation.get_station_time">
 <span class="sig-name descname"><span class="pre">get_station_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'isot'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_station.html#BaseStation.get_station_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_station.BaseStation.get_station_time" title="Link to this definition"></a></dt>
-<dd><p>Returns a astropy.time.Time object</p>
+<dd><p>Returns the station time as an astropy.time.Time object</p>
+<p>The station time corresponds to the absolute time at which the event
+starts, i.e. all times in Channel, Trigger and ElectricField objects
+are measured relative to this time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -804,7 +807,7 @@ Not related to the event._event_time.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>_station_time: astropy.time.Time</dt><dd></dd>
+<dt>station_time: astropy.time.Time</dt><dd></dd>
 </dl>
 </dd>
 </dl>

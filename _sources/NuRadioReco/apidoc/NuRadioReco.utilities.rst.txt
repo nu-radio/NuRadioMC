@@ -10,7 +10,7 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    NuRadioReco.utilities.analytic_pulse
    NuRadioReco.utilities.bandpass_filter

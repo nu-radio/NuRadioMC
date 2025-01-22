@@ -10,7 +10,7 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    NuRadioReco.detector.ARIANNA.analog_components
    NuRadioReco.detector.ARIANNA.preprocessAmpResponses

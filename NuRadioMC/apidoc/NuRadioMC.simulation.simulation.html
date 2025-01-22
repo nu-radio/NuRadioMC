@@ -232,16 +232,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html">overview of times</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#arianna-specific-details">ARIANNA specific details:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#station-time">Station time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html">Overview of times</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#station-time-event-time">Station time (Event time)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-channels">Trace start times in channels</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trace-start-times-in-e-fields">Trace start times in E-fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/times.html#trigger-times">Trigger times</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/times.html#overview-of-modules-that-affect-time">Overview of modules that affect time</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/times.html#overview-of-modules-that-alter-time">overview of modules that alter time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
@@ -814,8 +814,11 @@ arguments to the function are (event, station, detector)</p>
 </dd>
 <dt><strong>config</strong><span class="classifier">dict</span></dt><dd><p>The NuRadioMC configuration dictionary (from the yaml file)</p>
 </dd>
-<dt><strong>Returns:</strong></dt><dd><p>object: The built event object.</p>
+</dl>
 </dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>object: The built event object.</dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -949,6 +952,28 @@ Otherwise, the weight is calculated based on the particle’s zenith, energy, fl
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.group_into_events">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">group_into_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_event_time_diff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zerosignal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#group_into_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.group_into_events" title="Link to this definition"></a></dt>
 <dd><p>Group the signals from a station into multiple events based on signal arrival times.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station</strong><span class="classifier">NuRadioReco.framework.station.Station</span></dt><dd><p>The station object containing the signals.</p>
+</dd>
+<dt><strong>event_group</strong><span class="classifier">NuRadioMC.framework.event.Event</span></dt><dd><p>The event group object containing all showers or emitters and other meta attributes</p>
+</dd>
+<dt><strong>particle_mode</strong><span class="classifier">bool</span></dt><dd><p>Flag indicating whether the events are a particle simulations or not (i.e. an emitter simulation)</p>
+</dd>
+<dt><strong>split_event_time_diff</strong><span class="classifier">float</span></dt><dd><p>The time difference threshold for splitting events.</p>
+</dd>
+<dt><strong>zerosignal</strong><span class="classifier">bool, optional</span></dt><dd><p>Flag indicating whether to zero out the signals. Default is False.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>events</strong><span class="classifier">list of NuRadioReco.framework.event.Event</span></dt><dd><p>The list of events created from the grouped signals.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

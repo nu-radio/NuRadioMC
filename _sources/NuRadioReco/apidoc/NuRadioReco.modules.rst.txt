@@ -10,7 +10,7 @@ Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    NuRadioReco.modules.ARA
    NuRadioReco.modules.ARIANNA
@@ -30,7 +30,7 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    NuRadioReco.modules.analogToDigitalConverter
    NuRadioReco.modules.beamFormingDirectionFitter

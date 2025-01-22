@@ -10,7 +10,7 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    NuRadioReco.modules.io.coreas.coreas
    NuRadioReco.modules.io.coreas.readCoREAS

@@ -10,7 +10,7 @@ Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    NuRadioReco.modules.measured_noise.ARIANNA
    NuRadioReco.modules.measured_noise.RNO_G
@@ -19,6 +19,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder
