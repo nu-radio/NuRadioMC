@@ -229,9 +229,10 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     from the file. This Event object can then be used to create an interpolator, for example.
 
     The structure of the Event is as follows. It contains one station with ID equal to 0, which hosts a SimStation.
-    The SimStation stores the simulated ElectricField objects, which are equipped with a position attribute that
-    contains the position of the simulated antenna (in the NRR ground coordinate system) and are associated to a
-    channel with an ID equal to the index of the channel as it was read from the HDF5 file.
+    The SimStation stores the simulated ElectricField objects in on-sky coordinates (ie eR, eTheta, ePhi).
+    They are equipped with a position attribute that contains the position of the simulated antenna
+    (in the NRR ground coordinate system) and are associated to a channel with an ID equal to the index of the
+    channel as it was read from the HDF5 file.
 
     Next to the (Sim)Station, the Event also contains a SimShower object, which stores the CORSIKA input parameters.
     For a list of stored parameters, see the `hdf5_sim_shower()` function.
@@ -629,16 +630,44 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
 
 class coreasInterpolator:
     """
-    This class provides an interface to interpolate the electric field traces provided by CoREAS.
+    This class provides an interface to interpolate the electric field traces, as for example provided
+    by CoREAS. For the best results, ensure that the electric fields are in on-sky coordinates (this is
+    the case when using the `read_CORSIKA7()` function).
 
-    The interpolation method is based on the Fourier interpolation method described in
-    Corstanje et al. (2023), JINST 18 P09005. The implementation lives in a separate package
-    called cr-pulse-inerpolator (this package is a optional dependency of NuRadioReco).
+    After having created the interpolator, you can either choose to interpolate the electric field traces
+    or either the fluence (or both, but be careful to not mix them up). In order to do this, you first need
+    to initialize the corresponding interpolator with the desired settings. Refer to the documentation of
+    `initialize_efield_interpolator()` and `initialize_fluence_interpolator()` for more information. After
+    initialization, you can call the `interpolate_efield()` and `interpolate_fluence()` functions to get the
+    interpolated values.
+
+    Note that when trying to interpolate the electric fields of an air shower with a geomagnetic angle
+    smaller than 15 degrees, the interpolator will fall back to using the closest observer position
+    instead of performing the Fourier interpolation. Also, when attempting to extrapolate (ie get a value
+    for a position that is outside the star shape pattern), the interpolator will simply return an array
+    containing zeros.
 
     Parameters
     ----------
     corsika_evt : Event
         An Event object containing the CoREAS output, from read_CORSIKA7()
+
+    Notes
+    -----
+    The interpolation method is based on the Fourier interpolation method described in
+    Corstanje et al. (2023), JINST 18 P09005. The implementation lives in a separate package
+    called `cr-pulse-interpolator` (this package is a optional dependency of NuRadioReco).
+
+    In short, the interpolation method works as follows: everything is done in the showerplane,
+    where we expect circular symmetries due to the emission mechanisms. In case of fluence interpolation,
+    we are working with a single value per observer position. The positions are expected to be in a
+    starshape pattern, such that for each ring a Fourier series can be constructed for the fluence values.
+    The components of the Fourier series are then radially interpolated using a cubic spline.
+
+    When interpolating electric fields, the traces are first transformed to frequency spectra. The amplitude
+    in each frequency bin is then interpolated as a single value, as described above. The phases are also
+    interpolated, making the relative timings consistent. To also get an absolute timing, one can provide
+    the trace start times to also be interpolated (this is done in this implementation).
     """
 
     def __init__(self, corsika_evt):
@@ -681,6 +710,12 @@ class coreasInterpolator:
         Initializes the star shape pattern for interpolation, e.g. creates the arrays with the observer positions
         in the shower plane and the electric field.
         """
+        if not np.all(self.shower.get_parameter(shp.core)[:2] == 0):
+            logger.info(
+                "The shower core is not at the origin. "
+                "Be careful to adjust antenna positions accordingly when retrieving interpolated values."
+            )
+
         obs_positions = []
         electric_field_on_sky = []
         efield_times = []
@@ -861,10 +896,8 @@ class coreasInterpolator:
 
     def get_interp_efield_value(self, position_on_ground):
         """
-        Calculate the interpolated electric field given an antenna position on ground.
-
-        For the interpolation, the pulse will be projected in the shower plane.
-        If the geomagnetic angle is smaller than 15deg, the electric field of the closest observer position is returned.
+        Calculate the interpolated electric field given an antenna position on ground. If the geomagnetic angle
+        is smaller than 15deg, the electric field of the closest observer position is returned.
 
         Parameters
         ----------
@@ -961,8 +994,8 @@ class coreasInterpolator:
 
         Returns
         -------
-        efield : array of floats
-            electric field
+        efield: np.ndarray
+            electric field, as an array shaped
 
         """
         distances = np.linalg.norm(antenna_pos_showerplane[:2] - self.obs_positions_showerplane[:, :2], axis=1)
