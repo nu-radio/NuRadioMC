@@ -204,10 +204,10 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         elif self.__reference_reconstruction == 'RD':
             logger.error(
                 "Magnetic field for `self.__reference_reconstruction == 'RD'` not implemented yet. "
-                "Please use `radiotools.helpers.get_magnetic_field_vector(site)` for the site you are interested in.")
+                "Please use `radiotools.helper.get_magnetic_field_vector(site)` for the site you are interested in.")
             raise NotImplementedError(
                 "Magnetic field for `self.__reference_reconstruction == 'RD'` not implemented yet. "
-                "Please use `radiotools.helpers.get_magnetic_field_vector(site)` for the site you are interested in."
+                "Please use `radiotools.helper.get_magnetic_field_vector(site)` for the site you are interested in."
             )
         else:
             logger.error(f"Reference reconstruction not set / unknown: {self.__reference_reconstruction}")
