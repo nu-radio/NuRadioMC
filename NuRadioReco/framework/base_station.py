@@ -36,43 +36,31 @@ class BaseStation():
     def __getitem__(self, key):
         return self.get_parameter(key)
 
+    @parameters.check_key(parameters.stationParameters)
     def get_parameter(self, key):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         return self._parameters[key]
 
     def get_parameters(self):
         return self._parameters
 
+    @parameters.check_key(parameters.stationParameters)
     def has_parameter(self, key):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         return key in self._parameters.keys()
 
+    @parameters.check_key(parameters.stationParameters)
     def set_parameter(self, key, value):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         self._parameters[key] = value
 
+    @parameters.check_key(parameters.stationParameters)
     def set_parameter_error(self, key, value):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         self._parameter_covariances[(key, key)] = value ** 2
 
+    @parameters.check_key(parameters.stationParameters)
     def get_parameter_error(self, key):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         return self._parameter_covariances[(key, key)] ** 0.5
 
+    @parameters.check_key(parameters.stationParameters)
     def remove_parameter(self, key):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         self._parameters.pop(key, None)
 
     def set_station_time(self, time, format=None):
