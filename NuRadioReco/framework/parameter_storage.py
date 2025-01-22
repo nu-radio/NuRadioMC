@@ -71,6 +71,13 @@ class ParameterStorage:
 
 
     def deserialize(self, data):
+        # for backward compatibility
+        if 'parameters' in data:
+            data['_parameters'] = data['parameters']
+
+        if 'parameter_covariances' in data:
+            data['_parameter_covariances'] = data['parameter_covariances']
+
         parameters = data["_parameters"]
         parameter_covariances = data.get("_parameter_covariances", {})
         if "_parameter_types" in data:
