@@ -16,7 +16,8 @@ using ``pip``:
       pip install NuRadioMC
 
 NuRadioMC/NuRadioReco will then be available from Python using ``import NuRadioMC`` and ``import NuRadioReco``, respectively.
-The pip installation will also install all core dependencies. 
+The pip installation will install all core dependencies. Some :ref:`optional dependencies <Introduction/pages/installation:Optional Dependencies>`
+can be installed by appending ``[option]``, i.e. ``pip install NuRadioMC[option]``.
 
 .. Important::
 
@@ -32,7 +33,7 @@ The pip installation will also install all core dependencies.
   instead, or install it manually (see below).
 
 Development version
----------------------------
+-------------------
 The most recent version of ``NuRadioMC`` is available on `github <https://github.com/nu-radio/NuRadioMC.git>`__.
 It can be downloaded manually from the `repository website <https://github.com/nu-radio/NuRadioMC/releases/latest>`__,
 or cloned using ``git``
@@ -80,7 +81,7 @@ To install all (optional and non-optional) dependencies available in pip at once
 
 .. code-block:: Bash
 
-  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-python pymongo dash plotly toml peakutils
+  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-connector-python pymongo dash plotly toml peakutils future radiotools filelock mattak git+https://github.com/telegraphic/pygdsm pylfmap MCEq crflux
 
 Note that some optional dependencies are not pip-installable and need to be 
 :ref:`installed manually <Introduction/pages/installation:Not pip-installable packages>`
@@ -136,30 +137,17 @@ Core Dependencies
 
     pip install aenum
 
-Optional Dependencies
-^^^^^^^^^^^^^^^^^^^^^
-
-These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's features:
-
 - h5py to open HDF5 files:
-
-.. code-block:: Bash
-
-  pip install h5py
-
-- uproot to open RNO-G root files:
-
-.. code-block:: bash
-
-  pip install uproot awkward
-
-- To access some detector databases:
-
-- For SQL datbases install `MySQL <https://www.mysql.com/>`_ and mysql-python:
 
   .. code-block:: Bash
 
-    pip install mysql-python
+    pip install h5py
+
+- filelock:
+
+  .. code-block:: Bash
+
+    pip install filelock
 
 - For `MongoDB <https://www.mongodb.com>`_ databases install:
 
@@ -174,9 +162,64 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
     pip install dash
     pip install plotly
 
-  If you want templates to show up in the Event Display, you need to set up an environment variable NURADIORECOTEMPLATES and have it point to the template directory.
+Optional Dependencies
+^^^^^^^^^^^^^^^^^^^^^
 
-- The documentation is created using `Sphinx <https://www.sphinx-doc.org>`_. We use the ``readthedocs`` theme, and the ``numpydoc`` format is used in our docstrings.
+These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's features.
+They can be installed by including adding ``[option]`` when installing NuRadioMC. Alternatively,
+use ``pip install nuradiomc[all]`` to install all optional dependencies.
+
+- ``[RNO-G]``
+
+  `mattak <https://github.com/RNO-G/mattak>`__ is required to open RNO-G root files:
+
+  .. code-block:: bash
+
+    pip install mattak
+
+- ``[rno-g-extras]``
+
+  Optionally, to filter RNO-G data (during read in) the `RNO-G run table database <https://github.com/RNO-G/rnog-runtable>`__
+  can be used. Note that this requires membership of the RNO-G Github organisation (not public):
+
+  .. code-block:: bash
+
+    pip install git+ssh://git@github.com/RNO-G/rnog-runtable.git
+
+- ``[proposal]``
+
+  ``proposal`` is needed to use :mod:`NuRadioMC.EvtGen.NuRadioProposal` module (simulating secondary particles):
+
+  .. code-block:: bash
+
+    pip install proposal==7.6.2
+
+  Note that the pip installation for this version of proposal may not work on all systems, in particular:
+
+  - conda cannot be used on all systems (eg. on Mac), in that case use a python venv, see details `here <https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/209>`__
+
+  - if the linux kernel is too old (eg. on some computing clusters), refer to `this step-by-step guide <https://github.com/tudo-astroparticlephysics/PROPOSAL/wiki/Installing-PROPOSAL-on-a-Linux-kernel---4.11>`_
+  
+- ``[galacticnoise]``
+
+  To use the channelGalacticNoiseAdder, you need the `PyGDSM <https://github.com/telegraphic/pygdsm>`_ package.
+  Some additional galactic noise models used by LOFAR for calibration purposes are provided by ``pylfmap``.
+
+  .. code-block:: Bash
+
+    pip install git+https://github.com/telegraphic/pygdsm pylfmap
+
+- ``[muon-flux]``
+
+  Needed for some muon flux calculations
+
+  .. code-block:: bash
+
+    pip install MCEq crflux
+
+- ``[documentation]``
+
+  The documentation is created using `Sphinx <https://www.sphinx-doc.org>`_. We use the ``readthedocs`` theme, and the ``numpydoc`` format is used in our docstrings.
   This dependency is needed only if you want to generate the documentation locally - the `online documentation <https://nu-radio.github.io/NuRadioMC/main.html>`_ is generated by a Github action automatically.
   Note that we use the `sphinx autodoc <https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#module-sphinx.ext.autodoc>`_
   feature, which tries to import all modules it documents. So if you are missing some optional dependencies, it will not generate correct documentation for all the code.
@@ -191,25 +234,12 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 
     pip install peakutils
 
-- Proposal to use :mod:`NuRadioMC.EvtGen.NuRadioProposal` module:
-
-  .. code-block:: bash
-
-    pip install proposal==7.6.2
-
-  Note that the pip installation for this version of proposal may not work on all systems, in particular:
-
-  - conda cannot be used on all systems (eg. on Mac), in that case use a python venv, see details `here <https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/209>`__
-
-  - if the linux kernel is too old (eg. on some computing clusters), refer to `this step-by-step guide <https://github.com/tudo-astroparticlephysics/PROPOSAL/wiki/Installing-PROPOSAL-on-a-Linux-kernel---4.11>`_
-  
-
-- To use the channelGalacticNoiseAdder, you need the `PyGDSM <https://github.com/telegraphic/pygdsm>`_ package.
-  Some additional galactic noise models used by LOFAR for calibration purposes are provided by ``pylfmap``.
+- For SQL databases install `MySQL <https://www.mysql.com/>`_ and mysql-python:
 
   .. code-block:: Bash
 
-    pip install git+https://github.com/telegraphic/pygdsm pylfmap
+    pip install mysql-connector-python
+
 
 Not pip-installable packages
 ____________________________
