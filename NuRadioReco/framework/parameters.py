@@ -7,24 +7,6 @@ reconstructed quantities in the different custom classes used in NuRadioMC.
 """
 
 from aenum import Enum
-import logging
-logger = logging.getLogger('NuRadioReco.framework.parameters')
-
-
-def check_key(parameter_class):
-
-    def decorator(func):
-
-        def wrapper(*args):
-            key = args[1]
-            if not isinstance(key, parameter_class):
-                logger.error(f"Parameter {key} needs to be of type {parameter_class}")
-                raise ValueError(f"Parameter {key} needs to be of type {parameter_class}")
-            return func(*args)
-
-        return wrapper
-
-    return decorator
 
 
 class stationParameters(Enum):

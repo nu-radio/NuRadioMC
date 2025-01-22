@@ -6,6 +6,8 @@ import NuRadioReco.framework.parameters as parameters
 import datetime
 import astropy.time
 import NuRadioReco.framework.parameter_serialization
+import NuRadioReco.framework.parameter_storage
+
 
 try:
     import cPickle as pickle
@@ -17,51 +19,17 @@ import collections
 logger = logging.getLogger('NuRadioReco.BaseStation')
 
 
-class BaseStation():
+class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, station_id):
-        self._parameters = {}
-        self._ARIANNA_parameters = {}
-        self._parameter_covariances = {}
+        super().__init__(parameters.stationParameters)
+        self.ARIANNA_parameters = NuRadioReco.framework.parameter_storage.ParameterStorage(parameters.ARIANNAParameters)
         self._station_id = station_id
         self._station_time = None
         self._triggers = collections.OrderedDict()
         self._triggered = False
         self._electric_fields = []
         self._particle_type = ''
-
-    def __setitem__(self, key, value):
-        self.set_parameter(key, value)
-
-    def __getitem__(self, key):
-        return self.get_parameter(key)
-
-    @parameters.check_key(parameters.stationParameters)
-    def get_parameter(self, key):
-        return self._parameters[key]
-
-    def get_parameters(self):
-        return self._parameters
-
-    @parameters.check_key(parameters.stationParameters)
-    def has_parameter(self, key):
-        return key in self._parameters.keys()
-
-    @parameters.check_key(parameters.stationParameters)
-    def set_parameter(self, key, value):
-        self._parameters[key] = value
-
-    @parameters.check_key(parameters.stationParameters)
-    def set_parameter_error(self, key, value):
-        self._parameter_covariances[(key, key)] = value ** 2
-
-    @parameters.check_key(parameters.stationParameters)
-    def get_parameter_error(self, key):
-        return self._parameter_covariances[(key, key)] ** 0.5
-
-    @parameters.check_key(parameters.stationParameters)
-    def remove_parameter(self, key):
-        self._parameters.pop(key, None)
 
     def set_station_time(self, time, format=None):
         """
@@ -304,28 +272,6 @@ class BaseStation():
         set station type to cosmic rays (relevant e.g. for refraction into the snow)
         """
         self._particle_type = 'cr'
-
-    # provide interface to ARIANNA specific parameters
-    def get_ARIANNA_parameter(self, key):
-        if not isinstance(key, parameters.ARIANNAParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-        return self._ARIANNA_parameters[key]
-
-    def get_ARIANNA_parameters(self):
-        return self._ARIANNA_parameters
-
-    def has_ARIANNA_parameter(self, key):
-        if not isinstance(key, parameters.ARIANNAParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-        return key in self._ARIANNA_parameters.keys()
-
-    def set_ARIANNA_parameter(self, key, value):
-        if not isinstance(key, parameters.ARIANNAParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-        self._ARIANNA_parameters[key] = value
 
     def serialize(self, save_efield_traces):
         trigger_pkls = []
