@@ -271,7 +271,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
         else:
             declination = 0
             logger.warning(
-                "No declination or site given, assuming 0 degrees."
+                "No declination or site given, assuming 0 degrees. "
                 "This might need to incorrect electric field polarizations."
             )
 
@@ -942,10 +942,11 @@ class coreasInterpolator:
                 f"The antenna position is given in 2D, assuming the antenna is on the ground. "
                 f"The z-coordinate is set to the observation level {core[2] / units.m:.2f}m"
             )
-        elif position_on_ground[2] != core[2]:
+        elif abs(position_on_ground[2] - core[2]) > 5 * units.cm:
             logger.warning(
-                "The antenna position is not in the same z-plane as the core position. "
-                "This behaviour is not tested, so only proceed if you know what you are doing."
+                f"The antenna z-coordinate {position_on_ground[2]} differs significantly from"
+                f"the observation level {core[2]}. This behaviour is not tested, so only proceed "
+                f"if you know what you are doing."
             )
 
         antenna_pos_showerplane = self.cs.transform_to_vxB_vxvxB(position_on_ground, core=core)
