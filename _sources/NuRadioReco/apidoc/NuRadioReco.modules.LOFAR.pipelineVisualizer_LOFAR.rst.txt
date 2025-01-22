@@ -1,0 +1,7 @@
+NuRadioReco.modules.LOFAR.pipelineVisualizer\_LOFAR module
+==========================================================
+
+.. automodule:: NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR
+   :members:
+   :undoc-members:
+   :show-inheritance:

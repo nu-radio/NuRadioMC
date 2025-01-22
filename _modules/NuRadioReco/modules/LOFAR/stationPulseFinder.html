@@ -618,7 +618,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">radiotools.helper</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hp</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal</span><span class="w"> </span><span class="kn">import</span> <span class="n">hilbert</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal</span><span class="w"> </span><span class="kn">import</span> <span class="n">hilbert</span><span class="p">,</span> <span class="n">resample</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">fft</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
@@ -628,38 +628,72 @@
 
 <div class="viewcode-block" id="find_snr_of_timeseries">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationPulseFinder.html#NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">find_snr_of_timeseries</span><span class="p">(</span><span class="n">timeseries</span><span class="p">,</span> <span class="n">window_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">window_end</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">noise_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">noise_end</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return the signal-to-noise ratio (SNR) of a given time trace. The additional parameters allow to</span>
-<span class="sd">    select a window where the signal is and a separate window where there is only noise.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_snr_of_timeseries</span><span class="p">(</span><span class="n">timeseries</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">window_end</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">noise_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">noise_end</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                           <span class="n">resample_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the signal-to-noise ratio (SNR) of a given time trace, defined as</span>
+
+<span class="sd">    ..math ::</span>
+<span class="sd">        \frac{max( | Hilbert(timeseries[window]) | )}{ STD( Hilbert(timeseries[noise]) ) }</span>
+
+<span class="sd">    The signal window and noise window are controlled through the extra parameters to the function.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    timeseries: list or np.ndarray</span>
+<span class="sd">    timeseries: array-like</span>
 <span class="sd">        The time trace</span>
+<span class="sd">    sampling_rate : float</span>
+<span class="sd">        The sampling rate of the time trace (only needed if full_output=True)</span>
 <span class="sd">    window_start : int</span>
 <span class="sd">    window_end : int</span>
-<span class="sd">        We look for the peak inside the array `timeseries[window_start:window_end]`</span>
+<span class="sd">        We look for the peak inside the resampled array `timeseries[window_start:window_end]`</span>
 <span class="sd">    noise_start : int</span>
 <span class="sd">    noise_end : int</span>
 <span class="sd">        The array `timeseries[noise_start:noise_end]` is used to calculate the noise level</span>
+<span class="sd">    resample_factor : int, default=1</span>
+<span class="sd">        Factor with which the timeseries will be resampled, needs to be integer &gt; 0</span>
+<span class="sd">    full_output : bool, default=False</span>
+<span class="sd">        If True, also the peak of the envelope, RMS and signal time are returned</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    The SNR of the time trace</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">analytic_signal</span> <span class="o">=</span> <span class="n">hilbert</span><span class="p">(</span><span class="n">timeseries</span><span class="p">)</span>
+    <span class="n">resampled_window</span> <span class="o">=</span> <span class="n">resample</span><span class="p">(</span><span class="n">timeseries</span><span class="p">[</span><span class="n">window_start</span><span class="p">:</span><span class="n">window_end</span><span class="p">],</span> <span class="p">(</span><span class="n">window_end</span> <span class="o">-</span> <span class="n">window_start</span><span class="p">)</span> <span class="o">*</span> <span class="n">resample_factor</span><span class="p">)</span>
+    <span class="n">analytic_signal</span> <span class="o">=</span> <span class="n">hilbert</span><span class="p">(</span><span class="n">resampled_window</span><span class="p">)</span>
     <span class="n">amplitude_envelope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">analytic_signal</span><span class="p">)</span>
 
-    <span class="n">rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">amplitude_envelope</span><span class="p">[</span><span class="n">noise_start</span><span class="p">:</span><span class="n">noise_end</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="p">)</span>
-
     <span class="n">peak</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
-        <span class="n">amplitude_envelope</span><span class="p">[</span><span class="n">window_start</span><span class="p">:</span><span class="n">window_end</span><span class="p">]</span>
+        <span class="n">amplitude_envelope</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">peak</span> <span class="o">/</span> <span class="n">rms</span></div>
+    <span class="k">if</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="n">resampled_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">analytic_signal</span><span class="p">)</span>
+        <span class="n">resampled_max_time</span> <span class="o">=</span> <span class="n">resampled_max</span> <span class="o">/</span> <span class="n">sampling_rate</span> <span class="o">/</span> <span class="n">resample_factor</span>
+        <span class="n">window_start_time</span> <span class="o">=</span> <span class="n">window_start</span> <span class="o">/</span> <span class="n">sampling_rate</span>
+        <span class="n">signal_time</span> <span class="o">=</span> <span class="n">window_start_time</span> <span class="o">+</span> <span class="n">resampled_max_time</span>
+
+    <span class="c1"># (AC) The Hilbert envelope has a mean that is nonzero </span>
+    <span class="c1"># the stddev only takes the variations around the mean</span>
+    <span class="c1"># whereas the (real) RMS takes the square of all values (incl the mean), then sqrt</span>
+    <span class="c1"># TEST if this SNR definition gives good results! </span>
+    <span class="c1"># This is what seems to have been done in PyCRTools. See pulseenvelope.py:233</span>
+    <span class="c1"># and mMath.cc function hMaxSNR  </span>
+
+    <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">hilbert</span><span class="p">(</span><span class="n">timeseries</span><span class="p">[</span><span class="n">noise_start</span><span class="p">:</span><span class="n">noise_end</span><span class="p">]))</span>
+    <span class="p">)</span>
+
+    <span class="n">rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+       <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+           <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">hilbert</span><span class="p">(</span><span class="n">timeseries</span><span class="p">[</span><span class="n">noise_start</span><span class="p">:</span><span class="n">noise_end</span><span class="p">]))</span> <span class="o">**</span> <span class="mi">2</span>
+       <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">peak</span> <span class="o">/</span> <span class="n">std</span><span class="p">,</span> <span class="n">peak</span><span class="p">,</span> <span class="n">rms</span><span class="p">,</span> <span class="n">signal_time</span>
+
+    <span class="k">return</span> <span class="n">peak</span> <span class="o">/</span> <span class="n">std</span></div>
 
 
 
@@ -673,10 +707,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.LOFAR.stationPulseFinder&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.stationPulseFinder&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__window_size</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__noise_away_from_pulse</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__noise_window_size</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__snr_cr</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__min_good_channels</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -684,7 +718,7 @@
 
 <div class="viewcode-block" id="stationPulseFinder.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationPulseFinder.html#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">noise_window</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">cr_snr</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">good_channels</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">noise_window</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">cr_snr</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span> <span class="n">good_channels</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the window size to use for pulse finding, as well as the number of samples away from the pulse</span>
 <span class="sd">        to use for noise measurements. The function also defines what an acceptable SNR is to consider a</span>
@@ -693,7 +727,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        window : int, default=500</span>
+<span class="sd">        window : int, default=256</span>
 <span class="sd">            Size of the window to look for pulse</span>
 <span class="sd">        noise_window : int, default=10000</span>
 <span class="sd">            The trace used for noise characterisation goes from sample 0 to the start of the pulse searching</span>
@@ -707,7 +741,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: find window size used in PyCRTools</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__window_size</span> <span class="o">=</span> <span class="n">window</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__noise_away_from_pulse</span> <span class="o">=</span> <span class="n">noise_window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__noise_window_size</span> <span class="o">=</span> <span class="n">noise_window</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__snr_cr</span> <span class="o">=</span> <span class="n">cr_snr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__min_good_channels</span> <span class="o">=</span> <span class="n">good_channels</span>
 
@@ -718,8 +752,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Considers the channel groups given by `channel_ids_per_pol` one by one and beamforms the traces</span>
 <span class="sd">        in the direction of `stationPulseFinder.direction_cartesian`. It then calculates the maximum of the</span>
-<span class="sd">        amplitude envelope, and saves the corresponding index with the indices for pulse finding in a tuple,</span>
-<span class="sd">        which it returns.</span>
+<span class="sd">        amplitude envelope without resampling the signal, and saves the corresponding index with the indices</span>
+<span class="sd">        for pulse finding in a tuple, which it returns.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -744,15 +778,18 @@
 
         <span class="n">values_per_pol</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">for</span> <span class="n">channel_ids</span> <span class="ow">in</span> <span class="n">channel_ids_per_pol</span><span class="p">:</span>
-            <span class="n">all_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">])</span>
+        <span class="c1"># the first few samples are tapered with half-Hann, which would blow up the SNR</span>
+        <span class="n">noise_window_start</span> <span class="o">=</span> <span class="mi">10000</span>
+        <span class="n">noise_window_end</span> <span class="o">=</span> <span class="n">noise_window_start</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_window_size</span>
 
-            <span class="n">beamed_fft</span> <span class="o">=</span> <span class="n">mini_beamformer</span><span class="p">(</span><span class="n">all_traces</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">channel_positions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction_cartesian</span><span class="p">)</span>
-            <span class="n">beamed_timeseries</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">beamed_fft</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">all_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">channel_ids</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">channel_ids_per_pol</span><span class="p">):</span>
+            <span class="n">all_spectra</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">])</span>
+            <span class="n">beamed_fft</span> <span class="o">=</span> <span class="n">mini_beamformer</span><span class="p">(</span><span class="n">all_spectra</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">channel_positions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction_cartesian</span><span class="p">)</span>
+            <span class="n">beamed_timeseries</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">beamed_fft</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span>
+                                              <span class="n">n</span><span class="o">=</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
             <span class="n">analytic_signal</span> <span class="o">=</span> <span class="n">hilbert</span><span class="p">(</span><span class="n">beamed_timeseries</span><span class="p">)</span>
             <span class="n">amplitude_envelope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">analytic_signal</span><span class="p">)</span>
-
             <span class="n">signal_window_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">amplitude_envelope</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__window_size</span> <span class="o">/</span> <span class="mi">2</span>
             <span class="p">)</span>
@@ -760,57 +797,29 @@
                 <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">amplitude_envelope</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__window_size</span> <span class="o">/</span> <span class="mi">2</span>
             <span class="p">)</span>
 
-            <span class="n">values_per_pol</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">amplitude_envelope</span><span class="p">),</span> <span class="n">signal_window_start</span><span class="p">,</span> <span class="n">signal_window_end</span><span class="p">])</span>
+            <span class="n">snr</span> <span class="o">=</span> <span class="n">find_snr_of_timeseries</span><span class="p">(</span><span class="n">beamed_timeseries</span><span class="p">,</span>
+                                         <span class="n">window_start</span><span class="o">=</span><span class="n">signal_window_start</span><span class="p">,</span> <span class="n">window_end</span><span class="o">=</span><span class="n">signal_window_end</span><span class="p">,</span>
+                                         <span class="n">noise_start</span><span class="o">=</span><span class="n">noise_window_start</span><span class="p">,</span> <span class="n">noise_end</span><span class="o">=</span><span class="n">noise_window_end</span><span class="p">)</span>
 
+            <span class="k">if</span> <span class="n">snr</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__snr_cr</span><span class="p">:</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">triggered</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">triggered</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">values_per_pol</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">snr</span><span class="p">,</span> <span class="n">signal_window_start</span><span class="p">,</span> <span class="n">signal_window_end</span><span class="p">])</span>
+            <span class="c1"># SNR is technically better than just the max(envelope) as a measure for strongest polarization</span>
         <span class="n">values_per_pol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values_per_pol</span><span class="p">)</span>
         <span class="n">dominant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">values_per_pol</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
         <span class="n">window_start</span><span class="p">,</span> <span class="n">window_end</span> <span class="o">=</span> <span class="n">values_per_pol</span><span class="p">[</span><span class="n">dominant</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
 
-        <span class="k">return</span> <span class="n">dominant</span><span class="p">,</span> <span class="n">window_start</span><span class="p">,</span> <span class="n">window_end</span>
+        <span class="c1"># Save window of strongest polarisation in all channels</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">signal_regions</span><span class="p">,</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">window_start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">window_end</span><span class="p">)])</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">noise_regions</span><span class="p">,</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">noise_window_start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">noise_window_end</span><span class="p">)])</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_station_has_cr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">channel_positions</span><span class="p">,</span> <span class="n">channel_ids_per_pol</span><span class="p">,</span> <span class="n">signal_window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise_window</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Beamform the station towards the direction given by `stationPulseFinder.direction_cartesian`</span>
-<span class="sd">        and check if there is any significant signal in the trace. If this is the case,</span>
-<span class="sd">        the `stationParameter.triggered` value is set to `True`.</span>
+        <span class="k">return</span> <span class="n">dominant</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        station : Station object</span>
-<span class="sd">            The station to process</span>
-<span class="sd">        channel_positions : np.ndarray</span>
-<span class="sd">            The array of channels positions, to be extracted from the detector description</span>
-<span class="sd">        channel_ids_per_pol : list[list]</span>
-<span class="sd">            A list of channel IDs grouped per polarisation.</span>
-<span class="sd">        signal_window : array-like, default=[0, -1]</span>
-<span class="sd">            A list containing the first and last index of the trace where to look for a pulse</span>
-<span class="sd">        noise_window : array-like, default=[0, -1]</span>
-<span class="sd">            A list containing the first and last index of the trace to use for noise characterisation</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">signal_window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">signal_window</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">noise_window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">noise_window</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_ids_per_pol</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
-        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_ids_per_pol</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">channel_ids</span> <span class="ow">in</span> <span class="n">channel_ids_per_pol</span><span class="p">:</span>
-            <span class="n">all_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">])</span>
-
-            <span class="n">beamed_fft</span> <span class="o">=</span> <span class="n">mini_beamformer</span><span class="p">(</span><span class="n">all_traces</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">channel_positions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction_cartesian</span><span class="p">)</span>
-            <span class="n">beamed_timeseries</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">beamed_fft</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">all_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-
-            <span class="n">snr</span> <span class="o">=</span> <span class="n">find_snr_of_timeseries</span><span class="p">(</span><span class="n">beamed_timeseries</span><span class="p">,</span>
-                                         <span class="n">window_start</span><span class="o">=</span><span class="n">signal_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">window_end</span><span class="o">=</span><span class="n">signal_window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                                         <span class="n">noise_start</span><span class="o">=</span><span class="n">noise_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">noise_end</span><span class="o">=</span><span class="n">noise_window</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">snr</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__snr_cr</span><span class="p">:</span>
-                <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">triggered</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># no need to check second polarisation if CR found</span>
-
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_find_good_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">signal_window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise_window</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_good_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loop over all channels in the station and return an array which contains booleans indicating whether</span>
 <span class="sd">        the channel at that index has an SNR higher than the minimum required one</span>
@@ -820,29 +829,33 @@
 <span class="sd">        ----------</span>
 <span class="sd">        station : Station object</span>
 <span class="sd">            The station to process</span>
-<span class="sd">        signal_window : array-like, default=[0, -1]</span>
-<span class="sd">            A list containing the first and last index of the trace where to look for a pulse</span>
-<span class="sd">        noise_window : array-like, default=[0, -1]</span>
-<span class="sd">            A list containing the first and last index of the trace to use for noise characterisation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">signal_window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">signal_window</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">noise_window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">noise_window</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
         <span class="n">good_channels</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
-            <span class="n">snr</span> <span class="o">=</span> <span class="n">find_snr_of_timeseries</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span>
-                                         <span class="n">window_start</span><span class="o">=</span><span class="n">signal_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">window_end</span><span class="o">=</span><span class="n">signal_window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                                         <span class="n">noise_start</span><span class="o">=</span><span class="n">noise_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">noise_end</span><span class="o">=</span><span class="n">noise_window</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">signal_window</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">signal_regions</span><span class="p">)</span>
+            <span class="n">noise_window</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">noise_regions</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">: looking for signal in indices </span><span class="si">{</span><span class="n">signal_window</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">: using </span><span class="si">{</span><span class="n">noise_window</span><span class="si">}</span><span class="s1"> as noise trace&#39;</span><span class="p">)</span>
+
+            <span class="n">snr</span><span class="p">,</span> <span class="n">peak</span><span class="p">,</span> <span class="n">rms</span><span class="p">,</span> <span class="n">signal_time</span> <span class="o">=</span> <span class="n">find_snr_of_timeseries</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span>
+                                                    <span class="n">sampling_rate</span><span class="o">=</span><span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span>
+                                                    <span class="n">window_start</span><span class="o">=</span><span class="n">signal_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">window_end</span><span class="o">=</span><span class="n">signal_window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                    <span class="n">noise_start</span><span class="o">=</span><span class="n">noise_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">noise_end</span><span class="o">=</span><span class="n">noise_window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                    <span class="n">resample_factor</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
             <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">SNR</span><span class="p">,</span> <span class="n">snr</span><span class="p">)</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">noise_rms</span><span class="p">,</span> <span class="n">rms</span><span class="p">)</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">signal_time</span><span class="p">,</span> <span class="n">signal_time</span><span class="p">)</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">maximum_amplitude_envelope</span><span class="p">,</span> <span class="n">peak</span><span class="p">)</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">maximum_amplitude</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()))</span>
+
             <span class="k">if</span> <span class="n">snr</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__snr_cr</span><span class="p">:</span>
                 <span class="n">good_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="n">good_channels</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_check_station_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">channel_positions</span><span class="p">,</span> <span class="n">channel_ids_per_pol</span><span class="p">,</span> <span class="n">signal_window</span><span class="p">,</span> <span class="n">noise_window</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_station_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if the station has been triggered by a radio signal. This functions verifies there is a significant</span>
 <span class="sd">        pulse in the radio signal after beamforming, and also checks if there enough channels (i.e. LOFAR dipoles)</span>
@@ -853,21 +866,14 @@
 <span class="sd">        station : Station object</span>
 <span class="sd">            The station to analyse</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Looking for signal in indices </span><span class="si">{</span><span class="n">signal_window</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Using </span><span class="si">{</span><span class="n">noise_window</span><span class="si">}</span><span class="s1"> as noise trace&#39;</span><span class="p">)</span>
-
-        <span class="n">cr_found</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_has_cr</span><span class="p">(</span>
-            <span class="n">station</span><span class="p">,</span> <span class="n">channel_positions</span><span class="p">,</span> <span class="n">channel_ids_per_pol</span><span class="p">,</span> <span class="n">signal_window</span><span class="o">=</span><span class="n">signal_window</span><span class="p">,</span> <span class="n">noise_window</span><span class="o">=</span><span class="n">noise_window</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">cr_found</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">triggered</span><span class="p">):</span>
             <span class="n">good_channels_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_good_channels</span><span class="p">(</span>
-                <span class="n">station</span><span class="p">,</span> <span class="n">signal_window</span><span class="o">=</span><span class="n">signal_window</span><span class="p">,</span> <span class="n">noise_window</span><span class="o">=</span><span class="n">noise_window</span>
+                <span class="n">station</span>
             <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1"> has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">good_channels_station</span><span class="p">)</span><span class="si">}</span><span class="s1"> good antennas&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">good_channels_station</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__min_good_channels</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There are only </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">good_channels_station</span><span class="p">)</span><span class="si">}</span><span class="s1"> antennas &#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1"> has only </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">good_channels_station</span><span class="p">)</span><span class="si">}</span><span class="s1"> antennas &#39;</span>
                                     <span class="sa">f</span><span class="s1">&#39;with an SNR higher than </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__snr_cr</span><span class="si">}</span><span class="s1">, while there &#39;</span>
                                     <span class="sa">f</span><span class="s1">&#39;are at least </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__min_good_channels</span><span class="si">}</span><span class="s1"> required&#39;</span><span class="p">)</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">triggered</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>  <span class="c1"># stop from further processing</span>
@@ -897,30 +903,44 @@
             <span class="n">station_id</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
 
             <span class="c1"># Get the channel IDs grouped per polarisation (i.e. dipole orientation)</span>
-            <span class="n">ant_same_orientation</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_parallel_channels</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
+            <span class="c1"># -&gt; take these from Event, cause some might already be thrown out!</span>
+            <span class="n">station_even_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">station_odd_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">==</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_group_id</span><span class="p">():</span>
+                    <span class="n">station_even_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">station_odd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
 
             <span class="c1"># Find the antenna positions by only looking at the channels from a given polarisation</span>
             <span class="n">position_array</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">detector</span><span class="o">.</span><span class="n">get_absolute_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span> <span class="o">+</span>
+                <span class="c1"># detector.get_absolute_position(station_id) +    </span>
+                <span class="c1"># only use the relative position since the absolute position would introduce a time shift </span>
+                <span class="c1"># in the beamformed timeseries which would lead to a time shift in the signal window.</span>
                 <span class="n">detector</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">ant_same_orientation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">station_even_list</span>
             <span class="p">]</span>
             <span class="n">position_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">position_array</span><span class="p">)</span>
 
             <span class="c1"># Find polarisation with max envelope amplitude and calculate pulse search window from it</span>
-            <span class="n">dominant_pol</span><span class="p">,</span> <span class="n">pulse_window_start</span><span class="p">,</span> <span class="n">pulse_window_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_windows_polarisation</span><span class="p">(</span>
-                <span class="n">station</span><span class="p">,</span> <span class="n">position_array</span><span class="p">,</span> <span class="n">ant_same_orientation</span>
+            <span class="n">dominant_pol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_windows_polarisation</span><span class="p">(</span>
+                <span class="n">station</span><span class="p">,</span> <span class="n">position_array</span><span class="p">,</span> <span class="p">[</span><span class="n">station_even_list</span><span class="p">,</span> <span class="n">station_odd_list</span><span class="p">]</span>
             <span class="p">)</span>
 
             <span class="c1"># Save the antenna orientation which contains the strongest pulse</span>
-            <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">cr_dominant_polarisation</span><span class="p">,</span>
-                                  <span class="n">detector</span><span class="o">.</span><span class="n">get_antenna_orientation</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">ant_same_orientation</span><span class="p">[</span><span class="n">dominant_pol</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">dominant_pol</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">dominant_orientation</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_antenna_orientation</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">station_even_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">dominant_pol</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">dominant_orientation</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_antenna_orientation</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">station_odd_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dominant polarisation </span><span class="si">{</span><span class="n">dominant_pol</span><span class="si">}</span><span class="s2"> not recognised&quot;</span><span class="p">)</span>
 
-            <span class="c1"># Check if the station has a strong enough signal</span>
-            <span class="n">signal_window</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">pulse_window_start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">pulse_window_end</span><span class="p">)]</span>
-            <span class="n">noise_window</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">pulse_window_start</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_away_from_pulse</span><span class="p">)]</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">cr_dominant_polarisation</span><span class="p">,</span> <span class="n">dominant_orientation</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_check_station_triggered</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">position_array</span><span class="p">,</span> <span class="n">ant_same_orientation</span><span class="p">,</span> <span class="n">signal_window</span><span class="p">,</span> <span class="n">noise_window</span><span class="p">)</span></div>
+            <span class="c1"># Go over all the channels to check if individual SNR is strong enough</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_station_triggered</span><span class="p">(</span>
+                <span class="n">station</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="stationPulseFinder.end">

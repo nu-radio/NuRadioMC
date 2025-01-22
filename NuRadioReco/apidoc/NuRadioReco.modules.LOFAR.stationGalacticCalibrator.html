@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="NuRadioReco.modules.LOFAR.stationPulseFinder module" href="NuRadioReco.modules.LOFAR.stationPulseFinder.html" />
-    <link rel="prev" title="NuRadioReco.modules.LOFAR.beamforming_utilities module" href="NuRadioReco.modules.LOFAR.beamforming_utilities.html" /> 
+    <link rel="prev" title="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR module" href="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -654,7 +654,7 @@ the relative calibration between antenna’s is applied.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.begin" title="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([logger_level])</p></td>
 <td><p>Loads the experimental parameters (such as longitude and latitude) as well as the Galactic calibration curves and Fourier coefficients from the directory <em class="xref py py-obj">NuRadioReco/utilities/data/</em>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run" title="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run" title="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, det)</p></td>
 <td><p>Run the calibration on all stations in <em class="xref py py-obj">event</em>.</p></td>
 </tr>
 </tbody>
@@ -694,12 +694,14 @@ curves and Fourier coefficients from the directory <em class="xref py py-obj">Nu
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationGalacticCalibrator.html#stationGalacticCalibrator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationGalacticCalibrator.stationGalacticCalibrator.run" title="Link to this definition"></a></dt>
 <dd><p>Run the calibration on all stations in <em class="xref py py-obj">event</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>event</strong><span class="classifier">Event object</span></dt><dd><p>The event on which to apply the Galactic calibration.</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector object</span></dt><dd><p>The Detector related to the <em class="xref py py-obj">event</em></p>
 </dd>
 </dl>
 </dd>
@@ -719,7 +721,7 @@ curves and Fourier coefficients from the directory <em class="xref py py-obj">Nu
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.LOFAR.beamforming_utilities.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.LOFAR.beamforming_utilities module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="NuRadioReco.modules.LOFAR.stationPulseFinder.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.LOFAR.stationPulseFinder module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

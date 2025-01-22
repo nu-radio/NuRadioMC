@@ -621,40 +621,16 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal</span><span class="w"> </span><span class="kn">import</span> <span class="n">hilbert</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">fmin_powell</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span><span class="p">,</span> <span class="n">fmin_powell</span><span class="p">,</span> <span class="n">Bounds</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">fft</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span><span class="p">,</span> <span class="n">channelParameters</span><span class="p">,</span> <span class="n">showerParameters</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.voltageToEfieldConverter</span><span class="w"> </span><span class="kn">import</span> <span class="n">voltageToEfieldConverter</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.LOFAR.beamforming_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">beamformer</span>
-
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.LOFAR.beamforming_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">mini_beamformer</span>
 
 <span class="n">lightspeed</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span>
-
-
-<div class="viewcode-block" id="geometric_delays">
-<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.geometric_delays">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">geometric_delays</span><span class="p">(</span><span class="n">ant_positions</span><span class="p">,</span> <span class="n">sky</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns geometric delays in a matrix.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    ant_positions : np.ndarray</span>
-<span class="sd">        The antenna positions to use, formatted as a (nr_of_ant, 3) shaped array.</span>
-<span class="sd">    sky : np.ndarray</span>
-<span class="sd">        The unit vector pointing to the arrival direction, in cartesian coordinates.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    delays : np.ndarray</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">delays</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ant_positions</span><span class="p">,</span> <span class="n">sky</span><span class="p">)</span>
-    <span class="n">delays</span> <span class="o">/=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">lightspeed</span>
-    <span class="k">return</span> <span class="n">delays</span></div>
-
 
 
 <div class="viewcode-block" id="beamformingDirectionFitter">
@@ -713,40 +689,51 @@
         <span class="n">dominant_pol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">dominant_pol_traces</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dominant polarisation is </span><span class="si">{</span><span class="n">dominant_pol</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Collect the Efield traces - the e-field from the converter has eR as [0] component -&gt; do +1 in index</span>
-        <span class="n">fft_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">trace</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()[</span><span class="n">dominant_pol</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Collect the Efield traces</span>
+        <span class="n">fft_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">trace</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()[</span><span class="n">dominant_pol</span><span class="p">]</span>
                                <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()])</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">negative_beamed_signal</span><span class="p">(</span><span class="n">direction</span><span class="p">):</span>
             <span class="n">theta</span> <span class="o">=</span> <span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">phi</span> <span class="o">=</span> <span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">direction_cartesian</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
-
-            <span class="n">delays</span> <span class="o">=</span> <span class="n">geometric_delays</span><span class="p">(</span><span class="n">ant_positions</span><span class="p">,</span> <span class="n">direction_cartesian</span><span class="p">)</span>
-
-            <span class="n">out</span> <span class="o">=</span> <span class="n">beamformer</span><span class="p">(</span><span class="n">fft_traces</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">delays</span><span class="p">)</span>
-            <span class="n">timeseries</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)</span>  <span class="c1"># TODO: is this really necessary?</span>
+            <span class="n">my_direction_cartesian</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+            <span class="n">my_out</span> <span class="o">=</span> <span class="n">mini_beamformer</span><span class="p">(</span><span class="n">fft_traces</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">ant_positions</span><span class="p">,</span> <span class="n">my_direction_cartesian</span><span class="p">)</span>
+            <span class="n">timeseries</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">my_out</span><span class="p">,</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="o">-</span><span class="mi">100</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">timeseries</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
         <span class="n">start_direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
                                     <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">])</span>
-        <span class="n">fit_direction</span> <span class="o">=</span> <span class="n">fmin_powell</span><span class="p">(</span><span class="n">negative_beamed_signal</span><span class="p">,</span> <span class="n">start_direction</span><span class="p">,</span>
-                                    <span class="n">maxiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__max_iter</span><span class="p">,</span> <span class="n">xtol</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial guess for fit routine is </span><span class="si">{</span><span class="n">start_direction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Using &quot;minimize&quot; with the &quot;Powell&quot; method allows to use the same minimization routine as before,</span>
+        <span class="c1"># but also add bounds to the fit. However, this changes the result of the fitting routine, even if</span>
+        <span class="c1"># without bounds the fit converges within the bounds. So currently we stick to the &quot;fmin_powell&quot; method.</span>
+        <span class="c1"># fit_result = minimize(negative_beamed_signal, start_direction,</span>
+        <span class="c1">#                       method=&#39;Powell&#39;, bounds=Bounds((0, -np.pi), (np.pi / 2, np.pi), (True, True)),</span>
+        <span class="c1">#                       options={&#39;maxiter&#39;: self.__max_iter, &#39;xtol&#39;: 1.0, &#39;disp&#39;: False,</span>
+        <span class="c1">#                                &#39;direc&#39;: np.array([[0.1, 0], [0, 0.1]])})</span>
+        <span class="c1">#</span>
+        <span class="c1"># self.logger.debug(f&quot;Fit returned the following message: {fit_result.message}&quot;)</span>
+        <span class="c1"># if not fit_result.success:</span>
+        <span class="c1">#     self.logger.warning(f&quot;The fit failed with the following message: {fit_result.message}&quot;)</span>
+        <span class="c1">#     raise RuntimeError</span>
+        <span class="c1">#</span>
+        <span class="c1"># fit_direction = fit_result.x</span>
+
+        <span class="n">fit_result</span> <span class="o">=</span> <span class="n">fmin_powell</span><span class="p">(</span><span class="n">negative_beamed_signal</span><span class="p">,</span> <span class="n">start_direction</span><span class="p">,</span>
+                          <span class="n">maxiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__max_iter</span><span class="p">,</span> <span class="n">xtol</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
+                          <span class="n">direc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">]]),</span>
+                          <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">fit_direction</span> <span class="o">=</span> <span class="n">fit_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fit finished with following direc vector: </span><span class="si">{</span><span class="n">fit_result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">direction_cartesian</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="o">*</span><span class="n">fit_direction</span><span class="p">)</span>
 
-        <span class="n">delays</span> <span class="o">=</span> <span class="n">geometric_delays</span><span class="p">(</span><span class="n">ant_positions</span><span class="p">,</span> <span class="n">direction_cartesian</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">beamformer</span><span class="p">(</span><span class="n">fft_traces</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">delays</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">mini_beamformer</span><span class="p">(</span><span class="n">fft_traces</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">ant_positions</span><span class="p">,</span> <span class="n">direction_cartesian</span><span class="p">)</span>
 
-        <span class="n">fit_direction</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span><span class="o">*</span><span class="n">direction_cartesian</span><span class="p">)</span>
-        <span class="n">theta</span> <span class="o">=</span> <span class="n">fit_direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">phi</span> <span class="o">=</span> <span class="n">fit_direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">phi</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># Radiotools uses np.arctan2, which returns phi in the interval [-pi, pi] -&gt; map to [0, 2*pi]</span>
-            <span class="n">phi</span> <span class="o">+=</span> <span class="mi">360</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
-
-        <span class="k">return</span> <span class="p">[</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">],</span> <span class="n">out</span>
+        <span class="k">return</span> <span class="n">fit_direction</span><span class="p">,</span> <span class="n">out</span>
 
 <div class="viewcode-block" id="beamformingDirectionFitter.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.beamformingDirectionFitter.run">[docs]</a>
@@ -775,7 +762,7 @@
             <span class="n">zenith</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span>
             <span class="n">azimuth</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
 
-            <span class="c1"># TODO: get this from Detector description</span>
+            <span class="c1"># Get all group IDs which are still present in the Station</span>
             <span class="n">station_channel_group_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">channel</span><span class="o">.</span><span class="n">get_group_id</span><span class="p">()</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">()])</span>
 
             <span class="n">position_array</span> <span class="o">=</span> <span class="p">[]</span>
@@ -800,8 +787,8 @@
             <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">,</span> <span class="n">zenith</span><span class="p">)</span>
             <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">)</span>
 
-            <span class="n">direction_difference</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
-            <span class="k">while</span> <span class="n">direction_difference</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span> <span class="ow">and</span> <span class="n">direction_difference</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
+            <span class="n">direction_difference</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="k">while</span> <span class="n">direction_difference</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span> <span class="ow">or</span> <span class="n">direction_difference</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
                 <span class="c1"># Make sure all the previously calculated Efields are removed</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">set_electric_fields</span><span class="p">([])</span>
 
@@ -810,9 +797,13 @@
                     <span class="n">converter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">use_channels</span><span class="o">=</span><span class="n">ant</span><span class="p">)</span>
 
                 <span class="c1"># Perform the direction fit on the station</span>
-                <span class="n">direction_fit</span><span class="p">,</span> <span class="n">freq_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction_fit</span><span class="p">(</span>
-                    <span class="n">station</span><span class="p">,</span> <span class="n">position_array</span>
-                <span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">direction_fit</span><span class="p">,</span> <span class="n">freq_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction_fit</span><span class="p">(</span>
+                        <span class="n">station</span><span class="p">,</span> <span class="n">position_array</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Direction fit could not be completed for station  CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
 
                 <span class="c1"># Check if fit produced unphysical results</span>
                 <span class="k">if</span> <span class="n">direction_fit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>

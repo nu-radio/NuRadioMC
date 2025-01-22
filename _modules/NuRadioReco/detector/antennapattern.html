@@ -1686,23 +1686,30 @@
 
 <div class="viewcode-block" id="preprocess_LOFAR_txt">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.preprocess_LOFAR_txt">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">preprocess_LOFAR_txt</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">ant</span><span class="o">=</span><span class="s1">&#39;LBA&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">preprocess_LOFAR_txt</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">ant</span><span class="o">=</span><span class="s1">&#39;LBA&#39;</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Function to parse the LOFAR antenna model simulation files in TXT format. It extracts the</span>
-<span class="sd">    vector effective length for all simulated frequencies, azimuth and zenith angles and dumps</span>
-<span class="sd">    them into a pickle file according to the NuRadioReco specification.</span>
+<span class="sd">    Function to process the TXT files from the old LOFAR antenna model (only tested for LBA). The paths to these</span>
+<span class="sd">    files is currently hardcoded. Because of a weird issue which requires minus signs to be added for the X and Y</span>
+<span class="sd">    dipoles separately, the orientation can be specified to create separate antenna models for each. If the</span>
+<span class="sd">    orientation is not set, the values for the Y dipole are returned.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    directory : str</span>
-<span class="sd">        The path to the directory where the TXT files are stored</span>
+<span class="sd">        Path to where the text files are stored</span>
 <span class="sd">    ant : str, default=&#39;LBA&#39;</span>
-<span class="sd">        The antenna type</span>
+<span class="sd">        The antenna type, either LBA or HBA (not tested)</span>
+<span class="sd">    orientation : str, default=None</span>
+<span class="sd">        If set, must be either X or Y.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">path_theta</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ant</span><span class="si">}</span><span class="s1">_Vout_theta.txt&#39;</span><span class="p">)</span>
     <span class="n">path_phi</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ant</span><span class="si">}</span><span class="s1">_Vout_phi.txt&#39;</span><span class="p">)</span>
 
     <span class="n">frequencies</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span><span class="p">,</span> <span class="n">theta_real</span><span class="p">,</span> <span class="n">theta_imag</span><span class="p">,</span> <span class="n">phi_real</span><span class="p">,</span> <span class="n">phi_imag</span> <span class="o">=</span> <span class="n">parse_LOFAR_txt_file</span><span class="p">(</span><span class="n">path_theta</span><span class="p">,</span> <span class="n">path_phi</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">orientation</span> <span class="o">==</span> <span class="s1">&#39;X&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ar</span> <span class="ow">in</span> <span class="p">[</span><span class="n">theta_real</span><span class="p">,</span> <span class="n">theta_imag</span><span class="p">,</span> <span class="n">phi_real</span><span class="p">,</span> <span class="n">phi_imag</span><span class="p">]:</span>
+            <span class="n">ar</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="n">VEL_thetas</span> <span class="o">=</span> <span class="n">theta_real</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">theta_imag</span>
     <span class="n">VEL_phis</span> <span class="o">=</span> <span class="n">phi_real</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phi_imag</span>
@@ -1724,7 +1731,10 @@
     <span class="n">orientation_theta</span><span class="p">,</span> <span class="n">orientation_phi</span><span class="p">,</span> <span class="n">rotation_theta</span><span class="p">,</span> <span class="n">rotation_phi</span> <span class="o">=</span> \
         <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
 
-    <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;LOFAR_</span><span class="si">{</span><span class="n">ant</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="n">orientation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;LOFAR_</span><span class="si">{</span><span class="n">ant</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">orientation</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;LOFAR_</span><span class="si">{</span><span class="n">ant</span><span class="si">}</span><span class="s1">&#39;</span>
     <span class="n">output_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.pkl&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_to_antennamodels</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
 
     <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output_filename</span><span class="p">)</span>

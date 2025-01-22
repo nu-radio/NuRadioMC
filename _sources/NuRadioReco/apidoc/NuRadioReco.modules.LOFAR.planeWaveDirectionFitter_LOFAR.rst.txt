@@ -1,0 +1,7 @@
+NuRadioReco.modules.LOFAR.planeWaveDirectionFitter\_LOFAR module
+================================================================
+
+.. automodule:: NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR
+   :members:
+   :undoc-members:
+   :show-inheritance:

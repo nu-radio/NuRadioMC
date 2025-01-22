@@ -624,19 +624,29 @@
 <span id="nuradioreco-modules-lofar-stationpulsefinder-module"></span><h1>NuRadioReco.modules.LOFAR.stationPulseFinder module<a class="headerlink" href="#module-NuRadioReco.modules.LOFAR.stationPulseFinder" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationPulseFinder.</span></span><span class="sig-name descname"><span class="pre">find_snr_of_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeseries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#find_snr_of_timeseries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries" title="Link to this definition"></a></dt>
-<dd><p>Return the signal-to-noise ratio (SNR) of a given time trace. The additional parameters allow to
-select a window where the signal is and a separate window where there is only noise.</p>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationPulseFinder.</span></span><span class="sig-name descname"><span class="pre">find_snr_of_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeseries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#find_snr_of_timeseries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries" title="Link to this definition"></a></dt>
+<dd><p>Return the signal-to-noise ratio (SNR) of a given time trace, defined as</p>
+<dl class="simple">
+<dt>..math ::</dt><dd><p>frac{max( | Hilbert(timeseries[window]) | )}{ STD( Hilbert(timeseries[noise]) ) }</p>
+</dd>
+</dl>
+<p>The signal window and noise window are controlled through the extra parameters to the function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>timeseries: list or np.ndarray</strong></dt><dd><p>The time trace</p>
+<dt><strong>timeseries: array-like</strong></dt><dd><p>The time trace</p>
+</dd>
+<dt><strong>sampling_rate</strong><span class="classifier">float</span></dt><dd><p>The sampling rate of the time trace (only needed if full_output=True)</p>
 </dd>
 <dt><strong>window_start</strong><span class="classifier">int</span></dt><dd></dd>
-<dt><strong>window_end</strong><span class="classifier">int</span></dt><dd><p>We look for the peak inside the array <em class="xref py py-obj">timeseries[window_start:window_end]</em></p>
+<dt><strong>window_end</strong><span class="classifier">int</span></dt><dd><p>We look for the peak inside the resampled array <em class="xref py py-obj">timeseries[window_start:window_end]</em></p>
 </dd>
 <dt><strong>noise_start</strong><span class="classifier">int</span></dt><dd></dd>
 <dt><strong>noise_end</strong><span class="classifier">int</span></dt><dd><p>The array <em class="xref py py-obj">timeseries[noise_start:noise_end]</em> is used to calculate the noise level</p>
+</dd>
+<dt><strong>resample_factor</strong><span class="classifier">int, default=1</span></dt><dd><p>Factor with which the timeseries will be resampled, needs to be integer &gt; 0</p>
+</dd>
+<dt><strong>full_output</strong><span class="classifier">bool, default=False</span></dt><dd><p>If True, also the peak of the envelope, RMS and signal time are returned</p>
 </dd>
 </dl>
 </dd>
@@ -675,7 +685,7 @@ enough to use for direction fitting later.</p>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cr_snr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">good_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cr_snr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">good_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin" title="Link to this definition"></a></dt>
 <dd><p>Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
 to use for noise measurements. The function also defines what an acceptable SNR is to consider a
 cosmic-ray signal to be in the trace, as well as the number of good channels a station should have
@@ -683,7 +693,7 @@ to be kept for further processing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>window</strong><span class="classifier">int, default=500</span></dt><dd><p>Size of the window to look for pulse</p>
+<dt><strong>window</strong><span class="classifier">int, default=256</span></dt><dd><p>Size of the window to look for pulse</p>
 </dd>
 <dt><strong>noise_window</strong><span class="classifier">int, default=10000</span></dt><dd><p>The trace used for noise characterisation goes from sample 0 to the start of the pulse searching
 window minus this number.</p>

@@ -654,7 +654,7 @@ left (1). This continues until all elements have been added to the output list.<
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationRFIFilter.FindRFI_LOFAR">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationRFIFilter.</span></span><span class="sig-name descname"><span class="pre">FindRFI_LOFAR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tbb_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_trace_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">65536</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rfi_cleaning_trace_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8192</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flagged_antenna_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_dbl_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationRFIFilter.html#FindRFI_LOFAR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationRFIFilter.FindRFI_LOFAR" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationRFIFilter.</span></span><span class="sig-name descname"><span class="pre">FindRFI_LOFAR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tbb_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_trace_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">65536</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rfi_cleaning_trace_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8192</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flagged_antenna_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_dbl_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationRFIFilter.html#FindRFI_LOFAR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationRFIFilter.FindRFI_LOFAR" title="Link to this definition"></a></dt>
 <dd><p>A code that basically reads given LOFAR TBB H5 file and returns an array of dirty channels.
 Some values are hard coded based on LOFAR Experience.</p>
 <dl class="field-list">
@@ -668,7 +668,7 @@ Some values are hard coded based on LOFAR Experience.</p>
 </dd>
 <dt><strong>rfi_cleaning_trace_length</strong><span class="classifier">int</span></dt><dd><p>Size of one chunk of trace to be evaluated at a time for calculating spectrum from.</p>
 </dd>
-<dt><strong>flagged_antenna_ids</strong><span class="classifier">list, default=[]</span></dt><dd><p>List of antennas which are already flagged. These will not be considered for the RFI detection process.</p>
+<dt><strong>flagged_antenna_ids</strong><span class="classifier">list[str] or set[str], default=[]</span></dt><dd><p>List of antennas which are already flagged. These will not be considered for the RFI detection process.</p>
 </dd>
 <dt><strong>num_dbl_z</strong><span class="classifier">int, default=100</span></dt><dd><p>The number of double zeros allowed in a block, if there are too many, then there could be data loss.</p>
 </dd>
@@ -734,6 +734,9 @@ subsequently put to zero in the traces.</p>
 <tr class="row-odd"><td><p><strong>end</strong></p></td>
 <td></td>
 </tr>
+<tr class="row-even"><td><p><strong>plot_median_freq_spectrum</strong></p></td>
+<td></td>
+</tr>
 </tbody>
 </table>
 <p class="rubric">Notes</p>
@@ -752,7 +755,7 @@ More information can be found in Section 3.2.2 of <a class="reference external" 
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rfi_cleaning_trace_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">65536</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationRFIFilter.html#stationRFIFilter.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.begin" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rfi_cleaning_trace_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">65536</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_polarizations_apart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationRFIFilter.html#stationRFIFilter.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.begin" title="Link to this definition"></a></dt>
 <dd><p>Set the variables used for RFI detection. The <em class="xref py py-obj">reader</em> object can be used to retrieve the filenames associated
 with the loaded stations, as well as the metadata directory.</p>
 <dl class="field-list simple">
@@ -761,6 +764,8 @@ with the loaded stations, as well as the metadata directory.</p>
 <dt><strong>rfi_cleaning_trace_length</strong><span class="classifier">int</span></dt><dd><p>The number of samples to use per block to construct the frequency spectrum.</p>
 </dd>
 <dt><strong>reader</strong><span class="classifier">readLOFARData object, default=None</span></dt><dd><p>If provided, the reader will be used to set the metadata directory and find the TBB files paths.</p>
+</dd>
+<dt><strong>do_polarizations_apart</strong><span class="classifier">bool, default=False</span></dt><dd><p>If True, the X and Y polarisations will be processed separately.</p>
 </dd>
 <dt><strong>logger_level</strong><span class="classifier">int, default=logging.NOTSET</span></dt><dd><p>Use this parameter to override the logging level for this module.</p>
 </dd>
@@ -789,7 +794,12 @@ channels and then puts the corresponding frequency bands to zero in every channe
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationRFIFilter.html#stationRFIFilter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.end" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationRFIFilter.html#stationRFIFilter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.end" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.plot_median_freq_spectrum">
+<span class="sig-name descname"><span class="pre">plot_median_freq_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rfi_cleaned</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flagging</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationRFIFilter.html#stationRFIFilter.plot_median_freq_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.plot_median_freq_spectrum" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

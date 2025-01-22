@@ -20,7 +20,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.LOFAR.stationGalacticCalibrator module" href="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.html" />
+    <link rel="next" title="NuRadioReco.modules.LOFAR.hardwareResponseIncorporator module" href="NuRadioReco.modules.LOFAR.hardwareResponseIncorporator.html" />
     <link rel="prev" title="NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR module" href="NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.html" /> 
 </head>
 
@@ -625,27 +625,100 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.beamforming_utilities.mini_beamformer">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.beamforming_utilities.</span></span><span class="sig-name descname"><span class="pre">mini_beamformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fft_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/beamforming_utilities.html#mini_beamformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.beamforming_utilities.mini_beamformer" title="Link to this definition"></a></dt>
-<dd><p>Adapted from PyCrTools hBeamformBlock</p>
-<p>Beamform the spectra given the arrival direction. Based on the arrival direction,
-the geometric delays are calculated.</p>
+<dd><p>Beamforms the spectra given the arrival direction and antenna positions.
+This function is a wrapper around the <em class="xref py py-obj">beamformer()</em> function, which beamforms the
+spectra given the timedelay. Here we first calculate the geometric delays in the far
+field, based on the arrival direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fft_data</strong><span class="classifier">np.ndarray</span></dt><dd><p>The Fourier transformed time traces of all antennae, shaped as (nr_of_ant, nr_of_freq_samples)</p>
+</dd>
+<dt><strong>frequencies</strong><span class="classifier">np.ndarray</span></dt><dd><p>The values of the frequencies samples, shaped as (nr_of_freq_samples,)</p>
+</dd>
+<dt><strong>positions</strong><span class="classifier">np.ndarray</span></dt><dd><p>The position of antenna, shaped as (nr_of_ant, 3)</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">np.ndarray</span></dt><dd><p>The arrival direction in the sky, in cartesian coordinates, shape (3,)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>beamformed</strong><span class="classifier">np.ndarray</span></dt><dd><p>The beamformed (ie summed) frequency spectrum</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Adapted from PyCrTools hBeamformBlock</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.beamforming_utilities.beamformer">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.beamforming_utilities.</span></span><span class="sig-name descname"><span class="pre">beamformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fft_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/beamforming_utilities.html#beamformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.beamforming_utilities.beamformer" title="Link to this definition"></a></dt>
-<dd><p>Beamform the spectra according to the given delays.</p>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.beamforming_utilities.</span></span><span class="sig-name descname"><span class="pre">beamformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fft_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delays</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/beamforming_utilities.html#beamformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.beamforming_utilities.beamformer" title="Link to this definition"></a></dt>
+<dd><p>Beamform the spectra according to the given delays, by phase shifting them according
+to the time delays and summing up the resulting spectra.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fft_data</strong><span class="classifier">np.ndarray</span></dt><dd><p>The Fourier transformed time traces of all antennae, shaped as (nr_of_ant, nr_of_freq_samples)</p>
+</dd>
+<dt><strong>frequencies</strong><span class="classifier">np.ndarray</span></dt><dd><p>The values of the frequencies samples, shaped as (nr_of_freq_samples,)</p>
+</dd>
+<dt><strong>delays</strong><span class="classifier">np.ndarray</span></dt><dd><p>The delay per antenna, shaped as (nr_of_ant,)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>beamformed</strong><span class="classifier">np.ndarray</span></dt><dd><p>The beamformed (ie summed) frequency spectrum</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.beamforming_utilities.geometric_delays">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.beamforming_utilities.</span></span><span class="sig-name descname"><span class="pre">geometric_delays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ant_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sky</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/beamforming_utilities.html#geometric_delays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.beamforming_utilities.geometric_delays" title="Link to this definition"></a></dt>
-<dd><p>Calculate the geometric delays of given antenna position, given an arrival direction in the sky.</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.beamforming_utilities.geometric_delays_near_field">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.beamforming_utilities.</span></span><span class="sig-name descname"><span class="pre">geometric_delays_near_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ant_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sky</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/beamforming_utilities.html#geometric_delays_near_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.beamforming_utilities.geometric_delays_near_field" title="Link to this definition"></a></dt>
+<dd><p>Calculate the geometric delays of given antenna position, given a source location in the sky.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ant_pos</strong><span class="classifier">array_like</span></dt><dd><p>Antenna positions</p>
+</dd>
+<dt><strong>sky</strong><span class="classifier">array_like</span></dt><dd><p>Source location in the sky</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>delays</strong><span class="classifier">array_like</span></dt><dd><p>The geometric delays for all antenna positions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.beamforming_utilities.GeometricDelayFarField">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.beamforming_utilities.</span></span><span class="sig-name descname"><span class="pre">GeometricDelayFarField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/beamforming_utilities.html#GeometricDelayFarField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.beamforming_utilities.GeometricDelayFarField" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.beamforming_utilities.geometric_delay_far_field">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.beamforming_utilities.</span></span><span class="sig-name descname"><span class="pre">geometric_delay_far_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ant_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/beamforming_utilities.html#geometric_delay_far_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.beamforming_utilities.geometric_delay_far_field" title="Link to this definition"></a></dt>
+<dd><p>Calculate the geometric delays in the far field approximation, by projecting the positions onto
+the arrival direction vector and dividing by the lightspeed.</p>
+<p>If the <em class="xref py py-obj">direction</em> vector points towards the incoming direction (as usually calculated using
+zenith and azimuth), then positive delays correspond to later times compared to the [0, 0, 0]
+location.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ant_positions</strong><span class="classifier">array_like</span></dt><dd><p>The positions of the antennae, with shape (nr_of_ant, 3)</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">array_like</span></dt><dd><p>The arrival direction, in cartesian coordinates</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 
@@ -654,7 +727,7 @@ the geometric delays are calculated.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.LOFAR.stationGalacticCalibrator module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.LOFAR.hardwareResponseIncorporator.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.LOFAR.hardwareResponseIncorporator module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

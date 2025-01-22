@@ -618,10 +618,14 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="c1"># from datetime import datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
@@ -688,13 +692,13 @@
 <div class="viewcode-block" id="lora_timestamp_to_blocknumber">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.lora_timestamp_to_blocknumber">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">lora_timestamp_to_blocknumber</span><span class="p">(</span>
-    <span class="n">lora_seconds</span><span class="p">,</span>
-    <span class="n">lora_nanoseconds</span><span class="p">,</span>
-    <span class="n">start_time</span><span class="p">,</span>
-    <span class="n">sample_number</span><span class="p">,</span>
-    <span class="n">clock_offset</span><span class="o">=</span><span class="mf">1e4</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
-    <span class="n">block_size</span><span class="o">=</span><span class="mi">2</span><span class="o">**</span><span class="mi">16</span><span class="p">,</span>
-    <span class="n">sampling_frequency</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
+        <span class="n">lora_seconds</span><span class="p">,</span>
+        <span class="n">lora_nanoseconds</span><span class="p">,</span>
+        <span class="n">start_time</span><span class="p">,</span>
+        <span class="n">sample_number</span><span class="p">,</span>
+        <span class="n">clock_offset</span><span class="o">=</span><span class="mf">1e4</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
+        <span class="n">block_size</span><span class="o">=</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="n">sampling_frequency</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates block number corresponding to LORA timestamp and the sample number within that block</span>
@@ -702,9 +706,9 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    lora_seconds : int</span>
-<span class="sd">        LORA timestamp in seconds (UTC timestamp, second after 1st January 1970)</span>
+<span class="sd">        LORA timestamp in seconds (UNIX timestamp, second after 1st January 1970)</span>
 <span class="sd">    lora_nanoseconds : int</span>
-<span class="sd">        LORA timestamp in nanoseconds</span>
+<span class="sd">        The number of nanoseconds after `lora_seconds` at which LORA triggered</span>
 <span class="sd">    start_time : int</span>
 <span class="sd">        LOFAR TBB timestamp</span>
 <span class="sd">    sample_number : int</span>
@@ -735,25 +739,48 @@
 
 
 
-<div class="viewcode-block" id="tbb_filetag_from_utc">
-<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.tbb_filetag_from_utc">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">tbb_filetag_from_utc</span><span class="p">(</span><span class="n">timestamp</span><span class="p">):</span>
+<div class="viewcode-block" id="LOFAR_event_id_to_unix">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.LOFAR_event_id_to_unix">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">LOFAR_event_id_to_unix</span><span class="p">(</span><span class="n">event_id</span><span class="p">):</span>
+    <span class="c1"># 1262304000 = Unix timestamp on Jan 1, 2010 (date -u --date &quot;Jan 1, 2010 00:00:00&quot; +&quot;%s&quot;)</span>
+    <span class="k">return</span> <span class="n">event_id</span> <span class="o">+</span> <span class="mi">1262304000</span></div>
+
+
+
+<div class="viewcode-block" id="tbb_filetag_from_unix">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.tbb_filetag_from_unix">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tbb_filetag_from_unix</span><span class="p">(</span><span class="n">timestamp</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns TBB filename based on UTC timestamp of an event.</span>
+<span class="sd">    Returns TBB filename based on UNIX timestamp of an event.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    timestamp: int</span>
-<span class="sd">        UTC timestamp from GPS</span>
+<span class="sd">        UNIX timestamp from GPS</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    filename: str</span>
 <span class="sd">        The tag in the TBB filename identifying the files of the event.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># utc_timestamp_base = 1262304000  # Unix timestamp on Jan 1, 2010 (date -u --date &quot;Jan 1, 2010 00:00:00&quot; +&quot;%s&quot;)</span>
 
-    <span class="n">dt_object</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Technically speaking there is no such thing as an &quot;UTC timestamp&quot;. The Coordinated Universal Time (UTC)</span>
+<span class="sd">    is a time standard , which defines a reference for current time. It uses hours, minutes and seconds to</span>
+<span class="sd">    divide a day. Crucially, it allows for the introduction of leap seconds.</span>
+
+<span class="sd">    The UNIX timestamp on the other hand is defined as the number of **non-leap** seconds passed since</span>
+<span class="sd">    00:00:00 UTC on 1 January 1970. However, when a leap second occurs the UNIX timestamp is actually reset</span>
+<span class="sd">    (i.e. that same timestamp refers to two moments in time). As such, the UNIX timestamp remains</span>
+<span class="sd">    synchronised with the UTC time (except for the one second that is a leap second).</span>
+
+<span class="sd">    Note that astropy has support for leap seconds. During the day a leap seconds occurs, UNIX timestamps</span>
+<span class="sd">    are reported as floating point values (instead of the usual integers). Conversely, converting a UNIX</span>
+<span class="sd">    timestamp to a datetime will give a millisecond contribution. Though the seconds are still accounted</span>
+<span class="sd">    for as one would expect.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dt_object</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;unix&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">()</span>
     <span class="n">year</span> <span class="o">=</span> <span class="n">dt_object</span><span class="o">.</span><span class="n">year</span>
     <span class="n">month</span> <span class="o">=</span> <span class="n">dt_object</span><span class="o">.</span><span class="n">month</span>
     <span class="n">day</span> <span class="o">=</span> <span class="n">dt_object</span><span class="o">.</span><span class="n">day</span>
@@ -768,11 +795,95 @@
 
 
 
+<div class="viewcode-block" id="tbbID_to_nrrID">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.tbbID_to_nrrID">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tbbID_to_nrrID</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a TBB channel ID to the corresponding NRR channel ID given the antenna mode. This simply adds a &quot;9&quot; as</span>
+<span class="sd">    the fourth element of the channelID, if the antenna mode is &quot;LBA_inner&quot;. The function :func:`nrrID_to_tbbID`</span>
+<span class="sd">    can be used to do the opposite.</span>
+
+<span class="sd">    As of February 2024, this function only supports &quot;LBA_INNER&quot; and &quot;LBA_OUTER&quot; as possible antenna modes.</span>
+<span class="sd">    Note that the antenna mode is always converted to lowercase, so the comparison is case-insensitive (i.e.</span>
+<span class="sd">    &quot;LBA_inner&quot; and &quot;LBA_INNER&quot; are both recognised as the same antenna set).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    channel_id: str or int</span>
+<span class="sd">        TBB channel ID</span>
+<span class="sd">    mode: {&quot;LBA_inner&quot;, &quot;LBA_outer&quot;}</span>
+<span class="sd">        The antenna set for which to convert (case-insensitive).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    nrr_channel_id: str</span>
+<span class="sd">        The NuRadioReco channelID corresponding to the TBB channelID depending on whether the antenna mode</span>
+<span class="sd">        is &quot;lba_inner&quot; or &quot;lba_outer&quot;</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function encodes the convention used in the `LOFAR.json` detector description. For the inner LBA antennas,</span>
+<span class="sd">    a &quot;9&quot; was added as the fourth element of the channelID. However, the TBB files always use the same set of</span>
+<span class="sd">    channel IDs (i.e. the same channel ID refers to different physical antennas depending on the antenna set).</span>
+<span class="sd">    Given a channel ID from the TBB file and the antenna set, this function returns the channel ID of the</span>
+<span class="sd">    corresponding channel in the NRR Detector description.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># if channelID is integer, convert to string and fill it with zeroes at the beginning to get a string length of 9</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">channel_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;lba_outer&quot;</span><span class="p">:</span>  <span class="c1"># for LBA_outer, keep the zero on 4th position of string</span>
+        <span class="c1"># For safety, the string is overwritten here. But it should not be necessary</span>
+        <span class="n">nrr_channel_id</span> <span class="o">=</span> <span class="n">channel_id</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="n">channel_id</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+    <span class="k">elif</span> <span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;lba_inner&quot;</span><span class="p">:</span>  <span class="c1"># for LBA_inner, replace the fourth digit (zero) in the string with a 9</span>
+        <span class="n">nrr_channel_id</span> <span class="o">=</span> <span class="n">channel_id</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;9&#39;</span> <span class="o">+</span> <span class="n">channel_id</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a valid antenna mode - valid modes are LBA_inner and LBA_outer&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="n">nrr_channel_id</span> <span class="o">=</span> <span class="n">channel_id</span>  <span class="c1"># return the input channel ID if mode is invalid.</span>
+
+    <span class="k">return</span> <span class="n">nrr_channel_id</span></div>
+
+
+
+<div class="viewcode-block" id="nrrID_to_tbbID">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.nrrID_to_tbbID">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nrrID_to_tbbID</span><span class="p">(</span><span class="n">channel_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function does the opposite of :func:`tbbID_to_nrrID` . It returns the TBB channel ID given a NRR channel ID.</span>
+<span class="sd">    Following the convention used in the LOFAR detector description as of February 2024, this simply replaces the</span>
+<span class="sd">    fourth element of the channelID with a &quot;0&quot;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    channel_id: str or int</span>
+<span class="sd">        Channel ID</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tbb_channel_id: str</span>
+<span class="sd">        The TBB channelID corresponding to the NuRadioReco channelID</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    tbbID_to_nrrID : convert TBB channel ID to NRR channel ID</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># if channelID is integer, convert to string and fill it with zeroes at the beginning to get a string length of 9</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">channel_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+
+    <span class="n">tbb_channel_id</span> <span class="o">=</span> <span class="n">channel_id</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="n">channel_id</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>  <span class="c1"># replace fourth element with a 0</span>
+
+    <span class="k">return</span> <span class="n">tbb_channel_id</span></div>
+
+
+
 <div class="viewcode-block" id="getLOFARtraces">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">getLOFARtraces</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">tbb_h5_filename</span><span class="p">,</span> <span class="n">metadata_dir</span><span class="p">,</span> <span class="n">time_s</span><span class="p">,</span> <span class="n">time_ns</span><span class="p">,</span> <span class="n">trace_length_nbins</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">tbb_h5_filename</span><span class="p">,</span> <span class="n">metadata_dir</span><span class="p">,</span> <span class="n">time_s</span><span class="p">,</span> <span class="n">time_ns</span><span class="p">,</span> <span class="n">trace_length_nbins</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A Class to facilitate getting traces from LOFAR TBB HDF5 Files</span>
@@ -780,7 +891,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        time_s: int</span>
-<span class="sd">            Event trigger timestamp in UTC seconds</span>
+<span class="sd">            Event trigger timestamp in seconds</span>
 <span class="sd">        time_ns: int</span>
 <span class="sd">            Event trigger timestamp in ns past UTC second</span>
 <span class="sd">        trace_length_nbins : int</span>
@@ -810,7 +921,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tbb_file</span> <span class="o">=</span> <span class="n">rawTBBio</span><span class="o">.</span><span class="n">MultiFile_Dal1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_filename</span><span class="p">,</span> <span class="n">metadata_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_dir</span><span class="p">)</span>
         <span class="n">sample_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tbb_file</span><span class="o">.</span><span class="n">get_nominal_sample_number</span><span class="p">()</span>
         <span class="n">timestamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tbb_file</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span>
-        <span class="n">station_clock_offsets</span> <span class="o">=</span> <span class="n">rawTBBio_metadata</span><span class="o">.</span><span class="n">getClockCorrections</span><span class="p">(</span><span class="n">metadata_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_dir</span><span class="p">)</span>
+        <span class="n">station_clock_offsets</span> <span class="o">=</span> <span class="n">rawTBBio_metadata</span><span class="o">.</span><span class="n">getClockCorrections</span><span class="p">(</span>
+            <span class="n">metadata_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_dir</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">timestamp</span>
+        <span class="p">)</span>
         <span class="n">this_station_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tbb_file</span><span class="o">.</span><span class="n">get_station_name</span><span class="p">()</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting clock offset for station </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">this_station_name</span><span class="p">)</span>
@@ -823,7 +936,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">block_number</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_number_in_block</span> <span class="o">=</span> <span class="n">packet</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">alignment_shift</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">trace_length_nbins</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_number_in_block</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">trace_length_nbins</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_number_in_block</span>
         <span class="p">)</span>  <span class="c1"># minus sign, apparently...</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -837,6 +950,11 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">check_trace_quality</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check all traces recorded from the TBB against quality requirements.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        deviating_dipoles : set of str</span>
+<span class="sd">        dipoles_missing_counterpart : set of str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dipole_names</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tbb_file</span><span class="o">.</span><span class="n">get_antenna_names</span><span class="p">())</span>
 
@@ -911,7 +1029,6 @@
 
 
 
-<span class="c1"># TODO: make reader only read certain stations</span>
 <div class="viewcode-block" id="readLOFARData">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">readLOFARData</span><span class="p">:</span>
@@ -928,10 +1045,11 @@
 <span class="sd">    metadata_directory: Path-like str, default=&quot;/vol/astro7/lofar/vhecr/kratos/data/&quot;</span>
 <span class="sd">        The path to the directory containing the LOFAR metadata (antenna positions and timing calibrations).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">restricted_station_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tbb_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>  <span class="c1"># logging.getLogger(&#39;NuRadioReco.readLOFARData&#39;)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">tbb_dir</span> <span class="o">=</span> <span class="s1">&#39;/vol/astro3/lofar/vhecr/lora_triggered/data/&#39;</span> <span class="k">if</span> <span class="n">tbb_directory</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">tbb_directory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tbb_dir</span> <span class="o">=</span> <span class="s1">&#39;/vol/astro5/lofar/astro3/vhecr/lora_triggered/data/&#39;</span> <span class="k">if</span> <span class="n">tbb_directory</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">tbb_directory</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">json_dir</span> <span class="o">=</span> <span class="s1">&#39;/vol/astro7/lofar/kratos_files/json&#39;</span> <span class="k">if</span> <span class="n">json_directory</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">json_directory</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meta_dir</span> <span class="o">=</span> <span class="s1">&#39;/vol/astro7/lofar/vhecr/kratos/data/&#39;</span> <span class="k">if</span> <span class="n">metadata_directory</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">metadata_directory</span>
 
@@ -1004,13 +1122,46 @@
 <span class="sd">            1. station name</span>
 <span class="sd">            2. antenna set</span>
 <span class="sd">            3. tbb timestamp (seconds)</span>
-<span class="sd">            4. tbb timestamp (nanoseconds)</span>
+<span class="sd">            4. tbb timestamp (nanoseconds after last second)</span>
 <span class="sd">            5. station clock frequency (Hz)</span>
 <span class="sd">            6. positions of antennas</span>
 <span class="sd">            7. dipole IDs</span>
 <span class="sd">            8. calibration delays per dipole</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="readLOFARData.get_station_calibration_delays">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData.get_station_calibration_delays">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_calibration_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a dictionary of channel ids and their corresponding calibration delays,</span>
+<span class="sd">        to avoid misapplying the delays to the wrong channel. Also converts the list</span>
+<span class="sd">        of channel IDs pulled from the TBB metadata to their NRR channel ID counterpart.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_id : int</span>
+<span class="sd">            The station ID for which to get the calibration delays</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        station_calibration_delays : dict</span>
+<span class="sd">            Dictionary containing the NRR channel IDs as keys and the calibration delays as values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">station_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;CS</span><span class="si">{</span><span class="n">station_id</span><span class="si">:</span><span class="s2">03</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">station_calibration_delays</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span>
+                <span class="nb">map</span><span class="p">(</span>
+                    <span class="nb">int</span><span class="p">,</span>
+                    <span class="p">[</span><span class="n">tbbID_to_nrrID</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                     <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">]]</span>
+                <span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">station_calibration_delays</span></div>
 
 
 <div class="viewcode-block" id="readLOFARData.begin">
@@ -1042,17 +1193,35 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__lora_timestamp</span> <span class="o">=</span> <span class="n">lora_dict</span><span class="p">[</span><span class="s2">&quot;LORA&quot;</span><span class="p">][</span><span class="s2">&quot;utc_time_stamp&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__lora_timestamp_ns</span> <span class="o">=</span> <span class="n">lora_dict</span><span class="p">[</span><span class="s2">&quot;LORA&quot;</span><span class="p">][</span><span class="s2">&quot;time_stamp_ns&quot;</span><span class="p">]</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lora_timestamp</span> <span class="o">!=</span> <span class="n">LOFAR_event_id_to_unix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__event_id</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LORA timestamp </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__lora_timestamp</span><span class="si">}</span><span class="s2"> does not match event ID </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__event_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="c1"># Read in data from LORA file and save it in a HybridShower</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">hybrid_shower</span><span class="o">.</span><span class="n">HybridShower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span>
 
+        <span class="c1"># Read in zenith and azimuth -&gt; make sure they are in range [-pi, pi]</span>
+        <span class="n">zenith</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">lora_dict</span><span class="p">[</span><span class="s2">&quot;LORA&quot;</span><span class="p">][</span><span class="s2">&quot;zenith_rad&quot;</span><span class="p">],</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">azimuth</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">lora_dict</span><span class="p">[</span><span class="s2">&quot;LORA&quot;</span><span class="p">][</span><span class="s2">&quot;azimuth_rad&quot;</span><span class="p">],</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+        <span class="c1"># Read in core position reconstruction from LORA</span>
+        <span class="n">core_pos_x</span> <span class="o">=</span> <span class="n">lora_dict</span><span class="p">[</span><span class="s2">&quot;LORA&quot;</span><span class="p">][</span><span class="s2">&quot;core_x_m&quot;</span><span class="p">]</span>
+        <span class="n">core_pos_y</span> <span class="o">=</span> <span class="n">lora_dict</span><span class="p">[</span><span class="s2">&quot;LORA&quot;</span><span class="p">][</span><span class="s2">&quot;core_y_m&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Read in energy estimate from LORA</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">lora_dict</span><span class="p">[</span><span class="s2">&quot;LORA&quot;</span><span class="p">][</span><span class="s2">&quot;energy_GeV&quot;</span><span class="p">]</span>
+        
         <span class="c1"># The LORA coordinate system has x pointing East -&gt; set this through magnetic field vector (values from 2015)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">,</span>
                                            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.004675</span><span class="p">,</span> <span class="mf">0.186270</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.456412</span><span class="p">]))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">,</span> <span class="n">lora_dict</span><span class="p">[</span><span class="s2">&quot;LORA&quot;</span><span class="p">][</span><span class="s2">&quot;zenith_rad&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">radian</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">,</span> <span class="n">lora_dict</span><span class="p">[</span><span class="s2">&quot;LORA&quot;</span><span class="p">][</span><span class="s2">&quot;azimuth_rad&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">radian</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">,</span> <span class="n">zenith</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">radian</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">,</span> <span class="n">azimuth</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">radian</span><span class="p">)</span>
 
+        <span class="c1"># Add LORA core and energy to parameters. The z-Position of the core is always at 7.6m for LOFAR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">core</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">core_pos_x</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">core_pos_y</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mf">7.6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span> <span class="n">energy</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span><span class="p">)</span>
+        
         <span class="c1"># Go through TBB directory and identify all files for this event</span>
-        <span class="n">tbb_filename_pattern</span> <span class="o">=</span> <span class="n">tbb_filetag_from_utc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__event_id</span> <span class="o">+</span> <span class="mi">1262304000</span><span class="p">)</span>  <span class="c1"># event id is based on timestamp</span>
+        <span class="n">tbb_filename_pattern</span> <span class="o">=</span> <span class="n">tbb_filetag_from_unix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__lora_timestamp</span><span class="p">)</span>
 
         <span class="n">tbb_filename_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tbb_dir</span> <span class="o">+</span> <span class="s2">&quot;/*&quot;</span> <span class="o">+</span> <span class="n">tbb_filename_pattern</span> <span class="o">+</span> <span class="s2">&quot;*.h5&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Looking for files with </span><span class="si">{</span><span class="n">tbb_filename_pattern</span><span class="si">}</span><span class="s1">...&#39;</span><span class="p">)</span>
@@ -1062,15 +1231,23 @@
         <span class="c1"># TODO: save paths of files per event in some kind of database</span>
 
         <span class="k">for</span> <span class="n">tbb_filename</span> <span class="ow">in</span> <span class="n">all_tbb_files</span><span class="p">:</span>
-            <span class="n">station_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;CS\d\d\d&quot;</span><span class="p">,</span> <span class="n">tbb_filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">station_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;CS\d\d\d&quot;</span><span class="p">,</span> <span class="n">tbb_filename</span><span class="p">)</span>
+            <span class="n">station_name</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">station_name</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># Get the first entry, if the list is not empty -&gt; defaults to None</span>
+            <span class="k">if</span> <span class="n">station_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;TBB file </span><span class="si">{</span><span class="n">tbb_filename</span><span class="si">}</span><span class="s1"> is for remote station, skipping...&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
             <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__restricted_station_set</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">station_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__restricted_station_set</span><span class="p">):</span>
-                <span class="k">continue</span> <span class="c1"># only process stations in the given set</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Found file </span><span class="si">{</span><span class="n">tbb_filename</span><span class="si">}</span><span class="s1"> for station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s1">...&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>  <span class="c1"># only process stations in the given set</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">&#39;files&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tbb_filename</span><span class="p">)</span>
 
-            <span class="c1"># Save the metadata only once (in case there are multiple files for a station)</span>
-            <span class="k">if</span> <span class="s1">&#39;metadata&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station_name</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_metadata</span><span class="p">([</span><span class="n">tbb_filename</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta_dir</span><span class="p">)</span></div>
+        <span class="c1"># Save the metadata after all files for a station have been found</span>
+        <span class="c1"># TODO: make metadata a dictionary</span>
+        <span class="k">for</span> <span class="n">station_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">:</span>
+            <span class="n">station_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">&#39;files&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Found files </span><span class="si">{</span><span class="n">station_files</span><span class="si">}</span><span class="s1"> for station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s1">...&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_metadata</span><span class="p">(</span><span class="n">station_files</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta_dir</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="readLOFARData.run">
@@ -1079,9 +1256,10 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">trace_length</span><span class="o">=</span><span class="mi">65536</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Runs the reader with the provided detector. For every station that has files associated with it, a Station</span>
-<span class="sd">        object is created together with its channels (pulled from the detector description). Every channel also gets</span>
-<span class="sd">        a group ID which corresponds to the polarisation (i.e. 0 for even and 1 for odd), as to be able to retrieve</span>
-<span class="sd">        all channels per polarisation during processing.</span>
+<span class="sd">        object is created together with its channels (pulled from the detector description, depending on the antenna</span>
+<span class="sd">        set (LBA_OUTER/INNER)). Every channel also gets a group ID which is retrieved from the Detector description.</span>
+<span class="sd">        For LOFAR we use the integer value of the even dipole number, so channels &#39;001000000&#39; and &#39;001000001&#39;,</span>
+<span class="sd">        which are the two dipoles composing one physical antenna, both get group ID 1000000.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1101,6 +1279,10 @@
         <span class="c1"># Add HybridShower to HybridInformation</span>
         <span class="n">evt</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">add_hybrid_shower</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower</span><span class="p">)</span>
 
+        <span class="c1"># update the detector to the event time</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__lora_timestamp</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;unix&#39;</span><span class="p">)</span>
+        <span class="n">detector</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
         <span class="c1"># Add all Detector stations to Event</span>
         <span class="k">for</span> <span class="n">station_name</span><span class="p">,</span> <span class="n">station_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">station_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">station_name</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
@@ -1109,9 +1291,11 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
 
+            <span class="c1"># The metadata is only defined if there are files in the station</span>
+            <span class="n">antenna_set</span> <span class="o">=</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
             <span class="n">station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
-            <span class="n">radio_shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">radio_shower</span><span class="o">.</span><span class="n">RadioShower</span><span class="p">(</span><span class="n">shower_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span>
-                                                                          <span class="n">station_ids</span><span class="o">=</span><span class="p">[</span><span class="n">station_id</span><span class="p">])</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
 
             <span class="c1"># Use KRATOS io functions to access trace</span>
             <span class="n">lofar_trace_access</span> <span class="o">=</span> <span class="n">getLOFARtraces</span><span class="p">(</span>
@@ -1126,38 +1310,84 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Channels deviating: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">channels_deviating</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Channels no counterpart: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">channels_missing_counterpart</span><span class="p">)</span>
 
-            <span class="c1"># done here as it needs median timing values over all traces in the station</span>
-            <span class="n">flagged_channel_ids</span> <span class="o">=</span> <span class="n">channels_deviating</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">channels_missing_counterpart</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">flagged_channel_ids</span><span class="p">:</span>
-                    <span class="k">continue</span>                 
+            <span class="c1"># empty set to add the NRR flagged channel IDs to</span>
+            <span class="n">flagged_nrr_channel_ids</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+            <span class="n">flagged_nrr_channel_group_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># keep track of channel group IDs to remove</span>
+
+            <span class="c1"># Get the list of all dipole names which are present in the TTB file</span>
+            <span class="c1"># This avoids issues when a TBB file would not contain all channels</span>
+            <span class="n">channel_tbb_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="mi">6</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;These channels are present in the TBB file: </span><span class="si">{</span><span class="n">channel_tbb_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">TBB_channel_id</span> <span class="ow">in</span> <span class="n">channel_tbb_ids</span><span class="p">:</span>
+                <span class="c1"># convert TBB ID to NRR equivalent based on antenna set to be able to access trace</span>
+                <span class="n">channel_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tbbID_to_nrrID</span><span class="p">(</span><span class="n">TBB_channel_id</span><span class="p">,</span> <span class="n">antenna_set</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">TBB_channel_id</span> <span class="ow">in</span> <span class="n">channels_deviating</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> was flagged at read-in, &quot;</span>
+                                       <span class="sa">f</span><span class="s2">&quot;not adding to station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">flagged_nrr_channel_ids</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;reader_deviating_channel&quot;</span><span class="p">)</span>
+                    <span class="n">flagged_nrr_channel_group_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">detector</span><span class="o">.</span><span class="n">get_channel_group_id</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">))</span>
+                    <span class="k">continue</span>
+                <span class="k">elif</span> <span class="n">TBB_channel_id</span> <span class="ow">in</span> <span class="n">channels_missing_counterpart</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> was flagged at read-in, &quot;</span>
+                                       <span class="sa">f</span><span class="s2">&quot;not adding to station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">flagged_nrr_channel_ids</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;reader_channel_missing_counterpart&quot;</span><span class="p">)</span>
+                    <span class="n">flagged_nrr_channel_group_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">detector</span><span class="o">.</span><span class="n">get_channel_group_id</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">))</span>
+                    <span class="k">continue</span>
 
                 <span class="c1"># read in trace, see if that works. Needed or overly careful?</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">this_trace</span> <span class="o">=</span> <span class="n">lofar_trace_access</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">9</span><span class="p">))</span>  <span class="c1"># channel ID is 9 digits</span>
-                <span class="k">except</span><span class="p">:</span>  <span class="c1"># FIXME: Too general except statement</span>
-                    <span class="n">flagged_channel_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>                    
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not read data for channel id </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">channel_id</span><span class="p">)</span>
+                    <span class="n">this_trace</span> <span class="o">=</span> <span class="n">lofar_trace_access</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(</span><span class="n">TBB_channel_id</span><span class="p">)</span>  <span class="c1"># TBB_channel_id is str of 9 digits</span>
+                <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not read data for channel id </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">flagged_nrr_channel_ids</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;reader_trace_error&quot;</span><span class="p">)</span>
+                    <span class="n">flagged_nrr_channel_group_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">detector</span><span class="o">.</span><span class="n">get_channel_group_id</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">))</span>
                     <span class="k">continue</span>
 
-                <span class="c1"># The channel_group_id should be interpreted as an antenna index</span>
-                <span class="c1"># dipoles &#39;001000000&#39; and &#39;001000001&#39; -&gt; &#39;a1000000&#39;</span>
-                <span class="c1"># TODO: implement channel_group_id as parameter in Detector file</span>
-                <span class="n">channel_group</span> <span class="o">=</span> <span class="s1">&#39;a&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">channel_id</span> <span class="o">-</span> <span class="n">channel_id</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span>
-                
+                <span class="c1"># The channel_group_id should be interpreted as an antenna index (e.g. like &#39;a1000000&#39; which</span>
+                <span class="c1"># was used in PyCRTools). The group ID is pulled from the Detector description.</span>
+                <span class="c1"># Example: dipoles &#39;001000000&#39; (NRR ID 1000000) and &#39;001000001&#39; (NRR ID 1000001)</span>
+                <span class="c1"># both get group ID 1000000</span>
+                <span class="n">channel_group</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_channel_group_id</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+
                 <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">channel_group_id</span><span class="o">=</span><span class="n">channel_group</span><span class="p">)</span>
                 <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">this_trace</span><span class="p">,</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">)</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
-            <span class="c1"># store set of flagged channel ids as station parameter</span>
-            <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">flagged_channels</span><span class="p">,</span> <span class="n">flagged_channel_ids</span><span class="p">)</span>
+            <span class="c1"># Check both channels from the flagged group IDs are removed from station</span>
+            <span class="c1"># This is needed because when a trace read in fails, the counterpart is not automatically removed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Flagged channel group IDs: </span><span class="si">{</span><span class="n">flagged_nrr_channel_group_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">channels_to_remove</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># cannot remove channel in loop, so store them and delete after</span>
+            <span class="k">for</span> <span class="n">channel_group_id</span> <span class="ow">in</span> <span class="n">flagged_nrr_channel_group_ids</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channel_group</span><span class="p">(</span><span class="n">channel_group_id</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Removing channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> with group ID </span><span class="si">{</span><span class="n">channel_group_id</span><span class="si">}</span><span class="s2"> &quot;</span>
+                                           <span class="sa">f</span><span class="s2">&quot;from station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">channels_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="c1"># The channel_group_id not longer present in the station</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Both channels of group ID </span><span class="si">{</span><span class="n">channel_group_id</span><span class="si">}</span><span class="s2"> were already removed &quot;</span>
+                                      <span class="sa">f</span><span class="s2">&quot;from station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="c1"># Add station to Event, together with RadioShower to store reconstruction values later on</span>
+            <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels_to_remove</span><span class="p">:</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">remove_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+                <span class="n">flagged_nrr_channel_ids</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;reader_removed_group_id&quot;</span><span class="p">)</span>
+
+            <span class="c1"># store set of flagged nrr channel ids as station parameter</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">flagged_channels</span><span class="p">,</span> <span class="n">flagged_nrr_channel_ids</span><span class="p">)</span>
+
+            <span class="c1"># Add station to Event</span>
             <span class="n">evt</span><span class="o">.</span><span class="n">set_station</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
-            <span class="n">evt</span><span class="o">.</span><span class="n">add_shower</span><span class="p">(</span><span class="n">radio_shower</span><span class="p">)</span>
 
             <span class="n">lofar_trace_access</span><span class="o">.</span><span class="n">close_file</span><span class="p">()</span>
-
+            
+        <span class="c1"># Add general event radio shower to event to store reconstruction values later</span>
+        <span class="n">radio_shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">radio_shower</span><span class="o">.</span><span class="n">RadioShower</span><span class="p">(</span>
+            <span class="n">shower_id</span><span class="o">=</span><span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">station_ids</span><span class="o">=</span><span class="n">evt</span><span class="o">.</span><span class="n">get_station_ids</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">evt</span><span class="o">.</span><span class="n">add_shower</span><span class="p">(</span><span class="n">radio_shower</span><span class="p">)</span>
         <span class="k">yield</span> <span class="n">evt</span></div>
 
 

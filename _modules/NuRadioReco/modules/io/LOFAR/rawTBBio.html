@@ -914,8 +914,8 @@
                 <span class="n">dif</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span>
                     <span class="n">TBB_ITRF_dipole_positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ITRF_dipole_positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                 <span class="p">)</span>
-                <span class="k">if</span> <span class="n">dif</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="k">if</span> <span class="n">dif</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">use_TBB_positions</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;Station </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">StationName</span><span class="si">}</span><span class="s2"> has suspicious antenna locations. Using metadata instead&quot;</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="n">use_TBB_positions</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1111,6 +1111,12 @@
 
         <span class="n">initial_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_offsets</span><span class="p">[</span><span class="n">antenna_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">start_index</span>
         <span class="n">final_point</span> <span class="o">=</span> <span class="n">initial_point</span> <span class="o">+</span> <span class="n">num_points</span>
+
+        <span class="k">if</span> <span class="n">final_point</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span>
+                <span class="s2">&quot;Data point&quot;</span><span class="p">,</span> <span class="n">final_point</span><span class="p">,</span>
+                <span class="s2">&quot;is off end of file with length&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">]),</span>
+            <span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">][</span><span class="n">initial_point</span><span class="p">:</span><span class="n">final_point</span><span class="p">]</span></div>
 </div>
@@ -1398,19 +1404,19 @@
         <span class="n">odd_delays</span> <span class="o">=</span> <span class="n">all_antenna_calibrations</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">odd_offset</span> <span class="o">=</span> <span class="n">odd_delays</span> <span class="o">-</span> <span class="n">even_delays</span>
         <span class="n">median_odd_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">odd_offset</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;median offset is:&quot;</span><span class="p">,</span> <span class="n">median_odd_offset</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;median offset is:&quot;</span><span class="p">,</span> <span class="n">median_odd_offset</span><span class="p">)</span>
+
         <span class="n">below_tolerance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">odd_offset</span> <span class="o">-</span> <span class="n">median_odd_offset</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tolerance</span>
-        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">below_tolerance</span><span class="p">),</span>
-                <span class="s2">&quot;antennas below tolerance.&quot;</span><span class="p">,</span>
-                <span class="nb">len</span><span class="p">(</span><span class="n">below_tolerance</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">below_tolerance</span><span class="p">),</span>
-                <span class="s2">&quot;above.&quot;</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">below_tolerance</span><span class="p">),</span>
+            <span class="s2">&quot;antennas below tolerance.&quot;</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">below_tolerance</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">below_tolerance</span><span class="p">),</span>
+            <span class="s2">&quot;above.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
         <span class="n">ave_best_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">odd_offset</span><span class="p">[</span><span class="n">below_tolerance</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;average of below-tolerance offset is:&quot;</span><span class="p">,</span> <span class="n">ave_best_offset</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;average of below-tolerance offset is:&quot;</span><span class="p">,</span> <span class="n">ave_best_offset</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">set_odd_polarization_delay</span><span class="p">(</span><span class="o">-</span><span class="n">ave_best_offset</span><span class="p">)</span>
 
         <span class="n">above_tolerance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_antenna_calibrations</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
@@ -1730,11 +1736,9 @@
         <span class="n">antenna_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dipoleNames</span><span class="p">[</span><span class="n">antenna_index</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">final_point</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">]):</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="s2">&quot;WARNING! data point&quot;</span><span class="p">,</span>
-                <span class="n">final_point</span><span class="p">,</span>
-                <span class="s2">&quot;is off end of file&quot;</span><span class="p">,</span>
-                <span class="nb">len</span><span class="p">(</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">]),</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span>
+                <span class="s2">&quot;Data point&quot;</span><span class="p">,</span> <span class="n">final_point</span><span class="p">,</span>
+                <span class="s2">&quot;is off end of file with length&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">]),</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">TBB_file</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">TBB_file</span><span class="o">.</span><span class="n">stationKey</span><span class="p">][</span><span class="n">antenna_ID</span><span class="p">][</span><span class="n">initial_point</span><span class="p">:</span><span class="n">final_point</span><span class="p">]</span></div>

@@ -1,0 +1,7 @@
+NuRadioReco.modules.LOFAR.hardwareResponseIncorporator module
+=============================================================
+
+.. automodule:: NuRadioReco.modules.LOFAR.hardwareResponseIncorporator
+   :members:
+   :undoc-members:
+   :show-inheritance:

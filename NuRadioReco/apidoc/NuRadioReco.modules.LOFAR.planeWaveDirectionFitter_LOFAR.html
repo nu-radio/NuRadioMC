@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.channelGalacticNoiseAdder module &mdash; NuRadio 2.3.0-dev documentation</title>
+  <title>NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR module &mdash; NuRadio 2.3.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -20,8 +20,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.channelGenericNoiseAdder module" href="NuRadioReco.modules.channelGenericNoiseAdder.html" />
-    <link rel="prev" title="NuRadioReco.modules.channelCWNotchFilter module" href="NuRadioReco.modules.channelCWNotchFilter.html" /> 
+    <link rel="next" title="NuRadioReco.modules.LOFAR.stationGalacticCalibrator module" href="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.html" />
+    <link rel="prev" title="NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR module" href="NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -283,10 +283,10 @@
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="NuRadioReco.modules.html">NuRadioReco.modules package</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
+<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
@@ -299,14 +299,14 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
 </ul>
 </li>
-<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.analogToDigitalConverter.html">NuRadioReco.modules.analogToDigitalConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.beamFormingDirectionFitter.html">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelAddCableDelay.html">NuRadioReco.modules.channelAddCableDelay module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelAntennaDedispersion.html">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelBandPassFilter.html">NuRadioReco.modules.channelBandPassFilter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelCWNotchFilter.html">NuRadioReco.modules.channelCWNotchFilter module</a></li>
-<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
@@ -609,9 +609,10 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.channelGalacticNoiseAdder module</li>
+          <li class="breadcrumb-item"><a href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -619,54 +620,89 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.channelGalacticNoiseAdder">
-<span id="nuradioreco-modules-channelgalacticnoiseadder-module"></span><h1>NuRadioReco.modules.channelGalacticNoiseAdder module<a class="headerlink" href="#module-NuRadioReco.modules.channelGalacticNoiseAdder" title="Link to this heading"></a></h1>
+  <section id="module-NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR">
+<span id="nuradioreco-modules-lofar-planewavedirectionfitter-lofar-module"></span><h1>NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR module<a class="headerlink" href="#module-NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR" title="Link to this heading"></a></h1>
+<p>This module has been adapted from pycrtools.modules.tasks.directionfitplanewave and
+NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.average_direction">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.</span></span><span class="sig-name descname"><span class="pre">average_direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'normal'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/planeWaveDirectionFitter_LOFAR.html#average_direction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.average_direction" title="Link to this definition"></a></dt>
+<dd><p>Calculate the average direction for an event based on the plane wave directions of the individual stations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>event</strong><span class="classifier">Event object</span></dt><dd><p>The event for which to calculate the average direction.</p>
+</dd>
+<dt><strong>detector</strong><span class="classifier">Detector object</span></dt><dd><p>The detector for which to calculate the average direction.</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str, default=’normal’</span></dt><dd><p>The mode to use for the calculation. Can be ‘normal’ (just raw mean) or ‘weighted’
+(with number of good antennas as weight per station).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>avg_zenith</strong><span class="classifier">float</span></dt><dd><p>The average zenith angle for the event.</p>
+</dd>
+<dt><strong>avg_azimuth</strong><span class="classifier">float</span></dt><dd><p>The average azimuth angle for the event.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelGalacticNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">channelGalacticNoiseAdder</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.</span></span><span class="sig-name descname"><span class="pre">planeWaveDirectionFitter</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/planeWaveDirectionFitter_LOFAR.html#planeWaveDirectionFitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Class that simulates the noise produced by galactic radio emission
-Uses the pydgsm package (<a class="reference external" href="https://github.com/telegraphic/pygdsm">https://github.com/telegraphic/pygdsm</a>), which provides
-radio background data based on Oliveira-Costa et al. (2008) (<a class="reference external" href="https://arxiv.org/abs/0802.1525">https://arxiv.org/abs/0802.1525</a>)
-and Zheng et al. (2016) (<a class="reference external" href="https://arxiv.org/abs/1605.04920">https://arxiv.org/abs/1605.04920</a>)</p>
-<p>The radio sky model is evaluated on a number of points above the horizon
-folded with the antenna response. Since evaluating every frequency individually
-would be too slow, the model is evaluated for a few frequencies and the log10
-of the brightness temperature is interpolated in between.</p>
+<p>Fits the direction per station using timing differences of channels under the assumption of an incoming plane wave.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([skymodel, debug, n_side, freq_range])</p></td>
-<td><p>Set up important parameters for the module</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.begin" title="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([max_iter, cr_snr, min_amp, ...])</p></td>
+<td><p>Set the parameters for the plane wave fit.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, passband])</p></td>
-<td><p>Adds noise resulting from galactic radio emission to the channel traces</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.debug_plots" title="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.debug_plots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">debug_plots</span></code></a>(event, expected_delays, ...)</p></td>
+<td><p>Create debug plots for the plane wave fit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.run" title="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, detector)</p></td>
+<td><p>Run the plane wave fit for the given event and detector.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>end</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skymodel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_side</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="Link to this definition"></a></dt>
-<dd><p>Set up important parameters for the module</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cr_snr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmsfactor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_horizontal_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_number_good_antennas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/planeWaveDirectionFitter_LOFAR.html#planeWaveDirectionFitter.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.begin" title="Link to this definition"></a></dt>
+<dd><p>Set the parameters for the plane wave fit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>debug: bool, default: False</strong></dt><dd><p>It True, debug plots will be shown</p>
+<dt><strong>max_iter</strong><span class="classifier">int, default=10</span></dt><dd><p>The maximum number of iterations to use during the fitting procedure.</p>
 </dd>
-<dt><strong>skymodel: {‘lfmap’, ‘lfss’, ‘gsm2016’, ‘haslam’, ‘ssm’, ‘gmoss’, ‘ulsa_fdi’, ‘ulsa_dpi’, ‘ulsa_ci’}, optional</strong></dt><dd><p>Choose the sky model to use. If none is provided, the Global Sky Model (2008) is used as a default.</p>
+<dt><strong>cr_snr</strong><span class="classifier">float, default=3</span></dt><dd><p>The minimum SNR a channel should have to be considered having a cosmic ray signal.
+Ignored if min_amp is not None.</p>
 </dd>
-<dt><strong>n_side: int, default: 4</strong></dt><dd><p>The n_side parameter of the healpix map. Has to be power of 2
-The radio skymap is downsized to the resolution specified by the n_side
-parameter and for every pixel above the horizon the radio noise coming
-from that direction is calculated. The number of pixels used is
-12 * n_side ** 2, so a larger value for n_side will result better accuracy
-but also greatly increase computing time.</p>
+<dt><strong>min_amp</strong><span class="classifier">float, default=0.001</span></dt><dd><p>The minimum amplitude a channel should have to be considered having a cosmic ray signal.
+Set to None if you want to use the SNR instead.</p>
 </dd>
-<dt><strong>freq_range: array of len=2, default: [30, 80] * units.MHZ</strong></dt><dd><p>The sky brightness temperature will be evaluated for the frequencies
-within this limit. Brightness temperature for frequencies in between are
-calculated by interpolation the log10 of the temperature
-The interpolation_frequencies have to cover the entire passband
-specified in the run method.</p>
+<dt><strong>rmsfactor</strong><span class="classifier">float, default=2.0</span></dt><dd><p>How many sigma (times RMS) above the average can a delay deviate from the expected timelag
+(from latest fit iteration) before it is considered bad and removed as outlier.</p>
+</dd>
+<dt><strong>force_horizontal_array</strong><span class="classifier">bool, default=True</span></dt><dd><p>Set to True when you know the array is non-horizontal (z &gt; 0.5) but want to use the
+horizontal approximation anyway. Recommended to set to True.</p>
+</dd>
+<dt><strong>debug</strong><span class="classifier">bool, default=False</span></dt><dd><p>Set to True to enable debug plots.</p>
+</dd>
+<dt><strong>logger_level</strong><span class="classifier">int, default=logging.WARNING</span></dt><dd><p>The logging level to use for the module.</p>
+</dd>
+<dt><strong>min_number_good_antennas</strong><span class="classifier">int, default=4</span></dt><dd><p>The minimum number of good antennas that should be present in a station to consider it for the fit.</p>
 </dd>
 </dl>
 </dd>
@@ -674,25 +710,31 @@ specified in the run method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run" title="Link to this definition"></a></dt>
-<dd><p>Adds noise resulting from galactic radio emission to the channel traces</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/planeWaveDirectionFitter_LOFAR.html#planeWaveDirectionFitter.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.run" title="Link to this definition"></a></dt>
+<dd><p>Run the plane wave fit for the given event and detector.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>event: Event object</strong></dt><dd><p>The event containing the station to whose channels noise shall be added</p>
+<dt><strong>event</strong><span class="classifier">Event object</span></dt><dd><p>The event for which to run the plane wave fit.</p>
 </dd>
-<dt><strong>station: Station object</strong></dt><dd><p>The station whose channels noise shall be added to</p>
-</dd>
-<dt><strong>detector: Detector object</strong></dt><dd><p>The detector description</p>
-</dd>
-<dt><strong>passband: list of float</strong></dt><dd><p>Lower and upper bound of the frequency range in which noise shall be
-added</p>
+<dt><strong>detector</strong><span class="classifier">Detector object</span></dt><dd><p>The detector for which to run the plane wave fit.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.debug_plots">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">debug_plots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_delays</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">good_antennas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residual_delays</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/planeWaveDirectionFitter_LOFAR.html#planeWaveDirectionFitter.debug_plots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.debug_plots" title="Link to this definition"></a></dt>
+<dd><p>Create debug plots for the plane wave fit.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/planeWaveDirectionFitter_LOFAR.html#planeWaveDirectionFitter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.end" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -702,8 +744,8 @@ added</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.channelCWNotchFilter.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.channelCWNotchFilter module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.channelGenericNoiseAdder.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.channelGenericNoiseAdder module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.LOFAR.stationGalacticCalibrator.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.LOFAR.stationGalacticCalibrator module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
