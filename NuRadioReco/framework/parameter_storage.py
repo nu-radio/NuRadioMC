@@ -64,17 +64,18 @@ class ParameterStorage:
         data = {
             "_parameters": parameters,
             "_parameter_covariances": parameter_covariances,
-            "_parameter_types": [parameter_type.__name__ for parameter_type in self._parameter]
+            "_parameter_types": [parameter_type.__name__ for parameter_type in self._parameter_types]
         }
 
         return data
 
 
-    def deserialize(data):
+    def deserialize(self, data):
         parameters = data["_parameters"]
         parameter_covariances = data.get("_parameter_covariances", {})
         if "_parameter_types" in data:
-            parameter_types = [parameters.__dict__[parameter_type] for parameter_type in data["_parameter_types"]]
+            parameter_types = [NuRadioReco.framework.parameters.__dict__[parameter_type]
+                               for parameter_type in data["_parameter_types"]]
         else:
             parameter_types = self._parameter_types
 
@@ -86,4 +87,4 @@ class ParameterStorage:
             if len(parameter_covariances):
                 for key in itertools.product(parameter_type, parameter_type):
                     if (str(key[0]), str(key[1])) in parameter_covariances:
-                        self._parameter_covariances[key] = target_object[(str(key[0]), str(key[1]))]
+                        self._parameter_covariances[key] = parameter_covariances[(str(key[0]), str(key[1]))]

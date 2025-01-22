@@ -514,7 +514,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
 
-        data.upadte({
+        data.update({
             '__run_number': self.__run_number,
             '_id': self._id,
             '__event_time': self.__event_time,

@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-import NuRadioReco.framework.parameters.showerParameters as showerParameters
+from NuRadioReco.framework.parameters import showerParameters
 import NuRadioReco.framework.parameter_storage
 from radiotools import helper as hp, coordinatesystems
 import pickle
