@@ -628,6 +628,28 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     return weights
 
 
+def set_fluence_of_efields(function, sim_station, quantity=efp.signal_energy_fluence):
+    """
+    This helper function is used to set the fluence quantity of all electric fields in a SimStation.
+    Use this to calculate the fluences to use for interpolation.
+
+    One option to use as `function` is `trace_utilities.get_electric_field_energy_fluence()`.
+
+    Parameters
+    ----------
+    function: callable
+        The function to apply to the traces in order to calculate the fluence. Should take in a (3, n_samples) shaped
+        array and return a float (or an array with 3 elements if you want the fluence per polarisation).
+    sim_station: SimStation
+        The simulated station object
+    quantity: electric field parameter, default=efp.signal_energy_fluence
+        The parameter where to store the result of the fluence calculation
+    """
+    for electric_field in sim_station.get_electric_fields():
+        fluence = function(electric_field.get_trace())
+        electric_field.set_parameter(quantity, fluence)
+
+
 class coreasInterpolator:
     """
     This class provides an interface to interpolate the electric field traces, as for example provided
@@ -784,10 +806,9 @@ class coreasInterpolator:
 
     def initialize_efield_interpolator(self, interp_lowfreq, interp_highfreq, **kwargs):
         """
-        Initialise the efield interpolator.
-
-        The efield will be interpolated in the shower plane for
-        geometrical reasons. If the geomagnetic angle is smaller than 15deg, no interpolator object is returned.
+        Initialise the efield interpolator and return it (it is also stored as the `efield_interpolator` attribute
+        of the class). If the geomagnetic angle is smaller than 15deg, no interpolator object is returned and the
+        attribute is set to -1.
 
         Parameters
         ----------
@@ -834,8 +855,12 @@ class coreasInterpolator:
             self.efield_interpolator = -1
         else:
             logger.info(
-                f'electric field interpolation with lowfreq {interp_lowfreq / units.MHz} MHz '
-                f'and highfreq {interp_highfreq / units.MHz} MHz')
+                f'Initialising electric field interpolator with lowfreq {interp_lowfreq / units.MHz} MHz '
+                f'and highfreq {interp_highfreq / units.MHz} MHz'
+            )
+            logger.debug(
+                f'The following interpolation settings are used: {interp_options}'
+            )
 
             self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
                 self.obs_positions_showerplane[:, 0],
@@ -854,14 +879,15 @@ class coreasInterpolator:
 
     def initialize_fluence_interpolator(self, quantity=efp.signal_energy_fluence, **kwargs):
         """
-        Initialise fluence interpolator.
+        Initialise fluence interpolator, using the values stored in the `quantity` parameter of the electric
+        fields.
 
         Parameters
         ----------
-        quantity : electric field parameter
-            quantity to interpolate, e.g. efp.signal_energy_fluence
-            The quantity needs to be available as parameter in the electric field object!!! You might
-            need to run the electricFieldSignalReconstructor. The default is efp.signal_energy_fluence.
+        quantity : electric field parameter, default=efp.signal_energy_fluence
+            The quantity to get the values from which are fed to the interpolator. It needs to be available
+            as parameter in the electric field object! You can use the `set_fluence_of_efields()` function to
+            set this value for all electric fields.
         **kwargs: options to pass on to the `interp2d_fourier` class
             Default values are:
 
@@ -884,7 +910,9 @@ class coreasInterpolator:
             np.sum(efield[quantity]) for efield in self.sim_station.get_electric_fields()
         ]  # the fluence is calculated per polarization, so we need to sum them up
 
-        logger.info(f'fluence interpolation')
+        logger.info(f'Initialising fluence interpolator')
+        logger.debug(f'The following interpolation settings are used: {interp_options}')
+
         self.fluence_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
             self.obs_positions_showerplane[:, 0],
             self.obs_positions_showerplane[:, 1],
