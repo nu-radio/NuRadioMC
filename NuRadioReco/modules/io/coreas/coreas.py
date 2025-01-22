@@ -781,7 +781,7 @@ class coreasInterpolator:
         else:
             return np.zeros_like(self.electric_field_on_sky[0, :, :])
 
-    def initialize_efield_interpolator(self, interp_lowfreq, interp_highfreq):
+    def initialize_efield_interpolator(self, interp_lowfreq, interp_highfreq, **kwargs):
         """
         Initialise the efield interpolator.
 
@@ -794,6 +794,16 @@ class coreasInterpolator:
             Lower frequency for the bandpass filter in interpolation (in internal units)
         interp_highfreq : float
             Upper frequency for the bandpass filter in interpolation (in internal units)
+        **kwargs : options to pass on to the `interp2d_signal` class
+            Default values are:
+
+            - phase_method : 'phasor'
+            - radial_method : 'cubic'
+            - upsample_factor : 5
+            - coherency_cutoff_threshold : 0.9
+            - allow_extrapolation : False
+            - ignore_cutoff_freq_in_timing : False
+            - verbose : False
 
         Returns
         -------
@@ -802,6 +812,16 @@ class coreasInterpolator:
         """
         self.interp_lowfreq = interp_lowfreq
         self.interp_highfreq = interp_highfreq
+        interp_options_default = {
+            "phase_method" : "phasor",
+            "radial_method" : 'cubic',
+            "upsample_factor" : 5,
+            "coherency_cutoff_threshold" : 0.9,
+            "allow_extrapolation" : False,
+            "ignore_cutoff_freq_in_timing" : False,
+            "verbose" : False
+        }
+        interp_options = {**kwargs, **interp_options_default}
 
         geomagnetic_angle = get_geomagnetic_angle(self.zenith, self.azimuth, self.magnetic_field_vector)
 
@@ -821,22 +841,17 @@ class coreasInterpolator:
                 self.obs_positions_showerplane[:, 1],
                 self.electric_field_on_sky,  # TODO: this should be a rotated version for showers from zenith or N-S
                 signals_start_times=self.efield_times[:, 0] / units.s,
-                lowfreq=(interp_lowfreq - 0.01) / units.MHz,
-                highfreq=(interp_highfreq + 0.01) / units.MHz,
                 sampling_period=1 / self.sampling_rate / units.s,  # interpolator wants sampling period in seconds
-                phase_method="phasor",
-                radial_method='cubic',
-                upsample_factor=5,
-                coherency_cutoff_threshold=0.9,
-                ignore_cutoff_freq_in_timing=False,
-                verbose=False
+                lowfreq=interp_lowfreq / units.MHz,
+                highfreq=interp_highfreq / units.MHz,
+                **interp_options
             )
 
             self.efield_interpolator_initialized = True
 
         return self.efield_interpolator
 
-    def initialize_fluence_interpolator(self, quantity=efp.signal_energy_fluence):
+    def initialize_fluence_interpolator(self, quantity=efp.signal_energy_fluence, **kwargs):
         """
         Initialise fluence interpolator.
 
@@ -846,11 +861,24 @@ class coreasInterpolator:
             quantity to interpolate, e.g. efp.signal_energy_fluence
             The quantity needs to be available as parameter in the electric field object!!! You might
             need to run the electricFieldSignalReconstructor. The default is efp.signal_energy_fluence.
+        **kwargs: options to pass on to the `interp2d_fourier` class
+            Default values are:
+
+            - radial_method : 'cubic'
+            - fill_value : 0
+            - recover_concentric_rings : False
 
         Returns
         -------
         fluence_interpolator : interpolator object
         """
+        interp_options_default = {
+            "radial_method" : 'cubic',
+            "fill_value" : 0,
+            "recover_concentric_rings" : False,
+        }
+        interp_options = {**kwargs, **interp_options_default}
+
         fluence_per_position = [
             np.sum(efield[quantity]) for efield in self.sim_station.get_electric_fields()
         ]  # the fluence is calculated per polarization, so we need to sum them up
@@ -859,7 +887,8 @@ class coreasInterpolator:
         self.fluence_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
             self.obs_positions_showerplane[:, 0],
             self.obs_positions_showerplane[:, 1],
-            fluence_per_position
+            fluence_per_position,
+            **interp_options
         )
         self.fluence_interpolator_initialized = True
 
