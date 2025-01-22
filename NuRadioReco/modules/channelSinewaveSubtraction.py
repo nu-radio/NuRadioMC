@@ -45,7 +45,7 @@ def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3
     wf: np.ndarray
         Input waveform (1D array).
     target_freq:  float
-        Target frequency for which to estimate amplitude.
+        Target frequency (GHz) for which to estimate amplitude.
     sampling_rate: float (default: 3.2)
         Sampling rate of the waveform (GHz).
 
@@ -60,13 +60,13 @@ def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3
     if target_freq < 0 or target_freq > sampling_rate / 2:
         raise ValueError("Target frequency is out of range (0 to Nyquist frequency).")
 
-    fft_spectrum = fft.time2freq(wf, sampling_rate)
+    fft_spectrum = fft.time2freq(wf, sampling_rate) * sampling_rate / np.sqrt(2) # take into account nuradio normalization
     frequencies = fft.freqs(len(wf), sampling_rate)
 
     # Find amplitude of the 50 Hz harmonic
 
     bin_index = np.argmin(np.abs(frequencies - target_freq))
-    amplitude = np.abs(fft_spectrum[bin_index])
+    amplitude = np.abs(fft_spectrum[bin_index]) * 2 / len(wf) # Extract the amplitude (real + imaginary parts)
 
     return amplitude
 
@@ -85,6 +85,8 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_
         Threshold for identifying prominent peaks in the FFT spectrum.
     saved_noise_freqs: list (default: None)
         A list to store identified noise frequencies for each channel.
+    verbose: bool (default: False)
+        Print additional information.
 
     Returns
     -------
@@ -99,7 +101,7 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_
     wf = wf - np.mean(wf)
 
     def sinusoid(t, amplitude, noise_frequency, phase):
-        return amplitude * np.cos(2 * np.pi * noise_frequency * t + phase)
+        return amplitude * np.sin(2 * np.pi * noise_frequency * t + phase + np.pi/2)
 
     spec = abs(fft.time2freq(wf, sampling_rate))
     freqs = fft.freqs(len(wf), sampling_rate)
@@ -134,7 +136,9 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_
         noise_freqs = np.array(noise_freqs)
 
         if saved_noise_freqs is not None:
+
             saved_noise_freqs.append(noise_freqs)
+
         for noise_freq in noise_freqs:
 
             ampl_guess = guess_amplitude(wf, noise_freq, sampling_rate)
@@ -146,9 +150,7 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_
                 estimated_amplitude, estimated_freq, estimated_phase = params
 
                 # Generate the estimated CW noise
-                estimated_cw_noise = estimated_amplitude * np.cos(
-                    2 * np.pi * estimated_freq * t + estimated_phase
-                )
+                estimated_cw_noise = sinusoid(t, estimated_amplitude, estimated_freq,estimated_phase) 
 
                 logger.info(f"Subtract sinewave with a frequency: {estimated_freq / units.MHz:.1f} MHz, "
                             f"an amplitude: {estimated_amplitude:.1e} V/GHz and a phase: {estimated_phase / units.deg:.1f} deg")
@@ -161,6 +163,9 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_
 
             except RuntimeError:
                 logger.error(f"Curve fitting failed for frequency: {noise_freq / units.MHz} MHz")
+
+    else:
+        saved_noise_freqs.append([])
 
     return corrected_waveform
 
