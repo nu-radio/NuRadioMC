@@ -55,8 +55,10 @@ class variableWindowSizeCorrelation:
             if true, the time difference (for the maximal correlation value) between the starting of the data trace and the starting of the (cut) template trace is returned (returned time is in units.ns)
 
         Returns
-        ----------
-        correlation (time_diff)
+        -------
+        correlation : array of floats
+        time_diff : float, optional
+            The time difference of the maximal correlation value. Returned only if ``return_time_difference==True``
         """
         if self.__debug:
             start = timeit.default_timer()
