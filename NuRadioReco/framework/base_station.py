@@ -2,12 +2,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
-import NuRadioReco.framework.parameters as parameters
-import datetime
-import astropy.time
-import NuRadioReco.framework.parameter_serialization
+import NuRadioReco.framework.parameters
 import NuRadioReco.framework.parameter_storage
 
+import datetime
+import astropy.time
 
 try:
     import cPickle as pickle
@@ -22,8 +21,7 @@ logger = logging.getLogger('NuRadioReco.BaseStation')
 class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, station_id):
-        super().__init__(parameters.stationParameters)
-        self.ARIANNA_parameters = NuRadioReco.framework.parameter_storage.ParameterStorage(parameters.ARIANNAParameters)
+        super().__init__(NuRadioReco.framework.parameters.stationParameters)
         self._station_id = station_id
         self._station_time = None
         self._triggers = collections.OrderedDict()
@@ -284,20 +282,21 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         station_time_dict = self.get_station_time_dict()
 
-        data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-                '_parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
-                '_ARIANNA_parameters': self._ARIANNA_parameters,
-                '_station_id': self._station_id,
-                '_station_time': station_time_dict,
-                '_particle_type': self._particle_type,
-                'triggers': trigger_pkls,
-                '_triggered': self._triggered,
-                'electric_fields': efield_pkls}
+        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
+        data.update({
+            '_station_id': self._station_id,
+            '_station_time': station_time_dict,
+            '_particle_type': self._particle_type,
+            'triggers': trigger_pkls,
+            '_triggered': self._triggered,
+            'electric_fields': efield_pkls
+        })
 
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
+        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
 
         if 'triggers' in data:
             self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
@@ -310,14 +309,10 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
             efield.deserialize(electric_field)
             self.add_electric_field(efield)
 
-        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
-                                                                                     parameters.stationParameters)
-
-        self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(
-            data['_parameter_covariances'], parameters.stationParameters)
-
+        # For backward compatibility, now ARIANNA parameters are stored in `_parameters`.
         if '_ARIANNA_parameters' in data:
-            self._ARIANNA_parameters = data['_ARIANNA_parameters']
+            for key in data['_ARIANNA_parameters']:
+                self.set_parameter(key, data['_ARIANNA_parameters'][key])
 
         self._station_id = data['_station_id']
         if data['_station_time'] is not None:
@@ -354,3 +349,22 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
         for key, value in x.get_ARIANNA_parameters().items():
             self.set_ARIANNA_parameter(key, value)
         return self
+
+
+    ######## Deprecated functions ########
+
+    def get_ARIANNA_parameter(self, key):
+        logger.warning("`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead.")
+        raise NotImplementedError("`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead.")
+
+    def get_ARIANNA_parameters(self):
+        logger.warning("`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead.")
+        raise NotImplementedError("`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead.")
+
+    def has_ARIANNA_parameter(self, key):
+        logger.warning("`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead.")
+        raise NotImplementedError("`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead.")
+
+    def set_ARIANNA_parameter(self, key, value):
+        logger.warning("`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead.")
+        raise NotImplementedError("`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead.")
