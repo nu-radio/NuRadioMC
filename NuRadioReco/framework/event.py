@@ -193,7 +193,7 @@ class Event:
         Returns the event time (as astropy.time.Time object).
 
         If the event time is not set, an error is raised. The event time is often only used in simulations
-        and typially the same a `station.get_station_time()`.
+        and typically the same a `station.get_station_time()`.
 
         Returns
         -------
@@ -575,7 +575,7 @@ class Event:
                 if len(invalid_keys):
                     logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
 
-        event_time_dict = io_utilities.astropy_to_dict(self.__event_time)
+        event_time_dict = io_utilities._astropy_to_dict(self.__event_time)
 
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
@@ -628,7 +628,7 @@ class Event:
         self._parameters = data['_parameters']
         self.__run_number = data['__run_number']
         self._id = data['_id']
-        self.__event_time = io_utilities.time_object_to_astropy(data['__event_time'])
+        self.__event_time = io_utilities._time_object_to_astropy(data['__event_time'])
 
         if 'generator_info' in data.keys():
             self._generator_info = data['generator_info']

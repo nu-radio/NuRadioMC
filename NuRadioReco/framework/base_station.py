@@ -344,7 +344,7 @@ class BaseStation():
         for efield in self.get_electric_fields():
             efield_pkls.append(efield.serialize(save_trace=save_efield_traces))
 
-        station_time_dict = io_utilities.astropy_to_dict(self.get_station_time())
+        station_time_dict = io_utilities._astropy_to_dict(self.get_station_time())
 
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 '_parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
@@ -383,7 +383,7 @@ class BaseStation():
 
         self._station_id = data['_station_id']
         if data['_station_time'] is not None:
-            station_time = io_utilities.time_object_to_astropy(data['_station_time'])
+            station_time = io_utilities._time_object_to_astropy(data['_station_time'])
             self.set_station_time(station_time)
 
         self._particle_type = data['_particle_type']

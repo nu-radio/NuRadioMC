@@ -189,7 +189,7 @@ class NuRadioRecoio(object):
                         self.__event_headers[station_id][key] = []
 
                     if key == stnp.station_time:
-                        station_time = io_utilities.time_object_to_astropy(value)
+                        station_time = io_utilities._time_object_to_astropy(value)
 
                         if station_time is not None:
                             try:
