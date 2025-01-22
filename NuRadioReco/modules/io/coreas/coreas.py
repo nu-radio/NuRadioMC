@@ -894,10 +894,12 @@ class coreasInterpolator:
 
         return antenna_pos_showerplane
 
-    def get_interp_efield_value(self, position_on_ground):
+    def get_interp_efield_value(self, position_on_ground, cs_transform='no_transform'):
         """
         Calculate the interpolated electric field given an antenna position on ground. If the geomagnetic angle
-        is smaller than 15deg, the electric field of the closest observer position is returned.
+        is smaller than 15deg, the electric field of the closest observer position is returned instead.
+
+        Note that `position_on_ground` is in absolute coordinates, not relative to the core position.
 
         Parameters
         ----------
@@ -905,6 +907,12 @@ class coreasInterpolator:
             Position of the antenna on ground
             This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the
             z-coordinate is automatically set to the observation level of the simulation.
+        cs_transform: {'no_transform', 'sky_to_ground'}, default='no_transform'
+            Optional coordinate system transformation to apply to the interpolated electric field. If 'no_transform',
+            the default, the electric field is returned in the same coordinate system as it was stored in the Event
+            used for initialisation (usually on-sky).
+            If 'sky_to_ground', the electric field is transformed to the ground coordinate system using the
+            `cstrafo.transform_from_onsky_to_ground()` function.
 
         Returns
         -------
@@ -943,6 +951,9 @@ class coreasInterpolator:
                 account_for_timing=True,
                 pulse_centered=True,
                 full_output=True)
+
+        if cs_transform == 'sky_to_ground':
+            efield_interp = self.cs.transform_from_onsky_to_ground(efield_interp)
 
         return efield_interp, trace_start_time
 
