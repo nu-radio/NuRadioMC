@@ -19,8 +19,8 @@ from NuRadioReco.detector.RNO_G import rnog_detector
 
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
-from NuRadioReco.modules.trigger import digital_beamformed_envelope_trigger
-from NuRadioReco.modules.trigger import beamformed_power_integration
+from NuRadioReco.modules.phasedarray import digitalBeamformedEnvelopeTrigger
+from NuRadioReco.modules.phasedarray import beamformedPowerIntegrationTrigger
 
 import NuRadioReco.modules.channelGenericNoiseAdder
 
@@ -128,8 +128,8 @@ class mySimulation(simulation.simulation):
         # future TODO: Add noise
         self.channel_generic_noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
         self.channel_generic_noise_adder.begin(seed=root_seed)
-        self.powerTrigger = beamformed_power_integration.triggerSimulator(log_level=logging.WARNING)
-        self.envelopeTrigger = digital_beamformed_envelope_trigger.triggerSimulator(log_level=logging.WARNING)
+        self.powerTrigger = beamformedPowerIntegrationTrigger.triggerSimulator(log_level=logging.WARNING)
+        self.envelopeTrigger = digitalBeamformedEnvelopeTrigger.triggerSimulator(log_level=logging.WARNING)
 
         self.output_mode = {'Channels': self._config['output']['channel_traces'],
                             'ElectricFields': self._config['output']['electric_field_traces'],
