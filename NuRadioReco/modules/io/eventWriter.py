@@ -15,7 +15,7 @@ def get_header(evt):
     header = {'stations': {}}
     for iS, station in enumerate(evt.get_stations()):
         header['stations'][station.get_id()] = station.get_parameters().copy()
-        header['stations'][station.get_id()][stnp.station_time] = io_utilities.astropy_to_dict(station.get_station_time())
+        header['stations'][station.get_id()][stnp.station_time] = io_utilities._astropy_to_dict(station.get_station_time())
 
         if station.has_sim_station():
             header['stations'][station.get_id()]['sim_station'] = {}

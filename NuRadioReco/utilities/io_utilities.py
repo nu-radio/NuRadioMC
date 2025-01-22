@@ -29,7 +29,7 @@ def read_pickle(filename, encoding='latin1'):
             return pickle.load(file, encoding=encoding)
 
 
-def astropy_to_dict(time):
+def _astropy_to_dict(time):
     """
     Convert an astropy object to a dictionary.
 
@@ -60,7 +60,7 @@ def astropy_to_dict(time):
     return data
 
 
-def time_object_to_astropy(time_object):
+def _time_object_to_astropy(time_object):
     """
     Convert a time_object to an astropy object.
 
