@@ -644,8 +644,9 @@ class coreasInterpolator:
     Note that when trying to interpolate the electric fields of an air shower with a geomagnetic angle
     smaller than 15 degrees, the interpolator will fall back to using the closest observer position
     instead of performing the Fourier interpolation. Also, when attempting to extrapolate (ie get a value
-    for a position that is outside the star shape pattern), the interpolator will simply return an array
-    containing zeros.
+    for a position that is outside the star shape pattern), the default behaviour is to return zeros when
+    r > r_max and return a constant value when r <= r_min. This behaviour can be changed using the
+    `allow_extrapolation` keyword argument when initialising the interpolator.
 
     Parameters
     ----------
@@ -929,6 +930,7 @@ class coreasInterpolator:
         is smaller than 15deg, the electric field of the closest observer position is returned instead.
 
         Note that `position_on_ground` is in absolute coordinates, not relative to the core position.
+        Extrapolation is handled by the `cr-pulse-interpolator` package.
 
         Parameters
         ----------
@@ -957,18 +959,8 @@ class coreasInterpolator:
         antenna_pos_showerplane = self.get_position_showerplane(position_on_ground)
         logger.debug(f"The antenna position in shower plane is {antenna_pos_showerplane}")
 
-        # calculate distance between core position at(0,0) and antenna positions in shower plane
-        dcore_showerplane = np.linalg.norm(antenna_pos_showerplane[:-1])
-
         # interpolate electric field at antenna position in shower plane which are inside star pattern
-        if dcore_showerplane > self.starshape_radius:
-            efield_interp = self.get_empty_efield()
-            trace_start_time = None
-            logger.debug(
-                f'Antenna position with distance {dcore_showerplane:.2f} to core is outside of starshape '
-                f'with radius {self.starshape_radius:.2f}. Setting efield to zero and trace_start_time to None'
-            )
-        elif self.efield_interpolator == -1:
+        if self.efield_interpolator == -1:
             efield_interp = self.get_closest_observer_efield(antenna_pos_showerplane)
             trace_start_time = None
         else:
