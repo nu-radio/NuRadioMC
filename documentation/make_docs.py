@@ -105,7 +105,7 @@ if __name__ == "__main__":
             logger.info("excluding modules: {}".format(exclude_modules))
             subprocess.run(
                 [
-                    'sphinx-apidoc', '-efMT', '--ext-autodoc', '--ext-intersphinx',
+                    'sphinx-apidoc', '-efMT', '-d', '1', '--ext-autodoc', '--ext-intersphinx',
                     '--ext-coverage', '--ext-githubpages', '-o', output_folder,
                     module_path, *exclude_modules
                 ], stdout=pipe_stdout
