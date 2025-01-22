@@ -285,6 +285,10 @@ class channelGalacticNoiseAdder:
                 # assume for air & ice constant index of refraction
                 dt = geometryUtilities.get_time_delay_from_direction(
                     curr_fresnel_zenith, azimuth, channel_pos, n=curr_n)
+                if channel_pos[2] < -5:
+                    logger.warning(
+                        "Galactic noise cannot be simulated accurately for deep in-ice channels. "
+                        "Coherence and arrival direction of noise are probably inaccurate.")
 
                 delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
