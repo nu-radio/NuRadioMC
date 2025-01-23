@@ -640,6 +640,34 @@
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.signal_processing.add_cable_delay">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">add_cable_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_to_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#add_cable_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.add_cable_delay" title="Link to this definition"></a></dt>
+<dd><p>Add or subtract cable delay by modifying the <code class="docutils literal notranslate"><span class="pre">trace_start_time</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station: Station</strong></dt><dd><p>The station to add the cable delay to.</p>
+</dd>
+<dt><strong>det: Detector</strong></dt><dd><p>The detector description</p>
+</dd>
+<dt><strong>trigger: bool</strong></dt><dd><p>If True, take the time delay from the trigger channel response.
+Only possible if <code class="docutils literal notranslate"><span class="pre">det</span></code> is of type <em class="xref py py-obj">rnog_detector.Detector</em>. (Default: False)</p>
+</dd>
+<dt><strong>logger: logging.Logger, default=None</strong></dt><dd><p>If set, use <code class="docutils literal notranslate"><span class="pre">logger.debug(..)</span></code> to log the cable delay.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="NuRadioReco.modules.channelAddCableDelay.html#NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay" title="NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay</span></code></a></dt><dd><p>module that automatically applies / corrects for cable delays.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
 </section>
 
 

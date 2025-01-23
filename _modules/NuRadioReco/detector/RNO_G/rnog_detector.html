@@ -739,12 +739,14 @@
             <span class="s2">&quot;is_noiseless&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">}</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">additional_data</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="k">if</span> <span class="n">select_stations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">select_stations</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">select_stations</span> <span class="o">=</span> <span class="p">[</span><span class="n">select_stations</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">selected_stations</span> <span class="o">=</span> <span class="n">select_stations</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Select the following stations (if possible): </span><span class="si">{</span><span class="n">select_stations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">__db</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">detector_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_det_imported_from_file</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -1490,7 +1492,7 @@
 <div class="viewcode-block" id="Detector.get_signal_chain_response">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_response">[docs]</a>
     <span class="nd">@_check_detector_time</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_signal_chain_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_signal_chain_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a `detector.response.Response` object which describes the complex response of the</span>
 <span class="sd">        entire signal chain, i.e., the combined reponse of all components of one</span>
@@ -1505,6 +1507,9 @@
 <span class="sd">        channel_id: int</span>
 <span class="sd">            The channel id</span>
 
+<span class="sd">        trigger: bool</span>
+<span class="sd">            If True, the trigger channel resonse is returned. An error is raised if no trigger response exists. (Default: False)</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
@@ -1514,9 +1519,22 @@
         <span class="n">signal_chain_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel_signal_chain</span><span class="p">(</span>
             <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">trigger</span><span class="p">:</span>
+            <span class="n">response_chain_key</span> <span class="o">=</span> <span class="s2">&quot;trigger_response_chain&quot;</span>
+            <span class="n">response_key</span> <span class="o">=</span> <span class="s2">&quot;total_trigger_response&quot;</span>
+
+            <span class="k">if</span> <span class="n">response_chain_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span> <span class="ow">or</span> <span class="s2">&quot;is_trigger_chain_absolute&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No trigger response for station.channel </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;is_trigger_chain_absolute&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Relative trigger chains are not implemented yet.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response_chain_key</span> <span class="o">=</span> <span class="s2">&quot;response_chain&quot;</span>
+            <span class="n">response_key</span> <span class="o">=</span> <span class="s2">&quot;total_response&quot;</span>
+
         <span class="c1"># total_response can be None if imported from file</span>
-        <span class="k">if</span> <span class="s2">&quot;total_response&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span> <span class="ow">or</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;total_response&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">measurement_components_dic</span> <span class="o">=</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;response_chain&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">response_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span> <span class="ow">or</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_key</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">measurement_components_dic</span> <span class="o">=</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_chain_key</span><span class="p">]</span>
 
             <span class="c1"># Here comes a HACK</span>
             <span class="n">components</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">measurement_components_dic</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -1566,9 +1584,9 @@
                 <span class="n">responses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
             <span class="c1"># Buffer object</span>
-            <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;total_response&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
+            <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;total_response&quot;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_key</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="Detector.get_signal_chain_components">
@@ -1878,22 +1896,21 @@
 
 <div class="viewcode-block" id="Detector.get_cable_delay">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Same as `get_time_delay`. Only here to keep the same interface as the other detector classes. &quot;&quot;&quot;</span>
         <span class="c1"># FS: For the RNO-G detector description it is not easy to determine the cable delay alone</span>
         <span class="c1"># because it is not clear which reference components may need to be substraced.</span>
         <span class="c1"># However, having the cable delay without amplifiers is anyway weird.</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="n">use_stored</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="n">use_stored</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Detector.get_time_delay">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Return the sum of the time delay of all components in the signal chain calculated from the phase.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            The station id</span>
 
@@ -1903,9 +1920,12 @@
 <span class="sd">        use_stored: bool</span>
 <span class="sd">            If True, take time delay as stored in DB rather than calculated from response. (Default: True)</span>
 
+<span class="sd">        trigger: bool</span>
+<span class="sd">            If True, the trigger channel resonse is returned. An error is raised if no trigger response exists.</span>
+<span class="sd">            (Default: False)</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        time_delay: float</span>
 <span class="sd">            Sum of the time delays of all components in the signal chain for one channel</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1913,12 +1933,15 @@
             <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">use_stored</span><span class="p">:</span>
-            <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">resp</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">time_delay</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;response_chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">trigger</span> <span class="ow">and</span> <span class="s2">&quot;trigger_response_chain&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No trigger response for station.channel </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;trigger_&quot;</span> <span class="k">if</span> <span class="n">trigger</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">response_chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">ydata</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]]</span>
                 <span class="c1"># This is different from within `get_signal_chain_response` because we do set the time delay here</span>
                 <span class="c1"># and thus we do not remove it from the response.</span>
@@ -1960,6 +1983,71 @@
 <span class="sd">            the station ID (not used, only for compatibility with other detector classes)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="mf">72.57</span><span class="p">,</span> <span class="o">-</span><span class="mf">38.46</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Detector.get_database">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_database">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_database</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the database connection</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        db: MongoClient</span>
+<span class="sd">            Returns the database connection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No database connection available. Return None&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db</span></div>
+
+
+
+<div class="viewcode-block" id="Detector.get_component">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_component">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection</span><span class="o">=</span><span class="s2">&quot;coax_cable&quot;</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="s2">&quot;daq_drab_flower_2024_avg&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get the response of a component from the database.</span>
+
+<span class="sd">        This function is a wrapper around the same named function in the database class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        collection: str (default: &quot;coax_cable&quot;)</span>
+<span class="sd">            The collection name in the database.</span>
+<span class="sd">        component: str (default: &quot;daq_drab_flower_2024_avg&quot;)</span>
+<span class="sd">            The component name in the collection.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        resp: `NuRadioReco.detector.response.Response`</span>
+<span class="sd">            Returns the response of a component.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">component</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_data</span> <span class="ow">and</span> <span class="s1">&#39;y-axis_units&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_data</span><span class="p">[</span><span class="n">component</span><span class="p">]:</span>
+            <span class="n">component_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;No database connection. You probably imported the detector from a file. &quot;</span>
+                    <span class="s2">&quot;Please use the DB connection to load the component data.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># load the s21 parameter measurement</span>
+            <span class="n">component_data</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span>
+                <span class="n">collection</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">additional_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span> <span class="o">=</span> <span class="n">component_data</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span>
+            <span class="n">component_data</span><span class="p">[</span><span class="s2">&quot;frequencies&quot;</span><span class="p">],</span> <span class="p">[</span><span class="n">component_data</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">component_data</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]],</span> <span class="n">component_data</span><span class="p">[</span><span class="s1">&#39;y-axis_units&#39;</span><span class="p">],</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">component</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">resp</span></div>
 </div>
 
 

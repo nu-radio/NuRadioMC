@@ -617,7 +617,7 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector.ARIANNA</span><span class="w"> </span><span class="kn">import</span> <span class="n">analog_components</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span><span class="p">,</span> <span class="n">signal_processing</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
@@ -736,14 +736,14 @@
 <span class="sd">            if True, only the phases response is applied but not the amplitude response</span>
 <span class="sd">        mode: string or None, default None</span>
 <span class="sd">            Options:</span>
-<span class="sd">            </span>
+
 <span class="sd">            * &#39;phase_only&#39;: only the phases response is applied but not the amplitude response</span>
 <span class="sd">                (identical to phase_only=True )</span>
 <span class="sd">            * &#39;relativ&#39;: gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
 <span class="sd">                filter response is 1 (before applying cable response). This makes it easier</span>
 <span class="sd">                to compare the filtered to unfiltered signal</span>
 <span class="sd">            * None : default, gain and phase effects are applied &#39;normally&#39;</span>
-<span class="sd">            </span>
+
 <span class="sd">        mingainlin: float</span>
 <span class="sd">            In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by</span>
 <span class="sd">            dividing the measured signal by the gain) leads to excessively high values, due to the effect of</span>
@@ -773,11 +773,11 @@
             <span class="c1"># otherwise, noise will be blown up</span>
             <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">trace_fft</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_to_data</span><span class="p">:</span>
-                <span class="c1"># Include cable delays</span>
-                <span class="n">cable_delay</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_cable_delay</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;cable delay of channel </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2">ns&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">cable_delay</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
-                <span class="n">channel</span><span class="o">.</span><span class="n">add_trace_start_time</span><span class="p">(</span><span class="o">-</span><span class="n">cable_delay</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_to_data</span><span class="p">:</span>
+            <span class="c1"># Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added</span>
+            <span class="c1"># in the efieldToVoltageConverter or with the channelCableDelayAdder</span>
+            <span class="c1"># (if efieldToVoltageConverterPerEfield was used).</span>
+            <span class="n">signal_processing</span><span class="o">.</span><span class="n">add_cable_delay</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span></div>
 

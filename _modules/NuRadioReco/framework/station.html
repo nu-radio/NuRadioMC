@@ -698,10 +698,11 @@
 <div class="viewcode-block" id="Station.iter_channels">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_channels">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">iter_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Iterates over all channels of the station. If `use_channels` is not None,</span>
-<span class="sd">        only the channels with the ids in `use_channels` are iterated over. If `sorted`</span>
-<span class="sd">        is True, the channels are iterated over in ascending order of their ids.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Iterates over all channels of the station.</span>
+
+<span class="sd">        If `use_channels` is not None, only the channels with the ids in `use_channels`</span>
+<span class="sd">        are iterated over. If `sorted` is True, the channels are iterated over in</span>
+<span class="sd">        ascending order of their ids.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -727,10 +728,63 @@
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="Station.iter_trigger_channels">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.iter_trigger_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iter_trigger_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Iterates over all channels of the station and yields `channel.get_trigger_channel()` for each.</span>
+
+<span class="sd">        If `use_channels` is not None, only the channels with the ids in `use_channels` are iterated over.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        use_channels : list of int, optional</span>
+<span class="sd">            List of channel ids to iterate over. If None, all channels are iterated over.</span>
+
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        NuRadioReco.framework.channel.Channel</span>
+<span class="sd">            The next (trigger) channel in the iteration.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        NuRadioReco.framework.channel.Channel.get_trigger_channel</span>
+<span class="sd">        NuRadioReco.framework.station.Station.iter_channels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">use_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trigger_channel</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">use_channels</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trigger_channel</span><span class="p">()</span></div>
+
+
 <div class="viewcode-block" id="Station.get_channel">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_channel">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Station.get_trigger_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_trigger_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the trigger channel of channel with id `channel_id`.</span>
+
+<span class="sd">        If the trigger channel is not set, the channel itself is returned (i.e. this is equivalent to `get_channel`)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        channel_id : int</span>
+<span class="sd">            The id of the channel for which to get the trigger channel.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        channel: `NuRadioReco.framework.channel.Channel`</span>
+<span class="sd">            The trigger channel of the channel with id `channel_id`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trigger_channel</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="Station.iter_channel_group">

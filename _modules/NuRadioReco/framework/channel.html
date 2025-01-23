@@ -618,6 +618,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_trace</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">parameters</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_serialization</span>
+
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">cPickle</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -638,13 +639,52 @@
 <span class="sd">            the id of the channel</span>
 <span class="sd">        channel_group_id: int (default None)</span>
 <span class="sd">            optionally, several channels can belong to a &quot;channel group&quot;. Use case is to identify</span>
-<span class="sd">            the channels of a single dual or triple polarized antenna as common in air shower arrays. </span>
-<span class="sd">        </span>
+<span class="sd">            the channels of a single dual or triple polarized antenna as common in air shower arrays.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">channel_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_group_id</span> <span class="o">=</span> <span class="n">channel_group_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channel</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Channel.set_trigger_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.set_trigger_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_trigger_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_channel</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets an extra trigger channel of this channel. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">trigger_channel</span><span class="p">)</span> <span class="o">==</span> <span class="n">Channel</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;trigger_channel needs to be of type NuRadioReco.framework.Channel&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;trigger_channel needs to be of type NuRadioReco.framework.Channel&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">trigger_channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">():</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;channel id of trigger channel </span><span class="si">{</span><span class="n">trigger_channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> is different &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;from the channel id </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channel</span> <span class="o">=</span> <span class="n">trigger_channel</span></div>
+
+
+<div class="viewcode-block" id="Channel.get_trigger_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.get_trigger_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the trigger channel of this channel.</span>
+
+<span class="sd">        Not all channels/detectors make use of additional trigger channels.</span>
+<span class="sd">        If no trigger channel is set, this just returns ``self``, i.e. the Channel object itself.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channel</span></div>
+
+
+<div class="viewcode-block" id="Channel.has_extra_trigger_channel">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.has_extra_trigger_channel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_extra_trigger_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns True if an extra trigger channel is set, i.e., if `self._trigger_channel` is not None. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
 
 <div class="viewcode-block" id="Channel.get_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.get_parameter">[docs]</a>
@@ -690,7 +730,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span></div>
 
-    
+
 <div class="viewcode-block" id="Channel.get_group_id">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.get_group_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_group_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -712,10 +752,19 @@
             <span class="n">base_trace_pkl</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">base_trace_pkl</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;parameters&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">),</span>
-                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span>
-                <span class="s1">&#39;group_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_group_id</span><span class="p">,</span>
-                <span class="s1">&#39;base_trace&#39;</span><span class="p">:</span> <span class="n">base_trace_pkl</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">trigger_channel_pkl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channel</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">save_trace</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trigger_channel_pkl</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;parameters&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">),</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span>
+            <span class="s1">&#39;group_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_group_id</span><span class="p">,</span>
+            <span class="s1">&#39;base_trace&#39;</span><span class="p">:</span> <span class="n">base_trace_pkl</span><span class="p">,</span>
+            <span class="s1">&#39;trigger_channel_pkl&#39;</span><span class="p">:</span> <span class="n">trigger_channel_pkl</span><span class="p">,</span>
+        <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
@@ -724,11 +773,21 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html#NuRadioReco.framework.channel.Channel.deserialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_trace&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_trace&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_trace&#39;</span><span class="p">])</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">],</span> <span class="n">parameters</span><span class="o">.</span><span class="n">channelParameters</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_group_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;group_id&#39;</span><span class="p">)</span>  <span class="c1"># Attempts to load group_id, returns None if not found</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_group_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;group_id&#39;</span><span class="p">)</span>  <span class="c1"># Attempts to load group_id, returns None if not found</span>
+
+        <span class="n">trigger_channel_pkl</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trigger_channel_pkl&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">trigger_channel_pkl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">trigger_channel</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">trigger_channel</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">trigger_channel_pkl</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channel</span> <span class="o">=</span> <span class="n">trigger_channel</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channel</span> <span class="o">=</span> <span class="kc">None</span></div>
 </div>
 
 </pre></div>

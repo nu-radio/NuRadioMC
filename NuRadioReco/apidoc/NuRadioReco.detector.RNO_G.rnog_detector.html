@@ -697,6 +697,12 @@ new connection. Set to True to create a new database connection.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_signal_chain" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_signal_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_signal_chain</span></code></a>(station_id, channel_id)</p></td>
 <td><p></p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_component" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_component"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_component</span></code></a>([collection, component])</p></td>
+<td><p>Get the response of a component from the database.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_database" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_database</span></code></a>()</p></td>
+<td><p>Returns the database connection</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_detector_time" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_detector_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector_time</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
@@ -1043,7 +1049,7 @@ Note that while group delays are appropriately accounted for, an overall time de
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_response">
-<span class="sig-name descname"><span class="pre">get_signal_chain_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_signal_chain_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_response" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_signal_chain_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_signal_chain_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_response" title="Link to this definition"></a></dt>
 <dd><p>Returns a <em class="xref py py-obj">detector.response.Response</em> object which describes the complex response of the
 entire signal chain, i.e., the combined reponse of all components of one
 channel. For example: IGLU, fiber-cable, DRAB, coax-cable, RADIANT.</p>
@@ -1053,6 +1059,8 @@ channel. For example: IGLU, fiber-cable, DRAB, coax-cable, RADIANT.</p>
 <dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
 </dd>
 <dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+<dt><strong>trigger: bool</strong></dt><dd><p>If True, the trigger channel resonse is returned. An error is raised if no trigger response exists. (Default: False)</p>
 </dd>
 </dl>
 </dd>
@@ -1277,13 +1285,13 @@ it here for consistency with other detector classes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay">
-<span class="sig-name descname"><span class="pre">get_cable_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_cable_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_cable_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_cable_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="Link to this definition"></a></dt>
 <dd><p>Same as <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>. Only here to keep the same interface as the other detector classes.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay">
-<span class="sig-name descname"><span class="pre">get_time_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_time_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_time_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_time_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="Link to this definition"></a></dt>
 <dd><p>Return the sum of the time delay of all components in the signal chain calculated from the phase.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1293,6 +1301,9 @@ it here for consistency with other detector classes.</p>
 <dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
 </dd>
 <dt><strong>use_stored: bool</strong></dt><dd><p>If True, take time delay as stored in DB rather than calculated from response. (Default: True)</p>
+</dd>
+<dt><strong>trigger: bool</strong></dt><dd><p>If True, the trigger channel resonse is returned. An error is raised if no trigger response exists.
+(Default: False)</p>
 </dd>
 </dl>
 </dd>
@@ -1331,6 +1342,49 @@ it here for consistency with other detector classes.</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_database">
+<span class="sig-name descname"><span class="pre">get_database</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_database" title="Link to this definition"></a></dt>
+<dd><p>Returns the database connection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>db: MongoClient</dt><dd><p>Returns the database connection</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_component">
+<span class="sig-name descname"><span class="pre">get_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'coax_cable'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'daq_drab_flower_2024_avg'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_component" title="Link to this definition"></a></dt>
+<dd><p>Get the response of a component from the database.</p>
+<p>This function is a wrapper around the same named function in the database class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>collection: str (default: “coax_cable”)</strong></dt><dd><p>The collection name in the database.</p>
+</dd>
+<dt><strong>component: str (default: “daq_drab_flower_2024_avg”)</strong></dt><dd><p>The component name in the collection.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>resp: <a class="reference internal" href="NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response" title="NuRadioReco.detector.response.Response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.response.Response</span></code></a></dt><dd><p>Returns the response of a component.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data" title="NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data</span></code></a></dt><dd></dd>
+</dl>
+</div>
 </dd></dl>
 
 </dd></dl>

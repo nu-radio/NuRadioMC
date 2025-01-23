@@ -743,8 +743,9 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Could not find database &quot;</span><span class="si">{</span><span class="n">database_name</span><span class="si">}</span><span class="s1">&quot; in mongo client.&#39;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">KeyError</span>
 
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting to connect to the database ...&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span><span class="p">[</span><span class="n">database_name</span><span class="p">]</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;database connection to </span><span class="si">{}</span><span class="s2"> established&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;... connection to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> established&quot;</span><span class="p">)</span>
 
         <span class="c1"># Set timestamp of database. This is used to determine which primary measurement is used</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
@@ -1408,7 +1409,7 @@
 
 <div class="viewcode-block" id="Database.get_component_data">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_component_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_type</span><span class="p">,</span> <span class="n">component_id</span><span class="p">,</span> <span class="n">supplementary_info</span><span class="p">,</span> <span class="n">primary_time</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sparameter</span><span class="o">=</span><span class="s1">&#39;S21&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_component_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_type</span><span class="p">,</span> <span class="n">component_id</span><span class="p">,</span> <span class="n">supplementary_info</span><span class="o">=</span><span class="p">{},</span> <span class="n">primary_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sparameter</span><span class="o">=</span><span class="s1">&#39;S21&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the current primary measurement of the component, reads in the component collection</span>
 
@@ -1441,6 +1442,9 @@
 <span class="sd">            phase_data = database_entry[&#39;phase&#39;]</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">primary_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">primary_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database_time</span><span class="p">()</span>
 
         <span class="c1"># define a search filter</span>
         <span class="n">search_filter</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">component_id</span><span class="p">}},</span> <span class="p">{</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{}}]</span>
@@ -1583,50 +1587,56 @@
         <span class="n">channel_sig_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel_signal_chain_measurement</span><span class="p">(</span>
             <span class="n">channel_signal_id</span><span class="o">=</span><span class="n">channel_signal_id</span><span class="p">,</span> <span class="n">measurement_name</span><span class="o">=</span><span class="n">measurement_name</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
-        <span class="c1"># extract the information about the used components</span>
-        <span class="n">component_dict</span> <span class="o">=</span> <span class="n">channel_sig_info</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;response_chain&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">chain_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;response_chain&#39;</span><span class="p">,</span> <span class="s1">&#39;trigger_response_chain&#39;</span><span class="p">]:</span>
 
-        <span class="c1"># Certain keys in the response chain only carry additional information of other components</span>
-        <span class="c1"># and do not describe own components on their own (&quot;channel&quot;, &quot;breakout&quot;, &quot;weight&quot;)</span>
-        <span class="c1"># extract the information about the components, the additional information and the weights from the response chain dict</span>
-        <span class="n">filtered_component_dict</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">additional_information</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">weight_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># Not every channel has a trigger response chain</span>
+            <span class="k">if</span> <span class="n">chain_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">channel_sig_info</span><span class="p">:</span>
+                <span class="k">continue</span>
 
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">component_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;(channel|breakout|weight)&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">filtered_component_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ele</span>
-            <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">weight_dict</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_weight&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">ele</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">additional_information</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ele</span>
+            <span class="c1"># extract the information about the used components</span>
+            <span class="n">component_dict</span> <span class="o">=</span> <span class="n">channel_sig_info</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">chain_key</span><span class="p">)</span>
 
-        <span class="c1"># go through all components and load the s parameter measurements for each used component</span>
-        <span class="n">components_data</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">component</span><span class="p">,</span> <span class="n">component_id</span> <span class="ow">in</span> <span class="n">filtered_component_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="c1"># Add the additional informatio which were filtered out above to the correct components</span>
-            <span class="n">supp_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">component</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span> <span class="n">additional_information</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">additional_information</span>
-                         <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">k</span><span class="p">)}</span>
+            <span class="c1"># Certain keys in the response chain only carry additional information of other components</span>
+            <span class="c1"># and do not describe own components on their own (&quot;channel&quot;, &quot;breakout&quot;, &quot;weight&quot;)</span>
+            <span class="c1"># extract the information about the components, the additional information and the weights from the response chain dict</span>
+            <span class="n">filtered_component_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">additional_information</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">weight_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
-            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;_[0-9]+&quot;</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">):</span>
-                <span class="n">collection_suffix</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;(_[0-9]+)&quot;</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">collection_component</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">collection_suffix</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">collection_component</span> <span class="o">=</span> <span class="n">component</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">component_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;(channel|breakout|weight)&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">filtered_component_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ele</span>
+                <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">weight_dict</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_weight&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">ele</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">additional_information</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ele</span>
 
-            <span class="c1"># load the s21 parameter measurement</span>
-            <span class="n">component_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span>
-                <span class="n">collection_component</span><span class="p">,</span> <span class="n">component_id</span><span class="p">,</span> <span class="n">supp_info</span><span class="p">,</span> <span class="n">primary_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="c1"># go through all components and load the s parameter measurements for each used component</span>
+            <span class="n">components_data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">component</span><span class="p">,</span> <span class="n">component_id</span> <span class="ow">in</span> <span class="n">filtered_component_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Add the additional informatio which were filtered out above to the correct components</span>
+                <span class="n">supp_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">component</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span> <span class="n">additional_information</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">additional_information</span>
+                            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">k</span><span class="p">)}</span>
 
-            <span class="c1"># add the component name, the weight of the s21 measurement and the actual s21 measurement (component_data) to a combined dictionary</span>
-            <span class="n">components_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">component_id</span><span class="p">}</span>
-            <span class="k">if</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">weight_dict</span><span class="p">:</span>
-                <span class="n">components_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">weight_dict</span><span class="p">[</span><span class="n">component</span><span class="p">]})</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;_[0-9]+&quot;</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">):</span>
+                    <span class="n">collection_suffix</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;(_[0-9]+)&quot;</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">collection_component</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">collection_suffix</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">collection_component</span> <span class="o">=</span> <span class="n">component</span>
 
-            <span class="n">components_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">component_data</span><span class="p">)</span>
+                <span class="c1"># load the s21 parameter measurement</span>
+                <span class="n">component_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span>
+                    <span class="n">collection_component</span><span class="p">,</span> <span class="n">component_id</span><span class="p">,</span> <span class="n">supp_info</span><span class="p">,</span> <span class="n">primary_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
-        <span class="c1"># add/update the signal chain to the channel data</span>
-        <span class="n">channel_sig_info</span><span class="p">[</span><span class="s1">&#39;response_chain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">components_data</span>
+                <span class="c1"># add the component name, the weight of the s21 measurement and the actual s21 measurement (component_data) to a combined dictionary</span>
+                <span class="n">components_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">component_id</span><span class="p">}</span>
+                <span class="k">if</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">weight_dict</span><span class="p">:</span>
+                    <span class="n">components_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">weight_dict</span><span class="p">[</span><span class="n">component</span><span class="p">]})</span>
+
+                <span class="n">components_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">component_data</span><span class="p">)</span>
+
+            <span class="c1"># add/update the signal chain to the channel data</span>
+            <span class="n">channel_sig_info</span><span class="p">[</span><span class="n">chain_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">components_data</span>
 
         <span class="k">return</span> <span class="n">channel_sig_info</span></div>
 

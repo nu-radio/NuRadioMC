@@ -647,7 +647,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__time_resolution</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__pre_pulse_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_upsampling_factor</span> <span class="o">=</span> <span class="kc">None</span>
@@ -660,7 +659,7 @@
 <div class="viewcode-block" id="efieldToVoltageConverter.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">uncertainty</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-              <span class="n">time_resolution</span><span class="o">=</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
+              <span class="n">time_resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">pre_pulse_time</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
               <span class="n">post_pulse_time</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span>
               <span class="p">):</span>
@@ -682,15 +681,17 @@
 <span class="sd">             * &#39;amp&#39;: statistical uncertainty of the amplifier aplification,</span>
 <span class="sd">                specify value as relative difference of linear gain</span>
 
-<span class="sd">        time_resolution: float</span>
-<span class="sd">            time resolution of shifting pulse times</span>
 <span class="sd">        pre_pulse_time: float</span>
 <span class="sd">            length of empty samples that is added before the first pulse</span>
 <span class="sd">        post_pulse_time: float</span>
 <span class="sd">            length of empty samples that is added after the simulated trace</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">time_resolution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`time_resolution` is deprecated and will be removed in the future. &quot;</span>
+                                <span class="s2">&quot;The argument is ignored.&quot;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__time_resolution</span> <span class="o">=</span> <span class="n">time_resolution</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__pre_pulse_time</span> <span class="o">=</span> <span class="n">pre_pulse_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span> <span class="o">=</span> <span class="n">post_pulse_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_upsampling_factor</span> <span class="o">=</span> <span class="mi">5000</span>
@@ -721,15 +722,13 @@
             <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> has no efields&quot;</span><span class="p">)</span>
 
         <span class="c1"># first we determine the trace start time of all channels and correct</span>
-        <span class="c1"># for different cable delays</span>
         <span class="n">times_min</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">times_max</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">channel_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">channel_ids</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">)</span>
-        
+
         <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">electric_field</span> <span class="ow">in</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_electric_fields_for_channels</span><span class="p">([</span><span class="n">channel_id</span><span class="p">]):</span>
-                <span class="n">time_resolution</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
                 <span class="n">cab_delay</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_cable_delay</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
                 <span class="n">t0</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">cab_delay</span>
 
@@ -742,22 +741,28 @@
                     <span class="c1"># trace start time is None if no ray tracing solution was found and channel contains only zeros</span>
                     <span class="n">times_min</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span>
                     <span class="n">times_max</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t0</span> <span class="o">+</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;trace start time </span><span class="si">{}</span><span class="s2">, cab_delty </span><span class="si">{}</span><span class="s2">, tracelength </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;trace start time </span><span class="si">{}</span><span class="s2">, cable delay </span><span class="si">{}</span><span class="s2">, tracelength </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">(),</span> <span class="n">cab_delay</span><span class="p">,</span>
                         <span class="n">electric_field</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()))</span>
 
-        <span class="c1"># pad event times by pre/post pulse time</span>
-        <span class="n">times_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">times_min</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pre_pulse_time</span>
-        <span class="n">times_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">times_max</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span>
+        <span class="n">times_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">times_min</span><span class="p">)</span>
+        <span class="n">times_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">times_max</span><span class="p">)</span>
 
-        <span class="n">trace_length</span> <span class="o">=</span> <span class="n">times_max</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">times_min</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="c1"># pad event times by pre/post pulse time</span>
+        <span class="n">times_min</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pre_pulse_time</span>
+        <span class="n">times_max</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span>
+
+        <span class="c1"># assumes that all electric fields have the same sampling rate</span>
+        <span class="n">time_resolution</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+
+        <span class="n">trace_length</span> <span class="o">=</span> <span class="n">times_max</span> <span class="o">-</span> <span class="n">times_min</span>
         <span class="n">trace_length_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">trace_length</span> <span class="o">/</span> <span class="n">time_resolution</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">trace_length_samples</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">trace_length_samples</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="s2">&quot;smallest trace start time </span><span class="si">{:.1f}</span><span class="s2">, largest trace time </span><span class="si">{:.1f}</span><span class="s2"> -&gt; n_samples = </span><span class="si">{:d}</span><span class="s2"> </span><span class="si">{:.0f}</span><span class="s2">ns)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">times_min</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">times_max</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">trace_length_samples</span><span class="p">,</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
+                <span class="n">times_min</span><span class="p">,</span> <span class="n">times_max</span><span class="p">,</span> <span class="n">trace_length_samples</span><span class="p">,</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
 
         <span class="c1"># loop over all channels</span>
         <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">:</span>
@@ -792,7 +797,7 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="mi">0</span>
 
-                    <span class="n">start_time</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">cab_delay</span> <span class="o">-</span> <span class="n">times_min</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">travel_time_shift</span>
+                    <span class="n">start_time</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">times_min</span> <span class="o">+</span> <span class="n">cab_delay</span> <span class="o">+</span> <span class="n">travel_time_shift</span>
                     <span class="n">start_bin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">start_time</span> <span class="o">/</span> <span class="n">time_resolution</span><span class="p">))</span>
 
                     <span class="c1"># calculate error by using discret bins</span>
@@ -878,7 +883,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">channel_spectrum</span><span class="p">,</span> <span class="n">trace_object</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
 
-            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">times_min</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">times_min</span><span class="p">)</span>
             <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span></div>

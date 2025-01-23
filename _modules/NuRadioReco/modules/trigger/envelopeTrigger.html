@@ -640,7 +640,7 @@
 <span class="sd">        the signal trace</span>
 <span class="sd">    threshold: float</span>
 <span class="sd">        the threshold</span>
-<span class="sd">        </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    triggered bins: array of bools</span>
@@ -701,20 +701,20 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c1"># absolute time of system</span>
 
-        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">triggered_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tmp_channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_trigger_channel</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp_channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_trigger_channel</span><span class="p">(</span><span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">channel_trace_start_time</span> <span class="o">=</span> <span class="n">tmp_channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
+        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">tmp_channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+
         <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span>
 
         <span class="n">triggered_bins_channels</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">channels_that_passed_trigger</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">if</span> <span class="n">triggered_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># caveat: all channels start at the same time</span>
-            <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
-                <span class="n">channel_trace_start_time</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
-                <span class="k">break</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">channel_trace_start_time</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_trigger_channels</span><span class="p">():</span>
             <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">triggered_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">channel_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">triggered_channels</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;skipping channel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>

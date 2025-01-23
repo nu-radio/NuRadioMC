@@ -658,14 +658,23 @@ a shower and ray tracing solution id</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
 <td><p>Returns the time trace.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_channel</span></code></a>()</p></td>
+<td><p>Returns the trigger channel of this channel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
 <td><p>returns a unique identifier consisting of the tuple channel_id, shower_id and ray_tracing_id</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_extra_trigger_channel</span></code></a>()</p></td>
+<td><p>Returns True if an extra trigger channel is set, i.e., if <em class="xref py py-obj">self._trigger_channel</em> is not None.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_frequency_spectrum" title="NuRadioReco.framework.sim_channel.SimChannel.set_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_frequency_spectrum</span></code></a>(frequency_spectrum, ...)</p></td>
 <td><p>Sets the frequency spectrum.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
 <td><p>Sets the time trace.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_channel</span></code></a>(trigger_channel)</p></td>
+<td><p>Sets an extra trigger channel of this channel.</p></td>
 </tr>
 </tbody>
 </table>
@@ -767,14 +776,23 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
 <td><p>Returns the time trace.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_channel</span></code></a>()</p></td>
+<td><p>Returns the trigger channel of this channel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
 <td><p>returns a unique identifier consisting of the tuple channel_id, shower_id and ray_tracing_id</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_extra_trigger_channel</span></code></a>()</p></td>
+<td><p>Returns True if an extra trigger channel is set, i.e., if <em class="xref py py-obj">self._trigger_channel</em> is not None.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_frequency_spectrum" title="NuRadioReco.framework.sim_channel.SimChannel.set_frequency_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_frequency_spectrum</span></code></a>(frequency_spectrum, ...)</p></td>
 <td><p>Sets the frequency spectrum.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
 <td><p>Sets the time trace.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_channel</span></code></a>(trigger_channel)</p></td>
+<td><p>Sets an extra trigger channel of this channel.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1046,6 +1064,20 @@ up to date.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel">
+<span class="sig-name descname"><span class="pre">get_trigger_channel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel" title="Link to this definition"></a></dt>
+<dd><p>Returns the trigger channel of this channel.</p>
+<p>Not all channels/detectors make use of additional trigger channels.
+If no trigger channel is set, this just returns <code class="docutils literal notranslate"><span class="pre">self</span></code>, i.e. the Channel object itself.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel">
+<span class="sig-name descname"><span class="pre">has_extra_trigger_channel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel" title="Link to this definition"></a></dt>
+<dd><p>Returns True if an extra trigger channel is set, i.e., if <em class="xref py py-obj">self._trigger_channel</em> is not None.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.has_parameter">
 <span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -1098,6 +1130,12 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_trace_start_time">
 <span class="sig-name descname"><span class="pre">set_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace_start_time" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel">
+<span class="sig-name descname"><span class="pre">set_trigger_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel" title="Link to this definition"></a></dt>
+<dd><p>Sets an extra trigger channel of this channel.</p>
+</dd></dl>
 
 </dd></dl>
 

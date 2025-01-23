@@ -649,10 +649,11 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_unit</span><span class="p">,</span> <span class="n">time_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">name</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">remove_time_delay</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">attenuator_in_dB</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_unit</span><span class="p">,</span> <span class="n">time_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">remove_time_delay</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">attenuator_in_dB</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -898,6 +899,32 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="Response.get">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.get">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a component response from the response object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        name: str</span>
+<span class="sd">            Name of the component to get</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Component </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> not found in response. Options are: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">single_response</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">single_response</span><span class="o">.</span><span class="n">__gains</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span>
+        <span class="n">single_response</span><span class="o">.</span><span class="n">__names</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__gains</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span>
+        <span class="n">single_response</span><span class="o">.</span><span class="n">__phases</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__phases</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span>
+        <span class="n">single_response</span><span class="o">.</span><span class="n">__weights</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__weights</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span>
+        <span class="n">single_response</span><span class="o">.</span><span class="n">__time_delays</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">single_response</span></div>
+
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define multiplication operator for</span>
@@ -907,12 +934,13 @@
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Response</span><span class="p">):</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="ow">or</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-                <span class="c1"># station_id == -1 is a special case to all non-station specific responses</span>
+            <span class="c1"># station_id == -1 is a special case to all non-station specific responses</span>
+            <span class="k">if</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;It looks like you are combining responses from &quot;</span>
                                   <span class="sa">f</span><span class="s2">&quot;two different channels: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> &quot;</span>
                                   <span class="sa">f</span><span class="s2">&quot; vs </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> (station_id.channel_id)&quot;</span><span class="p">)</span>
+
             <span class="c1"># Store each response individually: append/concatenate lists of gains and phases.</span>
             <span class="c1"># The multiplication happens in __call__.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__names</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">__names</span>
@@ -950,6 +978,58 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Same as mul &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Define multiplication operator for</span>
+<span class="sd">            - Other objects of the same class</span>
+<span class="sd">            - Objects of type NuRadioReco.framework.base_trace</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Response</span><span class="p">):</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="c1"># station_id == -1 is a special case to all non-station specific responses</span>
+            <span class="k">if</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;It looks like you are combining responses from &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;two different channels: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; vs </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> (station_id.channel_id)&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Store each response individually: append/concatenate lists of gains and phases.</span>
+            <span class="c1"># The multiplication happens in __call__.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__names</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">__names</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__gains</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">__gains</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__phases</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">__phases</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__weights</span> <span class="o">+=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">ele</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">__weights</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span> <span class="o">+=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">ele</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanity_check</span><span class="p">:</span>
+                <span class="n">trace_length</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">other</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+                <span class="n">time_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_time_delay</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">time_delay</span> <span class="o">&gt;</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The time shift appiled by the response is larger than half the trace length:</span><span class="se">\n\t</span><span class="s2">&quot;</span>
+                                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">trace_length</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">spec</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
+            <span class="n">spec</span> <span class="o">*=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>  <span class="c1"># __call__</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">add_trace_start_time</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">))</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">other</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;You try to multiply a `Response` object with a numpy array, &quot;</span>
+                            <span class="s2">&quot;only `Response` or `BaseTrace` is allowed. &quot;</span>
+                            <span class="s2">&quot;Did you call `get_trace()` or `get_frequency_spectrum()` on `BaseTrace`?&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response multiplied with unknown type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ampl</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">)))</span>
@@ -1053,13 +1133,14 @@
         <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="mi">195</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="o">&lt;</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">freqs</span> <span class="o">&lt;</span> <span class="mi">250</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">time_delay1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">time_delay</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
 
-        <span class="c1"># fit the unwrapped phase with a linear function</span>
-        <span class="n">popt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">phase</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">time_delay2</span> <span class="o">=</span> <span class="o">-</span><span class="n">popt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="c1"># This alternative calculation is only meaningful if group delay is ~ constant over the whole frequency range (which is the case for most cables)</span>
+        <span class="c1"># # fit the unwrapped phase with a linear function</span>
+        <span class="c1"># popt = np.polyfit(freqs, np.unwrap(phase), 1)</span>
+        <span class="c1"># time_delay2 = -popt[0] / (2 * np.pi)</span>
 
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">time_delay1</span> <span class="o">-</span> <span class="n">time_delay2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Calculation of time delay. The two methods yield different results: &quot;</span>
-                                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time_delay1</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ns / </span><span class="si">{</span><span class="n">time_delay2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ns for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">()</span><span class="si">}</span><span class="s2">. Return the former...&quot;</span><span class="p">)</span>
+        <span class="c1"># if np.abs(time_delay1 - time_delay2) &gt; 0.1 * units.ns:</span>
+        <span class="c1">#     self.logger.warning(&quot;Calculation of time delay. The two methods yield different results: &quot;</span>
+        <span class="c1">#                         f&quot;{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...&quot;)</span>
 
         <span class="k">return</span> <span class="n">time_delay1</span></div>
 

@@ -845,7 +845,15 @@ method or the <code class="docutils literal notranslate"><span class="pre">get_e
 <p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.channel.html#module-NuRadioReco.framework.channel" title="NuRadioReco.framework.channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>
 is used to store information about the voltage traces recorded in a channel,
 which can be accessed via the parameter storage and methods inherited from
-the <code class="docutils literal notranslate"><span class="pre">BaseTrace</span></code> class.</p>
+the <code class="docutils literal notranslate"><span class="pre">BaseTrace</span></code> class. Optionally a <code class="docutils literal notranslate"><span class="pre">trigger_channel</span></code> object of the same class can
+be stored within a channel object. The idea is that the voltage traces on which the trigger(s)
+run can be a different from what the system reads out (additional filters may be applied to
+the trigger channels). One can access the <code class="docutils literal notranslate"><span class="pre">trigger_channel</span></code> from a channel object via the
+<code class="docutils literal notranslate"><span class="pre">get_trigger_channel()</span></code> method. This function will always return a channel object. If no
+trigger channel was defined, <code class="docutils literal notranslate"><span class="pre">self</span></code>, i.e., the channel object itself, is returned.
+The <a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#module-NuRadioReco.framework.station" title="NuRadioReco.framework.station"><code class="xref py py-class docutils literal notranslate"><span class="pre">Station</span></code></a> class also has a method to return trigger channels
+(if defined). Trigger modules should typically call these <code class="docutils literal notranslate"><span class="pre">get_trigger_channel()</span></code> methods to
+get the channel objects.</p>
 </section>
 <section id="hybrid-information">
 <h3>Hybrid Information<a class="headerlink" href="#hybrid-information" title="Link to this heading"></a></h3>
@@ -873,7 +881,7 @@ mainly via the parameter storage.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">HybridDetector</span></code> can be used to store more detailed and experiment-specific information
 about a complementary detector. The diversity of hybrid radio detectors makes it
 impractical to provide this functionality inside NuRadioReco itself, but a custom
-<code class="docutils literal notranslate"><span class="pre">HybridDetector</span></code> class can be impemented inside an independent repository. This class
+<code class="docutils literal notranslate"><span class="pre">HybridDetector</span></code> class can be implemented inside an independent repository. This class
 can be slotted into the data structure via the <code class="docutils literal notranslate"><span class="pre">set_hybrid_detector</span></code> method of the <code class="docutils literal notranslate"><span class="pre">HybridShower</span></code>
 class and accessed via its <code class="docutils literal notranslate"><span class="pre">get_hybrid_detector</span></code> method.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">HybridDetector</span></code> class is required to have a constructor that does not accept any parameters as

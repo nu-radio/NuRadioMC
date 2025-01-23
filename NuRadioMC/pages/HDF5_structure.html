@@ -744,10 +744,13 @@ the same <code class="docutils literal notranslate"><span class="pre">event_id</
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Vrms</span></code></p></td>
 <td><p>RMS of the voltage used as thermal noise floor <span class="math notranslate nohighlight">\(v_{n} = (k_{B} \, R \, T \, \Delta f) ^ {0.5}\)</span>. See the relevant section “Noise voltage and power” in this <a class="reference external" href="https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise">wiki article</a> (last two equations). Determine from <code class="docutils literal notranslate"><span class="pre">Tnoise</span></code> and <code class="docutils literal notranslate"><span class="pre">bandwidth</span></code> (see below).</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bandwidth</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Vrms_trigger</span></code></p></td>
+<td><p>(Optional) Same as <code class="docutils literal notranslate"><span class="pre">Vrms</span></code> but for the trigger channels if they were simulated with a different response.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bandwidth</span></code></p></td>
 <td><p>Bandwidth is above equation. Calculated as the integral over the simulated filter response (<em class="xref py py-obj">filt</em>) squared: <span class="math notranslate nohighlight">\(\Delta f = np.trapz(np.abs(filt) ** 2, ff)\)</span>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">antenna_positions</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">antenna_positions</span></code></p></td>
 <td><p>Relative position of all simulated antennas (channels)</p></td>
 </tr>
 </tbody>
