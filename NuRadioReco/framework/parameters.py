@@ -226,3 +226,4 @@ class eventParameters(Enum):
     sim_config = 1 #: contents of the config file that the NuRadioMC simulation was run with
     hash_NuRadioReco = 2 #: deprecated, since NuRadioReco is no longer its own repository
     hash_NuRadioMC = 3 #: git hash of the NuRadioMC commit that the file was created with
+    glitch = 4 #: True if any channel of the event has a glitch. See 'NuRadioReco.modules.RNO_G.glitch_removal'
