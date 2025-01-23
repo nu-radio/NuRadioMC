@@ -208,7 +208,7 @@ for iE, evt in enumerate(coreas_reader.run(det, [core])):
         fmin = np.zeros(N_showers)
         success = np.zeros(N_showers, dtype=bool)
         Xmax = np.zeros(N_showers)
-        # loop through all 
+        # loop through all
         for i, filename2 in enumerate(input_files):
             # skip the CoREAS simulation that was used to generate the event under test
             if(filename2 == input_file):
@@ -233,7 +233,11 @@ for iE, evt in enumerate(coreas_reader.run(det, [core])):
                 core = np.array([xyA[0], xyA[1], 0]) * units.m  # core position
                 ff_true = np.zeros_like(ff)
                 for ip, p in enumerate(pos):
-                    ff_true[ip] = coreasInterpolator.get_interp_fluence_value(p, core)
+                    if abs(p[0]) < 1 * units.m and abs(p[1]) < 1 * units.m:
+                        # Don't fit fluence at the core, as it tends to blow up
+                        ff_true[ip] = ff[ip]
+                        continue
+                    ff_true[ip] = coreasInterpolator.get_interp_fluence_value(p - core)
                 ff_true *= A
                 return np.sum((ff - ff_true) ** 2/ff_error**2)
 
