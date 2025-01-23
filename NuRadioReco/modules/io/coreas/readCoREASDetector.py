@@ -157,7 +157,7 @@ class readCoREASDetector:
         self.coreas_interpolator.initialize_efield_interpolator(interp_lowfreq, interp_highfreq)
 
     @register_run()
-    def run(self, detector, core_position_list, selected_station_ids=None, selected_channel_ids=None):
+    def run(self, detector, core_position_list, selected_station_channel_ids=None):
         """
         run method, get interpolated electric fields for the given detector and core positions and set them in the event.
         The trace is smoothed with a half-Hann window to avoid ringing effects. When using short traces, this might have
@@ -169,10 +169,10 @@ class readCoREASDetector:
             Detector description of the detector that shall be simulated
         core_position_list: list of (list of float)
             list of core positions in the format [[x1, y1, z1], [x2, y2, z2], ...]
-        selected_station_ids: list of int
-            list of station ids to simulate
-        selected_channel_ids: list of int
-            list of channel ids to simulate
+        selected_station_channel_ids: dict, default=None
+            A dictionary containing the list of channels IDs to simulate per station.
+            If None, all channels of all stations in the detector are simulated.
+            To simulate all channels in a station, set its value to None.
 
         Yields
         ------
@@ -181,10 +181,11 @@ class readCoREASDetector:
             the interpolated ElectricField traces for the selected channels.
         """
 
-        if selected_station_ids is None:
+        if selected_station_channel_ids is None:
             selected_station_ids = detector.get_station_ids()
             logging.info(f"Using all station ids in detector description: {selected_station_ids}")
         else:
+            selected_station_ids = list(selected_station_channel_ids.keys())
             logging.info(f"Using selected station ids: {selected_station_ids}")
 
         t = time.time()
@@ -217,9 +218,10 @@ class readCoREASDetector:
 
                 # Find all the selected channels for this station
                 det_station_position = detector.get_absolute_position(station_id)
-                channel_ids_in_station = detector.get_channel_ids(station_id)
-                if selected_channel_ids is None:
-                    selected_channel_ids = channel_ids_in_station
+                if selected_station_channel_ids[station_id] is None:
+                    selected_channel_ids = detector.get_channel_ids(station_id)
+                else:
+                    selected_channel_ids = selected_station_channel_ids[station_id]
 
                 # Get the channels in a dictionary with channel group as key and a list of channel ids as value
                 channel_ids_dict = select_channels_per_station(detector, station_id, selected_channel_ids)
