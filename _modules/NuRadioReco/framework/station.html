@@ -833,9 +833,9 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.set_reference_reconstruction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_reference_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">reference</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;RD&#39;</span><span class="p">,</span> <span class="s1">&#39;MC&#39;</span><span class="p">]:</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;reference reconstructions other than RD and MC are not supported&quot;</span><span class="p">)</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reference reconstructions other than &#39;RD&#39; and &#39;MC&#39; are not supported. Used value: &#39;</span><span class="si">{</span><span class="n">reference</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reference reconstructions other than &#39;RD&#39; and &#39;MC&#39; are not supported. Used value: &#39;</span><span class="si">{</span><span class="n">reference</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">=</span> <span class="n">reference</span></div>
 
 
@@ -850,24 +850,33 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_reference_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;RD&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;azimuth&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;MC&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;MC&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;zenith&#39;</span><span class="p">),</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;azimuth&#39;</span><span class="p">)</span>
-            <span class="p">)</span></div>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reference reconstruction not set / unknown: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reference reconstruction not set / unknown: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="Station.get_magnetic_field_vector">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_magnetic_field_vector">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_magnetic_field_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;MC&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;MC&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_magnetic_field_vector</span><span class="p">()</span>
-        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;RD&#39;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;time dependent magnetic field model not yet implemented, &quot;</span>
-                               <span class="s2">&quot;returning static magnetic field for the ARIANNA site&quot;</span><span class="p">)</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span>
-            <span class="k">return</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_magnetic_field_vector</span><span class="p">(</span><span class="s1">&#39;arianna&#39;</span><span class="p">)</span></div>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">==</span> <span class="s1">&#39;RD&#39;</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Magnetic field for `self.__reference_reconstruction == &#39;RD&#39;` not implemented yet. &quot;</span>
+                <span class="s2">&quot;Please use `radiotools.helper.get_magnetic_field_vector(site)` for the site you are interested in.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Magnetic field for `self.__reference_reconstruction == &#39;RD&#39;` not implemented yet. &quot;</span>
+                <span class="s2">&quot;Please use `radiotools.helper.get_magnetic_field_vector(site)` for the site you are interested in.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reference reconstruction not set / unknown: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reference reconstruction not set / unknown: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Station.serialize">
@@ -876,21 +885,21 @@
         <span class="n">save_efield_traces</span> <span class="o">=</span> <span class="s1">&#39;ElectricFields&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">mode</span><span class="p">[</span><span class="s1">&#39;ElectricFields&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
         <span class="n">base_station_pkl</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">save_efield_traces</span><span class="o">=</span><span class="n">save_efield_traces</span><span class="p">)</span>
-        <span class="n">channels_pkl</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">save_channel_trace</span> <span class="o">=</span> <span class="s1">&#39;Channels&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">mode</span><span class="p">[</span><span class="s1">&#39;Channels&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
-        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
-            <span class="n">channels_pkl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">save_channel_trace</span><span class="p">))</span>
-        <span class="n">save_sim_channel_trace</span> <span class="o">=</span> <span class="s1">&#39;SimChannels&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">mode</span><span class="p">[</span><span class="s1">&#39;SimChannels&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
-        <span class="n">save_sim_efield_trace</span> <span class="o">=</span> <span class="s1">&#39;SimElectricFields&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">mode</span><span class="p">[</span><span class="s1">&#39;SimElectricFields&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
+
+        <span class="n">save_channel_trace</span> <span class="o">=</span> <span class="n">mode</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Channels&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">channels_pkl</span> <span class="o">=</span> <span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">save_channel_trace</span><span class="p">)</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">()]</span>
+
         <span class="n">sim_station_pkl</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">has_sim_station</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_sim_station</span><span class="p">():</span>
             <span class="n">sim_station_pkl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span>
-                <span class="n">save_channel_traces</span><span class="o">=</span><span class="n">save_sim_channel_trace</span><span class="p">,</span> <span class="n">save_efield_traces</span><span class="o">=</span><span class="n">save_sim_efield_trace</span><span class="p">)</span>
+                <span class="n">save_channel_traces</span><span class="o">=</span><span class="n">mode</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;SimChannels&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                <span class="n">save_efield_traces</span><span class="o">=</span><span class="n">mode</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;SimElectricFields&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;__reference_reconstruction&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span><span class="p">,</span>
                 <span class="s1">&#39;channels&#39;</span><span class="p">:</span> <span class="n">channels_pkl</span><span class="p">,</span>
                 <span class="s1">&#39;base_station&#39;</span><span class="p">:</span> <span class="n">base_station_pkl</span><span class="p">,</span>
                 <span class="s1">&#39;sim_station&#39;</span><span class="p">:</span> <span class="n">sim_station_pkl</span><span class="p">}</span>
+
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
@@ -899,11 +908,13 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_station&#39;</span><span class="p">])</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;sim_station&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sim_station&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">sim_station</span><span class="o">.</span><span class="n">SimStation</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;sim_station&#39;</span><span class="p">])</span>
+
         <span class="k">for</span> <span class="n">channel_pkl</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">]:</span>
             <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">channel</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">channel_pkl</span><span class="p">)</span>
