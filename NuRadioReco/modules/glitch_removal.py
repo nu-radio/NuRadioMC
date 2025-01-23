@@ -9,6 +9,6 @@ class GlitchFinder:
             for i in range(len(trace) - 1):
                 diff = trace[i+1] - trace[i]
                 if (diff < -2000 or diff > 2000):
-                    return True
-        return False 
+                    event.set_parameter(glitch, True)
+        event.set_parameter(glitch, False)
 
