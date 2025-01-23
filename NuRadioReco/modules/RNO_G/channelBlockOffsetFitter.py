@@ -91,9 +91,9 @@ class channelBlockOffsets:
             # save the added offsets as a channelParameter
             if channel.has_parameter(channelParameters.block_offsets):
                 block_offsets_old = channel.get_parameter(channelParameters.block_offsets)
-                channel.set_parameter(channelParameters.block_offsets, block_offsets_old + offsets)
+                channel.set_parameter(channelParameters.block_offsets, block_offsets_old + add_offsets)
             else:
-                channel.set_parameter(channelParameters.block_offsets, offsets)
+                channel.set_parameter(channelParameters.block_offsets, add_offsets)
 
             channel.set_trace(
                 channel.get_trace() + np.repeat(add_offsets, self.block_size),
