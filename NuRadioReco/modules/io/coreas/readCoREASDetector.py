@@ -8,6 +8,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.modules.io.coreas
 from NuRadioReco.modules.io.coreas import coreas
@@ -51,28 +52,26 @@ def get_random_core_positions(xmin, xmax, ymin, ymax, n_cores, seed=None):
     return cores
 
 
-def apply_hanning(efields):
+def apply_hanning(efield):
     """
     Apply a half-Hann window to the electric field in the time domain. This smoothens the edges
     to avoid ringing effects.
 
     Parameters
     ----------
-    efield in time domain: array (n_samples, n_polarizations)
+    efield: np.ndarray
+        The electric field in the time domain, shaped as (n_samples, n_polarizations)
 
     Returns
     -------
-    smoothed_efield: array (n_samples, n_polarizations)
+    smoothed_efield: np.ndarray
+        The smoothed trace, shaped as (n_samples, n_polarizations)
     """
-
-    if efields is None:
-        return None
-    else:
-        smoothed_trace = np.zeros_like(efields)
-        filter = half_hann_window(efields.shape[0], half_percent=0.1)
-        for pol in range(efields.shape[1]):
-            smoothed_trace[:, pol] = efields[:, pol] * filter
-        return smoothed_trace
+    smoothed_trace = np.zeros_like(efield)
+    filter = half_hann_window(efield.shape[0], half_percent=0.1)
+    for pol in range(efield.shape[1]):
+        smoothed_trace[:, pol] = efield[:, pol] * filter
+    return smoothed_trace
 
 
 def select_channels_per_station(det, station_id, requested_channel_ids):
@@ -117,15 +116,13 @@ class readCoREASDetector:
         self.__t_event_structure = 0
         self.__t_per_event = 0
         self.__corsika_evt = None
-        self.__interp_lowfreq = None
-        self.__interp_highfreq = None
 
         self.coreas_interpolator = None
 
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
     def begin(self, input_file, interp_lowfreq=30 * units.MHz, interp_highfreq=1000 * units.MHz,
-              log_level=logging.INFO):
+              log_level=logging.NOTSET):
         """
         begin method, initialize readCoREASDetector module
 
@@ -139,7 +136,7 @@ class readCoREASDetector:
         interp_highfreq: float, default=1000 * units.MHz
             higher frequency for the bandpass filter in interpolation,
             should be broader than the sensitivity band of the detector
-        log_level: default=logging.INFO
+        log_level: default=logging.NOTSET
             log level for the logger
         """
         self.logger.setLevel(log_level)
@@ -150,16 +147,14 @@ class readCoREASDetector:
 
         self.__corsika_evt = coreas.read_CORSIKA7(input_file)
         self.logger.info(
-            f"using coreas simulation {input_file} with "
+            f"Using coreas simulation {input_file} with "
             f"E={self.__corsika_evt.get_first_sim_shower().get_parameter(shp.energy):.2g}eV, "
-            f"zenith angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.zenith) / units.deg:.0f}deg"
+            f"zenith angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.zenith) / units.deg:.2f}deg and "
+            f"azimuth angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.azimuth) / units.deg:.2f}deg"
         )
 
-        self.__interp_lowfreq = interp_lowfreq
-        self.__interp_highfreq = interp_highfreq
-
         self.coreas_interpolator = coreas.coreasInterpolator(self.__corsika_evt)
-        self.coreas_interpolator.initialize_efield_interpolator(self.__interp_lowfreq, self.__interp_highfreq)
+        self.coreas_interpolator.initialize_efield_interpolator(interp_lowfreq, interp_highfreq)
 
     @register_run()
     def run(self, detector, core_position_list, selected_station_ids=None, selected_channel_ids=None):
@@ -170,74 +165,94 @@ class readCoREASDetector:
 
         Parameters
         ----------
-        detector: Detector object
+        detector: `NuRadioReco.detector.detector_base.DetectorBase`
             Detector description of the detector that shall be simulated
-        core_position_list: list of array (n_cores, 3)
+        core_position_list: list of (list of float)
             list of core positions in the format [[x1, y1, z1], [x2, y2, z2], ...]
         selected_station_ids: list of int
             list of station ids to simulate
         selected_channel_ids: list of int
             list of channel ids to simulate
+
+        Yields
+        ------
+        evt : `NuRadioReco.framework.event.Event`
+            An Event containing a Station object for every selected station, which holds a SimStation containing
+            the interpolated ElectricField traces for the selected channels.
         """
 
         if selected_station_ids is None:
             selected_station_ids = detector.get_station_ids()
-            logging.info(f"using all station ids in detector description: {selected_station_ids}")
+            logging.info(f"Using all station ids in detector description: {selected_station_ids}")
         else:
-            logging.info(f"using selected station ids: {selected_station_ids}")
+            logging.info(f"Using selected station ids: {selected_station_ids}")
 
         t = time.time()
         t_per_event = time.time()
         self.__t_per_event += time.time() - t_per_event
         self.__t += time.time() - t
 
+        # Loop over all cores
         for iCore, core in enumerate(core_position_list):
             t = time.time()
-            evt = NuRadioReco.framework.event.Event(self.__corsika_evt.get_run_number(), iCore)  # create empty event
-            sim_shower = self.__corsika_evt.get_first_sim_shower()
-            sim_shower.set_parameter(shp.core, core)
-            evt.add_sim_shower(sim_shower)
-            # rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=selected_station_ids)
-            # evt.add_shower(rd_shower)
+
+            # Create the Event and add the SimShower
+            evt = NuRadioReco.framework.event.Event(self.__corsika_evt.get_run_number(), iCore)
             corsika_sim_stn = self.__corsika_evt.get_station(0).get_sim_station()
+            sim_shower = self.__corsika_evt.get_first_sim_shower()
+            sim_shower.set_parameter(shp.core, core)  # TODO: does this overwrite the core in the original shower?
+            evt.add_sim_shower(sim_shower)
+
+            # Loop over all selected stations
             for station_id in selected_station_ids:
+                # Make the (Sim)Station objects to add to the Event
                 station = NuRadioReco.framework.station.Station(station_id)
                 sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+
+                # Copy relevant SimStation parameters over
                 for key, value in corsika_sim_stn.get_parameters().items():
-                    sim_station.set_parameter(key, value)  # copy relevant sim_station parameters over
+                    sim_station.set_parameter(key, value)
                 sim_station.set_magnetic_field_vector(corsika_sim_stn.get_magnetic_field_vector())
                 sim_station.set_is_cosmic_ray()
 
+                # Find all the selected channels for this station
                 det_station_position = detector.get_absolute_position(station_id)
                 channel_ids_in_station = detector.get_channel_ids(station_id)
                 if selected_channel_ids is None:
                     selected_channel_ids = channel_ids_in_station
+
+                # Get the channels in a dictionary with channel group as key and a list of channel ids as value
                 channel_ids_dict = select_channels_per_station(detector, station_id, selected_channel_ids)
-                for ch_g_ids in channel_ids_dict.keys():
-                    channel_ids_for_group_id = channel_ids_dict[ch_g_ids]
+                for ch_g_ids, channel_ids_for_group_id in channel_ids_dict.items():
+                    # Get the absolute antenna position
                     antenna_position_rel = detector.get_relative_position(station_id, channel_ids_for_group_id[0])
                     antenna_position = det_station_position + antenna_position_rel
-                    res_efield, res_trace_start_time = self.coreas_interpolator.get_interp_efield_value(antenna_position - core)
+
+                    # Get the interpolated electric field and smooth it
+                    res_efield, res_trace_start_time = self.coreas_interpolator.get_interp_efield_value(
+                        antenna_position[:len(core)] - core  # get the trace at the relative distance from the core
+                    )
                     smooth_res_efield = apply_hanning(res_efield)
-                    if smooth_res_efield is None:
-                        smooth_res_efield = self.coreas_interpolator.get_empty_efield()
+
+                    # Store the trace in an ElecticField object
                     electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids_for_group_id)
-                    electric_field.set_trace(smooth_res_efield.T, self.coreas_interpolator.get_sampling_rate())
+                    electric_field.set_trace(smooth_res_efield.T, self.coreas_interpolator.sampling_rate)
                     electric_field.set_trace_start_time(res_trace_start_time)
                     electric_field.set_parameter(efp.ray_path_type, 'direct')
                     electric_field.set_parameter(efp.zenith, sim_shower[shp.zenith])
                     electric_field.set_parameter(efp.azimuth, sim_shower[shp.azimuth])
                     sim_station.add_electric_field(electric_field)
+
+                sim_station.set_parameter(stnp.zenith, sim_shower[shp.zenith])
+                sim_station.set_parameter(stnp.azimuth, sim_shower[shp.azimuth])
                 station.set_sim_station(sim_station)
-                # distance_to_core = np.linalg.norm(det_station_position[:-1] - core[:-1])
-                # station.set_parameter(stnp.distance_to_core, distance_to_core)
+
                 evt.set_station(station)
 
             self.__t += time.time() - t
             yield evt
 
     def end(self):
-        self.logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         self.logger.info("total time used by this module is {}".format(dt))
         self.logger.info("\tcreate event structure {}".format(timedelta(seconds=self.__t_event_structure)))
