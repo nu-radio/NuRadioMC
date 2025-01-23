@@ -392,7 +392,7 @@ def hdf5_sim_shower(corsika, declination=0):
     else:
         global warning_printed_coreas_py
         if not warning_printed_coreas_py:
-            logger.warning(
+            logger.info(
                 "No high-level quantities in HDF5 file, not setting EM energy, this warning will be only printed once")
             warning_printed_coreas_py = True
 
@@ -901,7 +901,7 @@ class coreasInterpolator:
         """
         interp_options_default = {
             "radial_method" : 'cubic',
-            "fill_value" : 0,
+            "fill_value" : None,
             "recover_concentric_rings" : False,
         }
         interp_options = {**kwargs, **interp_options_default}
@@ -959,7 +959,7 @@ class coreasInterpolator:
         is smaller than 15deg, the electric field of the closest observer position is returned instead.
 
         Note that `position_on_ground` is in absolute coordinates, not relative to the core position.
-        Extrapolation is handled by the `cr-pulse-interpolator` package.
+        Extrapolation outside of the starshape is handled by the `cr-pulse-interpolator` package.
 
         Parameters
         ----------
@@ -990,8 +990,7 @@ class coreasInterpolator:
 
         # interpolate electric field at antenna position in shower plane which are inside star pattern
         if self.efield_interpolator == -1:
-            efield_interp = self.get_closest_observer_efield(antenna_pos_showerplane)
-            trace_start_time = None
+            efield_interp, trace_start_time = self.get_closest_observer_efield(antenna_pos_showerplane)
         else:
             efield_interp, trace_start_time, _, _ = self.efield_interpolator(
                 antenna_pos_showerplane[0], antenna_pos_showerplane[1],
@@ -1011,6 +1010,8 @@ class coreasInterpolator:
         """
         Calculate the interpolated fluence for a given position on the ground.
 
+        Note that `position_on_ground` is in absolute coordinates, not relative to the core position.
+
         Parameters
         ----------
         position_on_ground : np.ndarray
@@ -1024,7 +1025,7 @@ class coreasInterpolator:
             interpolated fluence value
         """
         logger.debug(
-            f"Getting interpolated efield for antenna position {position_on_ground} on ground"
+            f"Getting interpolated fluence for antenna position {position_on_ground} on ground"
         )
 
         antenna_pos_showerplane = self.get_position_showerplane(position_on_ground)
@@ -1057,16 +1058,18 @@ class coreasInterpolator:
         -------
         efield: np.ndarray
             electric field, as an array shaped
-
+        efield_start_time: float
+            The start time of the selected electric field trace
         """
         distances = np.linalg.norm(antenna_pos_showerplane[:2] - self.obs_positions_showerplane[:, :2], axis=1)
         index = np.argmin(distances)
         efield = self.electric_field_on_sky[index, :, :]
+        efield_start_time = self.efield_times[index][0]
         logger.debug(
             f'Returning the electric field of the closest observer position, '
             f'which is {distances[index] / units.m:.2f}m away from the antenna'
         )
-        return efield
+        return efield, efield_start_time
 
 
 # PLOTTING UTILITIES
