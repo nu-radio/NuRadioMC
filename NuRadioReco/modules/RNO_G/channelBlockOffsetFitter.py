@@ -53,8 +53,8 @@ class channelBlockOffsets:
 
         Parameters
         ----------
-        event: Event object | None
-        station: Station
+        event : `NuRadioReco.framework.event.Event` | None
+        station : `NuRadioReco.framework.station.Station`
             The station to add block offsets to
         offsets: float | array | dict
             offsets to add to the event. Default: 1 mV
@@ -110,8 +110,8 @@ class channelBlockOffsets:
 
         Parameters
         ----------
-        event: NuRadioReco.framework.event.Event | None
-        station: NuRadioReco.framework.station.Station
+        event : `NuRadioReco.framework.event.Event` | None
+        station : `NuRadioReco.framework.station.Station`
             The station to remove the block offsets from
         mode: str {'auto', 'fit', 'approximate', 'stored'}, optional
             
@@ -126,12 +126,16 @@ class channelBlockOffsets:
 
         channel_ids: list | None
             List of channel ids to remove offsets from. If None (default),
-            remove offsets from all channels in ``station``
+            remove offsets from all channels in `station`
         maxiter: int, default 5
             (Only if mode=='fit') The maximum number of fit iterations.
             This can be increased to more accurately remove the block offsets
             at the cost of performance. (The default value removes 'most' offsets
             to about 1%)
+
+        See Also
+        --------
+        run : alias of this method
 
         """
         if channel_ids  is None:
@@ -155,6 +159,59 @@ class channelBlockOffsets:
                 offsets[channel_id] = -block_offsets
         
         self.add_offsets(event, station, offsets, channel_ids)
+
+    def begin(self):
+        """(Unused)"""
+        pass
+
+    @register_run()
+    def run(self, event, station, det=None, mode='auto', channel_ids=None, **kwargs):
+        """
+        Remove the block offsets from all channels of a station.
+
+        Fits and removes the block offsets from an event. The removed offsets
+        are stored in the ``channelParameters.block_offsets``
+        parameter.
+
+        This method is an alias of `remove_offsets`, with the only difference the inclusion
+        of the (unused) `det` parameter, to be consistent with the `run` methods of other
+        NuRadio classes.
+
+        Parameters
+        ----------
+        event : `NuRadioReco.framework.event.Event` | None
+        station : `NuRadioReco.framework.station.Station`
+            The station to remove the block offsets from
+        det : Detector object, optional
+            Detector object (not used in this method,
+            included to have the same signature as other NuRadio classes)
+        mode : str {'auto', 'fit', 'approximate', 'stored'}, optional
+
+            - 'fit': fit the block offsets with a minimizer
+            - 'approximate' : use the first guess from the out-of-band component,
+              without any fitting (slightly faster)
+            - 'auto' (default): decide automatically between 'approximate' and 'fit'
+              based on the estimated size of the block offsets.
+            - 'stored': use the block offsets already stored in the
+              ``channelParameters.block_offsets`` parameter. Will raise an error
+              if this parameter is not present.
+
+        channel_ids : list | None
+            List of channel ids to remove offsets from. If None (default),
+            remove offsets from all channels in `station`.
+        **kwargs : keyword arguments
+            Other keyword arguments to be passed to the `remove_offsets` function.
+
+        See Also
+        --------
+        remove_offsets : alias of this method without the (unused) `det` parameter
+        """
+        self.remove_offsets(event, station, mode=mode, channel_ids=channel_ids, **kwargs)
+
+
+    def end(self):
+        """(Unused)"""
+        pass
 
 
 def fit_block_offsets(
