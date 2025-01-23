@@ -619,16 +619,19 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.trigger</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">parameters</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_serialization</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">io_utilities</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_serialization</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">cPickle</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.BaseStation&#39;</span><span class="p">)</span>
 
@@ -719,11 +722,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">set_station_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the (absolute) time for the station (stored as astropy.time.Time).</span>
-<span class="sd">        Not related to the event._event_time.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        time: astropy.time.Time or datetime.datetime or float</span>
 <span class="sd">            If &quot;time&quot; is a float, you have to specify its format.</span>
 
@@ -738,6 +739,9 @@
         <span class="k">elif</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;If you provide a float for the time, you have to specify the format.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If you provide a float for the time, you have to specify the format.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span></div>
 
 
@@ -753,7 +757,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        format: str</span>
 <span class="sd">            Format in which the time object is displayed. (Default: isot)</span>
 
@@ -767,16 +770,6 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="nb">format</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.get_station_time_dict">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_station_time_dict">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_time_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return the station time as dict {value, format}. Used for reading and writing &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="o">.</span><span class="n">format</span><span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.get_id">
@@ -1071,7 +1064,7 @@
         <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
             <span class="n">efield_pkls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">efield</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">save_trace</span><span class="o">=</span><span class="n">save_efield_traces</span><span class="p">))</span>
 
-        <span class="n">station_time_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_station_time_dict</span><span class="p">()</span>
+        <span class="n">station_time_dict</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_astropy_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">())</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_parameters&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">),</span>
                 <span class="s1">&#39;_parameter_covariances&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize_covariances</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">),</span>
@@ -1113,12 +1106,8 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_id&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="n">station_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">][</span><span class="s1">&#39;format&#39;</span><span class="p">])</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">station_time</span><span class="p">)</span>
-            <span class="c1"># For backward compatibility, we also keep supporting station times stored as astropy.time objects</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">])</span>
+            <span class="n">station_time</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_time_object_to_astropy</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">station_time</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_particle_type&#39;</span><span class="p">]</span></div>
 

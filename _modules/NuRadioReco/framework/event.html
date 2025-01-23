@@ -615,7 +615,6 @@
              
   <h1>Source code for NuRadioReco.framework.event</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.station</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.radio_shower</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.emitter</span>
@@ -623,9 +622,15 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.hybrid_information</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.particle</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">parameters</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.version</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">io_utilities</span><span class="p">,</span> <span class="n">version</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">six</span><span class="w"> </span><span class="kn">import</span> <span class="n">itervalues</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.Event&#39;</span><span class="p">)</span>
 
@@ -642,7 +647,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__radio_showers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sim_showers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__particles</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span> <span class="c1"># stores a dictionary of simulated MC particles in an event</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># copies over the relevant information on event generation from the input file attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_information</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">hybrid_information</span><span class="o">.</span><span class="n">HybridInformation</span><span class="p">()</span>
@@ -817,13 +822,50 @@
 
 <div class="viewcode-block" id="Event.set_event_time">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_event_time">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_event_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_time</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="n">event_time</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_event_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the (absolute) event time (will be stored as astropy.time.Time).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        time: astropy.time.Time or datetime.datetime or float</span>
+<span class="sd">            If &quot;time&quot; is a float, you have to specify its format.</span>
+
+<span class="sd">        format: str (Default: None)</span>
+<span class="sd">            Only used when &quot;time&quot; is a float. Format to interpret &quot;time&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="k">elif</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;If you provide a float for the time, you have to specify the format.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If you provide a float for the time, you have to specify the format.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Event.get_event_time">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_event_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_event_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the event time (as astropy.time.Time object).</span>
+
+<span class="sd">        If the event time is not set, an error is raised. The event time is often only used in simulations</span>
+<span class="sd">        and typically the same a `station.get_station_time()`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        event_time : astropy.time.Time</span>
+<span class="sd">            The event time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Event time is not set. You either have to set it or use `station.get_station_time()`&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Event time is not set. You either have to set it or use `station.get_station_time()`&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span></div>
 
 
@@ -1247,7 +1289,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
         <span class="n">stations_pkl</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">commit_hash</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">get_NuRadioMC_commit_hash</span><span class="p">()</span>
+            <span class="n">commit_hash</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get_NuRadioMC_commit_hash</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">eventParameters</span><span class="o">.</span><span class="n">hash_NuRadioMC</span><span class="p">,</span> <span class="n">commit_hash</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Event is serialized without commit hash!&quot;</span><span class="p">)</span>
@@ -1279,10 +1321,12 @@
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_keys</span><span class="p">):</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following arguments to module </span><span class="si">{</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> could not be serialized and will not be stored: </span><span class="si">{</span><span class="n">invalid_keys</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+        <span class="n">event_time_dict</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_astropy_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span><span class="p">)</span>
+
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_parameters&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">,</span>
                 <span class="s1">&#39;__run_number&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span><span class="p">,</span>
                 <span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span>
-                <span class="s1">&#39;__event_time&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span><span class="p">,</span>
+                <span class="s1">&#39;__event_time&#39;</span><span class="p">:</span> <span class="n">event_time_dict</span><span class="p">,</span>
                 <span class="s1">&#39;stations&#39;</span><span class="p">:</span> <span class="n">stations_pkl</span><span class="p">,</span>
                 <span class="s1">&#39;showers&#39;</span><span class="p">:</span> <span class="n">showers_pkl</span><span class="p">,</span>
                 <span class="s1">&#39;sim_showers&#39;</span><span class="p">:</span> <span class="n">sim_showers_pkl</span><span class="p">,</span>
@@ -1333,7 +1377,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameters&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__run_number&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__event_time&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_time_object_to_astropy</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;__event_time&#39;</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="s1">&#39;generator_info&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;generator_info&#39;</span><span class="p">]</span>

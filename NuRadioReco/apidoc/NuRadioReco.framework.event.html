@@ -640,77 +640,83 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_sim_shower" title="NuRadioReco.framework.event.Event.add_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sim_shower</span></code></a>(sim_shower)</p></td>
 <td><p>Add a simulated shower to the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_shower" title="NuRadioReco.framework.event.Event.get_first_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_shower</span></code></a>([ids])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_event_time" title="NuRadioReco.framework.event.Event.get_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_time</span></code></a>()</p></td>
+<td><p>Returns the event time (as astropy.time.Time object).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_shower" title="NuRadioReco.framework.event.Event.get_first_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_shower</span></code></a>([ids])</p></td>
 <td><p>Returns only the first shower stored in the event.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_emitter" title="NuRadioReco.framework.event.Event.get_first_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_emitter</span></code></a>([ids])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_emitter" title="NuRadioReco.framework.event.Event.get_first_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_emitter</span></code></a>([ids])</p></td>
 <td><p>Returns only the first sim emitter stored in the event.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_shower" title="NuRadioReco.framework.event.Event.get_first_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_shower</span></code></a>([ids])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_shower" title="NuRadioReco.framework.event.Event.get_first_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_shower</span></code></a>([ids])</p></td>
 <td><p>Returns only the first sim shower stored in the event.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_hybrid_information" title="NuRadioReco.framework.event.Event.get_hybrid_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_hybrid_information</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_hybrid_information" title="NuRadioReco.framework.event.Event.get_hybrid_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_hybrid_information</span></code></a>()</p></td>
 <td><p>Get information about hybrid detector data stored in the event.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_interaction_products" title="NuRadioReco.framework.event.Event.get_interaction_products"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interaction_products</span></code></a>(parent_particle[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_interaction_products" title="NuRadioReco.framework.event.Event.get_interaction_products"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interaction_products</span></code></a>(parent_particle[, ...])</p></td>
 <td><p>Return all the daughter particles and showers generated in the interaction of the &lt;parent_particle&gt;</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_parent" title="NuRadioReco.framework.event.Event.get_parent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parent</span></code></a>(particle_or_shower)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_parent" title="NuRadioReco.framework.event.Event.get_parent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parent</span></code></a>(particle_or_shower)</p></td>
 <td><p>returns the parent of a particle or a shower</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_particle" title="NuRadioReco.framework.event.Event.get_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_particle</span></code></a>(particle_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_particle" title="NuRadioReco.framework.event.Event.get_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_particle</span></code></a>(particle_id)</p></td>
 <td><p>returns a specific MC particle identified by its unique id</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_particles" title="NuRadioReco.framework.event.Event.get_particles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_particles</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_particles" title="NuRadioReco.framework.event.Event.get_particles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_particles</span></code></a>()</p></td>
 <td><p>Returns an iterator over the MC particles stored in the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_primary" title="NuRadioReco.framework.event.Event.get_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_primary</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_primary" title="NuRadioReco.framework.event.Event.get_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_primary</span></code></a>()</p></td>
 <td><p>returns a first MC particle</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_shower" title="NuRadioReco.framework.event.Event.get_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_shower</span></code></a>(shower_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_shower" title="NuRadioReco.framework.event.Event.get_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_shower</span></code></a>(shower_id)</p></td>
 <td><p>returns a specific shower identified by its unique id</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_showers" title="NuRadioReco.framework.event.Event.get_showers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_showers</span></code></a>([ids])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_showers" title="NuRadioReco.framework.event.Event.get_showers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_showers</span></code></a>([ids])</p></td>
 <td><p>Returns an iterator over the showers stored in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_emitter" title="NuRadioReco.framework.event.Event.get_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_emitter</span></code></a>(emitter_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_emitter" title="NuRadioReco.framework.event.Event.get_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_emitter</span></code></a>(emitter_id)</p></td>
 <td><p>returns a specific emitter identified by its unique id</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_emitters" title="NuRadioReco.framework.event.Event.get_sim_emitters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_emitters</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_emitters" title="NuRadioReco.framework.event.Event.get_sim_emitters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_emitters</span></code></a>()</p></td>
 <td><p>Get an iterator over all simulated emitters in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_shower" title="NuRadioReco.framework.event.Event.get_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_shower</span></code></a>(shower_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_shower" title="NuRadioReco.framework.event.Event.get_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_shower</span></code></a>(shower_id)</p></td>
 <td><p>returns a specific shower identified by its unique id</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_showers" title="NuRadioReco.framework.event.Event.get_sim_showers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_showers</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_sim_showers" title="NuRadioReco.framework.event.Event.get_sim_showers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sim_showers</span></code></a>()</p></td>
 <td><p>Get an iterator over all simulated showers in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_station" title="NuRadioReco.framework.event.Event.get_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station</span></code></a>([station_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_station" title="NuRadioReco.framework.event.Event.get_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station</span></code></a>([station_id])</p></td>
 <td><p>Returns the station for a given station id.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_particle" title="NuRadioReco.framework.event.Event.has_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_particle</span></code></a>([particle_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_particle" title="NuRadioReco.framework.event.Event.has_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_particle</span></code></a>([particle_id])</p></td>
 <td><p>Returns true if at least one MC particle is stored in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_shower" title="NuRadioReco.framework.event.Event.has_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_shower</span></code></a>([shower_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_shower" title="NuRadioReco.framework.event.Event.has_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_shower</span></code></a>([shower_id])</p></td>
 <td><p>Returns true if at least one shower is stored in the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_emitter" title="NuRadioReco.framework.event.Event.has_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_emitter</span></code></a>([emitter_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_emitter" title="NuRadioReco.framework.event.Event.has_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_emitter</span></code></a>([emitter_id])</p></td>
 <td><p>Returns true if at least one simulated emitter is stored in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="NuRadioReco.framework.event.Event.has_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_shower</span></code></a>([shower_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="NuRadioReco.framework.event.Event.has_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_shower</span></code></a>([shower_id])</p></td>
 <td><p>Returns true if at least one simulated shower is stored in the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_triggered" title="NuRadioReco.framework.event.Event.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_triggered" title="NuRadioReco.framework.event.Event.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
 <td><p>Returns true if any station has been triggered.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
 <td><p>returns an interator that loops over all modules.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
 <td><p>registers modules applied to this event</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_event_time" title="NuRadioReco.framework.event.Event.set_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_event_time</span></code></a>(time[, format])</p></td>
+<td><p>Set the (absolute) event time (will be stored as astropy.time.Time).</p></td>
 </tr>
 </tbody>
 </table>
@@ -719,37 +725,31 @@
 <tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_event_time</strong></p></td>
+<tr class="row-even"><td><p><strong>get_generator_info</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_generator_info</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_id</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_id</strong></p></td>
+<tr class="row-even"><td><p><strong>get_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_run_number</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_run_number</strong></p></td>
+<tr class="row-even"><td><p><strong>get_station_ids</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_station_ids</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_stations</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_stations</strong></p></td>
+<tr class="row-even"><td><p><strong>has_generator_info</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>has_generator_info</strong></p></td>
+<tr class="row-odd"><td><p><strong>has_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>has_parameter</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>set_event_time</strong></p></td>
+<tr class="row-even"><td><p><strong>serialize</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>set_generator_info</strong></p></td>
@@ -880,13 +880,35 @@ return it, otherwise raise error. (Default: None)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.set_event_time">
-<span class="sig-name descname"><span class="pre">set_event_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.set_event_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.set_event_time" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">set_event_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.set_event_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.set_event_time" title="Link to this definition"></a></dt>
+<dd><p>Set the (absolute) event time (will be stored as astropy.time.Time).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time: astropy.time.Time or datetime.datetime or float</strong></dt><dd><p>If “time” is a float, you have to specify its format.</p>
+</dd>
+<dt><strong>format: str (Default: None)</strong></dt><dd><p>Only used when “time” is a float. Format to interpret “time”.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_event_time">
 <span class="sig-name descname"><span class="pre">get_event_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_event_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_event_time" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns the event time (as astropy.time.Time object).</p>
+<p>If the event time is not set, an error is raised. The event time is often only used in simulations
+and typically the same a <em class="xref py py-obj">station.get_station_time()</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>event_time</strong><span class="classifier">astropy.time.Time</span></dt><dd><p>The event time.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_stations">

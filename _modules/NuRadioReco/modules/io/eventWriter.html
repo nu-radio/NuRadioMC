@@ -615,12 +615,15 @@
              
   <h1>Source code for NuRadioReco.modules.io.eventWriter</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.NuRadioRecoio</span><span class="w"> </span><span class="kn">import</span> <span class="n">VERSION</span><span class="p">,</span> <span class="n">VERSION_MINOR</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">generic_detector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">io_utilities</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.eventWriter&quot;</span><span class="p">)</span>
 
 
@@ -630,12 +633,12 @@
     <span class="n">header</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;stations&#39;</span><span class="p">:</span> <span class="p">{}}</span>
     <span class="k">for</span> <span class="n">iS</span><span class="p">,</span> <span class="n">station</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">evt</span><span class="o">.</span><span class="n">get_stations</span><span class="p">()):</span>
         <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="n">stnp</span><span class="o">.</span><span class="n">station_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_station_time_dict</span><span class="p">()</span>
+        <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="n">stnp</span><span class="o">.</span><span class="n">station_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_astropy_to_dict</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">has_sim_station</span><span class="p">():</span>
             <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="s1">&#39;sim_station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="s1">&#39;sim_station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    
+
     <span class="n">header</span><span class="p">[</span><span class="s1">&#39;event_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">header</span></div>
 
@@ -702,10 +705,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__filename</span> <span class="o">=</span> <span class="n">filename</span>
-        
+
         <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.ari&#39;</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.&#39;</span><span class="p">)</span>
-        
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__check_for_duplicates</span> <span class="o">=</span> <span class="n">check_for_duplicates</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__number_of_events</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__current_file_size</span> <span class="o">=</span> <span class="mi">0</span>
@@ -731,7 +734,7 @@
 <span class="sd">        det: detector object</span>
 <span class="sd">            If a detector object is passed, the detector description for the</span>
 <span class="sd">            events is written in the file as well</span>
-<span class="sd">        mode: dictionary, optional </span>
+<span class="sd">        mode: dictionary, optional</span>
 <span class="sd">            Specifies what will be saved into the `*.nur` output file.</span>
 <span class="sd">            Can contain the following keys:</span>
 
