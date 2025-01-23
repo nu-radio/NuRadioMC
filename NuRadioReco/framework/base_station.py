@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
-import NuRadioReco.framework.parameters
+import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_storage
 
 import datetime
@@ -21,7 +21,7 @@ logger = logging.getLogger('NuRadioReco.BaseStation')
 class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, station_id):
-        super().__init__(NuRadioReco.framework.parameters.stationParameters)
+        super().__init__(parameters.stationParameters)
         self._station_id = station_id
         self._station_time = None
         self._triggers = collections.OrderedDict()
@@ -338,16 +338,19 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         if not isinstance(x, BaseStation):
             raise AttributeError("Can only add BaseStation to BaseStation")
+
         if self.get_id() != x.get_id():
             raise AttributeError("Can only add BaseStations with the same ID")
+
         for trigger in x.get_triggers().values():
             self.set_trigger(trigger)
+
         for efield in x.get_electric_fields():
             self.add_electric_field(efield)
+
         for key, value in x.get_parameters().items():
             self.set_parameter(key, value)
-        for key, value in x.get_ARIANNA_parameters().items():
-            self.set_ARIANNA_parameter(key, value)
+
         return self
 
 
