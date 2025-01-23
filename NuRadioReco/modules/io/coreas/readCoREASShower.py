@@ -57,9 +57,14 @@ class readCoREASShower:
 
         self.__ascending_run_and_event_number = 1 if set_ascending_run_and_event_number else 0
 
-    def run(self):
+    def run(self, declination=None):
         """
         Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.
+
+        Parameters
+        ----------
+        declination: float, default=None
+            The declination of the magnetic field to use when reading in the CoREAS file
 
         Yields
         ------
@@ -85,45 +90,27 @@ class readCoREASShower:
             logger.info('Reading %s ...' %
                         self.__input_files[self.__current_input_file])
 
-            corsika_evt = coreas.read_CORSIKA7(self.__input_files[self.__current_input_file])
+            corsika_evt = coreas.read_CORSIKA7(self.__input_files[self.__current_input_file], declination=declination)
 
             if self.__ascending_run_and_event_number:
                 evt = NuRadioReco.framework.event.Event(self.__ascending_run_and_event_number,
                                                         self.__ascending_run_and_event_number)
                 self.__ascending_run_and_event_number += 1
             else:
-                evt = NuRadioReco.framework.event.Event(corsika_evt.get_run_number, corsika_evt.get_id)
+                evt = NuRadioReco.framework.event.Event(corsika_evt.get_run_number(), corsika_evt.get_id())
 
-            # create sim shower, no core is set since no external detector description is given
-<<<<<<< HEAD
+            # create sim shower, core is already set in read_CORSIKA7()
             sim_shower = coreas.create_sim_shower(corsika_evt)
-            evt.__event_time = sim_shower.get_parameter(shp.coreas_GPSSecs)
-
-            sim_shower.set_parameter(shp.core, np.array([0, 0, sim_shower.get_parameter(shp.core_coordinate_vertical)]))  # set core to 0,0 and vertical coordinate
+            evt.set_event_time(corsika_evt.get_event_time())
             evt.add_sim_shower(sim_shower)
 
-=======
-            sim_shower = coreas.make_sim_shower(corsika)
-            sim_shower.set_parameter(shp.core, np.array(
-                [-f_coreas.attrs["CoreCoordinateWest"], f_coreas.attrs["CoreCoordinateNorth"], f_coreas.attrs["CoreCoordinateVertical"]]
-                ) * units.cm)  # set core
-            evt.add_sim_shower(sim_shower)
-
-            # initialize coordinate transformation
-            cs = coordinatesystems.cstrafo(
-                sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
-                magnetic_field_vector=sim_shower.get_parameter(shp.magnetic_field_vector))
-
->>>>>>> develop
             # add simulated pulses as sim station
             corsika_efields = corsika_evt.get_station(0).get_sim_station().get_electric_fields()
             for station_id, corsika_efield in enumerate(corsika_efields):
-
                 station = NuRadioReco.framework.station.Station(station_id)
-<<<<<<< HEAD
                 sim_station = coreas.create_sim_station(station_id, corsika_evt)
                 efield_trace = corsika_efield.get_trace()
-                efield_sampling_rate = efield_trace.get_sampling_rate()
+                efield_sampling_rate = corsika_efield.get_sampling_rate()
                 efield_times = corsika_efield.get_times()
 
                 prepend_zeros = True # prepend zeros to not have the pulse directly at the start, heritage from old code
@@ -151,27 +138,11 @@ class readCoREASShower:
                 coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield_cor, efield_times_cor[0],
                                                          sim_shower.get_parameter(shp.zenith),
                                                          sim_shower.get_parameter(shp.azimuth), efield_sampling_rate)
-=======
-                if self.__det is None:
-                    sim_station = coreas.make_sim_station(
-                        station_id, corsika, observer, channel_ids=[0, 1])
-                else:
-                    sim_station = coreas.make_sim_station(
-                        station_id, corsika, observer,
-                        channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
-
->>>>>>> develop
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
 
                 if self.__det is not None:
-<<<<<<< HEAD
                     efield_pos = corsika_efield.get_position()
-=======
-                    position = observer.attrs['position']
-                    antenna_position = np.array([-position[1], position[0], position[2]]) * units.cm
-                    antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
->>>>>>> develop
 
                     if not self.__det.has_station(station_id):
                         self.__det.add_generic_station({
