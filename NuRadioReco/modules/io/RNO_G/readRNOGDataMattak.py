@@ -240,7 +240,7 @@ class readRNOGData:
             read_calibrated_data=False,
             select_triggers=None,
             select_runs=False,
-            apply_baseline_correction='approximate',
+            apply_baseline_correction='auto',
             convert_to_voltage=True,
             selectors=[],
             run_types=["physics"],
@@ -272,15 +272,19 @@ class readRNOGData:
         Other Parameters
         ----------------
 
-        apply_baseline_correction: 'fit' | 'approximate' | 'median' | 'none'
+        apply_baseline_correction: str {'auto', 'fit', 'approximate', 'median', 'none'}, optional
             Removes the DC (baseline) block offsets (pedestals).
             Options are, in order of decreasing precision and increasing performance:
 
             * 'fit' : do a full out-of-band fit to determine the block offsets; for more details,
               see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter` (slow)
-            * 'approximate' : estimate block offsets by looking at the low-pass filtered trace (default)
+            * 'approximate' : estimate block offsets by looking at the low-pass filtered trace
             * 'median' : subtract the median of each block (faster)
             * 'none' : do not apply a baseline correction (fastest)
+
+            The default ('auto') first performs the 'approximate' block offset removal, then
+            automatically decides whether to continue with the full 'fit' depending on the estimated
+            block offset size.
 
         convert_to_voltage: bool
             Only applies when non-calibrated data are read. If true, convert ADC to voltage.
@@ -324,7 +328,7 @@ class readRNOGData:
         t0 = time.time()
 
         self._read_calibrated_data = read_calibrated_data
-        baseline_correction_valid_options = ['approximate', 'fit', 'median', 'none']
+        baseline_correction_valid_options = ['auto', 'approximate', 'fit', 'median', 'none']
         if apply_baseline_correction.lower() not in baseline_correction_valid_options:
             raise ValueError(
                 f"Value for apply_baseline_correction ({apply_baseline_correction}) not recognized. "
@@ -678,7 +682,7 @@ class readRNOGData:
 
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
-            if apply_baseline_correction in ['fit', 'approximate']: # we need the sampling rate
+            if apply_baseline_correction in ['auto', 'fit', 'approximate']: # we need the sampling rate
                 try:
                     sampling_rate = dataset.eventInfo()[0].sampleRate
                 except AttributeError:
@@ -700,7 +704,7 @@ class readRNOGData:
 
                 if apply_baseline_correction == 'median':
                     wfs = _baseline_correction(wfs)
-                elif apply_baseline_correction in ['fit', 'approximate']:
+                elif apply_baseline_correction in ['auto', 'fit', 'approximate']:
                     wfs = np.vstack([
                         fit_block_offsets(
                             wf, mode=self._apply_baseline_correction,
@@ -809,7 +813,7 @@ class readRNOGData:
             station.add_channel(channel)
 
         evt.set_station(station)
-        if self._apply_baseline_correction in ['fit', 'approximate']:
+        if self._apply_baseline_correction in ['auto', 'fit', 'approximate']:
             self._blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
 
         return evt
