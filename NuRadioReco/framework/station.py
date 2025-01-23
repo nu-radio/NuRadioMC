@@ -66,10 +66,11 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         return self.__sim_station is not None
 
     def iter_channels(self, use_channels=None, sorted=False):
-        """
-        Iterates over all channels of the station. If `use_channels` is not None,
-        only the channels with the ids in `use_channels` are iterated over. If `sorted`
-        is True, the channels are iterated over in ascending order of their ids.
+        """ Iterates over all channels of the station.
+
+        If `use_channels` is not None, only the channels with the ids in `use_channels`
+        are iterated over. If `sorted` is True, the channels are iterated over in
+        ascending order of their ids.
 
         Parameters
         ----------
@@ -94,8 +95,55 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         for channel_id in channel_ids:
             yield self.get_channel(channel_id)
 
+    def iter_trigger_channels(self, use_channels=None):
+        """ Iterates over all channels of the station and yields `channel.get_trigger_channel()` for each.
+
+        If `use_channels` is not None, only the channels with the ids in `use_channels` are iterated over.
+
+        Parameters
+        ----------
+        use_channels : list of int, optional
+            List of channel ids to iterate over. If None, all channels are iterated over.
+
+        Yields
+        ------
+        NuRadioReco.framework.channel.Channel
+            The next (trigger) channel in the iteration.
+
+        See Also
+        --------
+        NuRadioReco.framework.channel.Channel.get_trigger_channel
+        NuRadioReco.framework.station.Station.iter_channels
+        """
+
+        for channel_id, channel in iteritems(self.__channels):
+            if use_channels is None:
+                yield channel.get_trigger_channel()
+            else:
+                if channel_id in use_channels:
+                    yield channel.get_trigger_channel()
+
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
+
+    def get_trigger_channel(self, channel_id):
+        """
+        Returns the trigger channel of channel with id `channel_id`.
+
+        If the trigger channel is not set, the channel itself is returned (i.e. this is equivalent to `get_channel`)
+
+        Parameters
+        ----------
+        channel_id : int
+            The id of the channel for which to get the trigger channel.
+
+        Returns
+        -------
+        channel: `NuRadioReco.framework.channel.Channel`
+            The trigger channel of the channel with id `channel_id`.
+        """
+        channel = self.get_channel(channel_id)
+        return channel.get_trigger_channel()
 
     def iter_channel_group(self, channel_group_id):
         found_channel_group = False
