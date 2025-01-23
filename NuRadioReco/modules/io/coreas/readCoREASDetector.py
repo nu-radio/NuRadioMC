@@ -10,8 +10,7 @@ import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-import NuRadioReco.modules.io.coreas
-from NuRadioReco.modules.io.coreas import coreas
+from NuRadioReco.modules.io.coreas import coreas, coreasInterpolator
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.signal_processing import half_hann_window
 from collections import defaultdict
@@ -153,7 +152,7 @@ class readCoREASDetector:
             f"azimuth angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.azimuth) / units.deg:.2f}deg"
         )
 
-        self.coreas_interpolator = coreas.coreasInterpolator(self.__corsika_evt)
+        self.coreas_interpolator = coreasInterpolator.coreasInterpolator(self.__corsika_evt)
         self.coreas_interpolator.initialize_efield_interpolator(interp_lowfreq, interp_highfreq)
 
     @register_run()
