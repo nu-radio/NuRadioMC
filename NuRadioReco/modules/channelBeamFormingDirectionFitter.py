@@ -25,6 +25,7 @@ class channelBeamFormingDirectionFitter():
         self.begin()
 
     def begin(self):
+        # here you could define some variables that are the same for all events
         pass
 
     @register_run()
@@ -40,15 +41,18 @@ class channelBeamFormingDirectionFitter():
             config["calibrate"],
             config["events"],
         )
-        station_info = StationInfo(config["station"], det)
 
-        channels = map_info.used_channels
+        # I removed the StationInfo class as all this information is already available in the NuRadio station object
+
+
+        channel_ids = map_info.used_channels
         positions = Positions(
-            station_info,
+            station.get_id(),
             map_info,
             config["coords"],
             config["distance"],
             config["rec_type"],
+            det=det
         )
 
         ant_locs = positions.get_ant_locs()[1]
@@ -63,37 +67,43 @@ class channelBeamFormingDirectionFitter():
         rec_coord1s = []
 
 
-        upsample = 1
-        pad_amount = int(
-            max(self.station_info.delays.values())
-            * self.sampling_rate
-            * upsample
-        )
+        # upsample = 1  # upsampling is best done by the channelResampler module that is executed before this module
+
+        # the current sampling rate can be requested from the station object
+        sampling_rate = station.get_channel(0).get_sampling_rate()  #assuming that there is a channel 0
+
+        # the padding is being done in the channelStopFilter module, therefor we don't need to pad the trace here
+        # pad_amount = int(
+        #     max(delays.values())
+        #     * sampling_rate
+        # )
 
         times = station.get_channel(0).get_times()
 
-        new_times = np.linspace(
-            self.times[0], self.times[-1], upsample * len(self.times)
-        )
-        dt = new_times[1] - new_times[0]
+        # this doesn't seem to do anyting. The `times` array from above is already the correct time array
+        # new_times = np.linspace(
+        #     times[0], times[-1], len(times)
+        # )
+        # dt = times[1] - times[0]
 
+        # as the traces are already padded in a previous module, we don't need to pad them here:
         # shifted time array only calculated once since time axis is the same
         #   for all waveforms in a run
-        shifted_time_array = np.array(
-            [
-                float(n) * dt
-                for n in range(1, 2 * pad_amount + len(new_times) + 1)
-            ]
-        )
+        # shifted_time_array = np.array(
+        #     [
+        #         float(n) * dt
+        #         for n in range(1, 2 * pad_amount + len(times) + 1)
+        #     ]
+        # )
 
         shifted_volt_array = []
-        for ch in self.map_info.used_channels:
-            waveform = station.get_channel(ch).get_trace()
+        for ch in map_info.used_channels:
+            # waveform = station.get_channel(ch).get_trace()
             # it is better to use the channelResampler module to resample the waveform
             # and the channelStopFilter module to pad the trace with zeros. 
             # then, the waveform can be shifted in an optimized way (using the Fourier shift theorem) by
             channel_copy = copy.copy(station.get_channel(ch))
-            channel_copy.apply_time_shift(self.station_info.delays[ch])
+            channel_copy.apply_time_shift(det.get_cable_delay(station.get_id(), channel_copy.get_id()))
             shifted_waveform = channel_copy.get_trace()
             # waveform = signal.resample_poly(waveform, upsample, 1)
             # padded_wf = np.pad(waveform, pad_amount)
@@ -112,7 +122,7 @@ class channelBeamFormingDirectionFitter():
         v_array_pairs = list(itertools.combinations(shifted_volt_array, 2))
 
         corr_matrix, max_corr = self.correlator(
-            shifted_time_array, v_array_pairs, delay_matrices
+            times, v_array_pairs, delay_matrices
         )
 
 
@@ -123,6 +133,7 @@ class channelBeamFormingDirectionFitter():
         rec_coord0s.append(rec_coord0)
         rec_coord1s.append(rec_coord1)
         max_corr_vals.append(max_corr)
+        surface_corr = []
 
         if config["coords"] == "cylindrical":
             num_rows_to_10m = int(config["limits"][-1] / 10) + 1
@@ -137,8 +148,8 @@ class channelBeamFormingDirectionFitter():
         # you can also use the `channelParameters` class to set parameters on the channel level.
         # if you want to access the parameters in a later module, you can use the `get_parameter` method of the station or channel object.
         # e.g. rec_coord0 = station.get_parameter(stnp.beamforming_direction)
-        
-    
+
+
     def end(self):
         pass
 
@@ -268,15 +279,16 @@ class StationInfo:
 
 class Positions:
 
-    def __init__(self, station_info, map_info, coord_system, dist, rec_type):
+    def __init__(self, station_id, map_info, coord_system, dist, rec_type, det):
         self.rec_type = rec_type
         self.phis = None
         self.map_info = map_info
-        self.station_info = station_info
+        self.station_id = station_id
         self.coord_system = coord_system
         self.cal_locs_file = self.map_info.cal_locs_file
         self.pulser_id = None
         self.distance = dist
+        self.det = det
 
     def get_t_delay_matrices(self, ant_locs, rec_type):
 
@@ -298,14 +310,17 @@ class Positions:
             # my_interp = load_interpolator(
             #     f"/storage/group/szw5718/default/rno-g/data/interp_tables/station{self.station_info.station}/station{self.station_info.station}_2023json_nocal_time_differences_3d_{ch_pair[0]}_{ch_pair[1]}_200_1deg_grid_noraytracingasdfasdfdstest.npy"
             # )
-            if self.station_info.station == 23:
+            if self.station_id == 23:
                 my_interp = load_interpolator(
                     f"/storage/group/szw5718/default/rno-g/data/interp_tables/station{self.station_info.station}/station{self.station_info.station}_2023json_nocal_time_differences_3d_{ch_pair[0]}_{ch_pair[1]}_200_1deg_grid_noraytracing.npy"
                 )
-            elif self.station_info.station == 13:
+            elif self.station_id == 13:
                 my_interp = load_interpolator(
                     f"/storage/group/szw5718/default/rno-g/data/interp_tables/station{self.station_info.station}/station{self.station_info.station}_2023json_nocal_time_differences_3d_{ch_pair[0]}_{ch_pair[1]}_200_1deg_grid_noraytracingasdfasdfdstest.npy"
                 )
+            else:
+                print("Station not found, returning None")
+                return None
 
             time_delay_matrix = my_interp(src_posn_enu_matrix)
             time_delay_matrices.append(time_delay_matrix)
@@ -318,12 +333,8 @@ class Positions:
             xyz_ch_1_loc = np.array(self.get_ant_locs()[0]["1"])
             xyz_ch_2_loc = np.array(self.get_ant_locs()[0]["2"])
         else:
-            xyz_ch_1_loc = self.station_info.det.get_relative_position(
-                int(self.station_info.station), 1
-            )
-            xyz_ch_2_loc = self.station_info.det.get_relative_position(
-                int(self.station_info.station), 2
-            )
+            xyz_ch_1_loc = self.det.get_relative_position(self.station_id, 1)
+            xyz_ch_2_loc = self.det.get_relative_position(self.station_id, 2)
 
         xyz_origin_loc = (xyz_ch_1_loc + xyz_ch_2_loc) / 2.0
 
@@ -346,8 +357,7 @@ class Positions:
             all_xyz_ant_locs = {}
             for ch in channel_ids:
                 all_xyz_ant_locs[str(ch)] = (
-                    self.station_info.det.get_relative_position(
-                        int(self.station_info.station), int(ch)
+                    self.det.get_relative_position(self.station_id, int(ch)
                     ).tolist()
                 )
 
