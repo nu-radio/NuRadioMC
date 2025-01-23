@@ -3,16 +3,19 @@ import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
+import NuRadioReco.framework.parameter_serialization
+
+from NuRadioReco.utilities import io_utilities
+
 import datetime
 import astropy.time
-import NuRadioReco.framework.parameter_serialization
+import logging
+import collections
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
-import logging
-import collections
 
 logger = logging.getLogger('NuRadioReco.BaseStation')
 
@@ -78,11 +81,9 @@ class BaseStation():
     def set_station_time(self, time, format=None):
         """
         Set the (absolute) time for the station (stored as astropy.time.Time).
-        Not related to the event._event_time.
 
         Parameters
         ----------
-
         time: astropy.time.Time or datetime.datetime or float
             If "time" is a float, you have to specify its format.
 
@@ -97,6 +98,9 @@ class BaseStation():
         elif time is None:
             self._station_time = None
         else:
+            if format is None:
+                logger.error("If you provide a float for the time, you have to specify the format.")
+                raise ValueError("If you provide a float for the time, you have to specify the format.")
             self._station_time = astropy.time.Time(time, format=format)
 
     def get_station_time(self, format='isot'):
@@ -109,7 +113,6 @@ class BaseStation():
 
         Parameters
         ----------
-
         format: str
             Format in which the time object is displayed. (Default: isot)
 
@@ -123,13 +126,6 @@ class BaseStation():
 
         self._station_time.format = format
         return self._station_time
-
-    def get_station_time_dict(self):
-        """ Return the station time as dict {value, format}. Used for reading and writing """
-        if self._station_time is None:
-            return None
-        else:
-            return {'value': self._station_time.value, 'format': self._station_time.format}
 
     def get_id(self):
         return self._station_id
@@ -352,7 +348,7 @@ class BaseStation():
         for efield in self.get_electric_fields():
             efield_pkls.append(efield.serialize(save_trace=save_efield_traces))
 
-        station_time_dict = self.get_station_time_dict()
+        station_time_dict = io_utilities._astropy_to_dict(self.get_station_time())
 
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 '_parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
@@ -391,12 +387,8 @@ class BaseStation():
 
         self._station_id = data['_station_id']
         if data['_station_time'] is not None:
-            if isinstance(data['_station_time'], dict):
-                station_time = astropy.time.Time(data['_station_time']['value'], format=data['_station_time']['format'])
-                self.set_station_time(station_time)
-            # For backward compatibility, we also keep supporting station times stored as astropy.time objects
-            else:
-                self.set_station_time(data['_station_time'])
+            station_time = io_utilities._time_object_to_astropy(data['_station_time'])
+            self.set_station_time(station_time)
 
         self._particle_type = data['_particle_type']
 
