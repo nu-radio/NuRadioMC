@@ -2,6 +2,7 @@ import numpy as np
 from NuRadioReco.utilities import units
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
+
 from NuRadioMC.EvtGen import generator
 from NuRadioMC.simulation import simulation
 import os

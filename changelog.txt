@@ -2,7 +2,7 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
-version 3.1.0-dev
+version 3.0.0-dev
 new features:
 - created module and files to retrieve cable and RCU responses for LOFAR
 - added module to incorporate the LOFAR hardware response into the signals
@@ -15,6 +15,9 @@ new features:
 - added support for more Galactic noise models in channelGalacticNoiseAdder
 - added support for "ant_mode" keyword in detector description
 - added option to choose dipole orientation when creating the LOFAR LBA antenna pattern
+- implementation of additional trigger channels. The signals on which the trigger is determined might be passed
+through a different response chain as the signals which are readout. To allow simulating this different response
+we added an optional trigger_channel object which lives within the corresponding channel obejct.
 
 bugfixes:
 -
