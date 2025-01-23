@@ -1,5 +1,4 @@
 from __future__ import absolute_import, division, print_function
-
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.emitter
@@ -8,11 +7,15 @@ import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_storage
-import NuRadioReco.utilities.version
 
-import pickle
+from NuRadioReco.utilities import io_utilities, version
+
+import astropy.time
+import datetime
 from six import itervalues
 import collections
+import pickle
+
 import logging
 logger = logging.getLogger('NuRadioReco.Event')
 
@@ -28,7 +31,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         self.__radio_showers = collections.OrderedDict()
         self.__sim_showers = collections.OrderedDict()
         self.__sim_emitters = collections.OrderedDict()
-        self.__event_time = 0
+        self.__event_time = None
         self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
@@ -137,10 +140,47 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         return self.__stations[station_id]
 
-    def set_event_time(self, event_time):
-        self.__event_time = event_time
+    def set_event_time(self, time, format=None):
+        """
+        Set the (absolute) event time (will be stored as astropy.time.Time).
+
+        Parameters
+        ----------
+        time: astropy.time.Time or datetime.datetime or float
+            If "time" is a float, you have to specify its format.
+
+        format: str (Default: None)
+            Only used when "time" is a float. Format to interpret "time".
+        """
+
+        if isinstance(time, datetime.datetime):
+            self.__event_time = astropy.time.Time(time)
+        elif isinstance(time, astropy.time.Time):
+            self.__event_time = time
+        elif time is None:
+            self.__event_time = None
+        else:
+            if format is None:
+                logger.error("If you provide a float for the time, you have to specify the format.")
+                raise ValueError("If you provide a float for the time, you have to specify the format.")
+            self.__event_time = astropy.time.Time(time, format=format)
 
     def get_event_time(self):
+        """
+        Returns the event time (as astropy.time.Time object).
+
+        If the event time is not set, an error is raised. The event time is often only used in simulations
+        and typically the same a `station.get_station_time()`.
+
+        Returns
+        -------
+        event_time : astropy.time.Time
+            The event time.
+        """
+        if self.__event_time is None:
+            logger.error("Event time is not set. You either have to set it or use `station.get_station_time()`")
+            raise ValueError("Event time is not set. You either have to set it or use `station.get_station_time()`")
+
         return self.__event_time
 
     def get_stations(self):
@@ -478,7 +518,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
     def serialize(self, mode):
         stations_pkl = []
         try:
-            commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
+            commit_hash = version.get_NuRadioMC_commit_hash()
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
         except:
             logger.warning("Event is serialized without commit hash!")
@@ -514,10 +554,11 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
 
+        event_time_dict = io_utilities._astropy_to_dict(self.__event_time)
         data.update({
             '__run_number': self.__run_number,
             '_id': self._id,
-            '__event_time': self.__event_time,
+            '__event_time': event_time_dict,
             'stations': stations_pkl,
             'showers': showers_pkl,
             'sim_showers': sim_showers_pkl,
@@ -566,7 +607,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         self.__run_number = data['__run_number']
         self._id = data['_id']
-        self.__event_time = data['__event_time']
+        self.__event_time = io_utilities._time_object_to_astropy(data['__event_time'])
 
         # For backward compatibility, now generator_info are stored in `_parameters`.
         if 'generator_info' in data:

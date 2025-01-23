@@ -1,15 +1,18 @@
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 import logging
 
 
 class channelAddCableDelay:
     """
-    Adds the cable delay to channels
+    Adds the cable delay to channels.
     """
 
     def __init__(self):
         self.logger = logging.getLogger("NuRadioReco.channelApplyCableDelay")
+
+    def begin(self):
+        pass
 
     @register_run()
     def run(self, evt, station, det, mode='add'):
@@ -24,14 +27,9 @@ class channelAddCableDelay:
         mode : str (default: "add")
             options: 'add' or 'subtract'.
         """
-        for channel in station.iter_channels():
-            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-            self.logger.debug(f"Channel {channel.get_id()}: {mode} {cable_delay / units.ns:.2f} ns")
+        if mode not in ['add', 'subtract']:
+            raise ValueError(f"Unknown mode '{mode}' for channelAddCableDelay. "
+                            "Valid options are 'add' or 'subtract'.")
 
-            if mode == 'add':
-                channel.add_trace_start_time(cable_delay)
-            elif mode == 'subtract':
-                channel.add_trace_start_time(-1 * cable_delay)
-            else:
-                raise ValueError(f"Unknown mode '{mode}' for channelAddCableDelay. "
-                                 "Valid options are 'add' or 'subtract'.")
+        sim_to_data = mode == "add"
+        signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)

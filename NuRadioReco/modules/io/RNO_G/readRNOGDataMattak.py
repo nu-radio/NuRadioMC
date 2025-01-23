@@ -213,8 +213,11 @@ class readRNOGData:
                         self.logger.warn("No connect to RunTable database could be established. "
                                         "Runs can not be filtered.")
                 except ImportError:
-                    self.logger.warn("Import of run table failed. Runs can not be filtered.! \n"
-                            "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
+                    self.logger.warn(
+                        "import run_table failed. You can still use readRNOGData, but runs can not be filtered. "
+                        "To install the run table, run\n\n"
+                        "\tpip install git+ssh://git@github.com/RNO-G/rnog-runtable.git\n"
+                    )
             else:
                 # some users may mistakenly try to pass the .root files to __init__
                 # we check for this and raise a (hopefully) helpful error message
@@ -778,13 +781,14 @@ class readRNOGData:
 
         trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
         trigger.set_triggered()
-        trigger.set_trigger_time(trigger_time)
+        trigger.set_trigger_time(0)  # The trigger time is relative to the event/station time
         station.set_trigger(trigger)
         block_offsets = None
 
         if self._apply_baseline_correction == 'median':
             waveforms, block_offsets = _baseline_correction(waveforms, return_offsets=True)
 
+        readout_delays = event_info.readoutDelay
         for channel_id, wf in enumerate(waveforms):
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             if self._read_calibrated_data:
@@ -797,7 +801,7 @@ class readRNOGData:
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
 
-            time_offset = get_time_offset(event_info.triggerType)
+            time_offset = get_time_offset(event_info.triggerType) + readout_delays[channel_id]
             channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
             if block_offsets is not None:
                 channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, block_offsets.T[channel_id])
