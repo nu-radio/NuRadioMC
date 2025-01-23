@@ -48,6 +48,10 @@ class ParameterStorage:
         self._check_key(key)
         return self._parameter_covariances[(key, key)] ** 0.5
 
+    def has_parameter_error(self, key):
+        self._check_key(key)
+        return (key, key) in self._parameter_covariances
+
     def remove_parameter(self, key):
         self._check_key(key)
         self._parameters.pop(key, None)
