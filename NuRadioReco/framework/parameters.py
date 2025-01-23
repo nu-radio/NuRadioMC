@@ -62,6 +62,7 @@ class channelParameters(Enum):
     block_offsets = 18 #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
     Vrms_NuRadioMC_simulation = 19  #: the noise rms used in the MC simulation
     bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
+    glitch_ch = 21 #: True if channel has a glitch. See 'NuRadioReco.modules.RNO_G.glitch_removal'
 
 
 class electricFieldParameters(Enum):
