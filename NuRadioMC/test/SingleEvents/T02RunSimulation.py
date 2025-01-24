@@ -7,11 +7,11 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
+
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 from NuRadioMC.simulation import simulation
 import logging
-
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -82,4 +82,3 @@ sim = mySimulation(inputfilename=args.inputfilename,
                             log_level=LOGGING_STATUS,
                             log_level_propagation=LOGGING_STATUS)
 sim.run()
-
