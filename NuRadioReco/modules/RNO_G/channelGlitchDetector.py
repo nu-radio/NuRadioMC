@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
-from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.framework.parameters import channelParametersRNOG as chp
 
 
 
