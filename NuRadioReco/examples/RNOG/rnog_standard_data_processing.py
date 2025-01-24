@@ -104,14 +104,14 @@ def process_data(config):
 
             det.update(station.get_station_time())
 
+            # Glitch Removal
+            if use_module("channelGlitchDetector", config):
+                channelGlitchDetector.run(evt, station, det)
+
             # Correcting for block offsets
             if use_module("channelBlockOffsetFitter", config):
                 channelBlockOffsetFitter.run(
                     evt, station, det, **config["channelBlockOffsetFitter"]["kwargs"])
-
-            # Glitch Removal
-            if use_module("channelGlitchDetector", config):
-                channelGlitchDetector.run(evt, station, det)
 
             # Add cable delay
             if use_module("channelAddCableDelay", config):
