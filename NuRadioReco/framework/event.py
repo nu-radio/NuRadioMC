@@ -6,7 +6,9 @@ import NuRadioReco.framework.emitter
 import NuRadioReco.framework.sim_emitter
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
-import NuRadioReco.framework.parameters as parameters
+from NuRadioReco.framework.parameters import (
+    eventParameters as evp, channelParameters as chp, showerParameters as shp,
+    particleParameters as pap, generatorAttributes as gta)
 import NuRadioReco.utilities.version
 from six import itervalues
 import collections
@@ -88,37 +90,37 @@ class Event:
                 yield self.__modules_event[iE - 1]
 
     def get_parameter(self, key):
-        if not isinstance(key, parameters.eventParameters):
+        if not isinstance(key, evp):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
         return self._parameters[key]
 
     def set_parameter(self, key, value):
-        if not isinstance(key, parameters.eventParameters):
+        if not isinstance(key, evp):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
         self._parameters[key] = value
 
     def has_parameter(self, key):
-        if not isinstance(key, parameters.eventParameters):
+        if not isinstance(key, evp):
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
         return key in self._parameters
 
     def get_generator_info(self, key):
-        if not isinstance(key, parameters.generatorAttributes):
+        if not isinstance(key, gta):
             logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
             raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
         return self._generator_info[key]
 
     def set_generator_info(self, key, value):
-        if not isinstance(key, parameters.generatorAttributes):
+        if not isinstance(key, gta):
             logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
             raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
         self._generator_info[key] = value
 
     def has_generator_info(self, key):
-        if not isinstance(key, parameters.generatorAttributes):
+        if not isinstance(key, gta):
             logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
             raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
         return key in self._generator_info
@@ -245,9 +247,9 @@ class Event:
         returns the parent of a particle or a shower
         """
         if isinstance(particle_or_shower, NuRadioReco.framework.base_shower.BaseShower):
-            par_id = particle_or_shower[parameters.showerParameters.parent_id]
+            par_id = particle_or_shower[shp.parent_id]
         elif isinstance(particle_or_shower, NuRadioReco.framework.particle.Particle):
-            par_id = particle_or_shower[parameters.particleParameters.parent_id]
+            par_id = particle_or_shower[pap.parent_id]
         else:
             raise ValueError("particle_or_shower needs to be an instance of NuRadioReco.framework.base_shower.BaseShower or NuRadioReco.framework.particle.Particle")
         if par_id is None:
@@ -282,12 +284,12 @@ class Event:
         # iterate over sim_showers to look for parent id
         if showers is True:
             for shower in self.get_showers():
-                if shower[parameters.showerParameters.parent_id] == parent_id:
+                if shower[shp.parent_id] == parent_id:
                     yield shower
         # iterate over secondary particles to look for parent id
         if particles is True:
             for particle in self.get_particles():
-                if particle[parameters.particleParameters.parent_id] == parent_id:
+                if particle[pap.parent_id] == parent_id:
                     yield particle
 
 
@@ -498,14 +500,25 @@ class Event:
         """
         return self.__hybrid_information
 
+    def has_glitch(self):
+        """
+        Returns true if any channel in any station has a glitch
+        """
+        for station in self.get_stations():
+            for channel in station.iter_channels():
+                if channel.has_parameter(chp.glitch) and channel.get_parameter(chp.glitch):
+                    return True
+
+        return False
+
     def serialize(self, mode):
         stations_pkl = []
         try:
             commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
-            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
+            self.set_parameter(evp.hash_NuRadioMC, commit_hash)
         except:
             logger.warning("Event is serialized without commit hash!")
-            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
+            self.set_parameter(evp.hash_NuRadioMC, None)
 
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))

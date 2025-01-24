@@ -62,7 +62,9 @@ class channelParameters(Enum):
     block_offsets = 18 #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
     Vrms_NuRadioMC_simulation = 19  #: the noise rms used in the MC simulation
     bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
-    glitch_ch = 21 #: True if channel has a glitch. See 'NuRadioReco.modules.RNO_G.glitch_removal'
+
+    # RNO-G specific channel parameters
+    glitch = 100 #: True if channel has a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
 
 
 class electricFieldParameters(Enum):
@@ -227,4 +229,3 @@ class eventParameters(Enum):
     sim_config = 1 #: contents of the config file that the NuRadioMC simulation was run with
     hash_NuRadioReco = 2 #: deprecated, since NuRadioReco is no longer its own repository
     hash_NuRadioMC = 3 #: git hash of the NuRadioMC commit that the file was created with
-    glitch = 4 #: True if any channel of the event has a glitch. See 'NuRadioReco.modules.RNO_G.glitch_removal'
