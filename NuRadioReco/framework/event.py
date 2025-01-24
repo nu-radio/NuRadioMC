@@ -12,6 +12,7 @@ from NuRadioReco.utilities import io_utilities, version
 import astropy.time
 import datetime
 from six import itervalues
+import numpy as np
 import collections
 import pickle
 
@@ -136,6 +137,44 @@ class Event:
 
     def get_run_number(self):
         return self.__run_number
+
+    def get_waveforms(self, station_id=None, channel_id=None):
+        """
+        Returns the waveforms stored within the event.
+
+        You can specify the station and channel id to get specific waveforms.
+        If you do not specify anything you will get all waveforms.
+
+        Parameters
+        ----------
+        station_id: int (Default: None)
+            The station id of the station for which the waveforms should be returned.
+            If `None`, the waveforms of all stations are returned.
+        channel_id: int or list of ints (Default: None)
+            The channel id(s) of the channel(s) for which the waveforms should be returned.
+            If `None`, the waveforms of all channels are returned.
+
+        Returns
+        -------
+        times: np.ndarray
+            A numpy array containing the times of the waveforms.
+        waveforms: np.ndarray
+            A numpy array containing the waveforms.
+        """
+        times = []
+        waveforms = []
+
+        if isinstance(channel_id, int):
+            channel_id = [channel_id]
+
+        for station in self.get_stations():
+            if station_id is not None and station.get_id() != station_id:
+                continue
+            for channel in station.iter_channels(use_channels=channel_id, sorted=True):
+                times.append(channel.get_times())
+                waveforms.append(channel.get_trace())
+
+        return np.squeeze(times), np.squeeze(waveforms)
 
     def get_station(self, station_id=None):
         """
