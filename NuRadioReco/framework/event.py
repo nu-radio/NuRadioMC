@@ -156,10 +156,13 @@ class Event:
 
         Returns
         -------
-        times: np.ndarray
+        times: np.ndarray(nr_stations, nr_channels, nr_samples)
             A numpy array containing the times of the waveforms.
-        waveforms: np.ndarray
+            The returned array is squeezed:
+            (1, 10, 2048) -> (10, 2048) or (2, 1, 2048) -> (2, 2048).
+        waveforms: np.ndarray(nr_stations, nr_channels, nr_samples)
             A numpy array containing the waveforms.
+            The returned array is squeezed (see example for `times`).
         """
         times = []
         waveforms = []
@@ -168,11 +171,16 @@ class Event:
             channel_id = [channel_id]
 
         for station in self.get_stations():
+            tmp_times = []
+            tmp_waveforms = []
             if station_id is not None and station.get_id() != station_id:
                 continue
             for channel in station.iter_channels(use_channels=channel_id, sorted=True):
-                times.append(channel.get_times())
-                waveforms.append(channel.get_trace())
+                tmp_times.append(channel.get_times())
+                tmp_waveforms.append(channel.get_trace())
+
+            times.append(tmp_times)
+            waveforms.append(tmp_waveforms)
 
         return np.squeeze(times), np.squeeze(waveforms)
 
