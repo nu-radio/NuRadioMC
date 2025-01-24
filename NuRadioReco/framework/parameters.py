@@ -234,3 +234,11 @@ class eventParameters(Enum):
     sim_config = 1 #: contents of the config file that the NuRadioMC simulation was run with
     hash_NuRadioReco = 2 #: deprecated, since NuRadioReco is no longer its own repository
     hash_NuRadioMC = 3 #: git hash of the NuRadioMC commit that the file was created with
+    max_corr_coords = 4 #: azimuth, zenith corresponding to max correlation 
+    max_corr = 5 #: maximum correlation value obtained through reconstruction 
+    csw_snr = 6 #: signal to noise ratio of coherently summed waveform 
+    csw_rpr = 7 #: root power ratio of coherently summed waveform 
+    csw_hilbert_snr = 8 #: signal to noise ratio of hilberted coherently summed waveform 
+    csw_impulsivity = 9 #: coherently summed waveform's impulsivity and other statistical measures (dict)
+    surf_corr_ratio = 10 #: ratio comparing max surface correlation to max overall correlation 
+    max_surf_corr = 11 #: maximum surface correlation 
