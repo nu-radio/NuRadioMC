@@ -529,6 +529,38 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         return False
 
+    def avg_SNR(self):
+        """
+        Returns the average SNR across all channels
+        """
+        SNR_all = []
+        for station in self.get_stations():
+            for channel in station.iter_channels():
+                if (channel.has_parameter(chp.SNR)):
+                    SNR_ch = channel.get_parameter(chp.SNR)
+                    if (SNR_ch == np.inf):
+                        return np.inf
+                    else:
+                        SNR_all.append(SNR_ch)
+                        
+        return np.mean(SNR_all)
+
+    def avg_RPR(self):
+        """
+        Returns the average RPR across all channels
+        """
+        RPR_all = []
+        for station in self.get_stations():
+            for channel in station.iter_channels():
+                if (channel.has_parameter(chp.RPR)):
+                    RPR_ch = channel.get_parameter(chp.RPR)
+                    if (RPR_ch == np.inf):
+                        return np.inf
+                    else:
+                        RPR_all.append(RPR_ch)
+                        
+        return np.mean(RPR_all)
+
     def serialize(self, mode):
         stations_pkl = []
         try:
