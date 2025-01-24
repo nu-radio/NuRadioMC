@@ -6,6 +6,7 @@ import NuRadioReco.modules.channelCWNotchFilter
 import NuRadioReco.modules.io.RNO_G.readRNOGDataMattak
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.RNO_G.channelBlockOffsetFitter
+import NuRadioReco.modules.RNO_G.channelGlitchDetector
 
 import NuRadioReco.modules.io.eventWriter
 
@@ -65,7 +66,7 @@ def process_data(config):
     channelCWNotchFilter.begin()
 
     eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-    eventWriter.begin(filename=config["eventWriter"]["args"]['filename'])
+    eventWriter.begin(filename=config["eventWriter"]["kwargs"]['filename'])
 
     hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
     hardwareResponseIncorporator.begin()
@@ -73,15 +74,18 @@ def process_data(config):
     channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsetFitter()
     channelBlockOffsetFitter.begin()
 
-    paths = config["readRNOGDataMattak"]["args"].pop("filenames")
+    channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector()
+    channelGlitchDetector.begin(config["channelGlitchDetector"]["begin"]["kwargs"]["max_deviation"])
+
+    paths = config["readRNOGDataMattak"]["kwargs"].pop("filenames")
     readRNOGDataMattak = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData(log_level=logging.INFO)
     readRNOGDataMattak.begin(
-        paths, **config["readRNOGDataMattak"]["args"],
+        paths, **config["readRNOGDataMattak"]["kwargs"],
     )
 
     # Initialize detector class
     det = NuRadioReco.detector.RNO_G.rnog_detector.Detector(
-        **config["detector"]["args"]
+        **config["detector"]["kwargs"]
     )
 
     # For time logging
@@ -100,9 +104,14 @@ def process_data(config):
 
             det.update(station.get_station_time())
 
-            # Correcting for block offsets is already performed in the readRNOGDataMattak module
+            # Correcting for block offsets
             if use_module("channelBlockOffsetFitter", config):
-                channelBlockOffsetFitter.run(evt, station, det, **config["channelBlockOffsetFitter"]["args"])
+                channelBlockOffsetFitter.run(
+                    evt, station, det, **config["channelBlockOffsetFitter"]["kwargs"])
+
+            # Glitch Removal
+            if use_module("channelGlitchDetector", config):
+                channelGlitchDetector.run(evt, station, det)
 
             # Add cable delay
             if use_module("channelAddCableDelay", config):
@@ -110,11 +119,12 @@ def process_data(config):
 
             # Resample
             if use_module("channelResampler", config):
-                channelResampler.run(evt, station, det, **config["channelResampler"]["args"])
+                channelResampler.run(evt, station, det, **config["channelResampler"]["kwargs"])
 
             # Hardware response
             if use_module("hardwareResponseIncorporator", config):
-                hardwareResponseIncorporator.run(evt, station, det, sim_to_data=False, **config["hardwareResponseIncorporator"]["args"])
+                hardwareResponseIncorporator.run(
+                    evt, station, det, sim_to_data=False, **config["hardwareResponseIncorporator"]["kwargs"])
 
             # CW notch filter
             if use_module("channelCWNotchFilter", config):
@@ -122,10 +132,10 @@ def process_data(config):
 
             # Bandpass filter
             if use_module("channelBandPassFilter", config):
-                channelBandPassFilter.run(evt, station, det, **config["channelBandPassFilter"]["args"])
+                channelBandPassFilter.run(evt, station, det, **config["channelBandPassFilter"]["kwargs"])
 
             # Write event - the RNO-G detector class is not stored within the nur files.
-            eventWriter.run(evt, det=None, mode=config["eventWriter"]["args"]['mode'])
+            eventWriter.run(evt, det=None, mode=config["eventWriter"]["kwargs"]['mode'])
 
         logger.debug("Time for event: %f", time.time() - t0)
         t_total += time.time() - t0
@@ -151,7 +161,7 @@ if __name__ == "__main__":
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
 
-    if config["readRNOGDataMattak"]["args"]["filenames"] is None:
-        config["readRNOGDataMattak"]["args"]["filenames"] = args.filenames
+    if config["readRNOGDataMattak"]["kwargs"]["filenames"] is None:
+        config["readRNOGDataMattak"]["kwargs"]["filenames"] = args.filenames
 
     process_data(config)

@@ -6,7 +6,7 @@
 #    - `null` is the equivalent of `None` in python
 
 readRNOGDataMattak:
-  args:
+  kwargs:
     filenames: null
     # Use mattak to calibrate data on the fly. Requires calibration files to be available
     read_calibrated_data: False
@@ -26,7 +26,7 @@ readRNOGDataMattak:
     overwrite_sampling_rate: 3.2
 
 detector:
-  args:
+  kwargs:
     # Specify a path to the detector description file. If null (None in python),
     #the detector description will be queried from the hardware database.
     detector_file: null
@@ -36,7 +36,7 @@ detector:
 
 channelResampler:
   use: True
-  args:
+  kwargs:
     sampling_rate: 5  # GHz
 
 channelAddCableDelay:
@@ -44,26 +44,32 @@ channelAddCableDelay:
 
 hardwareResponseIncorporator:
   use: True
-  args:
+  kwargs:
     mode: 'phase_only'
 
 channelCWNotchFilter:
   use: False
-  args:
+  kwargs:
 
 channelBandPassFilter:
   use: True
-  args:
+  kwargs:
     passband: [0.1, 0.6]  # GHz
     filter_type: 'butter'
     order: 10
 
 eventWriter:
-  args:
+  kwargs:
     mode: null
     filename: rnog_output_test.nur
 
 channelBlockOffsetFitter:
   use: True
-  args:
+  kwargs:
     mode: 'auto'
+
+channelGlitchDetector:
+  use: True
+  begin:
+    kwargs:
+      max_deviation: 2  # 2 V = 2000mV
