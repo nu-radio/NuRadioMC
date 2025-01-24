@@ -1,3 +1,18 @@
+"""
+Interface to the MongoDB that contains RNO-G hardware and calibration information
+
+The :mod:`NuRadioReco.detector.RNO_G.db_mongo_read` module and the `Database` class herein mostly serve as the
+backend of the `NuRadioReco.detector.RNO_G.rnog_detector.Detector` class. Most users
+will want to use that class to obtain information about deployed RNO-G stations and hardware.
+`NuRadioReco.detector.RNO_G.rnog_detector.Detector` class has an interface similar to that of
+other detector descriptions in NuRadioMC, and is documented there.
+
+However, for some specific use cases (e.g. finding measurements for individual hardware components
+that have not been deployed to the field), one can use the `Database` class directly, using the
+`Database.get_component_data` method.
+
+"""
+
 import six
 import os
 import urllib.parse
@@ -720,7 +735,38 @@ class Database(object):
 
 
     def get_component_data(self, component_type, component_id, supplementary_info, primary_time, verbose=True, sparameter='S21'):
-        """ returns the current primary measurement of the component, reads in the component collection"""
+        """
+        returns the current primary measurement of the component, reads in the component collection
+
+        Returns a single measurement (e.g. gain of an IGLU)
+
+        Examples
+        --------
+
+        .. code-block::
+
+            import NuRadioReco.detector.RNO_G.db_mongo_read
+            import datetime
+
+            db = NuRadioReco.detector.RNO_G.db_mongo_read.Database()
+
+            # gives you the entry in the database
+            database_entry = db.get_component_data(
+                component_type='iglu_board',
+                component_id='C0069',
+                supplementary_info={}, # if you want a DRAB you have to specify the channel: {'channel_id':0}
+                verbose=True,
+                sparameter='S21', # you can also read the other S parameters
+                primary_time=datetime.datetime.now())
+
+
+            # extract the gain + phase data
+            y_axis_units = database_entry['y-axis_units']
+            frequencies = database_entry['frequencies']
+            gain_data = database_entry['mag']
+            phase_data = database_entry['phase']
+
+        """
 
         # define a search filter
         search_filter = [{'$match': {'name': component_id}}, {'$unwind': '$measurements'}, {'$match': {}}]
