@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from radiotools import helper as hp
 
-from NuRadioReco.utilities import units
+import NuRadioReco.framework.radio_shower
+from NuRadioReco.utilities import units, geometryUtilities
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
@@ -62,13 +64,14 @@ class coreasInterpolator:
         self.sampling_rate = None
         self.electric_field_on_sky = None
         self.efield_times = None
+        self.__efields_rotation_angle = 0
 
         self.obs_positions_ground = None
         self.obs_positions_showerplane = None
 
         # Store the SimStation and SimShower objects
         self.sim_station = corsika_evt.get_station(0).get_sim_station()
-        self.shower = corsika_evt.get_first_sim_shower()  # there should only be one simulated shower
+        self.shower: NuRadioReco.framework.radio_shower.RadioShower = corsika_evt.get_first_sim_shower()  # there should only be one simulated shower
         self.cs = self.shower.get_coordinatesystem()
 
         # Flags to check whether interpolator is initialized
@@ -112,8 +115,7 @@ class coreasInterpolator:
             electric_field_on_sky.append(efield.get_trace().T)
             efield_times.append(efield.get_times())
 
-        # shape: (n_observers, n_samples, (eR, eTheta, ePhi))
-        self.electric_field_on_sky = np.array(electric_field_on_sky)
+        self.electric_field_on_sky = np.array(electric_field_on_sky)  # shape: (n_observers, n_samples, (eR, eTheta, ePhi))
         self.efield_times = np.array(efield_times)
         self.sampling_rate = 1. / (self.efield_times[0][1] - self.efield_times[0][0])
 
@@ -158,6 +160,13 @@ class coreasInterpolator:
         else:
             return np.max(np.linalg.norm(self.obs_positions_ground[:, :-1], axis=-1))
 
+    @property
+    def efields_rotation_angle(self):
+        """
+        The angle with which the e_theta and e_phi components of the electric field were rotated
+        """
+        return self.__efields_rotation_angle
+
     def get_empty_efield(self):
         """
         Get an array of zeros in the shape of the electric field on the sky
@@ -185,6 +194,47 @@ class coreasInterpolator:
             The parameter where to store the result of the fluence calculation
         """
         coreas.set_fluence_of_efields(function, self.sim_station, quantity)
+
+    def __rotate_efield_polarizations(self):
+        """
+        Rotate the electric field polarizations to make sure they do not align with vxB and vxvxB axes.
+        Otherwise the amplitudes will have zeros along the circles in the footprint, which makes the
+        interpolation unstable.
+
+        Notes
+        -----
+        Currently the rotation is hardcoded to 45 degrees when the on-sky axes align too closely with
+        the vxB or vxvxB axes. However, it could be possible to make this more general by looking at how
+        a total mix of vxB and vxvxB (ie sum them and normalize) maps to the on-sky CS and then rotate the
+        electric fields to align with this vector. This would (probably) ensure that both components always
+        have a reasonable amplitude.
+        """
+        magnetic_field_normalized = self.magnetic_field_vector / np.linalg.norm(self.magnetic_field_vector)
+        v = -1 * hp.spherical_to_cartesian(
+            self.zenith, self.azimuth
+        )
+        vxB = np.cross(v, magnetic_field_normalized)
+
+        # Check if vxB align with e_theta or e_phi axes in on-sky CS
+        cs = self.shower.get_coordinatesystem()
+        vxB_on_sky = cs.transform_from_ground_to_onsky(vxB)
+        vxB_on_sky /= np.linalg.norm(vxB_on_sky)
+
+        # Ensure the on-sky polarisations contain at least 1% from both vxB and vxvxB components
+        # These atol/rtol settings should catch all showers which are within 6 degrees in azimuth
+        # from the N-S axis or 2 degrees away from zenith
+        if (np.allclose(np.abs(vxB_on_sky), [0, 0, 1], atol=1e-1, rtol=0) or
+                np.allclose(np.abs(vxB_on_sky), [0, 1, 0], atol=1e-1, rtol=0)):
+            logger.info(
+                "The coordinate axes in the on-sky coordinate system align too close with the vxB or vxvxB axes. "
+                "This can cause problems in interpolation, so I will rotate the electric fields polarisations... "
+            )
+
+            self.__efields_rotation_angle = 45 * units.deg
+            rotated_efields = np.matmul(
+                self.electric_field_on_sky, geometryUtilities.rot_x(self.__efields_rotation_angle / units.rad)
+            )
+            self.electric_field_on_sky = rotated_efields
 
     def initialize_efield_interpolator(self, interp_lowfreq, interp_highfreq, **kwargs):
         """
@@ -261,10 +311,14 @@ class coreasInterpolator:
             f'The following interpolation settings are used: {interp_options}'
         )
 
+        # Rotate the electric field polarizations if necessary
+        self.__rotate_efield_polarizations()
+
+        # Construct the interpolator with the required settings
         self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
             self.obs_positions_showerplane[:, 0],
             self.obs_positions_showerplane[:, 1],
-            self.electric_field_on_sky,  # TODO: this should be a rotated version for showers from zenith or N-S
+            self.electric_field_on_sky,
             signals_start_times=self.efield_times[:, 0] / units.s,
             sampling_period=1 / self.sampling_rate / units.s,  # interpolator wants sampling period in seconds
             lowfreq=interp_lowfreq / units.MHz,
@@ -400,6 +454,11 @@ class coreasInterpolator:
                 account_for_timing=True,
                 pulse_centered=True,
                 full_output=True)
+
+            # Rotate the electric field back to the normal on-sky coordinate system
+            efield_interp = np.matmul(
+                efield_interp, geometryUtilities.rot_x(-1 * self.__efields_rotation_angle / units.rad)
+            )
 
         if cs_transform == 'sky_to_ground':
             efield_interp = self.cs.transform_from_onsky_to_ground(efield_interp)
