@@ -537,7 +537,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         for station in self.get_stations():
             for channel in station.iter_channels():
                 if (channel.has_parameter(chp.SNR)):
-                    SNR_ch = channel.get_parameter(chp.SNR)
+                    SNR_ch = channel.get_parameter(chp.SNR)['peak_amplitude']
                     if (SNR_ch == np.inf):
                         return np.inf
                     else:
