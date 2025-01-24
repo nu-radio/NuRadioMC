@@ -3,15 +3,15 @@
 # Yaml instructions:
 #    - Use always NuRadioReco default units as specifed in `NuRadioReco.utilities.units`
 #    - If you want to use floats with scientific notation, use the following format: 1.0e-9 (not 1e-9!)
+#    - `null` is the equivalent of `None` in python
 
 readRNOGDataMattak:
   args:
     filenames: null
     # Use mattak to calibrate data on the fly. Requires calibration files to be available
     read_calibrated_data: False
-    # Only used when read_calibrated_data==False, performs a simple baseline subtraction each 128 bins
-    # This is performed by the dedicated module channelBlockOffsets
-    apply_baseline_correction: 'fit'
+    # Do not apply a baseline correction in the read module, do it afterwards
+    apply_baseline_correction: null
     # Only used when read_calibrated_data==False, performs a linear voltage calibration with hardcoded values
     convert_to_voltage: True
     # Can be used instead of defining a selector (only for triggers)
@@ -62,3 +62,8 @@ eventWriter:
   args:
     mode: null
     filename: rnog_output_test.nur
+
+channelBlockOffsetFitter:
+  use: True
+  args:
+    mode: 'auto'

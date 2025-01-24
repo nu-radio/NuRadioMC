@@ -4,8 +4,10 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelCWNotchFilter
 
 import NuRadioReco.modules.io.RNO_G.readRNOGDataMattak
-import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
+import NuRadioReco.modules.RNO_G.channelBlockOffsetFitter
+
+import NuRadioReco.modules.io.eventWriter
 
 import NuRadioReco.detector.RNO_G.rnog_detector
 
@@ -68,6 +70,9 @@ def process_data(config):
     hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
     hardwareResponseIncorporator.begin()
 
+    channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsetFitter()
+    channelBlockOffsetFitter.begin()
+
     paths = config["readRNOGDataMattak"]["args"].pop("filenames")
     readRNOGDataMattak = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData(log_level=logging.INFO)
     readRNOGDataMattak.begin(
@@ -96,6 +101,8 @@ def process_data(config):
             det.update(station.get_station_time())
 
             # Correcting for block offsets is already performed in the readRNOGDataMattak module
+            if use_module("channelBlockOffsetFitter", config):
+                channelBlockOffsetFitter.run(evt, station, det, **config["channelBlockOffsetFitter"]["args"])
 
             # Add cable delay
             if use_module("channelAddCableDelay", config):
