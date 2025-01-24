@@ -614,7 +614,20 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.cosmicRayEnergyReconstructor</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module to reconstruct the energy of an air shower from its radio signal</span>
+
+<span class="sd">To reconstruct the air-shower energy, the radio signals should be bandpass filtered</span>
+<span class="sd">between 80 to 300 MHz with a 10th order Butterworth filter, and both the cosmic ray</span>
+<span class="sd">direction and the unfolded electric field should be present. The latter can be obtained</span>
+<span class="sd">(after the signal direction has been reconstructed) by running the</span>
+<span class="sd">`NuRadioReco.modules.voltageToAnalyticEfieldConverter` module.</span>
+
+<span class="sd">For more details on this algorithm, see https://dx.doi.org/10.1088/1475-7516/2019/10/075</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
@@ -631,6 +644,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">cosmicRayEnergyReconstructor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reconstructs the energy of an air shower from its radio signal</span>
+
 <span class="sd">    Requires the following modules to be run beforehand:</span>
 <span class="sd">    </span>
 <span class="sd">    * a 10th order Butterworth bandpass filter with passband 80-300 MHz</span>
@@ -654,32 +668,71 @@
             <span class="s1">&#39;auger&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">229.96</span><span class="p">,</span> <span class="o">-</span><span class="mf">123.75</span><span class="p">,</span> <span class="mf">110.51</span><span class="p">),</span> <span class="p">(</span><span class="mf">214.46</span><span class="p">,</span> <span class="o">-</span><span class="mf">111.01</span><span class="p">,</span> <span class="mf">119.18</span><span class="p">)]),</span>
                 <span class="s1">&#39;falloff&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="o">-</span><span class="mf">.1445</span><span class="p">,</span> <span class="o">-</span><span class="mf">.09820</span><span class="p">),</span> <span class="p">(</span><span class="mf">.5936</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.1763</span><span class="p">)])</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;summit&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="mf">404.5</span> <span class="p">,</span> <span class="o">-</span><span class="mf">131.56</span><span class="p">,</span>   <span class="mf">11.7</span> <span class="p">],</span> <span class="p">[</span> <span class="mf">428.97</span><span class="p">,</span>  <span class="o">-</span><span class="mf">92.11</span><span class="p">,</span>    <span class="mf">5.94</span><span class="p">]]),</span>
+                <span class="s1">&#39;falloff&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">0.3391</span><span class="p">,</span>  <span class="mf">0.1738</span><span class="p">],</span> <span class="p">[</span> <span class="mf">0.9543</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.6967</span><span class="p">]])</span>
             <span class="p">}</span>
         <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__elevations</span> <span class="o">=</span> <span class="p">{</span>  <span class="c1"># TODO: This should be changed once we have implemented a proper coordinate system</span>
             <span class="s1">&#39;mooresbay&#39;</span><span class="p">:</span> <span class="mf">30.</span><span class="p">,</span>
             <span class="s1">&#39;southpole&#39;</span><span class="p">:</span> <span class="mf">2800.</span><span class="p">,</span>
-            <span class="s1">&#39;auger&#39;</span><span class="p">:</span> <span class="mf">1560.</span>
+            <span class="s1">&#39;auger&#39;</span><span class="p">:</span> <span class="mf">1560.</span><span class="p">,</span>
+            <span class="s1">&#39;summit&#39;</span><span class="p">:</span> <span class="mf">3216.</span>
         <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__site</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__elevation</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="cosmicRayEnergyReconstructor.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.cosmicRayEnergyReconstructor.html#NuRadioReco.modules.cosmicRayEnergyReconstructor.cosmicRayEnergyReconstructor.begin">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s1">&#39;mooresbay&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the cosmicRayEnergyReconstructor (optional)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        site : string | None (default: None)</span>
+<span class="sd">            Specifies the site of the station. The parameterization of</span>
+<span class="sd">            the cosmic ray energy depends on the site of the detector.</span>
+
+<span class="sd">            If None, the site will be determined from the detector</span>
+<span class="sd">            passed to the `run` function.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__site</span> <span class="o">=</span> <span class="n">site</span>
         <span class="k">if</span> <span class="n">site</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrizations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Unsupported site. Please select one of the following: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__parametrizations</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrizations</span><span class="p">[</span><span class="n">site</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__elevations</span><span class="p">[</span><span class="n">site</span><span class="p">]</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span></div>
 
 
 <div class="viewcode-block" id="cosmicRayEnergyReconstructor.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.cosmicRayEnergyReconstructor.html#NuRadioReco.modules.cosmicRayEnergyReconstructor.cosmicRayEnergyReconstructor.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">electric_field</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine the cosmic ray energy from the electric field fluence.</span>
+
+<span class="sd">        The reconstructed cosmic ray energy will be stored in the</span>
+<span class="sd">        station in the :obj:`cr_energy_em &lt;NuRadioReco.framework.parameters.stationParameters.cr_energy_em&gt;` parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event : Event</span>
+<span class="sd">        station : Station</span>
+<span class="sd">            The station containing the reconstructed electric field.</span>
+<span class="sd">            If it contains multiple electric fields, only the last electric field</span>
+<span class="sd">            will be used, unless another electric field is passed as a keyword-argument</span>
+<span class="sd">        detector : Detector</span>
+<span class="sd">        electric_field : ElectricField | None (default: None)</span>
+<span class="sd">            If not None, reconstruct the energy for this electric field.</span>
+<span class="sd">            Otherwise, reconstruct the last electric field in the station.</span>
+<span class="sd">            Useful if a station contains multiple reconstructed electric fields.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        rec_energy : float</span>
+<span class="sd">            The reconstructed cosmic ray energy</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">station</span><span class="o">.</span><span class="n">is_cosmic_ray</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Event is not a cosmic ray!&#39;</span><span class="p">)</span>
@@ -688,33 +741,55 @@
             <span class="k">return</span>
         <span class="n">zenith</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span>
         <span class="n">azimuth</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
+        <span class="n">site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__site</span>
+        <span class="k">if</span> <span class="n">site</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">site</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">site</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrizations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Unsupported site. Please select one of the following: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__parametrizations</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span>
+        <span class="n">parametrization_for_site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrizations</span><span class="p">[</span><span class="n">site</span><span class="p">]</span>
+        <span class="n">elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__elevations</span><span class="p">[</span><span class="n">site</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="n">zenith</span> <span class="o">&lt;</span> <span class="mf">30.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Zenith angle is smaller than 30deg. Energy reconstruction is likely to be inaccurate!&#39;</span><span class="p">)</span>
-        <span class="n">n_efields</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">())</span>
-        <span class="k">if</span> <span class="n">n_efields</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;No E-field found. Please run the voltageToAnalyticEfieldConverter beforehand!&#39;</span><span class="p">)</span>
-            <span class="k">return</span>
-        <span class="k">if</span> <span class="n">n_efields</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Multiple E-fields were found. Only the first E-field will be used.&#39;</span><span class="p">)</span>
-        <span class="n">electric_field</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">electric_field</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_efields</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">n_efields</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;No E-field found. Please run the voltageToAnalyticEfieldConverter beforehand!&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="k">if</span> <span class="n">n_efields</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Multiple E-fields were found. Only the last E-field will be used.&#39;</span><span class="p">)</span>
+            <span class="n">electric_field</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
         <span class="n">spectrum_slope</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">efp</span><span class="o">.</span><span class="n">cr_spectrum_slope</span><span class="p">)</span>
-        <span class="n">alpha</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">get_angle_to_magnetic_field_vector</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__site</span><span class="p">)</span>
-        <span class="n">cs</span> <span class="o">=</span> <span class="n">radiotools</span><span class="o">.</span><span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__site</span><span class="p">)</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">get_angle_to_magnetic_field_vector</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">site</span><span class="p">)</span>
+        <span class="n">cs</span> <span class="o">=</span> <span class="n">radiotools</span><span class="o">.</span><span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="n">site</span><span class="p">)</span>
         <span class="n">efield_trace_vxB_vxvxB</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_to_vxB_vxvxB</span><span class="p">(</span><span class="n">cs</span><span class="o">.</span><span class="n">transform_from_onsky_to_ground</span><span class="p">(</span><span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()))</span>
         <span class="n">efield_trace_vxB_vxvxB</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>  <span class="c1"># correct energy fluence for effect of angle to magnetic field</span>
         <span class="n">energy_fluence</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_electric_field_energy_fluence</span><span class="p">(</span><span class="n">efield_trace_vxB_vxvxB</span><span class="p">,</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_times</span><span class="p">())</span>
         <span class="n">energy_fluence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">energy_fluence</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">energy_fluence</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">xmax_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__atmosphere</span><span class="o">.</span><span class="n">get_distance_xmax_geometric</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="mf">750.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__elevation</span><span class="p">)</span>  <span class="c1"># parametrization is for Xmax of 750g/cm^2</span>
+        <span class="n">xmax_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__atmosphere</span><span class="o">.</span><span class="n">get_distance_xmax_geometric</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="mf">750.</span><span class="p">,</span> <span class="n">elevation</span><span class="p">)</span>  <span class="c1"># parametrization is for Xmax of 750g/cm^2</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">xmax_distance</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Estimated distance to Xmax is negative for zenith </span><span class="si">{</span><span class="n">zenith</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> and elevation </span><span class="si">{</span><span class="n">elevation</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;This means Xmax may be below the detector elevation. The absolute value &quot;</span>
+                <span class="s2">&quot;of the distance will be used instead, but note that the resulting energy estimates may be inaccurate&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">xmax_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">xmax_distance</span><span class="p">)</span> <span class="c1"># for some zeniths and altitudes the parameterization can become negative</span>
+
         <span class="c1"># find out if we are inside or outside of the Cherenkov ring</span>
         <span class="n">second_order_spectrum_parameter</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">efp</span><span class="o">.</span><span class="n">cr_spectrum_quadratic_term</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">second_order_spectrum_parameter</span> <span class="o">&lt;=</span> <span class="n">spectrum_slope</span> <span class="o">*</span> <span class="mf">.1</span><span class="p">:</span>
-            <span class="n">scale_parameter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">falloff_parameter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;falloff&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;falloff&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">scale_parameter</span> <span class="o">=</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">+</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">falloff_parameter</span> <span class="o">=</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;falloff&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">+</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;falloff&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">scale_parameter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">falloff_parameter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;falloff&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;falloff&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">scale_parameter</span> <span class="o">=</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">+</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">falloff_parameter</span> <span class="o">=</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;falloff&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">zenith</span> <span class="o">+</span> <span class="n">parametrization_for_site</span><span class="p">[</span><span class="s1">&#39;falloff&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">rec_energy</span> <span class="o">=</span> <span class="mf">1.e18</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">energy_fluence</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">xmax_distance</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">scale_parameter</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">falloff_parameter</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">spectrum_slope</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.8</span><span class="p">))</span>
-        <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">cr_energy_em</span><span class="p">,</span> <span class="n">rec_energy</span><span class="p">)</span></div>
+        <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">cr_energy_em</span><span class="p">,</span> <span class="n">rec_energy</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rec_energy</span></div>
 </div>
 
 </pre></div>
