@@ -116,9 +116,12 @@ class outputWriterHDF5:
 
                 # save station attributes
                 for stn in evt.get_stations():
-                    station_key_pairs = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"]]
+                    station_key_pairs = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"],
+                        [chp.Vrms_trigger_NuRadioMC_simulation, "Vrms_trigger"]]
+
+
                     for (key_cp, key_hdf5) in station_key_pairs:
-                        channel_values = [channel[key_cp] for channel in stn.iter_channels(sorted=True)]
+                        channel_values = [channel[key_cp] for channel in stn.iter_channels(sorted=True) if channel.has_parameter(key_cp)]
 
                         if key_hdf5 not in self._mout_groups_attributes[sid]:
                             self._mout_groups_attributes[sid][key_hdf5] = np.array(channel_values)
