@@ -17,7 +17,14 @@ new features:
 - added option to choose dipole orientation when creating the LOFAR LBA antenna pattern
 - implementation of additional trigger channels. The signals on which the trigger is determined might be passed
 through a different response chain as the signals which are readout. To allow simulating this different response
-we added an optional trigger_channel object which lives within the corresponding channel obejct.
+we added an optional trigger_channel object which lives within the corresponding channel object.
+- major refactoring of the coreas interface, together with a new function to read in HDF5 files
+- implementation of the interface for cosmic ray pulse interpolation, as well as a new module to combine the
+interpolation with a Detector (readCoREASDetector)
+- removed readCoREAS and readCoREASStationGrid modules
+- removed tiny_reconstruction test and FullReconstruction example
+- simplified cr_efficiency_analysis example and renamed it to cr_analysis
+- added voltageToEfieldConverterPerChannelGroup module
 
 bugfixes:
 -
