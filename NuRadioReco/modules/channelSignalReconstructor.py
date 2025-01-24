@@ -1,6 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from scipy import signal
+from scipy.ndimage import uniform_filter1d
 import time
 
 from NuRadioReco.utilities import units
@@ -62,7 +63,7 @@ class channelSignalReconstructor:
         self.__noise_window_length = noise_window_length
         self.__debug = debug
 
-    def get_SNR(self, station_id, channel, det, stored_noise=False, rms_stage=None):
+    def get_SNR_and_RPR(self, station_id, channel, det, stored_noise=False, rms_stage=None):
         """
         Parameters
         ----------
@@ -79,6 +80,8 @@ class channelSignalReconstructor:
         -------
         SNR: dict
             dictionary of various SNR parameters
+        RPR: float
+            root power ratio of a channel
         """
 
         trace = channel.get_trace()
@@ -146,6 +149,28 @@ class channelSignalReconstructor:
         # SCNR
         SNR['Seckel_2_noise'] = 5
 
+        # Calculating RPR
+        
+        if (noise_rms == 0):
+            RPR = np.inf 
+        else:
+            wf_len = len(trace)
+            channel_wf = trace ** 2
+        
+            # Calculate the smoothing window size based on sampling rate
+            dt = times[1] - times[0]
+            sum_win = 25  # Smoothing window in ns
+            sum_win_idx = int(np.round(sum_win / dt))  # Convert window size to sample points
+
+            channel_wf = np.sqrt(uniform_filter1d(channel_wf, size=sum_win_idx, mode='constant'))
+
+            # Find the maximum value of the smoothed waveform
+            max_bin = np.argmax(channel_wf)
+            max_val = channel_wf[max_bin]
+            
+            RPR = max_val / noise_rms
+        
+        
         if self.__debug:
             plt.figure()
             plt.plot(times, trace)
@@ -154,7 +179,7 @@ class channelSignalReconstructor:
             plt.legend()
             plt.show()
 
-        return SNR, noise_rms
+        return SNR, noise_rms, RPR
 
     @register_run()
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
@@ -189,9 +214,10 @@ class channelSignalReconstructor:
             channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace)
 
             # Use noise precalculated from forced triggers
-            signal_to_noise, noise_rms = self.get_SNR(station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
+            signal_to_noise, noise_rms, root_power_ratio = self.get_SNR_and_RPR(station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
             channel[chp.SNR] = signal_to_noise
             channel[chp.noise_rms] = noise_rms
+            channel[chp.RPR] = root_power_ratio
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
 
