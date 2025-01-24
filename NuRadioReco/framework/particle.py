@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from NuRadioReco.framework.parameters import particleParameters as paP
+from NuRadioReco.framework.parameters import particleParameters as partp
 import NuRadioReco.framework.parameter_storage
 import pickle
 import collections
@@ -11,7 +11,7 @@ logger = logging.getLogger('NuRadioReco.Particle')
 class Particle(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, particle_index):
-        super().__init__(paP)
+        super().__init__(partp)
         # "_id" is not the PDG code but a hierarchical index
         # (PDG code is stored in _parameters["flavor"])
         self._id = particle_index
@@ -25,9 +25,9 @@ class Particle(NuRadioReco.framework.parameter_storage.ParameterStorage):
             "Particle ({}): "
             "Flavor: {: 3}, lgE = {:.1f}, cos(theta) = {:.2f}".format(
                 hex(id(self)),
-                self.get_parameter(paP.flavor),
-                math.log10(self.get_parameter(paP.energy)),
-                math.cos(self.get_parameter(paP.zenith)))
+                self.get_parameter(partp.flavor),
+                math.log10(self.get_parameter(partp.energy)),
+                math.cos(self.get_parameter(partp.zenith)))
         )
 
         return msg
@@ -36,11 +36,11 @@ class Particle(NuRadioReco.framework.parameter_storage.ParameterStorage):
         hdf5_dict = collections.OrderedDict()
 
         key_pairs = [
-            (paP.azimuth, 'azimuths'), (paP.energy, 'energies'), (paP.flavor, 'flavors'),
-            (paP.inelasticity, 'inelasticity'), (paP.interaction_type, 'interaction_type'),
-            (paP.n_interaction, 'n_interaction'), (paP.vertex_time, 'vertex_times'),
-            (paP.weight, 'weights'), (paP.vertex[0], 'xx'), (paP.vertex[1], 'yy'),
-            (paP.zenith, 'zeniths'), (paP.vertex[2], 'zz')
+            (partp.azimuth, 'azimuths'), (partp.energy, 'energies'), (partp.flavor, 'flavors'),
+            (partp.inelasticity, 'inelasticity'), (partp.interaction_type, 'interaction_type'),
+            (partp.n_interaction, 'n_interaction'), (partp.vertex_time, 'vertex_times'),
+            (partp.weight, 'weights'), (partp.vertex[0], 'xx'), (partp.vertex[1], 'yy'),
+            (partp.zenith, 'zeniths'), (partp.vertex[2], 'zz')
         ]
 
         for key, name in key_pairs:

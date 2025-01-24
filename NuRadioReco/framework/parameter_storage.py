@@ -1,5 +1,6 @@
 import NuRadioReco.framework.parameters
 
+import copy
 import itertools
 import logging
 logger = logging.getLogger('NuRadioReco.framework.parameter_storage')
@@ -57,7 +58,7 @@ class ParameterStorage:
         self._parameters.pop(key, None)
 
     def get_parameters(self):
-        return self._parameters
+        return copy.copy(self._parameters)
 
     def serialize(self):
         parameters = {str(key): self._parameters[key] for key in self._parameters}
