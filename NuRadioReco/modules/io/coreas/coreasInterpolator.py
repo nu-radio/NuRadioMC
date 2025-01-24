@@ -188,9 +188,20 @@ class coreasInterpolator:
 
     def initialize_efield_interpolator(self, interp_lowfreq, interp_highfreq, **kwargs):
         """
-        Initialise the efield interpolator and return it (it is also stored as the `efield_interpolator` attribute
-        of the class). If the geomagnetic angle is smaller than 15deg, no interpolator object is returned and the
-        attribute is set to -1.
+        Initialise the efield signal interpolator and return it if initialised correctly (it is also stored
+        as the `efield_interpolator` attribute of the class). If the latter, the `efield_interpolator_initialized`
+        is also set to `True`.
+
+        If the geomagnetic angle is smaller than 15deg, the interpolator switches to using the closest
+        observer position instead. In this case, no interpolator object is returned and the
+        `efield_interpolator` attribute is set to a Fourier interpolator which interpolates
+        the arrival times. To distinguish between the two cases, you can check the
+        `efield_interpolator_initialized` attribute, which is `True` when the signal interpolator is
+        initialised and `False` when the closest observer is used.
+
+        To adjust the parameters of the signal interpolation, the options for the `interp2d_signal` class
+        can be passed as keyword arguments. Please refer to the `cr-pulse-interpolator` documentation
+        for all available options.
 
         Parameters
         ----------
@@ -225,37 +236,43 @@ class coreasInterpolator:
             "ignore_cutoff_freq_in_timing" : False,
             "verbose" : False
         }
-        interp_options = {**kwargs, **interp_options_default}
+        interp_options = {**kwargs, **interp_options_default}  # merge the dicts, making sure kwargs overwrite defaults
 
         geomagnetic_angle = coreas.get_geomagnetic_angle(self.zenith, self.azimuth, self.magnetic_field_vector)
 
+        # Use closest observer when geomagnetic angle is smaller than 15deg
         if geomagnetic_angle < 15 * units.deg:
             logger.warning(
                 f'The geomagnetic angle is {geomagnetic_angle / units.deg:.2f} deg, '
                 f'which is smaller than 15deg, which is the lower limit for the signal interpolation. '
                 f'The closest observer is used instead.')
-            self.efield_interpolator = -1
-        else:
-            logger.info(
-                f'Initialising electric field interpolator with lowfreq {interp_lowfreq / units.MHz} MHz '
-                f'and highfreq {interp_highfreq / units.MHz} MHz'
-            )
-            logger.debug(
-                f'The following interpolation settings are used: {interp_options}'
+
+            self.efield_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
+                self.obs_positions_showerplane[:, 0], self.obs_positions_showerplane[:, 1], self.efield_times
             )
 
-            self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
-                self.obs_positions_showerplane[:, 0],
-                self.obs_positions_showerplane[:, 1],
-                self.electric_field_on_sky,  # TODO: this should be a rotated version for showers from zenith or N-S
-                signals_start_times=self.efield_times[:, 0] / units.s,
-                sampling_period=1 / self.sampling_rate / units.s,  # interpolator wants sampling period in seconds
-                lowfreq=interp_lowfreq / units.MHz,
-                highfreq=interp_highfreq / units.MHz,
-                **interp_options
-            )
+            return None
 
-            self.efield_interpolator_initialized = True
+        logger.info(
+            f'Initialising electric field interpolator with lowfreq {interp_lowfreq / units.MHz} MHz '
+            f'and highfreq {interp_highfreq / units.MHz} MHz'
+        )
+        logger.debug(
+            f'The following interpolation settings are used: {interp_options}'
+        )
+
+        self.efield_interpolator = cr_pulse_interpolator.signal_interpolation_fourier.interp2d_signal(
+            self.obs_positions_showerplane[:, 0],
+            self.obs_positions_showerplane[:, 1],
+            self.electric_field_on_sky,  # TODO: this should be a rotated version for showers from zenith or N-S
+            signals_start_times=self.efield_times[:, 0] / units.s,
+            sampling_period=1 / self.sampling_rate / units.s,  # interpolator wants sampling period in seconds
+            lowfreq=interp_lowfreq / units.MHz,
+            highfreq=interp_highfreq / units.MHz,
+            **interp_options
+        )
+
+        self.efield_interpolator_initialized = True
 
         return self.efield_interpolator
 
@@ -372,7 +389,7 @@ class coreasInterpolator:
         logger.debug(f"The antenna position in shower plane is {antenna_pos_showerplane}")
 
         # interpolate electric field at antenna position in shower plane which are inside star pattern
-        if self.efield_interpolator == -1:
+        if not self.efield_interpolator_initialized:
             efield_interp, trace_start_time = self.get_closest_observer_efield(antenna_pos_showerplane)
         else:
             efield_interp, trace_start_time, _, _ = self.efield_interpolator(
@@ -424,6 +441,11 @@ class coreasInterpolator:
     def get_closest_observer_efield(self, antenna_pos_showerplane):
         """
         Returns the electric field of the closest observer position for an antenna position in the shower plane.
+        The start time of the trace is also returned, by interpolating the start times of the electric field traces.
+
+        This function is not meant to be called directly, but only from `get_interp_efield_value()` as it assumes
+        the `efield_interpolator` attribute is set to the start time interpolator, which is done in
+        `initialize_efield_interpolator()`.
 
         Parameters
         ----------
@@ -440,7 +462,7 @@ class coreasInterpolator:
         distances = np.linalg.norm(antenna_pos_showerplane[:2] - self.obs_positions_showerplane[:, :2], axis=1)
         index = np.argmin(distances)
         efield = self.electric_field_on_sky[index, :, :]
-        efield_start_time = self.efield_times[index][0]
+        efield_start_time = self.efield_interpolator(*antenna_pos_showerplane[:2])
         logger.debug(
             f'Returning the electric field of the closest observer position, '
             f'which is {distances[index] / units.m:.2f}m away from the antenna'
