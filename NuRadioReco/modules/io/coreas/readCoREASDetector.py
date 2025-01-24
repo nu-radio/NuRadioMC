@@ -171,7 +171,7 @@ class readCoREASDetector:
         selected_station_channel_ids: dict, default=None
             A dictionary containing the list of channels IDs to simulate per station.
             If None, all channels of all stations in the detector are simulated.
-            To simulate all channels in a station, set its value to None.
+            To select a station and simulate all its channels, set its value to None.
 
         Yields
         ------
@@ -182,6 +182,7 @@ class readCoREASDetector:
 
         if selected_station_channel_ids is None:
             selected_station_ids = detector.get_station_ids()
+            selected_station_channel_ids = {station_id: None for station_id in selected_station_ids}
             logging.info(f"Using all station ids in detector description: {selected_station_ids}")
         else:
             selected_station_ids = list(selected_station_channel_ids.keys())

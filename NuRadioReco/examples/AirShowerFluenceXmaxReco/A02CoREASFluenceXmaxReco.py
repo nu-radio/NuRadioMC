@@ -27,11 +27,12 @@ from scipy import constants
 from scipy import optimize as opt
 from astropy import time
 from NuRadioReco.detector import detector
-from NuRadioReco.modules.io.coreas import coreas, coreasInterpolator
+from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.dataservers import download_from_dataserver
 import NuRadioReco.modules.io.coreas.readCoREASDetector
 import NuRadioReco.modules.io.coreas.simulationSelector
+import NuRadioReco.modules.io.coreas.coreasInterpolator
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -224,7 +225,7 @@ for iE, evt in enumerate(coreas_reader.run(det, [core])):
             electricFieldBandPassFilter.run(evt2, ss, det, **filt_settings)
             electricFieldSignalReconstructor.run(evt2, ss, None)
             # Initialize interpolator for core position fit
-            coreasInterpolator = coreasInterpolator.coreasInterpolator(evt2)
+            coreasInterpolator = NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator(evt2)
             coreasInterpolator.initialize_fluence_interpolator()
 
             # define objective function for core position and amplitude fit
