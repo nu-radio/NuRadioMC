@@ -66,10 +66,11 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         return self.__sim_station is not None
 
     def iter_channels(self, use_channels=None, sorted=False):
-        """
-        Iterates over all channels of the station. If `use_channels` is not None,
-        only the channels with the ids in `use_channels` are iterated over. If `sorted`
-        is True, the channels are iterated over in ascending order of their ids.
+        """ Iterates over all channels of the station.
+
+        If `use_channels` is not None, only the channels with the ids in `use_channels`
+        are iterated over. If `sorted` is True, the channels are iterated over in
+        ascending order of their ids.
 
         Parameters
         ----------
@@ -94,8 +95,55 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         for channel_id in channel_ids:
             yield self.get_channel(channel_id)
 
+    def iter_trigger_channels(self, use_channels=None):
+        """ Iterates over all channels of the station and yields `channel.get_trigger_channel()` for each.
+
+        If `use_channels` is not None, only the channels with the ids in `use_channels` are iterated over.
+
+        Parameters
+        ----------
+        use_channels : list of int, optional
+            List of channel ids to iterate over. If None, all channels are iterated over.
+
+        Yields
+        ------
+        NuRadioReco.framework.channel.Channel
+            The next (trigger) channel in the iteration.
+
+        See Also
+        --------
+        NuRadioReco.framework.channel.Channel.get_trigger_channel
+        NuRadioReco.framework.station.Station.iter_channels
+        """
+
+        for channel_id, channel in iteritems(self.__channels):
+            if use_channels is None:
+                yield channel.get_trigger_channel()
+            else:
+                if channel_id in use_channels:
+                    yield channel.get_trigger_channel()
+
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
+
+    def get_trigger_channel(self, channel_id):
+        """
+        Returns the trigger channel of channel with id `channel_id`.
+
+        If the trigger channel is not set, the channel itself is returned (i.e. this is equivalent to `get_channel`)
+
+        Parameters
+        ----------
+        channel_id : int
+            The id of the channel for which to get the trigger channel.
+
+        Returns
+        -------
+        channel: `NuRadioReco.framework.channel.Channel`
+            The trigger channel of the channel with id `channel_id`.
+        """
+        channel = self.get_channel(channel_id)
+        return channel.get_trigger_channel()
 
     def iter_channel_group(self, channel_group_id):
         found_channel_group = False
@@ -177,9 +225,9 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def set_reference_reconstruction(self, reference):
         if reference not in ['RD', 'MC']:
-            import sys
-            logger.error("reference reconstructions other than RD and MC are not supported")
-            sys.exit(-1)
+            logger.error(f"Reference reconstructions other than 'RD' and 'MC' are not supported. Used value: '{reference}'")
+            raise ValueError(f"Reference reconstructions other than 'RD' and 'MC' are not supported. Used value: '{reference}'")
+
         self.__reference_reconstruction = reference
 
     def get_reference_reconstruction(self):
@@ -188,51 +236,62 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def get_reference_direction(self):
         if self.__reference_reconstruction == 'RD':
             return self.get_parameter('zenith'), self.get_parameter('azimuth')
-        if self.__reference_reconstruction == 'MC':
+        elif self.__reference_reconstruction == 'MC':
             return (
                 self.get_sim_station().get_parameter('zenith'),
                 self.get_sim_station().get_parameter('azimuth')
             )
+        else:
+            logger.error(f"Reference reconstruction not set / unknown: {self.__reference_reconstruction}")
+            raise ValueError(f"Reference reconstruction not set / unknown: {self.__reference_reconstruction}")
+
 
     def get_magnetic_field_vector(self, time=None):
-        if(self.__reference_reconstruction == 'MC'):
+        if self.__reference_reconstruction == 'MC':
             return self.get_sim_station().get_magnetic_field_vector()
-        if(self.__reference_reconstruction == 'RD'):
-            if time is not None:
-                logger.warning("time dependent magnetic field model not yet implemented, "
-                               "returning static magnetic field for the ARIANNA site")
-            from radiotools import helper
-            return helper.get_magnetic_field_vector('arianna')
+        elif self.__reference_reconstruction == 'RD':
+            logger.error(
+                "Magnetic field for `self.__reference_reconstruction == 'RD'` not implemented yet. "
+                "Please use `radiotools.helper.get_magnetic_field_vector(site)` for the site you are interested in.")
+            raise NotImplementedError(
+                "Magnetic field for `self.__reference_reconstruction == 'RD'` not implemented yet. "
+                "Please use `radiotools.helper.get_magnetic_field_vector(site)` for the site you are interested in."
+            )
+        else:
+            logger.error(f"Reference reconstruction not set / unknown: {self.__reference_reconstruction}")
+            raise ValueError(f"Reference reconstruction not set / unknown: {self.__reference_reconstruction}")
 
     def serialize(self, mode):
         save_efield_traces = 'ElectricFields' in mode and mode['ElectricFields'] is True
         base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(
             self, save_efield_traces=save_efield_traces)
-        channels_pkl = []
-        save_channel_trace = 'Channels' in mode and mode['Channels'] is True
-        for channel in self.iter_channels():
-            channels_pkl.append(channel.serialize(save_channel_trace))
-        save_sim_channel_trace = 'SimChannels' in mode and mode['SimChannels'] is True
-        save_sim_efield_trace = 'SimElectricFields' in mode and mode['SimElectricFields'] is True
+
+        save_channel_trace = mode.get('Channels', False)
+        channels_pkl = [channel.serialize(save_channel_trace) for channel in self.iter_channels()]
+
         sim_station_pkl = None
-        if(self.has_sim_station()):
+        if self.has_sim_station():
             sim_station_pkl = self.get_sim_station().serialize(
-                save_channel_traces=save_sim_channel_trace, save_efield_traces=save_sim_efield_trace)
+                save_channel_traces=mode.get('SimChannels', False),
+                save_efield_traces=mode.get('SimElectricFields', False))
 
         data = {'__reference_reconstruction': self.__reference_reconstruction,
                 'channels': channels_pkl,
                 'base_station': base_station_pkl,
                 'sim_station': sim_station_pkl}
+
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
         NuRadioReco.framework.base_station.BaseStation.deserialize(self, data['base_station'])
-        if(data['sim_station'] is None):
+
+        if data['sim_station'] is None:
             self.__sim_station = None
         else:
             self.__sim_station = NuRadioReco.framework.sim_station.SimStation(None)
             self.__sim_station.deserialize(data['sim_station'])
+
         for channel_pkl in data['channels']:
             channel = NuRadioReco.framework.channel.Channel(0)
             channel.deserialize(channel_pkl)

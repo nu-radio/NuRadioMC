@@ -41,7 +41,7 @@ def rolled_sum_roll(traces, rolling):
 def rolling_indices(traces, rolling):
     """
     pre calculates rolling index array for rolled sum via take
-  
+
     Parameters
     ----------
     traces: list
@@ -197,16 +197,18 @@ class thermalNoiseGenerator():
 
                 spec *= self.filt
                 trace = fft.freq2time(spec, self.sampling_rate)
-                if(np.any(trace > self.threshold) and np.any(trace < -self.threshold)):
+
+                if np.any(trace > self.threshold) and np.any(trace < -self.threshold):
                     triggered_bins = get_high_low_triggers(trace, self.threshold, -self.threshold, self.time_coincidence, self.dt)
-                    if(True in triggered_bins):
+                    if np.any(triggered_bins):
                         t_bins[iCh] = triggered_bins
                         trace_to_keep = trace if not self.keep_full_band else trace_copy
-                        if(iCh == 0):
+                        if iCh == 0:
                             n_traces[iCh] = np.roll(trace_to_keep, self.trigger_bin - np.argwhere(triggered_bins == True)[0])
                         else:
                             tmp = np.random.randint(self.trigger_bin_low, self.trigger_bin)
                             n_traces[iCh] = np.roll(trace_to_keep, tmp - np.argwhere(triggered_bins == True)[0])
+
         traces = np.zeros((self.n_channels, self.n_samples))
         rnd_iterator = list(range(self.n_channels))
         np.random.shuffle(rnd_iterator)
@@ -234,7 +236,7 @@ class thermalNoiseGeneratorPhasedArray():
                  noise_type="rayleigh", log_level=logging.NOTSET,
                  pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None,
                  upsampling=2, window_length=16 * units.ns, step_size=8 * units.ns,
-                 main_low_angle=np.deg2rad(-59.54968597864437), 
+                 main_low_angle=np.deg2rad(-59.54968597864437),
                  main_high_angle=np.deg2rad(59.54968597864437),
                  n_beams=11, quantize=True):
         """
@@ -261,7 +263,7 @@ class thermalNoiseGeneratorPhasedArray():
             the type of the noise, can be
             * "rayleigh" (default)
             * "noise"
-        log_level: logging enum, default warn 
+        log_level: logging enum, default warn
             the print level for this module
         pre_trigger_time: float, default 100 ns
             the time in the trace before the trigger happens
@@ -557,7 +559,7 @@ class thermalNoiseGeneratorPhasedArray():
             dt_triggering += time.process_time() - tstart
 
             if is_triggered:
-                triggered_bin = triggered_bin // self.upsampling  # the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller. 
+                triggered_bin = triggered_bin // self.upsampling  # the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller.
                 i_low = triggered_bin - self.pre_trigger_bins
                 i_high = i_low + self.n_samples_trigger
 

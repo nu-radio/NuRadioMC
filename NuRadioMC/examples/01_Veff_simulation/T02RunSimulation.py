@@ -13,7 +13,6 @@ simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
-
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
@@ -70,4 +69,3 @@ if __name__ == "__main__":
                                 config_file=args.config,
                                 file_overwrite=True)
     sim.run()
-
