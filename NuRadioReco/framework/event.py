@@ -1,34 +1,41 @@
 from __future__ import absolute_import, division, print_function
-import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.emitter
 import NuRadioReco.framework.sim_emitter
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
+import NuRadioReco.framework.parameter_storage
+
 from NuRadioReco.framework.parameters import (
     eventParameters as evp, channelParameters as chp, showerParameters as shp,
     particleParameters as pap, generatorAttributes as gta)
-import NuRadioReco.utilities.version
+
+from NuRadioReco.utilities import io_utilities, version
+
+import astropy.time
+import datetime
 from six import itervalues
 import collections
+import pickle
+
 import logging
 logger = logging.getLogger('NuRadioReco.Event')
 
 
-class Event:
+class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, run_number, event_id):
-        self._parameters = {}
+        super().__init__([parameters.eventParameters, parameters.generatorAttributes])
+
         self.__run_number = run_number
         self._id = event_id
         self.__stations = collections.OrderedDict()
         self.__radio_showers = collections.OrderedDict()
         self.__sim_showers = collections.OrderedDict()
         self.__sim_emitters = collections.OrderedDict()
-        self.__event_time = 0
+        self.__event_time = None
         self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
-        self._generator_info = {} # copies over the relevant information on event generation from the input file attributes
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         self.__modules_station = {}  # saves which modules were executed with what parameters on station level
@@ -89,41 +96,17 @@ class Event:
                 iE += 1
                 yield self.__modules_event[iE - 1]
 
-    def get_parameter(self, key):
-        if not isinstance(key, evp):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-        return self._parameters[key]
-
-    def set_parameter(self, key, value):
-        if not isinstance(key, evp):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-        self._parameters[key] = value
-
-    def has_parameter(self, key):
-        if not isinstance(key, evp):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-        return key in self._parameters
-
     def get_generator_info(self, key):
-        if not isinstance(key, gta):
-            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-        return self._generator_info[key]
+        logger.warning("`get_generator_info` is deprecated. Use `get_parameter` instead.")
+        return self.get_parameter(key)
 
     def set_generator_info(self, key, value):
-        if not isinstance(key, gta):
-            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-        self._generator_info[key] = value
+        logger.warning("`set_generator_info` is deprecated. Use `set_parameter` instead.")
+        self.set_parameter(key, value)
 
     def has_generator_info(self, key):
-        if not isinstance(key, gta):
-            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-        return key in self._generator_info
+        logger.warning("`has_generator_info` is deprecated. Use `has_parameter` instead.")
+        return self.has_parameter(key)
 
     def get_id(self):
         return self._id
@@ -160,10 +143,47 @@ class Event:
 
         return self.__stations[station_id]
 
-    def set_event_time(self, event_time):
-        self.__event_time = event_time
+    def set_event_time(self, time, format=None):
+        """
+        Set the (absolute) event time (will be stored as astropy.time.Time).
+
+        Parameters
+        ----------
+        time: astropy.time.Time or datetime.datetime or float
+            If "time" is a float, you have to specify its format.
+
+        format: str (Default: None)
+            Only used when "time" is a float. Format to interpret "time".
+        """
+
+        if isinstance(time, datetime.datetime):
+            self.__event_time = astropy.time.Time(time)
+        elif isinstance(time, astropy.time.Time):
+            self.__event_time = time
+        elif time is None:
+            self.__event_time = None
+        else:
+            if format is None:
+                logger.error("If you provide a float for the time, you have to specify the format.")
+                raise ValueError("If you provide a float for the time, you have to specify the format.")
+            self.__event_time = astropy.time.Time(time, format=format)
 
     def get_event_time(self):
+        """
+        Returns the event time (as astropy.time.Time object).
+
+        If the event time is not set, an error is raised. The event time is often only used in simulations
+        and typically the same a `station.get_station_time()`.
+
+        Returns
+        -------
+        event_time : astropy.time.Time
+            The event time.
+        """
+        if self.__event_time is None:
+            logger.error("Event time is not set. You either have to set it or use `station.get_station_time()`")
+            raise ValueError("Event time is not set. You either have to set it or use `station.get_station_time()`")
+
         return self.__event_time
 
     def get_stations(self):
@@ -291,8 +311,6 @@ class Event:
             for particle in self.get_particles():
                 if particle[pap.parent_id] == parent_id:
                     yield particle
-
-
 
     def add_shower(self, shower):
         """
@@ -514,7 +532,7 @@ class Event:
     def serialize(self, mode):
         stations_pkl = []
         try:
-            commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
+            commit_hash = version.get_NuRadioMC_commit_hash()
             self.set_parameter(evp.hash_NuRadioMC, commit_hash)
         except:
             logger.warning("Event is serialized without commit hash!")
@@ -535,7 +553,8 @@ class Event:
             modules_out_event.append([value[0], None, value[2]])
             invalid_keys = [key for key,val in value[2].items() if isinstance(val, BaseException)]
             if len(invalid_keys):
-                logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
+                logger.warning(f"The following arguments to module {value[0]} could not be "
+                               f"serialized and will not be stored: {invalid_keys}")
 
         modules_out_station = {}
         for key in self.__modules_station:  # remove module instances (this will just blow up the file size)
@@ -544,22 +563,26 @@ class Event:
                 modules_out_station[key].append([value[0], value[1], None, value[3]])
                 invalid_keys = [key for key,val in value[3].items() if isinstance(val, BaseException)]
                 if len(invalid_keys):
-                    logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
+                    logger.warning(f"The following arguments to module {value[0]} could not be "
+                                   f"serialized and will not be stored: {invalid_keys}")
 
-        data = {'_parameters': self._parameters,
-                '__run_number': self.__run_number,
-                '_id': self._id,
-                '__event_time': self.__event_time,
-                'stations': stations_pkl,
-                'showers': showers_pkl,
-                'sim_showers': sim_showers_pkl,
-                'sim_emitters': sim_emitters_pkl,
-                'particles': particles_pkl,
-                'hybrid_info': hybrid_info,
-                'generator_info': self._generator_info,
-                '__modules_event': modules_out_event,
-                '__modules_station': modules_out_station
-                }
+        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
+
+        event_time_dict = io_utilities._astropy_to_dict(self.__event_time)
+        data.update({
+            '__run_number': self.__run_number,
+            '_id': self._id,
+            '__event_time': event_time_dict,
+            'stations': stations_pkl,
+            'showers': showers_pkl,
+            'sim_showers': sim_showers_pkl,
+            'sim_emitters': sim_emitters_pkl,
+            'particles': particles_pkl,
+            'hybrid_info': hybrid_info,
+            '__modules_event': modules_out_event,
+            '__modules_station': modules_out_station
+        })
+
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
@@ -594,13 +617,16 @@ class Event:
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
 
-        self._parameters = data['_parameters']
+        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
+
         self.__run_number = data['__run_number']
         self._id = data['_id']
-        self.__event_time = data['__event_time']
+        self.__event_time = io_utilities._time_object_to_astropy(data['__event_time'])
 
-        if 'generator_info' in data.keys():
-            self._generator_info = data['generator_info']
+        # For backward compatibility, now generator_info are stored in `_parameters`.
+        if 'generator_info' in data:
+            for key in data['generator_info']:
+                self.set_parameter(key, data['generator_info'][key])
 
         if "__modules_event" in data:
             self.__modules_event = data['__modules_event']

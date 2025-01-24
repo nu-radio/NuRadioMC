@@ -29,7 +29,6 @@ class efieldToVoltageConverter():
         self.__t = 0
         self.__uncertainty = None
         self.__debug = None
-        self.__time_resolution = None
         self.__pre_pulse_time = None
         self.__post_pulse_time = None
         self.__max_upsampling_factor = None
@@ -40,7 +39,7 @@ class efieldToVoltageConverter():
 
 
     def begin(self, debug=False, uncertainty=None,
-              time_resolution=0.1 * units.ns,
+              time_resolution=None,
               pre_pulse_time=200 * units.ns,
               post_pulse_time=200 * units.ns
               ):
@@ -62,15 +61,17 @@ class efieldToVoltageConverter():
              * 'amp': statistical uncertainty of the amplifier aplification,
                 specify value as relative difference of linear gain
 
-        time_resolution: float
-            time resolution of shifting pulse times
         pre_pulse_time: float
             length of empty samples that is added before the first pulse
         post_pulse_time: float
             length of empty samples that is added after the simulated trace
         """
+
+        if time_resolution is not None:
+            self.logger.warning("`time_resolution` is deprecated and will be removed in the future. "
+                                "The argument is ignored.")
+
         self.__debug = debug
-        self.__time_resolution = time_resolution
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
         self.__max_upsampling_factor = 5000
@@ -98,15 +99,13 @@ class efieldToVoltageConverter():
             raise LookupError(f"station {station.get_id()} has no efields")
 
         # first we determine the trace start time of all channels and correct
-        # for different cable delays
         times_min = []
         times_max = []
         if channel_ids is None:
             channel_ids = det.get_channel_ids(sim_station_id)
-        
+
         for channel_id in channel_ids:
             for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
-                time_resolution = 1. / electric_field.get_sampling_rate()
                 cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                 t0 = electric_field.get_trace_start_time() + cab_delay
 
@@ -119,22 +118,28 @@ class efieldToVoltageConverter():
                     # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
-                    self.logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(
+                    self.logger.debug("trace start time {}, cable delay {}, tracelength {}".format(
                         electric_field.get_trace_start_time(), cab_delay,
                         electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
 
-        # pad event times by pre/post pulse time
-        times_min = np.array(times_min) - self.__pre_pulse_time
-        times_max = np.array(times_max) + self.__post_pulse_time
+        times_min = np.min(times_min)
+        times_max = np.max(times_max)
 
-        trace_length = times_max.max() - times_min.min()
+        # pad event times by pre/post pulse time
+        times_min -= self.__pre_pulse_time
+        times_max += self.__post_pulse_time
+
+        # assumes that all electric fields have the same sampling rate
+        time_resolution = 1. / electric_field.get_sampling_rate()
+
+        trace_length = times_max - times_min
         trace_length_samples = int(round(trace_length / time_resolution))
         if trace_length_samples % 2 != 0:
             trace_length_samples += 1
 
         self.logger.debug(
             "smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(
-                times_min.min(), times_max.max(), trace_length_samples, trace_length / units.ns))
+                times_min, times_max, trace_length_samples, trace_length / units.ns))
 
         # loop over all channels
         for channel_id in channel_ids:
@@ -169,7 +174,7 @@ class efieldToVoltageConverter():
                     else:
                         travel_time_shift = 0
 
-                    start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift
+                    start_time = electric_field.get_trace_start_time() - times_min + cab_delay + travel_time_shift
                     start_bin = int(round(start_time / time_resolution))
 
                     # calculate error by using discret bins
@@ -255,7 +260,7 @@ class efieldToVoltageConverter():
             else:
                 channel.set_frequency_spectrum(channel_spectrum, trace_object.get_sampling_rate())
 
-            channel.set_trace_start_time(times_min.min())
+            channel.set_trace_start_time(times_min)
             station.add_channel(channel)
 
         self.__t += time.time() - t
