@@ -22,8 +22,14 @@ class channelGlitchDetector:
     def __init__(self):
         pass
 
-    def begin(self):
-        pass
+    def begin(self, max_deviation=2000 * units.mV):
+        """
+        Parameters
+        ----------
+        max_deviation : float (default: 2000 * units.mV)
+            The maximum deviation in the signal that is considered a glitch.
+        """
+        self.max_deviation = max_deviation
 
     def end(self):
         pass
@@ -44,5 +50,5 @@ class channelGlitchDetector:
 
         for ch in station.iter_channels():
             trace = ch.get_trace()
-            diff = np.diff(trace) / units.mV
-            ch.set_parameter(chp.glitch, np.any(np.abs(diff) > 2000))
+            diff = np.diff(trace)
+            ch.set_parameter(chp.glitch, np.any(np.abs(diff) > self.max_deviation))
