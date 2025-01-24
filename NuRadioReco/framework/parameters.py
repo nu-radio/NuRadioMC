@@ -63,6 +63,7 @@ class channelParameters(Enum):
     Vrms_NuRadioMC_simulation = 19  #: the noise rms used in the MC simulation
     bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
     Vrms_trigger_NuRadioMC_simulation = 21  #: the noise rms of the trigger channels (optional) used in the MC simulation
+    RPR = 22 #: the root power ratio (float) 
 
 class channelParametersRNOG(Enum):
     # RNO-G specific channel parameters
