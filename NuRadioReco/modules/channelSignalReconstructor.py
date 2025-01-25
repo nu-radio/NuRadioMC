@@ -149,10 +149,10 @@ class channelSignalReconstructor:
         # SCNR
         SNR['Seckel_2_noise'] = 5
 
-        # Calculating RPR
+        # Calculating RPR (Root Power Ratio)
         
         if (noise_rms == 0):
-            RPR = np.inf 
+            root_power_ratio = np.inf 
         else:
             wf_len = len(trace)
             channel_wf = trace ** 2
@@ -168,7 +168,7 @@ class channelSignalReconstructor:
             max_bin = np.argmax(channel_wf)
             max_val = channel_wf[max_bin]
             
-            RPR = max_val / noise_rms
+            root_power_ratio = max_val / noise_rms
         
         
         if self.__debug:
@@ -179,7 +179,7 @@ class channelSignalReconstructor:
             plt.legend()
             plt.show()
 
-        return SNR, noise_rms, RPR
+        return SNR, noise_rms, root_power_ratio
 
     @register_run()
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
@@ -217,7 +217,7 @@ class channelSignalReconstructor:
             signal_to_noise, noise_rms, root_power_ratio = self.get_SNR_and_RPR(station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
             channel[chp.SNR] = signal_to_noise
             channel[chp.noise_rms] = noise_rms
-            channel[chp.RPR] = root_power_ratio
+            channel[chp.root_power_ratio] = root_power_ratio
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
 
