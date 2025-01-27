@@ -625,8 +625,8 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelGalacticNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">channelGalacticNoiseAdder</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Class that simulates the noise produced by galactic radio emission
-Uses the pydgsm package (<a class="reference external" href="https://github.com/telegraphic/pygdsm">https://github.com/telegraphic/pygdsm</a>), which provides
+<p>Class that simulates the noise produced by galactic radio emission</p>
+<p>Uses the pydgsm package (<a class="reference external" href="https://github.com/telegraphic/pygdsm">https://github.com/telegraphic/pygdsm</a>), which provides
 radio background data based on Oliveira-Costa et al. (2008) (<a class="reference external" href="https://arxiv.org/abs/0802.1525">https://arxiv.org/abs/0802.1525</a>)
 and Zheng et al. (2016) (<a class="reference external" href="https://arxiv.org/abs/1605.04920">https://arxiv.org/abs/1605.04920</a>)</p>
 <p>The radio sky model is evaluated on a number of points above the horizon
@@ -636,7 +636,7 @@ of the brightness temperature is interpolated in between.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([skymodel, debug, n_side, freq_range])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([skymodel, debug, n_side, freq_range, ...])</p></td>
 <td><p>Set up important parameters for the module</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, passband])</p></td>
@@ -646,14 +646,14 @@ of the brightness temperature is interpolated in between.</p>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skymodel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_side</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skymodel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_side</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_frequencies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="Link to this definition"></a></dt>
 <dd><p>Set up important parameters for the module</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>debug: bool, default: False</strong></dt><dd><p>It True, debug plots will be shown</p>
+<dt><strong>skymodel: {‘gsm2008’, ‘lfmap’, ‘lfss’, ‘gsm2016’, ‘haslam’}, optional</strong></dt><dd><p>Choose the sky model to use. If none is provided, the Global Sky Model (2008) is used as a default.</p>
 </dd>
-<dt><strong>skymodel: {‘lfmap’, ‘lfss’, ‘gsm2016’, ‘haslam’, ‘ssm’, ‘gmoss’, ‘ulsa_fdi’, ‘ulsa_dpi’, ‘ulsa_ci’}, optional</strong></dt><dd><p>Choose the sky model to use. If none is provided, the Global Sky Model (2008) is used as a default.</p>
+<dt><strong>debug: bool, default: False</strong></dt><dd><p>Deprecated. Will be removed in future versions.</p>
 </dd>
 <dt><strong>n_side: int, default: 4</strong></dt><dd><p>The n_side parameter of the healpix map. Has to be power of 2
 The radio skymap is downsized to the resolution specified by the n_side
@@ -662,11 +662,16 @@ from that direction is calculated. The number of pixels used is
 12 * n_side ** 2, so a larger value for n_side will result better accuracy
 but also greatly increase computing time.</p>
 </dd>
-<dt><strong>freq_range: array of len=2, default: [30, 80] * units.MHZ</strong></dt><dd><p>The sky brightness temperature will be evaluated for the frequencies
+<dt><strong>freq_range: array of len=2, default: [10, 1000] * units.MHZ</strong></dt><dd><p>The sky brightness temperature will be evaluated for the frequencies
 within this limit. Brightness temperature for frequencies in between are
 calculated by interpolation the log10 of the temperature
 The interpolation_frequencies have to cover the entire passband
 specified in the run method.</p>
+</dd>
+<dt><strong>interpolation_frequencies: array of frequencies to interpolate to.</strong></dt><dd><p>Kept for historic purposes with intention to deprecate in the future.</p>
+</dd>
+<dt><strong>seed</strong><span class="classifier">{None, int, array_like[ints], SeedSequence}, optional</span></dt><dd><p>The seed that is passed on to the <a class="reference external" href="https://numpy.org/doc/stable/reference/random/bit_generators/philox.html#numpy.random.Philox" title="(in NumPy v2.2)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.random.Philox</span></code></a> bitgenerator used for random
+number generation.</p>
 </dd>
 </dl>
 </dd>
@@ -686,14 +691,38 @@ specified in the run method.</p>
 </dd>
 <dt><strong>detector: Detector object</strong></dt><dd><p>The detector description</p>
 </dd>
-<dt><strong>passband: list of float</strong></dt><dd><p>Lower and upper bound of the frequency range in which noise shall be
-added</p>
+<dt><strong>passband: list of float, optional</strong></dt><dd><p>Lower and upper bound of the frequency range in which noise shall be
+added. The default (no passband specified) is [10, 1000] MHz</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.get_local_coordinates">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelGalacticNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">get_local_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_side</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#get_local_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.get_local_coordinates" title="Link to this definition"></a></dt>
+<dd><p>Calculates the local coordinates of the pixels of a healpix map given the site coordinates and time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>coordinates: tuple of float</strong></dt><dd><p>The latitude and longitude of the site</p>
+</dd>
+<dt><strong>time: astropy.time.Time</strong></dt><dd><p>The time at which the observation is made (station time)</p>
+</dd>
+<dt><strong>n_side: int</strong></dt><dd><p>The n_side parameter of the healpix map</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>local_coordinates: astropy.coordinates.SkyCoord</dt><dd><p>The local coordinates of the pixels of the healpix map</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

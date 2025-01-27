@@ -687,7 +687,7 @@ If the installer does not succesfully do this, please manually add</p>
 <section id="pip-installable-dependencies">
 <h3>Pip-installable dependencies<a class="headerlink" href="#pip-installable-dependencies" title="Link to this heading"></a></h3>
 <p>To install all (optional and non-optional) dependencies available in pip at once, use the command</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib<span class="w"> </span>astropy<span class="w"> </span>tinydb<span class="w"> </span>tinydb-serialization<span class="w"> </span>aenum<span class="w"> </span>h5py<span class="w"> </span>mysql-connector-python<span class="w"> </span>pymongo<span class="w"> </span>dash<span class="w"> </span>plotly<span class="w"> </span>toml<span class="w"> </span>peakutils<span class="w"> </span>future<span class="w"> </span>radiotools<span class="w"> </span>filelock<span class="w"> </span>mattak<span class="w"> </span>pygdsm<span class="w"> </span>MCEq<span class="w"> </span>crflux
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib<span class="w"> </span>astropy<span class="w"> </span>tinydb<span class="w"> </span>tinydb-serialization<span class="w"> </span>aenum<span class="w"> </span>h5py<span class="w"> </span>mysql-connector-python<span class="w"> </span>pymongo<span class="w"> </span>dash<span class="w"> </span>plotly<span class="w"> </span>toml<span class="w"> </span>peakutils<span class="w"> </span>future<span class="w"> </span>radiotools<span class="w"> </span>filelock<span class="w"> </span>mattak<span class="w"> </span>git+https://github.com/telegraphic/pygdsm<span class="w"> </span>pylfmap<span class="w"> </span>MCEq<span class="w"> </span>crflux
 </pre></div>
 </div>
 <p>Note that some optional dependencies are not pip-installable and need to be
@@ -790,8 +790,9 @@ can be used. Note that this requires membership of the RNO-G Github organisation
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[galacticnoise]</span></code></p>
-<p>To use the channelGalacticNoiseAdder, you need the <a class="reference external" href="https://github.com/telegraphic/pygdsm">PyGDSM</a> package.</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/telegraphic/pygdsm
+<p>To use the channelGalacticNoiseAdder, you need the <a class="reference external" href="https://github.com/telegraphic/pygdsm">PyGDSM</a> package.
+Some additional galactic noise models used by LOFAR for calibration purposes are provided by <code class="docutils literal notranslate"><span class="pre">pylfmap</span></code>.</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/telegraphic/pygdsm<span class="w"> </span>pylfmap
 </pre></div>
 </div>
 </li>
