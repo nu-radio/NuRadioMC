@@ -261,6 +261,36 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             logger.error(f"Reference reconstruction not set / unknown: {self.__reference_reconstruction}")
             raise ValueError(f"Reference reconstruction not set / unknown: {self.__reference_reconstruction}")
 
+    def avg_SNR(self, channels_to_include = [0, 1, 2, 3, 5, 6, 7, 22, 23]):
+        """
+        Returns the average SNR across all channels
+        """
+        snr_all = []
+        for channel in station.iter_channels():
+            if (channel.has_parameter(chp.SNR)):
+                snr_ch = channel.get_parameter(chp.SNR)
+                if (snr_ch == np.inf):
+                    return np.inf
+                else:
+                    snr_all.append(snr_ch)
+
+        return np.mean(snr_all)
+
+    def avg_RPR(self, channels_to_include = [0, 1, 2, 3, 5, 6, 7, 22, 23]):
+        """
+        Returns the average RPR across all channels
+        """
+        rpr_all = []
+        for channel in station.iter_channels():
+            if (channel.has_parameter(chp.RPR)):
+                rpr_ch = channel.get_parameter(chp.RPR)
+                if (rpr_ch == np.inf):
+                    return np.inf
+                else:
+                    rpr_all.append(rpr_ch)
+
+        return np.mean(rpr_all)
+    
     def serialize(self, mode):
         save_efield_traces = 'ElectricFields' in mode and mode['ElectricFields'] is True
         base_station_pkl = NuRadioReco.framework.base_station.BaseStation.serialize(
