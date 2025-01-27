@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.Event')
 
 
-class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
+class Event(NuRadioReco.framework.parameter_storage._ParameterStorage):
 
     def __init__(self, run_number, event_id):
         super().__init__([parameters.eventParameters, parameters.generatorAttributes])
@@ -599,7 +599,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
                     logger.warning(f"The following arguments to module {value[0]} could not be "
                                    f"serialized and will not be stored: {invalid_keys}")
 
-        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
+        data = NuRadioReco.framework.parameter_storage._ParameterStorage.serialize(self)
 
         event_time_dict = io_utilities._astropy_to_dict(self.__event_time)
         data.update({
@@ -650,7 +650,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
 
-        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
+        NuRadioReco.framework.parameter_storage._ParameterStorage.deserialize(self, data)
 
         self.__run_number = data['__run_number']
         self._id = data['_id']

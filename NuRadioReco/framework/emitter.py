@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.Emitter')
 
 
-class Emitter(NuRadioReco.framework.parameter_storage.ParameterStorage):
+class Emitter(NuRadioReco.framework.parameter_storage._ParameterStorage):
 
     def __init__(self, emitter_id=0, station_ids=None):
         super().__init__(parameters.emitterParameters)
@@ -27,7 +27,7 @@ class Emitter(NuRadioReco.framework.parameter_storage.ParameterStorage):
         return True
 
     def serialize(self):
-        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
+        data = NuRadioReco.framework.parameter_storage._ParameterStorage.serialize(self)
         data.update({
             'station_ids': self.__station_ids,
             '_id': self._id
@@ -37,6 +37,6 @@ class Emitter(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
+        NuRadioReco.framework.parameter_storage._ParameterStorage.deserialize(self, data)
         self._id = data.get('_id', None)
         self.__station_ids = data['station_ids']
