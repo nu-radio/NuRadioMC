@@ -1,55 +1,115 @@
+from NuRadioReco.utilities import units
+
+from collections import defaultdict
+import logging
 import numpy as np
 import json
 import os
 
+
 class Detector:
 
-    def __init__(self, json_file=None):
+    def __init__(self, position_path=None, channel_file=None):
 
-        if json_file is None:
-            json_file = os.path.join(
+        self.logger = logging.getLogger("NuRadioReco.detector.SKA.detector")
+
+        if channel_file is None:
+            channel_file = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)), "ska_channels.json"
             )
 
-        with open(json_file, "r") as f:
-            self.json = json.load(f)
+        with open(channel_file, "r") as f:
+            channel_data_json = json.load(f)["channels"]
 
-        self.channel_ids = []
+        self.ref_channel_ids = []
         self.channel_data = {}
-        for cinfo in self.json["channels"].values():
-            self.channel_ids.append(cinfo["channel_id"])
+        for cinfo in channel_data_json.values():
+            self.ref_channel_ids.append(cinfo["channel_id"])
             self.channel_data[cinfo["channel_id"]] = cinfo
 
-    def _get_channel_id_from_station_channel_pair(self, station_id, channel_id):
-        if station_id is None:
-            return channel_id
-        # To be changed ...
-        return channel_id
+        self._position = None
+        if position_path is not None:
+            self.read_antenna_positions(position_path)
 
-    def get_channel_ids(self, station_id=None):
-        return self.channel_ids
+    def read_antenna_positions(self, base_path, maximum_radius=600 * units.m):
+        assert self._position is None, "Antenna positions already read. Cannot read again."
+        self._position = defaultdict(dict)
+
+        station_position_file = os.path.join(base_path, 'layout.txt')
+        if not os.path.exists(station_position_file):
+            self.logger.error(f"File {station_position_file} does not exist. Cannot read station positions. Exiting.")
+            raise FileNotFoundError(f"File {station_position_file} does not exist. Cannot read station positions. Exiting.")
+
+        station_positions = np.loadtxt(station_position_file)
+
+        for station_id, station_position in enumerate(station_positions):
+
+            if np.linalg.norm(station_position[:2]) > maximum_radius:
+                continue
+
+            antenna_position_file = os.path.join(base_path, f"station{station_id:03d}", "layout.txt")
+            if not os.path.exists(antenna_position_file):
+                self.logger.error(f"File {antenna_position_file} does not exist. Cannot read antenna positions. Exiting.")
+                raise FileNotFoundError(f"File {antenna_position_file} does not exist. Cannot read antenna positions. Exiting.")
+
+            antenna_positions = np.loadtxt(antenna_position_file)
+            antenna_positions_3d = np.zeros((antenna_positions.shape[0], 3))
+            antenna_positions_3d[:, :2] = antenna_positions
+            antenna_positions_3d += station_position
+
+            # create two entries: One for each antenna (arm) in a dual-polarized antenna (i.e., channels 0 and 1)
+            for antenna_id, antenna_position in enumerate(antenna_positions_3d):
+                self._position[station_id][antenna_id] = antenna_position
+
+    def add_antenna_position(self, station_id, antenna_id, position):
+        if self._position is None:
+            self._position = defaultdict(dict)
+        self._position[station_id][antenna_id] = position
+
+    def _get_reference_channel_id(self, station_id, channel_id):
+        ref_channel_id = int(str(channel_id)[-1])  # take the last digit
+        if ref_channel_id not in self.ref_channel_ids:
+            self.logger.error(f"Reference channel ID {ref_channel_id} (inferred from {channel_id}) "
+                            "not found in the reference channel list.")
+            raise ValueError(f"Reference channel ID {ref_channel_id} (inferred from {channel_id}) "
+                            "not found in the reference channel list.")
+        return ref_channel_id
+
+    def get_channel_ids(self, station_id):
+        assert self._position is not None, "No antennas added yet. Cannot get channel IDs."
+        antenna_ids = np.array(list(self._position[station_id].keys()), dtype=int)
+        channel_ids = np.hstack(
+            [antenna_ids * 10, antenna_ids * 10 + 1], dtype=int)
+        channel_ids.sort()
+        return np.array(channel_ids)
+
+    def get_station_ids(self):
+        assert self._position is not None, "No antennas added yet. Cannot get station IDs."
+        return np.array(list(self._position.keys()), dtype=int)
 
     def get_cable_delay(self, station_id=None, channel_id=None):
-        channel_id = self._get_channel_id_from_station_channel_pair(station_id, channel_id)
+        channel_id = self._get_reference_channel_id(station_id, channel_id)
         return self.channel_data[channel_id]["cab_time_delay"]
 
     def get_site(self, station_id=None):
         return "ska"
 
-    def get_relative_position(self, station_id=None, channel_id=None):
-        channel_id = self._get_channel_id_from_station_channel_pair(station_id, channel_id)
-        return np.array([self.channel_data[channel_id]["ant_position_x"],
-                         self.channel_data[channel_id]["ant_position_y"],
-                         self.channel_data[channel_id]["ant_position_z"]])
+    def get_relative_position(self, station_id, channel_id):
+        if channel_id > 1:
+            antenna_id = int(str(channel_id)[:-1]) # take all but the last digit
+        else:
+            antenna_id = 0
+
+        return self._position[station_id][antenna_id]
 
     def get_antenna_model(self, station_id=None, channel_id=None, zenith_antenna=None):
         """ Returns the antenna model """
-        channel_id = self._get_channel_id_from_station_channel_pair(station_id, channel_id)
+        channel_id = self._get_reference_channel_id(station_id, channel_id)
         return self.channel_data[channel_id]["ant_type"]
 
     def get_antenna_orientation(self, station_id=None, channel_id=None):
         """ Returns the channel's 4 orientation angles in rad """
-        channel_id = self._get_channel_id_from_station_channel_pair(station_id, channel_id)
+        channel_id = self._get_reference_channel_id(station_id, channel_id)
         d = self.channel_data[channel_id]
         return np.deg2rad([d["ant_orientation_theta"], d["ant_orientation_phi"],
                            d["ant_rotation_theta"], d["ant_rotation_phi"]])
@@ -57,3 +117,20 @@ class Detector:
     def get_site_coordinates(self, station_id=None):
         """ Returns latitude and longitude of SKA in degrees """
         return -26.825, 116.764
+
+
+if __name__ == "__main__":
+    import sys
+    import matplotlib.pyplot as plt
+
+    det = Detector(position_path=sys.argv[1])
+    print(det.get_station_ids())
+    fig, ax = plt.subplots()
+    for stid in det.get_station_ids():
+        for chid in det.get_channel_ids(stid):
+
+            pos = det.get_relative_position(stid, chid)
+            ax.plot(pos[0], pos[1], 'k.', alpha=0.1)
+
+    ax.set_aspect(1)
+    plt.show()
