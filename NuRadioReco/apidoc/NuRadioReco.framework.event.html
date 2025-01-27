@@ -691,31 +691,34 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_station" title="NuRadioReco.framework.event.Event.get_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station</span></code></a>([station_id])</p></td>
 <td><p>Returns the station for a given station id.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_particle" title="NuRadioReco.framework.event.Event.has_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_particle</span></code></a>([particle_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_waveforms" title="NuRadioReco.framework.event.Event.get_waveforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_waveforms</span></code></a>([station_id, channel_id])</p></td>
+<td><p>Returns the waveforms stored within the event.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_particle" title="NuRadioReco.framework.event.Event.has_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_particle</span></code></a>([particle_id])</p></td>
 <td><p>Returns true if at least one MC particle is stored in the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_shower" title="NuRadioReco.framework.event.Event.has_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_shower</span></code></a>([shower_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_shower" title="NuRadioReco.framework.event.Event.has_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_shower</span></code></a>([shower_id])</p></td>
 <td><p>Returns true if at least one shower is stored in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_emitter" title="NuRadioReco.framework.event.Event.has_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_emitter</span></code></a>([emitter_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_emitter" title="NuRadioReco.framework.event.Event.has_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_emitter</span></code></a>([emitter_id])</p></td>
 <td><p>Returns true if at least one simulated emitter is stored in the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="NuRadioReco.framework.event.Event.has_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_shower</span></code></a>([shower_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="NuRadioReco.framework.event.Event.has_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_shower</span></code></a>([shower_id])</p></td>
 <td><p>Returns true if at least one simulated shower is stored in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_triggered" title="NuRadioReco.framework.event.Event.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_triggered" title="NuRadioReco.framework.event.Event.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
 <td><p>Returns true if any station has been triggered.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
 <td><p>returns an interator that loops over all modules.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_event_time" title="NuRadioReco.framework.event.Event.set_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_event_time</span></code></a>(time[, format])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_event_time" title="NuRadioReco.framework.event.Event.set_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_event_time</span></code></a>(time[, format])</p></td>
 <td><p>Set the (absolute) event time (will be stored as astropy.time.Time).</p></td>
 </tr>
 </tbody>
@@ -857,6 +860,37 @@ The order follows the sequence these modules were applied</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_run_number">
 <span class="sig-name descname"><span class="pre">get_run_number</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_run_number"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_run_number" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_waveforms">
+<span class="sig-name descname"><span class="pre">get_waveforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_waveforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_waveforms" title="Link to this definition"></a></dt>
+<dd><p>Returns the waveforms stored within the event.</p>
+<p>You can specify the station and channel id to get specific waveforms.
+If you do not specify anything you will get all waveforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int (Default: None)</strong></dt><dd><p>The station id of the station for which the waveforms should be returned.
+If <em class="xref py py-obj">None</em>, the waveforms of all stations are returned.</p>
+</dd>
+<dt><strong>channel_id: int or list of ints (Default: None)</strong></dt><dd><p>The channel id(s) of the channel(s) for which the waveforms should be returned.
+If <em class="xref py py-obj">None</em>, the waveforms of all channels are returned.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>times: np.ndarray(nr_stations, nr_channels, nr_samples)</dt><dd><p>A numpy array containing the times of the waveforms.
+The returned array is squeezed:
+(1, 10, 2048) -&gt; (10, 2048) or (2, 1, 2048) -&gt; (2, 2048).</p>
+</dd>
+<dt>waveforms: np.ndarray(nr_stations, nr_channels, nr_samples)</dt><dd><p>A numpy array containing the waveforms.
+The returned array is squeezed (see example for <em class="xref py py-obj">times</em>).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_station">
