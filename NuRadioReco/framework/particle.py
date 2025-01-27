@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.Particle')
 
 
-class Particle(NuRadioReco.framework.parameter_storage.ParameterStorage):
+class Particle(NuRadioReco.framework.parameter_storage._ParameterStorage):
 
     def __init__(self, particle_index):
         super().__init__(partp)
@@ -50,11 +50,11 @@ class Particle(NuRadioReco.framework.parameter_storage.ParameterStorage):
         return hdf5_dict
 
     def serialize(self):
-        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
+        data = NuRadioReco.framework.parameter_storage._ParameterStorage.serialize(self)
         data['_id'] = self._id
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
+        NuRadioReco.framework.parameter_storage._ParameterStorage.deserialize(self, data)
         self._id = data.get('_id', None)
