@@ -625,8 +625,13 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelStopFilter.channelStopFilter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelStopFilter.</span></span><span class="sig-name descname"><span class="pre">channelStopFilter</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelStopFilter.html#channelStopFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelStopFilter.channelStopFilter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>at the beginning and end of the trace (around the ‘stop’) our electronic produces a glitch
-this modules smoothly filters the beginning and the end of the trace</p>
+<p>Apply tapering towards zero to channel traces</p>
+<p>This class applies a Tukey window to the ends of the traces
+to gradually taper them towards zero, and appends zeros at either end.
+This prevents unphysical features that can result from applying transformations
+to the data in the frequency domain (see <a class="reference internal" href="../pages/times.html"><span class="doc">additional explanation here</span></a>)</p>
+<p>For ARIANNA data, this module should always be used to remove the glitch around
+the beginning and end of the trace (around the ‘stop’).</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>

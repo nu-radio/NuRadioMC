@@ -619,15 +619,22 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.signal.windows</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;channelStopFilter&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelStopFilter&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="channelStopFilter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelStopFilter.html#NuRadioReco.modules.channelStopFilter.channelStopFilter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelStopFilter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    at the beginning and end of the trace (around the &#39;stop&#39;) our electronic produces a glitch</span>
-<span class="sd">    this modules smoothly filters the beginning and the end of the trace</span>
+<span class="sd">    Apply tapering towards zero to channel traces</span>
+
+<span class="sd">    This class applies a Tukey window to the ends of the traces</span>
+<span class="sd">    to gradually taper them towards zero, and appends zeros at either end.</span>
+<span class="sd">    This prevents unphysical features that can result from applying transformations</span>
+<span class="sd">    to the data in the frequency domain (see :doc:`additional explanation here &lt;/NuRadioReco/pages/times&gt;`)</span>
+
+<span class="sd">    For ARIANNA data, this module should always be used to remove the glitch around</span>
+<span class="sd">    the beginning and end of the trace (around the &#39;stop&#39;).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="channelStopFilter.begin">
@@ -662,9 +669,11 @@
             <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
             <span class="n">window</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">tukey</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="n">filter_size</span><span class="p">)</span>
             <span class="n">trace</span> <span class="o">*=</span> <span class="n">window</span>
-            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">prepend</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">))),</span> <span class="n">trace</span><span class="p">)</span>
+            <span class="n">prepend_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">prepend</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">))</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">prepend_samples</span><span class="p">),</span> <span class="n">trace</span><span class="p">)</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">append</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">))))</span>
-            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span></div>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">add_trace_start_time</span><span class="p">(</span><span class="o">-</span><span class="n">prepend_samples</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="channelStopFilter.end">
