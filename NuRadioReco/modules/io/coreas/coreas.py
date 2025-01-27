@@ -301,7 +301,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
         )
 
     evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
-    evt.set_event_time(corsika['CoREAS'].attrs['GPSSecs'])
+    evt.set_event_time(corsika['CoREAS'].attrs['GPSSecs'], format="unix")
 
     stn = NuRadioReco.framework.station.Station(0)  # set station id to 0
     stn.set_sim_station(sim_station)
