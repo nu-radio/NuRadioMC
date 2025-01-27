@@ -47,6 +47,7 @@ sphinx-rtd-theme = {version = "*", optional = true}
 numpydoc = {version = "*", optional = true}
 proposal = {version = "7.6.2", optional = true}
 pygdsm = {git = "https://github.com/telegraphic/pygdsm", optional = true}
+pylfmap = {version = "*", optional = true}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5", optional = true}
 pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft", optional = true}
 MCEq = {version = "*", optional = true}
@@ -57,9 +58,9 @@ rnog-runtable = {git = "ssh://git@github.com/RNO-G/rnog-runtable.git", optional 
 [tool.poetry.extras]
 documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
 proposal = ["proposal"]
-galacticnoise = ['pygdsm']
+galacticnoise = ['pygdsm', 'pylfmap']
 ift-reco = ['nifty5', 'pypocketfft']
 muon-flux = ['MCEq', 'crflux']
 RNO-G = ["mattak"]
 RNO-G-extras = ["rnog-runtable"]
-ALL = ["Sphinx", "sphinx-rtd-theme", "numpydoc", "proposal", "pygdsm", "nifty5", "pypocketfft", "MCEq", "crflux", "mattak"]
+ALL = ["Sphinx", "sphinx-rtd-theme", "numpydoc", "proposal", "pygdsm", 'pylfmap', "nifty5", "pypocketfft", "MCEq", "crflux", "mattak"]
