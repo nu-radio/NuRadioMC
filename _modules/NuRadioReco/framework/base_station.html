@@ -266,7 +266,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -619,8 +619,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.trigger</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">parameters</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_serialization</span>
-
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_storage</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">io_utilities</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
@@ -638,84 +637,16 @@
 
 <div class="viewcode-block" id="BaseStation">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">BaseStation</span><span class="p">():</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseStation</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="p">):</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ARIANNA_parameters</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">=</span> <span class="n">station_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_electric_fields</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-
-<div class="viewcode-block" id="BaseStation.get_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.get_parameters">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_parameters">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.has_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.has_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.set_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.set_parameter_error">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_parameter_error">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span> <span class="o">**</span> <span class="mi">2</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.get_parameter_error">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_parameter_error">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)]</span> <span class="o">**</span> <span class="mf">0.5</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.remove_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.remove_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">remove_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
-
 
 <div class="viewcode-block" id="BaseStation.set_station_time">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_station_time">[docs]</a>
@@ -1019,40 +950,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="s1">&#39;cr&#39;</span></div>
 
 
-    <span class="c1"># provide interface to ARIANNA specific parameters</span>
-<div class="viewcode-block" id="BaseStation.get_ARIANNA_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_ARIANNA_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_ARIANNA_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">ARIANNAParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ARIANNA_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.get_ARIANNA_parameters">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_ARIANNA_parameters">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_ARIANNA_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ARIANNA_parameters</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.has_ARIANNA_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.has_ARIANNA_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_ARIANNA_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">ARIANNAParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ARIANNA_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="BaseStation.set_ARIANNA_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_ARIANNA_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_ARIANNA_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">ARIANNAParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ARIANNA_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
-
-
 <div class="viewcode-block" id="BaseStation.serialize">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.serialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_efield_traces</span><span class="p">):</span>
@@ -1066,15 +963,15 @@
 
         <span class="n">station_time_dict</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_astropy_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">())</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_parameters&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">),</span>
-                <span class="s1">&#39;_parameter_covariances&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize_covariances</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">),</span>
-                <span class="s1">&#39;_ARIANNA_parameters&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ARIANNA_parameters</span><span class="p">,</span>
-                <span class="s1">&#39;_station_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="p">,</span>
-                <span class="s1">&#39;_station_time&#39;</span><span class="p">:</span> <span class="n">station_time_dict</span><span class="p">,</span>
-                <span class="s1">&#39;_particle_type&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span><span class="p">,</span>
-                <span class="s1">&#39;triggers&#39;</span><span class="p">:</span> <span class="n">trigger_pkls</span><span class="p">,</span>
-                <span class="s1">&#39;_triggered&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span><span class="p">,</span>
-                <span class="s1">&#39;electric_fields&#39;</span><span class="p">:</span> <span class="n">efield_pkls</span><span class="p">}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;_station_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="p">,</span>
+            <span class="s1">&#39;_station_time&#39;</span><span class="p">:</span> <span class="n">station_time_dict</span><span class="p">,</span>
+            <span class="s1">&#39;_particle_type&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span><span class="p">,</span>
+            <span class="s1">&#39;triggers&#39;</span><span class="p">:</span> <span class="n">trigger_pkls</span><span class="p">,</span>
+            <span class="s1">&#39;_triggered&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span><span class="p">,</span>
+            <span class="s1">&#39;electric_fields&#39;</span><span class="p">:</span> <span class="n">efield_pkls</span>
+        <span class="p">})</span>
 
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
@@ -1083,6 +980,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.deserialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
+        <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="s1">&#39;triggers&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;triggers&#39;</span><span class="p">])</span>
@@ -1095,14 +993,10 @@
             <span class="n">efield</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">electric_field</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_electric_field</span><span class="p">(</span><span class="n">efield</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameters&#39;</span><span class="p">],</span>
-                                                                                     <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">deserialize_covariances</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameter_covariances&#39;</span><span class="p">],</span> <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">)</span>
-
+        <span class="c1"># For backward compatibility, now ARIANNA parameters are stored in `_parameters`.</span>
         <span class="k">if</span> <span class="s1">&#39;_ARIANNA_parameters&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ARIANNA_parameters</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_ARIANNA_parameters&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_ARIANNA_parameters&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_ARIANNA_parameters&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_id&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1125,17 +1019,51 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">BaseStation</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add BaseStation to BaseStation&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_id</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add BaseStations with the same ID&quot;</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">trigger</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_electric_field</span><span class="p">(</span><span class="n">efield</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_ARIANNA_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_ARIANNA_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+    <span class="c1">######## Deprecated functions ########</span>
+
+<div class="viewcode-block" id="BaseStation.get_ARIANNA_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_ARIANNA_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ARIANNA_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseStation.get_ARIANNA_parameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_ARIANNA_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ARIANNA_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseStation.has_ARIANNA_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.has_ARIANNA_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_ARIANNA_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseStation.set_ARIANNA_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_ARIANNA_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ARIANNA_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead.&quot;</span><span class="p">)</span></div>
+</div>
 
 </pre></div>
 

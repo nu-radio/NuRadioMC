@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.framework.parameter_serialization &mdash; NuRadio 2.3.0-dev documentation</title>
+  <title>NuRadioReco.framework.parameter_storage &mdash; NuRadio 2.3.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
@@ -266,7 +266,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -604,7 +604,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.framework.parameter_serialization</li>
+      <li class="breadcrumb-item active">NuRadioReco.framework.parameter_storage</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -613,56 +613,144 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for NuRadioReco.framework.parameter_serialization</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+  <h1>Source code for NuRadioReco.framework.parameter_storage</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.framework.parameter_storage&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="serialize">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html#NuRadioReco.framework.parameter_serialization.serialize">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="n">target_object</span><span class="p">):</span>
-    <span class="n">reply</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">target_object</span><span class="p">:</span>
-        <span class="n">reply</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">)]</span> <span class="o">=</span> <span class="n">target_object</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">reply</span></div>
+<div class="viewcode-block" id="ParameterStorage">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParameterStorage</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_types</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter_types</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">parameter_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameter_types</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span> <span class="o">=</span> <span class="n">parameter_types</span>
+
+<div class="viewcode-block" id="ParameterStorage.add_parameter_type">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.add_parameter_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_parameter_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_type</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parameter_type</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span><span class="p">)):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> needs to be of type </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> needs to be of type </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ParameterStorage.get_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.has_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.has_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.set_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.set_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.set_parameter_error">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.set_parameter_error">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span> <span class="o">**</span> <span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.get_parameter_error">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter_error">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)]</span> <span class="o">**</span> <span class="mf">0.5</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.has_parameter_error">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.has_parameter_error">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_parameter_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.remove_parameter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.remove_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.get_parameters">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.serialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.serialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">}</span>
+        <span class="n">parameter_covariances</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">}</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;_parameters&quot;</span><span class="p">:</span> <span class="n">parameters</span><span class="p">,</span>
+            <span class="s2">&quot;_parameter_covariances&quot;</span><span class="p">:</span> <span class="n">parameter_covariances</span><span class="p">,</span>
+            <span class="s2">&quot;_parameter_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">parameter_type</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">parameter_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
 
 
 
-<div class="viewcode-block" id="deserialize">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html#NuRadioReco.framework.parameter_serialization.deserialize">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="n">target_object</span><span class="p">,</span> <span class="n">parameter_enum</span><span class="p">):</span>
-    <span class="n">reply</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">parameter_enum</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">in</span> <span class="n">target_object</span><span class="p">:</span>
-            <span class="n">reply</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_object</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">)]</span>
-    <span class="k">return</span> <span class="n">reply</span></div>
+<div class="viewcode-block" id="ParameterStorage.deserialize">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="c1"># for backward compatibility</span>
+        <span class="k">if</span> <span class="s1">&#39;parameters&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">]</span>
 
+        <span class="k">if</span> <span class="s1">&#39;parameter_covariances&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameter_covariances&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;parameter_covariances&#39;</span><span class="p">]</span>
 
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_parameters&quot;</span><span class="p">]</span>
+        <span class="n">parameter_covariances</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_parameter_covariances&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="s2">&quot;_parameter_types&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">parameter_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">parameter_type</span><span class="p">]</span>
+                               <span class="k">for</span> <span class="n">parameter_type</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_parameter_types&quot;</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parameter_types</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span>
 
-<div class="viewcode-block" id="serialize_covariances">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html#NuRadioReco.framework.parameter_serialization.serialize_covariances">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">serialize_covariances</span><span class="p">(</span><span class="n">target_object</span><span class="p">):</span>
-    <span class="n">reply</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">target_object</span><span class="p">:</span>
-        <span class="n">reply</span><span class="p">[(</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]))]</span> <span class="o">=</span> <span class="n">target_object</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">reply</span></div>
+        <span class="k">for</span> <span class="n">parameter_type</span> <span class="ow">in</span> <span class="n">parameter_types</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">parameter_type</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)]</span>
 
-
-
-<div class="viewcode-block" id="deserialize_covariances">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html#NuRadioReco.framework.parameter_serialization.deserialize_covariances">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">deserialize_covariances</span><span class="p">(</span><span class="n">target_object</span><span class="p">,</span> <span class="n">parameter_enum</span><span class="p">):</span>
-    <span class="n">reply</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">target_object</span><span class="p">:</span>
-        <span class="n">first_key</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">second_key</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">for</span> <span class="n">enum</span> <span class="ow">in</span> <span class="n">parameter_enum</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">enum</span><span class="p">)</span> <span class="o">==</span> <span class="n">entry</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-                <span class="n">first_key</span> <span class="o">=</span> <span class="n">enum</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">enum</span><span class="p">)</span> <span class="o">==</span> <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-                <span class="n">second_key</span> <span class="o">=</span> <span class="n">enum</span>
-        <span class="k">if</span> <span class="n">first_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">second_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">reply</span><span class="p">[(</span><span class="n">first_key</span><span class="p">,</span> <span class="n">second_key</span><span class="p">)]</span> <span class="o">=</span> <span class="n">target_object</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">reply</span></div>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter_covariances</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">parameter_type</span><span class="p">,</span> <span class="n">parameter_type</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="ow">in</span> <span class="n">parameter_covariances</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">parameter_covariances</span><span class="p">[(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]))]</span></div>
+</div>
 
 </pre></div>
 

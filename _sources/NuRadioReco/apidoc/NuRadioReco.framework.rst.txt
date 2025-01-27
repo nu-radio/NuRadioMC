@@ -21,7 +21,7 @@ Submodules
    NuRadioReco.framework.event
    NuRadioReco.framework.hybrid_information
    NuRadioReco.framework.hybrid_shower
-   NuRadioReco.framework.parameter_serialization
+   NuRadioReco.framework.parameter_storage
    NuRadioReco.framework.parameters
    NuRadioReco.framework.particle
    NuRadioReco.framework.radio_shower

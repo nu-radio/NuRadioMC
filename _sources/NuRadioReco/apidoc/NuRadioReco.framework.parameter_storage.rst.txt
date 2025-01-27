@@ -1,0 +1,7 @@
+NuRadioReco.framework.parameter\_storage module
+===============================================
+
+.. automodule:: NuRadioReco.framework.parameter_storage
+   :members:
+   :undoc-members:
+   :show-inheritance:

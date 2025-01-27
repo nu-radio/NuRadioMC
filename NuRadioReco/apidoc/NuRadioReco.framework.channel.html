@@ -269,7 +269,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -624,7 +624,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.channel.</span></span><span class="sig-name descname"><span class="pre">Channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_group_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace" title="NuRadioReco.framework.base_trace.BaseTrace"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrace</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace" title="NuRadioReco.framework.base_trace.BaseTrace"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrace</span></code></a>, <a class="reference internal" href="NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage" title="NuRadioReco.framework.parameter_storage.ParameterStorage"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterStorage</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -685,22 +685,28 @@ the channels of a single dual or triple polarized antenna as common in air showe
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>add_trace_start_time</strong></p></td>
+<tr class="row-odd"><td><p><strong>add_parameter_type</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>deserialize</strong></p></td>
+<tr class="row-even"><td><p><strong>add_trace_start_time</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_hilbert_envelope</strong></p></td>
+<tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_hilbert_envelope_mag</strong></p></td>
+<tr class="row-even"><td><p><strong>get_hilbert_envelope</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_id</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_hilbert_envelope_mag</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>get_id</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_parameter_error</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>get_parameters</strong></p></td>
@@ -715,6 +721,12 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <tr class="row-even"><td><p><strong>has_parameter</strong></p></td>
 <td></td>
 </tr>
+<tr class="row-odd"><td><p><strong>has_parameter_error</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>remove_parameter</strong></p></td>
+<td></td>
+</tr>
 <tr class="row-odd"><td><p><strong>resample</strong></p></td>
 <td></td>
 </tr>
@@ -724,7 +736,10 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <tr class="row-odd"><td><p><strong>set_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_trace_start_time</strong></p></td>
+<tr class="row-even"><td><p><strong>set_parameter_error</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_trace_start_time</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -750,26 +765,6 @@ If no trigger channel is set, this just returns <code class="docutils literal no
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_parameter">
-<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel.get_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_parameters">
-<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel.get_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_parameters" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.set_parameter">
-<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel.set_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.set_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.has_parameter">
-<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel.has_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.has_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_id">
 <span class="sig-name descname"><span class="pre">get_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/channel.html#Channel.get_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_id" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -793,11 +788,16 @@ feature also on detector setups that don’t use this feature.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.add_parameter_type">
+<span class="sig-name descname"><span class="pre">add_parameter_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.add_parameter_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.add_to_trace">
 <span class="sig-name descname"><span class="pre">add_to_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.add_to_trace" title="Link to this definition"></a></dt>
-<dd><p>Adds the trace of another channel to the trace of this channel. The trace is only added within the 
+<dd><p>Adds the trace of another channel to the trace of this channel. The trace is only added within the
 time window of “this” channel.
-If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a 
+If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a
 _time_trace containing zeros, this function can be seen as recording a channel in the specified
 readout window.</p>
 <dl class="field-list simple">
@@ -918,6 +918,21 @@ to acommodate the time shift</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_parameter">
+<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_parameter_error">
+<span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_parameters">
+<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_parameters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.get_sampling_rate">
 <span class="sig-name descname"><span class="pre">get_sampling_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.get_sampling_rate" title="Link to this definition"></a></dt>
 <dd><p>Returns the sampling rate of the trace.</p>
@@ -959,6 +974,21 @@ up to date.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.has_parameter">
+<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.has_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.has_parameter_error">
+<span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.has_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.remove_parameter">
+<span class="sig-name descname"><span class="pre">remove_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.remove_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.resample">
 <span class="sig-name descname"><span class="pre">resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.resample" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -979,6 +1009,16 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.set_parameter">
+<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.set_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.set_parameter_error">
+<span class="sig-name descname"><span class="pre">set_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.set_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.set_trace">

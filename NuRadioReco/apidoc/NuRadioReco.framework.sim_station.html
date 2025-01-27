@@ -269,7 +269,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -631,76 +631,73 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.add_channel" title="NuRadioReco.framework.sim_station.SimStation.add_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_channel</span></code></a>(channel[, overwrite])</p></td>
 <td><p>Add a <em class="xref py py-obj">SimChannel</em> to the <a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation" title="NuRadioReco.framework.sim_station.SimStation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimStation</span></code></a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter" title="NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ARIANNA_parameter</span></code></a>(key)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channel" title="NuRadioReco.framework.sim_station.SimStation.get_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code></a>(unique_identifier)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channel" title="NuRadioReco.framework.sim_station.SimStation.get_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code></a>(unique_identifier)</p></td>
 <td><p>returns channel identified by the triple (channel_id, shower_id, ray_tracing_id)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channel_ids" title="NuRadioReco.framework.sim_station.SimStation.get_channel_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_ids</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channel_ids" title="NuRadioReco.framework.sim_station.SimStation.get_channel_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_ids</span></code></a>()</p></td>
 <td><p>returns a list with the channel IDs of all simChannels of the simStation</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_channel_id" title="NuRadioReco.framework.sim_station.SimStation.get_channels_by_channel_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channels_by_channel_id</span></code></a>(channel_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_channel_id" title="NuRadioReco.framework.sim_station.SimStation.get_channels_by_channel_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channels_by_channel_id</span></code></a>(channel_id)</p></td>
 <td><p>returns all simChannels that have the given channel_id</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id" title="NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channels_by_ray_tracing_id</span></code></a>(ray_tracing_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id" title="NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channels_by_ray_tracing_id</span></code></a>(ray_tracing_id)</p></td>
 <td><p>returns all simChannels that have the given ray_tracing_id</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_shower_id" title="NuRadioReco.framework.sim_station.SimStation.get_channels_by_shower_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channels_by_shower_id</span></code></a>(shower_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_shower_id" title="NuRadioReco.framework.sim_station.SimStation.get_channels_by_shower_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channels_by_shower_id</span></code></a>(shower_id)</p></td>
 <td><p>returns all simChannels that have the given shower_id</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_electric_field_ids" title="NuRadioReco.framework.sim_station.SimStation.get_electric_field_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_electric_field_ids</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_electric_field_ids" title="NuRadioReco.framework.sim_station.SimStation.get_electric_field_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_electric_field_ids</span></code></a>()</p></td>
 <td><p>returns a sorted list with the electric field IDs of all simElectricFields of the simStation</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_first_trigger" title="NuRadioReco.framework.sim_station.SimStation.get_first_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_trigger</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_first_trigger" title="NuRadioReco.framework.sim_station.SimStation.get_first_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_trigger</span></code></a>()</p></td>
 <td><p>Returns the first/earliest trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_primary_trigger" title="NuRadioReco.framework.sim_station.SimStation.get_primary_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_primary_trigger</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_primary_trigger" title="NuRadioReco.framework.sim_station.SimStation.get_primary_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_primary_trigger</span></code></a>()</p></td>
 <td><p>Returns the primary trigger of the station.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_ray_tracing_ids" title="NuRadioReco.framework.sim_station.SimStation.get_ray_tracing_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ray_tracing_ids</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_ray_tracing_ids" title="NuRadioReco.framework.sim_station.SimStation.get_ray_tracing_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ray_tracing_ids</span></code></a>()</p></td>
 <td><p>returns a list with the raytracing IDs of all simChannels of the simStation</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_shower_ids" title="NuRadioReco.framework.sim_station.SimStation.get_shower_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_shower_ids</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_shower_ids" title="NuRadioReco.framework.sim_station.SimStation.get_shower_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_shower_ids</span></code></a>()</p></td>
 <td><p>returns a list with the shower IDs of all simChannels of the simStation</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_station_time" title="NuRadioReco.framework.sim_station.SimStation.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time</span></code></a>([format])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_station_time" title="NuRadioReco.framework.sim_station.SimStation.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time</span></code></a>([format])</p></td>
 <td><p>Returns the station time as an astropy.time.Time object</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_trigger" title="NuRadioReco.framework.sim_station.SimStation.get_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger</span></code></a>(name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_trigger" title="NuRadioReco.framework.sim_station.SimStation.get_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger</span></code></a>(name)</p></td>
 <td><p>returns the trigger with the name 'name'</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_triggers" title="NuRadioReco.framework.sim_station.SimStation.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_triggers" title="NuRadioReco.framework.sim_station.SimStation.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
 <td><p>Returns a dictionary of the triggers.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_trigger" title="NuRadioReco.framework.sim_station.SimStation.has_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trigger</span></code></a>(trigger_name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_trigger" title="NuRadioReco.framework.sim_station.SimStation.has_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trigger</span></code></a>(trigger_name)</p></td>
 <td><p>Checks if station has a trigger with a certain name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_triggered" title="NuRadioReco.framework.sim_station.SimStation.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_triggered" title="NuRadioReco.framework.sim_station.SimStation.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
 <td><p>Checks if the station has triggered.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.is_candidate" title="NuRadioReco.framework.sim_station.SimStation.is_candidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_candidate</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.is_candidate" title="NuRadioReco.framework.sim_station.SimStation.is_candidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_candidate</span></code></a>()</p></td>
 <td><p>Returns whether the station is a candidate for producing a trigger.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.remove_triggers" title="NuRadioReco.framework.sim_station.SimStation.remove_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_triggers</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.remove_triggers" title="NuRadioReco.framework.sim_station.SimStation.remove_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_triggers</span></code></a>()</p></td>
 <td><p>removes all triggers from the station</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_candidate" title="NuRadioReco.framework.sim_station.SimStation.set_candidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_candidate</span></code></a>(candidate_status)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_candidate" title="NuRadioReco.framework.sim_station.SimStation.set_candidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_candidate</span></code></a>(candidate_status)</p></td>
 <td><p>Set the candidate for the simulation station.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray" title="NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray" title="NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code></a>()</p></td>
 <td><p>set station type to cosmic rays (relevant e.g. for refraction into the snow).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_neutrino" title="NuRadioReco.framework.sim_station.SimStation.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_neutrino" title="NuRadioReco.framework.sim_station.SimStation.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
 <td><p>set station type to neutrino</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_station_time" title="NuRadioReco.framework.sim_station.SimStation.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_station_time" title="NuRadioReco.framework.sim_station.SimStation.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
 <td><p>Set the (absolute) time for the station (stored as astropy.time.Time).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_trigger" title="NuRadioReco.framework.sim_station.SimStation.set_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger</span></code></a>(trigger)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_trigger" title="NuRadioReco.framework.sim_station.SimStation.set_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger</span></code></a>(trigger)</p></td>
 <td><p>sets a trigger for the station.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_triggered" title="NuRadioReco.framework.sim_station.SimStation.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_triggered" title="NuRadioReco.framework.sim_station.SimStation.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>Convenience function to set a simple trigger.</p></td>
 </tr>
 </tbody>
@@ -710,7 +707,13 @@
 <tr class="row-odd"><td><p><strong>add_electric_field</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>deserialize</strong></p></td>
+<tr class="row-even"><td><p><strong>add_parameter_type</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_ARIANNA_parameter</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>get_ARIANNA_parameters</strong></p></td>
@@ -746,37 +749,40 @@
 <tr class="row-odd"><td><p><strong>has_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>is_cosmic_ray</strong></p></td>
+<tr class="row-even"><td><p><strong>has_parameter_error</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>is_neutrino</strong></p></td>
+<tr class="row-odd"><td><p><strong>is_cosmic_ray</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>iter_channels</strong></p></td>
+<tr class="row-even"><td><p><strong>is_neutrino</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>remove_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>iter_channels</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>serialize</strong></p></td>
+<tr class="row-even"><td><p><strong>remove_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_ARIANNA_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_electric_fields</strong></p></td>
+<tr class="row-even"><td><p><strong>set_ARIANNA_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_magnetic_field_vector</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_electric_fields</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>set_magnetic_field_vector</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_parameter_error</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_simulation_weight</strong></p></td>
+<tr class="row-even"><td><p><strong>set_parameter_error</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_simulation_weight</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -914,6 +920,11 @@ If False, raise AttributeError if a channel with the same identifier is being ad
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.add_parameter_type">
+<span class="sig-name descname"><span class="pre">add_parameter_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.add_parameter_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter">
 <span class="sig-name descname"><span class="pre">get_ARIANNA_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -1033,6 +1044,11 @@ are measured relative to this time.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.has_parameter">
 <span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.has_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.has_parameter_error">
+<span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.has_parameter_error" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">

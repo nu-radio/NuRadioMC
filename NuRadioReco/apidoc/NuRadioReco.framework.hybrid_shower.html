@@ -20,7 +20,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.framework.parameter_serialization module" href="NuRadioReco.framework.parameter_serialization.html" />
+    <link rel="next" title="NuRadioReco.framework.parameter_storage module" href="NuRadioReco.framework.parameter_storage.html" />
     <link rel="prev" title="NuRadioReco.framework.hybrid_information module" href="NuRadioReco.framework.hybrid_information.html" /> 
 </head>
 
@@ -269,7 +269,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -638,25 +638,37 @@
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
+<tr class="row-odd"><td><p><strong>add_parameter_type</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_hybrid_detector</strong></p></td>
+<tr class="row-even"><td><p><strong>deserialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_id</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_hybrid_detector</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_name</strong></p></td>
+<tr class="row-even"><td><p><strong>get_id</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_name</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_parameter_error</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>get_parameters</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>has_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>has_parameter_error</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>remove_parameter</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>serialize</strong></p></td>
@@ -666,6 +678,9 @@
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_parameter_error</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -696,6 +711,11 @@
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.hybrid_shower.HybridShower.add_parameter_type">
+<span class="sig-name descname"><span class="pre">add_parameter_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.hybrid_shower.HybridShower.add_parameter_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.hybrid_shower.HybridShower.get_axis">
 <span class="sig-name descname"><span class="pre">get_axis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.hybrid_shower.HybridShower.get_axis" title="Link to this definition"></a></dt>
 <dd><p>Returns the (shower) axis.</p>
@@ -717,7 +737,7 @@ towards the origin of the shower.</p>
 <dd><p>Returns radiotools.coordinatesystem.cstrafo for shower geometry.</p>
 <p>Can be used to transform the radio pulses or the observer coordiates
 in the shower frame. Requieres the shower arrival direction
-(azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).</p>
+(azimuth and zenith angle) and magnetic field vector (showerParameters).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -738,6 +758,11 @@ in the shower frame. Requieres the shower arrival direction
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.hybrid_shower.HybridShower.get_parameter_error">
+<span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.hybrid_shower.HybridShower.get_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.hybrid_shower.HybridShower.get_parameters">
 <span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.hybrid_shower.HybridShower.get_parameters" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -748,8 +773,23 @@ in the shower frame. Requieres the shower arrival direction
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.hybrid_shower.HybridShower.has_parameter_error">
+<span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.hybrid_shower.HybridShower.has_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.hybrid_shower.HybridShower.remove_parameter">
+<span class="sig-name descname"><span class="pre">remove_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.hybrid_shower.HybridShower.remove_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.hybrid_shower.HybridShower.set_parameter">
 <span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.hybrid_shower.HybridShower.set_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.hybrid_shower.HybridShower.set_parameter_error">
+<span class="sig-name descname"><span class="pre">set_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.hybrid_shower.HybridShower.set_parameter_error" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -761,7 +801,7 @@ in the shower frame. Requieres the shower arrival direction
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="NuRadioReco.framework.hybrid_information.html" class="btn btn-neutral float-left" title="NuRadioReco.framework.hybrid_information module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.framework.parameter_serialization.html" class="btn btn-neutral float-right" title="NuRadioReco.framework.parameter_serialization module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.framework.parameter_storage.html" class="btn btn-neutral float-right" title="NuRadioReco.framework.parameter_storage module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -269,7 +269,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -624,7 +624,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.base_shower.</span></span><span class="sig-name descname"><span class="pre">BaseShower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_shower.html#BaseShower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage" title="NuRadioReco.framework.parameter_storage.ParameterStorage"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterStorage</span></code></a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -638,13 +638,19 @@
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
+<tr class="row-odd"><td><p><strong>add_parameter_type</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_id</strong></p></td>
+<tr class="row-even"><td><p><strong>deserialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_id</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_parameter_error</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>get_parameters</strong></p></td>
@@ -653,10 +659,19 @@
 <tr class="row-odd"><td><p><strong>has_parameter</strong></p></td>
 <td></td>
 </tr>
+<tr class="row-even"><td><p><strong>has_parameter_error</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>remove_parameter</strong></p></td>
+<td></td>
+</tr>
 <tr class="row-even"><td><p><strong>serialize</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>set_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_parameter_error</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -664,26 +679,6 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_id">
 <span class="sig-name descname"><span class="pre">get_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_shower.html#BaseShower.get_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_id" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_parameters">
-<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_shower.html#BaseShower.get_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameters" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_parameter">
-<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_shower.html#BaseShower.get_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.set_parameter">
-<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_shower.html#BaseShower.set_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.set_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.has_parameter">
-<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_shower.html#BaseShower.has_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.has_parameter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -708,7 +703,7 @@ towards the origin of the shower.</p>
 <dd><p>Returns radiotools.coordinatesystem.cstrafo for shower geometry.</p>
 <p>Can be used to transform the radio pulses or the observer coordiates
 in the shower frame. Requieres the shower arrival direction
-(azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).</p>
+(azimuth and zenith angle) and magnetic field vector (showerParameters).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -726,6 +721,51 @@ in the shower frame. Requieres the shower arrival direction
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_shower.html#BaseShower.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.deserialize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.add_parameter_type">
+<span class="sig-name descname"><span class="pre">add_parameter_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.add_parameter_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_parameter">
+<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_parameter_error">
+<span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_parameters">
+<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.has_parameter">
+<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.has_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.has_parameter_error">
+<span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.has_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.remove_parameter">
+<span class="sig-name descname"><span class="pre">remove_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.remove_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.set_parameter">
+<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.set_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.set_parameter_error">
+<span class="sig-name descname"><span class="pre">set_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.set_parameter_error" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

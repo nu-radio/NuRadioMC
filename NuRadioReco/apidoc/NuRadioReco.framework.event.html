@@ -269,7 +269,7 @@
 <li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -624,7 +624,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.event.</span></span><span class="sig-name descname"><span class="pre">Event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage" title="NuRadioReco.framework.parameter_storage.ParameterStorage"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterStorage</span></code></a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -725,43 +725,61 @@
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
+<tr class="row-odd"><td><p><strong>add_parameter_type</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_generator_info</strong></p></td>
+<tr class="row-even"><td><p><strong>deserialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_id</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_generator_info</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>get_id</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_run_number</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_station_ids</strong></p></td>
+<tr class="row-even"><td><p><strong>get_parameter_error</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_stations</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_parameters</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>has_generator_info</strong></p></td>
+<tr class="row-even"><td><p><strong>get_run_number</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>has_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_station_ids</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>serialize</strong></p></td>
+<tr class="row-even"><td><p><strong>get_stations</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_generator_info</strong></p></td>
+<tr class="row-odd"><td><p><strong>has_generator_info</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_id</strong></p></td>
+<tr class="row-even"><td><p><strong>has_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>has_parameter_error</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>remove_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_generator_info</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_id</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_parameter_error</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>set_station</strong></p></td>
@@ -815,21 +833,6 @@ over all modules that are applied on event or station level (on this particular 
 station_id is provided, the loop is only over the event modules.
 The order follows the sequence these modules were applied</p>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_parameter">
-<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.set_parameter">
-<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.set_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.set_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.has_parameter">
-<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.has_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_generator_info">
@@ -1224,6 +1227,51 @@ all stations in the list is returned</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.deserialize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.add_parameter_type">
+<span class="sig-name descname"><span class="pre">add_parameter_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.add_parameter_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_parameter">
+<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_parameter_error">
+<span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_parameters">
+<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_parameters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.has_parameter">
+<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.has_parameter_error">
+<span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.remove_parameter">
+<span class="sig-name descname"><span class="pre">remove_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.remove_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.set_parameter">
+<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.set_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.set_parameter_error">
+<span class="sig-name descname"><span class="pre">set_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.set_parameter_error" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

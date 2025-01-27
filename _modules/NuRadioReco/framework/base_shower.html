@@ -266,7 +266,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -615,8 +615,8 @@
              
   <h1>Source code for NuRadioReco.framework.base_shower</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">parameters</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_serialization</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">showerParameters</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_storage</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span><span class="p">,</span> <span class="n">coordinatesystems</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 
@@ -626,55 +626,16 @@
 
 <div class="viewcode-block" id="BaseShower">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">BaseShower</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseShower</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="p">):</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shower_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">showerParameters</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">shower_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseShower.get_id">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.get_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span></div>
-
-    
-<div class="viewcode-block" id="BaseShower.get_parameters">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.get_parameters">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span></div>
-
-
-<div class="viewcode-block" id="BaseShower.get_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.get_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="BaseShower.set_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.set_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
-
-
-<div class="viewcode-block" id="BaseShower.has_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.has_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span></div>
 
 
 <div class="viewcode-block" id="BaseShower.get_axis">
@@ -693,15 +654,15 @@
 <span class="sd">            Shower axis</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
-           <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
+           <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                 <span class="s2">&quot;Azimuth or zenith angle not set! Can not return shower axis.&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Azimuth or zenith angle not set! Can not return shower axis.&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="BaseShower.get_coordinatesystem">
@@ -712,7 +673,7 @@
 
 <span class="sd">        Can be used to transform the radio pulses or the observer coordiates</span>
 <span class="sd">        in the shower frame. Requieres the shower arrival direction</span>
-<span class="sd">        (azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).</span>
+<span class="sd">        (azimuth and zenith angle) and magnetic field vector (showerParameters).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -720,24 +681,24 @@
 <span class="sd">        radiotools.coordinatesystem.cstrafo</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
-           <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="ow">or</span> \
-           <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
+           <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="ow">or</span> \
+           <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                 <span class="s2">&quot;Magnetic field vector, azimuth or zenith angle not set! Can not return shower coordinatesystem.&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Magnetic field vector, azimuth or zenith angle not set! Can not return shower coordinatesystem.&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="BaseShower.serialize">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.serialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_parameters&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">),</span>
-                <span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
@@ -745,14 +706,8 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.deserialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;_id&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameters&#39;</span><span class="p">],</span>
-            <span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span>
-        <span class="p">)</span></div>
+        <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

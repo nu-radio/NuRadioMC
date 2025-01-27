@@ -266,7 +266,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -622,6 +622,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.hybrid_information</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.particle</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">parameters</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_storage</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">io_utilities</span><span class="p">,</span> <span class="n">version</span>
 
@@ -638,10 +639,11 @@
 
 <div class="viewcode-block" id="Event">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Event</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Event</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="p">):</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">event_id</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">parameters</span><span class="o">.</span><span class="n">eventParameters</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">generatorAttributes</span><span class="p">])</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span> <span class="o">=</span> <span class="n">run_number</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">event_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
@@ -650,7 +652,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__sim_emitters</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__particles</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span> <span class="c1"># stores a dictionary of simulated MC particles in an event</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># copies over the relevant information on event generation from the input file attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_information</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">hybrid_information</span><span class="o">.</span><span class="n">HybridInformation</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># saves which modules were executed with what parameters on event level</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># saves which modules were executed with what parameters on station level</span>
@@ -720,58 +721,25 @@
                 <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">[</span><span class="n">iE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="Event.get_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">eventParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="Event.set_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">eventParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
-
-
-<div class="viewcode-block" id="Event.has_parameter">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">eventParameters</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span></div>
-
-
 <div class="viewcode-block" id="Event.get_generator_info">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_generator_info">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_generator_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">generatorAttributes</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`get_generator_info` is deprecated. Use `get_parameter` instead.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Event.set_generator_info">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_generator_info">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_generator_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">generatorAttributes</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`set_generator_info` is deprecated. Use `set_parameter` instead.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Event.has_generator_info">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_generator_info">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">has_generator_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">generatorAttributes</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`has_generator_info` is deprecated. Use `has_parameter` instead.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Event.get_id">
@@ -1078,8 +1046,6 @@
                     <span class="k">yield</span> <span class="n">particle</span></div>
 
 
-
-
 <div class="viewcode-block" id="Event.add_shower">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.add_shower">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_shower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shower</span><span class="p">):</span>
@@ -1360,7 +1326,8 @@
             <span class="n">modules_out_event</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
             <span class="n">invalid_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">)]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_keys</span><span class="p">):</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following arguments to module </span><span class="si">{</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> could not be serialized and will not be stored: </span><span class="si">{</span><span class="n">invalid_keys</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following arguments to module </span><span class="si">{</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> could not be &quot;</span>
+                               <span class="sa">f</span><span class="s2">&quot;serialized and will not be stored: </span><span class="si">{</span><span class="n">invalid_keys</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">modules_out_station</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">:</span>  <span class="c1"># remove module instances (this will just blow up the file size)</span>
@@ -1369,24 +1336,26 @@
                 <span class="n">modules_out_station</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
                 <span class="n">invalid_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">)]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_keys</span><span class="p">):</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following arguments to module </span><span class="si">{</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> could not be serialized and will not be stored: </span><span class="si">{</span><span class="n">invalid_keys</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following arguments to module </span><span class="si">{</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> could not be &quot;</span>
+                                   <span class="sa">f</span><span class="s2">&quot;serialized and will not be stored: </span><span class="si">{</span><span class="n">invalid_keys</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="n">event_time_dict</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_astropy_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;__run_number&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span><span class="p">,</span>
+            <span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span>
+            <span class="s1">&#39;__event_time&#39;</span><span class="p">:</span> <span class="n">event_time_dict</span><span class="p">,</span>
+            <span class="s1">&#39;stations&#39;</span><span class="p">:</span> <span class="n">stations_pkl</span><span class="p">,</span>
+            <span class="s1">&#39;showers&#39;</span><span class="p">:</span> <span class="n">showers_pkl</span><span class="p">,</span>
+            <span class="s1">&#39;sim_showers&#39;</span><span class="p">:</span> <span class="n">sim_showers_pkl</span><span class="p">,</span>
+            <span class="s1">&#39;sim_emitters&#39;</span><span class="p">:</span> <span class="n">sim_emitters_pkl</span><span class="p">,</span>
+            <span class="s1">&#39;particles&#39;</span><span class="p">:</span> <span class="n">particles_pkl</span><span class="p">,</span>
+            <span class="s1">&#39;hybrid_info&#39;</span><span class="p">:</span> <span class="n">hybrid_info</span><span class="p">,</span>
+            <span class="s1">&#39;__modules_event&#39;</span><span class="p">:</span> <span class="n">modules_out_event</span><span class="p">,</span>
+            <span class="s1">&#39;__modules_station&#39;</span><span class="p">:</span> <span class="n">modules_out_station</span>
+        <span class="p">})</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_parameters&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">,</span>
-                <span class="s1">&#39;__run_number&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span><span class="p">,</span>
-                <span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span>
-                <span class="s1">&#39;__event_time&#39;</span><span class="p">:</span> <span class="n">event_time_dict</span><span class="p">,</span>
-                <span class="s1">&#39;stations&#39;</span><span class="p">:</span> <span class="n">stations_pkl</span><span class="p">,</span>
-                <span class="s1">&#39;showers&#39;</span><span class="p">:</span> <span class="n">showers_pkl</span><span class="p">,</span>
-                <span class="s1">&#39;sim_showers&#39;</span><span class="p">:</span> <span class="n">sim_showers_pkl</span><span class="p">,</span>
-                <span class="s1">&#39;sim_emitters&#39;</span><span class="p">:</span> <span class="n">sim_emitters_pkl</span><span class="p">,</span>
-                <span class="s1">&#39;particles&#39;</span><span class="p">:</span> <span class="n">particles_pkl</span><span class="p">,</span>
-                <span class="s1">&#39;hybrid_info&#39;</span><span class="p">:</span> <span class="n">hybrid_info</span><span class="p">,</span>
-                <span class="s1">&#39;generator_info&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span><span class="p">,</span>
-                <span class="s1">&#39;__modules_event&#39;</span><span class="p">:</span> <span class="n">modules_out_event</span><span class="p">,</span>
-                <span class="s1">&#39;__modules_station&#39;</span><span class="p">:</span> <span class="n">modules_out_station</span>
-                <span class="p">}</span>
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
@@ -1424,13 +1393,16 @@
         <span class="k">if</span> <span class="s1">&#39;hybrid_info&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_information</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;hybrid_info&#39;</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameters&#39;</span><span class="p">]</span>
+        <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__run_number&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_time_object_to_astropy</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;__event_time&#39;</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="s1">&#39;generator_info&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;generator_info&#39;</span><span class="p">]</span>
+        <span class="c1"># For backward compatibility, now generator_info are stored in `_parameters`.</span>
+        <span class="k">if</span> <span class="s1">&#39;generator_info&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;generator_info&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;generator_info&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="s2">&quot;__modules_event&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__modules_event&#39;</span><span class="p">]</span>

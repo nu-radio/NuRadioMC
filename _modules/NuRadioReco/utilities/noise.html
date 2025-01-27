@@ -266,7 +266,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -662,7 +662,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">rolling_indices</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    pre calculates rolling index array for rolled sum via take</span>
-<span class="sd">  </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    traces: list</span>
@@ -829,16 +829,18 @@
 
                 <span class="n">spec</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filt</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">)</span>
-                <span class="k">if</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">trace</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">trace</span> <span class="o">&lt;</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">)):</span>
+
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">trace</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">trace</span> <span class="o">&lt;</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
                     <span class="n">triggered_bins</span> <span class="o">=</span> <span class="n">get_high_low_triggers</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_coincidence</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
-                    <span class="k">if</span><span class="p">(</span><span class="kc">True</span> <span class="ow">in</span> <span class="n">triggered_bins</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">triggered_bins</span><span class="p">):</span>
                         <span class="n">t_bins</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">triggered_bins</span>
                         <span class="n">trace_to_keep</span> <span class="o">=</span> <span class="n">trace</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_full_band</span> <span class="k">else</span> <span class="n">trace_copy</span>
-                        <span class="k">if</span><span class="p">(</span><span class="n">iCh</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">iCh</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                             <span class="n">n_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace_to_keep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_bin</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">triggered_bins</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trigger_bin_low</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_bin</span><span class="p">)</span>
                             <span class="n">n_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace_to_keep</span><span class="p">,</span> <span class="n">tmp</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">triggered_bins</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
         <span class="n">traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">))</span>
         <span class="n">rnd_iterator</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">))</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">rnd_iterator</span><span class="p">)</span>
@@ -870,7 +872,7 @@
                  <span class="n">noise_type</span><span class="o">=</span><span class="s2">&quot;rayleigh&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
                  <span class="n">pre_trigger_time</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">trace_length</span><span class="o">=</span><span class="mi">512</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">filt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">upsampling</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">window_length</span><span class="o">=</span><span class="mi">16</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">8</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
-                 <span class="n">main_low_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mf">59.54968597864437</span><span class="p">),</span> 
+                 <span class="n">main_low_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mf">59.54968597864437</span><span class="p">),</span>
                  <span class="n">main_high_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mf">59.54968597864437</span><span class="p">),</span>
                  <span class="n">n_beams</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">quantize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -897,7 +899,7 @@
 <span class="sd">            the type of the noise, can be</span>
 <span class="sd">            * &quot;rayleigh&quot; (default)</span>
 <span class="sd">            * &quot;noise&quot;</span>
-<span class="sd">        log_level: logging enum, default warn </span>
+<span class="sd">        log_level: logging enum, default warn</span>
 <span class="sd">            the print level for this module</span>
 <span class="sd">        pre_trigger_time: float, default 100 ns</span>
 <span class="sd">            the time in the trace before the trigger happens</span>
@@ -1195,7 +1197,7 @@
             <span class="n">dt_triggering</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
 
             <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
-                <span class="n">triggered_bin</span> <span class="o">=</span> <span class="n">triggered_bin</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span>  <span class="c1"># the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller. </span>
+                <span class="n">triggered_bin</span> <span class="o">=</span> <span class="n">triggered_bin</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span>  <span class="c1"># the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller.</span>
                 <span class="n">i_low</span> <span class="o">=</span> <span class="n">triggered_bin</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_trigger_bins</span>
                 <span class="n">i_high</span> <span class="o">=</span> <span class="n">i_low</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples_trigger</span>
 

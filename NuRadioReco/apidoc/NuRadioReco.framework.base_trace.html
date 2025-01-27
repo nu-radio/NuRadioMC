@@ -269,7 +269,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameter_storage.html">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -909,9 +909,9 @@ to acommodate the time shift</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.add_to_trace">
 <span class="sig-name descname"><span class="pre">add_to_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.add_to_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.add_to_trace" title="Link to this definition"></a></dt>
-<dd><p>Adds the trace of another channel to the trace of this channel. The trace is only added within the 
+<dd><p>Adds the trace of another channel to the trace of this channel. The trace is only added within the
 time window of “this” channel.
-If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a 
+If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a
 _time_trace containing zeros, this function can be seen as recording a channel in the specified
 readout window.</p>
 <dl class="field-list simple">

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.framework.parameter_serialization module &mdash; NuRadio 2.3.0-dev documentation</title>
+  <title>NuRadioReco.framework.parameter_storage module &mdash; NuRadio 2.3.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -269,7 +269,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.framework.parameter_storage module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
@@ -609,9 +609,9 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.framework.html">NuRadioReco.framework package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.framework.parameter_serialization module</li>
+      <li class="breadcrumb-item active">NuRadioReco.framework.parameter_storage module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -619,27 +619,106 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.framework.parameter_serialization">
-<span id="nuradioreco-framework-parameter-serialization-module"></span><h1>NuRadioReco.framework.parameter_serialization module<a class="headerlink" href="#module-NuRadioReco.framework.parameter_serialization" title="Link to this heading"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_serialization.serialize">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.parameter_serialization.</span></span><span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_serialization.html#serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_serialization.serialize" title="Link to this definition"></a></dt>
+  <section id="module-NuRadioReco.framework.parameter_storage">
+<span id="nuradioreco-framework-parameter-storage-module"></span><h1>NuRadioReco.framework.parameter_storage module<a class="headerlink" href="#module-NuRadioReco.framework.parameter_storage" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.parameter_storage.</span></span><span class="sig-name descname"><span class="pre">ParameterStorage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_types</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>add_parameter_type</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>deserialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_parameter_error</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_parameters</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>has_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>has_parameter_error</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>remove_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_parameter_error</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.add_parameter_type">
+<span class="sig-name descname"><span class="pre">add_parameter_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.add_parameter_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.add_parameter_type" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_serialization.deserialize">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.parameter_serialization.</span></span><span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter_enum</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_serialization.html#deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_serialization.deserialize" title="Link to this definition"></a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter">
+<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.get_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_serialization.serialize_covariances">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.parameter_serialization.</span></span><span class="sig-name descname"><span class="pre">serialize_covariances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_serialization.html#serialize_covariances"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_serialization.serialize_covariances" title="Link to this definition"></a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.has_parameter">
+<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.has_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.has_parameter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_serialization.deserialize_covariances">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.parameter_serialization.</span></span><span class="sig-name descname"><span class="pre">deserialize_covariances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter_enum</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_serialization.html#deserialize_covariances"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_serialization.deserialize_covariances" title="Link to this definition"></a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.set_parameter">
+<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.set_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.set_parameter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.set_parameter_error">
+<span class="sig-name descname"><span class="pre">set_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.set_parameter_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.set_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter_error">
+<span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.get_parameter_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.has_parameter_error">
+<span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.has_parameter_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.has_parameter_error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.remove_parameter">
+<span class="sig-name descname"><span class="pre">remove_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.remove_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.remove_parameter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameters">
+<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.get_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.serialize">
+<span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.serialize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize">
+<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameter_storage.html#ParameterStorage.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 </section>
 
