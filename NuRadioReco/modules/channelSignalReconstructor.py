@@ -122,41 +122,40 @@ class channelSignalReconstructor:
             plt.ylabel("Power")
             plt.legend()
 
-        # Calculating SNR
-        SNR = {}
-        if (noise_rms == 0) or (noise_int == 0):
-            logger.info("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to infinity.")
-            SNR['peak_2_peak_amplitude'] = np.inf
-            SNR['peak_amplitude'] = np.inf
-            SNR['integrated_power'] = np.inf
+        # Calculating SNR - signal to noise ratio
+        snr = {}
+        if noise_rms == 0 or noise_int == 0:
+            logger.info("RMS of noise is zero, calculating an snr is not useful. All snrs are set to infinity.")
+            snr['peak_2_peak_amplitude'] = np.inf
+            snr['peak_amplitude'] = np.inf
+            snr['integrated_power'] = np.inf
         else:
 
-            SNR['integrated_power'] = np.sum(np.square(trace[signal_window_mask])) - noise_int
-            if SNR['integrated_power'] <= 0:
-                logger.debug("Integrated signal {0} smaller than noise {1}, power SNR 0".format(SNR['integrated_power'], noise_int))
-                SNR['integrated_power'] = 0.
+            snr['integrated_power'] = np.sum(np.square(trace[signal_window_mask])) - noise_int
+            if snr['integrated_power'] <= 0:
+                logger.debug("Integrated signal {0} smaller than noise {1}, power snr 0".format(snr['integrated_power'], noise_int))
+                snr['integrated_power'] = 0.
             else:
-                SNR['integrated_power'] /= (noise_int)
-                SNR['integrated_power'] = np.sqrt(SNR['integrated_power'])
+                snr['integrated_power'] /= (noise_int)
+                snr['integrated_power'] = np.sqrt(snr['integrated_power'])
 
             # calculate amplitude values
-            SNR['peak_2_peak_amplitude'] = np.max(trace[signal_window_mask]) - np.min(trace[signal_window_mask])
-            SNR['peak_2_peak_amplitude'] /= noise_rms
-            SNR['peak_2_peak_amplitude'] /= 2
+            snr['peak_2_peak_amplitude'] = np.max(trace[signal_window_mask]) - np.min(trace[signal_window_mask])
+            snr['peak_2_peak_amplitude'] /= noise_rms
+            snr['peak_2_peak_amplitude'] /= 2
 
-            SNR['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
+            snr['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
 
         # SCNR
-        SNR['Seckel_2_noise'] = 5
+        snr['Seckel_2_noise'] = 5
 
         # Calculating RPR (Root Power Ratio)
-        
-        if (noise_rms == 0):
-            root_power_ratio = np.inf 
+        if noise_rms == 0:
+            root_power_ratio = np.inf
         else:
             wf_len = len(trace)
             channel_wf = trace ** 2
-        
+
             # Calculate the smoothing window size based on sampling rate
             dt = times[1] - times[0]
             sum_win = 25  # Smoothing window in ns
@@ -167,10 +166,10 @@ class channelSignalReconstructor:
             # Find the maximum value of the smoothed waveform
             max_bin = np.argmax(channel_wf)
             max_val = channel_wf[max_bin]
-            
+
             root_power_ratio = max_val / noise_rms
-        
-        
+
+
         if self.__debug:
             plt.figure()
             plt.plot(times, trace)
@@ -179,7 +178,7 @@ class channelSignalReconstructor:
             plt.legend()
             plt.show()
 
-        return SNR, noise_rms, root_power_ratio
+        return snr, noise_rms, root_power_ratio
 
     @register_run()
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
@@ -201,12 +200,14 @@ class channelSignalReconstructor:
             trace = channel.get_trace()
             h = np.abs(signal.hilbert(trace))
             max_amplitude = np.max(np.abs(trace))
-            logger.info(f"event {evt.get_run_number()}.{evt.get_id()} station {station.get_id()} channel {channel.get_id()} max amp = {max_amplitude:.6g} max amp env {h.max():.6g}")
-            if(logger.level >= logging.DEBUG):
-                tmp = ""
-                for amp in trace:
-                    tmp += f"{amp:.6g}, "
-                logger.debug(tmp)
+
+            logger.info(f"Event {evt.get_run_number()}.{evt.get_id()}, station.channel "
+                        f"{station.get_id()}. {channel.get_id()}: max amp = "
+                        f"{max_amplitude:.6g} max amp env {h.max():.6g}")
+
+            if logger.level >= logging.DEBUG:
+                logger.debug(", ".join([f"{x:.6g}" for x in trace]))
+
             channel[chp.signal_time] = times[np.argmax(h)]
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
             channel[chp.maximum_amplitude] = max_amplitude
@@ -214,7 +215,8 @@ class channelSignalReconstructor:
             channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace)
 
             # Use noise precalculated from forced triggers
-            signal_to_noise, noise_rms, root_power_ratio = self.get_SNR_and_RPR(station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
+            signal_to_noise, noise_rms, root_power_ratio = self.get_SNR_and_RPR(
+                station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
             channel[chp.SNR] = signal_to_noise
             channel[chp.noise_rms] = noise_rms
             channel[chp.root_power_ratio] = root_power_ratio
