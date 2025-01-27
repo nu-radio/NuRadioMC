@@ -863,7 +863,7 @@
             <span class="n">read_calibrated_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">select_triggers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">select_runs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">apply_baseline_correction</span><span class="o">=</span><span class="s1">&#39;approximate&#39;</span><span class="p">,</span>
+            <span class="n">apply_baseline_correction</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
             <span class="n">convert_to_voltage</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">selectors</span><span class="o">=</span><span class="p">[],</span>
             <span class="n">run_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;physics&quot;</span><span class="p">],</span>
@@ -895,15 +895,19 @@
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
 
-<span class="sd">        apply_baseline_correction: &#39;fit&#39; | &#39;approximate&#39; | &#39;median&#39; | &#39;none&#39;</span>
+<span class="sd">        apply_baseline_correction: str {&#39;auto&#39;, &#39;fit&#39;, &#39;approximate&#39;, &#39;median&#39;, &#39;none&#39;}, optional</span>
 <span class="sd">            Removes the DC (baseline) block offsets (pedestals).</span>
 <span class="sd">            Options are, in order of decreasing precision and increasing performance:</span>
 
 <span class="sd">            * &#39;fit&#39; : do a full out-of-band fit to determine the block offsets; for more details,</span>
 <span class="sd">              see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter` (slow)</span>
-<span class="sd">            * &#39;approximate&#39; : estimate block offsets by looking at the low-pass filtered trace (default)</span>
+<span class="sd">            * &#39;approximate&#39; : estimate block offsets by looking at the low-pass filtered trace</span>
 <span class="sd">            * &#39;median&#39; : subtract the median of each block (faster)</span>
 <span class="sd">            * &#39;none&#39; : do not apply a baseline correction (fastest)</span>
+
+<span class="sd">            The default (&#39;auto&#39;) first performs the &#39;approximate&#39; block offset removal, then</span>
+<span class="sd">            automatically decides whether to continue with the full &#39;fit&#39; depending on the estimated</span>
+<span class="sd">            block offset size.</span>
 
 <span class="sd">        convert_to_voltage: bool</span>
 <span class="sd">            Only applies when non-calibrated data are read. If true, convert ADC to voltage.</span>
@@ -943,11 +947,14 @@
 <span class="sd">            the data in batches based on this number.</span>
 <span class="sd">            NOTE: This is only relevant for the mattak uproot backend</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_read_calibrated_data</span> <span class="o">=</span> <span class="n">read_calibrated_data</span>
-        <span class="n">baseline_correction_valid_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;approximate&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">]</span>
+
+        <span class="n">baseline_correction_valid_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">apply_baseline_correction</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+
         <span class="k">if</span> <span class="n">apply_baseline_correction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">baseline_correction_valid_options</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Value for apply_baseline_correction (</span><span class="si">{</span><span class="n">apply_baseline_correction</span><span class="si">}</span><span class="s2">) not recognized. &quot;</span>
@@ -1195,7 +1202,8 @@
 <span class="sd">        skip: bool</span>
 <span class="sd">            Returns False to skip/reject event, return True to keep/read event</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing event number </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> out of total </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;(_select_events) Processing event number </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> out of total </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__counter</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># for logging</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1310,7 +1318,7 @@
 
         <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">:</span>
             <span class="n">dataset</span><span class="o">.</span><span class="n">setEntries</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">N</span><span class="p">()))</span>
-            <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span> <span class="c1"># we need the sampling rate</span>
+            <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span> <span class="c1"># we need the sampling rate</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">eventInfo</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sampleRate</span>
                 <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
@@ -1332,7 +1340,7 @@
 
                 <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
                     <span class="n">wfs</span> <span class="o">=</span> <span class="n">_baseline_correction</span><span class="p">(</span><span class="n">wfs</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span>
+                <span class="k">elif</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span>
                     <span class="n">wfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span>
                         <span class="n">fit_block_offsets</span><span class="p">(</span>
                             <span class="n">wf</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span><span class="p">,</span>
@@ -1442,7 +1450,7 @@
             <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
         <span class="n">evt</span><span class="o">.</span><span class="n">set_station</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span><span class="o">.</span><span class="n">remove_offsets</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">evt</span>
@@ -1534,7 +1542,7 @@
 <span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing event </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Getting event </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="n">event_infos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_events_information</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;eventNumber&quot;</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">])</span>

@@ -652,8 +652,17 @@ block offset fit</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_offsets</span></code></a>(event, station[, offsets, ...])</p></td>
 <td><p>Add (simulated or reconstructed) block offsets to an event.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.begin" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>()</p></td>
+<td><p>(Unused)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.end" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">end</span></code></a>()</p></td>
+<td><p>(Unused)</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_offsets</span></code></a>(event, station[, mode, ...])</p></td>
 <td><p>Remove block offsets from an event</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.run" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station[, det, mode, channel_ids])</p></td>
+<td><p>Remove the block offsets from all channels of a station.</p></td>
 </tr>
 </tbody>
 </table>
@@ -663,11 +672,11 @@ block offset fit</p>
 <dd><p>Add (simulated or reconstructed) block offsets to an event.</p>
 <p>Added block offsets for each channel are stored in the 
 <code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code> parameter.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>event: Event object | None</strong></dt><dd></dd>
-<dt><strong>station: Station</strong></dt><dd><p>The station to add block offsets to</p>
+<dd class="field-odd"><dl>
+<dt><strong>event</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.event.Event</span></code></a> | None</span></dt><dd></dd>
+<dt><strong>station</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station" title="NuRadioReco.framework.station.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.station.Station</span></code></a></span></dt><dd><p>The station to add block offsets to</p>
 </dd>
 <dt><strong>offsets: float | array | dict</strong></dt><dd><p>offsets to add to the event. Default: 1 mV</p>
 <ul class="simple">
@@ -692,28 +701,30 @@ None to apply the offsets to all channels in the station
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets">
-<span class="sig-name descname"><span class="pre">remove_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets.remove_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">remove_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets.remove_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets" title="Link to this definition"></a></dt>
 <dd><p>Remove block offsets from an event</p>
 <p>Fits and removes the block offsets from an event. The removed
 offsets are stored in the <code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code>
 parameter.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>event: NuRadioReco.framework.event.Event | None</strong></dt><dd></dd>
-<dt><strong>station: NuRadioReco.framework.station.Station</strong></dt><dd><p>The station to remove the block offsets from</p>
+<dd class="field-odd"><dl>
+<dt><strong>event</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.event.Event</span></code></a> | None</span></dt><dd></dd>
+<dt><strong>station</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station" title="NuRadioReco.framework.station.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.station.Station</span></code></a></span></dt><dd><p>The station to remove the block offsets from</p>
 </dd>
-<dt><strong>mode: ‘fit’ | ‘approximate’ | ‘stored’</strong></dt><dd><ul class="simple">
-<li><p>‘fit’ (default): fit the block offsets with a minimizer</p></li>
+<dt><strong>mode: str {‘auto’, ‘fit’, ‘approximate’, ‘stored’}, optional</strong></dt><dd><ul class="simple">
+<li><p>‘fit’: fit the block offsets with a minimizer</p></li>
 <li><p>‘approximate’ : use the first guess from the out-of-band component,
 without any fitting (slightly faster)</p></li>
+<li><p>‘auto’ (default): decide automatically between ‘approximate’ and ‘fit’
+based on the estimated size of the block offsets.</p></li>
 <li><p>‘stored’: use the block offsets already stored in the 
 <code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code> parameter. Will raise an error 
 if this parameter is not present.</p></li>
 </ul>
 </dd>
 <dt><strong>channel_ids: list | None</strong></dt><dd><p>List of channel ids to remove offsets from. If None (default),
-remove offsets from all channels in <code class="docutils literal notranslate"><span class="pre">station</span></code></p>
+remove offsets from all channels in <em class="xref py py-obj">station</em></p>
 </dd>
 <dt><strong>maxiter: int, default 5</strong></dt><dd><p>(Only if mode==’fit’) The maximum number of fit iterations.
 This can be increased to more accurately remove the block offsets
@@ -723,13 +734,79 @@ to about 1%)</p>
 </dl>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.run" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a></dt><dd><p>alias of this method</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.begin" title="Link to this definition"></a></dt>
+<dd><p>(Unused)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.run" title="Link to this definition"></a></dt>
+<dd><p>Remove the block offsets from all channels of a station.</p>
+<p>Fits and removes the block offsets from an event. The removed offsets
+are stored in the <code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code>
+parameter.</p>
+<p>This method is an alias of <a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_offsets</span></code></a>, with the only difference the inclusion
+of the (unused) <em class="xref py py-obj">det</em> parameter, to be consistent with the <a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.run" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a> methods of other
+NuRadio classes.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>event</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.event.Event</span></code></a> | None</span></dt><dd></dd>
+<dt><strong>station</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station" title="NuRadioReco.framework.station.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.station.Station</span></code></a></span></dt><dd><p>The station to remove the block offsets from</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector object, optional</span></dt><dd><p>Detector object (not used in this method,
+included to have the same signature as other NuRadio classes)</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str {‘auto’, ‘fit’, ‘approximate’, ‘stored’}, optional</span></dt><dd><ul class="simple">
+<li><p>‘fit’: fit the block offsets with a minimizer</p></li>
+<li><p>‘approximate’ : use the first guess from the out-of-band component,
+without any fitting (slightly faster)</p></li>
+<li><p>‘auto’ (default): decide automatically between ‘approximate’ and ‘fit’
+based on the estimated size of the block offsets.</p></li>
+<li><p>‘stored’: use the block offsets already stored in the
+<code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code> parameter. Will raise an error
+if this parameter is not present.</p></li>
+</ul>
+</dd>
+<dt><strong>channel_ids</strong><span class="classifier">list | None</span></dt><dd><p>List of channel ids to remove offsets from. If None (default),
+remove offsets from all channels in <em class="xref py py-obj">station</em>.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>Other keyword arguments to be passed to the <a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_offsets</span></code></a> function.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_offsets</span></code></a></dt><dd><p>alias of this method without the (unused) <em class="xref py py-obj">det</em> parameter</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.end" title="Link to this definition"></a></dt>
+<dd><p>(Unused)</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.</span></span><span class="sig-name descname"><span class="pre">fit_block_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#fit_block_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.</span></span><span class="sig-name descname"><span class="pre">fit_block_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#fit_block_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets" title="Link to this definition"></a></dt>
 <dd><p>Fit ‘block’ offsets for a voltage trace</p>
 <p>Fit block offsets (‘rect’-shaped offsets from a baseline)
 using a fit to the out-of-band spectrum of a voltage trace.</p>
@@ -746,9 +823,11 @@ using a fit to the out-of-band spectrum of a voltage trace.</p>
 in the frequency domain, in the band up to
 max_frequency</p>
 </dd>
-<dt><strong>mode: ‘fit’ | ‘approximate’</strong></dt><dd><p>Whether to fit the block offsets (default)
+<dt><strong>mode</strong><span class="classifier">str {‘auto’, ‘fit’, ‘approximate’}, optional</span></dt><dd><p>Whether to fit the block offsets
 or just use the first guess from the out-of-band
-component (faster)</p>
+component (faster). By default (‘auto’), decide
+automatically based on the size of the block offsets
+(only fit if the largest block offset exceeds 50% of the Vrms).</p>
 </dd>
 <dt><strong>return_trace: bool (default: False)</strong></dt><dd><p>if True, return the tuple (offsets, output_trace)
 where the output_trace is the input trace with
@@ -777,6 +856,13 @@ Returned only if return_trace=True</p>
 </dl>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channelBlockOffsets</span></code></a></dt><dd><p>Class that uses this function to automatically remove the block offsets for all channels in a station.</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 </section>
