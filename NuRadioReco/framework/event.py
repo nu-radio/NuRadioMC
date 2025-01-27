@@ -576,37 +576,31 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         return False
 
-    def avg_SNR(self):
+    def avg_SNR_all_stations(self):
         """
-        Returns the average SNR across all channels
+        Returns the average SNR in every station  
         """
-        SNR_all = []
-        for station in self.get_stations():
-            for channel in station.iter_channels():
-                if (channel.has_parameter(chp.SNR)):
-                    SNR_ch = channel.get_parameter(chp.SNR)
-                    if (SNR_ch == np.inf):
-                        return np.inf
-                    else:
-                        SNR_all.append(SNR_ch)
-
-        return np.mean(SNR_all)
-
-    def avg_RPR(self):
+        if (len(self.get_stations()) == 1):
+            return station.avg_SNR()
+        else:
+            avg_snrs = {}
+            for station in self.get_stations():
+                avg_snrs[station.get_id()] = station.avg_SNR()
+                
+        return avg_snrs
+        
+    def avg_RPR_all_stations(self):
         """
-        Returns the average RPR across all channels
+        Returns the average RPR in every station 
         """
-        RPR_all = []
-        for station in self.get_stations():
-            for channel in station.iter_channels():
-                if (channel.has_parameter(chp.RPR)):
-                    RPR_ch = channel.get_parameter(chp.RPR)
-                    if (RPR_ch == np.inf):
-                        return np.inf
-                    else:
-                        RPR_all.append(RPR_ch)
-
-        return np.mean(RPR_all)
+        if (len(self.get_stations()) == 1):
+            return station.avg_RPR()
+        else:
+            avg_rprs = {}
+            for station in self.get_stations():
+                avg_rprs[station.get_id()] = station.avg_RPR()
+                
+        return avg_rprs
 
     def serialize(self, mode):
         stations_pkl = []
