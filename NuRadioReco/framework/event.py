@@ -27,7 +27,7 @@ logger = logging.getLogger('NuRadioReco.Event')
 class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, run_number, event_id):
-        super().__init__([parameters.eventParameters, parameters.generatorAttributes])
+        super().__init__([evp, gta])
 
         self.__run_number = run_number
         self._id = event_id
@@ -589,7 +589,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
                         return np.inf
                     else:
                         SNR_all.append(SNR_ch)
-                        
+
         return np.mean(SNR_all)
 
     def avg_RPR(self):
@@ -605,7 +605,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
                         return np.inf
                     else:
                         RPR_all.append(RPR_ch)
-                        
+
         return np.mean(RPR_all)
 
     def serialize(self, mode):
