@@ -693,7 +693,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
     # add event generator info event
     for enum_entry in genattrs:
         if enum_entry.name in fin_attrs:
-            event_group.set_generator_info(enum_entry, fin_attrs[enum_entry.name])
+            event_group.set_parameter(enum_entry, fin_attrs[enum_entry.name])
 
     particle_mode = "simulation_mode" not in fin_attrs or fin_attrs['simulation_mode'] != "emitter"
     if particle_mode:  # first case: simulation of a particle interaction which produces showers
@@ -980,7 +980,9 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             evt.add_particle(event_group.get_primary())  # add primary particle to event
 
         # copy over generator information from temporary event to event
-        evt._generator_info = event_group._generator_info
+        for enum_entry in genattrs:
+            if event_group.has_parameter(enum_entry):
+                evt.set_parameter(enum_entry, event_group.get_parameter(enum_entry))
 
         station = NuRadioReco.framework.station.Station(tmp_station.get_id())
         sim_station = NuRadioReco.framework.sim_station.SimStation(tmp_station.get_id())
@@ -1681,10 +1683,10 @@ class simulation:
 
                     channelSignalReconstructor.run(evt, station, self._det)
                     # save RMS and bandwidth to channel object
-                    evt.set_generator_info(genattrs.Vrms, self._Vrms)
-                    evt.set_generator_info(genattrs.dt, 1. / self._config['sampling_rate'])
-                    evt.set_generator_info(genattrs.Tnoise, self._noise_temp)
-                    evt.set_generator_info(genattrs.bandwidth, next(iter(next(iter(self._integrated_channel_response.values())).values())))
+                    evt.set_parameter(genattrs.Vrms, self._Vrms)
+                    evt.set_parameter(genattrs.dt, 1. / self._config['sampling_rate'])
+                    evt.set_parameter(genattrs.Tnoise, self._noise_temp)
+                    evt.set_parameter(genattrs.bandwidth, next(iter(next(iter(self._integrated_channel_response.values())).values())))
                     for channel in station.iter_channels():
                         channel[chp.Vrms_NuRadioMC_simulation] = self._Vrms_per_channel[station_id][channel.get_id()]
                         channel[chp.bandwidth_NuRadioMC_simulation] = self._integrated_channel_response[station_id][channel.get_id()]
