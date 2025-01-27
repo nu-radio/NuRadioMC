@@ -26,7 +26,7 @@ logger = logging.getLogger('NuRadioReco.Event')
 class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, run_number, event_id):
-        super().__init__([parameters.eventParameters, parameters.generatorAttributes])
+        super().__init__([evp, gta])
 
         self.__run_number = run_number
         self._id = event_id

@@ -11,7 +11,7 @@ readRNOGDataMattak:
     # Use mattak to calibrate data on the fly. Requires calibration files to be available
     read_calibrated_data: False
     # Do not apply a baseline correction in the read module, do it afterwards
-    apply_baseline_correction: null
+    apply_baseline_correction: none
     # Only used when read_calibrated_data==False, performs a linear voltage calibration with hardcoded values
     convert_to_voltage: True
     # Can be used instead of defining a selector (only for triggers)
