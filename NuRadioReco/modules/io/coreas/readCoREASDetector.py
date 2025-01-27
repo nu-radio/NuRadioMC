@@ -2,6 +2,7 @@ from datetime import timedelta
 import logging
 import os
 import time
+import copy
 import numpy as np
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.event
@@ -202,8 +203,8 @@ class readCoREASDetector:
             # Create the Event and add the SimShower
             evt = NuRadioReco.framework.event.Event(self.__corsika_evt.get_run_number(), iCore)
             corsika_sim_stn = self.__corsika_evt.get_station(0).get_sim_station()
-            sim_shower = self.__corsika_evt.get_first_sim_shower()
-            sim_shower.set_parameter(shp.core, core)  # TODO: does this overwrite the core in the original shower?
+            sim_shower = copy.deepcopy(self.__corsika_evt.get_first_sim_shower())  # Don't modify the original shower
+            sim_shower.set_parameter(shp.core, core)
             evt.add_sim_shower(sim_shower)
 
             # Loop over all selected stations
