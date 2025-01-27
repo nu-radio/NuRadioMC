@@ -39,15 +39,17 @@ def get_random_core_positions(xmin, xmax, ymin, ymax, n_cores, seed=None):
 
     Returns
     -------
-    cores: array (n_cores, 3)
-        array containing the core positions
+    cores: np.ndarray
+        array containing the core positions, shaped as (n_cores, 2)
     """
     random_generator = np.random.RandomState(seed)
 
     # generate core positions randomly within a rectangle
-    cores = np.array([random_generator.uniform(xmin, xmax, n_cores),
-                      random_generator.uniform(ymin, ymax, n_cores),
-                      np.zeros(n_cores)]).T
+    cores = np.array([
+        random_generator.uniform(xmin, xmax, n_cores),
+        random_generator.uniform(ymin, ymax, n_cores),
+    ]).T
+
     return cores
 
 
