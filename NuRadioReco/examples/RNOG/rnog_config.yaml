@@ -70,6 +70,3 @@ channelBlockOffsetFitter:
 
 channelGlitchDetector:
   use: True
-  begin:
-    kwargs:
-      max_deviation: 2  # 2 V = 2000mV
