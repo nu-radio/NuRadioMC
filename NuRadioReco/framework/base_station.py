@@ -3,8 +3,7 @@ import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
-import NuRadioReco.framework.parameter_serialization
-
+import NuRadioReco.framework.parameter_storage
 from NuRadioReco.utilities import io_utilities
 
 import datetime
@@ -20,63 +19,16 @@ except ImportError:
 logger = logging.getLogger('NuRadioReco.BaseStation')
 
 
-class BaseStation():
+class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, station_id):
-        self._parameters = {}
-        self._ARIANNA_parameters = {}
-        self._parameter_covariances = {}
+        super().__init__(parameters.stationParameters)
         self._station_id = station_id
         self._station_time = None
         self._triggers = collections.OrderedDict()
         self._triggered = False
         self._electric_fields = []
         self._particle_type = ''
-
-    def __setitem__(self, key, value):
-        self.set_parameter(key, value)
-
-    def __getitem__(self, key):
-        return self.get_parameter(key)
-
-    def get_parameter(self, key):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-        return self._parameters[key]
-
-    def get_parameters(self):
-        return self._parameters
-
-    def has_parameter(self, key):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-        return key in self._parameters.keys()
-
-    def set_parameter(self, key, value):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-        self._parameters[key] = value
-
-    def set_parameter_error(self, key, value):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-        self._parameter_covariances[(key, key)] = value ** 2
-
-    def get_parameter_error(self, key):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-        return self._parameter_covariances[(key, key)] ** 0.5
-
-    def remove_parameter(self, key):
-        if not isinstance(key, parameters.stationParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
-        self._parameters.pop(key, None)
 
     def set_station_time(self, time, format=None):
         """
@@ -317,28 +269,6 @@ class BaseStation():
         """
         self._particle_type = 'cr'
 
-    # provide interface to ARIANNA specific parameters
-    def get_ARIANNA_parameter(self, key):
-        if not isinstance(key, parameters.ARIANNAParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-        return self._ARIANNA_parameters[key]
-
-    def get_ARIANNA_parameters(self):
-        return self._ARIANNA_parameters
-
-    def has_ARIANNA_parameter(self, key):
-        if not isinstance(key, parameters.ARIANNAParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-        return key in self._ARIANNA_parameters.keys()
-
-    def set_ARIANNA_parameter(self, key, value):
-        if not isinstance(key, parameters.ARIANNAParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.ARIANNAParameters")
-        self._ARIANNA_parameters[key] = value
-
     def serialize(self, save_efield_traces):
         trigger_pkls = []
         for trigger in self._triggers.values():
@@ -350,20 +280,21 @@ class BaseStation():
 
         station_time_dict = io_utilities._astropy_to_dict(self.get_station_time())
 
-        data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-                '_parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
-                '_ARIANNA_parameters': self._ARIANNA_parameters,
-                '_station_id': self._station_id,
-                '_station_time': station_time_dict,
-                '_particle_type': self._particle_type,
-                'triggers': trigger_pkls,
-                '_triggered': self._triggered,
-                'electric_fields': efield_pkls}
+        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
+        data.update({
+            '_station_id': self._station_id,
+            '_station_time': station_time_dict,
+            '_particle_type': self._particle_type,
+            'triggers': trigger_pkls,
+            '_triggered': self._triggered,
+            'electric_fields': efield_pkls
+        })
 
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
+        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
 
         if 'triggers' in data:
             self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
@@ -376,14 +307,10 @@ class BaseStation():
             efield.deserialize(electric_field)
             self.add_electric_field(efield)
 
-        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
-                                                                                     parameters.stationParameters)
-
-        self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(
-            data['_parameter_covariances'], parameters.stationParameters)
-
+        # For backward compatibility, now ARIANNA parameters are stored in `_parameters`.
         if '_ARIANNA_parameters' in data:
-            self._ARIANNA_parameters = data['_ARIANNA_parameters']
+            for key in data['_ARIANNA_parameters']:
+                self.set_parameter(key, data['_ARIANNA_parameters'][key])
 
         self._station_id = data['_station_id']
         if data['_station_time'] is not None:
@@ -405,14 +332,36 @@ class BaseStation():
         """
         if not isinstance(x, BaseStation):
             raise AttributeError("Can only add BaseStation to BaseStation")
+
         if self.get_id() != x.get_id():
             raise AttributeError("Can only add BaseStations with the same ID")
+
         for trigger in x.get_triggers().values():
             self.set_trigger(trigger)
+
         for efield in x.get_electric_fields():
             self.add_electric_field(efield)
+
         for key, value in x.get_parameters().items():
             self.set_parameter(key, value)
-        for key, value in x.get_ARIANNA_parameters().items():
-            self.set_ARIANNA_parameter(key, value)
+
         return self
+
+
+    ######## Deprecated functions ########
+
+    def get_ARIANNA_parameter(self, key):
+        logger.warning("`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead.")
+        raise NotImplementedError("`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead.")
+
+    def get_ARIANNA_parameters(self):
+        logger.warning("`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead.")
+        raise NotImplementedError("`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead.")
+
+    def has_ARIANNA_parameter(self, key):
+        logger.warning("`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead.")
+        raise NotImplementedError("`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead.")
+
+    def set_ARIANNA_parameter(self, key, value):
+        logger.warning("`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead.")
+        raise NotImplementedError("`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead.")
