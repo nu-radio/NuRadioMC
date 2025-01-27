@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.channel
-import NuRadioReco.framework.parameter_serialization
 try:
     import cPickle as pickle
 except ImportError:
@@ -52,10 +51,11 @@ class SimChannel(NuRadioReco.framework.channel.Channel):
 
     def serialize(self, save_trace):
         channel_pkl = NuRadioReco.framework.channel.Channel.serialize(self, save_trace)
-        data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-                'shower_id': self.get_shower_id(),
-                'ray_tracing_id': self.get_ray_tracing_solution_id(),
-                'channel': channel_pkl}
+        data = {
+            'shower_id': self.get_shower_id(),
+            'ray_tracing_id': self.get_ray_tracing_solution_id(),
+            'channel': channel_pkl
+        }
 
         return pickle.dumps(data, protocol=4)
 
