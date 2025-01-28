@@ -4,6 +4,13 @@ from NuRadioReco.framework.parameters import channelParametersRNOG as chp
 
 def plot(plot_data, outpath, fs = 13, zoomfact = 1.1):
 
+    channel_colors = {
+        0: "tab:blue",
+        1: "tab:orange",
+        2: "tab:green",
+        3: "tab:red"
+    }
+    
     num_bins = 10
     
     channels = [key for key in plot_data.keys() if isinstance(key, int)]
@@ -19,20 +26,23 @@ def plot(plot_data, outpath, fs = 13, zoomfact = 1.1):
     gs = GridSpec(num_channels, 2, figure = fig, width_ratios = [0.8, 0.2])
 
     for ind, channel in enumerate(channels):
+        color = channel_colors.get(channel, "black")
+
+        evt_nums = plot_data["evt_num"]
         channel_ts = plot_data[channel]
-        ts_absmax = np.max(np.abs(channel_ts))
+        yscale = zoomfact * np.max(np.abs(channel_ts))
         
         ax = fig.add_subplot(gs[ind, 0])
         ax_hist = fig.add_subplot(gs[ind, 1], sharey = ax)
-        ax.set_ylim(-zoomfact * ts_absmax, zoomfact * ts_absmax)
-        ax.set_xlim(min(plot_data["evt_num"]), max(plot_data["evt_num"]))
+        ax.set_ylim(-yscale, yscale)
+        ax.set_xlim(min(evt_nums), max(evt_nums))
         ax_hist.set_xlim(0.0, 5 * len(channel_ts) / num_bins)
 
-        ax.text(0.1, 0.9, f"CH {channel}", fontsize = fs, transform = ax.transAxes)
+        ax.text(0.02, 0.95, f"CH {channel}", fontsize = fs, transform = ax.transAxes, color = color, ha = "left", va = "top")
         ax.set_ylabel("Test stat.", fontsize = fs)
         
-        ax.scatter(plot_data["evt_num"], channel_ts, s = 2)
-        ax_hist.hist(channel_ts, histtype = "step", bins = num_bins, orientation = "horizontal")
+        ax.scatter(evt_nums, channel_ts, s = 2, color = color)
+        ax_hist.hist(channel_ts, histtype = "step", bins = num_bins, orientation = "horizontal", color = color)
 
         ax.tick_params(axis = "x", direction = "in", which = "both", bottom = True, top = True, labelbottom = ind == len(channels) - 1,
                        labelsize = fs)
@@ -44,7 +54,16 @@ def plot(plot_data, outpath, fs = 13, zoomfact = 1.1):
         ax_hist.tick_params(axis = "x", direction = "in", which = "both", bottom = True, top = True, labelbottom = ind == len(channels) - 1,
                             labelsize = fs)
         ax_hist.tick_params(axis = "y", direction = "in", which = "both", left = True, right = True, labelsize = fs,
-                            labelleft = False)         
+                            labelleft = False)
+
+        ax.fill_between(evt_nums, 0.0, yscale, facecolor = "tab:red", alpha = 0.25, zorder = 0)
+        ax.fill_between(evt_nums, 0.0, -yscale, facecolor = "tab:green", alpha = 0.25, zorder = 0)
+
+        ax_hist.fill_between(evt_nums, 0.0, yscale, facecolor = "tab:red", alpha = 0.25, zorder = 0)
+        ax_hist.fill_between(evt_nums, 0.0, -yscale, facecolor = "tab:green", alpha = 0.25, zorder = 0)
+
+        ax_hist.text(0.95, 0.95, "Glitching", ha = "right", va = "top", color = "tab:red", fontsize = 7, transform = ax_hist.transAxes)
+        ax_hist.text(0.95, 0.05, "No Glitching", ha = "right", va = "bottom", color = "tab:green", fontsize = 7, transform = ax_hist.transAxes)
 
     ax.set_xlabel("Event Number", fontsize = fs)
     ax_hist.set_xlabel("Evts. / bin", fontsize = fs)
