@@ -9,14 +9,8 @@ import numpy as np
 import scipy.constants
 import scipy.interpolate
 import functools
-
-from pygdsm import (
-    GlobalSkyModel16,
-    GlobalSkyModel,
-    LowFrequencySkyModel,
-    HaslamSkyModel,
-)
-
+from contextlib import redirect_stdout
+from numpy.random import Generator, Philox
 import healpy
 import astropy.coordinates
 import astropy.units
@@ -24,20 +18,35 @@ import astropy.units
 logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
 
 try:
-    from radiocalibrationtoolkit import *  # Documentation: https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main contains SSM, GMOSS, ULSA
-except Exception as _:
-    logger.info("Import of `radiocalibrationtoolkit` failed. Consider installing it to use more sky models. "
-                "See documentation at https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main")
+    from pygdsm import (
+        GlobalSkyModel16,
+        GlobalSkyModel,
+        LowFrequencySkyModel,
+        HaslamSkyModel,
+    )
+except ImportError as e:
+    logger.error(
+        "To use the channelGalacticNoiseAdder, 'pygdsm' needs to be installed:\n\n"
+        "\t pip install git+https://github.com/telegraphic/pygdsm\n"
+        )
+    raise(e)
 
 try:
-    from pylfmap import LFmap  # Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
+    with redirect_stdout(None): # suppress (usually irrelevant) print statements from pylfmap
+        from pylfmap import LFmap  # Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
 except ImportError:
-    logger.info("LFmap import failed. Consider installing it to use LFmap as sky model.")
-
+    logger.info(
+        "pylfmap import failed. Consider installing it from "
+        "https://github.com/F-Tomas/pylfmap to use LFmap as sky model.")
+except IndexError: # this is a common error if cfitsio is not found... there are probably others
+    logger.error(
+        "pylfmap import failed. This might be because you do not have a working "
+        "installation of cfitsio. See https://github.com/F-Tomas/pylfmap/issues/2 for potential tips")
 
 class channelGalacticNoiseAdder:
     """
     Class that simulates the noise produced by galactic radio emission
+
     Uses the pydgsm package (https://github.com/telegraphic/pygdsm), which provides
     radio background data based on Oliveira-Costa et al. (2008) (https://arxiv.org/abs/0802.1525)
     and Zheng et al. (2016) (https://arxiv.org/abs/1605.04920)
@@ -49,11 +58,8 @@ class channelGalacticNoiseAdder:
     """
 
     def __init__(self):
-        self.__zenith_sample = None
-        self.__azimuth_sample = None
         self.__n_side = None
         self.__interpolation_frequencies = None
-        self.__gdsm = None
         self.__radio_sky = None
         self.__noise_temperatures = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
@@ -64,14 +70,15 @@ class channelGalacticNoiseAdder:
             debug=False,
             n_side=4,
             freq_range=None,
-            interpolation_frequencies=None
+            interpolation_frequencies=None,
+            seed=None
     ):
         """
         Set up important parameters for the module
 
         Parameters
         ----------
-        skymodel: {'lfmap', 'lfss', 'gsm2016', 'haslam', 'ssm', 'gmoss', 'ulsa_fdi', 'ulsa_dpi', 'ulsa_ci'}, optional
+        skymodel: {'gsm2008', 'lfmap', 'lfss', 'gsm2016', 'haslam'}, optional
             Choose the sky model to use. If none is provided, the Global Sky Model (2008) is used as a default.
         debug: bool, default: False
             Deprecated. Will be removed in future versions.
@@ -82,7 +89,7 @@ class channelGalacticNoiseAdder:
             from that direction is calculated. The number of pixels used is
             12 * n_side ** 2, so a larger value for n_side will result better accuracy
             but also greatly increase computing time.
-        freq_range: array of len=2, default: [10,1100] * units.MHZ
+        freq_range: array of len=2, default: [10, 1000] * units.MHZ
             The sky brightness temperature will be evaluated for the frequencies
             within this limit. Brightness temperature for frequencies in between are
             calculated by interpolation the log10 of the temperature
@@ -90,20 +97,24 @@ class channelGalacticNoiseAdder:
             specified in the run method.
         interpolation_frequencies: array of frequencies to interpolate to.
             Kept for historic purposes with intention to deprecate in the future.
+        seed : {None, int, array_like[ints], SeedSequence}, optional
+            The seed that is passed on to the `numpy.random.Philox` bitgenerator used for random
+            number generation.
         """
         if debug:
             warnings.warn("This argument is deprecated and will be removed in future versions.", DeprecationWarning)
 
+        self.__random_generator = Generator(Philox(seed))
         self.__n_side = n_side
         self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
 
         if interpolation_frequencies is None:
             if freq_range is None:
-                freq_range = np.array([10, 1100]) * units.MHz
+                freq_range = np.array([10, 1000]) * units.MHz
 
             # define interpolation frequencies. Set in logarithmic range from freq_range[0] to freq_range[1],
-            # rounded to 0 decimal places to avoid import errors from LFmap and tabulated models.
-            self.__interpolation_frequencies = np.around(np.logspace(*np.log10(freq_range), num=15), 0)
+            # rounded to MHz to avoid import errors from LFmap and tabulated models.
+            self.__interpolation_frequencies = np.around(np.logspace(*np.log10(freq_range), num=15), 3)
         else:
             self.__interpolation_frequencies = interpolation_frequencies
             logger.warning("DeprecationWarning: Optional argument 'interpolation_frequencies' was replaced by 'freq_range'.")
@@ -113,42 +124,27 @@ class channelGalacticNoiseAdder:
             if skymodel is None:
                 sky_model = GlobalSkyModel(freq_unit="MHz")
                 logger.info("No sky model specified. Using standard: Global Sky Model (2008). Available models: "
-                            "lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci")
-            elif skymodel == 'lfss':
+                            "gsm2008, lfmap, lfss, gsm2016, haslam")
+            elif skymodel.lower() == 'lfss':
                 sky_model = LowFrequencySkyModel(freq_unit="MHz")
                 logger.info("Using LFSS as sky model")
-            elif skymodel == 'gsm2008':
+            elif skymodel.lower() == 'gsm2008':
                 sky_model = GlobalSkyModel(freq_unit="MHz")
                 logger.info("Using GSM2008 as sky model")
-            elif skymodel == 'gsm2016':
+            elif skymodel.lower() == 'gsm2016':
                 sky_model = GlobalSkyModel16(freq_unit="MHz")
                 logger.info("Using GSM2016 as sky model")
-            elif skymodel == 'haslam':
+            elif skymodel.lower() == 'haslam':
                 sky_model = HaslamSkyModel(freq_unit="MHz", spectral_index=-2.53)
                 logger.info("Using Haslam as sky model")
-            elif skymodel == 'lfmap':
+            elif skymodel.lower() == 'lfmap':
                 sky_model = LFmap()
                 logger.info("Using LFmap as sky model")
-            elif skymodel == 'ssm':
-                sky_model = SSM()
-                logger.info("Using SSM as sky model")
-            elif skymodel == 'gmoss':
-                sky_model = GMOSS()
-                logger.info("Using GMOSS as sky model")
-            elif skymodel == 'ulsa_fdi':
-                sky_model = ULSA(index_type='freq_dependent_index')
-                logger.info("Using ULSA_fdi as sky model")
-            elif skymodel == 'ulsa_ci':
-                sky_model = ULSA(index_type='constant_index')
-                logger.info("Using ULSA_ci as sky model")
-            elif skymodel == 'ulsa_dpi':
-                sky_model = ULSA(index_type='direction_dependent_index')
-                logger.info("Using ULSA_dpi as sky model")
             else:
                 logger.error(f"Sky model {skymodel} unknown. Defaulting to Global Sky Model (2008).")
                 sky_model = GlobalSkyModel(freq_unit="MHz")
 
-        except ImportError:
+        except NameError:
             logger.error(f"Could not find {skymodel} skymodel. Do you have the correct package installed? \n"
                         f"Defaulting to Global Sky Model (2008) as sky model.")
             sky_model = GlobalSkyModel(freq_unit="MHz")
@@ -184,10 +180,15 @@ class channelGalacticNoiseAdder:
             The station whose channels noise shall be added to
         detector: Detector object
             The detector description
-        passband: list of float
+        passband: list of float, optional
             Lower and upper bound of the frequency range in which noise shall be
-            added
+            added. The default (no passband specified) is [10, 1000] MHz
         """
+
+        if self.__noise_temperatures is None: # check if .begin has been called, give helpful error message if not
+            msg = "channelGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?"
+            logger.error(msg)
+            raise ValueError(msg)
 
         # check that or all channels channel.get_frequencies() is identical
         last_freqs = None
@@ -203,7 +204,7 @@ class channelGalacticNoiseAdder:
         d_f = freqs[2] - freqs[1]
 
         if passband is None:
-            passband = [10 * units.MHz, 1100 * units.MHz]
+            passband = [10 * units.MHz, 1000 * units.MHz]
 
         passband_filter = (freqs > passband[0]) & (freqs < passband[1])
 
@@ -213,9 +214,8 @@ class channelGalacticNoiseAdder:
         local_coordinates = get_local_coordinates((site_latitude, site_longitude), station_time, self.__n_side)
 
         n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
-        n_air = 1.000292  # TODO: This value applies under standard conditions. Does it hold for Greenland?
+        n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
         c_vac = scipy.constants.c * units.m / units.s
-        c_air = c_vac / n_air
 
         channel_spectra = {}
         for channel in station.iter_channels():
@@ -223,7 +223,7 @@ class channelGalacticNoiseAdder:
 
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
-            zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad
+            zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad # this is the in-air zenith
 
             if zenith > 90. * units.deg:
                 continue
@@ -250,12 +250,13 @@ class channelGalacticNoiseAdder:
             spectral_radiance_per_bin = spectral_radiance * d_f
 
             # calculate electric field per frequency bin from the radiance per bin
-            efield_amplitude = np.sqrt(spectral_radiance_per_bin / (c_vac * scipy.constants.epsilon_0 * (
+            efield_amplitude = np.sqrt(
+                spectral_radiance_per_bin / (c_vac * scipy.constants.epsilon_0 * (
                         units.coulomb / units.V / units.m))) / d_f
 
             # assign random phases to electric field
-            noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex128)
-            phases = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
+            noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
+            phases = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
 
             noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
             noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
@@ -263,14 +264,17 @@ class channelGalacticNoiseAdder:
             channel_noise_spec = np.zeros_like(noise_spectrum)
 
             for channel in station.iter_channels():
-                if detector.get_relative_position(station.get_id(), channel.get_id())[2] < 0:
+                channel_pos = detector.get_relative_position(station.get_id(), channel.get_id())
+                if channel_pos[2] < 0:
                     curr_t_theta = t_theta
                     curr_t_phi = t_phi
                     curr_fresnel_zenith = fresnel_zenith
-                else:
+                    curr_n = n_ice
+                else: # we are in air
                     curr_t_theta = 1
                     curr_t_phi = 1
                     curr_fresnel_zenith = zenith
+                    curr_n = n_air
 
                 antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
                     detector.get_antenna_model(station.get_id(), channel.get_id()))
@@ -279,23 +283,17 @@ class channelGalacticNoiseAdder:
                 # calculate the phase offset in comparison to station center
                 # consider additional distance in air & ice
                 # assume for air & ice constant index of refraction
-                channel_pos_x, channel_pos_y, _ = detector.get_relative_position(station.get_id(), channel.get_id())
-                # positive value, 0 for above surface antennas
-                channel_depth = abs(min(detector.get_relative_position(station.get_id(), channel.get_id())[2], 0))
-                sin_zenith = np.sin(zenith)
-                delta_phases = (
-                        2 * np.pi * freqs[passband_filter] / c_air *
-                        (
-                                sin_zenith *
-                                (np.cos(azimuth) * channel_pos_x + channel_pos_y * np.sin(azimuth)) +
-                                channel_depth *
-                                ((n_ice / n_air) ** 2 + sin_zenith ** 2) /
-                                np.sqrt((n_ice / n_air) ** 2 - sin_zenith ** 2)
-                        )
-                )
+                dt = geometryUtilities.get_time_delay_from_direction(
+                    curr_fresnel_zenith, azimuth, channel_pos, n=curr_n)
+                if channel_pos[2] < -5:
+                    logger.warning(
+                        "Galactic noise cannot be simulated accurately for deep in-ice channels. "
+                        "Coherence and arrival direction of noise are probably inaccurate.")
+
+                delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 # add random polarizations and phase to electric field
-                polarizations = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
+                polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
 
                 channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
                     1j * delta_phases) * np.cos(polarizations)
@@ -305,8 +303,10 @@ class channelGalacticNoiseAdder:
                 # fold electric field with antenna response
                 antenna_response = antenna_pattern.get_antenna_response_vectorized(freqs, curr_fresnel_zenith, azimuth,
                                                                                    *antenna_orientation)
-                channel_noise_spectrum = antenna_response['theta'] * channel_noise_spec[1] * curr_t_theta + \
-                                         antenna_response['phi'] * channel_noise_spec[2] * curr_t_phi
+                channel_noise_spectrum = (
+                    antenna_response['theta'] * channel_noise_spec[1] * curr_t_theta
+                    + antenna_response['phi'] * channel_noise_spec[2] * curr_t_phi
+                )
 
                 # add noise spectrum from pixel in the sky to channel spectrum
                 channel_spectra[channel.get_id()] += channel_noise_spectrum

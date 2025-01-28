@@ -166,13 +166,13 @@ class triggerSimulator:
             triggerd_bins_channels = []
 
             if triggered_channels is None:
-                for channel in station.iter_channels():
+                for channel in station.iter_trigger_channels():
                     channel_trace_start_time = channel.get_trace_start_time()
                     break
             else:
-                channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+                channel_trace_start_time = station.get_trigger_channel(triggered_channels[0]).get_trace_start_time()
 
-            for channel in station.iter_channels():
+            for channel in station.iter_trigger_channels():
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:
                     continue
@@ -226,7 +226,7 @@ class triggerSimulator:
             max_signal = 0
 
             if has_triggered:
-                for channel in station.iter_channels():
+                for channel in station.iter_trigger_channels():
                     max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
 
                 station.set_parameter(stnp.channels_max_amplitude, max_signal)

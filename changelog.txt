@@ -2,6 +2,33 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 3.0.0-dev
+new features:
+- created module and files to retrieve cable and RCU responses for LOFAR
+- added module to incorporate the LOFAR hardware response into the signals
+- added files containing the coefficients for the LOFAR Galactic calibration module in utilities/data/galactic_calibration
+- added LOFAR modules to fit the arrival direction using a planewave fit and to visualize the results of the pipeline
+- added support for LBA INNER in the LOFAR reader
+- added LOFAR detector description in JSON format
+- cleaned up the LOFAR beamforming utilities module
+- updated logging in all LOFAR modules
+- added support for more Galactic noise models in channelGalacticNoiseAdder
+- added support for "ant_mode" keyword in detector description
+- added option to choose dipole orientation when creating the LOFAR LBA antenna pattern
+- implementation of additional trigger channels. The signals on which the trigger is determined might be passed
+through a different response chain as the signals which are readout. To allow simulating this different response
+we added an optional trigger_channel object which lives within the corresponding channel object.
+- major refactoring of the coreas interface, together with a new function to read in HDF5 files
+- implementation of the interface for cosmic ray pulse interpolation, as well as a new module to combine the
+interpolation with a Detector (readCoREASDetector)
+- removed readCoREAS and readCoREASStationGrid modules
+- removed tiny_reconstruction test and FullReconstruction example
+- simplified cr_efficiency_analysis example and renamed it to cr_analysis
+- added voltageToEfieldConverterPerChannelGroup module
+
+bugfixes:
+-
+
 version 3.0
 NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enabling long-awaited features such as:
 - exposing functions to calculate voltage traces from showers for stand-alone use (needed e.g. for Likelihood forward folding reconstruction)
@@ -26,6 +53,8 @@ Only one trigger can be the primary.
 
 version 2.3.0-dev
 new features:
+- added module to create CR templates for RNO-G channels
+- added function to calculate correlation between two traces using a sliding window (with variable window size)
 - Enhanced detector_browser to allow display RNO-G database detector
 - Added download utility unifying download of antenna models/proposal tables/shower
 library with possibility to add/change fallback-server(s). Added Chicago
