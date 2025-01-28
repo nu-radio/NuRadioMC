@@ -9,6 +9,7 @@ from NuRadioReco.utilities import units
 import scipy.signal
 from scipy import constants
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from NuRadioReco.modules.base.module import register_run
 
 
 class sphericalWaveFitter:

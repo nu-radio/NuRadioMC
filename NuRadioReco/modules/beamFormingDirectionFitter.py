@@ -10,6 +10,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 import NuRadioReco.modules.voltageToEfieldConverterPerChannel
 import NuRadioReco.modules.electricFieldBandPassFilter
+from NuRadioReco.modules.base.module import register_run
 
 
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
