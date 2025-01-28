@@ -222,6 +222,7 @@ class channelCWNotchFilter():
         # dictionary to cache known notch filters at specific frequencies
         self.filter_cache = {}
 
+    @register_run()
     def run(self, event, station, det):
         for channel in station.iter_channels():
             fs = channel.get_sampling_rate()
