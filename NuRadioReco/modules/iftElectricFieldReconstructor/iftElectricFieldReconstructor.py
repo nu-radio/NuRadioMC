@@ -188,6 +188,7 @@ class IftElectricFieldReconstructor:
         )
         self.__draw_priors(event, station, frequency_domain)
 
+    @register_run()
     def run(self, event, station, detector, channel_ids, efield_scaling, use_sim=False):
         """
         Run the electric field reconstruction

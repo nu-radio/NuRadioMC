@@ -98,6 +98,7 @@ class beamFormingDirectionFitter:
         self.logger.setLevel(log_level)
         self.__debug = debug
 
+    @register_run()
     def run(self, evt, station, det, polarization, n_index=None, channels=None, ZenLim=None,
             AziLim=None):
         """

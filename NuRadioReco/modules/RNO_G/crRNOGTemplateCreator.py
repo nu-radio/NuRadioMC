@@ -135,6 +135,7 @@ class crRNOGTemplateCreator:
         self.__cr_azimuth = cr_azimuth
 
 
+    @register_run()
     def run(self, template_filename:str='templates_cr_station_101.pickle', include_hardware_response:bool=True, hardware_response_source:str='json', 
             return_templates:bool=False, bandpass_filter:None|dict[str,Any]=None) -> None|list[Event]:
         """

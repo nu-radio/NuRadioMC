@@ -22,7 +22,7 @@ class sphericalWaveFitter:
         self.__channel_ids = channel_ids
         pass
 
-
+    @register_run()
     def run(self, evt, station, det, start_pulser_position, n_index = None, debug = True):
 
         print("channels used for this reconstruction:", self.__channel_ids)
