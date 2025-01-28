@@ -41,6 +41,9 @@ class stationParameters(Enum):
     flagged_channels = 60  #: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)
     cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
     dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
+    avg_ch_snr = 63  #: V_pp/(2*VRMS_noise) where V_pp is the peak to peak voltage and VRMS_noise is the noise rms  
+    coherent_snr = 64  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr 
+    max_a = 65  #: maximum std-normalised peak to peak amplitude of all chosen channels
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
@@ -63,6 +66,8 @@ class channelParameters(Enum):
     Vrms_NuRadioMC_simulation = 19  #: the noise rms used in the MC simulation
     bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
     Vrms_trigger_NuRadioMC_simulation = 21  #: the noise rms of the trigger channels (optional) used in the MC simulation
+    impulsive_value = 22  #: average of the CDF about the peak of the coherently summed waveform
+
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
