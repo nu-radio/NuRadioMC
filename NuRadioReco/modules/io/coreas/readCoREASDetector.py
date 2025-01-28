@@ -209,6 +209,7 @@ class readCoREASDetector:
 
             # Loop over all selected stations
             for station_id in selected_station_ids:
+                self.logger.debug(f"Processing station {station_id}")
                 # Make the (Sim)Station objects to add to the Event
                 station = NuRadioReco.framework.station.Station(station_id)
                 sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
@@ -240,7 +241,7 @@ class readCoREASDetector:
                     smooth_res_efield = apply_hanning(res_efield)
 
                     # Store the trace in an ElecticField object
-                    add_electric_field_to_sim_station(
+                    coreas.add_electric_field_to_sim_station(
                         sim_station, channel_ids_for_group_id, smooth_res_efield.T, res_trace_start_time,
                         sim_shower[shp.zenith], sim_shower[shp.azimuth], self.coreas_interpolator.sampling_rate)
 

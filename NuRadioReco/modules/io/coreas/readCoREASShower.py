@@ -115,13 +115,9 @@ class readCoREASShower:
 
                 prepend_zeros = True # prepend zeros to not have the pulse directly at the start, heritage from old code
                 if prepend_zeros:
-                    n_samples_prepend = efield_trace.shape[1]
-                    efield_cor = np.zeros((3, n_samples_prepend + efield_trace.shape[1]))
-                    efield_cor[0] = np.append(np.zeros(n_samples_prepend), efield_trace[0])
-                    efield_cor[1] = np.append(np.zeros(n_samples_prepend), efield_trace[1])
-                    efield_cor[2] = np.append(np.zeros(n_samples_prepend), efield_trace[2])
-
-                    efield_times_cor = np.arange(0, n_samples_prepend + efield_trace.shape[1]) / efield_sampling_rate
+                    efield_cor = np.zeros((3, efield_trace.shape[1] * 2))
+                    efield_cor[:, efield_trace.shape[1]:] = efield_trace
+                    efield_times_cor = np.arange(0, efield_cor.shape[1]) / efield_sampling_rate
 
                 else:
                     efield_cor = efield_trace
