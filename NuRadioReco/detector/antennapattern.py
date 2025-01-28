@@ -613,8 +613,8 @@ def get_pickle_antenna_response(path):
 
         download_from_dataserver(remote_path, path)
 
-    #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
-    #         preprocess_WIPLD(path)
+    # # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
+    # preprocess_WIPLD(path)
     res = io_utilities.read_pickle(path, encoding='bytes')
     return res
 
@@ -1008,23 +1008,30 @@ def parse_LOFAR_txt_file(path_theta, path_phi):
     return freq, theta, phi, real_theta, imaginary_theta, real_phi, imaginary_phi
 
 
-def preprocess_LOFAR_txt(directory, ant='LBA'):
+def preprocess_LOFAR_txt(directory, ant='LBA', orientation=None):
     """
-    Function to parse the LOFAR antenna model simulation files in TXT format. It extracts the
-    vector effective length for all simulated frequencies, azimuth and zenith angles and dumps
-    them into a pickle file according to the NuRadioReco specification.
+    Function to process the TXT files from the old LOFAR antenna model (only tested for LBA). The paths to these
+    files is currently hardcoded. Because of a weird issue which requires minus signs to be added for the X and Y
+    dipoles separately, the orientation can be specified to create separate antenna models for each. If the
+    orientation is not set, the values for the Y dipole are returned.
 
     Parameters
     ----------
     directory : str
-        The path to the directory where the TXT files are stored
+        Path to where the text files are stored
     ant : str, default='LBA'
-        The antenna type
+        The antenna type, either LBA or HBA (not tested)
+    orientation : str, default=None
+        If set, must be either X or Y.
     """
     path_theta = os.path.join(directory, f'{ant}_Vout_theta.txt')
     path_phi = os.path.join(directory, f'{ant}_Vout_phi.txt')
 
     frequencies, thetas, phis, theta_real, theta_imag, phi_real, phi_imag = parse_LOFAR_txt_file(path_theta, path_phi)
+
+    if orientation == 'X':
+        for ar in [theta_real, theta_imag, phi_real, phi_imag]:
+            ar *= -1
 
     VEL_thetas = theta_real + 1j * theta_imag
     VEL_phis = phi_real + 1j * phi_imag
@@ -1046,7 +1053,10 @@ def preprocess_LOFAR_txt(directory, ant='LBA'):
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = \
         90 * units.deg, 0 * units.deg, 0 * units.deg, 0 * units.deg
 
-    fname = f'LOFAR_{ant}'
+    if orientation is not None:
+        fname = f'LOFAR_{ant}_{orientation}'
+    else:
+        fname = f'LOFAR_{ant}'
     output_filename = '{}.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
 
     directory = os.path.dirname(output_filename)
@@ -1160,8 +1170,10 @@ class AntennaPatternBase:
 
         if isinstance(freq, (float, int)):
             freq = np.array([freq])
-        theta, phi = self._get_theta_and_phi(zenith, azimuth, orientation_theta, orientation_phi, rotation_theta,
-                                             rotation_phi)
+
+        theta, phi = self._get_theta_and_phi(
+            zenith, azimuth, orientation_theta, orientation_phi,
+            rotation_theta, rotation_phi)
 
         Vtheta_raw, Vphi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
@@ -1171,14 +1183,16 @@ class AntennaPatternBase:
         cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
         V_xyz_raw = cstrans.transform_from_onsky_to_ground(
             np.array([np.zeros(Vtheta_raw.shape[0]), Vtheta_raw, Vphi_raw]))
-        rot = self._get_antenna_rotation(orientation_theta, orientation_phi, rotation_theta, rotation_phi)
-        from numpy.linalg import inv
-        V_xyz = np.dot(inv(rot), V_xyz_raw)
+
+        rot = self._get_antenna_rotation(
+            orientation_theta, orientation_phi, rotation_theta, rotation_phi)
+        V_xyz = np.dot(np.linalg.inv(rot), V_xyz_raw)
 
         cstrans2 = cs.cstrafo(zenith=zenith, azimuth=azimuth)
         V_onsky = cstrans2.transform_from_ground_to_onsky(V_xyz)
         VEL = {'theta': V_onsky[1],
                'phi': V_onsky[2]}
+
         return VEL
 
 
@@ -1211,7 +1225,7 @@ class AntennaPattern(AntennaPatternBase):
     """
 
     def __init__(self, antenna_model, path=path_to_antennamodels,
-                 interpolation_method='complex'):
+                 interpolation_method='complex', do_consistency_check=True):
         """
 
         Parameters
@@ -1264,26 +1278,27 @@ class AntennaPattern(AntennaPatternBase):
         self.VEL_phi = H_phi
         self.VEL_theta = H_theta
 
-        # additional consistency check
-        for iFreq, freq in enumerate(self.frequencies):
-            for iPhi, phi in enumerate(self.phi_angles):
-                for iTheta, theta in enumerate(self.theta_angles):
-                    index = self._get_index(iFreq, iTheta, iPhi)
+        if do_consistency_check:
+            # additional consistency check
+            for iFreq, freq in enumerate(self.frequencies):
+                for iPhi, phi in enumerate(self.phi_angles):
+                    for iTheta, theta in enumerate(self.theta_angles):
+                        index = self._get_index(iFreq, iTheta, iPhi)
 
-                    if phi != phis[index]:
-                        logger.error("phi angle has changed during theta loop {0}, {1}".format(
-                            phi / units.deg, phis[index] / units.deg))
-                        raise Exception("phi angle has changed during theta loop")
+                        if phi != phis[index]:
+                            logger.error("phi angle has changed during theta loop {0}, {1}".format(
+                                phi / units.deg, phis[index] / units.deg))
+                            raise Exception("phi angle has changed during theta loop")
 
-                    if theta != thetas[index]:
-                        logger.error("theta angle has changed during theta loop {0}, {1}".format(
-                            theta / units.deg, thetas[index] / units.deg))
-                        raise Exception("theta angle has changed during theta loop")
+                        if theta != thetas[index]:
+                            logger.error("theta angle has changed during theta loop {0}, {1}".format(
+                                theta / units.deg, thetas[index] / units.deg))
+                            raise Exception("theta angle has changed during theta loop")
 
-                    if freq != ff[index]:
-                        logger.error("frequency has changed {0}, {1}".format(
-                            freq, ff[index]))
-                        raise Exception("frequency has changed")
+                        if freq != ff[index]:
+                            logger.error("frequency has changed {0}, {1}".format(
+                                freq, ff[index]))
+                            raise Exception("frequency has changed")
 
         logger.status('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
 
@@ -1572,16 +1587,18 @@ class AntennaPatternProvider(object):
             key word arguments that are passed to the init function of the `AntennaPattern` class (see
             documentation of this class for further information)
         """
-        if name in self._antenna_model_replacements.keys():
-            if self._antenna_model_replacements[name] not in self._open_antenna_patterns.keys():
-                logger.status("local replacement of antenna model requsted: replacing {} with {}".format(name,
-                                                                                                          self._antenna_model_replacements[
-                                                                                                              name]))
+        if name in self._antenna_model_replacements:
+            if self._antenna_model_replacements[name] not in self._open_antenna_patterns:
+                logger.status("local replacement of antenna model requsted: replacing {} with {}".format(
+                    name, self._antenna_model_replacements[name]))
+
             name = self._antenna_model_replacements[name]
-        if name not in self._open_antenna_patterns.keys():
+
+        if name not in self._open_antenna_patterns:
             if name.startswith("analytic"):
                 self._open_antenna_patterns[name] = AntennaPatternAnalytic(name, **kwargs)
                 logger.info("loading analytic antenna model {}".format(name))
             else:
                 self._open_antenna_patterns[name] = AntennaPattern(name, **kwargs)
+
         return self._open_antenna_patterns[name]

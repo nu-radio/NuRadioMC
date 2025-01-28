@@ -11,6 +11,8 @@ the antenna model so that he can put it on our central server.
 Implemetation of Antenna Models
 ===============================
 
+For the antenna orientation and rotation, the conventions are described in :ref:`Properties of Detector Description <NuRadioReco/pages/detector/detector_database_fields:Properties of Detector Description>`
+
 The antenna models are accessed in the `AntennaPattern` class in the `nuradioreco.detector.antennapattern.py` module.
 Different software packages are used to simulate the antennas, internally, NuRadioReco converts the data to a common pickle format in which they are
 stored.
@@ -35,8 +37,6 @@ The antenna pickle files contains 9 lists of the following data:
         the complex realized vector effective length of the ePhi polarization component as described in (A.13) of the NuRadioReco paper `arxiv:1903.07023 <https://arxiv.org/abs/1903.07023>`__
     - H_theta: array of floats
         the complex realized vector effective length of the eTheta polarization component as described in (A.13) of the NuRadioReco paper `arxiv:1903.07023 <https://arxiv.org/abs/1903.07023>`__
-
-For the antenna orientation and rotation, the conventions are described in :ref:`Properties of Detector Description <NuRadioReco/pages/detector/detector_database_fields:Properties of Detector Description>`
 
 The calculation of the vector effective length is described in Appendix A.1, A.2 and A.3 of the NuRadioReco paper `arxiv:1903.07023 <https://arxiv.org/abs/1903.07023>`__.
 
@@ -429,9 +429,9 @@ RNOG_vpol_v2_5inch_center_n1.75
 -------------------------------
 XFdtd simulations for the RNO-G VPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.75.
 The antenna is placed in the center (x, y) of the borehole. An extra cubic interpolation is performed in frequencies (5 MHz step).
-Theta range [0, 180] Phi range [0, 360] Freq range [0, 700]MHz. 
+Theta range [0, 180] Phi range [0, 360] Freq range [0, 700]MHz.
 
-Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry. 
+Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
 
 Last updated: 2024
 
@@ -457,7 +457,7 @@ RNOG_quadslot_v2_rescaled_fineFreq
 RNOG_quadslot_v3_air_rescaled_to_n1.74
 ---------------------------------------
 XFdtd simulations in for the RNO-G Hpol.
-Simulations are done in air, frequencies are rescaled with n=1.74. 
+Simulations are done in air, frequencies are rescaled with n=1.74.
 Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
 
 Last updated: 2020
