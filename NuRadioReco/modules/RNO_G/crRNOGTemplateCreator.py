@@ -20,6 +20,7 @@ from NuRadioReco.framework.electric_field import ElectricField
 import pickle
 import os
 import NuRadioReco.modules.channelBandPassFilter
+from NuRadioReco.modules.base.module import register_run
 
 
 class crRNOGTemplateCreator:
