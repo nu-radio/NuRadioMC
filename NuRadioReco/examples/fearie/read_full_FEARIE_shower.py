@@ -9,6 +9,7 @@ from NuRadioReco.utilities import units
 import argparse
 from matplotlib import pyplot as plt
 import sys
+import os
 import numpy as np
 
 
@@ -18,8 +19,9 @@ parser.add_argument('inputfilename', type=str, nargs='*',
                     default=['example_data/example_event.h5'],
                     help='path to NuRadioMC simulation result')
 
+default_path = os.path.join(os.path.dirname(__file__), "RNO_single_channel.json")
 parser.add_argument('--detectordescription', type=str, nargs='?',
-                    default='../detector/RNO_G/RNO_single_station.json',
+                    default=default_path,
                     help='path to detectordescription')
 
 args = parser.parse_args()
