@@ -23,7 +23,7 @@ class dataProvideRNOG:
 
         self.channelGlitchDetector.begin()
         self.channelBlockOffsetFitter.begin()
-        self.reader.begin(self.files, **reader_kwargs)
+        self.reader.begin(self.files, apply_baseline_correction=None, **reader_kwargs)
         self.channelCableDelayAdder.begin()
 
         assert det is not None, "Detector object is None, please provide a detector object."
