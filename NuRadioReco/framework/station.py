@@ -261,33 +261,37 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             logger.error(f"Reference reconstruction not set / unknown: {self.__reference_reconstruction}")
             raise ValueError(f"Reference reconstruction not set / unknown: {self.__reference_reconstruction}")
 
-    def avg_SNR(self, channels_to_include = [0, 1, 2, 3, 5, 6, 7, 22, 23]):
+    def get_average_signal_to_noise_ratio(self, channels_to_include = [0, 1, 2, 3, 5, 6, 7, 22, 23]):
         """
         Returns the average SNR across all channels
         """
         snr_all = []
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(channels_to_include):
             if (channel.has_parameter(chp.SNR)):
                 snr_ch = channel.get_parameter(chp.SNR)
                 if (snr_ch == np.inf):
                     return np.inf
                 else:
                     snr_all.append(snr_ch)
+            else:
+                raise LookupError(f"Channel {channel.get_id()} has no parameter SNR")
 
         return np.mean(snr_all)
 
-    def avg_RPR(self, channels_to_include = [0, 1, 2, 3, 5, 6, 7, 22, 23]):
+    def get_average_signal_to_noise_ratio(self, channels_to_include = [0, 1, 2, 3, 5, 6, 7, 22, 23]):
         """
         Returns the average RPR across all channels
         """
         rpr_all = []
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(channels_to_include):
             if (channel.has_parameter(chp.RPR)):
                 rpr_ch = channel.get_parameter(chp.RPR)
                 if (rpr_ch == np.inf):
                     return np.inf
                 else:
                     rpr_all.append(rpr_ch)
+            else:
+                raise LookupError(f"Channel {channel.get_id()} has no parameter RPR")
 
         return np.mean(rpr_all)
     
