@@ -1,3 +1,16 @@
+"""
+Module to reconstruct the energy of an air shower from its radio signal
+
+To reconstruct the air-shower energy, the radio signals should be bandpass filtered
+between 80 to 300 MHz with a 10th order Butterworth filter, and both the cosmic ray
+direction and the unfolded electric field should be present. The latter can be obtained
+(after the signal direction has been reconstructed) by running the
+`NuRadioReco.modules.voltageToAnalyticEfieldConverter` module.
+
+For more details on this algorithm, see https://dx.doi.org/10.1088/1475-7516/2019/10/075
+
+"""
+
 import numpy as np
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -13,6 +26,7 @@ import radiotools.atmosphere.models
 class cosmicRayEnergyReconstructor:
     """
     Reconstructs the energy of an air shower from its radio signal
+
     Requires the following modules to be run beforehand:
     
     * a 10th order Butterworth bandpass filter with passband 80-300 MHz
@@ -36,27 +50,66 @@ class cosmicRayEnergyReconstructor:
             'auger': {
                 'scale': np.array([(229.96, -123.75, 110.51), (214.46, -111.01, 119.18)]),
                 'falloff': np.array([(-.1445, -.09820), (.5936, -1.1763)])
+            },
+            'summit': {
+                'scale': np.array([[ 404.5 , -131.56,   11.7 ], [ 428.97,  -92.11,    5.94]]),
+                'falloff': np.array([[-0.3391,  0.1738], [ 0.9543, -1.6967]])
             }
         }
         self.__elevations = {  # TODO: This should be changed once we have implemented a proper coordinate system
             'mooresbay': 30.,
             'southpole': 2800.,
-            'auger': 1560.
+            'auger': 1560.,
+            'summit': 3216.
         }
         self.__site = None
-        self.__parametrization_for_site = None
-        self.__elevation = None
 
-    def begin(self, site='mooresbay'):
+    def begin(self, site=None):
+        """
+        Initialize the cosmicRayEnergyReconstructor (optional)
+
+        Parameters
+        ----------
+        site : string | None (default: None)
+            Specifies the site of the station. The parameterization of
+            the cosmic ray energy depends on the site of the detector.
+
+            If None, the site will be determined from the detector
+            passed to the `run` function.
+
+        """
         self.__site = site
         if site not in self.__parametrizations.keys():
             self.logger.error('Unsupported site. Please select one of the following: {}'.format(self.__parametrizations.keys()))
             raise ValueError
-        self.__parametrization_for_site = self.__parametrizations[site]
-        self.__elevation = self.__elevations[site]
 
     @register_run()
-    def run(self, event, station, detector):
+    def run(self, event, station, detector, electric_field=None):
+        """
+        Determine the cosmic ray energy from the electric field fluence.
+
+        The reconstructed cosmic ray energy will be stored in the
+        station in the :obj:`cr_energy_em <NuRadioReco.framework.parameters.stationParameters.cr_energy_em>` parameter.
+
+        Parameters
+        ----------
+        event : Event
+        station : Station
+            The station containing the reconstructed electric field.
+            If it contains multiple electric fields, only the last electric field
+            will be used, unless another electric field is passed as a keyword-argument
+        detector : Detector
+        electric_field : ElectricField | None (default: None)
+            If not None, reconstruct the energy for this electric field.
+            Otherwise, reconstruct the last electric field in the station.
+            Useful if a station contains multiple reconstructed electric fields.
+
+        Returns
+        -------
+        rec_energy : float
+            The reconstructed cosmic ray energy
+
+        """
 
         if not station.is_cosmic_ray():
             self.logger.warning('Event is not a cosmic ray!')
@@ -65,30 +118,52 @@ class cosmicRayEnergyReconstructor:
             return
         zenith = station.get_parameter(stnp.zenith)
         azimuth = station.get_parameter(stnp.azimuth)
+        site = self.__site
+        if site is None:
+            site = detector.get_site(station.get_id())
+            if site not in self.__parametrizations.keys():
+                self.logger.error('Unsupported site. Please select one of the following: {}'.format(self.__parametrizations.keys()))
+                raise ValueError
+        parametrization_for_site = self.__parametrizations[site]
+        elevation = self.__elevations[site]
+
         if zenith < 30. * units.deg:
             self.logger.warning('Zenith angle is smaller than 30deg. Energy reconstruction is likely to be inaccurate!')
-        n_efields = len(station.get_electric_fields())
-        if n_efields == 0:
-            self.logger.error('No E-field found. Please run the voltageToAnalyticEfieldConverter beforehand!')
-            return
-        if n_efields > 1:
-            self.logger.warning('Multiple E-fields were found. Only the first E-field will be used.')
-        electric_field = station.get_electric_fields()[0]
+        if electric_field is None:
+            n_efields = len(station.get_electric_fields())
+            if n_efields == 0:
+                self.logger.error('No E-field found. Please run the voltageToAnalyticEfieldConverter beforehand!')
+                return
+            if n_efields > 1:
+                self.logger.warning('Multiple E-fields were found. Only the last E-field will be used.')
+            electric_field = station.get_electric_fields()[-1]
+
         spectrum_slope = electric_field.get_parameter(efp.cr_spectrum_slope)
-        alpha = hp.get_angle_to_magnetic_field_vector(zenith, azimuth, self.__site)
-        cs = radiotools.coordinatesystems.cstrafo(zenith, azimuth, site=self.__site)
+        alpha = hp.get_angle_to_magnetic_field_vector(zenith, azimuth, site)
+        cs = radiotools.coordinatesystems.cstrafo(zenith, azimuth, site=site)
         efield_trace_vxB_vxvxB = cs.transform_to_vxB_vxvxB(cs.transform_from_onsky_to_ground(electric_field.get_trace()))
         efield_trace_vxB_vxvxB[0] /= np.sin(alpha)  # correct energy fluence for effect of angle to magnetic field
         energy_fluence = NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence(efield_trace_vxB_vxvxB, electric_field.get_times())
         energy_fluence = np.abs(energy_fluence[0]) + np.abs(energy_fluence[1])
-        xmax_distance = self.__atmosphere.get_distance_xmax_geometric(zenith, 750., self.__elevation)  # parametrization is for Xmax of 750g/cm^2
+        xmax_distance = self.__atmosphere.get_distance_xmax_geometric(zenith, 750., elevation)  # parametrization is for Xmax of 750g/cm^2
+        if np.any(xmax_distance) < 0:
+            self.logger.warning(
+                f"Estimated distance to Xmax is negative for zenith {zenith/units.deg:.0f} and elevation {elevation}. "
+                "This means Xmax may be below the detector elevation. The absolute value "
+                "of the distance will be used instead, but note that the resulting energy estimates may be inaccurate"
+            )
+
+            xmax_distance = np.abs(xmax_distance) # for some zeniths and altitudes the parameterization can become negative
+
         # find out if we are inside or outside of the Cherenkov ring
         second_order_spectrum_parameter = electric_field.get_parameter(efp.cr_spectrum_quadratic_term)
         if second_order_spectrum_parameter <= spectrum_slope * .1:
-            scale_parameter = self.__parametrization_for_site['scale'][0][0] * zenith ** 2 + self.__parametrization_for_site['scale'][0][1] * zenith + self.__parametrization_for_site['scale'][0][0]
-            falloff_parameter = self.__parametrization_for_site['falloff'][0][0] * zenith + self.__parametrization_for_site['falloff'][0][1]
+            scale_parameter = parametrization_for_site['scale'][0][0] * zenith ** 2 + parametrization_for_site['scale'][0][1] * zenith + parametrization_for_site['scale'][0][2]
+            falloff_parameter = parametrization_for_site['falloff'][0][0] * zenith + parametrization_for_site['falloff'][0][1]
         else:
-            scale_parameter = self.__parametrization_for_site['scale'][1][0] * zenith ** 2 + self.__parametrization_for_site['scale'][1][1] * zenith + self.__parametrization_for_site['scale'][1][0]
-            falloff_parameter = self.__parametrization_for_site['falloff'][1][0] * zenith + self.__parametrization_for_site['falloff'][1][1]
+            scale_parameter = parametrization_for_site['scale'][1][0] * zenith ** 2 + parametrization_for_site['scale'][1][1] * zenith + parametrization_for_site['scale'][1][2]
+            falloff_parameter = parametrization_for_site['falloff'][1][0] * zenith + parametrization_for_site['falloff'][1][1]
         rec_energy = 1.e18 * np.sqrt(energy_fluence) * (xmax_distance / units.km) / (scale_parameter * np.exp(falloff_parameter * np.abs(spectrum_slope) ** 0.8))
         station.set_parameter(stnp.cr_energy_em, rec_energy)
+
+        return rec_energy
