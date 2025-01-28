@@ -6,6 +6,8 @@ version 2.2.2
 bugfixes:
 - Change to the way numpy objects are stored inside .nur files. This ensures .nur
   files created with both numpy>2 or numpy<2 are readable by either version.
+- Fixed a bug where .nur files created with an older version of astropy can not
+  be read with a newer version due to pickling incompatibility.
 
 version 2.2.1
 bugfixes:
