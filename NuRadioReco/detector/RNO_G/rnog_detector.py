@@ -24,6 +24,7 @@ def _json_serial(obj):
     elif isinstance(obj, bson.objectid.ObjectId):
         return str(obj)
     elif isinstance(obj, Response):
+        # Objects of type Response are not serializable
         pass
     else:
         raise TypeError ("Type %s not serializable" % type(obj))
@@ -185,7 +186,7 @@ class Detector():
         self.assume_inf = None  # Compatibility with other detectors classes
         self.antenna_by_depth = None  # Compatibility with other detectors classes
 
-    def export(self, filename, json_kwargs=None, additional_data=None):
+    def export(self, filename, json_kwargs=None, additional_data=None, drop_response_data=False):
         """
         Export the buffered detector description.
 
@@ -200,6 +201,9 @@ class Detector():
 
         additional_data: dict (Default: None)
             If specified the content of this dict will be added to the exported detector description.
+
+        drop_response_data: bool (Default: False)
+            If True, the response data (frequency, mag, phase) will be dropped from the exported detector description.
         """
 
         periods = {}
@@ -219,6 +223,16 @@ class Detector():
                     [self._time_periods_per_station[station_id]["modification_timestamps"][idx - 1],
                     self._time_periods_per_station[station_id]["modification_timestamps"][idx]]
             }
+
+        if drop_response_data:
+            keys_to_drop = ['frequencies', 'mag', 'phase']
+            for chain in ["response_chain", "trigger_response_chain"]:
+                for station_id in self.__buffered_stations:
+                    for channel_id, channel_data in self.__buffered_stations[station_id]["channels"].items():
+                        if chain in channel_data['signal_chain']:
+                            for names, component in channel_data['signal_chain'][chain].items():
+                                for key in keys_to_drop:
+                                    component.pop(key, None)
 
         export_dict = {
             "version": 1,
@@ -264,8 +278,8 @@ class Detector():
         if skip_signal_chain_response:
             for station_id in export_dir:
                 for channel_id in export_dir[station_id]["channels"]:
-                    export_dir[station_id]["channels"][channel_id]["signal_chain"].pop("response_chain", None)
-                    export_dir[station_id]["channels"][channel_id]["signal_chain"].pop("total_response", None)
+                    for key in ["response_chain", "total_response", "trigger_response_chain", "total_trigger_response"]:
+                        export_dir[station_id]["channels"][channel_id].pop(key, None)
 
         if dumps_kwargs is None:
             dumps_kwargs = dict(indent=4, default=str)
@@ -1337,24 +1351,32 @@ class Detector():
         return resp
 
 
+def produce_detector_files_for_all_time_periods():
+    from NuRadioReco.detector import detector
+
+    det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=True,
+                            database_connection='RNOG_public')
+
+
 if __name__ == "__main__":
 
     from NuRadioReco.detector import detector
 
-    det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=False,
+    det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=True,
                             database_connection='RNOG_public', select_stations=13)
 
     det.update(datetime.datetime(2023, 7, 2, 0, 0))
+    det.export("test_small", drop_response_data=True)
 
-    response = det.get_signal_chain_response(station_id=13, channel_id=0)
+    # response = det.get_signal_chain_response(station_id=13, channel_id=0)
 
-    from NuRadioReco.framework import electric_field
-    ef = electric_field.ElectricField(channel_ids=[0])
-    ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
+    # from NuRadioReco.framework import electric_field
+    # ef = electric_field.ElectricField(channel_ids=[0])
+    # ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
 
-    # Multipy the response to a trace. The multiply operator takes care of everything
-    trace_at_readout = ef * response
+    # # Multipy the response to a trace. The multiply operator takes care of everything
+    # trace_at_readout = ef * response
 
-    # getting the complex response as array
-    freq = np.arange(50, 1000) * units.MHz
-    complex_resp = response(freq)
+    # # getting the complex response as array
+    # freq = np.arange(50, 1000) * units.MHz
+    # complex_resp = response(freq)
