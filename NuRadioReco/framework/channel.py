@@ -25,7 +25,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace,
         """
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         NuRadioReco.framework.parameter_storage.ParameterStorage.__init__(
-            self, parameters.channelParameters)
+            self, [parameters.channelParameters, parameters.channelParametersRNOG]) ## !!! TODO: THIS IS JUST A TEMPORARY HACK !!!
 
         self._id = channel_id
         self._group_id = channel_group_id
