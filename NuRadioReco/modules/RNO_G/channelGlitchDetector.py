@@ -9,18 +9,36 @@ import logging
 
 logger = logging.getLogger('NuRadioReco.RNO_G.channelGlitchDetector')
 
-class channelGlitchDetector:
+class channelGlitchDetector:    
     """
-    This module detects "glitches" in the channels.
+    This module detects scrambled data (digitizer "glitches") in the channels.
 
-    RNO-G data (in particular the RNO-G data recorded with the first generation radiants)
-    is known to have "glitches" in the channels. When a glitch is present in a channel,
-    the 64-sample readout blocks were scrambled by the readout electronics which results
-    in sudden unphyiscal jumps in the signal. These jumps are detected with this module.
+    RNO-G data (in particular the RNO-G data recorded with the LAB4D digitizers on the
+    first-generation radiants) is known to have "glitches" in the channels. 
+    When a glitch is present in a channel, the 64-sample readout blocks were scrambled 
+    by the readout electronics which results in sudden unphyiscal jumps in the signal. 
+    These jumps are detected with this module (but not corrected).
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, cut_value = 0.0):
+        """
+        Parameters
+        ----------
+        cut_value : This module calculates a test statistic that is sensitive to the presence
+             of digitizer glitches. This parameter marks the critical value at which the test is
+             said to have detected a glitch. This is a free parameter; increasing its value results
+             in a lower false-positive rate (i.e. healthy events are incorrectly marked as glitching), 
+             but also a lower true-positive rate (i.e. glitching events are correctly marked as such).
+             The default value of 0.0 is a good starting point.
+        """
+        
+        self.ts_cut_value = cut_value
+
+        # Total sampling buffer of the LAB4D: 2048 samples
+        self._lab4d_readout_size = 2048
+
+        # Length of a sampling block in the LAB4D: 64 samples
+        self._lab4d_sampling_blocksize = 64
 
     def begin(self):
         pass
@@ -48,30 +66,51 @@ class channelGlitchDetector:
             
             `eventdata`: channel waveform
             """
+            
+            block_size = self._lab4d_sampling_blocksize
+            twice_block_size = 2 * block_size
+
             runsum = 0.0
-            deltaN = 64
-            for chunk in range(len(eventdata) // 128 - 1):
-                runsum += (eventdata[chunk * 128 + deltaN - 1] - eventdata[chunk * 128 + deltaN]) ** 2
+            for chunk in range(len(eventdata) // twice_block_size - 1):
+                runsum += (eventdata[chunk * twice_block_size + block_size - 1] - eventdata[chunk * twice_block_size + block_size]) ** 2
             return np.sum(runsum)
 
         def unscramble(trace):
-            """ script to fix scrambled traces (Note: first and last 64 samples are unusable and hence masked with zeros) """
+            """
+            Applies an unscrambling operation to the passed `trace`.
+            Note: the first and last sampling block are unusable and hence replaced by zeros in the returned waveform.
+            
+            Parameters
+            ----------
+            `trace`: channel waveform
+            """
+            
+            readout_size = self._lab4d_readout_size
+            block_size = self._lab4d_sampling_blocksize
+            twice_block_size = 2 * block_size
+            
             new_trace = np.zeros_like(trace)
-            for i_section in range(len(trace) // 64):
-                section_start = i_section * 64
-                section_end = i_section * 64 + 64
+            
+            for i_section in range(len(trace) // block_size):
+                section_start = i_section * block_size
+                section_end = i_section * block_size + block_size
                 if i_section % 2 == 0:
-                    new_trace[(section_start + 128) % 2048:(section_end + 128) % 2048] = trace[section_start:section_end]
+                    new_trace[(section_start + twice_block_size) % readout_size :\
+                              (section_end + twice_block_size) % readout_size] = trace[section_start:section_end]
                 elif i_section > 1:
-                    new_trace[(section_start - 128) % 2048:(section_end - 128) % 2048] = trace[section_start:section_end]
-                    new_trace[0:64] = 0
+                    new_trace[(section_start - twice_block_size) % readout_size :\
+                              (section_end - twice_block_size) % readout_size] = trace[section_start:section_end]
+                    new_trace[0:block_size] = 0
+                    
             return new_trace    
         
         for ch in station.iter_channels():
             trace = ch.get_trace()
             trace_us = unscramble(trace)
 
-            # glitching test statistic
-            ts = diff_sq(trace) - diff_sq(trace_us)        
-                
-            ch.set_parameter(chp.glitch, ts)
+            # glitching test statistic and boolean discriminate
+            glitch_ts = (diff_sq(trace) - diff_sq(trace_us)) / np.var(trace)
+            glitch_disc = glitch_ts > self.ts_cut_value
+            
+            ch.set_parameter(chp.glitch, glitch_disc)
+            ch.set_parameter(chp.glitch_test_statistic, glitch_ts)
