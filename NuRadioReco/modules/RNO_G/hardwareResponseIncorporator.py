@@ -23,6 +23,7 @@ class hardwareResponseIncorporator:
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
+        self.trigger_channels = None
 
     def begin(self, trigger_channels=None):
         """
