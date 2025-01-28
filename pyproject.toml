@@ -33,34 +33,34 @@ h5py = "*"
 peakutils = "*"
 pymongo = "*"
 pyyaml = "*"
-awkward = "<2"
+awkward = "*"
 python = "^3.6"
 matplotlib = "*"
 requests = "*"
 toml = ">=0.10.2"
-uproot = "4.1.1"
+uproot = "*"
 importlib-metadata = {version = ">=4.8.1", python = "<3.8"}
 numba = "*"
 filelock = "*"
-
-[tool.poetry.dev-dependencies]
-Sphinx = "*"
-sphinx-rtd-theme = "*"
-numpydoc = "*"
-proposal = "7.6.2"
-pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
-nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
-pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
-MCEq = "*"
-crflux = "*"
-pandas = "*"
-mattak = {git = "https://github.com/RNO-G/mattak"}
-runtable = {git = "ssh://git@github.com/RNO-G/rnog-runtable.git"}
+Sphinx = {version = "*", optional = true}
+sphinx-rtd-theme = {version = "*", optional = true}
+numpydoc = {version = "*", optional = true}
+proposal = {version = "7.6.2", optional = true}
+pygdsm = {git = "https://github.com/telegraphic/pygdsm", optional = true}
+pylfmap = {version = "*", optional = true}
+nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5", optional = true}
+pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft", optional = true}
+MCEq = {version = "*", optional = true}
+crflux = {version = "*", optional = true}
+mattak = {git = "https://github.com/RNO-G/mattak", optional = true}
+rnog-runtable = {git = "ssh://git@github.com/RNO-G/rnog-runtable.git", optional = true}
 
 [tool.poetry.extras]
 documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
 proposal = ["proposal"]
-galacticnoise = ['pygdsm']
-ift_reco = ['nifty5', 'pypocketfft']
-muon_flux_calc = ['MCEq', 'crflux']
-RNO_G_DATA = ["mattak", "runtable", "pandas"]
+galacticnoise = ['pygdsm', 'pylfmap']
+ift-reco = ['nifty5', 'pypocketfft']
+muon-flux = ['MCEq', 'crflux']
+RNO-G = ["mattak"]
+RNO-G-extras = ["rnog-runtable"]
+ALL = ["Sphinx", "sphinx-rtd-theme", "numpydoc", "proposal", "pygdsm", 'pylfmap', "nifty5", "pypocketfft", "MCEq", "crflux", "mattak"]

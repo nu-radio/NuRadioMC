@@ -5,37 +5,16 @@ import radiotools.helper as hp
 
 from scipy import constants
 from scipy.signal import hilbert
-from scipy.optimize import fmin_powell
+from scipy.optimize import minimize, fmin_powell, Bounds
 
 from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.voltageToEfieldConverter import voltageToEfieldConverter
-from NuRadioReco.modules.LOFAR.beamforming_utilities import beamformer
-
+from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
 lightspeed = constants.c * units.m / units.s
-
-
-def geometric_delays(ant_positions, sky):
-    """
-    Returns geometric delays in a matrix.
-
-    Parameters
-    ----------
-    ant_positions : np.ndarray
-        The antenna positions to use, formatted as a (nr_of_ant, 3) shaped array.
-    sky : np.ndarray
-        The unit vector pointing to the arrival direction, in cartesian coordinates.
-
-    Returns
-    -------
-    delays : np.ndarray
-    """
-    delays = np.dot(ant_positions, sky)
-    delays /= -1 * lightspeed
-    return delays
 
 
 class beamformingDirectionFitter:
@@ -44,12 +23,12 @@ class beamformingDirectionFitter:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger("NuRadioReco.beamFormingDirectionFitter")
+        self.logger = logging.getLogger("NuRadioReco.LOFAR.beamFormingDirectionFitter")
 
         self.__max_iter = None
         self.__cr_snr = None
 
-    def begin(self, max_iter, cr_snr=3, logger_level=logging.WARNING):
+    def begin(self, max_iter, cr_snr=3, logger_level=logging.NOTSET):
         """
         Set the values for the fitting procedures.
 
@@ -59,8 +38,8 @@ class beamformingDirectionFitter:
             The maximum number of iterations to use during the fitting procedure
         cr_snr : float, default=3
             The minimum SNR a channel should have to be considered having a CR signal.
-        logger_level : int, default=logging.WARNING
-            The logging level to use for the module.
+        logger_level : int, default=logging.NOTSET
+            Use this parameter to override the logging level for this module.
         """
         self.__max_iter = max_iter
         self.__cr_snr = cr_snr
@@ -89,40 +68,51 @@ class beamformingDirectionFitter:
         dominant_pol = np.argmax(np.bincount(dominant_pol_traces))
         self.logger.debug(f"Dominant polarisation is {dominant_pol}")
 
-        # Collect the Efield traces - the e-field from the converter has eR as [0] component -> do +1 in index
-        fft_traces = np.array([trace.get_frequency_spectrum()[dominant_pol + 1]
+        # Collect the Efield traces
+        fft_traces = np.array([trace.get_frequency_spectrum()[dominant_pol]
                                for trace in station.get_electric_fields()])
 
         def negative_beamed_signal(direction):
             theta = direction[0]
             phi = direction[1]
-            direction_cartesian = hp.spherical_to_cartesian(theta, phi)
-
-            delays = geometric_delays(ant_positions, direction_cartesian)
-
-            out = beamformer(fft_traces, freq, delays)
-            timeseries = fft.freq2time(out, 200 * units.MHz)  # TODO: is this really necessary?
+            my_direction_cartesian = hp.spherical_to_cartesian(theta, phi)
+            my_out = mini_beamformer(fft_traces, freq, ant_positions, my_direction_cartesian)
+            timeseries = fft.freq2time(my_out, 200 * units.MHz)
 
             return -100 * np.max(timeseries ** 2)
 
         start_direction = np.array([station.get_parameter(stationParameters.zenith) / units.rad,
                                     station.get_parameter(stationParameters.azimuth) / units.rad])
-        fit_direction = fmin_powell(negative_beamed_signal, start_direction,
-                                    maxiter=self.__max_iter, xtol=1.0, disp=False)
+        self.logger.debug(f"Initial guess for fit routine is {start_direction}")
+
+        # Using "minimize" with the "Powell" method allows to use the same minimization routine as before,
+        # but also add bounds to the fit. However, this changes the result of the fitting routine, even if
+        # without bounds the fit converges within the bounds. So currently we stick to the "fmin_powell" method.
+        # fit_result = minimize(negative_beamed_signal, start_direction,
+        #                       method='Powell', bounds=Bounds((0, -np.pi), (np.pi / 2, np.pi), (True, True)),
+        #                       options={'maxiter': self.__max_iter, 'xtol': 1.0, 'disp': False,
+        #                                'direc': np.array([[0.1, 0], [0, 0.1]])})
+        #
+        # self.logger.debug(f"Fit returned the following message: {fit_result.message}")
+        # if not fit_result.success:
+        #     self.logger.warning(f"The fit failed with the following message: {fit_result.message}")
+        #     raise RuntimeError
+        #
+        # fit_direction = fit_result.x
+
+        fit_result = fmin_powell(negative_beamed_signal, start_direction,
+                          maxiter=self.__max_iter, xtol=1.0 * units.deg,
+                          direc=np.array([[2.0 * units.deg, 0], [0, 2.0 * units.deg]]),
+                          disp=False, full_output=True)
+        fit_direction = fit_result[0]
+
+        self.logger.debug(f"Fit finished with following direc vector: {fit_result[2]}")
 
         direction_cartesian = hp.spherical_to_cartesian(*fit_direction)
 
-        delays = geometric_delays(ant_positions, direction_cartesian)
-        out = beamformer(fft_traces, freq, delays)
+        out = mini_beamformer(fft_traces, freq, ant_positions, direction_cartesian)
 
-        fit_direction = hp.cartesian_to_spherical(*direction_cartesian)
-        theta = fit_direction[0]
-        phi = fit_direction[1]
-        if phi < 0:
-            # Radiotools uses np.arctan2, which returns phi in the interval [-pi, pi] -> map to [0, 2*pi]
-            phi += 360 * units.deg
-
-        return [theta, phi], out
+        return fit_direction, out
 
     @register_run()
     def run(self, event, detector):
@@ -149,7 +139,7 @@ class beamformingDirectionFitter:
             zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
             azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
 
-            # TODO: get this from Detector description
+            # Get all group IDs which are still present in the Station
             station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
 
             position_array = []
@@ -174,8 +164,8 @@ class beamformingDirectionFitter:
             station.set_parameter(stationParameters.zenith, zenith)
             station.set_parameter(stationParameters.azimuth, azimuth)
 
-            direction_difference = np.asarray([100, 100])
-            while direction_difference[0] > 0.5 * units.deg and direction_difference[1] > 0.5 * units.deg:
+            direction_difference = np.asarray([90, 90]) * units.deg
+            while direction_difference[0] > 0.5 * units.deg or direction_difference[1] > 0.5 * units.deg:
                 # Make sure all the previously calculated Efields are removed
                 station.set_electric_fields([])
 
@@ -184,9 +174,13 @@ class beamformingDirectionFitter:
                     converter.run(event, station, detector, use_channels=ant)
 
                 # Perform the direction fit on the station
-                direction_fit, freq_spectrum = self._direction_fit(
-                    station, position_array
-                )
+                try:
+                    direction_fit, freq_spectrum = self._direction_fit(
+                        station, position_array
+                    )
+                except RuntimeError:
+                    self.logger.error(f"Direction fit could not be completed for station  CS{station.get_id():03d}")
+                    break
 
                 # Check if fit produced unphysical results
                 if direction_fit[0] > 90 * units.deg:

@@ -12,8 +12,13 @@ in the `NuRadioReco.framework.parameters.channelParameters.block_offsets` parame
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.framework.base_trace import BaseTrace
 from NuRadioReco.framework.parameters import channelParameters
+from NuRadioReco.modules.base.module import register_run
+
 import numpy as np
 import scipy.optimize
+import logging
+
+logger = logging.getLogger('NuRadioReco.RNO_G.channelBlockOffsetFitter')
 
 class channelBlockOffsets:
 
@@ -48,8 +53,8 @@ class channelBlockOffsets:
 
         Parameters
         ----------
-        event: Event object | None
-        station: Station
+        event : `NuRadioReco.framework.event.Event` | None
+        station : `NuRadioReco.framework.station.Station`
             The station to add block offsets to
         offsets: float | array | dict
             offsets to add to the event. Default: 1 mV
@@ -86,16 +91,16 @@ class channelBlockOffsets:
             # save the added offsets as a channelParameter
             if channel.has_parameter(channelParameters.block_offsets):
                 block_offsets_old = channel.get_parameter(channelParameters.block_offsets)
-                channel.set_parameter(channelParameters.block_offsets, block_offsets_old + offsets)
+                channel.set_parameter(channelParameters.block_offsets, block_offsets_old + add_offsets)
             else:
-                channel.set_parameter(channelParameters.block_offsets, offsets)
+                channel.set_parameter(channelParameters.block_offsets, add_offsets)
 
             channel.set_trace(
                 channel.get_trace() + np.repeat(add_offsets, self.block_size),
                 channel.get_sampling_rate()
             )
 
-    def remove_offsets(self, event, station, mode='fit', channel_ids=None, maxiter=5):
+    def remove_offsets(self, event, station, mode='auto', channel_ids=None, maxiter=5):
         """
         Remove block offsets from an event
 
@@ -105,26 +110,32 @@ class channelBlockOffsets:
 
         Parameters
         ----------
-        event: NuRadioReco.framework.event.Event | None
-        station: NuRadioReco.framework.station.Station
+        event : `NuRadioReco.framework.event.Event` | None
+        station : `NuRadioReco.framework.station.Station`
             The station to remove the block offsets from
-        mode: 'fit' | 'approximate' | 'stored'
+        mode: str {'auto', 'fit', 'approximate', 'stored'}, optional
             
-            - 'fit' (default): fit the block offsets with a minimizer
+            - 'fit': fit the block offsets with a minimizer
             - 'approximate' : use the first guess from the out-of-band component,
               without any fitting (slightly faster)
+            - 'auto' (default): decide automatically between 'approximate' and 'fit'
+              based on the estimated size of the block offsets.
             - 'stored': use the block offsets already stored in the 
               ``channelParameters.block_offsets`` parameter. Will raise an error 
               if this parameter is not present.
 
         channel_ids: list | None
             List of channel ids to remove offsets from. If None (default),
-            remove offsets from all channels in ``station``
+            remove offsets from all channels in `station`
         maxiter: int, default 5
             (Only if mode=='fit') The maximum number of fit iterations.
             This can be increased to more accurately remove the block offsets
             at the cost of performance. (The default value removes 'most' offsets
             to about 1%)
+
+        See Also
+        --------
+        run : alias of this method
 
         """
         if channel_ids  is None:
@@ -149,10 +160,63 @@ class channelBlockOffsets:
         
         self.add_offsets(event, station, offsets, channel_ids)
 
+    def begin(self):
+        """(Unused)"""
+        pass
+
+    @register_run()
+    def run(self, event, station, det=None, mode='auto', channel_ids=None, **kwargs):
+        """
+        Remove the block offsets from all channels of a station.
+
+        Fits and removes the block offsets from an event. The removed offsets
+        are stored in the ``channelParameters.block_offsets``
+        parameter.
+
+        This method is an alias of `remove_offsets`, with the only difference the inclusion
+        of the (unused) `det` parameter, to be consistent with the `run` methods of other
+        NuRadio classes.
+
+        Parameters
+        ----------
+        event : `NuRadioReco.framework.event.Event` | None
+        station : `NuRadioReco.framework.station.Station`
+            The station to remove the block offsets from
+        det : Detector object, optional
+            Detector object (not used in this method,
+            included to have the same signature as other NuRadio classes)
+        mode : str {'auto', 'fit', 'approximate', 'stored'}, optional
+
+            - 'fit': fit the block offsets with a minimizer
+            - 'approximate' : use the first guess from the out-of-band component,
+              without any fitting (slightly faster)
+            - 'auto' (default): decide automatically between 'approximate' and 'fit'
+              based on the estimated size of the block offsets.
+            - 'stored': use the block offsets already stored in the
+              ``channelParameters.block_offsets`` parameter. Will raise an error
+              if this parameter is not present.
+
+        channel_ids : list | None
+            List of channel ids to remove offsets from. If None (default),
+            remove offsets from all channels in `station`.
+        **kwargs : keyword arguments
+            Other keyword arguments to be passed to the `remove_offsets` function.
+
+        See Also
+        --------
+        remove_offsets : alias of this method without the (unused) `det` parameter
+        """
+        self.remove_offsets(event, station, mode=mode, channel_ids=channel_ids, **kwargs)
+
+
+    def end(self):
+        """(Unused)"""
+        pass
+
 
 def fit_block_offsets(
         trace, block_size=128, sampling_rate=3.2*units.GHz,
-        max_frequency=50*units.MHz, mode='fit', return_trace = False,
+        max_frequency=50*units.MHz, mode='auto', return_trace = False,
         maxiter=5, tol=1e-6):
     """
     Fit 'block' offsets for a voltage trace
@@ -172,10 +236,12 @@ def fit_block_offsets(
         the fit to the block offsets is performed
         in the frequency domain, in the band up to
         max_frequency
-    mode: 'fit' | 'approximate'
-        Whether to fit the block offsets (default)
+    mode : str {'auto', 'fit', 'approximate'}, optional
+        Whether to fit the block offsets
         or just use the first guess from the out-of-band
-        component (faster)
+        component (faster). By default ('auto'), decide
+        automatically based on the size of the block offsets
+        (only fit if the largest block offset exceeds 50% of the Vrms).
     return_trace: bool (default: False)
         if True, return the tuple (offsets, output_trace)
         where the output_trace is the input trace with
@@ -198,6 +264,13 @@ def fit_block_offsets(
     ----------------
     tol: float (default: 1e-6)
         tolerance parameter passed on to scipy.optimize.minimize
+
+    See Also
+    --------
+    channelBlockOffsets :
+        Class that uses this function to automatically remove the block offsets for all
+        channels in a station.
+
     """
     dt = 1. / sampling_rate
     spectrum = fft.time2freq(trace, sampling_rate)
@@ -216,10 +289,24 @@ def fit_block_offsets(
 
     # obtain guesses for block offsets
     a_guess = np.mean(np.split(filtered_trace, n_blocks), axis=1)
+
     if mode == 'approximate':
-        block_offsets = a_guess + np.mean(trace)
+        perform_fit = False
     elif mode == 'fit':
-        # self._offset_guess[channel_id] = a_guess
+        perform_fit = True
+    elif mode == 'auto':
+        # continue to fitting step only if the largest block offset is more than 20% of the Vrms
+        max_offset = np.max(np.abs(a_guess))
+        vrms = np.std(trace)
+        perform_fit = max_offset > 0.5 * vrms
+        if perform_fit:
+            logger.warning("Trace has large block offsets (>{:.0f}% of Vrms), removing by fitting.".format(100 * max_offset / vrms))
+    else:
+        raise ValueError(f'Invalid value for mode={mode}. Accepted values are {{"fit", "approximate"}}')
+
+    if not perform_fit: # just return the first guess
+        block_offsets = a_guess + np.mean(trace)
+    else:
         # we can get rid of one parameter through a global shift
         a_guess = a_guess[:-1] - a_guess[-1]
 
@@ -246,15 +333,16 @@ def fit_block_offsets(
             return chi2
 
         res = scipy.optimize.minimize(pedestal_fit, a_guess, tol=tol, options=dict(maxiter=maxiter)).x
-
-        block_offsets = np.zeros(len(res) + 1)
-        block_offsets[:-1] = res
+        logger.debug(
+            "Fit shifted estimated block offsets by {:.2f} ({:.0f}%)".format(
+                np.median(res-a_guess), 100*np.median((res-a_guess)/res)))
 
         # the fit is not sensitive to an overall shift,
         # so we include the zero-meaning here
+        block_offsets = np.zeros(len(res) + 1)
+        block_offsets[:-1] = res
         block_offsets += np.mean(trace) - np.mean(block_offsets)
-    else:
-        raise ValueError(f'Invalid value for mode={mode}. Accepted values are {{"fit", "approximate"}}')
+
 
     if return_trace:
         output_trace = trace - np.repeat(block_offsets, block_size)

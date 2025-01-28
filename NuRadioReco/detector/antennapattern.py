@@ -118,7 +118,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases, encoding = None):
 
     Returns
     -------
-    all paramters of the file
+    all paramters of the file as numpy arrays
     """""
 
     with open(path_gain, 'r', encoding = encoding) as fin:
@@ -179,7 +179,7 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74, 
 
     ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases, encoding = encoding)
     c = constants.c * units.m / units.s
-    Z_0 = 119.9169 * np.pi
+    Z_0 = 119.9169 * np.pi # free space impedance
 
     theta = np.deg2rad(theta)
     phi = np.deg2rad(phi)
@@ -188,9 +188,8 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74, 
 
     H_theta = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
     H_phi = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
-    H_theta = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_theta ** 0.5 * np.exp(1j * phase_theta)
-    H_phi = wavelength * (50 / (4 * np.pi * Z_0)) ** 0.5 * gain_phi ** 0.5 * np.exp(1j * phase_phi)
 
+    # orientation and rotation angles of the antenna for which the pattern is given
     zen_boresight = 0
     azi_boresight = 0
     zen_ori = 0.5 * np.pi
@@ -319,9 +318,9 @@ def preprocess_WIPLD_old(path, gen_num=1, s_parameters=None):
     phi: float
         azimuth angle of incident electric field
     H_phi: float
-        the complex vector effective length of the ePhi polarization component
+        the complex realized vector effective length of the ePhi polarization component
     H_theta: float
-        the complex vector effective length of the eTheta polarization component
+        the complex realized vector effective length of the eTheta polarization component
     """
     if s_parameters is None:
         s_parameters = [1, 1]
@@ -413,9 +412,9 @@ def preprocess_WIPLD(path, gen_num=1, s_parameters=None):
     phi: float
         azimuth angle of incident electric field
     H_phi: float
-        the complex vector effective length of the ePhi polarization component
+        the complex realized vector effective length of the ePhi polarization component
     H_theta: float
-        the complex vector effective length of the eTheta polarization component
+        the complex realized vector effective length of the eTheta polarization component
     """
     if s_parameters is None:
         s_parameters = [1, 1]
@@ -538,7 +537,7 @@ def save_preprocessed_WIPLD_forARA(path):
 
 def get_pickle_antenna_response(path):
     """
-    opens and return the pickle file containing the preprocessed WIPL-D antenna simulation
+    opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation in NuRadioReco conventions.
 
     If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
     the file will be downloaded from a central data server
@@ -548,13 +547,37 @@ def get_pickle_antenna_response(path):
     path: string
         the path to the pickle file
 
+    Returns
+    -------
+    res: 9 lists
+        list containing the following elements:
+
+        * orientation_theta: float
+            orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        * orientation_phi: float
+            orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        * rotation_theta: float
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+        * rotation_phi: float
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+        * ff: array of floats
+            array of frequencies
+        * thetas: array of floats
+            zenith angle of inicdent electric field
+        * phis: array of floats
+            azimuth angle of incident electric field
+        * H_phi: array of floats
+            the complex realized vector effective length of the ePhi polarization component
+        * H_theta: array of floats
+            the complex realized vector effective length of the eTheta polarization component
+
     """
 
     download_file = False
 
     # check if gziped pickle file already exists
     if not os.path.exists(path):
-        logger.warning("antenna pattern {} does not exist, file will be downloaded".format(path))
+        logger.status("antenna pattern {} does not exist, file will be downloaded".format(path))
         download_file = True
 
     if os.path.exists(path):
@@ -575,7 +598,7 @@ def get_pickle_antenna_response(path):
             print('search for', os.path.basename(path))
             if os.path.basename(path) in antenna_hashs.keys():
                 if sha1.hexdigest() != antenna_hashs[os.path.basename(path)]:
-                    logger.warning("antenna model {} has changed on the server. downloading newest version...".format(
+                    logger.status("antenna model {} has changed on the server. downloading newest version...".format(
                         os.path.basename(path)))
                     os.remove(path) # remove outdated file
                     download_file = True
@@ -591,8 +614,8 @@ def get_pickle_antenna_response(path):
 
         download_from_dataserver(remote_path, path)
 
-    #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
-    #         preprocess_WIPLD(path)
+    # # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
+    # preprocess_WIPLD(path)
     res = io_utilities.read_pickle(path, encoding='bytes')
     return res
 
@@ -865,7 +888,7 @@ def parse_HFSS_file(hfss):
 
 def preprocess_HFSS(path):
     """
-    preprocess an antenna pattern in the HFSS file format. The vector effective length is calculated and the output is saved in the NuRadioReco pickle format.
+    preprocess an antenna pattern in the HFSS file format. The realized vector effective length is calculated and the output is saved in the NuRadioReco pickle format.
 
     The vector effective length calculation still needs to be verified.
 
@@ -913,7 +936,7 @@ def preprocess_HFSS(path):
 
 def preprocess_XFDTD(path):
     """
-    preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
+    preprocess an antenna pattern in the XFDTD file format. The realized vector effective length is calculated and
     the output is saved to the NuRadioReco pickle format.
 
     Parameters
@@ -986,23 +1009,30 @@ def parse_LOFAR_txt_file(path_theta, path_phi):
     return freq, theta, phi, real_theta, imaginary_theta, real_phi, imaginary_phi
 
 
-def preprocess_LOFAR_txt(directory, ant='LBA'):
+def preprocess_LOFAR_txt(directory, ant='LBA', orientation=None):
     """
-    Function to parse the LOFAR antenna model simulation files in TXT format. It extracts the
-    vector effective length for all simulated frequencies, azimuth and zenith angles and dumps
-    them into a pickle file according to the NRR specification.
+    Function to process the TXT files from the old LOFAR antenna model (only tested for LBA). The paths to these
+    files is currently hardcoded. Because of a weird issue which requires minus signs to be added for the X and Y
+    dipoles separately, the orientation can be specified to create separate antenna models for each. If the
+    orientation is not set, the values for the Y dipole are returned.
 
     Parameters
     ----------
     directory : str
-        The path to the directory where the TXT files are stored
+        Path to where the text files are stored
     ant : str, default='LBA'
-        The antenna type
+        The antenna type, either LBA or HBA (not tested)
+    orientation : str, default=None
+        If set, must be either X or Y.
     """
     path_theta = os.path.join(directory, f'{ant}_Vout_theta.txt')
     path_phi = os.path.join(directory, f'{ant}_Vout_phi.txt')
 
     frequencies, thetas, phis, theta_real, theta_imag, phi_real, phi_imag = parse_LOFAR_txt_file(path_theta, path_phi)
+
+    if orientation == 'X':
+        for ar in [theta_real, theta_imag, phi_real, phi_imag]:
+            ar *= -1
 
     VEL_thetas = theta_real + 1j * theta_imag
     VEL_phis = phi_real + 1j * phi_imag
@@ -1024,7 +1054,10 @@ def preprocess_LOFAR_txt(directory, ant='LBA'):
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = \
         90 * units.deg, 0 * units.deg, 0 * units.deg, 0 * units.deg
 
-    fname = f'LOFAR_{ant}'
+    if orientation is not None:
+        fname = f'LOFAR_{ant}_{orientation}'
+    else:
+        fname = f'LOFAR_{ant}'
     output_filename = '{}.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
 
     directory = os.path.dirname(output_filename)
@@ -1112,7 +1145,7 @@ class AntennaPatternBase:
         ----------
 
         """
-        # define orientation of wiplD antenna simulation (in ARIANNA CS)
+        # define orientation of WIPL-D antenna simulation in NuRadio coordinate system
         e1 = hp.spherical_to_cartesian(self._orientation_theta, self._orientation_phi)  # boresight direction
         e2 = hp.spherical_to_cartesian(self._rotation_theta, self._rotation_phi)  # vector perpendicular to tine plane
         e3 = np.cross(e1, e2)
@@ -1121,7 +1154,7 @@ class AntennaPatternBase:
             logger.error("orientation of antenna not properly defined in WIPL-D orientation file")
             raise AssertionError("orientation of antenna not properly defined in WIPL-D orientation file")
 
-        # get normal vectors for antenne orientation in field (in ARIANNA CS)
+        # get normal vectors for antenne orientation in field in NuRadio coordinate system
         a1 = hp.spherical_to_cartesian(orientation_theta, orientation_phi)
         a2 = hp.spherical_to_cartesian(rotation_theta, rotation_phi)
         a3 = np.cross(a1, a2)
@@ -1135,7 +1168,7 @@ class AntennaPatternBase:
 
     def _get_theta_and_phi(self, zenith, azimuth, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
         """
-        transform zenith and azimuth angle in ARIANNA coordinate system to the WIPLD coordinate system.
+        transform zenith and azimuth angle in NuRadio coordinate system to the WIPLD coordinate system.
         In addition the orientation of the antenna as deployed in the field is taken into account.
 
         Parameters
@@ -1166,7 +1199,7 @@ class AntennaPatternBase:
         """
         get the antenna response for a specific frequency, zenith and azimuth angle
 
-        All angles are specified in the ARIANNA coordinate system. All units are in ARIANNA default units
+        All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units
 
         Parameters
         ----------
@@ -1199,37 +1232,64 @@ class AntennaPatternBase:
 
         if isinstance(freq, (float, int)):
             freq = np.array([freq])
-        theta, phi = self._get_theta_and_phi(zenith, azimuth, orientation_theta, orientation_phi, rotation_theta,
-                                             rotation_phi)
+
+        theta, phi = self._get_theta_and_phi(
+            zenith, azimuth, orientation_theta, orientation_phi,
+            rotation_theta, rotation_phi)
 
         Vtheta_raw, Vphi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
-        # now rotate the raw theta and phi component of the VEL into the ARIANNA coordinate system.
-        # As the theta and phi angles are differently defined in WIPLD and ARIANNA, also the orientation of the
+        # now rotate the raw theta and phi component of the VEL into the NuRadio coordinate system.
+        # As the theta and phi angles are differently defined in WIPLD and NuRadio, also the orientation of the
         # eTheta and ePhi unit vectors are different.
         cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
         # print('Vtheta_raw',Vtheta_raw.dtype)
         # print('Vtheta_raw.shape[0])', Vtheta_raw)
         V_xyz_raw = cstrans.transform_from_onsky_to_ground(
             np.array([np.zeros(Vtheta_raw.shape[0]), Vtheta_raw, Vphi_raw]))
-        rot = self._get_antenna_rotation(orientation_theta, orientation_phi, rotation_theta, rotation_phi)
-        from numpy.linalg import inv
-        V_xyz = np.dot(inv(rot), V_xyz_raw)
+
+        rot = self._get_antenna_rotation(
+            orientation_theta, orientation_phi, rotation_theta, rotation_phi)
+        V_xyz = np.dot(np.linalg.inv(rot), V_xyz_raw)
 
         cstrans2 = cs.cstrafo(zenith=zenith, azimuth=azimuth)
         V_onsky = cstrans2.transform_from_ground_to_onsky(V_xyz)
         VEL = {'theta': V_onsky[1],
                'phi': V_onsky[2]}
+
         return VEL
 
 
 class AntennaPattern(AntennaPatternBase):
     """
-    utility class that handles access and buffering to simulated antenna pattern
+    Utility class that handles access and buffering to simulated antenna pattern.
+    The class accesses the NuRadioReco pickle format file which contains the preprocessed antenna pattern.
+
+    The pickle file contains 9 lists of the following elements:
+
+    orientation_theta: float
+        orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+    orientation_phi: float
+        orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+    rotation_theta: float
+        rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+    rotation_phi: float
+        rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+    ff: array of floats
+        array of frequencies
+    thetas: array of floats
+        zenith angle of inicdent electric field
+    phis: array of floats
+        azimuth angle of incident electric field
+    H_phi: array of floats
+        the complex realized vector effective length of the ePhi polarization component
+    H_theta: array of floats
+        the complex realized vector effective length of the eTheta polarization component
+
     """
 
     def __init__(self, antenna_model, path=path_to_antennamodels,
-                 interpolation_method='complex'):
+                 interpolation_method='complex', do_consistency_check=True):
         """
 
         Parameters
@@ -1282,28 +1342,29 @@ class AntennaPattern(AntennaPatternBase):
         self.VEL_phi = H_phi
         self.VEL_theta = H_theta
 
-        # additional consistency check
-        for iFreq, freq in enumerate(self.frequencies):
-            for iPhi, phi in enumerate(self.phi_angles):
-                for iTheta, theta in enumerate(self.theta_angles):
-                    index = self._get_index(iFreq, iTheta, iPhi)
+        if do_consistency_check:
+            # additional consistency check
+            for iFreq, freq in enumerate(self.frequencies):
+                for iPhi, phi in enumerate(self.phi_angles):
+                    for iTheta, theta in enumerate(self.theta_angles):
+                        index = self._get_index(iFreq, iTheta, iPhi)
 
-                    if phi != phis[index]:
-                        logger.error("phi angle has changed during theta loop {0}, {1}".format(
-                            phi / units.deg, phis[index] / units.deg))
-                        raise Exception("phi angle has changed during theta loop")
+                        if phi != phis[index]:
+                            logger.error("phi angle has changed during theta loop {0}, {1}".format(
+                                phi / units.deg, phis[index] / units.deg))
+                            raise Exception("phi angle has changed during theta loop")
 
-                    if theta != thetas[index]:
-                        logger.error("theta angle has changed during theta loop {0}, {1}".format(
-                            theta / units.deg, thetas[index] / units.deg))
-                        raise Exception("theta angle has changed during theta loop")
+                        if theta != thetas[index]:
+                            logger.error("theta angle has changed during theta loop {0}, {1}".format(
+                                theta / units.deg, thetas[index] / units.deg))
+                            raise Exception("theta angle has changed during theta loop")
 
-                    if freq != ff[index]:
-                        logger.error("frequency has changed {0}, {1}".format(
-                            freq, ff[index]))
-                        raise Exception("frequency has changed")
+                        if freq != ff[index]:
+                            logger.error("frequency has changed {0}, {1}".format(
+                                freq, ff[index]))
+                            raise Exception("frequency has changed")
 
-        logger.warning('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
+        logger.status('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
 
     def _get_index(self, iFreq, iTheta, iPhi):
         """
@@ -1312,7 +1373,7 @@ class AntennaPattern(AntennaPatternBase):
 
     def _get_antenna_response_vectorized_raw(self, freq, theta, phi):
         """
-        get vector effective length in WIPLD coordinate system
+        get vector effective length in (WIPLD) coordinate system
         """
         while phi < self.phi_lower_bound:
             phi += 2 * np.pi
@@ -1562,7 +1623,7 @@ class AntennaPatternProvider(object):
             AntennaPatternProvider.__instance = object.__new__(cls)
         return AntennaPatternProvider.__instance
 
-    def __init__(self, log_level=logging.WARNING):
+    def __init__(self, log_level=logging.NOTSET):
         """
         Provider class for antenna pattern. The usage of antenna pattern through this class ensures
         that an antenna pattern is loaded only once into memory which takes a significant time and occupies a
@@ -1590,16 +1651,18 @@ class AntennaPatternProvider(object):
             key word arguments that are passed to the init function of the `AntennaPattern` class (see
             documentation of this class for further information)
         """
-        if name in self._antenna_model_replacements.keys():
-            if self._antenna_model_replacements[name] not in self._open_antenna_patterns.keys():
-                logger.warning("local replacement of antenna model requsted: replacing {} with {}".format(name,
-                                                                                                          self._antenna_model_replacements[
-                                                                                                              name]))
+        if name in self._antenna_model_replacements:
+            if self._antenna_model_replacements[name] not in self._open_antenna_patterns:
+                logger.status("local replacement of antenna model requsted: replacing {} with {}".format(
+                    name, self._antenna_model_replacements[name]))
+
             name = self._antenna_model_replacements[name]
-        if name not in self._open_antenna_patterns.keys():
+
+        if name not in self._open_antenna_patterns:
             if name.startswith("analytic"):
                 self._open_antenna_patterns[name] = AntennaPatternAnalytic(name, **kwargs)
                 logger.info("loading analytic antenna model {}".format(name))
             else:
                 self._open_antenna_patterns[name] = AntennaPattern(name, **kwargs)
+
         return self._open_antenna_patterns[name]
