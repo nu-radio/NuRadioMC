@@ -71,7 +71,6 @@ class Detector():
 
         Parameters
         ----------
-
         database_connection : str (Default: 'RNOG_public')
             Allows to specify database connection. Passed to mongo-db interface.
 
@@ -192,7 +191,6 @@ class Detector():
 
         Parameters
         ----------
-
         filename: str
             Filename of the exported detector description
 
@@ -265,7 +263,6 @@ class Detector():
 
         Parameters
         ----------
-
         skip_signal_chain_response: bool
             If true drop the data of the response chain from the detector description (because this creates large files).
             (Default: True)
@@ -372,7 +369,6 @@ class Detector():
 
         Parameters
         ----------
-
         time: `datetime.datetime` or ``astropy.time.Time``
             UTC time.
         '''
@@ -406,7 +402,6 @@ class Detector():
 
         Parameters
         ----------
-
         time: `datetime.datetime` or ``astropy.time.Time``
             Unix time of measurement.
         """
@@ -481,13 +476,11 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             Station id which uniquely idendifies a station
 
         Returns
         -------
-
         has_station: bool
             Returns True if the station could be found. A found station will be in the buffer.
         """
@@ -518,7 +511,6 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             Station id
 
@@ -526,10 +518,6 @@ class Detector():
             If true, query all relevant information form a station including its channel and devices (position, signal chain, ...).
             If false, query only the information from the station list collection (describes a station with all channels and devices
             with their (de)commissioning timestamps but not data like position, signal chain, ...)
-
-        Returns
-        -------
-        None
         """
 
         if station_id in self.__buffered_stations and self.__buffered_stations[station_id] != {}:
@@ -558,7 +546,6 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -573,7 +560,6 @@ class Detector():
 
         Returns
         -------
-
         channel_info: dict
             Dict of channel information
         """
@@ -627,12 +613,12 @@ class Detector():
         ----------
         station_id: int
             The station id
+
         channel_id: int
             The channel id
 
         Returns
         -------
-
         channel_info: dict
             Dictionary of channel parameters
         """
@@ -667,7 +653,6 @@ class Detector():
 
         Returns
         -------
-
         station_info: dict
             Dictionary of station parameters/information
         """
@@ -689,13 +674,11 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             the station id
 
         Returns
         -------
-
         pos: np.array(3,)
             3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
             time of measurement
@@ -726,7 +709,6 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -735,7 +717,6 @@ class Detector():
 
         Returns
         -------
-
         pos: np.array(3,)
             3-dim array of relative station position
         """
@@ -750,7 +731,8 @@ class Detector():
 
         Orientation:
             - theta: For LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
-            - phi: Counting from East counterclockwise; for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            - phi: Counting from East counterclockwise; for LPDA: outward along boresight;
+            for dipoles: upward along axis of azimuthal symmetry
 
         Rotation:
             - theta: Is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the tines
@@ -758,7 +740,6 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -788,7 +769,6 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -797,7 +777,6 @@ class Detector():
 
         Returns
         -------
-
         channel_signal_chain: dict
             Returns dictionary which contains a list ("signal_chain") which contains
             (the names of) components/response which are used to describe the signal
@@ -819,7 +798,6 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -831,10 +809,8 @@ class Detector():
 
         Returns
         -------
-
         response: array of complex floats
             Complex response function
-
 
         See Also
         --------
@@ -976,7 +952,6 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             Station id
 
@@ -1001,7 +976,6 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -1010,7 +984,6 @@ class Detector():
 
         Returns
         -------
-
         pos: np.array(3,)
             3-dim array of relative station position
         """
@@ -1040,13 +1013,11 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             Station id which uniquely idendifies a station
 
         Returns
         -------
-
         channel_ids: int
             Number of all channels for the requested station
         """
@@ -1069,13 +1040,11 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             Station id which uniquely idendifies a station
 
         Returns
         -------
-
         channel_ids: list(int)
             A list of all channel ids for the requested station
         """
@@ -1207,6 +1176,7 @@ class Detector():
         noise_temperature = self.get_channel(station_id, channel_id)["noise_temperature"]
         return noise_temperature
 
+
     def is_channel_noiseless(self, station_id, channel_id):
         is_noiseless = self.get_channel(station_id, channel_id)["is_noiseless"]
         return is_noiseless
@@ -1218,6 +1188,75 @@ class Detector():
         # because it is not clear which reference components may need to be substraced.
         # However, having the cable delay without amplifiers is anyway weird.
         return self.get_time_delay(station_id, channel_id, use_stored=use_stored, trigger=trigger)
+
+
+    def get_time_delay2(self, station_id, channel_id, trigger=False):
+        """ Returns the sum of the time delay of all components in the signal chain calculated from the phase.
+
+        The function returns the values which were precalculated by the hardware database interface. They
+        should correspond to the phase delay at ~200 MHz. This function returns the same values as
+        `get_time_delay` or `get_cable_delay` if `use_stored==True` which is the default for those functions.
+        However, Unlike `get_time_delay` or `get_cable_delay`, this function does not require the entire S21
+        parameter measurement to be available (this is the case if the detector was exported to file with
+        `drop_response_data==True` to reduce file size).
+
+        Parameters
+        ----------
+        station_id: int
+            The station id
+
+        channel_id: int
+            The channel id
+
+        trigger: bool
+            If True, the trigger channel resonse is returned. An error is raised
+            if no trigger response exists. (Default: False)
+
+        Returns
+        -------
+        time_delay: float
+            Sum of the time delays of all components in the signal chain for one channel.
+        """
+        signal_chain_dict = self.get_channel_signal_chain(
+        station_id, channel_id)
+
+        if trigger:
+            response_chain_key = "trigger_response_chain"
+
+            if response_chain_key not in signal_chain_dict or "is_trigger_chain_absolute" not in signal_chain_dict:
+                raise KeyError(f"No trigger response for station.channel {station_id}.{channel_id}")
+
+            if not signal_chain_dict["is_trigger_chain_absolute"]:
+                raise NotImplementedError("Relative trigger chains are not implemented yet.")
+        else:
+            response_chain_key = "response_chain"
+
+        measurement_components_dic = signal_chain_dict[response_chain_key]
+
+        total_time_delay = 0
+        for key, value in measurement_components_dic.items():
+
+            if "weight" in value:
+                weight = value["weight"]
+            else:
+                self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
+                weight = 1
+
+            assert abs(weight) == 1, f"Weight is {weight}, only values of `-1` and `1` are currently supported."
+
+            if "time_delay" in value:
+                time_delay = value["time_delay"]
+            else:
+                self.logger.warning(
+                    f"The signal chain component \"{key}\" of station.channel "
+                    f"{station_id}.{channel_id} has no time delay stored... "
+                    "Set component time delay to 0")
+                time_delay = 0
+
+            total_time_delay += weight * time_delay
+
+        return total_time_delay
+
 
     def get_time_delay(self, station_id, channel_id, use_stored=True, trigger=False):
         """ Return the sum of the time delay of all components in the signal chain calculated from the phase.
@@ -1241,6 +1280,10 @@ class Detector():
         -------
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
+
+        Also see
+        --------
+        `get_time_delay2` and `get_cable_delay`
         """
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
@@ -1272,13 +1315,18 @@ class Detector():
         """
         This detector class is exclusive for the RNO-G detector at Summit Greenland.
 
+        Parameters
+        ----------
+        station_id: int
+            the station ID (not used, only for compatibility with other detector classes)
+
         Returns
         -------
-
         site: str
             Returns "summit"
         """
         return "summit"
+
 
     def get_site_coordinates(self, station_id=None):
         """
@@ -1288,6 +1336,11 @@ class Detector():
         ----------
         station_id: int
             the station ID (not used, only for compatibility with other detector classes)
+
+        Returns
+        -------
+        coordinates: tuple(float, float)
+            Tuple of latitude and longitude in degrees
         """
         return (72.57, -38.46)
 
@@ -1298,7 +1351,6 @@ class Detector():
 
         Returns
         -------
-
         db: MongoClient
             Returns the database connection
         """
@@ -1352,10 +1404,24 @@ class Detector():
 
 
 def produce_detector_files_for_all_time_periods():
-    from NuRadioReco.detector import detector
+    """
+    This function produces a detector file for each time period necessary
+    """
+    det = Detector(
+        log_level=logging.DEBUG,
+        always_query_entire_description=True)
 
-    det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=True,
-                            database_connection='RNOG_public')
+    db = det.get_database()
+    ts_dict = db.query_modification_timestamps_per_station()
+
+    ts = np.unique(np.hstack([station_ts['modification_timestamps'] for station_ts in ts_dict.values()]))
+
+    for tdx in range(len(ts) - 1):
+        t0 = ts[tdx]
+        t1 = ts[tdx + 1]
+        time = t0 + (t1 - t0) / 2
+        det.update(time)
+        det.export(f"rnog_detector_{t0.strftime('%Y%m%d')}-{t1.strftime('%Y%m%d')}_withoutS21", drop_response_data=True)
 
 
 if __name__ == "__main__":
@@ -1365,18 +1431,14 @@ if __name__ == "__main__":
     det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=True,
                             database_connection='RNOG_public', select_stations=13)
 
-    det.update(datetime.datetime(2023, 7, 2, 0, 0))
-    det.export("test_small", drop_response_data=True)
 
-    # response = det.get_signal_chain_response(station_id=13, channel_id=0)
+    from NuRadioReco.framework import electric_field
+    ef = electric_field.ElectricField(channel_ids=[0])
+    ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
 
-    # from NuRadioReco.framework import electric_field
-    # ef = electric_field.ElectricField(channel_ids=[0])
-    # ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
+    # Multipy the response to a trace. The multiply operator takes care of everything
+    trace_at_readout = ef * response
 
-    # # Multipy the response to a trace. The multiply operator takes care of everything
-    # trace_at_readout = ef * response
-
-    # # getting the complex response as array
-    # freq = np.arange(50, 1000) * units.MHz
-    # complex_resp = response(freq)
+    # getting the complex response as array
+    freq = np.arange(50, 1000) * units.MHz
+    complex_resp = response(freq)
