@@ -69,8 +69,8 @@ class channelParametersRNOG(Enum):
     # RNO-G specific channel parameters
 
     # FS: I did not start with a negative parameter on the 1, hence I chose 100
-    glitch = 100 #: True if channel has a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
-
+    glitch = 100 #: True if channel is likely to have a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
+    glitch_test_statistic = 101 #: Numerical value delivered by the glitch detector. Positive values indicate a likely glitch.
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
