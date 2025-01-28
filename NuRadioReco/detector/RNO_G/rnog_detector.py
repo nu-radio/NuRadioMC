@@ -121,12 +121,14 @@ class Detector():
             "is_noiseless": False,
         }
 
+        self.additional_data = {}
+
         if select_stations is not None and not isinstance(select_stations, list):
             select_stations = [select_stations]
 
         self.selected_stations = select_stations
         self.logger.info(f"Select the following stations (if possible): {select_stations}")
-
+        self.__db = None
         if detector_file is None:
             self._det_imported_from_file = False
 
@@ -828,7 +830,7 @@ class Detector():
         return response_func(frequencies)
 
     @_check_detector_time
-    def get_signal_chain_response(self, station_id, channel_id):
+    def get_signal_chain_response(self, station_id, channel_id, trigger=False):
         """
         Returns a `detector.response.Response` object which describes the complex response of the
         entire signal chain, i.e., the combined reponse of all components of one
@@ -843,6 +845,9 @@ class Detector():
         channel_id: int
             The channel id
 
+        trigger: bool
+            If True, the trigger channel resonse is returned. An error is raised if no trigger response exists. (Default: False)
+
         Returns
         -------
 
@@ -852,9 +857,22 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
+        if trigger:
+            response_chain_key = "trigger_response_chain"
+            response_key = "total_trigger_response"
+
+            if response_chain_key not in signal_chain_dict or "is_trigger_chain_absolute" not in signal_chain_dict:
+                raise KeyError(f"No trigger response for station.channel {station_id}.{channel_id}")
+
+            if not signal_chain_dict["is_trigger_chain_absolute"]:
+                raise NotImplementedError("Relative trigger chains are not implemented yet.")
+        else:
+            response_chain_key = "response_chain"
+            response_key = "total_response"
+
         # total_response can be None if imported from file
-        if "total_response" not in signal_chain_dict or signal_chain_dict["total_response"] is None:
-            measurement_components_dic = signal_chain_dict["response_chain"]
+        if response_key not in signal_chain_dict or signal_chain_dict[response_key] is None:
+            measurement_components_dic = signal_chain_dict[response_chain_key]
 
             # Here comes a HACK
             components = list(measurement_components_dic.keys())
@@ -904,9 +922,9 @@ class Detector():
                 responses.append(response)
 
             # Buffer object
-            signal_chain_dict["total_response"] = np.prod(responses)
+            signal_chain_dict[response_key] = np.prod(responses)
 
-        return signal_chain_dict["total_response"]
+        return signal_chain_dict[response_key]
 
     @_check_detector_time
     def get_signal_chain_components(self, station_id, channel_id):
@@ -1180,72 +1198,57 @@ class Detector():
         return is_noiseless
 
 
-    def get_cable_delay(self, station_id, channel_id, use_stored=True):
-        """
-        Return the cable delay of a signal chain as stored in the detector description.
-
-        This interface is required by simulation.py. See `get_time_delay` for description of
-        arguments.
-        """
+    def get_cable_delay(self, station_id, channel_id, use_stored=True, trigger=False):
+        """ Same as `get_time_delay`. Only here to keep the same interface as the other detector classes. """
         # FS: For the RNO-G detector description it is not easy to determine the cable delay alone
         # because it is not clear which reference components may need to be substraced.
         # However, having the cable delay without amplifiers is anyway weird.
-        return self.get_time_delay(station_id, channel_id, cable_only=False, use_stored=use_stored)
+        return self.get_time_delay(station_id, channel_id, use_stored=use_stored, trigger=trigger)
 
-    def get_time_delay(self, station_id, channel_id, cable_only=False, use_stored=True):
-        """
-        Return the sum of the time delay of all components in the signal chain calculated from the phase
+    def get_time_delay(self, station_id, channel_id, use_stored=True, trigger=False):
+        """ Return the sum of the time delay of all components in the signal chain calculated from the phase.
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
         channel_id: int
             The channel id
 
-        cable_only: bool
-            If True: Consider only cables to calculate delay. (Default: False)
-
         use_stored: bool
             If True, take time delay as stored in DB rather than calculated from response. (Default: True)
 
+        trigger: bool
+            If True, the trigger channel resonse is returned. An error is raised if no trigger response exists.
+            (Default: False)
+
         Returns
         -------
-
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
         """
-
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
-        time_delay = 0
-        for key, value in signal_chain_dict["response_chain"].items():
+        if use_stored:
+            resp = self.get_signal_chain_response(station_id, channel_id, trigger=trigger)
+            return resp.get_time_delay()
+        else:
+            time_delay = 0
+            if trigger and "trigger_response_chain" not in signal_chain_dict:
+                raise KeyError(f"No trigger response for station.channel {station_id}.{channel_id}")
 
-            if re.search("cable", key) is None and re.search("fiber", key) and cable_only:
-                continue
-
-            weight = value.get("weight", 1)
-            if use_stored:
-                if "time_delay" not in value and "cable_delay" not in value:
-                    self.logger.warning(
-                        f"The signal chain component \"{key}\" of station.channel "
-                        f"{station_id}.{channel_id} has no cable/time delay stored... (hence return time delay without it)")
-                    continue
-
-                try:
-                    time_delay += weight * value["time_delay"]
-                except KeyError:
-                    time_delay += weight * value["cable_delay"]
-
-            else:
+            prefix = "trigger_" if trigger else ""
+            for key, value in signal_chain_dict[f"{prefix}response_chain"].items():
                 ydata = [value["mag"], value["phase"]]
+                # This is different from within `get_signal_chain_response` because we do set the time delay here
+                # and thus we do not remove it from the response.
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
+                weight = value.get("weight", 1)
                 time_delay += weight * response._calculate_time_delay()
 
         return time_delay
@@ -1275,17 +1278,75 @@ class Detector():
         return (72.57, -38.46)
 
 
+    def get_database(self):
+        """
+        Returns the database connection
+
+        Returns
+        -------
+
+        db: MongoClient
+            Returns the database connection
+        """
+        if self.__db is None:
+            self.logger.error("No database connection available. Return None")
+            return None
+
+        return self.__db
+
+
+    def get_component(self, collection="coax_cable", component="daq_drab_flower_2024_avg"):
+        """ Get the response of a component from the database.
+
+        This function is a wrapper around the same named function in the database class.
+
+        Parameters
+        ----------
+        collection: str (default: "coax_cable")
+            The collection name in the database.
+        component: str (default: "daq_drab_flower_2024_avg")
+            The component name in the collection.
+
+        Returns
+        -------
+        resp: `NuRadioReco.detector.response.Response`
+            Returns the response of a component.
+
+        See Also
+        --------
+        NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data
+        """
+        if component in self.additional_data and 'y-axis_units' in self.additional_data[component]:
+            component_data = self.additional_data[component]
+        else:
+            db = self.get_database()
+            if db is None:
+                raise ValueError(
+                    "No database connection. You probably imported the detector from a file. "
+                    "Please use the DB connection to load the component data.")
+
+            # load the s21 parameter measurement
+            component_data = db.get_component_data(
+                collection, component)
+            self.additional_data[component] = component_data
+
+        resp = Response(
+            component_data["frequencies"], [component_data["mag"], component_data["phase"]], component_data['y-axis_units'],
+            name=component, station_id=-1, channel_id=None)
+
+        return resp
+
+
 if __name__ == "__main__":
 
     from NuRadioReco.detector import detector
 
     det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=False,
-                            database_connection='RNOG_public', select_stations=24)
+                            database_connection='RNOG_public', select_stations=13)
 
-    det.update(datetime.datetime(2023, 8, 2, 0, 0))
+    det.update(datetime.datetime(2023, 7, 2, 0, 0))
 
-
-    response = det.get_signal_chain_response(station_id=24, channel_id=0)
+    response = det.get_signal_chain_response(station_id=13, channel_id=0)
 
     from NuRadioReco.framework import electric_field
     ef = electric_field.ElectricField(channel_ids=[0])
