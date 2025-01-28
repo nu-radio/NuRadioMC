@@ -704,7 +704,9 @@
 <dd class="field-odd"><dl>
 <dt><strong>medium: medium class</strong></dt><dd><p>class describing the index-of-refraction profile</p>
 </dd>
-<dt><strong>attenuation_model: string</strong></dt><dd><p>signal attenuation model (so far only “SP1” is implemented)</p>
+<dt><strong>attenuation_model: string</strong></dt><dd><p>if this parameter is also defined in the config file, the value from the config file
+will be used. If not, the value from this parameter will be used.</p>
+<p>signal attenuation model</p>
 </dd>
 <dt><strong>log_level: logging object</strong></dt><dd><p>specify the log level of the ray tracing class</p>
 <ul class="simple">
@@ -715,11 +717,15 @@
 </ul>
 <p>default is NOTSET (ie global control)</p>
 </dd>
-<dt><strong>n_frequencies_integration: int</strong></dt><dd><p>the number of frequencies for which the frequency dependent attenuation
+<dt><strong>n_frequencies_integration: int</strong></dt><dd><p>if this parameter is also defined in the config file, the value from the config file
+will be used. If not, the value from this parameter will be used.</p>
+<p>This parameter specifies the number of frequencies for which the frequency dependent attenuation
 length is being calculated. The attenuation length for all other frequencies
 is obtained via linear interpolation.</p>
 </dd>
-<dt><strong>n_reflections: int (default 0)</strong></dt><dd><p>in case of a medium with a reflective layer at the bottom, how many reflections should be considered</p>
+<dt><strong>n_reflections: int (default 0)</strong></dt><dd><p>if this parameter is also defined in the config file, the value from the config file
+will be used. If not, the value from this parameter will be used.</p>
+<p>in case of a medium with a reflective layer at the bottom, how many reflections should be considered</p>
 </dd>
 <dt><strong>config: nested dictionary</strong></dt><dd><p>loaded yaml config file</p>
 </dd>
