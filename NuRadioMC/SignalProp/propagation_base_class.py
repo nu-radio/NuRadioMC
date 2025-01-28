@@ -25,7 +25,10 @@ class ray_tracing_base:
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
-            signal attenuation model (so far only "SP1" is implemented)
+            if this parameter is also defined in the config file, the value from the config file
+            will be used. If not, the value from this parameter will be used.
+
+            signal attenuation model
         log_level: logging object
             specify the log level of the ray tracing class
 
@@ -36,10 +39,16 @@ class ray_tracing_base:
 
             default is NOTSET (ie global control)
         n_frequencies_integration: int
-            the number of frequencies for which the frequency dependent attenuation
+            if this parameter is also defined in the config file, the value from the config file
+            will be used. If not, the value from this parameter will be used.
+
+            This parameter specifies the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
         n_reflections: int (default 0)
+            if this parameter is also defined in the config file, the value from the config file
+            will be used. If not, the value from this parameter will be used.
+
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
         config: nested dictionary
             loaded yaml config file
