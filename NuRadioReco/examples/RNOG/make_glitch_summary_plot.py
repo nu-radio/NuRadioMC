@@ -1,6 +1,5 @@
 import argparse, numpy as np
 from NuRadioReco.modules.io import eventReader
-from NuRadioReco.framework.parameters import channelParametersRNOG as chp
 import NuRadioReco.framework.parameters as parameters
 
 def plot(plot_data, outpath, fs = 13, zoomfact = 1.1):
@@ -88,7 +87,7 @@ def make_glitch_summary_plot(nur_path, plot_path, channels = [0, 1, 2, 3]):
             ch_data.add_parameter_type(parameters.channelParametersRNOG)
             ch_number = ch_data.get_id()
             
-            ts = ch_data.get_parameter(chp.glitch_test_statistic)
+            ts = ch_data.get_parameter(parameters.channelParametersRNOG.glitch_test_statistic)
 
             if ch_number not in plot_data:
                 plot_data[ch_number] = []
