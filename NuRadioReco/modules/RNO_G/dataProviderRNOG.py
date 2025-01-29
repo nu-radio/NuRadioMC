@@ -30,7 +30,7 @@ class dataProvideRNOG:
         self.detector = det
 
     def end(self):
-        pass
+        self.reader.end()
 
     def run(self):
 
