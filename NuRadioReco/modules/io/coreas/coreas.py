@@ -37,7 +37,8 @@ def make_sim_shower(*args, **kwargs):
 
 def make_sim_station(*args, **kwargs):
     """
-    DEPRECATED
+    DEPRECATED: This function has been moved to `create_sim_station()`, however its functionality has been modified. Please
+    refer to the documentation of `create_sim_station()` for more information.
     """
     raise DeprecationWarning("This function has been deprecated since version 3.0. "
                              "You will probably want to move to create_sim_station() instead.")

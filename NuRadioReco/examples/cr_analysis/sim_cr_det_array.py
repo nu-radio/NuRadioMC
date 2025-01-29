@@ -15,15 +15,17 @@ import NuRadioReco.modules.io.eventWriter
 import logging
 import argparse
 
-logger = logging.getLogger()
+logger = logging.getLogger("NuRadioReco.sim_cr_det_array")   # Logging level is globally controlled
 logger.setLevel(logging.WARNING)
 
 """
-This script is an example of how to run the air shower reconstruction with a detector containing an array of stations. The core position 
-of the shower can be set to a list of positions. See readCoREASDetector.run for more details.
+This script is an example of how to run the air shower reconstruction with a detector containing an array of stations, each with multiple antennas.
+
 The input file needs to be a CoREAS hdf5 file. The output is a .nur file with the reconstructed event.
 The input file is read in with readCoREASDetector module, which creates simulated events with all stations in the detector description,
-the electric field is interpolated to the positions of the antennas.
+the electric field is interpolated to the positions of the antennas. The core position of the shower can be set to a list of positions, 
+see readCoREASDetector.run() for more details.
+
 The other modules used are necessary to simulate the detector response, add noise, trigger the event, and write the event to a .nur file.
 Please refer to the modules for more details.
 

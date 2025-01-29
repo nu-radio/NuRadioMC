@@ -16,11 +16,11 @@ import NuRadioReco.modules.io.eventWriter
 import logging
 import argparse
 
-logger = logging.getLogger()
+logger = logging.getLogger("NuRadioReco.sim_cr_single_station")   # Logging level is globally controlled
 logger.setLevel(logging.INFO)
 
 """
-This script is an example of how to run the air shower reconstruction with a detector containing only single station with multiple antennas. 
+This script is an example of how to run the air shower reconstruction with a detector containing only a single station with multiple antennas. 
 
 The input file needs to be a CoREAS hdf5 file. The output is a .nur file with the reconstructed event.
 The input file is read in with readCoREASStation module, which creates simulated events for each CoREAS observer.
