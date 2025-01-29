@@ -35,11 +35,19 @@ def make_sim_shower(*args, **kwargs):
                              "You will probably want to move to create_sim_shower() instead.")
 
 
+def make_sim_station(*args, **kwargs):
+    """
+    DEPRECATED
+    """
+    raise DeprecationWarning("This function has been deprecated since version 3.0. "
+                             "You will probably want to move to create_sim_station() instead.")
+
+
 # UTILITY FUNCTIONS
 def get_angles(corsika, declination):
     """
-    Converting angles in corsika coordinates to local coordinates. 
-    
+    Converting angles in corsika coordinates to local coordinates.
+
     Corsika positive x-axis points to the magnetic north, NRR coordinates positive x-axis points to the geographic east.
     Corsika positive y-axis points to the west, NRR coordinates positive y-axis points to the geographic north.
     Corsika z-axis points upwards, NuRadio z-axis points upwards.
@@ -48,7 +56,7 @@ def get_angles(corsika, declination):
     z-axis, meaning that the particle is described in the direction where it is going to. The azimuthal angle is
     described between the positive x-axis and the horizontal component of the particle momentum vector
     (i.e. with respect to the magnetic north) proceeding counterclockwise.
-    
+
     NRR describes the particle zenith and azimuthal angle in the direction where the particle is coming from.
     Therefore, the zenith angle is the same, but the azimuthal angle has to be shifted by 180 + 90 degrees.
     The north has to be shifted by 90 degrees plus difference between geomagnetic and magnetic north.
@@ -146,7 +154,7 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
         azimuth angle (in internal units)
     magnetic_field_vector : np.ndarray
         magnetic field vector
-    
+
     Returns
     -------
     efield: np.array (3, n_samples)
@@ -194,12 +202,12 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, zenith, azimuth, ma
         azimuth angle (in internal units)
     magnetic_field_vector : np.ndarray
         magnetic field vector
-  
+
     Returns
     -------
     obs_positions_geo: np.ndarray
         observer positions in geographic coordinates, shaped as (n_observers, 3).
-    
+
     """
     cs = coordinatesystems.cstrafo(
         zenith / units.rad, azimuth / units.rad,
@@ -534,7 +542,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     Calculate weights according to the area that one simulated position in readCoreasStation represents.
     Weights are therefore given in units of area.
     Note: The volume of a 2d convex hull is the area.
-    
+
     Parameters
     ----------
     positions : list
@@ -547,7 +555,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         site of the simulation, default is 'summit'
     debug : bool
         if true, plots are created for debugging
-    
+
     Returns
     -------
     weights : np.array
