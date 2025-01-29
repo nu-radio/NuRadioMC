@@ -1245,10 +1245,8 @@ class simulation:
 
         prop = propagation.get_propagation_module(self._config['propagation']['module'])
         self._propagator = prop(
-            self._ice, self._config['propagation']['attenuation_model'],
+            self._ice,
             log_level=self._log_level_ray_propagation,
-            n_frequencies_integration=int(self._config['propagation']['n_freq']),
-            n_reflections=int(self._config['propagation']['n_reflections']),
             config=self._config,
             detector=self._det
         )

@@ -81,7 +81,7 @@ To install all (optional and non-optional) dependencies available in pip at once
 
 .. code-block:: Bash
 
-  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-connector-python pymongo dash plotly toml peakutils future radiotools filelock mattak pygdsm MCEq crflux
+  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-connector-python pymongo dash plotly toml peakutils future radiotools filelock mattak git+https://github.com/telegraphic/pygdsm pylfmap MCEq crflux
 
 Note that some optional dependencies are not pip-installable and need to be 
 :ref:`installed manually <Introduction/pages/installation:Not pip-installable packages>`
@@ -203,10 +203,11 @@ use ``pip install nuradiomc[all]`` to install all optional dependencies.
 - ``[galacticnoise]``
 
   To use the channelGalacticNoiseAdder, you need the `PyGDSM <https://github.com/telegraphic/pygdsm>`_ package.
+  Some additional galactic noise models used by LOFAR for calibration purposes are provided by ``pylfmap``.
 
   .. code-block:: Bash
 
-    pip install git+https://github.com/telegraphic/pygdsm
+    pip install git+https://github.com/telegraphic/pygdsm pylfmap
 
 - ``[muon-flux]``
 
