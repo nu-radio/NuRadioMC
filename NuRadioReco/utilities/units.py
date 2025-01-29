@@ -221,7 +221,7 @@ microampere = micro * ampere
 nanoampere = nano * ampere
 
 # Electric potential [E][Q^-1]
-volt = 1  # == electronvolt / eplus
+volt = electronvolt / eplus  # == 1
 microvolt = micro * volt
 millivolt = milli * volt
 kilovolt = kilo * volt
