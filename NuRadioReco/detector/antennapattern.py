@@ -1071,10 +1071,13 @@ def preprocess_LOFAR_txt(directory, ant='LBA', orientation=None):
                      frequencies, theta, phi, H_phi, H_theta],
                     fout, protocol=4)
 
-def preprocess_FEKO_mat(path, polarization='X'):
+def preprocess_FEKO_mat(path, polarization='X', downscale_freq=1, downscale_zenith=4, downscale_azimuth=4):
     """
     used to convert FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat for the SKALA4 antenna to a pickle file
+
     The file contains the embedded element simulation of the SKALA4 antenna in the frequency range of 50-350 MHz.
+    The values correspond to the far-field emission of this antenna; to convert it
+    to realized vector effective length for the receiving antenna using Eq. 6 in [1]_.
 
     Parameters
     ----------
@@ -1083,42 +1086,82 @@ def preprocess_FEKO_mat(path, polarization='X'):
 
     polarization : str, default='X'
         X polarization is the antenna in east-west orientation, Y polarization is the antenna in north-south orientation.
+
+    downscale_freq : int, default: 1
+        The downscaling factor for the frequency spacing.
+        The native frequency spacing is 1 MHz, and the default
+        downscaling factor is 1 (no downscaling).
+
+    downscale_zenith : int, default: 4
+        The downscaling factor for the zenith spacing.
+        The native zenith spacing is 0.5 degrees, and the default
+        downscaling factor is 4, resulting in a spacing of 2 degrees.
+
+    downscale_azimuth : int, default: 4
+        The downscaling factor for the azimuth spacing.
+        The native azimuth spacing is 0.5 degrees, and the default
+        downscaling factor is 4, resulting in a spacing of 2 degrees.
+
+
+    References
+    ----------
+    [1] https://arxiv.org/abs/2412.01699
     """
 
     input_file = os.path.join(path, f'FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat')
     data = scipy.io.loadmat(input_file)
-    Ephi = data['Ephi'] # 721 x 181 x 301 (Phi, theta, freq)
-    Etheta = data['Etheta'] # 721 x 181 x 301
+    # the data format is 721 x 181 x 301 (Phi, theta, freq)
+    # NuRadio (for antenna models) expects the order (freq, phi, theta), so we have to move some axes
+    Ephi = data['Ephi'].transpose(2, 0, 1)
+    Etheta = data['Etheta'].transpose(2, 0, 1)
+
+    # the data is stored in 1 MHz and 0.5 degree spacing
     freqs_unique = np.linspace(50, 350, 301) * units.MHz
     phis_unique = np.linspace(0, 360, 721) * units.deg
     thetas_unique = np.linspace(0, 90, 181) * units.deg
 
+    freq, phi, theta = np.meshgrid(
+        freqs_unique, phis_unique, thetas_unique, indexing='ij')
 
-    freqs = []
-    thetas = []
-    phis = []
-    Ephis = []
-    Ethetas = []
-    for iFreq, freq in enumerate(freqs_unique):
-        for iPhi, phi in enumerate(phis_unique):
-            for iTheta, theta in enumerate(thetas_unique):
-                freqs.append(freq)
-                thetas.append(theta)
-                phis.append(phi)
-                Ephis.append(Ephi[iPhi, iTheta, iFreq])
-                Ethetas.append(Etheta[iPhi, iTheta, iFreq])
-    freqs = np.array(freqs)
-    thetas = np.array(thetas)
-    phis = np.array(phis)
-    Ephis = np.array(Ephis)
-    Ethetas = np.array(Ethetas)
+    # downscale from native spacing if required
+    if not np.all(np.array([downscale_freq, downscale_zenith, downscale_azimuth]) == 1):
+        mask = np.zeros_like(phi).astype(int)
+        mask[np.arange(0, len(freqs_unique), downscale_freq), :, :] += 1
+        mask[:, np.arange(0, len(phis_unique), downscale_azimuth), :] += 1
+        mask[:, :, np.arange(0, len(thetas_unique), downscale_zenith)] += 1
+        mask = mask > 2 # equivalent to applying the three masks successively
+
+        Ephi = Ephi[mask]
+        Etheta = Etheta[mask]
+        phi = phi[mask]
+        theta = theta[mask]
+        freq = freq[mask]
+
+        # check that the downscaling was correct
+        assert np.all(np.isin(np.unique(freq), freqs_unique))
+        assert np.all(np.isin(np.unique(theta), thetas_unique))
+        assert np.all(np.isin(np.unique(phi), phis_unique))
+
+        logger.status(f'Rescaling SKALA4 antenna from shape ({mask.shape}) to {Ephi.shape}...')
+
+    lambda_0 = (constants.speed_of_light * units.m / units.s) / freq # wavelength
+    eta_0 = np.sqrt(constants.mu_0 / constants.epsilon_0) * units.ohm # free space impedance
+    Z_L = 50 * units.ohm # we assume a 50 Ohm amplifier
+    vel_theta = -2.j * lambda_0 * Z_L / eta_0 * Etheta
+    del Etheta # free up some memory?
+    vel_phi = -2.j * lambda_0 * Z_L / eta_0  * Ephi
+    del Ephi # free up some memory?
+
+    orientation_theta = 0
+    orientation_phi = 0
+    rotation_theta = 90 * units.deg
 
     if polarization == 'X':
         # use this angles and name SKALA_v4_Xpol to have your channel in east-west orientation
-        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 0 * units.deg 
+        rotation_phi = 90 * units.deg
     if polarization == 'Y':
         # use this angles and name SKALA_v4_Ypol to have your channel in north-south orientation
-        orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg 
+        rotation_phi = 180 * units.deg
 
     fname = f'SKALA_v4_{polarization}pol'
     output_filename = "{}.pkl".format(os.path.join(path_to_antennamodels, fname, fname))
@@ -1129,7 +1172,7 @@ def preprocess_FEKO_mat(path, polarization='X'):
     with open(output_filename, 'wb') as fout:
         print('saving output to {}'.format(output_filename))
         pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi,
-                     freqs, thetas, phis, Ephis, Ethetas],
+                     freq, theta, phi, vel_phi, vel_theta],
                     fout, protocol=4)
     print('done!')
 
