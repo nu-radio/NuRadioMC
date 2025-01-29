@@ -13,7 +13,7 @@ logger = logging.getLogger('NuRadioReco.ElectricField')
 
 
 class ElectricField(NuRadioReco.framework.base_trace.BaseTrace,
-                    NuRadioReco.framework.parameter_storage._ParameterStorage):
+                    NuRadioReco.framework.parameter_storage.ParameterStorage):
     def __init__(self, channel_ids, position=None,
                  shower_id=None, ray_tracing_id=None):
         """
@@ -37,7 +37,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace,
             the id of the corresponding ray tracing solution
         """
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
-        NuRadioReco.framework.parameter_storage._ParameterStorage.__init__(
+        NuRadioReco.framework.parameter_storage.ParameterStorage.__init__(
             self, parameters.electricFieldParameters)
 
         self._channel_ids = channel_ids
@@ -159,7 +159,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace,
         if save_trace:
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
 
-        data = NuRadioReco.framework.parameter_storage._ParameterStorage.serialize(self)
+        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
 
         data.update({
             'channel_ids': self._channel_ids,
@@ -176,7 +176,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace,
         if data['base_trace'] is not None:
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
 
-        NuRadioReco.framework.parameter_storage._ParameterStorage.deserialize(self, data)
+        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
 
         if 'position' in data:  # for backward compatibility
             self._position = data['position']

@@ -19,7 +19,7 @@ except ImportError:
 logger = logging.getLogger('NuRadioReco.BaseStation')
 
 
-class BaseStation(NuRadioReco.framework.parameter_storage._ParameterStorage):
+class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, station_id):
         super().__init__(parameters.stationParameters)
@@ -280,7 +280,7 @@ class BaseStation(NuRadioReco.framework.parameter_storage._ParameterStorage):
 
         station_time_dict = io_utilities._astropy_to_dict(self.get_station_time())
 
-        data = NuRadioReco.framework.parameter_storage._ParameterStorage.serialize(self)
+        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
         data.update({
             '_station_id': self._station_id,
             '_station_time': station_time_dict,
@@ -294,7 +294,7 @@ class BaseStation(NuRadioReco.framework.parameter_storage._ParameterStorage):
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        NuRadioReco.framework.parameter_storage._ParameterStorage.deserialize(self, data)
+        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
 
         if 'triggers' in data:
             self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
