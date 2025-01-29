@@ -171,11 +171,7 @@ class Detector:
 
     def get_relative_position(self, station_id, channel_id):
         """ Return the relative position of the antenna in the station (relative to station position) """
-        if channel_id > 1:
-            antenna_id = int(str(channel_id)[:-1]) # take all but the last digit
-        else:
-            antenna_id = 0
-
+        antenna_id = self.get_channel_group_id(station_id, channel_id)
         return self._antenna_positions[station_id][antenna_id]
 
     def get_antenna_model(self, station_id=None, channel_id=None, zenith_antenna=None):
@@ -195,7 +191,29 @@ class Detector:
         return -26.825, 116.764
 
     def get_channel_group_id(self, station_id, channel_id):
-        return channel_id
+        """ Return the channel_group_id for a given channel_id.
+
+        The channel_group_id associates channels which are at the same position (i.e., on the same antenna).
+        Hence, the channel_group_id is the antenna_id.
+
+        Parameters
+        ----------
+        station_id: int
+            Station ID.
+        channel_id: int
+            Channel ID.
+
+        Returns
+        -------
+        channel_group_id: int
+            The channel_group_id or antenna_id.
+        """
+        if channel_id > 1:
+            antenna_id = int(str(channel_id)[:-1]) # take all but the last digit
+        else:
+            antenna_id = 0
+
+        return antenna_id
 
 if __name__ == "__main__":
     import sys
