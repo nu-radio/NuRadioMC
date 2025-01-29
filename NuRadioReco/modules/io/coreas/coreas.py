@@ -265,13 +265,13 @@ def read_CORSIKA7(input_file, declination=None, site=None):
                 declination = 0
                 logger.warning(
                     "Site is not recognised by radiotools. Defaulting to 0 degrees declination. "
-                    "This might lead to incorrect electric field polarizations."
+                    "This might lead to unexpected electric field polarizations."
                 )
         else:
             declination = 0
             logger.warning(
                 "No declination or site given, assuming 0 degrees. "
-                "This might need to incorrect electric field polarizations."
+                "This might lead to unexpected electric field polarizations."
             )
 
     corsika = h5py.File(input_file, "r")
