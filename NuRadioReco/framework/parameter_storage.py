@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.framework.parameter_storage')
 
 
-class _ParameterStorage:
+class ParameterStorage:
     """
     This class is the base class to store parameters and their covariances. Other classes
     which have/should have a "parameter storage" shall inherit from this class. A parameter

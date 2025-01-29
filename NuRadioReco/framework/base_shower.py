@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.Shower')
 
 
-class BaseShower(NuRadioReco.framework.parameter_storage._ParameterStorage):
+class BaseShower(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, shower_id=0):
         super().__init__(showerParameters)
@@ -68,11 +68,11 @@ class BaseShower(NuRadioReco.framework.parameter_storage._ParameterStorage):
                                          self.get_parameter(showerParameters.magnetic_field_vector))
 
     def serialize(self):
-        data = NuRadioReco.framework.parameter_storage._ParameterStorage.serialize(self)
+        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
         data['_id'] = self._id
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        NuRadioReco.framework.parameter_storage._ParameterStorage.deserialize(self, data)
+        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
         self._id = data.get('_id', None)
