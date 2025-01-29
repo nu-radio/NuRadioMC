@@ -1,14 +1,12 @@
 import numpy as np
-import NuRadioReco.examples.cr_efficiency_analysis.helper_cr_eff as hcr
 from NuRadioReco.utilities import units
 from NuRadioReco.detector.detector import Detector
-from NuRadioReco.framework.trigger import RadiantAUXTrigger
 import NuRadioReco.modules.io.coreas.readCoREASDetector
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelGalacticNoiseAdder_fast
-import NuRadioReco.modules.trigger.radiant_aux_trigger
+import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.eventTypeIdentifier
 import NuRadioReco.modules.channelResampler
@@ -19,6 +17,31 @@ import argparse
 
 logger = logging.getLogger()
 logger.setLevel(logging.WARNING)
+
+"""
+This script is an example of how to run the air shower reconstruction with a detector containing an array of stations. The core position 
+of the shower can be set to a list of positions. See readCoREASDetector.run for more details.
+The input file needs to be a CoREAS hdf5 file. The output is a .nur file with the reconstructed event.
+The input file is read in with readCoREASDetector module, which creates simulated events with all stations in the detector description,
+the electric field is interpolated to the positions of the antennas.
+The other modules used are necessary to simulate the detector response, add noise, trigger the event, and write the event to a .nur file.
+Please refer to the modules for more details.
+
+Input parameters (all with a default provided)
+---------------------
+Command line input:
+    python sim_cr_det_array.py --input_file example_data/example_data.hdf5 --det_file ../detector/RNO_G/RNO_season_2023.json
+
+input_file: str
+            path to CoREAS simulation hdf5 file
+det_file: str
+            path to json detector file
+
+Output
+---------------------
+The output is a .nur file with the reconstructed event.
+
+"""
 
 parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 
@@ -54,7 +77,7 @@ channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder_fast.c
 channelGalacticNoiseAdder.begin(skymodel='gsm2016', n_side=4, freq_range=np.array([0.07, 0.81]))
 
 # module to simulate the trigger
-triggerSimulator = NuRadioReco.modules.trigger.radiant_aux_trigger.triggerSimulator()
+triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 triggerSimulator.begin()
 
 # module to filter the channels
@@ -73,7 +96,7 @@ channelResampler.begin()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 eventWriter.begin(f'cr_reco_array.nur')
 
-for evt in readCoREASDetector.run(det):
+for evt in readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions(-200, -100, 1600, 1800, 10)):
     for sta in evt.get_stations():        
         eventTypeIdentifier.run(evt, sta, "forced", 'cosmic_ray')
 
@@ -85,9 +108,12 @@ for evt in readCoREASDetector.run(det):
         hardwareResponseIncorporator.run(evt, sta, det, sim_to_data=True)
         
         triggerSimulator.run(evt, sta, det,
-                                threshold_sigma=10,
-                                triggered_channels=[13, 16, 19], #surface channels
-                                trigger_name=f'radiant_trigger_10sigma')
+                                threshold_high=5e-6,
+                                threshold_low=-5e-6,
+                                coinc_window=60,
+                                number_concidences=2,
+                                triggered_channels=[0, 1, 2, 3],
+                                trigger_name='high_low')
 
         channelResampler.run(evt, sta, det, sampling_rate=3.2)
 
