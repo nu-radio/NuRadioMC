@@ -8,7 +8,8 @@ logger = logging.getLogger('NuRadioReco.framework.parameter_storage')
 
 class ParameterStorage:
     """
-    This class is the base class to store parameters and their covariances. Other classes
+    This class is the base class to store parameters and their covariances. This class is not
+    supposed to be used by a user but only be used by other classes to inherit from. All classes
     which have/should have a "parameter storage" shall inherit from this class. A parameter
     storage is a dictionary-like object which stores parameters and their covariances. As
     keys only enums from defined emum classes are allowed (parameter classes). WHich
