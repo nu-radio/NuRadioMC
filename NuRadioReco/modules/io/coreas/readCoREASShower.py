@@ -113,31 +113,19 @@ class readCoREASShower:
                 efield_sampling_rate = corsika_efield.get_sampling_rate()
                 efield_times = corsika_efield.get_times()
 
-                prepend_zeros = True # prepend zeros to not have the pulse directly at the start, heritage from old code
-                if prepend_zeros:
-                    n_samples_prepend = efield_trace.shape[1]
-                    efield_cor = np.zeros((3, n_samples_prepend + efield_trace.shape[1]))
-                    efield_cor[0] = np.append(np.zeros(n_samples_prepend), efield_trace[0])
-                    efield_cor[1] = np.append(np.zeros(n_samples_prepend), efield_trace[1])
-                    efield_cor[2] = np.append(np.zeros(n_samples_prepend), efield_trace[2])
-
-                    efield_times_cor = np.arange(0, n_samples_prepend + efield_trace.shape[1]) / efield_sampling_rate
-
-                else:
-                    efield_cor = efield_trace
-                    efield_times_cor = efield_times
-
                 if self.__det is None:
-                    channel_ids = [0]
+                    channel_ids = [0, 1]
                 else:
                     if self.__det.has_station(station_id):
                         channel_ids = self.__det.get_channel_ids(station_id)
                     else:
                         channel_ids = self.__det.get_channel_ids(self.__det.get_reference_station_ids()[0])
 
-                coreas.add_electric_field_to_sim_station(sim_station, channel_ids, efield_cor, efield_times_cor[0],
-                                                         sim_shower.get_parameter(shp.zenith),
-                                                         sim_shower.get_parameter(shp.azimuth), efield_sampling_rate)
+                coreas.add_electric_field_to_sim_station(
+                    sim_station, channel_ids, efield_trace, efield_times[0],
+                    sim_shower.get_parameter(shp.zenith), sim_shower.get_parameter(shp.azimuth),
+                    efield_sampling_rate)
+
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
 
