@@ -1435,7 +1435,9 @@ if __name__ == "__main__":
     det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=True,
                             database_connection='RNOG_public', select_stations=13)
 
-
+    det.update(datetime.datetime(2023, 7, 2, 0, 0))
+    response = det.get_signal_chain_response(station_id=13, channel_id=0)
+    
     from NuRadioReco.framework import electric_field
     ef = electric_field.ElectricField(channel_ids=[0])
     ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
