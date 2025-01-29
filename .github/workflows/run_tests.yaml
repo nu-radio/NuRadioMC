@@ -190,6 +190,12 @@ jobs:
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
+    - name: "Test channelGalacticNoiseAdder"
+      if: always()
+      run: |
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        python install_dev.py --dev galacticnoise --no-interactive
+        python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
     - name: "Test all examples"
       if: always()
       run: |
