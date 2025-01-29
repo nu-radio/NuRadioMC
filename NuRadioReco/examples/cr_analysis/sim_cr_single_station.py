@@ -19,6 +19,29 @@ import argparse
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+"""
+This script is an example of how to run the air shower reconstruction with a detector containing only single station with multiple antennas. 
+
+The input file needs to be a CoREAS hdf5 file. The output is a .nur file with the reconstructed event.
+The input file is read in with readCoREASStation module, which creates simulated events for each CoREAS observer.
+The other modules used are necessary to simulate the detector response, add noise, trigger the event, and write the event to a .nur file.
+Please refer to the modules for more details.
+
+Input parameters (all with a default provided)
+---------------------
+Command line input:
+    python sim_cr_single_station.py --detector_file example_data/arianna_station_32.json --input_file example_data/example_data.hdf5
+
+detector_file: str
+            path to json detector file
+input_file: str
+            path to CoREAS simulation hdf5 file
+
+Output
+---------------------
+The output is a .nur file with the reconstructed event.
+
+"""
 
 parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 
