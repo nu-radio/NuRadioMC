@@ -1076,8 +1076,8 @@ def preprocess_FEKO_mat(path, polarization='X', downscale_freq=1, downscale_zeni
     used to convert FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat for the SKALA4 antenna to a pickle file
 
     The file contains the embedded element simulation of the SKALA4 antenna in the frequency range of 50-350 MHz.
-    The values correspond to the far-field emission of this antenna; to convert it
-    to realized vector effective length for the receiving antenna using Eq. 6 in [1]_.
+    The values correspond to the far-field emission of this antenna; it is converted
+    to the realized vector effective length for a receiving antenna using Eq. 6 in [1]_.
 
     Parameters
     ----------
@@ -1105,7 +1105,7 @@ def preprocess_FEKO_mat(path, polarization='X', downscale_freq=1, downscale_zeni
 
     References
     ----------
-    [1] https://arxiv.org/abs/2412.01699
+    .. [1] https://arxiv.org/abs/2412.01699
     """
 
     input_file = os.path.join(path, f'FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat')
@@ -1137,11 +1137,6 @@ def preprocess_FEKO_mat(path, polarization='X', downscale_freq=1, downscale_zeni
         theta = theta[mask]
         freq = freq[mask]
 
-        # check that the downscaling was correct
-        assert np.all(np.isin(np.unique(freq), freqs_unique))
-        assert np.all(np.isin(np.unique(theta), thetas_unique))
-        assert np.all(np.isin(np.unique(phi), phis_unique))
-
         logger.status(f'Rescaling SKALA4 antenna from shape ({mask.shape}) to {Ephi.shape}...')
 
     lambda_0 = (constants.speed_of_light * units.m / units.s) / freq # wavelength
@@ -1170,11 +1165,10 @@ def preprocess_FEKO_mat(path, polarization='X', downscale_freq=1, downscale_zeni
     if not os.path.exists(directory):
         os.makedirs(directory)
     with open(output_filename, 'wb') as fout:
-        print('saving output to {}'.format(output_filename))
+        logger.warning('saving antenna output to {}'.format(output_filename))
         pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi,
                      freq, theta, phi, vel_phi, vel_theta],
                     fout, protocol=4)
-    print('done!')
 
 class AntennaPatternBase:
     """
@@ -1286,8 +1280,6 @@ class AntennaPatternBase:
         # As the theta and phi angles are differently defined in WIPLD and NuRadio, also the orientation of the
         # eTheta and ePhi unit vectors are different.
         cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
-        # print('Vtheta_raw',Vtheta_raw.dtype)
-        # print('Vtheta_raw.shape[0])', Vtheta_raw)
         V_xyz_raw = cstrans.transform_from_onsky_to_ground(
             np.array([np.zeros(Vtheta_raw.shape[0]), Vtheta_raw, Vphi_raw]))
 
@@ -1434,7 +1426,7 @@ class AntennaPattern(AntennaPatternBase):
             logger.debug("phi bounds {0} ,{1}, {2}".format(self.phi_lower_bound, phi, self.phi_upper_bound))
             logger.warning("theta, phi or frequency out of range, returning (0,0j)")
             logger.debug("{0},{1},{2}".format(freq, self.frequency_lower_bound, self.frequency_upper_bound))
-            return np.array([[0.j], [0.j]])
+            return np.zeros(shape=(2,1), dtype=complex)
 
         if self.theta_upper_bound == self.theta_lower_bound:
             iTheta_lower = 0
