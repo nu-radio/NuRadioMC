@@ -702,7 +702,7 @@
 <div class="viewcode-block" id="ParameterStorage.get_parameters">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ParameterStorage.serialize">
