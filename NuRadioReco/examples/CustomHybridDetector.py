@@ -1,5 +1,5 @@
 import argparse
-import NuRadioReco.modules.io.coreas.readCoREAS
+import NuRadioReco.modules.io.coreas.readCoREASStation
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.framework.hybrid_shower
 import NuRadioReco.detector.detector
@@ -22,8 +22,8 @@ parser.add_argument('--outputfilename', type=str, help='name of the output file'
 args = parser.parse_args()
 
 # setting up stuff we need to read the CoREAS file
-coreas_reader = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
-coreas_reader.begin([args.inputfilename], args.stationID)
+readCoREASStation = NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation()
+readCoREASStation.begin([args.input_file],  args.stationID, debug=False)
 event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
 event_writer.begin(args.outputfilename)
 detector = NuRadioReco.detector.detector.Detector(args.detectorfilename)
@@ -52,7 +52,7 @@ class CustomDetector():
         self.__data = pickle.loads(data_pkl)
 
 
-for event in coreas_reader.run(detector):
+for event in readCoREASStation.run(detector):
     # This import is needed so we can read it later
     # Create custom detector
     custom_detector = CustomDetector()
