@@ -58,7 +58,7 @@ class ParameterStorage:
         self._parameters.pop(key, None)
 
     def get_parameters(self):
-        return copy.copy(self._parameters)
+        return copy.deepcopy(self._parameters)
 
     def serialize(self):
         parameters = {str(key): self._parameters[key] for key in self._parameters}
