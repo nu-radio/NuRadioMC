@@ -443,8 +443,7 @@ class Detector():
             return
 
         # When you reach this point something went wrong ...
-        self.logger.error(f"Empty detector for {time}!")
-        raise ValueError(f"Empty detector for {time}!")
+        self.logger.warning(f"Empty detector for {time}!")
 
 
     @_check_detector_time
@@ -1407,25 +1406,30 @@ def produce_detector_files_for_all_time_periods():
     """
     This function produces a detector file for each time period necessary
     """
-    det = Detector(
-        log_level=logging.DEBUG,
-        always_query_entire_description=True)
+    for station_id in [11, 12, 13, 21, 22, 23, 24]:
+        det = Detector(
+            log_level=logging.DEBUG,
+            always_query_entire_description=True,
+            select_stations=station_id)
 
-    db = det.get_database()
-    ts_dict = db.query_modification_timestamps_per_station()
+        db = det.get_database()
+        ts_dict = db.query_modification_timestamps_per_station(station_id)
 
-    ts = np.unique(np.hstack([station_ts['modification_timestamps'] for station_ts in ts_dict.values()]))
+        ts = np.unique(np.hstack([station_ts['modification_timestamps'] for station_ts in ts_dict.values()]))
+        for tdx in range(len(ts) - 1):
+            t0 = ts[tdx]
+            t1 = ts[tdx + 1]
+            time = t0 + (t1 - t0) / 2
 
-    for tdx in range(len(ts) - 1):
-        t0 = ts[tdx]
-        t1 = ts[tdx + 1]
-        time = t0 + (t1 - t0) / 2
-        det.update(time)
-        det.export(f"rnog_detector_{t0.strftime('%Y%m%d')}-{t1.strftime('%Y%m%d')}_withoutS21", drop_response_data=True)
+            det.update(time)
+            if det.has_station(station_id):
+                det.export(
+                    f"rnog_detector_st{station_id}_{t0.strftime('%Y%m%d')}-{t1.strftime('%Y%m%d')}_withoutS21",
+                    drop_response_data=True)
 
 
 if __name__ == "__main__":
-
+    # produce_detector_files_for_all_time_periods()
     from NuRadioReco.detector import detector
 
     det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=True,
