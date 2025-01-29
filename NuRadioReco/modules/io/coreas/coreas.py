@@ -27,7 +27,7 @@ conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / 
 # DEPRECATED FUNCTIONS
 def make_sim_shower(*args, **kwargs):
     """
-    DEPRECATED: This function has been moved to `hdf5_sim_shower()`, however its functionality has been
+    DEPRECATED: This function has been moved to `create_sim_shower_from_hdf5()`, however its functionality has been
     modified heavily. You will probably want to move to `create_sim_shower()` instead, which has an easier
     interface. Please refer to the documentation of `create_sim_shower()` for more information.
     """
@@ -234,7 +234,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     channel as it was read from the HDF5 file.
 
     Next to the (Sim)Station, the Event also contains a SimShower object, which stores the CORSIKA input parameters.
-    For a list of stored parameters, see the `hdf5_sim_shower()` function.
+    For a list of stored parameters, see the `create_sim_shower_from_hdf5()` function.
 
     Note that the function assumes the energy has been fixed to a single value, as is typical with a CoREAS simulation.
 
@@ -307,7 +307,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     stn.set_sim_station(sim_station)
     evt.set_station(stn)
 
-    sim_shower = hdf5_sim_shower(corsika)
+    sim_shower = create_sim_shower_from_hdf5(corsika)
     evt.add_sim_shower(sim_shower)
 
     corsika.close()
@@ -315,7 +315,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     return evt
 
 
-def hdf5_sim_shower(corsika, declination=0):
+def create_sim_shower_from_hdf5(corsika, declination=0):
     """
     Creates an NuRadioReco `RadioShower` from a CoREAS HDF5 file, which contains the simulation inputs shower parameters.
     These include
@@ -338,6 +338,9 @@ def hdf5_sim_shower(corsika, declination=0):
 
     - the atmospheric model used for the simulation
     - the electromagnetic energy of the shower (only present in high-level quantities are present)
+
+    This function is used in the `read_CORSIKA7()` function to create the SimShower object. In order to copy a
+    `SimShower` object from an Event object, use the `create_sim_shower()` method.
 
     Parameters
     ----------
@@ -417,7 +420,7 @@ def create_sim_shower(evt, core_shift=None):
     sim_shower: RadioShower
         simulated shower object
     """
-    sim_shower = copy.copy(evt.get_first_sim_shower())  # this has the core set to the one defined in the REAS file
+    sim_shower = copy.deepcopy(evt.get_first_sim_shower())  # this has the core set to the one defined in the REAS file
 
     # We can only set the shower core relative to the station if we know its position
     if core_shift is not None:
