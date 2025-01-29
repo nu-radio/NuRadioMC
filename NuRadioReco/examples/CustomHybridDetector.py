@@ -23,7 +23,7 @@ args = parser.parse_args()
 
 # setting up stuff we need to read the CoREAS file
 readCoREASStation = NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation()
-readCoREASStation.begin([args.input_file],  args.stationID, debug=False)
+readCoREASStation.begin([args.inputfilename],  args.stationID, debug=False)
 event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
 event_writer.begin(args.outputfilename)
 detector = NuRadioReco.detector.detector.Detector(args.detectorfilename)
