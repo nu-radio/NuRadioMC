@@ -4,6 +4,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import showerParameters as shp
 import logging
 logger = logging.getLogger('NuRadioReco.coreas.readCoREASStation')
 
@@ -53,13 +54,14 @@ class readCoREASStation:
             corsika_evt = coreas.read_CORSIKA7(input_file)
             coreas_sim_station = corsika_evt.get_station(0).get_sim_station()
             corsika_efields = coreas_sim_station.get_electric_fields()
+            coreas_shower = corsika_evt.get_first_sim_shower()
 
             efield_pos = []
             for corsika_efield in corsika_efields:
                 efield_pos.append(corsika_efield.get_position())
             efield_pos = np.array(efield_pos)
 
-            weights = coreas.calculate_simulation_weights(efield_pos, coreas_sim_station.get_parameter(stnp.zenith), coreas_sim_station.get_parameter(stnp.azimuth), debug=self.__debug)
+            weights = coreas.calculate_simulation_weights(efield_pos, coreas_shower.get_parameter(shp.zenith), coreas_shower.get_parameter(shp.azimuth), debug=self.__debug)
             if self.__debug:
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots()
