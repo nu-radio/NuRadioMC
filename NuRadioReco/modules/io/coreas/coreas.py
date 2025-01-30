@@ -566,11 +566,6 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     import scipy.spatial as spatial
 
     positions = np.array(positions)
-    n_positions = positions.shape[0]
-    if n_positions < 50:
-        logger.warning(
-            f"Only {n_positions} observer positions given to calculate weights. This is likely not a star shape pattern. Weights are set to 1.")
-        return np.ones(n_positions)
 
     cs = coordinatesystems.cstrafo(zenith=zenith, azimuth=azimuth, magnetic_field_vector=None,
                                    site=site)
