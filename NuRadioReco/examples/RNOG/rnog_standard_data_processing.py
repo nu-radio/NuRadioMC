@@ -1,12 +1,10 @@
-import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelCWNotchFilter
 
-import NuRadioReco.modules.io.RNO_G.readRNOGDataMattak
+import NuRadioReco.modules.RNO_G.dataProviderRNOG
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
-import NuRadioReco.modules.RNO_G.channelBlockOffsetFitter
-import NuRadioReco.modules.RNO_G.channelGlitchDetector
+
 
 import NuRadioReco.modules.io.eventWriter
 
@@ -21,6 +19,18 @@ import time
 
 logger = logging.getLogger("NuRadioReco.example.RNOG.rnog_standard_data_processing")
 logger.setLevel(logging.INFO)
+
+channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+channelResampler.begin()
+
+channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+channelBandPassFilter.begin()
+
+channelCWNotchFilter = NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter()
+channelCWNotchFilter.begin()
+
+hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
+hardwareResponseIncorporator.begin()
 
 
 def use_module(name, config):
@@ -42,6 +52,42 @@ def use_module(name, config):
     return name in config and config[name]["use"]
 
 
+def process_event(evt, det, config):
+    """
+    Process a single event
+
+    Parameters
+    ----------
+    evt : NuRadioReco.event.Event
+        Event to process
+    det : NuRadioReco.detector.detector.Detector
+        Detector object
+    config : dict
+        (Yaml) configuration
+    """
+
+    # Get the station. This will throw an error if more than one station is in the event.
+    station = evt.get_station()
+    det.update(station.get_station_time())
+
+    # Resample
+    if use_module("channelResampler", config):
+        channelResampler.run(evt, station, det, **config["channelResampler"]["kwargs"])
+
+    # Hardware response
+    if use_module("hardwareResponseIncorporator", config):
+        hardwareResponseIncorporator.run(
+            evt, station, det, sim_to_data=False, **config["hardwareResponseIncorporator"]["kwargs"])
+
+    # CW notch filter
+    if use_module("channelCWNotchFilter", config):
+        channelCWNotchFilter.run(evt, station, det)
+
+    # Bandpass filter
+    if use_module("channelBandPassFilter", config):
+        channelBandPassFilter.run(evt, station, det, **config["channelBandPassFilter"]["kwargs"])
+
+
 def process_data(config):
     """
     Processing of RNO-G data.
@@ -52,96 +98,40 @@ def process_data(config):
         (Yaml) configuration
     """
 
-    # Initialize modules
-
-    channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
-
-    channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-    channelResampler.begin()
-
-    channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-    channelBandPassFilter.begin()
-
-    channelCWNotchFilter = NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter()
-    channelCWNotchFilter.begin()
-
-    eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-    eventWriter.begin(filename=config["eventWriter"]["kwargs"]['filename'])
-
-    hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
-    hardwareResponseIncorporator.begin()
-
-    channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets()
-    channelBlockOffsetFitter.begin()
-
-    channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector(log_level=logging.INFO)
-    channelGlitchDetector.begin()
-
-    paths = config["readRNOGDataMattak"]["kwargs"].pop("filenames")
-    readRNOGDataMattak = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData(log_level=logging.INFO)
-    readRNOGDataMattak.begin(
-        paths, **config["readRNOGDataMattak"]["kwargs"],
-    )
-
     # Initialize detector class
     det = NuRadioReco.detector.RNO_G.rnog_detector.Detector(
         **config["detector"]["kwargs"]
     )
+
+    # Initialize modules
+    paths = config["readRNOGDataMattak"]["kwargs"].pop("filenames")
+    dataProviderRNOG = NuRadioReco.modules.RNO_G.dataProviderRNOG.dataProvideRNOG()
+    dataProviderRNOG.begin(
+        files=paths, reader_kwargs=config["readRNOGDataMattak"]["kwargs"], det=det)
+
+    eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
+    eventWriter.begin(filename=config["eventWriter"]["kwargs"]['filename'])
 
     # For time logging
     t_total = 0
 
     # Loop over all events (the reader module has options to select events -
     # see class documentation or module arguements in config file)
-    for idx, evt in enumerate(readRNOGDataMattak.run()):
+    for idx, evt in enumerate(dataProviderRNOG.run()):
 
         if (idx + 1) % 50 == 0:
-            print(f'"Processing events: {idx + 1} / {readRNOGDataMattak.get_n_events()}\r', end="")
+            print(f'"Processing events: {idx + 1}\r', end="")
 
         t0 = time.time()
-        # Loop over all stations.
-        for station in evt.get_stations():
+        process_event(evt, det, config)
 
-            det.update(station.get_station_time())
-
-            # Glitch Removal
-            if use_module("channelGlitchDetector", config):
-                channelGlitchDetector.run(evt, station, det)
-
-            # Correcting for block offsets
-            if use_module("channelBlockOffsetFitter", config):
-                channelBlockOffsetFitter.run(
-                    evt, station, det, **config["channelBlockOffsetFitter"]["kwargs"])
-
-            # Add cable delay
-            if use_module("channelAddCableDelay", config):
-                channelAddCableDelay.run(evt, station, det, mode='subtract')
-
-            # Resample
-            if use_module("channelResampler", config):
-                channelResampler.run(evt, station, det, **config["channelResampler"]["kwargs"])
-
-            # Hardware response
-            if use_module("hardwareResponseIncorporator", config):
-                hardwareResponseIncorporator.run(
-                    evt, station, det, sim_to_data=False, **config["hardwareResponseIncorporator"]["kwargs"])
-
-            # CW notch filter
-            if use_module("channelCWNotchFilter", config):
-                channelCWNotchFilter.run(evt, station, det)
-
-            # Bandpass filter
-            if use_module("channelBandPassFilter", config):
-                channelBandPassFilter.run(evt, station, det, **config["channelBandPassFilter"]["kwargs"])
-
-            # Write event - the RNO-G detector class is not stored within the nur files.
-            eventWriter.run(evt, det=None, mode=config["eventWriter"]["kwargs"]['mode'])
+        # Write event - the RNO-G detector class is not stored within the nur files.
+        eventWriter.run(evt, det=None, mode=config["eventWriter"]["kwargs"]['mode'])
 
         logger.debug("Time for event: %f", time.time() - t0)
         t_total += time.time() - t0
 
-    readRNOGDataMattak.end()
-    channelGlitchDetector.end()
+    dataProviderRNOG.end()
 
     logger.info(
         f"Processed {idx + 1} events:"

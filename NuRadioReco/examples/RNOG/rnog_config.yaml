@@ -39,9 +39,6 @@ channelResampler:
   kwargs:
     sampling_rate: 5  # GHz
 
-channelAddCableDelay:
-  use: True
-
 hardwareResponseIncorporator:
   use: True
   kwargs:
@@ -62,11 +59,3 @@ eventWriter:
   kwargs:
     mode: null
     filename: rnog_output_test.nur
-
-channelBlockOffsetFitter:
-  use: True
-  kwargs:
-    mode: 'auto'
-
-channelGlitchDetector:
-  use: True
