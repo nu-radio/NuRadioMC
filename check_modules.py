@@ -16,6 +16,8 @@ import importlib
 
 broken = []
 unregistered_runs = []
+missing_begin = []
+missing_end = []
 
 for dirpath,folders,files in os.walk('NuRadioReco/modules'):
     for f in files:
@@ -35,6 +37,14 @@ for dirpath,folders,files in os.walk('NuRadioReco/modules'):
                     print('Has run method but not registered properly! Public flogging will be scheduled.')
                     unregistered_runs.append(mname + '.' +name)
 
+                if hasattr(obj,'run') and not hasattr(obj,'begin'):
+                    print ('Has run but no begin...')
+                    missing_begin.append(mname + '.' + name)
+                if hasattr(obj,'run') and not hasattr(obj,'end'):
+                    print ('Has run but no end...')
+                    missing_end.append(mname + '.' + name)
+
+
         except Exception as e:
             print(e)
             print("Couldn't load module... maybe it's broken, oh well")
@@ -46,7 +56,10 @@ print("\n\n\n.........................................\n")
 print ("Broken modules: ", broken)
 print()
 print ("Unregistered runs: ", unregistered_runs)
-
+print()
+print ("Missing end: ", missing_end)
+print()
+print ("Missing begin: ", missing_begin)
 
 
 
