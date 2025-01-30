@@ -349,6 +349,8 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
         spectrum = trace.get_frequency_spectrum()
         frequencies = trace.get_frequencies()
+        if trace.get_sampling_rate() != sampling_frequency:
+            raise ValueError("The sampling frequency of the trace does not match the given sampling frequency.")
     else:
         n_samples = len(trace)
         spectrum = fft.time2freq(trace, sampling_frequency)
