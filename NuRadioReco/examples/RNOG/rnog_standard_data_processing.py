@@ -74,7 +74,7 @@ def process_data(config):
     channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets()
     channelBlockOffsetFitter.begin()
 
-    channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector()
+    channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector(log_level=logging.INFO)
     channelGlitchDetector.begin()
 
     paths = config["readRNOGDataMattak"]["kwargs"].pop("filenames")
@@ -141,6 +141,7 @@ def process_data(config):
         t_total += time.time() - t0
 
     readRNOGDataMattak.end()
+    channelGlitchDetector.end()
 
     logger.info(
         f"Processed {idx + 1} events:"

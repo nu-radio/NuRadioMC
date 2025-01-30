@@ -2,12 +2,7 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import channelParametersRNOG as chp
 
-
-
-import numpy as np
-import logging
-
-logger = logging.getLogger('NuRadioReco.RNO_G.channelGlitchDetector')
+import numpy as np, logging
 
 class channelGlitchDetector:    
     """
@@ -20,19 +15,32 @@ class channelGlitchDetector:
     These jumps are detected with this module (but not corrected).
     """
 
-    def __init__(self, cut_value = 0.0):
+    def __init__(self, cut_value = 0.0, glitch_fraction_warn_level = 0.1, log_level = logging.NOTSET):
         """
         Parameters
         ----------
-        cut_value : This module calculates a test statistic that is sensitive to the presence
+        cut_value : float
+             This module calculates a test statistic that is sensitive to the presence
              of digitizer glitches. This parameter marks the critical value at which the test is
              said to have detected a glitch. This is a free parameter; increasing its value results
              in a lower false-positive rate (i.e. healthy events are incorrectly marked as glitching), 
              but also a lower true-positive rate (i.e. glitching events are correctly marked as such).
              The default value of 0.0 is a good starting point.
+
+        glitch_fraction_warn_level : float
+            Print warning messages at the end of a run if a channel shows glitching in more than a fraction of 
+            `glitch_fraction_warn_level` of all events.
+
+        log_level: enum
+            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
+            (Default: logging.NOTSET, ie adhere to general log level)
+
         """
+
+        self.logger = logging.getLogger('NuRadioReco.RNO_G.channelGlitchDetector')
         
         self.ts_cut_value = cut_value
+        self.glitch_fraction_warn_level = glitch_fraction_warn_level
 
         # Total sampling buffer of the LAB4D: 2048 samples
         self._lab4d_readout_size = 2048
@@ -41,10 +49,18 @@ class channelGlitchDetector:
         self._lab4d_sampling_blocksize = 64
 
     def begin(self):
-        pass
+        # Per-run glitching statistics
+        self.events_checked = 0
+        self.events_glitching_per_channel = {}
         
     def end(self):
-        pass
+        # Print glitch statistic summary
+        for ch_id, events_glitching in self.events_glitching_per_channel.items():
+            glitching_fraction = events_glitching / self.events_checked
+            if glitching_fraction > self.glitch_fraction_warn_level:
+                self.logger.warning(f"Channel {ch_id} shows glitches in {events_glitching} / {self.events_checked} = {100*glitching_fraction:.2f}% of events!")
+            else:
+                self.logger.info(f"Channel {ch_id} shows glitches in {events_glitching} / {self.events_checked} = {100*glitching_fraction:.2f}% of events!")
 
     @register_run()
     def run(self, event, station, det=None):
@@ -103,8 +119,13 @@ class channelGlitchDetector:
                     new_trace[0:block_size] = 0
                     
             return new_trace    
+
+        # update event counter
+        self.events_checked += 1
         
         for ch in station.iter_channels():
+            ch_id = ch.get_id()
+            
             trace = ch.get_trace()
             trace_us = unscramble(trace)
 
@@ -114,3 +135,8 @@ class channelGlitchDetector:
             
             ch.set_parameter(chp.glitch, glitch_disc)
             ch.set_parameter(chp.glitch_test_statistic, glitch_ts)
+
+            # update glitching statistics
+            if not ch_id in self.events_glitching_per_channel:
+                self.events_glitching_per_channel[ch_id] = 0
+            self.events_glitching_per_channel[ch_id] += glitch_disc
