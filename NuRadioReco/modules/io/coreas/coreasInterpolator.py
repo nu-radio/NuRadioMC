@@ -124,6 +124,21 @@ class coreasInterpolator:
             self.obs_positions_ground, core=self.shower.get_parameter(shp.core)
         )
 
+        polar_angle_vb = np.around(np.rad2deg(np.arctan2(
+            self.obs_positions_showerplane[:, 1], self.obs_positions_showerplane[:, 0])), 3)
+        polar_angle_vb[polar_angle_vb < 0] += 360
+        polar_angle_vb_rest = polar_angle_vb % 45
+        self.starshape_mask = polar_angle_vb_rest == 0
+
+        if not np.all(self.starshape_mask):
+            logger.warning("Observer positions are not all on a star shape pattern. "
+                                f"Select {np.sum(self.starshape_mask)} of {len(self.starshape_mask)} observers")
+
+            self.obs_positions_ground = self.obs_positions_ground[self.starshape_mask]
+            self.obs_positions_showerplane = self.obs_positions_showerplane[self.starshape_mask]
+            self.electric_field_on_sky = self.electric_field_on_sky[self.starshape_mask]
+            self.efield_times = self.efield_times[self.starshape_mask]
+
         self.star_shape_initialized = True
 
     @property

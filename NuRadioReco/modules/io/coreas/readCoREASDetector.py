@@ -155,6 +155,7 @@ class readCoREASDetector:
             f"azimuth angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.azimuth) / units.deg:.2f}deg"
         )
 
+
         self.coreas_interpolator = coreasInterpolator.coreasInterpolator(self.__corsika_evt)
         self.coreas_interpolator.initialize_efield_interpolator(interp_lowfreq, interp_highfreq)
 
@@ -243,7 +244,8 @@ class readCoREASDetector:
                     # Store the trace in an ElecticField object
                     coreas.add_electric_field_to_sim_station(
                         sim_station, channel_ids_for_group_id, smooth_res_efield.T, res_trace_start_time,
-                        sim_shower[shp.zenith], sim_shower[shp.azimuth], self.coreas_interpolator.sampling_rate)
+                        sim_shower[shp.zenith], sim_shower[shp.azimuth], self.coreas_interpolator.sampling_rate,
+                        efield_position=antenna_position)
 
                 sim_station.set_parameter(stnp.zenith, sim_shower[shp.zenith])
                 sim_station.set_parameter(stnp.azimuth, sim_shower[shp.azimuth])
@@ -253,6 +255,9 @@ class readCoREASDetector:
 
             self.__t += time.time() - t
             yield evt
+
+    def get_coreas_event(self):
+        return self.__corsika_evt
 
     def end(self):
         dt = timedelta(seconds=self.__t)
