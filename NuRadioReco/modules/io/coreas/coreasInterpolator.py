@@ -451,6 +451,7 @@ class coreasInterpolator:
 
         # interpolate electric field at antenna position in shower plane which are inside star pattern
         if not self.efield_interpolator_initialized:
+            # Get electric field of closest observer position and associated time (which is already in internal units)
             efield_interp, trace_start_time = self.get_closest_observer_efield(antenna_pos_showerplane)
         else:
             efield_interp, trace_start_time, _, _ = self.efield_interpolator(
@@ -461,6 +462,8 @@ class coreasInterpolator:
                 account_for_timing=True,
                 pulse_centered=True,
                 full_output=True)
+
+            trace_start_time *= units.second  # interpolator returns start time in seconds
 
             # Rotate the electric field back to the normal on-sky coordinate system
             efield_interp = np.matmul(
@@ -523,13 +526,13 @@ class coreasInterpolator:
         efield: np.ndarray
             electric field, as an array shaped
         efield_start_time: float
-            The start time of the selected electric field trace
+            The start time of the selected electric field trace (in internal units)
         """
         distances = np.linalg.norm(antenna_pos_showerplane[:2] - self.obs_positions_showerplane[:, :2], axis=1)
         index = np.argmin(distances)
         efield = self.electric_field_on_sky[index, :, :]
         if self.efield_interpolator is not None:
-            efield_start_time = self.efield_interpolator(*antenna_pos_showerplane[:2])
+            efield_start_time = self.efield_interpolator(*antenna_pos_showerplane[:2]) * units.second
             logger.debug(
             f'Returning the electric field of the closest observer position, '
             f'which is {distances[index] / units.m:.2f}m away from the antenna'
