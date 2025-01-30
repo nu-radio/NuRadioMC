@@ -1,31 +1,38 @@
 #! /usr/bin/env python3
 
 
-
 # This script will walk the module directory, load everything that looks like a
 # module and try to import (possibly failing if for example, you don't have all
 # the optional things for each module)
 
-# Then it will find all classes defined in
-# the module with a run method, and complain if the time attribute is not
-# present (this is an attribute added by the register_run decorator)
+# Then it will find all classes defined in the module with a run method, and
+# complain if the time attribute is not present (this is an attribute added by
+# the register_run decorator) We also check for classes that have run defined but no begining/end
+
+# It prints out a bunch of chatty output, then at the end, prints a list of
+# modules that couldn't be imported, classes that have run but no decorator,
+# and classes that have run but no begin/end.
+#
+
+
+
 
 import os
 import inspect
 import importlib
-
 
 broken = []
 unregistered_runs = []
 missing_begin = []
 missing_end = []
 
+# switch to the directory of the script if not there already
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 for dirpath,folders,files in os.walk('NuRadioReco/modules'):
     for f in files:
         if not f.endswith(".py") or f == "__init__.py":
             continue
-
-
         try:
             mname = dirpath.replace('/','.')+'.'+f[:-3]
             print("Trying ", mname)
