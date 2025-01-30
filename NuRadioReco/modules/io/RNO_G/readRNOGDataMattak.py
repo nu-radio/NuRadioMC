@@ -324,11 +324,14 @@ class readRNOGData:
             the data in batches based on this number.
             NOTE: This is only relevant for the mattak uproot backend
         """
-
         t0 = time.time()
 
         self._read_calibrated_data = read_calibrated_data
+
         baseline_correction_valid_options = ['auto', 'approximate', 'fit', 'median', 'none']
+        if apply_baseline_correction is None:
+            apply_baseline_correction = 'none'
+
         if apply_baseline_correction.lower() not in baseline_correction_valid_options:
             raise ValueError(
                 f"Value for apply_baseline_correction ({apply_baseline_correction}) not recognized. "
@@ -572,7 +575,8 @@ class readRNOGData:
         skip: bool
             Returns False to skip/reject event, return True to keep/read event
         """
-        self.logger.debug(f"Processing event number {self.__counter} out of total {self._n_events_total}")
+        self.logger.debug(
+            f"(_select_events) Processing event number {self.__counter} out of total {self._n_events_total}")
 
         self.__counter += 1  # for logging
         if self._selectors is not None:
@@ -900,7 +904,7 @@ class readRNOGData:
         evt: `NuRadioReco.framework.event.Event`
         """
 
-        self.logger.debug(f"Processing event {event_id}")
+        self.logger.debug(f"Getting event {event_id}")
         t0 = time.time()
 
         event_infos = self.get_events_information(keys=["eventNumber", "run"])
