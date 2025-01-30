@@ -2,7 +2,9 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import channelParametersRNOG as chp
 
-import numpy as np, logging
+import numpy as np
+import logging
+import collections
 
 class channelGlitchDetector:    
     """
@@ -51,7 +53,7 @@ class channelGlitchDetector:
     def begin(self):
         # Per-run glitching statistics
         self.events_checked = 0
-        self.events_glitching_per_channel = {}
+        self.events_glitching_per_channel = collections.defaultdict(int)
         
     def end(self):
         # Print glitch statistic summary
@@ -137,6 +139,4 @@ class channelGlitchDetector:
             ch.set_parameter(chp.glitch_test_statistic, glitch_ts)
 
             # update glitching statistics
-            if not ch_id in self.events_glitching_per_channel:
-                self.events_glitching_per_channel[ch_id] = 0
             self.events_glitching_per_channel[ch_id] += glitch_disc
