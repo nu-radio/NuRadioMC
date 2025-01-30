@@ -2,6 +2,7 @@
 
 
 
+# This script will walk the module directory, load everything that looks like a
 # module and try to import (possibly failing if for example, you don't have all
 # the optional things for each module)
 
