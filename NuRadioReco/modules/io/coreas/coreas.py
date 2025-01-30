@@ -540,7 +540,7 @@ def add_electric_field_to_sim_station(
 
 def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debug=False):
     """
-    Calculate weights according to the area that one simulated position in readCoreasStation represents.
+    Calculate weights according to the area that one observer position in a start shape patter represents.
     Weights are therefore given in units of area.
     Note: The volume of a 2d convex hull is the area.
 
@@ -566,6 +566,12 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     import scipy.spatial as spatial
 
     positions = np.array(positions)
+    n_positions = positions.shape[0]
+    if n_positions < 50:
+        logger.warning(
+            f"Only {n_positions} observer positions given to calculate weights. This is likely not a star shape pattern. Weights are set to 1.")
+        return np.ones(n_positions)
+
     cs = coordinatesystems.cstrafo(zenith=zenith, azimuth=azimuth, magnetic_field_vector=None,
                                    site=site)
     x_trafo_from_shower = cs.transform_from_vxB_vxvxB(station_position=np.array([1, 0, 0]))
@@ -603,7 +609,6 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         n_arms = 8  # mask last observer position of each arm
         length_shower = np.sqrt(shower[:, 0] ** 2 + shower[:, 1] ** 2)
         ind = np.argpartition(length_shower, -n_arms)[-n_arms:]
-
         weight = spatial.ConvexHull(vertices_ground[:, :2])
         weights[p] = weight.volume  # volume of a 2d dataset is the area, area of a 2d data set is the perimeter
         weights[ind] = 0

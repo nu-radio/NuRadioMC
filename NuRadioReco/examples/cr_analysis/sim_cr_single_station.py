@@ -1,12 +1,13 @@
 import numpy as np
 import helper_cr_eff as hcr
+import astropy.time
 from NuRadioReco.utilities import units
 from NuRadioReco.detector.detector import Detector
 import NuRadioReco.modules.io.coreas.readCoREASStation
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.channelGalacticNoiseAdder
+#import NuRadioReco.modules.channelGalacticNoiseAdder
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.eventTypeIdentifier
@@ -30,7 +31,7 @@ Please refer to the modules for more details.
 Input parameters (all with a default provided)
 ---------------------
 Command line input:
-    python sim_cr_single_station.py --detector_file example_data/arianna_station_32.json --input_file example_data/example_data.hdf5
+    python sim_cr_single_station.py --detector_file ../example_data/arianna_station_32.json --input_file ../example_data/example_data.hdf5
 
 detector_file: str
             path to json detector file
@@ -45,10 +46,10 @@ The output is a .nur file with the reconstructed event.
 
 parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 
-parser.add_argument('--detector_file', type=str, nargs='?', default='example_data/arianna_station_32.json',
+parser.add_argument('--detector_file', type=str, nargs='?', default='../../detector/RNO_G/RNO_cr_array.json',
                     help='choose detector with a single station for air shower simulation')
 parser.add_argument('--input_file', type=str, nargs='?',
-                    default='example_data/example_data.hdf5', help='hdf5 coreas file')
+                    default='../example_data/example_data.hdf5', help='hdf5 coreas file')
 
 args = parser.parse_args()
 
@@ -56,6 +57,7 @@ logger.info(f"Use {args.detector_file} on file {args.input_file}")
 
 det = Detector(json_filename=args.detector_file)
 station_id = det.get_station_ids()[0]
+det.update(astropy.time.Time('2025-1-1'))
 
 # module to read the CoREAS file and convert it to NuRadioReco event, each observer is a new event with a different core position
 readCoREASStation = NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation()
@@ -70,14 +72,15 @@ efieldToVoltageConverter.begin(debug=False)
 
 # module to add the detector response, e.g. amplifier, filter, etc.
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
+hardwareResponseIncorporator.begin()
 
 # module to add thermal noise to the channels
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()
 
 # module to add galactic noise to the channels
-channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder()
-channelGalacticNoiseAdder.begin(n_side=4, interpolation_frequencies=np.arange(0.01, 0.81, 0.1))
+# channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder()
+# channelGalacticNoiseAdder.begin(n_side=4, interpolation_frequencies=np.arange(0.01, 0.81, 0.1))
 
 # module to simulate the trigger
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
@@ -107,7 +110,7 @@ for evt in readCoREASStation.run(detector=det):
 
         channelGenericNoiseAdder.run(evt, sta, det, amplitude=1.091242302378349e-05, min_freq=80*units.MHz, max_freq=800*units.MHz, type='rayleigh')
 
-        channelGalacticNoiseAdder.run(evt, sta, det)
+        #channelGalacticNoiseAdder.run(evt, sta, det)
 
         hardwareResponseIncorporator.run(evt, sta, det, sim_to_data=True)
 
