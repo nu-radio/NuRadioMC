@@ -307,7 +307,7 @@ class analogToDigitalConverter:
 
         if adc_time_delay:
             # Random clock offset
-            trace, dt_tstart = delay_trace(trace_orig, sampling_rate, adc_time_delay)
+            trace, dt_tstart = delay_trace(trace, sampling_rate, adc_time_delay)
             if dt_tstart > 0:
                 # by design dt_tstart is a multiple of the sampling rate
                 times = times[int(dt_tstart / sampling_rate):]
