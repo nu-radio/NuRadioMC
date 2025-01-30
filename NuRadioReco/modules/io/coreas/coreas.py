@@ -540,7 +540,7 @@ def add_electric_field_to_sim_station(
 
 def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debug=False):
     """
-    Calculate weights according to the area that one observer position in a start shape patter represents.
+    Calculate weights according to the area that one observer position in a starshape pattern represents.
     Weights are therefore given in units of area.
     Note: The volume of a 2d convex hull is the area.
 
