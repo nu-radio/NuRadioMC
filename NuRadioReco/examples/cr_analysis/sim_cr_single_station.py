@@ -1,3 +1,5 @@
+import numpy as np
+import helper_cr_eff as hcr
 import astropy.time
 from NuRadioReco.utilities import units
 from NuRadioReco.detector.detector import Detector

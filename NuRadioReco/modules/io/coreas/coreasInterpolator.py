@@ -303,13 +303,6 @@ class coreasInterpolator:
 
             return None
 
-        if self.obs_positions_showerplane[:, 0].shape[0] < 50:
-            logger.warning(
-                f"Only {self.obs_positions_showerplane[:, 0].shape} observer positions given to perform "
-                f"the interpolation. This is likely not a star shape pattern. The closest observer is used instead.")
-            
-            return None
-
         logger.info(
             f'Initialising electric field interpolator with lowfreq {interp_lowfreq / units.MHz} MHz '
             f'and highfreq {interp_highfreq / units.MHz} MHz'
@@ -531,20 +524,12 @@ class coreasInterpolator:
         distances = np.linalg.norm(antenna_pos_showerplane[:2] - self.obs_positions_showerplane[:, :2], axis=1)
         index = np.argmin(distances)
         efield = self.electric_field_on_sky[index, :, :]
-        if self.efield_interpolator is not None:
-            # The interpolated values were the start times which were already in internal units, so what comes out
-            # is also in internal units, ie no need to multiply with units.second here
-            efield_start_time = self.efield_interpolator(*antenna_pos_showerplane[:2])
-            logger.debug(
-            f'Returning the electric field of the closest observer position, '
-            f'which is {distances[index] / units.m:.2f}m away from the antenna'
-        )
-        else:
-            efield_start_time = self.efield_times[index][0]
-            logger.warning(f"No interpolation possible, returning electric field and start "
-                           f"time of closest observer position, {distances[index] / units.m:.2f}m away from the "
-                           f"antenna. Consider changing the CoREAS reader.")
-        
+        # The interpolated values were the start times which were already in internal units, so what comes out
+        # is also in internal units, ie no need to multiply with units.second here
+        efield_start_time = self.efield_interpolator(*antenna_pos_showerplane[:2])
+        logger.debug(
+        f'Returning the electric field of the closest observer position, '
+        f'which is {distances[index] / units.m:.2f}m away from the antenna, the time is interpolated')
         return efield, efield_start_time
 
     def plot_fluence_footprint(self, radius=300):
