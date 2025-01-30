@@ -38,12 +38,9 @@ n_triggered, n_events, Veff = calculate_veff(fin)
 
 print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f} -> {:.6g} km^3 sr'.format(n_triggered, n_events, n_triggered / n_events, Veff / units.km ** 3))
 
-delta = (Veff / units.km ** 3 - Veff_mean) / Veff_sigma
 rdelta = (Veff / units.km ** 3 - Veff_mean) / Veff_mean
-print("effective volume deviates {:.1f} sigma ({:.0f}%) from the mean".format(delta, 100 * rdelta))
-
-if(np.abs(Veff / units.km ** 3 - Veff_mean) > 3 * Veff_sigma):
-    print("deviation is more than 3 sigma -> this should only happen in less than 1\% of the tests. Rerun the test and see if the error persists.")
+print("Effective volume deviates by {:.0f}% from the expectation (this is not expected!)".format(100 * rdelta))
+if 100 * rdelta > 1:
     sys.exit(-1)
 
 # calculate Veff using veff utility
@@ -73,4 +70,3 @@ if False:
 
     print("New mean Veff {}".format(np.mean(Veffs)))
     print("New sigma Veff {}".format(np.std(Veffs)))
-
