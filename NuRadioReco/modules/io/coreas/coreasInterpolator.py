@@ -532,7 +532,9 @@ class coreasInterpolator:
         index = np.argmin(distances)
         efield = self.electric_field_on_sky[index, :, :]
         if self.efield_interpolator is not None:
-            efield_start_time = self.efield_interpolator(*antenna_pos_showerplane[:2]) * units.second
+            # The interpolated values were the start times which were already in internal units, so what comes out
+            # is also in internal units, ie no need to multiply with units.second here
+            efield_start_time = self.efield_interpolator(*antenna_pos_showerplane[:2])
             logger.debug(
             f'Returning the electric field of the closest observer position, '
             f'which is {distances[index] / units.m:.2f}m away from the antenna'
