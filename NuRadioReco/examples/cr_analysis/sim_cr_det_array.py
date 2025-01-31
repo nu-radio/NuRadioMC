@@ -46,8 +46,8 @@ The output is a .nur file with the reconstructed event.
 
 parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 
-parser.add_argument('--input_file', type=str, nargs='?', help='path to CoREAS simulation hdf5 file with star shape pattern')
-parser.add_argument('--det_file', type=str, nargs='?', help='path to json detector file')
+parser.add_argument('--input_file', type=str, nargs='?', default='../example_data/greenland_starshape_32obs.hdf5', help='path to CoREAS simulation hdf5 file with star shape pattern')
+parser.add_argument('--det_file', type=str, nargs='?', default='../../detector/RNO_G/RNO_cr_array.json', help='path to json detector file')
 args = parser.parse_args()
 logger.info(f'Using detector file {args.det_file} on {args.input_file}')
 
@@ -99,7 +99,7 @@ channelResampler.begin()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 eventWriter.begin(f'cr_reco_array.nur')
 
-for evt in readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions(-300, 0, 1600, 1800, 10)):
+for evt in readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions(-300, 0, 1600, 1800, 3)):
     for sta in evt.get_stations():        
         eventTypeIdentifier.run(evt, sta, "forced", 'cosmic_ray')
 
@@ -125,7 +125,7 @@ for evt in readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASD
         eventWriter.run(evt, det=det, mode={
                     'Channels': True,
                     'ElectricFields': True,
-                    'SimChannels': False,
-                    'SimElectricFields': False
+                    'SimChannels': True,
+                    'SimElectricFields': True
                 })
 nevents = eventWriter.end()
