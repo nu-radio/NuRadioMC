@@ -67,12 +67,20 @@ class channelParameters(Enum):
     bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
     Vrms_trigger_NuRadioMC_simulation = 21  #: the noise rms of the trigger channels (optional) used in the MC simulation
     root_power_ratio = 22 #: the root power ratio (float) 
-    impulsive_value = 23  #: average of the CDF about the peak of the coherently summed waveform
+    impulsivity = 23  #: average of the CDF about the peak of the coherently summed waveform
+    
 class channelParametersRNOG(Enum):
     # RNO-G specific channel parameters
-
+    
     # FS: I did not start with a negative parameter on the 1, hence I chose 100
     glitch = 100 #: True if channel has a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
+
+class stationParametersRNOG(Enum):
+    # RNO-G specific station parameters
+    avg_ch_snr = 1  #: V_pp/(2*VRMS_noise) where V_pp is the peak to peak voltage and VRMS_noise is the noise rms  
+    coherent_snr = 2  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr 
+    max_a = 3  #: maximum std-normalised peak to peak amplitude of all chosen channels
+    
 
 
 class electricFieldParameters(Enum):

@@ -180,6 +180,36 @@ class channelSignalReconstructor:
 
         return snr, noise_rms, root_power_ratio
 
+    def get_impulsivity(self, channel):
+
+        analytical_signal = signal.hilbert(
+            channel.get_trace()
+        )  # compute analytic signal using hilbert transform from signal voltages
+        envelope = np.abs(analytical_signal)
+        maxv = np.argmax(envelope)
+        self.maxspot = (
+            maxv  ## index where the max voltage of the coherent sum is located
+        )
+        power_indexes = np.linspace(
+            0, len(envelope) - 1, len(envelope)
+        )  ## just a list of indices the same length as the array
+        closeness = list(
+            np.abs(power_indexes - maxv)
+        )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
+
+        sorted_power = [x for _, x in sorted(zip(closeness, envelope))]
+        cdf = np.cumsum(sorted_power)
+        cdf = cdf / cdf[-1]
+
+        cdf_avg = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
+        
+        #self.cdf_avg = cdf_avg
+
+        if cdf_avg < 0:
+            cdf_avg = 0.0
+
+        return cdf_avg
+    
     @register_run()
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
         """
@@ -214,6 +244,9 @@ class channelSignalReconstructor:
             channel[chp.maximum_amplitude_envelope] = h.max()
             channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace)
 
+            #Calculate impulsivity of the signal
+            channel[chp.impulsivity] = self.get_impulsivity(channel)
+            
             # Use noise precalculated from forced triggers
             signal_to_noise, noise_rms, root_power_ratio = self.get_SNR_and_RPR(
                 station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)

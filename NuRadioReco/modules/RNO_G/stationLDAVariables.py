@@ -6,6 +6,7 @@ from scipy import signal
 from scipy.signal import hilbert
 from scipy.ndimage import maximum_filter1d, minimum_filter1d
 from NuRadioReco.modules.base.module import register_run
+import NuRadioReco.modules.channelSignalReconstructor
 
 
 class stationLDAVariables:
@@ -61,16 +62,16 @@ class stationLDAVariables:
             reference channel for the coherent sum
 
         """
+        channelSignalReconstructor=NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
+        channelSignalReconstructor.begin()
+        channelSignalReconstructor.run(event, station, detector)
         station.set_parameter(stp.max_a, self.max_a(event, station, detector))
-        self.avg_ch_snr(event, station, detector)
         station.set_parameter(stp.avg_ch_snr, self.avg_ch_snr(event, station, detector))
         self.coherent_sum(event, station, station.get_channel(channel_id))
         self.coherent_sum_step_by_step(event, station)
         station.set_parameter(stp.coherent_snr, self.coherent_snr(self.sum_chan))
-        for ch_id in self.__channel_ids:
-            ch = station.get_channel(ch_id)
-            ch.set_parameter(chp.impulsive_value, self.impulsive_value(ch.get_trace()))
         return
+        
     def end(self):
         pass
 
@@ -185,32 +186,3 @@ class stationLDAVariables:
             aligned_wf = np.roll(ch.get_trace(), lag)
             self.sum_chan += aligned_wf
             
-    def impulsive_value(self, volts):
-
-        analytical_signal = hilbert(
-            volts
-        )  # compute analytic signal using hilbert transform from signal voltages
-        envelope = np.abs(analytical_signal)
-        maxv = np.argmax(envelope)
-        self.maxspot = (
-            maxv  ## index where the max voltage of the coherent sum is located
-        )
-        power_indexes = np.linspace(
-            0, len(envelope) - 1, len(envelope)
-        )  ## just a list of indices the same length as the array
-        closeness = list(
-            np.abs(power_indexes - maxv)
-        )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
-
-        sorted_power = [x for _, x in sorted(zip(closeness, envelope))]
-        cdf = np.cumsum(sorted_power)
-        cdf = cdf / cdf[-1]
-
-        cdf_avg = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
-        
-        self.cdf_avg = cdf_avg
-
-        if cdf_avg < 0:
-            cdf_avg = 0.0
-
-        return cdf_avg
