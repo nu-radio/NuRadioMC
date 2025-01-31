@@ -17,7 +17,7 @@ class channelGlitchDetector:
     These jumps are detected with this module (but not corrected).
     """
 
-    def __init__(self, cut_value = 0.0, glitch_fraction_warn_level = 0.1, log_level = logging.NOTSET):
+    def __init__(self, cut_value=0.0, glitch_fraction_warn_level=0.1, log_level=logging.NOTSET):
         """
         Parameters
         ----------
