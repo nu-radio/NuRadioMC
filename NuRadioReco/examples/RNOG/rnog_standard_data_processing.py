@@ -114,7 +114,7 @@ if __name__ == "__main__":
     for idx, evt in enumerate(dataProviderRNOG.run()):
 
         if (idx + 1) % 50 == 0:
-            logger.info(f'"Processing events: {idx + 1}\r', end="")
+            logger.info(f'"Processing events: {idx + 1}\r')
 
         t0 = time.time()
         process_event(evt, det)
