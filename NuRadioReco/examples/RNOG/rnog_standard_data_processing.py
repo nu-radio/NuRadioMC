@@ -4,17 +4,13 @@ import NuRadioReco.modules.channelCWNotchFilter
 
 import NuRadioReco.modules.RNO_G.dataProviderRNOG
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
-
-
 import NuRadioReco.modules.io.eventWriter
 
 import NuRadioReco.detector.RNO_G.rnog_detector
-
 from NuRadioReco.utilities import units, logging as nulogging
 
 import argparse
 import logging
-import yaml
 import time
 
 logger = logging.getLogger("NuRadioReco.example.RNOG.rnog_standard_data_processing")
@@ -33,26 +29,7 @@ hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorpo
 hardwareResponseIncorporator.begin()
 
 
-def use_module(name, config):
-    """
-    Simple helper function returns True if module is supposed to be used
-
-    Parameters
-    ----------
-    name : str
-        Name of the module
-    config : dict
-        (Yaml) configuration
-
-    Returns
-    -------
-    use : bool
-        True if module is supposed to be used
-    """
-    return name in config and config[name]["use"]
-
-
-def process_event(evt, det, config):
+def process_event(evt, det):
     """
     Process a single event
 
@@ -62,8 +39,11 @@ def process_event(evt, det, config):
         Event to process
     det : NuRadioReco.detector.detector.Detector
         Detector object
-    config : dict
-        (Yaml) configuration
+
+    Returns
+    -------
+    evt : NuRadioReco.event.Event
+        Processed event
     """
 
     # Get the station. This will throw an error if more than one station is in the event.
@@ -71,46 +51,57 @@ def process_event(evt, det, config):
     det.update(station.get_station_time())
 
     # Resample
-    if use_module("channelResampler", config):
-        channelResampler.run(evt, station, det, **config["channelResampler"]["kwargs"])
+    channelResampler.run(evt, station, det, sampling_rate=5 * units.GHz)
 
     # Hardware response
-    if use_module("hardwareResponseIncorporator", config):
-        hardwareResponseIncorporator.run(
-            evt, station, det, sim_to_data=False, **config["hardwareResponseIncorporator"]["kwargs"])
-
-    # CW notch filter
-    if use_module("channelCWNotchFilter", config):
-        channelCWNotchFilter.run(evt, station, det)
+    hardwareResponseIncorporator.run(
+        evt, station, det, sim_to_data=False, mode='phase_only')
 
     # Bandpass filter
-    if use_module("channelBandPassFilter", config):
-        channelBandPassFilter.run(evt, station, det, **config["channelBandPassFilter"]["kwargs"])
+    channelBandPassFilter.run(
+        evt, station, det,
+        passband=[0.1 * units.GHz, 0.6 * units.GHz],
+        filter_type='butter', order=10)
+
+    # CW notch filter
+    channelCWNotchFilter.run(evt, station, det)
+
+    return evt
 
 
-def process_data(config):
-    """
-    Processing of RNO-G data.
+if __name__ == "__main__":
 
-    Parameters
-    ----------
-    config : dict
-        (Yaml) configuration
-    """
+    parser = argparse.ArgumentParser(description='Run standard RNO-G data processing')
+
+    parser.add_argument('--filenames', type=str, nargs="*",
+                        help='Specify root data files if not specified in the config file')
+    parser.add_argument('--outputfile', type=str, nargs=1, default=None)
+
+    args = parser.parse_args()
+    nulogging.set_general_log_level(logging.INFO)
+
+    if args.outputfile is None:
+        if len(args.filenames) > 1:
+            raise ValueError("Please specify an output file")
+
+        path = args.filenames[0]
+
+        if path.endswith(".root"):
+            args.outputfile = path.replace(".root", ".nur")
+        elif os.path.isdir(path):
+            args.outputfile = os.path.join(path, "output.nur")
 
     # Initialize detector class
     det = NuRadioReco.detector.RNO_G.rnog_detector.Detector(
-        **config["detector"]["kwargs"]
+
     )
 
-    # Initialize modules
-    paths = config["readRNOGDataMattak"]["kwargs"].pop("filenames")
+    # Initialize io modules
     dataProviderRNOG = NuRadioReco.modules.RNO_G.dataProviderRNOG.dataProvideRNOG()
-    dataProviderRNOG.begin(
-        files=paths, reader_kwargs=config["readRNOGDataMattak"]["kwargs"], det=det)
+    dataProviderRNOG.begin(files=args.filenames, det=det)
 
     eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-    eventWriter.begin(filename=config["eventWriter"]["kwargs"]['filename'])
+    eventWriter.begin(filename=args.outputfile)
 
     # For time logging
     t_total = 0
@@ -120,13 +111,13 @@ def process_data(config):
     for idx, evt in enumerate(dataProviderRNOG.run()):
 
         if (idx + 1) % 50 == 0:
-            print(f'"Processing events: {idx + 1}\r', end="")
+            logger.info(f'"Processing events: {idx + 1}\r', end="")
 
         t0 = time.time()
-        process_event(evt, det, config)
+        process_event(evt, det)
 
         # Write event - the RNO-G detector class is not stored within the nur files.
-        eventWriter.run(evt, det=None, mode=config["eventWriter"]["kwargs"]['mode'])
+        eventWriter.run(evt, det=None)
 
         logger.debug("Time for event: %f", time.time() - t0)
         t_total += time.time() - t0
@@ -137,22 +128,3 @@ def process_data(config):
         f"Processed {idx + 1} events:"
         f"\n\tTotal time: {t_total:.2f}s"
         f"\n\tTime per event: {t_total / (idx + 1):.2f}s")
-
-
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description='Run standard RNO-G data processing')
-
-    parser.add_argument('config', type=str, help='Yaml config file to steer the data procession and reconstruction')
-    parser.add_argument('--filenames', type=str, nargs="*", help='Specify root data files if not specified in the config file')
-
-    args = parser.parse_args()
-    # nulogging.set_general_log_level(logging.INFO)
-
-    with open(args.config, 'r') as f:
-        config = yaml.safe_load(f)
-
-    if config["readRNOGDataMattak"]["kwargs"]["filenames"] is None:
-        config["readRNOGDataMattak"]["kwargs"]["filenames"] = args.filenames
-
-    process_data(config)
