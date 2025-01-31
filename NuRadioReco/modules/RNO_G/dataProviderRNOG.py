@@ -23,7 +23,7 @@ class dataProvideRNOG:
 
         self.channelGlitchDetector.begin()
         self.channelBlockOffsetFitter.begin()
-        self.reader.begin(self.files, apply_baseline_correction=None, **reader_kwargs)
+        self.reader.begin(self.files, **reader_kwargs)
         self.channelCableDelayAdder.begin()
 
         assert det is not None, "Detector object is None, please provide a detector object."
@@ -31,6 +31,7 @@ class dataProvideRNOG:
 
     def end(self):
         self.reader.end()
+        self.channelGlitchDetector.end()
 
     def run(self):
 
@@ -40,10 +41,7 @@ class dataProvideRNOG:
             station = event.get_station()
             self.detector.update(station.get_station_time())
 
-            if self.channelGlitchDetector.run(event, station, self.detector):
-                logger.warning(f"Glitch found in run.event {event.get_run_number()}{event.get_id()}. "
-                               "Skipping this event.")
-                continue  # skip the rest of the loop if a glitch is found in the station
+            self.channelGlitchDetector.run(event, station, self.detector)
 
             self.channelBlockOffsetFitter.run(event, station, self.detector)
 
