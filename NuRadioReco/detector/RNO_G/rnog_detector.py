@@ -1195,7 +1195,7 @@ class Detector():
         return self.get_time_delay(station_id, channel_id, use_stored=use_stored, trigger=trigger)
 
 
-    def get_time_delay2(self, station_id, channel_id, trigger=False):
+    def _get_time_delay(self, station_id, channel_id, trigger=False):
         """ Returns the sum of the time delay of all components in the signal chain calculated from the phase.
 
         The function returns the values which were precalculated by the hardware database interface. They
@@ -1221,6 +1221,10 @@ class Detector():
         -------
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel.
+
+        Also see
+        --------
+        get_time_delay
         """
         signal_chain_dict = self.get_channel_signal_chain(
         station_id, channel_id)
@@ -1288,15 +1292,17 @@ class Detector():
 
         See Also
         --------
-        get_time_delay2
         get_cable_delay
         """
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
         if use_stored:
-            resp = self.get_signal_chain_response(station_id, channel_id, trigger=trigger)
-            return resp.get_time_delay()
+            try:
+                resp = self.get_signal_chain_response(station_id, channel_id, trigger=trigger)
+                return resp.get_time_delay()
+            except KeyError: # in case the full S21 parameters are not stored
+                return self._get_time_delay(station_id, channel_id, trigger=trigger)
         else:
             time_delay = 0
             if trigger and "trigger_response_chain" not in signal_chain_dict:
