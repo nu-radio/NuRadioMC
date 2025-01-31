@@ -29,7 +29,7 @@ Please refer to the modules for more details.
 Input parameters (all with a default provided)
 ---------------------
 Command line input:
-    python sim_cr_single_station.py --detector_file ../example_data/arianna_station_32.json --input_file ../example_data/example_data.hdf5
+    python sim_cr_single_station.py --det_file ../example_data/arianna_station_32.json --input_file ../example_data/example_data.hdf5
 
 detector_file: str
             path to json detector file
@@ -44,16 +44,16 @@ The output is a .nur file with the reconstructed event.
 
 parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 
-parser.add_argument('--detector_file', type=str, nargs='?', default='../../detector/RNO_G/RNO_cr_array.json',
-                    help='choose detector with a single station for air shower simulation')
 parser.add_argument('--input_file', type=str, nargs='?',
-                    default='../example_data/example_data.hdf5', help='hdf5 coreas file')
+                    default='../example_data/greenland_starshape_32obs.hdf5', help='hdf5 coreas file')
+parser.add_argument('--det_file', type=str, nargs='?', default='../../detector/RNO_G/RNO_single_station.json',
+                    help='choose detector with a single station for air shower simulation')
 
 args = parser.parse_args()
 
-logger.info(f"Use {args.detector_file} on file {args.input_file}")
+logger.info(f"Use {args.det_file} on file {args.input_file}")
 
-det = Detector(json_filename=args.detector_file)
+det = Detector(json_filename=args.det_file)
 station_id = det.get_station_ids()[0]
 det.update(astropy.time.Time('2025-1-1'))
 
@@ -127,7 +127,7 @@ for evt in readCoREASStation.run(detector=det):
     eventWriter.run(evt, det=det, mode={
                 'Channels': True,
                 'ElectricFields': True,
-                'SimChannels': False,
-                'SimElectricFields': False
+                'SimChannels': True,
+                'SimElectricFields': True
             })
 nevents = eventWriter.end()
