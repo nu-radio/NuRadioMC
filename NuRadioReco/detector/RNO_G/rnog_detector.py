@@ -1403,17 +1403,21 @@ class Detector():
         return resp
 
 
-def produce_detector_files_for_all_time_periods():
+def produce_detector_files_for_all_time_periods(drop_response_data=False):
     """
     This function produces a detector file for each time period necessary
     """
-    for station_id in [11, 12, 13, 21, 22, 23, 24]:
+    db = det.get_database()
+    station_ids = self.db[self.__station_collection].distinct("id")
+
+    suffix = "_withoutS21" if drop_response_data else ""
+
+    for station_id in station_ids:
         det = Detector(
             log_level=logging.DEBUG,
             always_query_entire_description=True,
             select_stations=station_id)
 
-        db = det.get_database()
         ts_dict = db.query_modification_timestamps_per_station(station_id)
 
         ts = np.unique(np.hstack([station_ts['modification_timestamps'] for station_ts in ts_dict.values()]))
@@ -1425,8 +1429,8 @@ def produce_detector_files_for_all_time_periods():
             det.update(time)
             if det.has_station(station_id):
                 det.export(
-                    f"rnog_detector_st{station_id}_{t0.strftime('%Y%m%d')}-{t1.strftime('%Y%m%d')}_withoutS21",
-                    drop_response_data=True)
+                    f"rnog_detector_st{station_id}_{t0.strftime('%Y%m%d')}-{t1.strftime('%Y%m%d')}{suffix}",
+                    drop_response_data=drop_response_data)
 
 
 if __name__ == "__main__":
