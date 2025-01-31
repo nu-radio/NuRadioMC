@@ -91,6 +91,8 @@ if __name__ == "__main__":
             args.outputfile = path.replace(".root", ".nur")
         elif os.path.isdir(path):
             args.outputfile = os.path.join(path, "output.nur")
+    else:
+        args.outputfile = args.outputfile[0]
 
     # Initialize detector class
     det = NuRadioReco.detector.RNO_G.rnog_detector.Detector(
