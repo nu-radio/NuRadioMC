@@ -307,12 +307,11 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     """
     Delays a trace by transforming it to frequency and multiplying by phases.
 
-    Since this method is cyclic, the delayed trace has to be cropped. A positive
-    delay means that the trace is shifted to the right, i.e., its delayed. A
-    negative delay would mean that the trace is shifted to the left. Samples
-    from the beginning or end are thrown away. Optionally one can crop the
-    trace (from the end) so that the total number of samples is equal to
-    the argument delayed samples.
+    A positive delay means that the trace is shifted to the right, i.e., its delayed. 
+    A negative delay would mean that the trace is shifted to the left. Since this 
+    method is cyclic, the delayed trace will have unphysical samples at either the 
+    beginning (delayed, positive `time_delay`) or at the end (negative `time_delay`).
+    Those samples can be cropped (optional, default=True).
 
     Parameters
     ----------
@@ -322,9 +321,9 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
         Sampling rate for the trace
     time_delay: float
         Time delay used for transforming the trace. Must be positive or 0
-    crop_trace: bool
-        If True (default), the trace is cropped to remove samples
-        what are unphysical after delaying (rolling) the trace.
+    crop_trace: bool (default: True)
+        If True, the trace is cropped to remove samples what are unphysical 
+        after delaying (rolling) the trace.
 
     Returns
     -------
