@@ -310,7 +310,7 @@ class analogToDigitalConverter:
             trace, dt_tstart = delay_trace(trace, sampling_rate, adc_time_delay)
             if dt_tstart > 0:
                 # by design dt_tstart is a multiple of the sampling rate
-                times = times[int(dt_tstart / sampling_rate):]
+                times = times[int(round(dt_tstart / sampling_rate)):]
             times = times[:len(trace)]
 
         # Upsampling to 5 GHz before downsampling using interpolation.
