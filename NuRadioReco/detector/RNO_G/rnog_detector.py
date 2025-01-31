@@ -223,18 +223,21 @@ class Detector():
             }
 
         if drop_response_data:
+            buffered_stations = copy.deepcopy(self.__buffered_stations)
             keys_to_drop = ['frequencies', 'mag', 'phase']
             for chain in ["response_chain", "trigger_response_chain"]:
-                for station_id in self.__buffered_stations:
-                    for channel_id, channel_data in self.__buffered_stations[station_id]["channels"].items():
+                for station_id in buffered_stations:
+                    for channel_id, channel_data in buffered_stations[station_id]["channels"].items():
                         if chain in channel_data['signal_chain']:
                             for names, component in channel_data['signal_chain'][chain].items():
                                 for key in keys_to_drop:
                                     component.pop(key, None)
+        else:
+            buffered_stations = self.__buffered_stations
 
         export_dict = {
             "version": 1,
-            "data": self.__buffered_stations,
+            "data": buffered_stations,
             "periods": periods,
             "default_values": self.__default_values
         }
@@ -1410,9 +1413,8 @@ def produce_detector_files_for_all_time_periods(drop_response_data=False):
     """
     This function produces a detector file for each time period necessary
     """
-    db = det.get_database()
-    station_ids = self.db[self.__station_collection].distinct("id")
 
+    station_ids = [11, 12, 13, 21, 22, 23, 24]
     suffix = "_withoutS21" if drop_response_data else ""
 
     for station_id in station_ids:
@@ -1421,6 +1423,7 @@ def produce_detector_files_for_all_time_periods(drop_response_data=False):
             always_query_entire_description=True,
             select_stations=station_id)
 
+        db = det.get_database()
         ts_dict = db.query_modification_timestamps_per_station(station_id)
 
         ts = np.unique(np.hstack([station_ts['modification_timestamps'] for station_ts in ts_dict.values()]))
@@ -1445,7 +1448,7 @@ if __name__ == "__main__":
 
     det.update(datetime.datetime(2023, 7, 2, 0, 0))
     response = det.get_signal_chain_response(station_id=13, channel_id=0)
-    
+
     from NuRadioReco.framework import electric_field
     ef = electric_field.ElectricField(channel_ids=[0])
     ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
