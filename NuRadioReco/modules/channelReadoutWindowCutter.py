@@ -1,8 +1,9 @@
 from NuRadioReco.modules.base.module import register_run
-import numpy as np
-import logging
+import NuRadioReco.framework.base_channel
 from NuRadioReco.utilities import units
 
+import numpy as np
+import logging
 logger = logging.getLogger('NuRadioReco.channelReadoutWindowCutter')
 
 
@@ -65,31 +66,13 @@ class channelReadoutWindowCutter:
 
         trigger_time = trigger.get_trigger_time()
         for channel in station.iter_channels():
-            tmp_channel =
-            trigger_time_channel = trigger_time - channel.get_trace_start_time()
 
-            trace = channel.get_trace()
-            trace_length = len(trace)
             detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
             sampling_rate = channel.get_sampling_rate()
             self.__check_sampling_rates(detector_sampling_rate, sampling_rate)
 
-            # this should ensure that 1) the number of samples is even and
-            # 2) resampling to the detector sampling rate results in the correct number of samples
-            # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
-            # current sampling rate)
-            number_of_samples = int(
-                2 * np.ceil(
-                    detector.get_number_of_samples(station.get_id(), channel.get_id()) / 2
-                    * sampling_rate / detector_sampling_rate
-                ))
-
-            if number_of_samples > trace.shape[0]:
-                logger.error("Input has fewer samples than desired output. Channels has only {} samples but {} samples are requested.".format(
-                    trace.shape[0], number_of_samples))
-                raise AttributeError
-
-            windowed_channel = get_windowed_channel(station.get_id(), channel.get_id(), detector, trigger)
+            windowed_channel = get_empty_channel(
+                station.get_id(), channel.get_id(), detector, trigger, sampling_rate)
             windowed_channel.add_to_trace(channel)
 
             channel.set_trace(windowed_channel.get_trace(), windowed_channel.get_sampling_rate())
@@ -99,20 +82,40 @@ class channelReadoutWindowCutter:
         if not self.__sampling_rate_warning_issued: # we only issue this warning once
             if not np.isclose(detector_sampling_rate, channel_sampling_rate):
                 logger.warning(
-                    'triggerTimeAdjuster was called, but the channel sampling rate '
+                    'channelReadoutWindowCutter was called, but the channel sampling rate '
                     f'({channel_sampling_rate/units.GHz:.3f} GHz) is not equal to '
                     f'the target detector sampling rate ({detector_sampling_rate/units.GHz:.3f} GHz). '
                     'Traces may not have the correct trace length after resampling.'
                 )
                 self.__sampling_rate_warning_issued = True
 
-    def get_empty_channel(self, station_id, channel_id, detector, trigger):
-        channel = NuRadioReco.framework.base_channel.Channel(channel_id)
+        # this should ensure that 1) the number of samples is even and
+        # 2) resampling to the detector sampling rate results in the correct number of samples
+        # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
+        # current sampling rate)
+        number_of_samples = int(
+            2 * np.ceil(
+                detector.get_number_of_samples(station.get_id(), channel.get_id()) / 2
+                * sampling_rate / detector_sampling_rate
+            ))
 
-        # Get the correct number of sample for the final sampling rate
-        sampling_rate_ratio = self._config['sampling_rate'] / detector.get_sampling_frequency(station.get_id(), channel_id)
-        n_samples = int(round(detector.get_number_of_samples(station.get_id(), channel_id) * sampling_rate_ratio))
-        channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
+        trace = channel.get_trace()
+        if number_of_samples > trace.shape[0]:
+            logger.error((
+                "Input has fewer samples than desired output. "
+                "Channels has only {} samples but {} samples are requested.").format(
+                trace.shape[0], number_of_samples))
+            raise AttributeError
 
-        channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
-        channel.set_trace_start_time(channel_trace_start_time)
+def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
+    channel = NuRadioReco.framework.base_channel.Channel(channel_id)
+
+    # Get the correct number of sample for the final sampling rate
+    sampling_rate_ratio = sampling_rate / detector.get_sampling_frequency(station.get_id(), channel_id)
+    n_samples = int(round(detector.get_number_of_samples(station.get_id(), channel_id) * sampling_rate_ratio))
+    channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
+
+    channel.set_trace(np.zeros(n_samples), sampling_rate)
+    channel.set_trace_start_time(channel_trace_start_time)
+
+    return channel
