@@ -12,6 +12,7 @@ from NuRadioReco.utilities import units, logging as nulogging
 import argparse
 import logging
 import time
+import os
 
 logger = logging.getLogger("NuRadioReco.example.RNOG.rnog_standard_data_processing")
 logger.setLevel(logging.INFO)
@@ -90,6 +91,8 @@ if __name__ == "__main__":
             args.outputfile = path.replace(".root", ".nur")
         elif os.path.isdir(path):
             args.outputfile = os.path.join(path, "output.nur")
+    else:
+        args.outputfile = args.outputfile[0]
 
     # Initialize detector class
     det = NuRadioReco.detector.RNO_G.rnog_detector.Detector(
@@ -111,7 +114,7 @@ if __name__ == "__main__":
     for idx, evt in enumerate(dataProviderRNOG.run()):
 
         if (idx + 1) % 50 == 0:
-            logger.info(f'"Processing events: {idx + 1}\r', end="")
+            logger.info(f'"Processing events: {idx + 1}\r')
 
         t0 = time.time()
         process_event(evt, det)
