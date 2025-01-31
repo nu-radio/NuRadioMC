@@ -1,9 +1,9 @@
 """
 Module to remove 'block offsets' from RNO-G voltage traces.
 
-The function ``fit_block_offsets`` can be used standalone to perform an out-of-band 
-fit to the block offsets. Alternatively, the ``channelBlockOffsets`` class contains convenience 
-``add_offsets`` (to add block offsets in simulation) and ``remove_offsets`` methods that can be run 
+The function ``fit_block_offsets`` can be used standalone to perform an out-of-band
+fit to the block offsets. Alternatively, the ``channelBlockOffsets`` class contains convenience
+``add_offsets`` (to add block offsets in simulation) and ``remove_offsets`` methods that can be run
 directly on a NuRadioMC/imported ``Event``. The added/removed block offsets are stored per channel
 in the `NuRadioReco.framework.parameters.channelParameters.block_offsets` parameter.
 
@@ -48,7 +48,7 @@ class channelBlockOffsets:
         """
         Add (simulated or reconstructed) block offsets to an event.
 
-        Added block offsets for each channel are stored in the 
+        Added block offsets for each channel are stored in the
         ``channelParameters.block_offsets`` parameter.
 
         Parameters
@@ -114,14 +114,14 @@ class channelBlockOffsets:
         station : `NuRadioReco.framework.station.Station`
             The station to remove the block offsets from
         mode: str {'auto', 'fit', 'approximate', 'stored'}, optional
-            
+
             - 'fit': fit the block offsets with a minimizer
             - 'approximate' : use the first guess from the out-of-band component,
               without any fitting (slightly faster)
             - 'auto' (default): decide automatically between 'approximate' and 'fit'
               based on the estimated size of the block offsets.
-            - 'stored': use the block offsets already stored in the 
-              ``channelParameters.block_offsets`` parameter. Will raise an error 
+            - 'stored': use the block offsets already stored in the
+              ``channelParameters.block_offsets`` parameter. Will raise an error
               if this parameter is not present.
 
         channel_ids: list | None
@@ -136,7 +136,6 @@ class channelBlockOffsets:
         See Also
         --------
         run : alias of this method
-
         """
         if channel_ids  is None:
             channel_ids = station.get_channel_ids()
@@ -157,7 +156,7 @@ class channelBlockOffsets:
                     mode=mode, maxiter=maxiter
                 )
                 offsets[channel_id] = -block_offsets
-        
+
         self.add_offsets(event, station, offsets, channel_ids)
 
     def begin(self):
@@ -270,7 +269,6 @@ def fit_block_offsets(
     channelBlockOffsets :
         Class that uses this function to automatically remove the block offsets for all
         channels in a station.
-
     """
     dt = 1. / sampling_rate
     spectrum = fft.time2freq(trace, sampling_rate)
