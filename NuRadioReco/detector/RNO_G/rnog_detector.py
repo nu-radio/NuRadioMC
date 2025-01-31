@@ -1280,9 +1280,10 @@ class Detector():
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
 
-        Also see
+        See Also
         --------
-        `get_time_delay2` and `get_cable_delay`
+        get_time_delay2
+        get_cable_delay
         """
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
