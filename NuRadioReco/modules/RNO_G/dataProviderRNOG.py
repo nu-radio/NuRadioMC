@@ -12,7 +12,7 @@ class dataProvideRNOG:
     def __init__(self):
 
         self.channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector()
-        self.channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsetFitter()
+        self.channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets()
         self.reader = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData()
 
         self.channelCableDelayAdder = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
@@ -38,6 +38,7 @@ class dataProvideRNOG:
 
             # This will throw an error if the event has more than one station
             station = event.get_station()
+            self.detector.update(station.get_station_time())
 
             if self.channelGlitchDetector.run(event, station, self.detector):
                 logger.warning(f"Glitch found in run.event {event.get_run_number()}{event.get_id()}. "
@@ -46,6 +47,6 @@ class dataProvideRNOG:
 
             self.channelBlockOffsetFitter.run(event, station, self.detector)
 
-            self.channelCableDelayAdder.run(evt, station, self.detector, mode='subtract')
+            self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
 
             yield event
