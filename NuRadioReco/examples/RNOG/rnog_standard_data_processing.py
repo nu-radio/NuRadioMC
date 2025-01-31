@@ -12,6 +12,7 @@ from NuRadioReco.utilities import units, logging as nulogging
 import argparse
 import logging
 import time
+import os
 
 logger = logging.getLogger("NuRadioReco.example.RNOG.rnog_standard_data_processing")
 logger.setLevel(logging.INFO)
