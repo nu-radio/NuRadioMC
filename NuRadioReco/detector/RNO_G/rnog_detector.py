@@ -169,6 +169,10 @@ class Detector():
             self._det_imported_from_file = True
             self._import_from_file(detector_file)
 
+        # This should be set with Detector.update(..) and corresponds to the time of a measurement.
+        # It will be use to decide which components are commissioned at the time of the measurement
+        self.__detector_time = None
+
         # Allow overwriting the hard-coded values
         over_write_handset_values = over_write_handset_values or {}
         self.__default_values.update(over_write_handset_values)
@@ -408,7 +412,8 @@ class Detector():
         if isinstance(time, astropy.time.Time):
             time = _convert_astro_time_to_datetime(time)
 
-        self.logger.info(f"Update detector to {time}")
+        if self.__detector_time is None:
+            self.logger.info(f"Update detector to {time}")
 
         self.__set_detector_time(time)
         if not self._det_imported_from_file:
@@ -418,12 +423,14 @@ class Detector():
         any_update = np.any([v for v in update_buffer_for_station.values()])
 
         if self._det_imported_from_file and any_update:
+            self.logger.warning(f"Update detector to {time}")
             self.logger.error(
                 "You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!")
             raise ValueError(
                 "You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!")
 
         if any_update:
+            self.logger.info(f"Update detector to {time}")
             for key in self.__buffered_stations:
                 if update_buffer_for_station[key]:
                     # remove everything (could be handled smarter ...)
