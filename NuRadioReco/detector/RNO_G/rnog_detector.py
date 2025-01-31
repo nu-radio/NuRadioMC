@@ -156,10 +156,6 @@ class Detector():
             # Used to keep track which time period is buffered. Index of 0, not buffered jet.
             self._time_period_index_per_station = collections.defaultdict(int)
 
-            # This should be set with Detector.update(..) and corresponds to the time of a measurement. It will be use to
-            # decide which components are commissioned at the time of the measurement
-            self.__detector_time = None
-
             # Initialise the primary buffer
             self.__buffered_stations = collections.defaultdict(dict)
 
