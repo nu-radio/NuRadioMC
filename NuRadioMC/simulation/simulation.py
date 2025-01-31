@@ -1628,21 +1628,15 @@ class simulation:
 
                         logger.debug(f"Adding sim_station to station {station_id} for event group {event_group.get_run_number()}, channel {channel_id}")
                         station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
-                        for evt in output_buffer[station_id].values():
-                            # determine the trigger that was used to determine the readout window
 
+                        for evt in output_buffer[station_id].values():
                             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
                                 if not station.has_channel(sim_channel.get_id()):
-                                    # add empty channel with the correct length and time if it doesn't exist yet.
+                                    # Add empty channel with the correct length and start time.
                                     self._add_empty_channel(station, channel_id)
 
-                                # Add the sim_channel to the station channel:
                                 channel = station.get_channel(sim_channel.get_id())
-                                # we need to account for the pre trigger time of the trigger that was used to determine the readout window
-                                pre_trigger_time = station.get_primary_trigger().get_pre_trigger_time_channel(channel_id)
-                                sim_channel_copy = copy.deepcopy(sim_channel)
-                                sim_channel_copy.set_trace_start_time(sim_channel.get_trace_start_time() + pre_trigger_time)
-                                channel.add_to_trace(sim_channel_copy)
+                                channel.add_to_trace(sim_channel)  # this function will add the sim channel to the right window
 
                 for evt in output_buffer[station_id].values():
                     # we might not have a channel object in case there was no ray tracing solution to this channel, or if the timing did not match
@@ -1721,15 +1715,24 @@ class simulation:
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
-    def _add_empty_channel(self, station, channel_id):
+    def _add_empty_channel(self, station, channel_id, primary_trigger):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
         channel = NuRadioReco.framework.channel.Channel(channel_id)
-        n_samples = int(round(self._det.get_number_of_samples(station.get_id(), channel_id))
-                        * self._config['sampling_rate'] / self._det.get_sampling_frequency(station.get_id(), channel_id))
+
+        # Get the correct number of sample for the final sampling rate
+        sampling_rate_ratio = self._config['sampling_rate'] / self._det.get_sampling_frequency(station.get_id(), channel_id)
+        n_samples = int(round(self._det.get_number_of_samples(station.get_id(), channel_id) * sampling_rate_ratio))
+
         channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
-        # we need to use any other channel to get the correct trace_start_time. All channels have the same start time at the end
-        # of the simulation.
-        channel.set_trace_start_time(station.get_channel(station.get_channel_ids()[0]).get_trace_start_time())
+
+        # Set the correct trace start time taking into account different `pre_trigger_times`
+        trigger_channel_id = station.get_channel_ids()[0]
+        trigger_channel_trace_start_time = station.get_channel(trigger_channel_id).get_trace_start_time()
+        channel_trace_start_time = trigger_channel_trace_start_time + (
+            primary_trigger.get_pre_trigger_time_channel(channel_id) -
+            primary_trigger.get_pre_trigger_time_channel(trigger_channel_id))
+
+        channel.set_trace_start_time(channel_trace_start_time)
         station.add_channel(channel)
 
     def _is_in_fiducial_volume(self, pos):
