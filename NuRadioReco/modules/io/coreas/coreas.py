@@ -27,12 +27,21 @@ conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / 
 # DEPRECATED FUNCTIONS
 def make_sim_shower(*args, **kwargs):
     """
-    DEPRECATED: This function has been moved to `hdf5_sim_shower()`, however its functionality has been
+    DEPRECATED: This function has been moved to `create_sim_shower_from_hdf5()`, however its functionality has been
     modified heavily. You will probably want to move to `create_sim_shower()` instead, which has an easier
     interface. Please refer to the documentation of `create_sim_shower()` for more information.
     """
     raise DeprecationWarning("This function has been deprecated since version 3.0. "
                              "You will probably want to move to create_sim_shower() instead.")
+
+
+def make_sim_station(*args, **kwargs):
+    """
+    DEPRECATED: This function has been moved to `create_sim_station()`, however its functionality has been modified. Please
+    refer to the documentation of `create_sim_station()` for more information.
+    """
+    raise DeprecationWarning("This function has been deprecated since version 3.0. "
+                             "You will probably want to move to create_sim_station() instead.")
 
 
 # UTILITY FUNCTIONS
@@ -234,7 +243,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     channel as it was read from the HDF5 file.
 
     Next to the (Sim)Station, the Event also contains a SimShower object, which stores the CORSIKA input parameters.
-    For a list of stored parameters, see the `hdf5_sim_shower()` function.
+    For a list of stored parameters, see the `create_sim_shower_from_hdf5()` function.
 
     Note that the function assumes the energy has been fixed to a single value, as is typical with a CoREAS simulation.
 
@@ -265,13 +274,13 @@ def read_CORSIKA7(input_file, declination=None, site=None):
                 declination = 0
                 logger.warning(
                     "Site is not recognised by radiotools. Defaulting to 0 degrees declination. "
-                    "This might lead to incorrect electric field polarizations."
+                    "This might lead to unexpected electric field polarizations."
                 )
         else:
             declination = 0
             logger.warning(
                 "No declination or site given, assuming 0 degrees. "
-                "This might need to incorrect electric field polarizations."
+                "This might lead to unexpected electric field polarizations."
             )
 
     corsika = h5py.File(input_file, "r")
@@ -307,7 +316,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     stn.set_sim_station(sim_station)
     evt.set_station(stn)
 
-    sim_shower = hdf5_sim_shower(corsika)
+    sim_shower = create_sim_shower_from_hdf5(corsika)
     evt.add_sim_shower(sim_shower)
 
     corsika.close()
@@ -315,7 +324,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     return evt
 
 
-def hdf5_sim_shower(corsika, declination=0):
+def create_sim_shower_from_hdf5(corsika, declination=0):
     """
     Creates an NuRadioReco `RadioShower` from a CoREAS HDF5 file, which contains the simulation inputs shower parameters.
     These include
@@ -338,6 +347,9 @@ def hdf5_sim_shower(corsika, declination=0):
 
     - the atmospheric model used for the simulation
     - the electromagnetic energy of the shower (only present in high-level quantities are present)
+
+    This function is used in the `read_CORSIKA7()` function to create the SimShower object. In order to copy a
+    `SimShower` object from an Event object, use the `create_sim_shower()` method.
 
     Parameters
     ----------
@@ -417,7 +429,7 @@ def create_sim_shower(evt, core_shift=None):
     sim_shower: RadioShower
         simulated shower object
     """
-    sim_shower = copy.copy(evt.get_first_sim_shower())  # this has the core set to the one defined in the REAS file
+    sim_shower = copy.deepcopy(evt.get_first_sim_shower())  # this has the core set to the one defined in the REAS file
 
     # We can only set the shower core relative to the station if we know its position
     if core_shift is not None:
@@ -528,7 +540,7 @@ def add_electric_field_to_sim_station(
 
 def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debug=False):
     """
-    Calculate weights according to the area that one simulated position in readCoreasStation represents.
+    Calculate weights according to the area that one observer position in a starshape pattern represents.
     Weights are therefore given in units of area.
     Note: The volume of a 2d convex hull is the area.
 
@@ -554,6 +566,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     import scipy.spatial as spatial
 
     positions = np.array(positions)
+
     cs = coordinatesystems.cstrafo(zenith=zenith, azimuth=azimuth, magnetic_field_vector=None,
                                    site=site)
     x_trafo_from_shower = cs.transform_from_vxB_vxvxB(station_position=np.array([1, 0, 0]))
@@ -591,7 +604,6 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         n_arms = 8  # mask last observer position of each arm
         length_shower = np.sqrt(shower[:, 0] ** 2 + shower[:, 1] ** 2)
         ind = np.argpartition(length_shower, -n_arms)[-n_arms:]
-
         weight = spatial.ConvexHull(vertices_ground[:, :2])
         weights[p] = weight.volume  # volume of a 2d dataset is the area, area of a 2d data set is the perimeter
         weights[ind] = 0

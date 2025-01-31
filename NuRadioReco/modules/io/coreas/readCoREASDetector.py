@@ -1,19 +1,21 @@
+import NuRadioReco.framework.event
+import NuRadioReco.framework.station
+import NuRadioReco.framework.radio_shower
+from NuRadioReco.framework.parameters import (
+    showerParameters as shp, stationParameters as stnp, electricFieldParameters as efp)
+
+from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.modules.io.coreas import coreas, coreasInterpolator
+
+from NuRadioReco.utilities import units
+from NuRadioReco.utilities.signal_processing import half_hann_window
+
 from datetime import timedelta
 import logging
 import os
 import time
 import copy
 import numpy as np
-from NuRadioReco.modules.base.module import register_run
-import NuRadioReco.framework.event
-import NuRadioReco.framework.station
-import NuRadioReco.framework.radio_shower
-from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.modules.io.coreas import coreas, coreasInterpolator
-from NuRadioReco.utilities import units
-from NuRadioReco.utilities.signal_processing import half_hann_window
 from collections import defaultdict
 
 conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
@@ -187,10 +189,10 @@ class readCoREASDetector:
         if selected_station_channel_ids is None:
             selected_station_ids = detector.get_station_ids()
             selected_station_channel_ids = {station_id: None for station_id in selected_station_ids}
-            logging.info(f"Using all station ids in detector description: {selected_station_ids}")
+            self.logger.info(f"Using all station ids in detector description: {selected_station_ids}")
         else:
             selected_station_ids = list(selected_station_channel_ids.keys())
-            logging.info(f"Using selected station ids: {selected_station_ids}")
+            self.logger.info(f"Using selected station ids: {selected_station_ids}")
 
         t = time.time()
         t_per_event = time.time()
