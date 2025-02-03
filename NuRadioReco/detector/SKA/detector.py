@@ -15,15 +15,12 @@ class Detector:
         """
         Simple class to describe an ideal SKA detector.
 
-        The description of individual channels (= antenna arms) is read from a JSON file.
-        The positions of the antennas (= dual polerised antenna) are read from a directory
-        including subdirectories for each station.
-
-        In this class, "antenna" refers to a single receiver with a unique position. A single
-        receiver (dual-polarized antenna) has two channels, one for each polarization. Each
-        channel has a unique ID. The channels' IDs are constructed as follows:
-        antenna_id * 10 + 0 (for the first polarization) and antenna_id * 10 + 1 (for the second).
-        Antenna ids are the index in the station's layout file.
+        All individual channels (= single antenna) within a receiver unit (= dual polerised antenna)
+        are described with a JSON file. The channels within one receiver, i.e., those with the same 
+        unique position have the same `channel_group_id`. In the context of this class the 
+        `channel_group_id` is also refered to as `antenna_id`. Each channel has a unique ID. 
+        The channels' IDs are constructed as follows: `channel_group_id * 10 + pol`
+        `pol` is (currently) either 0 or 1 for the first or second polarization respectively. 
 
         Parameters
         ----------
