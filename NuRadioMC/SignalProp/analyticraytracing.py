@@ -35,9 +35,9 @@ cpp_available = False
 try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
     cpp_available = True
-    print("CPP version of ray tracer is available")
+    logger.status("CPP version of ray tracer is available")
 except:
-    print("trying to compile the CPP extension on-the-fly")
+    logger.info("trying to compile the CPP extension on-the-fly")
     try:
         import subprocess
         import os
@@ -45,10 +45,11 @@ except:
                                  "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
-        print("compilation was successful, CPP version of ray tracer is available")
+        logger.status("compilation was successful, CPP version of ray tracer is available")
     except:
-        print("compilation was not successful, using python version of ray tracer")
-        print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
+        logger.warning(
+            "Compilation was not successful, using python version of ray tracer. "
+            "Check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation.")
         cpp_available = False
 
 numba_available = False
@@ -56,9 +57,9 @@ numba_available = False
 try:
     from numba import jit, njit
     numba_available = True
-    print("Numba version of raytracer is available")
+    logger.status("Numba version of raytracer is available")
 except ImportError:
-    print("Numba is not available")
+    logger.warning("Numba is not available")
     numba_available = False
 
 """
