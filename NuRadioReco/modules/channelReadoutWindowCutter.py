@@ -69,7 +69,8 @@ class channelReadoutWindowCutter:
 
             detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
             sampling_rate = channel.get_sampling_rate()
-            self.__check_sampling_rates(detector_sampling_rate, sampling_rate)
+            n_samples = detector.get_number_of_samples(station.get_id(), channel.get_id())
+            self.__check_sampling_rates(channel, detector_sampling_rate, sampling_rate, n_samples)
 
             windowed_channel = get_empty_channel(
                 station.get_id(), channel.get_id(), detector, trigger, sampling_rate)
@@ -78,7 +79,7 @@ class channelReadoutWindowCutter:
             channel.set_trace(windowed_channel.get_trace(), windowed_channel.get_sampling_rate())
             channel.set_trace_start_time(windowed_channel.get_trace_start_time())
 
-    def __check_sampling_rates(self, detector_sampling_rate, channel_sampling_rate):
+    def __check_sampling_rates(self, channel, detector_sampling_rate, channel_sampling_rate, n_samples):
         if not self.__sampling_rate_warning_issued: # we only issue this warning once
             if not np.isclose(detector_sampling_rate, channel_sampling_rate):
                 logger.warning(
@@ -94,10 +95,7 @@ class channelReadoutWindowCutter:
         # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
         # current sampling rate)
         number_of_samples = int(
-            2 * np.ceil(
-                detector.get_number_of_samples(station.get_id(), channel.get_id()) / 2
-                * sampling_rate / detector_sampling_rate
-            ))
+            2 * np.ceil(n_samples / 2 * channel_sampling_rate / detector_sampling_rate))
 
         trace = channel.get_trace()
         if number_of_samples > trace.shape[0]:
@@ -111,8 +109,8 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     channel = NuRadioReco.framework.channel.Channel(channel_id)
 
     # Get the correct number of sample for the final sampling rate
-    sampling_rate_ratio = sampling_rate / detector.get_sampling_frequency(station.get_id(), channel_id)
-    n_samples = int(round(detector.get_number_of_samples(station.get_id(), channel_id) * sampling_rate_ratio))
+    sampling_rate_ratio = sampling_rate / detector.get_sampling_frequency(station_id, channel_id)
+    n_samples = int(round(detector.get_number_of_samples(station_id, channel_id) * sampling_rate_ratio))
     channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
 
     channel.set_trace(np.zeros(n_samples), sampling_rate)
