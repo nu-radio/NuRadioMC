@@ -4,10 +4,17 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 
+"""
+This script is in example how to read a .nur file. It will plot the electric field from the air shower and the voltage traces per antenna, if the station has
+triggered. The example file 'cr_single_station.nur' is created by running the sim_cr_single_station.py script.
+
+The structure of the .nur file is described in the documentation of NuRadioReco.
+"""
+
 label = [r'$E_r$', r'$E_\theta$',r'$E_\phi$']
 linestyle = ['solid', 'solid', 'dashed']
 
-nur_file_list = ['cr_analysis/cr_single_station.nur']
+nur_file_list = ['cr_single_station.nur']
 evtReader = eventReader.eventReader()
 evtReader.begin(filename=nur_file_list, read_detector=True)
 det = evtReader.get_detector()
