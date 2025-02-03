@@ -1,5 +1,5 @@
 from NuRadioReco.modules.base.module import register_run
-import NuRadioReco.framework.base_channel
+import NuRadioReco.framework.channel
 from NuRadioReco.utilities import units
 
 import numpy as np
@@ -108,7 +108,7 @@ class channelReadoutWindowCutter:
             raise AttributeError
 
 def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
-    channel = NuRadioReco.framework.base_channel.Channel(channel_id)
+    channel = NuRadioReco.framework.channel.Channel(channel_id)
 
     # Get the correct number of sample for the final sampling rate
     sampling_rate_ratio = sampling_rate / detector.get_sampling_frequency(station.get_id(), channel_id)
