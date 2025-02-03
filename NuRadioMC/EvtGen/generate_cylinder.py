@@ -2,8 +2,7 @@ from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 from NuRadioReco.utilities import units
 import argparse
 import logging
-logger = logging.getLogger("EventGen")
-logging.basicConfig()
+logger = logging.getLogger("NuRadioMC.EventGen")
 logger.setLevel(logging.INFO)
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ from radiotools import helper as hp
 from NuRadioReco.utilities import units, io_utilities
 import logging
 
-logger = logging.getLogger('analog_components')
+logger = logging.getLogger('NuRadioReco.analog_components')
 
 
 def load_amplifier_response(amp_type='100', path=os.path.dirname(os.path.realpath(__file__))):

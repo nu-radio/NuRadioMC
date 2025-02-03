@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import logging
 from NuRadioReco.utilities import units
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.station
@@ -13,12 +12,10 @@ import NuRadioReco.modules.channelLengthAdjuster
 import NuRadioReco.utilities.diodeSimulator
 import NuRadioReco.modules.ARA.triggerSimulator
 import NuRadioReco.modules.trigger.highLowThreshold
-from NuRadioReco.utilities.logging import setup_logger
 from NuRadioReco.detector import detector
 from NuRadioReco.framework.parameters import channelParameters as chp
-det = detector.Detector(json_filename='../example_data/dummy_detector.json')
 
-logger = setup_logger(level=logging.WARNING)
+det = detector.Detector(json_filename='../example_data/dummy_detector.json')
 
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin(debug=False)
