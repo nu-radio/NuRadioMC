@@ -592,10 +592,10 @@ class ray_tracing_2D(ray_tracing_base):
             launch_angle = self.get_launch_angle(x1, C_0, reflection, reflection_case)
 
             # define some constants and helper functions
-            n1 = n(x1[1], n_ice, delta_n, z_0)
             n_ice = self.medium.n_ice
             delta_n = self.medium.delta_n
             z_0 = self.medium.z_0
+            n1 = n(x1[1], n_ice, delta_n, z_0)
             beta = n1 * np.sin(launch_angle)
             alpha = n_ice**2 - beta**2
 
@@ -616,7 +616,7 @@ class ray_tracing_2D(ray_tracing_base):
             if(x2[1] > 0): # ice-to-air case
                 # we need to integrate only until the ray touches the surface
                 z_turn = 0
-                y_turn = get_y(get_gamma(z_turn, delta_n, z_0), C_0, self.get_C_1(x1, C_0))
+                y_turn = get_y(get_gamma(z_turn, delta_n, z_0), C_0, self.get_C_1(x1, C_0), self.__b, z_0)
                 d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
 
                 s += get_s(0) - get_s(z1) + d_air
@@ -628,7 +628,7 @@ class ray_tracing_2D(ray_tracing_base):
                     if(solution_type == 3):
                         z_turn = 0
                     else:
-                        gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
+                        gamma_turn, z_turn = get_turning_point(n_ice ** 2 - C_0 ** -2, self.__b, z_0, delta_n)
                         z_turn = z_turn[0]
         #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
                     s += 2 * get_s(z_turn) - get_s(z1) - get_s(z2)
@@ -661,20 +661,21 @@ class ray_tracing_2D(ray_tracing_base):
             launch_angle = self.get_launch_angle(x1, C_0, reflection, reflection_case)
 
             # define some constants and helper functions
-            n1 = self.n(x1[1])
             n_ice = self.medium.n_ice
+            delta_n = self.medium.delta_n
             z_0 = self.medium.z_0
+            n1 = n(x1[1], n_ice=n_ice, delta_n=delta_n, z_0=z_0)
             beta = n1 * np.sin(launch_angle)
             alpha = n_ice**2 - beta**2
 
             def gamma(z):
-                return np.max([self.n(z)**2 - beta**2, 0])
+                return np.max([n(z, n_ice, delta_n, z_0)**2 - beta**2, 0])
 
             def l1(z):
-                return np.sqrt(alpha * gamma(z)) + n_ice * self.n(z) - beta**2
+                return np.sqrt(alpha * gamma(z)) + n_ice * n(z, n_ice, delta_n, z_0) - beta**2
 
             def l2(z):
-                return np.sqrt(gamma(z)) + self.n(z)
+                return np.sqrt(gamma(z)) + n(z, n_ice, delta_n, z_0)
 
             def get_ct(z):
                 ct = z_0 * (
@@ -686,7 +687,7 @@ class ray_tracing_2D(ray_tracing_base):
             if(x2[1] > 0): # ice-to-air case
                 # we need to integrate only until the ray touches the surface
                 z_turn = 0
-                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                y_turn = get_y(get_gamma(z_turn, delta_n, z_0), C_0, self.get_C_1(x1, C_0), n_ice, self.__b, z_0)
                 d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
 
                 ct += get_ct(0) - get_ct(z1) + d_air
@@ -698,7 +699,8 @@ class ray_tracing_2D(ray_tracing_base):
                     if(solution_type == 3):
                         z_turn = 0
                     else:
-                        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+                        gamma_turn, z_turn = get_turning_point(n_ice ** 2 - C_0 ** -2, self.__b, z_0, delta_n)
+                        z_turn = z_turn[0]
         #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
 
                     ct += 2 * get_ct(z_turn) - get_ct(z1) - get_ct(z2)
@@ -721,10 +723,12 @@ class ray_tracing_2D(ray_tracing_base):
         w_phi = 0
         w_theta = 0
 
-        n1 = self.n(x1[1])
-        n2 = self.n(x2[1])
+
         n_ice = self.medium.n_ice
+        delta_n = self.medium.delta_n
         z_0 = self.medium.z_0
+        n1 = n(x1[1], n_ice, delta_n, z_0)
+        n2 = n(x2[1], n_ice, delta_n, z_0)
         beta = n1 * np.sin(launch_angle)
         alpha = n_ice**2 - beta**2
 
@@ -2573,7 +2577,7 @@ class ray_tracing(ray_tracing_base):
                                                                 reflection_case=result['reflection_case'])
                 if (analytic_time != None):
                     return analytic_time
-            except:
+            except KeyError:
                 self.__logger.warning("analytic calculation of travel time failed, switching to numerical integration")
                 return self._r2d.get_travel_time(self._x1, self._x2, result['C0'],
                                                   reflection=result['reflection'],
