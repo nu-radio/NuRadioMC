@@ -312,7 +312,6 @@ class BaseTrace:
         channel: BaseTrace
             The channel whose trace is to be added to the trace of this channel.
         """
-
         assert self.get_number_of_samples() is not None, "No trace is set for this channel"
         assert self.get_sampling_rate() == channel.get_sampling_rate(), "Sampling rates of the two channels do not match"
 
@@ -332,6 +331,7 @@ class BaseTrace:
         # 1. Channel is completely outside readout window:
         if t1_channel < t0_readout or t1_readout < t0_channel:
             return
+
         # 2. Channel starts before readout window:
         if t0_channel < t0_readout:
             i_start_readout = 0
@@ -344,6 +344,7 @@ class BaseTrace:
             t_start_readout = tt_readout[i_start_readout]
             i_start_channel = 0
             t_start_channel = t0_channel
+
         # 4. Channel ends after readout window:
         if t1_channel >= t1_readout:
             i_end_readout = n_samples_readout - 1
@@ -363,6 +364,11 @@ class BaseTrace:
         tmp_channel.apply_time_shift(residual_time_offset)
         trace_to_add = tmp_channel.get_trace()[i_start_channel:i_end_channel]
 
+        if i_end_readout - i_start_readout != i_end_channel - i_start_channel:
+            logger.error("The traces do not have the same length. This should not happen.")
+            raise ValueError('The traces do not have the same length. This should not happen.')
+
+        print(i_end_readout - i_start_readout, i_end_channel - i_start_channel)
         # Add the trace to the original trace:
         original_trace = self.get_trace()
         original_trace[i_start_readout:i_end_readout] += trace_to_add
