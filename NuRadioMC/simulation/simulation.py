@@ -1663,6 +1663,7 @@ class simulation:
                                 channel.add_to_trace(sim_channel_copy)
 
                 for evt in output_buffer[station_id].values():
+                    station = evt.get_station()
                     # we might not have a channel object in case there was no ray tracing solution
                     # to this channel, or if the timing did not match the readout window. In this
                     # case we need to create a channel object and add it to the station
@@ -1670,11 +1671,11 @@ class simulation:
                         if not station.has_channel(channel_id):
                             self._add_empty_channel(station, channel_id)
 
+                    # the only thing left is to add noise to the non-trigger traces
+                    # we need to do it a bit differently than for the trigger traces,
+                    # because we need to add noise to traces where the amplifier response
+                    # was already applied to.
                     if bool(self._config['noise']):
-                        # the only thing left is to add noise to the non-trigger traces
-                        # we need to do it a bit differently than for the trigger traces,
-                        # because we need to add noise to traces where the amplifier response
-                        # was already applied to.
                         self.add_filtered_noise_to_channels(evt, non_trigger_channels)
 
                     channelSignalReconstructor.run(evt, station, self._det)
