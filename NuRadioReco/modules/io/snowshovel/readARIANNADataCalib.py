@@ -23,7 +23,7 @@ class readARIANNAData:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger("NuRadioReco.readARIANNAData")
+        self.logger = logging.getLogger("NuRadioReco.ARIANNA.readARIANNAData")
 
     def begin(self, input_files, trigger_types=None, time_interval=None,
               tree='AmpOutData', run_number=None, event_ids=None,

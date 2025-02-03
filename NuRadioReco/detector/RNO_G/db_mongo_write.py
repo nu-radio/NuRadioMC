@@ -6,8 +6,7 @@ import datetime
 from bson import ObjectId
 
 import logging
-logging.basicConfig()
-logger = logging.getLogger("database")
+logger = logging.getLogger("NuRadioReco.MongoDBWrite")
 logger.setLevel(logging.DEBUG)
 
 

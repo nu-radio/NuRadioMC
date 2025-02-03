@@ -19,7 +19,6 @@ WARNING: this file needs NuRadioMC to be run.
 from __future__ import absolute_import, division, print_function
 
 import argparse
-import logging
 import numpy as np
 from NuRadioMC.simulation import simulation
 import NuRadioReco
@@ -29,8 +28,8 @@ import NuRadioReco.modules.phasedarray.triggerSimulator
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
+
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.logging import setup_logger
 
 # 4 channel, 2x sampling, fft upsampling, 16 ns window
 # 100 Hz -> 30.85
@@ -41,8 +40,6 @@ from NuRadioReco.utilities.logging import setup_logger
 # 100 Hz -> 62.15
 # 10 Hz -> 69.06
 # 1 Hz -> 75.75
-
-logger = setup_logger(name="")
 
 triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
@@ -63,7 +60,6 @@ step_8ant = int(8 * units.ns * 0.5 * 4.0)
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-
         channelBandPassFilter.run(evt, station, det, passband=[0.0 * units.MHz, 220.0 * units.MHz],
                                   filter_type='cheby1', order=7, rp=.1)
         channelBandPassFilter.run(evt, station, det, passband=[96.0 * units.MHz, 100.0 * units.GHz],

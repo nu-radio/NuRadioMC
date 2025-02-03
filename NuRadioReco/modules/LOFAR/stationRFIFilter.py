@@ -5,12 +5,12 @@ import numpy as np
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.signal_processing import half_hann_window
 from NuRadioReco.modules.io.LOFAR.rawTBBio import MultiFile_Dal1
+from NuRadioReco.modules.io.LOFAR.readLOFARData import tbbID_to_nrrID, nrrID_to_tbbID
 
 from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.utilities import units
 
-logger = logging.getLogger('NuRadioReco.stationRFIFilter')
-
+logger = logging.getLogger('NuRadioReco.LOFAR.stationRFIFilter')
 
 def num_double_zeros(data, threshold=None, ave_shift=False):
     """if data is a numpy array, give number of points that have  zero preceded by a zero"""
@@ -76,6 +76,7 @@ def FindRFI_LOFAR(
         rfi_cleaning_trace_length=8192,
         flagged_antenna_ids=None,
         num_dbl_z=1000,
+        pol=None
 ):
     """
     A code that basically reads given LOFAR TBB H5 file and returns an array of dirty channels.
@@ -91,7 +92,7 @@ def FindRFI_LOFAR(
         Size of total block of trace to be evaluated for finding dirty rfi channels.
     rfi_cleaning_trace_length : int
         Size of one chunk of trace to be evaluated at a time for calculating spectrum from.
-    flagged_antenna_ids : list, default=[]
+    flagged_antenna_ids : list[str] or set[str], default=[]
         List of antennas which are already flagged. These will not be considered for the RFI detection process.
     num_dbl_z : int, default=100
         The number of double zeros allowed in a block, if there are too many, then there could be data loss.
@@ -158,12 +159,16 @@ def FindRFI_LOFAR(
     max_blocks = num_blocks
 
     window_function = half_hann_window(rfi_cleaning_trace_length, 0.1)
+
     antenna_ids = tbb_file.get_antenna_names()
     antenna_ids = [id for id in antenna_ids if id not in flagged_antenna_ids]
+    if pol is not None:
+        antenna_ids = [id for id in antenna_ids if int(id) % 2 == pol] # do one polarization
     num_antennas = len(antenna_ids)
+    #logger.info(antenna_ids)
 
     # step one: find which blocks are good, and find average power
-    oneAnt_data = np.zeros(rfi_cleaning_trace_length, dtype=np.double) # initialize at zero
+    oneAnt_data = np.zeros(rfi_cleaning_trace_length, dtype=np.double)  # initialize at zero
 
     logger.info("finding good blocks")
     blocks_good = np.zeros((num_antennas, max_blocks), dtype=bool)
@@ -177,12 +182,11 @@ def FindRFI_LOFAR(
                 oneAnt_data[:] = tbb_file.get_data(
                     rfi_cleaning_trace_length * block, rfi_cleaning_trace_length, antenna_ID=antenna_ids[ant_i]
                 )
-            except: # TODO: more specific exception
+            except IndexError:
                 logger.warning('Could not read data for antenna %s block %d' % (antenna_ids[ant_i], block_i))
                 # proceed with zeros in the block
-            #oneAnt_data[:] = tbb_file.get_data(
-            #    rfi_cleaning_trace_length * block, rfi_cleaning_trace_length, antenna_index=ant_i
-            #)
+                blocks_good[ant_i, block_i] = False
+                continue
             if (
                     num_double_zeros(oneAnt_data) < num_dbl_z
             ):  # this antenna on this block is good
@@ -270,7 +274,7 @@ def FindRFI_LOFAR(
             ):
                 continue
             oneAnt_data[:] = tbb_file.get_data(
-                rfi_cleaning_trace_length * block, rfi_cleaning_trace_length, antenna_index=ant_i
+                rfi_cleaning_trace_length * block, rfi_cleaning_trace_length, antenna_ID=antenna_ids[ant_i]
             )
 
             # Window the data
@@ -306,13 +310,7 @@ def FindRFI_LOFAR(
         if np.min(num_processed_blocks[antenna_is_good]) == num_blocks:
             break
 
-    logger.info(
-        num_blocks,
-        "analyzed blocks",
-        np.sum(antenna_is_good),
-        "analyzed antennas out of",
-        len(antenna_is_good),
-    )
+    logger.info(f"{num_blocks} analyzed blocks, {np.sum(antenna_is_good)} analyzed antennas out of {len(antenna_is_good)}")
 
     # Get only good antennas
     antenna_is_good[
@@ -328,14 +326,12 @@ def FindRFI_LOFAR(
 
     # Get median of stability by channel, across each antenna
     median_phase_spread_byChannel = np.median(phase_stability[antenna_is_good], axis=0)
-
     # Get median across all channels
     median_spread = np.median(median_phase_spread_byChannel)
     # Create a noise cutoff
     sorted_phase_spreads = np.sort(median_phase_spread_byChannel)
     N = len(median_phase_spread_byChannel)
     noise = sorted_phase_spreads[int(N * 0.95)] - sorted_phase_spreads[int(N / 2)]
-
     # Get channels contaminated by RFI, where phase stability is smaller than noise
     dirty_channels = np.where(
         median_phase_spread_byChannel < (median_spread - 3 * noise)
@@ -412,12 +408,15 @@ class stationRFIFilter:
     other antenna in the station. If the phase is stable, this indicates a constant source contaminating the data.
     More information can be found in Section 3.2.2 of `this paper <https://arxiv.org/pdf/1311.1399.pdf>`_ .
     """
+
     def __init__(self):
         self.logger = logger  # logging.getLogger('NuRadioReco.channelRFIFilter')
 
         self.__rfi_trace_length = None
         self.__station_list = None
         self.__metadata_dir = None
+        self.__median_spectrum = None
+        self.__do_polarizations_apart = None
 
     @property
     def station_list(self):
@@ -435,7 +434,8 @@ class stationRFIFilter:
     def metadata_dir(self, new_dir):
         self.__metadata_dir = new_dir
 
-    def begin(self, rfi_cleaning_trace_length=65536, reader=None, logger_level=logging.WARNING):
+    def begin(self, rfi_cleaning_trace_length=65536, reader=None, do_polarizations_apart=False,
+              logger_level=logging.NOTSET):
         """
         Set the variables used for RFI detection. The `reader` object can be used to retrieve the filenames associated
         with the loaded stations, as well as the metadata directory.
@@ -446,8 +446,10 @@ class stationRFIFilter:
             The number of samples to use per block to construct the frequency spectrum.
         reader : readLOFARData object, default=None
             If provided, the reader will be used to set the metadata directory and find the TBB files paths.
-        logger_level : int, default=logging.WARNING
-            The logging level to use for the module.
+        do_polarizations_apart : bool, default=False
+            If True, the X and Y polarisations will be processed separately.
+        logger_level : int, default=logging.NOTSET
+            Use this parameter to override the logging level for this module.
 
         Notes
         -----
@@ -455,7 +457,7 @@ class stationRFIFilter:
         manually before attempting to execute the `stationRFIFilter.run()` function.
         """
         self.__rfi_trace_length = rfi_cleaning_trace_length
-
+        self.__do_polarizations_apart = do_polarizations_apart
         if reader is not None:
             self.station_list = reader.get_stations()
             self.metadata_dir = reader.meta_dir
@@ -474,11 +476,13 @@ class stationRFIFilter:
             The event on which to run the filter.
         """
         stations_dict = self.station_list
+        self.__median_spectrum = {}
 
         for station in event.get_stations():
             station_name = f'CS{station.get_id():03}'
             station_files = stations_dict[station_name]['files']
-            flagged_channel_ids = station.get_parameter(stationParameters.flagged_channels)
+            antenna_set = stations_dict[station_name]['metadata'][1]
+            flagged_channel_ids: dict[int, list[str]] = station.get_parameter(stationParameters.flagged_channels)  # this is a defaultdict
 
             # Find the length of a trace in the station (assume all channels have been loaded with same length)
             station_trace_length = station.get_channel(station.get_channel_ids()[0]).get_number_of_samples()
@@ -493,16 +497,45 @@ class stationRFIFilter:
                                   f'length ({self.__rfi_trace_length}) as well as a multiple of it.')
                 raise ValueError
 
-            # TODO: replace this with FindRFI() as to allow other experiments to use the same code
-            packet = FindRFI_LOFAR(station_files,
-                                   self.metadata_dir,
-                                   station_trace_length,
-                                   self.__rfi_trace_length,
-                                   flagged_antenna_ids=flagged_channel_ids
-                                   )
+            flagged_tbb_channel_ids = set()
+            for ind in flagged_channel_ids:
+                flagged_tbb_channel_ids.add(nrrID_to_tbbID(ind))  # in rawTBBio, antenna IDs are str
 
-            # Extract the necessary information from FindRFI
-            dirty_channels = packet['dirty_channels']
+            if not self.__do_polarizations_apart:
+                packet = FindRFI_LOFAR(station_files,
+                                    self.metadata_dir,
+                                    station_trace_length,
+                                    self.__rfi_trace_length,
+                                    flagged_antenna_ids=flagged_tbb_channel_ids
+                                    )
+                dirty_channels = packet['dirty_channels']
+
+            else:
+                packet0 = FindRFI_LOFAR(station_files,
+                                    self.metadata_dir,
+                                    station_trace_length,
+                                    self.__rfi_trace_length,
+                                    flagged_antenna_ids=flagged_tbb_channel_ids, pol=0
+                                    )
+
+                packet1 = FindRFI_LOFAR(station_files,
+                                    self.metadata_dir,
+                                    station_trace_length,
+                                    self.__rfi_trace_length,
+                                    flagged_antenna_ids=flagged_tbb_channel_ids, pol=1
+                                    )
+
+
+                # Extract the necessary information from FindRFI
+                dirty_channels_0 = packet0['dirty_channels']
+                dirty_channels_1 = packet1['dirty_channels']
+
+                dirty_channels = list(set(dirty_channels_0) | set(dirty_channels_1))
+                packet = packet0
+                packet['antenna_names'].extend(packet1['antenna_names'])
+                packet['cleaned_power'] = np.concatenate( (packet['cleaned_power'], packet1['cleaned_power'])  )
+
+
             station.set_parameter(stationParameters.dirty_fft_channels, dirty_channels)
 
             # implement outlier detection in cleaned power
@@ -511,21 +544,44 @@ class stationRFIFilter:
             median_dipole_power = np.median(cleaned_power)
             bad_dipole_indices = np.where(
                 np.logical_or(
-                    cleaned_power < 0.5 * median_dipole_power, cleaned_power > 2.0 * median_dipole_power))[0]
+                    cleaned_power < 0.5 * median_dipole_power, cleaned_power > 2.0 * median_dipole_power
+                )
+            )[0]
             # which dipole ids are these
             self.logger.info(
-                'There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices])
+                f'There are {len(bad_dipole_indices)} outliers in cleaned power \n'
+                f'Dipole ids: {antenna_ids[bad_dipole_indices]}'
             )
-            # remove from station, add to flagged list
-            for id in antenna_ids[bad_dipole_indices]:
-                station.remove_channel(int(id))  # are channel ids integers?
 
-            flagged_channel_ids.update([id for id in antenna_ids[bad_dipole_indices]]) # is set, not list
+            # Construct flagged set of NRR channel IDs
+            channel_ids_to_remove = set()
+            for ind in antenna_ids[bad_dipole_indices]:
+                # convert TBB IDs to nrr IDs
+                nrr_id = tbbID_to_nrrID(ind, antenna_set)
+
+                # Ensure both channels from same antenna are removed
+                group_id_to_remove = station.get_channel(int(nrr_id)).get_group_id()
+                for channel_id in station.iter_channel_group(group_id_to_remove):
+                    channel_ids_to_remove.add(channel_id.get_id())
+            self.logger.info(
+                f'Removing the following channels from station {station_name}: \n'
+                f'{channel_ids_to_remove}'
+            )
+
+            # Remove bad antennas (= both channels!) from station, if it exists
+            for nrr_id in channel_ids_to_remove:
+                station.remove_channel(nrr_id)
+
+            for channel_ind in channel_ids_to_remove:
+                flagged_channel_ids[channel_ind].append('rfi_outliers_cleaned_power')
+
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
 
             # Set spectral amplitude to zero for channels with RFI
+            spectra_before_flag = []
             for channel in station.iter_channels():
                 trace_fft = channel.get_frequency_spectrum()
+                spectra_before_flag.append(np.copy(trace_fft))
                 sample_rate = channel.get_sampling_rate()
 
                 # Reject DC and first harmonic
@@ -536,6 +592,46 @@ class stationRFIFilter:
                 trace_fft[dirty_channels] *= 0.0
 
                 channel.set_frequency_spectrum(trace_fft, sample_rate)
+            self.__median_spectrum[station.get_id()] = np.median(np.abs(np.asarray(spectra_before_flag)), axis=0)
 
-    def end(self):
-        pass
+    def end(self, event=None):
+        if event is not None:
+            for station in event.get_stations():
+                self.plot_median_freq_spectrum(event, station, rfi_cleaned=False, flagging=True)
+                self.plot_median_freq_spectrum(event, station, rfi_cleaned=True, flagging=False)
+
+    def plot_median_freq_spectrum(self, event, station, rfi_cleaned: bool = False, flagging: bool = False):
+        import matplotlib.pyplot as plt
+        if flagging and rfi_cleaned:
+            logger.warning("plot_median_freq_spectrum flagging the rfi_cleaned channels in a clean trace is weird, but ok")
+
+        station_name = f'CS{station.get_id():03d}'
+
+        if rfi_cleaned:
+            # median spectrum from channels in the station. Since this function is expected to run in the .end() after .run(), the traces there are cleaned
+            spectra = []
+            for channel in station.iter_channels():
+                spectrum = channel.get_frequency_spectrum()
+                spectra.append(np.abs(spectrum))
+            median_spectrum = np.median(np.array(spectra), axis=0)
+            plot_filename = f"{event.get_id()}-{station_name}-rfi_cleaning_flags.pdf"
+        else:
+            # pre rfi cleaned spectrum stored
+            median_spectrum = self.__median_spectrum[station.get_id()]
+            plot_filename = f"{event.get_id()}-{station_name}-median_spectrum_after_rfi_cleaning.pdf"
+
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        log_median_spectrum = np.log10(median_spectrum)
+        channel = station.get_channel(station.get_channel_ids()[0])
+        freq_MHz = channel.get_frequencies() / units.MHz
+        ax.plot(freq_MHz, log_median_spectrum,zorder=1)
+        if flagging:
+            dirty_channels = station[stationParameters.dirty_fft_channels]
+            ax.scatter(freq_MHz[dirty_channels], log_median_spectrum[dirty_channels], marker="x", color="red", zorder=2)
+        ax.set_xlabel("Frequency [MHz]")
+        ax.set_ylabel("Log-Spectral Power [ADU]")
+        ax.set_title(f"{station_name} Median frequency spectrum")
+        import os 
+        os.makedirs(str(event.get_id()), exist_ok=True)
+        plt.savefig(f"{event.get_id()}/" + plot_filename)
