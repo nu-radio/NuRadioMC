@@ -111,6 +111,8 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     # Get the correct number of sample for the final sampling rate
     sampling_rate_ratio = sampling_rate / detector.get_sampling_frequency(station_id, channel_id)
     n_samples = int(round(detector.get_number_of_samples(station_id, channel_id) * sampling_rate_ratio))
+
+    # get the correct trace start time taking into account different `pre_trigger_times`
     channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
 
     channel.set_trace(np.zeros(n_samples), sampling_rate)

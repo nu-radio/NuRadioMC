@@ -1715,24 +1715,12 @@ class simulation:
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
-    def _add_empty_channel(self, station, channel_id, primary_trigger):
+    def _add_empty_channel(self, station, channel_id):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
-        channel = NuRadioReco.framework.channel.Channel(channel_id)
+        trigger = station.get_primary_trigger()
+        channel = NuRadioReco.modules.channelReadoutWindowCutter.get_empty_channel(
+            station.get_id(), channel_id, self._det, trigger, self._config['sampling_rate'])
 
-        # Get the correct number of sample for the final sampling rate
-        sampling_rate_ratio = self._config['sampling_rate'] / self._det.get_sampling_frequency(station.get_id(), channel_id)
-        n_samples = int(round(self._det.get_number_of_samples(station.get_id(), channel_id) * sampling_rate_ratio))
-
-        channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
-
-        # Set the correct trace start time taking into account different `pre_trigger_times`
-        trigger_channel_id = station.get_channel_ids()[0]
-        trigger_channel_trace_start_time = station.get_channel(trigger_channel_id).get_trace_start_time()
-        channel_trace_start_time = trigger_channel_trace_start_time + (
-            primary_trigger.get_pre_trigger_time_channel(channel_id) -
-            primary_trigger.get_pre_trigger_time_channel(trigger_channel_id))
-
-        channel.set_trace_start_time(channel_trace_start_time)
         station.add_channel(channel)
 
     def _is_in_fiducial_volume(self, pos):
