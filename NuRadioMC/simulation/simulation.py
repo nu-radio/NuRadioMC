@@ -1763,6 +1763,7 @@ class simulation:
         evt.set_parameter(genattrs.Tnoise, self._noise_temp)
         evt.set_parameter(genattrs.bandwidth, next(iter(next(iter(self._integrated_channel_response.values())).values())))
         station = evt.get_station()
+        station_id = station.get_id()
         for channel in station.iter_channels():
             channel[chp.Vrms_NuRadioMC_simulation] = self._Vrms_per_channel[station_id][channel.get_id()]
             channel[chp.bandwidth_NuRadioMC_simulation] = self._integrated_channel_response[station_id][channel.get_id()]
