@@ -22,11 +22,18 @@ class Detector:
         The channels' IDs are constructed as follows: `channel_group_id * 10 + pol`
         `pol` is (currently) either 0 or 1 for the first or second polarization respectively. 
 
+        As of February 2025, the SKA positions are specified in a set of files following a specific
+        directory structure. In the directory there should be a layout.txt file which contains the
+        positions of the stations. For each station there should be a subdirectory which also contains
+        a layout.txt file with the positions of the antennas. The `position_path` should point to the
+        root directory of this structure.
+
         Parameters
         ----------
         position_path: str (Default: None)
-            Path to the directory which contains the layout.txt of the station positions +
-            subdirectories for each station, each containing a layout.txt file.
+            Path to the directory which contains the layout.txt files with the station positions and
+            subdirectories for each station, as explained above. If None, the detector is left empty
+            and the positions will have to be added manually.
         channel_file: str (Default: None)
             Path to the JSON file which contains the channel information. If None,
             the default file "ska_channels.json" in the same directory as this file
