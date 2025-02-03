@@ -360,15 +360,17 @@ class BaseTrace:
 
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
-        tmp_channel = copy.deepcopy(channel)
-        tmp_channel.apply_time_shift(residual_time_offset)
-        trace_to_add = tmp_channel.get_trace()[i_start_channel:i_end_channel]
+        if residual_time_offset != 0:
+            tmp_channel = copy.deepcopy(channel)
+            tmp_channel.apply_time_shift(residual_time_offset)
+            trace_to_add = tmp_channel.get_trace()[i_start_channel:i_end_channel]
+        else:
+            trace_to_add = channel.get_trace()[i_start_channel:i_end_channel]
 
         if i_end_readout - i_start_readout != i_end_channel - i_start_channel:
             logger.error("The traces do not have the same length. This should not happen.")
             raise ValueError('The traces do not have the same length. This should not happen.')
 
-        print(i_end_readout - i_start_readout, i_end_channel - i_start_channel)
         # Add the trace to the original trace:
         original_trace = self.get_trace()
         original_trace[i_start_readout:i_end_readout] += trace_to_add
