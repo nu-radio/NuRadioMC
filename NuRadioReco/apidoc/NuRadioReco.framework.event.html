@@ -625,38 +625,58 @@
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.event.</span></span><span class="sig-name descname"><span class="pre">Event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage" title="NuRadioReco.framework.parameter_storage.ParameterStorage"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterStorage</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>parameter_types</strong><span class="classifier">parameter class or list of classes</span></dt><dd><p>The parameter classes are defined in <a class="reference internal" href="NuRadioReco.framework.parameters.html#module-NuRadioReco.framework.parameters" title="NuRadioReco.framework.parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.parameters</span></code></a></p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_particle" title="NuRadioReco.framework.event.Event.add_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_particle</span></code></a>(particle)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_parameter_type" title="NuRadioReco.framework.event.Event.add_parameter_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_parameter_type</span></code></a>(parameter_type)</p></td>
+<td><p>Add a parameter class to the list of allowed parameter classes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_particle" title="NuRadioReco.framework.event.Event.add_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_particle</span></code></a>(particle)</p></td>
 <td><p>Adds a MC particle to the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_shower" title="NuRadioReco.framework.event.Event.add_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_shower</span></code></a>(shower)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_shower" title="NuRadioReco.framework.event.Event.add_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_shower</span></code></a>(shower)</p></td>
 <td><p>Adds a radio shower to the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_sim_emitter" title="NuRadioReco.framework.event.Event.add_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sim_emitter</span></code></a>(sim_emitter)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_sim_emitter" title="NuRadioReco.framework.event.Event.add_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sim_emitter</span></code></a>(sim_emitter)</p></td>
 <td><p>Add a simulated emitter to the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_sim_shower" title="NuRadioReco.framework.event.Event.add_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sim_shower</span></code></a>(sim_shower)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_sim_shower" title="NuRadioReco.framework.event.Event.add_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sim_shower</span></code></a>(sim_shower)</p></td>
 <td><p>Add a simulated shower to the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_event_time" title="NuRadioReco.framework.event.Event.get_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_time</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_event_time" title="NuRadioReco.framework.event.Event.get_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_time</span></code></a>()</p></td>
 <td><p>Returns the event time (as astropy.time.Time object).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_shower" title="NuRadioReco.framework.event.Event.get_first_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_shower</span></code></a>([ids])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_shower" title="NuRadioReco.framework.event.Event.get_first_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_shower</span></code></a>([ids])</p></td>
 <td><p>Returns only the first shower stored in the event.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_emitter" title="NuRadioReco.framework.event.Event.get_first_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_emitter</span></code></a>([ids])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_emitter" title="NuRadioReco.framework.event.Event.get_first_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_emitter</span></code></a>([ids])</p></td>
 <td><p>Returns only the first sim emitter stored in the event.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_shower" title="NuRadioReco.framework.event.Event.get_first_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_shower</span></code></a>([ids])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_first_sim_shower" title="NuRadioReco.framework.event.Event.get_first_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_first_sim_shower</span></code></a>([ids])</p></td>
 <td><p>Returns only the first sim shower stored in the event.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_hybrid_information" title="NuRadioReco.framework.event.Event.get_hybrid_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_hybrid_information</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_hybrid_information" title="NuRadioReco.framework.event.Event.get_hybrid_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_hybrid_information</span></code></a>()</p></td>
 <td><p>Get information about hybrid detector data stored in the event.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_interaction_products" title="NuRadioReco.framework.event.Event.get_interaction_products"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interaction_products</span></code></a>(parent_particle[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_interaction_products" title="NuRadioReco.framework.event.Event.get_interaction_products"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interaction_products</span></code></a>(parent_particle[, ...])</p></td>
 <td><p>Return all the daughter particles and showers generated in the interaction of the &lt;parent_particle&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_parameter" title="NuRadioReco.framework.event.Event.get_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter</span></code></a>(key)</p></td>
+<td><p>Get a parameter</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_parameter_error" title="NuRadioReco.framework.event.Event.get_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_error</span></code></a>(key)</p></td>
+<td><p>Get the error of a parameter</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_parameters" title="NuRadioReco.framework.event.Event.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>()</p></td>
+<td><p>Get all parameters</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_parent" title="NuRadioReco.framework.event.Event.get_parent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parent</span></code></a>(particle_or_shower)</p></td>
 <td><p>returns the parent of a particle or a shower</p></td>
@@ -694,6 +714,12 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_waveforms" title="NuRadioReco.framework.event.Event.get_waveforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_waveforms</span></code></a>([station_id, channel_id])</p></td>
 <td><p>Returns the waveforms stored within the event.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_parameter" title="NuRadioReco.framework.event.Event.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
+<td><p>Returns <em class="xref py py-obj">True</em> if the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_parameter_error" title="NuRadioReco.framework.event.Event.has_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_error</span></code></a>(key)</p></td>
+<td><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_particle" title="NuRadioReco.framework.event.Event.has_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_particle</span></code></a>([particle_id])</p></td>
 <td><p>Returns true if at least one MC particle is stored in the event</p></td>
 </tr>
@@ -718,32 +744,29 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_event_time" title="NuRadioReco.framework.event.Event.set_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_event_time</span></code></a>(time[, format])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.remove_parameter" title="NuRadioReco.framework.event.Event.remove_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_parameter</span></code></a>(key)</p></td>
+<td><p>Remove a parameter</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_event_time" title="NuRadioReco.framework.event.Event.set_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_event_time</span></code></a>(time[, format])</p></td>
 <td><p>Set the (absolute) event time (will be stored as astropy.time.Time).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_parameter" title="NuRadioReco.framework.event.Event.set_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter</span></code></a>(key, value)</p></td>
+<td><p>Set a parameter</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_parameter_error" title="NuRadioReco.framework.event.Event.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
+<td><p>Set the error of a parameter</p></td>
 </tr>
 </tbody>
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>add_parameter_type</strong></p></td>
+<tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>deserialize</strong></p></td>
+<tr class="row-even"><td><p><strong>get_generator_info</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_generator_info</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_id</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_parameter</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_parameter_error</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_parameters</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_id</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>get_run_number</strong></p></td>
@@ -758,31 +781,16 @@
 <tr class="row-odd"><td><p><strong>has_generator_info</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>has_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>serialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>has_parameter_error</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_generator_info</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>remove_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>set_id</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>set_generator_info</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>set_id</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>set_parameter_error</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>set_station</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_station</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -1232,47 +1240,64 @@ all stations in the list is returned</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.add_parameter_type">
 <span class="sig-name descname"><span class="pre">add_parameter_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.add_parameter_type" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Add a parameter class to the list of allowed parameter classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>parameter_type</strong><span class="classifier">parameter class</span></dt><dd><p>The parameter class is defined in <a class="reference internal" href="NuRadioReco.framework.parameters.html#module-NuRadioReco.framework.parameters" title="NuRadioReco.framework.parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.parameters</span></code></a></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_parameter">
 <span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get a parameter</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_parameter_error">
 <span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_parameter_error" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get the error of a parameter</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.get_parameters">
 <span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_parameters" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get all parameters</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.has_parameter">
 <span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns <em class="xref py py-obj">True</em> if the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.has_parameter_error">
 <span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_parameter_error" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.remove_parameter">
 <span class="sig-name descname"><span class="pre">remove_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.remove_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Remove a parameter</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.set_parameter">
 <span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.set_parameter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Set a parameter</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.set_parameter_error">
 <span class="sig-name descname"><span class="pre">set_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.event.Event.set_parameter_error" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Set the error of a parameter</p>
+</dd></dl>
 
 </dd></dl>
 

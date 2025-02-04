@@ -614,7 +614,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.framework.parameter_storage</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module that implements the basic structure for storing parameters</span>
+
+<span class="sd">This class is not intended to be used directly, but is inherited by all</span>
+<span class="sd">basic NuRadio data objects (see :doc:`Data Structure &lt;/NuRadioReco/pages/event_structure&gt;`) that implement</span>
+<span class="sd">parameter storage.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
@@ -625,8 +633,25 @@
 <div class="viewcode-block" id="ParameterStorage">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ParameterStorage</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is the base class to store parameters and their covariances.</span>
+
+<span class="sd">    This class is not</span>
+<span class="sd">    supposed to be used by a user but only be used by other classes to inherit from. All classes</span>
+<span class="sd">    which have/should have a &quot;parameter storage&quot; shall inherit from this class. A parameter</span>
+<span class="sd">    storage is a dictionary-like object which stores parameters and their covariances. As</span>
+<span class="sd">    keys only enums from defined emum classes are allowed (parameter classes). Which</span>
+<span class="sd">    parameter class is allowed is defined in the constructor of this class or can be</span>
+<span class="sd">    modified with the function `add_parameter_type`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_types</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parameter_types : parameter class or list of classes</span>
+<span class="sd">            The parameter classes are defined in `NuRadioReco.framework.parameters`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter_types</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -636,16 +661,27 @@
 <div class="viewcode-block" id="ParameterStorage.add_parameter_type">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.add_parameter_type">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_parameter_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_type</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a parameter class to the list of allowed parameter classes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parameter_type : parameter class</span>
+<span class="sd">            The parameter class is defined in `NuRadioReco.framework.parameters`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parameter_type</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Set a parameter &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get a parameter &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Raises an error if `key` is not a class member of the parameter classes defined for the object s&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span><span class="p">)):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> needs to be of type </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> needs to be of type </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_types</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -653,6 +689,7 @@
 <div class="viewcode-block" id="ParameterStorage.get_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get a parameter &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
 
@@ -660,6 +697,7 @@
 <div class="viewcode-block" id="ParameterStorage.has_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.has_parameter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">has_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns `True` if the parameter `key` is present, `False` otherwise &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span></div>
 
@@ -667,6 +705,7 @@
 <div class="viewcode-block" id="ParameterStorage.set_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.set_parameter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Set a parameter &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
 
@@ -674,6 +713,7 @@
 <div class="viewcode-block" id="ParameterStorage.set_parameter_error">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.set_parameter_error">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Set the error of a parameter &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span> <span class="o">**</span> <span class="mi">2</span></div>
 
@@ -681,6 +721,7 @@
 <div class="viewcode-block" id="ParameterStorage.get_parameter_error">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter_error">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get the error of a parameter &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)]</span> <span class="o">**</span> <span class="mf">0.5</span></div>
 
@@ -688,6 +729,7 @@
 <div class="viewcode-block" id="ParameterStorage.has_parameter_error">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.has_parameter_error">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">has_parameter_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns `True` if an uncertainty for the parameter `key` is present, `False` otherwise &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span></div>
 
@@ -695,6 +737,7 @@
 <div class="viewcode-block" id="ParameterStorage.remove_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.remove_parameter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Remove a parameter &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
@@ -702,6 +745,7 @@
 <div class="viewcode-block" id="ParameterStorage.get_parameters">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get all parameters &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">)</span></div>
 
 
