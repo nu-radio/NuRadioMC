@@ -1676,7 +1676,7 @@ class simulation:
                     # because we need to add noise to traces where the amplifier response
                     # was already applied to.
                     if bool(self._config['noise']):
-                        self.add_filtered_noise_to_channels(evt, non_trigger_channels)
+                        self.add_filtered_noise_to_channels(evt, station, non_trigger_channels)
 
                     channelSignalReconstructor.run(evt, station, self._det)
                     self._set_generator_attributes(evt)
@@ -1717,14 +1717,14 @@ class simulation:
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
-    def add_filtered_noise_to_channels(self, evt, channel_ids):
+    def add_filtered_noise_to_channels(self, evt, station, channel_ids):
         """
         Add noise to the traces of the channels in the event.
         This function is used to add noise to the traces of the non-trigger channels.
         The traces of the non-trigger channels already have the detector response applied to them.
         Hence we add "filtered" noise, i.e., noise which is based through the same filter seperatly.
         """
-        station = evt.get_station()
+        station_id = station.get_id()
         for channel_id in channel_ids:
             channel = station.get_channel(channel_id)
 
