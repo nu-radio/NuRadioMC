@@ -15,7 +15,7 @@
             "ant_type": "SKALA_v4_Ypol",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 0.0,
-            "ant_rotation_phi": 0,
+            "ant_rotation_phi": 180,
             "ant_rotation_theta": 90,
             "cab_time_delay": 0,
             "channel_id": 1
