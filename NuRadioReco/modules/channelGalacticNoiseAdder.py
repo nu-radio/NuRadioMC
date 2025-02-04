@@ -114,9 +114,9 @@ class channelGalacticNoiseAdder:
 
         self.__caching = caching
         self.__freqs = None
-        if self.__caching and self.__n_side > 10:
+        if self.__caching and self.__n_side >= 10:
             logger.warning(
-                "Caching for the vector effective length is enabled (with `maxsize=1024`). `n_side` is larger 10 and thus "
+                "Caching for the vector effective length is enabled (with `maxsize=1024`) and `n_side >= 10`, and thus "
                 "it produces to many different caching entries for two antenna models to be stored of one `station_time`. "
                 "Either decrease `n_side` or increase `maxsize` (has to be done in the source code).")
 
