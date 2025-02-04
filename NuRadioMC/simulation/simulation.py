@@ -1629,23 +1629,30 @@ class simulation:
                         logger.debug(f"Adding sim_station to station {station_id} for event group {event_group.get_run_number()}, channel {channel_id}")
                         station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
 
+                        # The non-triggered channels were simulated using the efieldToVoltageConverterPerEfield
+                        # (notice the "PerEfield" in the name). This means that each electric field was converted to
+                        # a sim channel. Now we still have to add together all sim channels associated with one "physical"
+                        # channel. Furthermore we have to cut out the correct readout window. For the trigger channels
+                        # this is done with the channelReadoutWindowCutter, here we have to do it manually.
                         for evt in output_buffer[station_id].values():
                             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
                                 if not station.has_channel(sim_channel.get_id()):
-                                    # Add empty channel with the correct length and start time.
+                                    # For each physical channel we first create a "empty" trace (all zeros)
+                                    # with the start time and length ....
                                     self._add_empty_channel(station, channel_id)
 
                                 channel = station.get_channel(sim_channel.get_id())
-                                channel.add_to_trace(sim_channel)  # this function will add the sim channel to the right window
+                                # ... and now add the sim channel to the correct window defined by the "empty tradce"
+                                channel.add_to_trace(sim_channel)
 
                 for evt in output_buffer[station_id].values():
-                    # we might not have a channel object in case there was no ray tracing solution to this channel, or if the timing did not match
-                    # the readout window. In this case we need to create a channel object and add it to the station
+                    # We might not have a channel object in case there was no ray tracing solution to this channel,
+                    # i.e. no sim_channel was associated to the channel. Hence, we add an empty channel object.
                     for channel_id in non_trigger_channels:
                         if not station.has_channel(channel_id):
                             self._add_empty_channel(station, channel_id)
 
-                    # the only thing left is to add noise to the non-trigger traces
+                    # The only thing left is to add noise to the non-trigger traces
                     # we need to do it a bit differently than for the trigger traces,
                     # because we need to add noise to traces where the amplifier response
                     # was already applied to.
