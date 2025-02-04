@@ -72,12 +72,65 @@ class channelReadoutWindowCutter:
             n_samples = detector.get_number_of_samples(station.get_id(), channel.get_id())
             self.__check_sampling_rates(channel, detector_sampling_rate, sampling_rate, n_samples)
 
-            windowed_channel = get_empty_channel(
-                station.get_id(), channel.get_id(), detector, trigger, sampling_rate)
-            windowed_channel.add_to_trace(channel)
 
-            channel.set_trace(windowed_channel.get_trace(), windowed_channel.get_sampling_rate())
-            channel.set_trace_start_time(windowed_channel.get_trace_start_time())
+            # this should ensure that 1) the number of samples is even and
+            # 2) resampling to the detector sampling rate results in the correct number of samples
+            # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
+            # current sampling rate)
+            number_of_samples = int(
+                2 * np.ceil(n_samples / 2 * sampling_rate / detector_sampling_rate))
+
+            trace = channel.get_trace()
+            if number_of_samples > trace.shape[0]:
+                logger.error((
+                    "Input has fewer samples than desired output. "
+                    "Channels has only {} samples but {} samples are requested.").format(
+                    trace.shape[0], number_of_samples))
+                raise AttributeError
+
+            # windowed_channel = get_empty_channel(
+            #     station.get_id(), channel.get_id(), detector, trigger, sampling_rate)
+            # windowed_channel.add_to_trace(channel)
+
+            # channel.set_trace(windowed_channel.get_trace(), windowed_channel.get_sampling_rate())
+            # channel.set_trace_start_time(windowed_channel.get_trace_start_time())
+
+            trigger_time_channel = trigger_time - channel.get_trace_start_time()
+            trigger_time_sample = int(np.round(trigger_time_channel * sampling_rate))
+
+            channel_id = channel.get_id()
+            pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id)
+            samples_before_trigger = int(pre_trigger_time * sampling_rate)
+
+            trace_length = len(trace)
+            cut_samples_beginning = 0
+            if samples_before_trigger <= trigger_time_sample:
+                cut_samples_beginning = trigger_time_sample - samples_before_trigger
+                if cut_samples_beginning + number_of_samples > trace_length:
+                    logger.warning(("trigger time is sample {} but total trace length is only {} "
+                                    "samples (requested trace length is {} with an offest of {} "
+                                    "before trigger). To achieve desired configuration, trace "
+                                    "will be rolled").format(trigger_time_sample, trace_length,
+                                                             number_of_samples, samples_before_trigger))
+
+                    roll_by = cut_samples_beginning + number_of_samples - trace_length  # roll_by is positive
+                    trace = np.roll(trace, -1 * roll_by)
+                    cut_samples_beginning -= roll_by
+
+            else:
+                roll_by = samples_before_trigger - trigger_time_sample
+                logger.warning(("trigger time is before 'trigger offset window' (requested samples before trigger = {},"
+                                "trigger time sample = {}), the trace needs to be rolled by {} samples first"
+                                " = {}ns").format(samples_before_trigger, trigger_time_sample, roll_by,
+                                                  round(roll_by / sampling_rate/units.ns, 2)))
+
+                trace = np.roll(trace, roll_by)
+
+            # shift trace to be in the correct location for cutting
+            trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
+            channel.set_trace(trace, channel.get_sampling_rate())
+            channel.set_trace_start_time(trigger_time - pre_trigger_time)
+
 
     def __check_sampling_rates(self, channel, detector_sampling_rate, channel_sampling_rate, n_samples):
         if not self.__sampling_rate_warning_issued: # we only issue this warning once
@@ -90,20 +143,6 @@ class channelReadoutWindowCutter:
                 )
                 self.__sampling_rate_warning_issued = True
 
-        # this should ensure that 1) the number of samples is even and
-        # 2) resampling to the detector sampling rate results in the correct number of samples
-        # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
-        # current sampling rate)
-        number_of_samples = int(
-            2 * np.ceil(n_samples / 2 * channel_sampling_rate / detector_sampling_rate))
-
-        trace = channel.get_trace()
-        if number_of_samples > trace.shape[0]:
-            logger.error((
-                "Input has fewer samples than desired output. "
-                "Channels has only {} samples but {} samples are requested.").format(
-                trace.shape[0], number_of_samples))
-            raise AttributeError
 
 def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     channel = NuRadioReco.framework.channel.Channel(channel_id)
@@ -114,7 +153,7 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
 
     # get the correct trace start time taking into account different `pre_trigger_times`
     channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
-
+    print(trigger.get_pre_trigger_time_channel(channel_id))
     channel.set_trace(np.zeros(n_samples), sampling_rate)
     channel.set_trace_start_time(channel_trace_start_time)
 
