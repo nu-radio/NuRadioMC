@@ -71,7 +71,8 @@ class channelGalacticNoiseAdder:
             n_side=4,
             freq_range=None,
             interpolation_frequencies=None,
-            seed=None
+            seed=None,
+            caching=True
     ):
         """
         Set up important parameters for the module
@@ -100,6 +101,9 @@ class channelGalacticNoiseAdder:
         seed : {None, int, array_like[ints], SeedSequence}, optional
             The seed that is passed on to the `numpy.random.Philox` bitgenerator used for random
             number generation.
+        caching: bool, default: True
+            If True, the antenna response is cached for each channel. This can speed up this module
+            by a lot. If the frequencies of the channels change, the cache is cleared.
         """
         if debug:
             warnings.warn("This argument is deprecated and will be removed in future versions.", DeprecationWarning)
@@ -107,6 +111,9 @@ class channelGalacticNoiseAdder:
         self.__random_generator = Generator(Philox(seed))
         self.__n_side = n_side
         self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
+
+        self.__caching = caching
+        self.__freqs = None
 
         if interpolation_frequencies is None:
             if freq_range is None:
@@ -160,6 +167,12 @@ class channelGalacticNoiseAdder:
             self.__radio_sky = healpy.pixelfunc.ud_grade(self.__radio_sky, self.__n_side)
             self.__noise_temperatures[i_freq] = self.__radio_sky
 
+
+    @functools.lru_cache(maxsize=1024 * 32)
+    def get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
+        return ant_pattern.get_antenna_response_vectorized(self.__freqs, zen, azi, *ant_orient)
+
+
     @register_run()
     def run(
             self,
@@ -203,6 +216,20 @@ class channelGalacticNoiseAdder:
         freqs = last_freqs
         d_f = freqs[2] - freqs[1]
 
+        # If we cache the antenna pattern, we need to make sure that the frequencies have not changed
+        # between stations. If they have, we need to clear the cache.
+        if self.__caching:
+            if self.__freqs is None:
+                self.__freqs = freqs
+            else:
+                if not np.allclose(self.__freqs, freqs, rtol=0, atol=0.01 * units.MHz):
+                    self.__freqs = freqs
+                    self.get_cached_antenna_response.cache_clear()
+                    logger.warning(
+                        "Frequencies have changed. Clearing antenna response cache. "
+                        "(If this happens often, something might be wrong...")
+
+
         if passband is None:
             passband = [10 * units.MHz, 1000 * units.MHz]
 
@@ -236,9 +263,8 @@ class channelGalacticNoiseAdder:
             if fresnel_zenith is None:
                 continue
 
-            temperature_interpolator = scipy.interpolate.interp1d(self.__interpolation_frequencies,
-                                                                  np.log10(self.__noise_temperatures[:, i_pixel]),
-                                                                  kind='quadratic')
+            temperature_interpolator = scipy.interpolate.interp1d(
+                self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
 
             # calculate spectral radiance of radio signal using rayleigh-jeans law
@@ -264,6 +290,7 @@ class channelGalacticNoiseAdder:
             channel_noise_spec = np.zeros_like(noise_spectrum)
 
             for channel in station.iter_channels():
+
                 channel_pos = detector.get_relative_position(station.get_id(), channel.get_id())
                 if channel_pos[2] < 0:
                     curr_t_theta = t_theta
@@ -300,9 +327,15 @@ class channelGalacticNoiseAdder:
                 channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
                     1j * delta_phases) * np.sin(polarizations)
 
+
                 # fold electric field with antenna response
-                antenna_response = antenna_pattern.get_antenna_response_vectorized(freqs, curr_fresnel_zenith, azimuth,
-                                                                                   *antenna_orientation)
+                if self.__caching:
+                    antenna_response = self.get_cached_antenna_response(
+                        antenna_pattern, curr_fresnel_zenith, azimuth, *antenna_orientation)
+                else:
+                    antenna_response = antenna_pattern.get_antenna_response_vectorized(
+                        freqs, curr_fresnel_zenith, azimuth, *antenna_orientation)
+
                 channel_noise_spectrum = (
                     antenna_response['theta'] * channel_noise_spec[1] * curr_t_theta
                     + antenna_response['phi'] * channel_noise_spec[2] * curr_t_phi
