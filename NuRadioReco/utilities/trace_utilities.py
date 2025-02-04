@@ -307,9 +307,9 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     """
     Delays a trace by transforming it to frequency and multiplying by phases.
 
-    A positive delay means that the trace is shifted to the right, i.e., its delayed. 
-    A negative delay would mean that the trace is shifted to the left. Since this 
-    method is cyclic, the delayed trace will have unphysical samples at either the 
+    A positive delay means that the trace is shifted to the right, i.e., its delayed.
+    A negative delay would mean that the trace is shifted to the left. Since this
+    method is cyclic, the delayed trace will have unphysical samples at either the
     beginning (delayed, positive `time_delay`) or at the end (negative `time_delay`).
     Those samples can be cropped (optional, default=True).
 
@@ -322,7 +322,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     time_delay: float
         Time delay used for transforming the trace. Must be positive or 0
     crop_trace: bool (default: True)
-        If True, the trace is cropped to remove samples what are unphysical 
+        If True, the trace is cropped to remove samples what are unphysical
         after delaying (rolling) the trace.
 
     Returns
@@ -358,10 +358,14 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     spectrum *= np.exp(-1j * 2 * np.pi * frequencies * time_delay)
 
     delayed_trace = fft.freq2time(spectrum, sampling_frequency)
-
     cycled_samples = int(round(time_delay * sampling_frequency))
 
     if crop_trace:
+        # according to a NuRadio convention, traces should have an even number of samples.
+        # Make sure that after cropping the trace has an even number of samples (assuming that it was even before).
+        if cycled_samples % 2 != 0:
+            cycled_samples += 1
+
         if time_delay >= 0:
             delayed_trace = delayed_trace[cycled_samples:]
             dt_start = cycled_samples * sampling_frequency
