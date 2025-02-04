@@ -1,3 +1,11 @@
+"""
+Module that implements the basic structure for storing parameters
+
+This class is not intended to be used directly, but is inherited by all
+basic NuRadio data objects (see :doc:`Data Structure </NuRadioReco/pages/event_structure>`) that implement
+parameter storage.
+
+"""
 import NuRadioReco.framework.parameters
 
 import copy
@@ -8,13 +16,15 @@ logger = logging.getLogger('NuRadioReco.framework.parameter_storage')
 
 class ParameterStorage:
     """
-    This class is the base class to store parameters and their covariances. This class is not
+    This class is the base class to store parameters and their covariances.
+
+    This class is not
     supposed to be used by a user but only be used by other classes to inherit from. All classes
     which have/should have a "parameter storage" shall inherit from this class. A parameter
     storage is a dictionary-like object which stores parameters and their covariances. As
-    keys only enums from defined emum classes are allowed (parameter classes). WHich
+    keys only enums from defined emum classes are allowed (parameter classes). Which
     parameter class is allowed is defined in the constructor of this class or can be
-    modifyed with the function `add_parameter_type`.
+    modified with the function `add_parameter_type`.
     """
 
     def __init__(self, parameter_types):
@@ -61,7 +71,7 @@ class ParameterStorage:
         return self._parameters[key]
 
     def has_parameter(self, key):
-        """ Returns a bool """
+        """ Returns `True` if the parameter `key` is present, `False` otherwise """
         self._check_key(key)
         return key in self._parameters
 
@@ -81,7 +91,7 @@ class ParameterStorage:
         return self._parameter_covariances[(key, key)] ** 0.5
 
     def has_parameter_error(self, key):
-        """ Returns a bool """
+        """ Returns `True` if an uncertainty for the parameter `key` is present, `False` otherwise """
         self._check_key(key)
         return (key, key) in self._parameter_covariances
 
