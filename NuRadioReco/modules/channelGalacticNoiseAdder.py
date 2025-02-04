@@ -114,6 +114,11 @@ class channelGalacticNoiseAdder:
 
         self.__caching = caching
         self.__freqs = None
+        if self.__caching and self.__n_side > 10:
+            logger.warning(
+                "Caching for the vector effective length is enabled (with `maxsize=1024`). `n_side` is larger 10 and thus "
+                "it produces to many different caching entries for two antenna models to be stored of one `station_time`. "
+                "Either decrease `n_side` or increase `maxsize` (has to be done in the source code).")
 
         if interpolation_frequencies is None:
             if freq_range is None:
@@ -168,7 +173,7 @@ class channelGalacticNoiseAdder:
             self.__noise_temperatures[i_freq] = self.__radio_sky
 
 
-    @functools.lru_cache(maxsize=1024 * 32)
+    @functools.lru_cache(maxsize=1024)
     def get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
         return ant_pattern.get_antenna_response_vectorized(self.__freqs, zen, azi, *ant_orient)
 
