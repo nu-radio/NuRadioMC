@@ -1,4 +1,4 @@
-from NuRadioReco.framework.parameters import channelParameters as chp, stationParameters as stp
+from NuRadioReco.framework.parameters import channelParameters as chp, stationParametersRNOG as stpRNOG
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,9 +7,10 @@ from scipy.signal import hilbert
 from scipy.ndimage import maximum_filter1d, minimum_filter1d
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.modules.channelSignalReconstructor
+from NuRadioReco.utilities import trace_utilities
 
 
-class stationLDAVariables:
+class stationDeepCRVariables:
     """
     Module that calculates some variables for a Linear Discriminant Analysis of a specific event and stores them at the station level.
 
@@ -25,23 +26,22 @@ class stationLDAVariables:
         ----------
 
         coincidence_window_size : int (default: 6)
-            window size used for calculating the maximum peak to peak amplitude
+            Window size used for calculating the maximum peak to peak amplitude
 
         pad_length : int (default 500)
-            padding length used for calculating the coherent sum
+            Padding length used for calculating the coherent sum
 
         channel_ids : array of int (default: [0,1,2,3])
-            channels for which to calculate the variables
+            Channels for which to calculate the variables
 
         """
-        self.sum_chan = None
         self.__coincidence_window_size = coincidence_window_size
         self.__pad_length = pad_length
         self.__channel_ids = channel_ids
 
 
     @register_run()
-    def run(self, event, station, detector, channel_id=0):
+    def run(self, event, station, detector, ref_ch_id=0):
 
         """
         Calculate LDA variables and add to the station object.
@@ -58,67 +58,29 @@ class stationLDAVariables:
         detector: Detector object
             The detector description
 
-        channel_id: int
+        ref_ch_id: int
             reference channel for the coherent sum
 
         """
-        channelSignalReconstructor=NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
-        channelSignalReconstructor.begin()
-        channelSignalReconstructor.run(event, station, detector)
-        station.set_parameter(stp.max_a, self.max_a(event, station, detector))
-        station.set_parameter(stp.avg_ch_snr, self.avg_ch_snr(event, station, detector))
-        self.coherent_sum(event, station, station.get_channel(channel_id))
-        self.coherent_sum_step_by_step(event, station)
-        station.set_parameter(stp.coherent_snr, self.coherent_snr(self.sum_chan))
+        station.set_parameter(stpRNOG.avg_ch_snr, self.avg_ch_snr(event, station, detector))
+        sum_chan=self.coherent_sum(event, station, station.get_channel(ref_ch_id))
+        station.set_parameter(stpRNOG.coherent_snr, self.coherent_snr(sum_chan))
         return
         
     def end(self):
         pass
 
-    def max_a(self, event, station, detector):
-        maxaval = 0
-        for channel in station.iter_channels():
-            normalized_wf = channel.get_trace() / np.std(channel.get_trace())
-            thismax = np.amax(
-                self.maximum_peak_to_peak_amplitude(normalized_wf)
-            )
-
-            if thismax > maxaval:
-                maxaval = thismax
-        return maxaval
-
-    def maximum_peak_to_peak_amplitude(self, trace):
-        return maximum_filter1d(
-            trace, self.__coincidence_window_size
-        ) - minimum_filter1d(trace, self.__coincidence_window_size)
-
     def avg_ch_snr(self, event, station, detector):
         snrs = []
         for channel in station.iter_channels(use_channels=self.__channel_ids):
-            split_array = np.array_split(channel.get_trace(), 4)
-            rms_of_splits = np.std(split_array, axis=1)
-            ordered_rmss = np.sort(rms_of_splits)
-            lowest_two = ordered_rmss[:2]
-            rms = np.mean(lowest_two)
-            snr = np.amax(self.maximum_peak_to_peak_amplitude(channel.get_trace())) / (
-                2 * rms
-            )
-            snrs.append(snr)
+            snrs.append(channel[chp.SNR]['peak_2_peak_amplitude_split_noise_rms'])
         avg_snr = np.mean(snrs)
         return avg_snr
 
     def coherent_snr(self, coherent_sum):
-
-        split_array = np.array_split(coherent_sum, 4)
-        rms_of_splits = np.std(split_array, axis=1)
-        ordered_rmss = np.sort(rms_of_splits)
-
-        lowest_two = ordered_rmss[:2]
-        rms = np.mean(lowest_two)
-        snr = np.amax(self.maximum_peak_to_peak_amplitude(coherent_sum)) / (
-            2 * rms
-        )
-
+        snr = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(coherent_sum,self.__coincidence_window_size))
+        snr /= trace_utilities.split_trace_noise_rms(coherent_sum, segments=4, lowest=2)
+        snr /= 2
         return snr
 
     def coherent_sum_step_by_step(self, event, station):
@@ -175,14 +137,13 @@ class stationLDAVariables:
             plt.show()
 
     def coherent_sum(self, event, station, ref_ch):
-
-        self.sum_chan = ref_ch.get_trace()
+        sum_chan = ref_ch.get_trace()
         channels = [ch for ch in station.iter_channels(use_channels=self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
-                
         for idx, ch in enumerate(channels):
-            cor = signal.correlate(np.abs(hilbert(self.sum_chan)), np.abs(hilbert(ch.get_trace())), mode = "full")
+            cor = signal.correlate(np.abs(hilbert(sum_chan)), np.abs(hilbert(ch.get_trace())), mode = "full")
             lag = int(np.argmax((cor)) - (np.size(cor)/2.))
             
             aligned_wf = np.roll(ch.get_trace(), lag)
-            self.sum_chan += aligned_wf
+            sum_chan += aligned_wf
+        return sum_chan
             

@@ -43,7 +43,7 @@ class stationParameters(Enum):
     dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
     avg_ch_snr = 63  #: V_pp/(2*VRMS_noise) where V_pp is the peak to peak voltage and VRMS_noise is the noise rms  
     coherent_snr = 64  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr 
-    max_a = 65  #: maximum std-normalised peak to peak amplitude of all chosen channels
+    channels_max_amplitude_norm = 65  #: maximum std-normalised peak to peak amplitude of all chosen channels
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
@@ -71,7 +71,6 @@ class channelParameters(Enum):
     
 class channelParametersRNOG(Enum):
     # RNO-G specific channel parameters
-    
     # FS: I did not start with a negative parameter on the 1, hence I chose 100
     glitch = 100 #: True if channel has a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
 
@@ -79,7 +78,6 @@ class stationParametersRNOG(Enum):
     # RNO-G specific station parameters
     avg_ch_snr = 1  #: V_pp/(2*VRMS_noise) where V_pp is the peak to peak voltage and VRMS_noise is the noise rms  
     coherent_snr = 2  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr 
-    max_a = 3  #: maximum std-normalised peak to peak amplitude of all chosen channels
     
 
 

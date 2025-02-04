@@ -38,7 +38,8 @@ class channelSignalReconstructor:
         signal_window_start=None,
         signal_window_length=120 * units.ns,
         noise_window_start=None,
-        noise_window_length=None
+        noise_window_length=None,
+        coincidence_window_size=6
     ):
         """
         Parameters
@@ -56,11 +57,14 @@ class channelSignalReconstructor:
         noise_window_length: float or None
             Length of the noise window, with time units
             If noise_window_start or noise_window_length are None, the noise window is the part of the trace outside the signal window
+        coincidence_window_size : int (default: 6)
+            Window size used for calculating the maximum peak to peak amplitude used for the max_a_norm variable
         """
         self.__signal_window_start = signal_window_start
         self.__signal_window_length = signal_window_length
         self.__noise_window_start = noise_window_start
         self.__noise_window_length = noise_window_length
+        self.__coincidence_window_size = coincidence_window_size
         self.__debug = debug
 
     def get_SNR_and_RPR(self, station_id, channel, det, stored_noise=False, rms_stage=None):
@@ -149,6 +153,11 @@ class channelSignalReconstructor:
         # SCNR
         snr['Seckel_2_noise'] = 5
 
+        #Calculate peak to peak voltage SNR using the RMS of the split waveform
+        snr['peak_2_peak_amplitude_split_noise_rms'] = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(channel.get_trace(),self.__coincidence_window_size)) 
+        snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.split_trace_noise_rms(channel.get_trace(), segments=4, lowest=2)
+        snr['peak_2_peak_amplitude_split_noise_rms'] /= 2
+        
         # Calculating RPR (Root Power Ratio)
         if noise_rms == 0:
             root_power_ratio = np.inf
@@ -209,6 +218,19 @@ class channelSignalReconstructor:
             cdf_avg = 0.0
 
         return cdf_avg
+
+    def get_max_a_norm(self, event, station, detector):
+        maxaval = 0
+        for channel in station.iter_channels():
+            normalized_wf = channel.get_trace() / np.std(channel.get_trace())
+            thismax = np.amax(
+                trace_utilities.maximum_peak_to_peak_amplitude(normalized_wf,self.__coincidence_window_size)
+            )
+            if thismax > maxaval:
+                maxaval = thismax
+        return maxaval
+
+    
     
     @register_run()
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
@@ -255,7 +277,7 @@ class channelSignalReconstructor:
             channel[chp.root_power_ratio] = root_power_ratio
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
-
+        station[stnp.channels_max_amplitude_norm] = self.get_max_a_norm(evt, station, det)
         self.__t = time.time() - t
 
     def end(self):
