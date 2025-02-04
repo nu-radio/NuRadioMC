@@ -153,7 +153,7 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
 
     # get the correct trace start time taking into account different `pre_trigger_times`
     channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
-    print(trigger.get_pre_trigger_time_channel(channel_id))
+
     channel.set_trace(np.zeros(n_samples), sampling_rate)
     channel.set_trace_start_time(channel_trace_start_time)
 
