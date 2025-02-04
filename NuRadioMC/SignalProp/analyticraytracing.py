@@ -2014,8 +2014,6 @@ class ray_tracing(ray_tracing_base):
         xx, zz = self._r2d.get_path_reflections(self._x1, self._x2, result['C0'], n_points=n_points,
                                                  reflection=result['reflection'],
                                                  reflection_case=result['reflection_case'])
-
-        xx += (self._X1[0]) # the 2d raytracer shifts the horizontal starting coordinate to 0; for plotting we have to correct for this.
         path_2d = np.array([xx, np.zeros_like(xx), zz]).T
 
         dP = path_2d - np.array([self._X1[0], 0, self._X1[2]])
