@@ -13,7 +13,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 716.2603798064285,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -31,7 +31,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 711.7615958304959,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -49,7 +49,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 706.495904921158,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -67,7 +67,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 702.195731800799,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -85,7 +85,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 690.6185223242599,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -103,7 +103,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 583.0629875035971,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -121,7 +121,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 484.257805977493,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -139,7 +139,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 387.1159239346471,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -157,7 +157,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.0077691915028,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -175,7 +175,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 704.8660580862335,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -193,7 +193,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 700.3063612901005,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -211,7 +211,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.125480287199,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -229,7 +229,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.0278958661603,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -247,7 +247,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 700.4737404863125,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -265,7 +265,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 704.7261333365847,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -283,7 +283,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.32699419041931,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -301,7 +301,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.43439538521371,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -319,7 +319,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 52.51563909722448,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -337,7 +337,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.556691492869795,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -355,7 +355,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.883012205651234,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -373,7 +373,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.20101294697667,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -391,7 +391,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 52.57621291824783,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -409,7 +409,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.398781691972694,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -427,7 +427,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 52.51394131174265,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-11T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -445,7 +445,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 703.5217590588969,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-21T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -463,7 +463,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 699.0200345056909,         
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-21T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -481,7 +481,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.0992381351823,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-21T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -499,7 +499,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 694.4016530026131,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-17T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -517,7 +517,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 698.5451564706874,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-17T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -535,7 +535,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 702.6982178363527,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-17T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -553,7 +553,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 715.9981486673128,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -571,7 +571,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 711.6353073548073,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -589,7 +589,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 705.808956555137,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -607,7 +607,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 701.9837639984473,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -625,7 +625,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 691.703621620457,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -643,7 +643,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 582.1435900684285,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -661,7 +661,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 483.23968195067084,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -679,7 +679,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 386.3299400558556,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -697,7 +697,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 696.568527555139,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -715,7 +715,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.91827499385921,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-17T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -733,7 +733,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.83638105867064,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-17T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -751,7 +751,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.730803410479524,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-17T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -769,7 +769,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 46.01978301616729,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-21T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -787,7 +787,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.742412236972015,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-21T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -805,7 +805,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.839198595315175,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-21T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -823,7 +823,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.59430891887436,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -841,7 +841,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.846178367177174,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -859,7 +859,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.89728312662527,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-16T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -877,7 +877,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 716.5569003542323,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -895,7 +895,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 711.893994185995,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -913,7 +913,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 706.675717791364,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -931,7 +931,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 702.2727756955887,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -949,7 +949,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 690.6134090862433,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -967,7 +967,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 583.6510751776831,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -985,7 +985,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 484.71366908125884,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1003,7 +1003,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 387.4357117300662,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1021,7 +1021,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.082404371683,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1039,7 +1039,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 705.8226166224723,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1057,7 +1057,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 701.4365946711572,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1075,7 +1075,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 696.2095237776895,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1093,7 +1093,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 694.966307648661,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1111,7 +1111,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 700.4557991679768,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1129,7 +1129,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 704.7490940670381,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1147,7 +1147,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.4816564960653,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1165,7 +1165,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.917833705247084,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1183,7 +1183,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.38950686394398,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1201,7 +1201,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.977255276242445,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1219,7 +1219,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.85528602130243,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1237,7 +1237,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 46.01961725310455,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1255,7 +1255,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.764002862920535,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1273,7 +1273,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.97540552376522,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1291,7 +1291,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.75640441890302,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-30T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1309,7 +1309,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 716.2340516693513,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1327,7 +1327,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 711.6738111253712,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1345,7 +1345,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 706.3043868097873,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1363,7 +1363,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 702.1201325816487,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1381,7 +1381,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 689.9220583040554,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1399,7 +1399,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 583.6085635800221,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1417,7 +1417,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 484.73964774406437,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1435,7 +1435,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 387.6103598042084,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1453,7 +1453,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.0287325115062,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1471,7 +1471,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 706.0498570594092,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1489,7 +1489,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 701.7155539494165,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1507,7 +1507,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 696.5371961764442,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1525,7 +1525,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.8319798499194,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1543,7 +1543,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 701.0882803491144,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1561,7 +1561,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 705.241651007666,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1579,7 +1579,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.254956245215354,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1597,7 +1597,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.82958226071196,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1615,7 +1615,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 48.96724049428868,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1633,7 +1633,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.42704773531392,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1651,7 +1651,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.43375896297529,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1669,7 +1669,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.36961127763919,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1687,7 +1687,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 48.99288182695537,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1705,7 +1705,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.75937993162733,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1723,7 +1723,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.48968661430838,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -1741,7 +1741,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 706.0498570594092,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1759,7 +1759,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 701.7155539494165,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1777,7 +1777,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 696.5371961764442,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1795,7 +1795,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.0887166749822,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1813,7 +1813,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 700.5097259660157,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1831,7 +1831,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 704.7852281608289,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1849,7 +1849,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 716.5273297729007,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1867,7 +1867,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 711.9338529670598,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1885,7 +1885,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 706.6720443161013,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1903,7 +1903,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 702.2200344958492,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1921,7 +1921,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 690.5959592568203,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -1939,7 +1939,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 583.316058590185,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1957,7 +1957,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 484.8636828671781,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1975,7 +1975,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 387.5505598225923,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -1993,7 +1993,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.1562845004979,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -2011,7 +2011,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 52.71319900390884,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2029,7 +2029,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.602214424020616,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2047,7 +2047,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 52.983380707350655,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2065,7 +2065,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.989096119098235,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2083,7 +2083,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.510627155343215,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2101,7 +2101,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.777650776480506,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2119,7 +2119,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.527426912487186,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2137,7 +2137,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 49.07793698494233,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2155,7 +2155,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 52.95363112541108,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2173,7 +2173,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 717.0534637454359,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2191,7 +2191,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 712.4004767769894,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2209,7 +2209,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 707.1524946995909,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2227,7 +2227,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 702.8617993250889,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2245,7 +2245,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 690.9500500747815,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -2263,7 +2263,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 582.3601331742286,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2281,7 +2281,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 483.6670431088573,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2299,7 +2299,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 386.37548644736046,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2317,7 +2317,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.8484064369925,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -2335,7 +2335,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 705.2304586807497,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-24T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2353,7 +2353,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 701.1086074022868,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-24T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2371,7 +2371,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.7224638947405,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-24T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -2389,7 +2389,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 696.6159498314443,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-26T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -2407,7 +2407,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 701.7183093306504,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-26T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2425,7 +2425,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 706.0542491285506,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-26T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2443,7 +2443,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.54795118967973,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-24T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2461,7 +2461,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.7577340623503,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-24T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2479,7 +2479,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.78713480723031,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-24T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2497,7 +2497,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.9267504993418,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2515,7 +2515,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.3209139461091,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2533,7 +2533,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.77034957757189,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-23T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2551,7 +2551,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.39048669843476,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-26T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2569,7 +2569,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.40997699209948,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-26T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2587,7 +2587,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.83094862959857,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-06-26T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2605,7 +2605,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 705.32011112294,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-06T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2623,7 +2623,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 701.118919397236,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-06T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2641,7 +2641,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.8325149249811,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-06T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -2659,7 +2659,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 716.7233780139192,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2677,7 +2677,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 712.1044846158909,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2695,7 +2695,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 706.8892411537641,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2713,7 +2713,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 702.4226072909622,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2731,7 +2731,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 690.761838353226,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -2749,7 +2749,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 583.7560433649974,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2767,7 +2767,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 484.7189595813629,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2785,7 +2785,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 387.69316314434445,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2803,7 +2803,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 695.2098026860888,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -2821,7 +2821,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 696.0136180352841,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-12T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
@@ -2839,7 +2839,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 701.1819591709564,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-12T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2857,7 +2857,7 @@
       "amp_type": "iglu",
       "cab_time_delay": 705.6007352061425,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-12T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
@@ -2875,7 +2875,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.75439206401613,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-12T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2893,7 +2893,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.458824371215705,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-12T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2911,7 +2911,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.767816340568835,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-12T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2929,7 +2929,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.72635561302779,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2947,7 +2947,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 46.20942421716986,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2965,7 +2965,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.8043779968151,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-05T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -2983,7 +2983,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.364441874451146,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-06T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -3001,7 +3001,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.824131294404665,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-06T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
@@ -3019,7 +3019,7 @@
       "amp_type": "rno_surface",
       "cab_time_delay": 45.61878753278558,
       "adc_n_samples": 2048,
-      "adc_sampling_frequency": 3.2,
+      "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2022-07-06T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
