@@ -28,8 +28,8 @@ import NuRadioReco.modules.efieldToVoltageConverterPerEfield
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.channelResampler
-import NuRadioReco.modules.channelReadoutWindowCutter
 import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.channelReadoutWindowCutter
 
 from NuRadioReco.detector import detector, antennapattern
 import NuRadioReco.framework.sim_station
@@ -1628,30 +1628,31 @@ class simulation:
 
                         logger.debug(f"Adding sim_station to station {station_id} for event group {event_group.get_run_number()}, channel {channel_id}")
                         station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
-                        for evt in output_buffer[station_id].values():
-                            # determine the trigger that was used to determine the readout window
 
+                        # The non-triggered channels were simulated using the efieldToVoltageConverterPerEfield
+                        # (notice the "PerEfield" in the name). This means that each electric field was converted to
+                        # a sim channel. Now we still have to add together all sim channels associated with one "physical"
+                        # channel. Furthermore we have to cut out the correct readout window. For the trigger channels
+                        # this is done with the channelReadoutWindowCutter, here we have to do it manually.
+                        for evt in output_buffer[station_id].values():
                             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
                                 if not station.has_channel(sim_channel.get_id()):
-                                    # add empty channel with the correct length and time if it doesn't exist yet.
+                                    # For each physical channel we first create a "empty" trace (all zeros)
+                                    # with the start time and length ....
                                     self._add_empty_channel(station, channel_id)
 
-                                # Add the sim_channel to the station channel:
                                 channel = station.get_channel(sim_channel.get_id())
-                                # we need to account for the pre trigger time of the trigger that was used to determine the readout window
-                                pre_trigger_time = station.get_primary_trigger().get_pre_trigger_time_channel(channel_id)
-                                sim_channel_copy = copy.deepcopy(sim_channel)
-                                sim_channel_copy.set_trace_start_time(sim_channel.get_trace_start_time() + pre_trigger_time)
-                                channel.add_to_trace(sim_channel_copy)
+                                # ... and now add the sim channel to the correct window defined by the "empty tradce"
+                                channel.add_to_trace(sim_channel)
 
                 for evt in output_buffer[station_id].values():
-                    # we might not have a channel object in case there was no ray tracing solution to this channel, or if the timing did not match
-                    # the readout window. In this case we need to create a channel object and add it to the station
+                    # We might not have a channel object in case there was no ray tracing solution to this channel,
+                    # i.e. no sim_channel was associated to the channel. Hence, we add an empty channel object.
                     for channel_id in non_trigger_channels:
                         if not station.has_channel(channel_id):
                             self._add_empty_channel(station, channel_id)
 
-                    # the only thing left is to add noise to the non-trigger traces
+                    # The only thing left is to add noise to the non-trigger traces
                     # we need to do it a bit differently than for the trigger traces,
                     # because we need to add noise to traces where the amplifier response
                     # was already applied to.
@@ -1723,13 +1724,10 @@ class simulation:
 
     def _add_empty_channel(self, station, channel_id):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
-        channel = NuRadioReco.framework.channel.Channel(channel_id)
-        n_samples = int(round(self._det.get_number_of_samples(station.get_id(), channel_id))
-                        * self._config['sampling_rate'] / self._det.get_sampling_frequency(station.get_id(), channel_id))
-        channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
-        # we need to use any other channel to get the correct trace_start_time. All channels have the same start time at the end
-        # of the simulation.
-        channel.set_trace_start_time(station.get_channel(station.get_channel_ids()[0]).get_trace_start_time())
+        trigger = station.get_primary_trigger()
+        channel = NuRadioReco.modules.channelReadoutWindowCutter.get_empty_channel(
+            station.get_id(), channel_id, self._det, trigger, self._config['sampling_rate'])
+
         station.add_channel(channel)
 
     def _is_in_fiducial_volume(self, pos):
