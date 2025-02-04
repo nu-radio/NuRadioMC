@@ -736,8 +736,7 @@ class Detector():
 
         Orientation:
             - theta: For LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
-            - phi: Counting from East counterclockwise; for LPDA: outward along boresight;
-            for dipoles: upward along axis of azimuthal symmetry
+            - phi: Counting from East counterclockwise; for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
 
         Rotation:
             - theta: Is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the tines
