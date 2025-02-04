@@ -74,14 +74,15 @@ def register_run(level=None):
                 # station should be second argument
                 elif isinstance(value, NuRadioReco.framework.base_station.BaseStation) and idx == 1:
                     station = value
-                elif isinstance(value, (detectors.detector_base.DetectorBase, detectors.rnog_detector.Detector)):
+                elif isinstance(value, (detectors.detector_base.DetectorBase, detectors.rnog_detector.Detector, detectors.ska_detector.Detector)):
                     pass # we don't try to store detectors
                 else: # we try to store other arguments IF they are pickleable
                     try:
                         pickle.dumps(value, protocol=4)
                         store_kwargs[key] = value
-                    except (TypeError, AttributeError):  # object couldn't be pickled - we store the error instead
+                    except (TypeError, AttributeError, pickle.PickleError):  # object couldn't be pickled - we store the error instead
                         store_kwargs[key] = TypeError(f"Argument of type {type(value)} could not be serialized")
+
             if station is not None:
                 module_level = "station"
             elif evt is not None:

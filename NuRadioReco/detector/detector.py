@@ -3,10 +3,9 @@ import os
 import numpy as np
 import logging
 
-from NuRadioReco.detector import detector_base
-from NuRadioReco.detector import generic_detector
+from NuRadioReco.detector import detector_base, generic_detector
 from NuRadioReco.detector.RNO_G import rnog_detector
-
+from NuRadioReco.detector.SKA import detector as ska_detector
 
 logger = logging.getLogger("NuRadioReco.detector")
 

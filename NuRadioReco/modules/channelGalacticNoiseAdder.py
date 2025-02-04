@@ -71,7 +71,8 @@ class channelGalacticNoiseAdder:
             n_side=4,
             freq_range=None,
             interpolation_frequencies=None,
-            seed=None
+            seed=None,
+            scale=None
     ):
         """
         Set up important parameters for the module
@@ -107,6 +108,7 @@ class channelGalacticNoiseAdder:
         self.__random_generator = Generator(Philox(seed))
         self.__n_side = n_side
         self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
+        self.scale = scale
 
         if interpolation_frequencies is None:
             if freq_range is None:
@@ -175,7 +177,7 @@ class channelGalacticNoiseAdder:
         Parameters
         ----------
         event: Event object
-            The event containing the station to whose channels noise shall be added
+            The event containing the station (Not used!)
         station: Station object
             The station whose channels noise shall be added to
         detector: Detector object
@@ -240,6 +242,7 @@ class channelGalacticNoiseAdder:
                                                                   np.log10(self.__noise_temperatures[:, i_pixel]),
                                                                   kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
+            noise_temperatures.append(noise_temperature)
 
             # calculate spectral radiance of radio signal using rayleigh-jeans law
             spectral_radiance = (2. * (scipy.constants.Boltzmann * units.joule / units.kelvin)
@@ -253,7 +256,7 @@ class channelGalacticNoiseAdder:
             efield_amplitude = np.sqrt(
                 spectral_radiance_per_bin / (c_vac * scipy.constants.epsilon_0 * (
                         units.coulomb / units.V / units.m))) / d_f
-
+            
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
             phases = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
@@ -295,25 +298,28 @@ class channelGalacticNoiseAdder:
                 # add random polarizations and phase to electric field
                 polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
 
-                channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
-                    1j * delta_phases) * np.cos(polarizations)
-                channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
-                    1j * delta_phases) * np.sin(polarizations)
+                channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.cos(polarizations) * np.exp(1j * delta_phases)
+                channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations) * np.exp(1j * delta_phases)
 
-                # fold electric field with antenna response
-                antenna_response = antenna_pattern.get_antenna_response_vectorized(freqs, curr_fresnel_zenith, azimuth,
-                                                                                   *antenna_orientation)
+                if self.scale is not None:
+                    channel_noise_spec = channel_noise_spec * self.scale
+
+                antenna_response = antenna_pattern.get_antenna_response_vectorized(
+                        freqs, curr_fresnel_zenith, azimuth, *antenna_orientation)
+                
                 channel_noise_spectrum = (
                     antenna_response['theta'] * channel_noise_spec[1] * curr_t_theta
                     + antenna_response['phi'] * channel_noise_spec[2] * curr_t_phi
                 )
-
+                
                 # add noise spectrum from pixel in the sky to channel spectrum
                 channel_spectra[channel.get_id()] += channel_noise_spectrum
 
         # store the updated channel spectra
         for channel in station.iter_channels():
             channel.set_frequency_spectrum(channel_spectra[channel.get_id()], "same")
+
+        return np.mean(noise_temperatures, axis=0), freqs[passband_filter], ad, vel, np.mean(efield, axis=0)
 
 
 @functools.lru_cache(maxsize=1)
