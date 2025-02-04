@@ -60,16 +60,16 @@ class electricFieldSignalReconstructor:
             electric_field[efp.signal_time] = signal_time
 
     #
-            low_pos = int(130 * units.ns * electric_field.get_sampling_rate())
-            up_pos = int(210 * units.ns * electric_field.get_sampling_rate())
-            if(debug):
-                fig, ax = plt.subplots(1, 1)
-                sc = ax.scatter(trace_copy[1, low_pos:up_pos], trace_copy[2, low_pos:up_pos], c=electric_field.get_times()[low_pos:up_pos], s=5)
-                fig.colorbar(sc, ax=ax)
-                ax.set_aspect('equal')
-                ax.set_xlabel("eTheta")
-                ax.set_ylabel("ePhi")
-                fig.tight_layout()
+            # low_pos = int(130 * units.ns * electric_field.get_sampling_rate())
+            # up_pos = int(210 * units.ns * electric_field.get_sampling_rate())
+            # if(debug):
+            #     fig, ax = plt.subplots(1, 1)
+            #     sc = ax.scatter(trace_copy[1, low_pos:up_pos], trace_copy[2, low_pos:up_pos], c=electric_field.get_times()[low_pos:up_pos], s=5)
+            #     fig.colorbar(sc, ax=ax)
+            #     ax.set_aspect('equal')
+            #     ax.set_xlabel("eTheta")
+            #     ax.set_ylabel("ePhi")
+            #     fig.tight_layout()
 
             low_pos, up_pos = hp.get_interval(envelope_mag, scale=0.5)
             v_start = trace_copy[:, signal_time_bin]
@@ -99,7 +99,8 @@ class electricFieldSignalReconstructor:
             mask_signal_window = (times > (signal_time - self.__signal_window_pre)) & (times < (signal_time + self.__signal_window_post))
             mask_noise_window = np.zeros_like(mask_signal_window, dtype=bool)
             if(self.__noise_window > 0):
-                mask_noise_window[int(np.round((-self.__noise_window - 141.) * electric_field.get_sampling_rate())):int(np.round(-141. * electric_field.get_sampling_rate()))] = np.ones(int(np.round(self.__noise_window * electric_field.get_sampling_rate())), dtype=bool)  # the last n bins
+                # set the noise window to the first "self.__noise_window" ns of the trace. If this cuts into the signal window, the noise window is reduced to not overlap with the signal window
+                mask_noise_window = times < min(times[0] + self.__noise_window, signal_time - self.__signal_window_pre)
 
             signal_energy_fluence = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window)
             dt = times[1] - times[0]
@@ -125,13 +126,14 @@ class electricFieldSignalReconstructor:
             electric_field.set_parameter_error(efp.polarization_angle, pol_angle_error)
 
             # compute expeted polarization
-            site = det.get_site(station.get_id())
-            exp_efield = hp.get_lorentzforce_vector(electric_field[efp.zenith], electric_field[efp.azimuth], hp.get_magnetic_field_vector(site))
-            cs = coordinatesystems.cstrafo(electric_field[efp.zenith], electric_field[efp.azimuth], site=site)
-            exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
-            exp_pol_angle = np.arctan2(np.abs(exp_efield_onsky[2]), np.abs(exp_efield_onsky[1]))
-            logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
-            electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
+            if det is not None:
+                site = det.get_site(station.get_id()).lower()
+                exp_efield = hp.get_lorentzforce_vector(electric_field[efp.zenith], electric_field[efp.azimuth], hp.get_magnetic_field_vector(site))
+                cs = coordinatesystems.cstrafo(electric_field[efp.zenith], electric_field[efp.azimuth], site=site)
+                exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
+                exp_pol_angle = np.arctan2(np.abs(exp_efield_onsky[2]), np.abs(exp_efield_onsky[1]))
+                logger.info("expected polarization angle = {:.1f}".format(exp_pol_angle / units.deg))
+                electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
 
     def end(self):
         pass
