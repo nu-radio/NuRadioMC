@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.constants
 import scipy.signal
+import scipy.ndimage
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import geometryUtilities as geo_utl
@@ -350,3 +351,45 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
         delayed_trace = delayed_trace[:delayed_samples]
 
     return delayed_trace
+
+def maximum_peak_to_peak_amplitude(trace, coincidence_window_size):
+    """
+    Calculates the maximal peak to peak amplitude of a given trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Array containing the trace
+    coincidence_window_size: int
+        Length along which to calculate minimum
+    
+    Returns
+    -------
+    maximal peak to peak amplitude of the trace
+    """
+    return scipy.ndimage.maximum_filter1d(trace, coincidence_window_size) - scipy.ndimage.minimum_filter1d(trace, coincidence_window_size)
+
+def split_trace_noise_rms(trace, segments=4, lowest=2):
+    """
+    Calculates the noise rms of a given trace by splitting the trace into segments, calculating the rms of each trace and subsequently taking the mean of the lowest few segemt rms values.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Array containing the trace
+    segments: int
+        Amount of segments to cut the trace int
+    lowest: int
+        Amount of lowest segment rms values to use when calculating the mean rms end result
+    
+    Returns
+    -------
+    rms: float
+        The mean rms of the lowest few segment rms values
+    """
+    split_array = np.array_split(trace, segments)
+    rms_of_splits = np.std(split_array, axis=1)
+    ordered_rmss = np.sort(rms_of_splits)
+    lowest_rmss = ordered_rmss[:lowest]
+    rms = np.mean(lowest_rmss)
+    return rms
