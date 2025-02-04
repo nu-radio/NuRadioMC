@@ -640,6 +640,7 @@
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">bson</span><span class="o">.</span><span class="n">objectid</span><span class="o">.</span><span class="n">ObjectId</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Response</span><span class="p">):</span>
+        <span class="c1"># Objects of type Response are not serializable</span>
         <span class="k">pass</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span> <span class="p">(</span><span class="s2">&quot;Type </span><span class="si">%s</span><span class="s2"> not serializable&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
@@ -688,7 +689,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        database_connection : str (Default: &#39;RNOG_public&#39;)</span>
 <span class="sd">            Allows to specify database connection. Passed to mongo-db interface.</span>
 
@@ -774,10 +774,6 @@
             <span class="c1"># Used to keep track which time period is buffered. Index of 0, not buffered jet.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_time_period_index_per_station</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 
-            <span class="c1"># This should be set with Detector.update(..) and corresponds to the time of a measurement. It will be use to</span>
-            <span class="c1"># decide which components are commissioned at the time of the measurement</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span> <span class="o">=</span> <span class="kc">None</span>
-
             <span class="c1"># Initialise the primary buffer</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
@@ -786,6 +782,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_query_all</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># specific case for file imported detector descriptions</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_det_imported_from_file</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_import_from_file</span><span class="p">(</span><span class="n">detector_file</span><span class="p">)</span>
+
+        <span class="c1"># This should be set with Detector.update(..) and corresponds to the time of a measurement.</span>
+        <span class="c1"># It will be use to decide which components are commissioned at the time of the measurement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># Allow overwriting the hard-coded values</span>
         <span class="n">over_write_handset_values</span> <span class="o">=</span> <span class="n">over_write_handset_values</span> <span class="ow">or</span> <span class="p">{}</span>
@@ -805,13 +805,12 @@
 
 <div class="viewcode-block" id="Detector.export">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">json_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">additional_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">json_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">additional_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop_response_data</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Export the buffered detector description.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        filename: str</span>
 <span class="sd">            Filename of the exported detector description</span>
 
@@ -820,6 +819,9 @@
 
 <span class="sd">        additional_data: dict (Default: None)</span>
 <span class="sd">            If specified the content of this dict will be added to the exported detector description.</span>
+
+<span class="sd">        drop_response_data: bool (Default: False)</span>
+<span class="sd">            If True, the response data (frequency, mag, phase) will be dropped from the exported detector description.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">periods</span> <span class="o">=</span> <span class="p">{}</span>
@@ -840,9 +842,22 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_time_periods_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;modification_timestamps&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]]</span>
             <span class="p">}</span>
 
+        <span class="k">if</span> <span class="n">drop_response_data</span><span class="p">:</span>
+            <span class="n">buffered_stations</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">)</span>
+            <span class="n">keys_to_drop</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frequencies&#39;</span><span class="p">,</span> <span class="s1">&#39;mag&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;response_chain&quot;</span><span class="p">,</span> <span class="s2">&quot;trigger_response_chain&quot;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="n">buffered_stations</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">channel_data</span> <span class="ow">in</span> <span class="n">buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">channel_data</span><span class="p">[</span><span class="s1">&#39;signal_chain&#39;</span><span class="p">]:</span>
+                            <span class="k">for</span> <span class="n">names</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">channel_data</span><span class="p">[</span><span class="s1">&#39;signal_chain&#39;</span><span class="p">][</span><span class="n">chain</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys_to_drop</span><span class="p">:</span>
+                                    <span class="n">component</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">buffered_stations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span>
+
         <span class="n">export_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">,</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">buffered_stations</span><span class="p">,</span>
             <span class="s2">&quot;periods&quot;</span><span class="p">:</span> <span class="n">periods</span><span class="p">,</span>
             <span class="s2">&quot;default_values&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span>
         <span class="p">}</span>
@@ -874,7 +889,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        skip_signal_chain_response: bool</span>
 <span class="sd">            If true drop the data of the response chain from the detector description (because this creates large files).</span>
 <span class="sd">            (Default: True)</span>
@@ -887,8 +901,8 @@
         <span class="k">if</span> <span class="n">skip_signal_chain_response</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="n">export_dir</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">export_dir</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">]:</span>
-                    <span class="n">export_dir</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">][</span><span class="n">channel_id</span><span class="p">][</span><span class="s2">&quot;signal_chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;response_chain&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="n">export_dir</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">][</span><span class="n">channel_id</span><span class="p">][</span><span class="s2">&quot;signal_chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;total_response&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;response_chain&quot;</span><span class="p">,</span> <span class="s2">&quot;total_response&quot;</span><span class="p">,</span> <span class="s2">&quot;trigger_response_chain&quot;</span><span class="p">,</span> <span class="s2">&quot;total_trigger_response&quot;</span><span class="p">]:</span>
+                        <span class="n">export_dir</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">dumps_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dumps_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
@@ -982,7 +996,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        time: `datetime.datetime` or ``astropy.time.Time``</span>
 <span class="sd">            UTC time.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -1021,14 +1034,14 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        time: `datetime.datetime` or ``astropy.time.Time``</span>
 <span class="sd">            Unix time of measurement.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">):</span>
             <span class="n">time</span> <span class="o">=</span> <span class="n">_convert_astro_time_to_datetime</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Update detector to </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Update detector to </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__set_detector_time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det_imported_from_file</span><span class="p">:</span>
@@ -1038,12 +1051,14 @@
         <span class="n">any_update</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">update_buffer_for_station</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det_imported_from_file</span> <span class="ow">and</span> <span class="n">any_update</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Update detector to </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                 <span class="s2">&quot;You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">any_update</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Update detector to </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">update_buffer_for_station</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
                     <span class="c1"># remove everything (could be handled smarter ...)</span>
@@ -1063,8 +1078,7 @@
             <span class="k">return</span>
 
         <span class="c1"># When you reach this point something went wrong ...</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Empty detector for </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Empty detector for </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Empty detector for </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span></div>
 
 
 
@@ -1102,13 +1116,11 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            Station id which uniquely idendifies a station</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        has_station: bool</span>
 <span class="sd">            Returns True if the station could be found. A found station will be in the buffer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1140,7 +1152,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            Station id</span>
 
@@ -1148,10 +1159,6 @@
 <span class="sd">            If true, query all relevant information form a station including its channel and devices (position, signal chain, ...).</span>
 <span class="sd">            If false, query only the information from the station list collection (describes a station with all channels and devices</span>
 <span class="sd">            with their (de)commissioning timestamps but not data like position, signal chain, ...)</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">!=</span> <span class="p">{}:</span>
@@ -1180,7 +1187,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            The station id</span>
 
@@ -1195,7 +1201,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        channel_info: dict</span>
 <span class="sd">            Dict of channel information</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1251,12 +1256,12 @@
 <span class="sd">        ----------</span>
 <span class="sd">        station_id: int</span>
 <span class="sd">            The station id</span>
+
 <span class="sd">        channel_id: int</span>
 <span class="sd">            The channel id</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        channel_info: dict</span>
 <span class="sd">            Dictionary of channel parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1294,7 +1299,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        station_info: dict</span>
 <span class="sd">            Dictionary of station parameters/information</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1319,13 +1323,11 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            the station id</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        pos: np.array(3,)</span>
 <span class="sd">            3-dim array of absolute station position in easting, northing and depth wrt. to snow level at</span>
 <span class="sd">            time of measurement</span>
@@ -1359,7 +1361,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            The station id</span>
 
@@ -1368,7 +1369,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        pos: np.array(3,)</span>
 <span class="sd">            3-dim array of relative station position</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1394,7 +1394,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            The station id</span>
 
@@ -1430,7 +1429,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            The station id</span>
 
@@ -1439,7 +1437,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        channel_signal_chain: dict</span>
 <span class="sd">            Returns dictionary which contains a list (&quot;signal_chain&quot;) which contains</span>
 <span class="sd">            (the names of) components/response which are used to describe the signal</span>
@@ -1464,7 +1461,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            The station id</span>
 
@@ -1476,10 +1472,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        response: array of complex floats</span>
 <span class="sd">            Complex response function</span>
-
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
@@ -1630,7 +1624,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            Station id</span>
 
@@ -1658,7 +1651,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            The station id</span>
 
@@ -1667,7 +1659,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        pos: np.array(3,)</span>
 <span class="sd">            3-dim array of relative station position</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1700,13 +1691,11 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            Station id which uniquely idendifies a station</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        channel_ids: int</span>
 <span class="sd">            Number of all channels for the requested station</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1732,13 +1721,11 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            Station id which uniquely idendifies a station</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        channel_ids: list(int)</span>
 <span class="sd">            A list of all channel ids for the requested station</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1886,6 +1873,7 @@
         <span class="k">return</span> <span class="n">noise_temperature</span></div>
 
 
+
 <div class="viewcode-block" id="Detector.is_channel_noiseless">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.is_channel_noiseless">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_channel_noiseless</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
@@ -1902,6 +1890,79 @@
         <span class="c1"># because it is not clear which reference components may need to be substraced.</span>
         <span class="c1"># However, having the cable delay without amplifiers is anyway weird.</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="n">use_stored</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)</span></div>
+
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the sum of the time delay of all components in the signal chain calculated from the phase.</span>
+
+<span class="sd">        The function returns the values which were precalculated by the hardware database interface. They</span>
+<span class="sd">        should correspond to the phase delay at ~200 MHz. This function returns the same values as</span>
+<span class="sd">        `get_time_delay` or `get_cable_delay` if `use_stored==True` which is the default for those functions.</span>
+<span class="sd">        However, Unlike `get_time_delay` or `get_cable_delay`, this function does not require the entire S21</span>
+<span class="sd">        parameter measurement to be available (this is the case if the detector was exported to file with</span>
+<span class="sd">        `drop_response_data==True` to reduce file size).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            The station id</span>
+
+<span class="sd">        channel_id: int</span>
+<span class="sd">            The channel id</span>
+
+<span class="sd">        trigger: bool</span>
+<span class="sd">            If True, the trigger channel resonse is returned. An error is raised</span>
+<span class="sd">            if no trigger response exists. (Default: False)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        time_delay: float</span>
+<span class="sd">            Sum of the time delays of all components in the signal chain for one channel.</span>
+
+<span class="sd">        Also see</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_time_delay</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">signal_chain_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel_signal_chain</span><span class="p">(</span>
+        <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">trigger</span><span class="p">:</span>
+            <span class="n">response_chain_key</span> <span class="o">=</span> <span class="s2">&quot;trigger_response_chain&quot;</span>
+
+            <span class="k">if</span> <span class="n">response_chain_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span> <span class="ow">or</span> <span class="s2">&quot;is_trigger_chain_absolute&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No trigger response for station.channel </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;is_trigger_chain_absolute&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Relative trigger chains are not implemented yet.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response_chain_key</span> <span class="o">=</span> <span class="s2">&quot;response_chain&quot;</span>
+
+        <span class="n">measurement_components_dic</span> <span class="o">=</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_chain_key</span><span class="p">]</span>
+
+        <span class="n">total_time_delay</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">measurement_components_dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="k">if</span> <span class="s2">&quot;weight&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">weight</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Component </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> does not have a weight. Assume a weight of 1 ...&quot;</span><span class="p">)</span>
+                <span class="n">weight</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Weight is </span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="s2">, only values of `-1` and `1` are currently supported.&quot;</span>
+
+            <span class="k">if</span> <span class="s2">&quot;time_delay&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">time_delay</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The signal chain component </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> of station.channel &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> has no time delay stored... &quot;</span>
+                    <span class="s2">&quot;Set component time delay to 0&quot;</span><span class="p">)</span>
+                <span class="n">time_delay</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="n">total_time_delay</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">time_delay</span>
+
+        <span class="k">return</span> <span class="n">total_time_delay</span>
 
 
 <div class="viewcode-block" id="Detector.get_time_delay">
@@ -1928,13 +1989,20 @@
 <span class="sd">        -------</span>
 <span class="sd">        time_delay: float</span>
 <span class="sd">            Sum of the time delays of all components in the signal chain for one channel</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_cable_delay</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">signal_chain_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel_signal_chain</span><span class="p">(</span>
             <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">use_stored</span><span class="p">:</span>
-            <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">resp</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">resp</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="c1"># in case the full S21 parameters are not stored</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_time_delay</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">time_delay</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">if</span> <span class="n">trigger</span> <span class="ow">and</span> <span class="s2">&quot;trigger_response_chain&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span><span class="p">:</span>
@@ -1962,13 +2030,18 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This detector class is exclusive for the RNO-G detector at Summit Greenland.</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            the station ID (not used, only for compatibility with other detector classes)</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        site: str</span>
 <span class="sd">            Returns &quot;summit&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;summit&quot;</span></div>
+
 
 
 <div class="viewcode-block" id="Detector.get_site_coordinates">
@@ -1981,6 +2054,11 @@
 <span class="sd">        ----------</span>
 <span class="sd">        station_id: int</span>
 <span class="sd">            the station ID (not used, only for compatibility with other detector classes)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        coordinates: tuple(float, float)</span>
+<span class="sd">            Tuple of latitude and longitude in degrees</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="mf">72.57</span><span class="p">,</span> <span class="o">-</span><span class="mf">38.46</span><span class="p">)</span></div>
 
@@ -1994,7 +2072,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        db: MongoClient</span>
 <span class="sd">            Returns the database connection</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2052,15 +2129,47 @@
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="produce_detector_files_for_all_time_periods">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.produce_detector_files_for_all_time_periods">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">produce_detector_files_for_all_time_periods</span><span class="p">(</span><span class="n">drop_response_data</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function produces a detector file for each time period necessary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">station_ids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">24</span><span class="p">]</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;_withoutS21&quot;</span> <span class="k">if</span> <span class="n">drop_response_data</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="n">station_ids</span><span class="p">:</span>
+        <span class="n">det</span> <span class="o">=</span> <span class="n">Detector</span><span class="p">(</span>
+            <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>
+            <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">select_stations</span><span class="o">=</span><span class="n">station_id</span><span class="p">)</span>
+
+        <span class="n">db</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_database</span><span class="p">()</span>
+        <span class="n">ts_dict</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query_modification_timestamps_per_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
+
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">station_ts</span><span class="p">[</span><span class="s1">&#39;modification_timestamps&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">station_ts</span> <span class="ow">in</span> <span class="n">ts_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
+        <span class="k">for</span> <span class="n">tdx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">tdx</span><span class="p">]</span>
+            <span class="n">t1</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">tdx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="n">t0</span> <span class="o">+</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+            <span class="n">det</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">det</span><span class="o">.</span><span class="n">has_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
+                <span class="n">det</span><span class="o">.</span><span class="n">export</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;rnog_detector_st</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">t0</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">t1</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="si">}{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">drop_response_data</span><span class="o">=</span><span class="n">drop_response_data</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># produce_detector_files_for_all_time_periods()</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">detector</span>
 
-    <span class="n">det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;rnog_mongo&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;rnog_mongo&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                             <span class="n">database_connection</span><span class="o">=</span><span class="s1">&#39;RNOG_public&#39;</span><span class="p">,</span> <span class="n">select_stations</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
 
     <span class="n">det</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-
     <span class="n">response</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">electric_field</span>

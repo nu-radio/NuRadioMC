@@ -661,7 +661,7 @@ new connection. Set to True to create a new database connection.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(filename[, json_kwargs, additional_data])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(filename[, json_kwargs, ...])</p></td>
 <td><p>Export the buffered detector description.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export_as_string" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.export_as_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_as_string</span></code></a>([...])</p></td>
@@ -768,7 +768,7 @@ new connection. Set to True to create a new database connection.</p>
 <a class="reference external" href="https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/detector_tree.html">https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/detector_tree.html</a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.export">
-<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_response_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export" title="Link to this definition"></a></dt>
 <dd><p>Export the buffered detector description.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -778,6 +778,8 @@ new connection. Set to True to create a new database connection.</p>
 <dt><strong>json_kwargs: dict</strong></dt><dd><p>Arguments passed to json.dumps(..). (Default: None -&gt; dict(indent=0, default=_json_serial))</p>
 </dd>
 <dt><strong>additional_data: dict (Default: None)</strong></dt><dd><p>If specified the content of this dict will be added to the exported detector description.</p>
+</dd>
+<dt><strong>drop_response_data: bool (Default: False)</strong></dt><dd><p>If True, the response data (frequency, mag, phase) will be dropped from the exported detector description.</p>
 </dd>
 </dl>
 </dd>
@@ -1314,6 +1316,12 @@ it here for consistency with other detector classes.</p>
 </dl>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code></a></dt><dd></dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1321,8 +1329,14 @@ it here for consistency with other detector classes.</p>
 <span class="sig-name descname"><span class="pre">get_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site" title="Link to this definition"></a></dt>
 <dd><p>This detector class is exclusive for the RNO-G detector at Summit Greenland.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>the station ID (not used, only for compatibility with other detector classes)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
 <dt>site: str</dt><dd><p>Returns “summit”</p>
 </dd>
 </dl>
@@ -1338,6 +1352,12 @@ it here for consistency with other detector classes.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station ID (not used, only for compatibility with other detector classes)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>coordinates: tuple(float, float)</dt><dd><p>Tuple of latitude and longitude in degrees</p>
 </dd>
 </dl>
 </dd>
@@ -1387,6 +1407,12 @@ it here for consistency with other detector classes.</p>
 </div>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.produce_detector_files_for_all_time_periods">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector.</span></span><span class="sig-name descname"><span class="pre">produce_detector_files_for_all_time_periods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">drop_response_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#produce_detector_files_for_all_time_periods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.produce_detector_files_for_all_time_periods" title="Link to this definition"></a></dt>
+<dd><p>This function produces a detector file for each time period necessary</p>
 </dd></dl>
 
 </section>
