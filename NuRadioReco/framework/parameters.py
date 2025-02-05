@@ -41,15 +41,25 @@ class stationParameters(Enum):
     flagged_channels = 60  #: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)
     cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
     dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
-    avg_ch_snr = 63  #: V_pp/(2*VRMS_noise) where V_pp is the peak to peak voltage and VRMS_noise is the noise rms  
-    coherent_snr = 64  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr 
-    channels_max_amplitude_norm = 65  #: maximum std-normalised peak to peak amplitude of all chosen channels
+    channels_max_amplitude_norm = 63  #: maximum std-normalised peak to peak amplitude of all chosen channels
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
     azimuth = 2  #: azimuth angle of the incoming signal direction
     maximum_amplitude = 4  #: the maximum ampliude of the magnitude of the trace
-    SNR = 5  #: an dictionary of various signal-to-noise ratio definitions
+    SNR = 5  #: a dictionary with the following signal-to-noise ratio definitions:
+    # 'integrated_power': 
+        # Difference of the sum of the squared amplitudes in the signal window and in the noise window
+        # SNR = sum_sig(V_i^2) - sum_noise(V_i^2)
+    # 'peak_amplitude': 
+        # Maximum amplitude of the absolute signal trace divided by the rms of the noise window
+        # SNR = max(abs(V_sig))/V_rms_noise
+    # 'peak_2_peak_amplitude': 
+        # Difference between max and min of the signal trace divided by twice the rms value in the noise window
+        # SNR = (max(V_sig)-min(V_sig))/2*V_rms_noise
+    # 'peak_2_peak_amplitude_split_noise_rms': 
+        # Peak to peak amplitude in the trace divided by twice the noise rms value, where the latter is calculated by splitting the trace into segments and taking the mean of the lowest few segment rms values
+        # SNR = V_p2p/2*V_rms_noise
     maximum_amplitude_envelope = 6  #: the maximum ampliude of the hilbert envelope of the trace
     P2P_amplitude = 7  #: the peak to peak amplitude
     cr_xcorrelations = 8  #: dict of result of crosscorrelations with cr templates
@@ -76,11 +86,8 @@ class channelParametersRNOG(Enum):
 
 class stationParametersRNOG(Enum):
     # RNO-G specific station parameters
-    avg_ch_snr = 1  #: V_pp/(2*VRMS_noise) where V_pp is the peak to peak voltage and VRMS_noise is the noise rms  
-    coherent_snr = 2  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr 
+    coherent_snr = 1  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr 
     
-
-
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
     polarization_angle = 2  #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
