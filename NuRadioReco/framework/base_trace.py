@@ -299,7 +299,7 @@ class BaseTrace:
         if 'trace_start_time' in data.keys():
             self.set_trace_start_time(data['trace_start_time'])
 
-    def add_to_trace(self, channel):
+    def add_to_trace(self, channel, min_residual_time_offset=1e-5):
         """
         Adds the trace of another channel to the trace of this channel. The trace is only added within the
         time window of "this" channel.
@@ -311,6 +311,10 @@ class BaseTrace:
         ----------
         channel: BaseTrace
             The channel whose trace is to be added to the trace of this channel.
+        min_residual_time_offset: float (default: 1e-5)
+            Minimum risdual time between the target bin of this channel and the target bin of the channel
+            to be added. Below this threshold the residual time shift is not applied to increase performance
+            and minimize numerical artifacts from Fourier transforms.
         """
         assert self.get_number_of_samples() is not None, "No trace is set for this channel"
         assert self.get_sampling_rate() == channel.get_sampling_rate(), "Sampling rates of the two channels do not match"
@@ -362,7 +366,7 @@ class BaseTrace:
 
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
-        if residual_time_offset != 0:
+        if np.abs(residual_time_offset) >= min_residual_time_offset:
             tmp_channel = copy.deepcopy(channel)
             tmp_channel.apply_time_shift(residual_time_offset)
             trace_to_add = tmp_channel.get_trace()[i_start_channel:i_end_channel]
