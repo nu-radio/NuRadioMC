@@ -105,7 +105,19 @@ class Trigger:
 
     def get_trigger_time(self):
         """
-        get the trigger time (absolute time with respect to the beginning of the event)
+        Get the trigger time.
+
+        Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+        This is defined relative to the `station_time <NuRadioReco.framework.station.Station.get_station_time>`.
+
+        Returns
+        -------
+        trigger_time : float
+            The trigger time
+
+        See Also
+        --------
+        get_trigger_times : function to return all times where the trigger condition was fulfilled
         """
         return self._trigger_time
 
@@ -121,7 +133,25 @@ class Trigger:
 
     def get_trigger_times(self):
         """
-        get the trigger times (time with respect to beginning of trace)
+        Get the trigger times
+
+        For some triggers, in addition to the time of the first trigger,
+        also all subsequent times where the trigger condition were fulfilled are
+        stored. For triggers that do not store this information, this method
+        is equivalent to `get_trigger_time` with the exception that it returns
+        an array (of shape (1,)) instead of a scalar.
+        Note that the trigger times are defined relative to the
+        `station_time <NuRadioReco.framework.station.Station.get_station_time>`.
+
+
+        Returns
+        -------
+        trigger_times : np.ndarray
+            Array of all times where the trigger condition was satisfied
+
+        See Also
+        --------
+        get_trigger_time : method to return the (first) trigger time
         """
         if self._trigger_times is None and not np.isnan(self._trigger_time):
             return np.array(self._trigger_time)
@@ -233,6 +263,12 @@ class SimpleThresholdTrigger(Trigger):
             default: 1
         channel_coincidence_window: float or None (default)
             the coincidence time between triggers of different channels
+        pre_trigger_times: float or dict of floats
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+
         """
         Trigger.__init__(self, name, channels, 'simple_threshold', pre_trigger_times=pre_trigger_times)
         self._threshold = threshold
@@ -271,6 +307,12 @@ class AnalogEnvelopePhasedTrigger(Trigger):
         output_passband: (float, float) tuple
             Frequencies for a 6th-order Butterworth filter to be applied after
             the diode filtering.
+        pre_trigger_times: float or dict of floats
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+
         """
         Trigger.__init__(self, name, triggered_channels, 'analog_envelope_phased', pre_trigger_times=pre_trigger_times)
         self._triggered_channels = triggered_channels
@@ -359,6 +401,12 @@ class PowerIntegrationPhasedTrigger(Trigger):
             the size of the stride between calculating the phasing (units of ADC time ticks)
         maximum_amps: list of floats (length equal to that of `phasing_angles`)
             the maximum value of all the integration windows for each of the phased waveforms
+        pre_trigger_times: float or dict of floats
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+
         """
         Trigger.__init__(self, name, trigger_channels, 'power_integration_phased', pre_trigger_times=pre_trigger_times)
         self._primary_channels = trigger_channels
@@ -398,6 +446,12 @@ class HighLowTrigger(Trigger):
         number_of_coincidences: int
             the number of channels that need to fulfill the trigger condition
             default: 1
+        pre_trigger_times: float or dict of floats
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+
         """
         Trigger.__init__(self, name, channels, 'high_low', pre_trigger_times=pre_trigger_times)
         self._number_of_coincidences = number_of_coincidences
@@ -428,6 +482,12 @@ class IntegratedPowerTrigger(Trigger):
         number_of_coincidences: int
             the number of channels that need to fulfill the trigger condition
             default: 1
+        pre_trigger_times: float or dict of floats
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+
         """
         Trigger.__init__(self, name, channels, 'int_power', pre_trigger_times=pre_trigger_times)
         self._number_of_coincidences = number_of_coincidences
@@ -463,6 +523,12 @@ class EnvelopeTrigger(Trigger):
             default: 1
         channel_coincidence_window: float or None (default)
             the coincidence time between triggers of different channels
+        pre_trigger_times: float or dict of floats
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+
         """
         Trigger.__init__(self, name, channels, 'envelope_trigger', pre_trigger_times=pre_trigger_times)
         self._passband = passband
@@ -474,7 +540,8 @@ class EnvelopeTrigger(Trigger):
 class RNOGSurfaceTrigger(Trigger):
     from NuRadioReco.utilities import units
     def __init__(self, name, threshold, number_of_coincidences=1,
-                 channel_coincidence_window=60*units.ns, channels=[13, 16, 19], temperature=250*units.kelvin, Vbias=2*units.volt, pre_trigger_times=55 * units.ns):
+                 channel_coincidence_window=60*units.ns, channels=[13, 16, 19],
+                 temperature=250*units.kelvin, Vbias=2*units.volt, pre_trigger_times=55 * units.ns):
         """
         initialize trigger class
 
@@ -496,6 +563,12 @@ class RNOGSurfaceTrigger(Trigger):
             temperature of the trigger board
         Vbias: float
             bias voltage on the trigger board
+        pre_trigger_times: float or dict of floats
+            the time before the trigger time that should be read out
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+
         """
         Trigger.__init__(self, name, channels, 'rnog_surface_trigger', pre_trigger_times=pre_trigger_times)
         self._threshold = threshold

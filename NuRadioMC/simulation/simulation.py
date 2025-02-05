@@ -627,8 +627,9 @@ def build_dummy_event(station_id, det, config):
     config : dict
         The NuRadioMC configuration dictionary (from the yaml file)
 
-    Returns:
-        object: The built event object.
+    Returns
+    -------
+    object: The built event object.
     """
 
     evt = NuRadioReco.framework.event.Event(0, 0)
@@ -692,7 +693,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, time_logger=None):
     # add event generator info event
     for enum_entry in genattrs:
         if enum_entry.name in fin_attrs:
-            event_group.set_generator_info(enum_entry, fin_attrs[enum_entry.name])
+            event_group.set_parameter(enum_entry, fin_attrs[enum_entry.name])
 
     particle_mode = "simulation_mode" not in fin_attrs or fin_attrs['simulation_mode'] != "emitter"
     if particle_mode:  # first case: simulation of a particle interaction which produces showers
@@ -914,8 +915,8 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     """
     Group the signals from a station into multiple events based on signal arrival times.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     station : NuRadioReco.framework.station.Station
         The station object containing the signals.
     event_group : NuRadioMC.framework.event.Event
@@ -927,8 +928,8 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     zerosignal : bool, optional
         Flag indicating whether to zero out the signals. Default is False.
 
-    Returns:
-    --------
+    Returns
+    -------
     events : list of NuRadioReco.framework.event.Event
         The list of events created from the grouped signals.
     """
@@ -979,7 +980,9 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             evt.add_particle(event_group.get_primary())  # add primary particle to event
 
         # copy over generator information from temporary event to event
-        evt._generator_info = event_group._generator_info
+        for enum_entry in genattrs:
+            if event_group.has_parameter(enum_entry):
+                evt.set_parameter(enum_entry, event_group.get_parameter(enum_entry))
 
         station = NuRadioReco.framework.station.Station(tmp_station.get_id())
         sim_station = NuRadioReco.framework.sim_station.SimStation(tmp_station.get_id())
@@ -1242,10 +1245,8 @@ class simulation:
 
         prop = propagation.get_propagation_module(self._config['propagation']['module'])
         self._propagator = prop(
-            self._ice, self._config['propagation']['attenuation_model'],
+            self._ice,
             log_level=self._log_level_ray_propagation,
-            n_frequencies_integration=int(self._config['propagation']['n_freq']),
-            n_reflections=int(self._config['propagation']['n_reflections']),
             config=self._config,
             detector=self._det
         )
@@ -1680,15 +1681,14 @@ class simulation:
 
                     channelSignalReconstructor.run(evt, station, self._det)
                     # save RMS and bandwidth to channel object
-                    evt.set_generator_info(genattrs.Vrms, self._Vrms)
-                    evt.set_generator_info(genattrs.dt, 1. / self._config['sampling_rate'])
-                    evt.set_generator_info(genattrs.Tnoise, self._noise_temp)
-                    evt.set_generator_info(genattrs.bandwidth, next(iter(next(iter(self._integrated_channel_response.values())).values())))
+                    evt.set_parameter(genattrs.Vrms, self._Vrms)
+                    evt.set_parameter(genattrs.dt, 1. / self._config['sampling_rate'])
+                    evt.set_parameter(genattrs.Tnoise, self._noise_temp)
+                    evt.set_parameter(genattrs.bandwidth, next(iter(next(iter(self._integrated_channel_response.values())).values())))
                     for channel in station.iter_channels():
                         channel[chp.Vrms_NuRadioMC_simulation] = self._Vrms_per_channel[station_id][channel.get_id()]
                         channel[chp.bandwidth_NuRadioMC_simulation] = self._integrated_channel_response[station_id][channel.get_id()]
 
-                        # Always store this, even when no "extra" trigger channels are simulated
                         if self.__trigger_channel_ids is not None and channel.get_id() in self.__trigger_channel_ids and channel.get_id() in self._Vrms_per_trigger_channel[station_id]:
                             channel[chp.Vrms_trigger_NuRadioMC_simulation] = self._Vrms_per_trigger_channel[station_id][channel.get_id()]
 

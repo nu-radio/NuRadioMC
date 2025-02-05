@@ -14,7 +14,7 @@ import logging
 class hardwareResponseIncorporator:
     """
     Incorporates the compex response of the RNO-G hardware. The response is obtained from the detector description.
-    The response is applied in the frequency domain. This module also adds the cable delay to the channels.
+    The response is applied in the frequency domain.
     """
 
     def __init__(self):
@@ -23,6 +23,7 @@ class hardwareResponseIncorporator:
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
+        self.trigger_channels = None
 
     def begin(self, trigger_channels=None):
         """
@@ -84,7 +85,7 @@ class hardwareResponseIncorporator:
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
 
-        is_trigger_channel: bool
+        is_trigger: bool
             Use trigger channel response instead. Only relevant for RNO-G. (Default: False)
 
         Returns
@@ -210,7 +211,7 @@ class hardwareResponseIncorporator:
                 between the two. While this might be true/a good approximation for the moment it is not given that
                 this holds for the future. You have been warned!
 
-                See also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.
+                See Also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.
                 """
                 trig_filter = self.get_filter(
                     frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
