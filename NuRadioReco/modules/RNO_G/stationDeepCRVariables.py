@@ -13,10 +13,7 @@ from NuRadioReco.utilities import trace_utilities
 class stationDeepCRVariables:
     """
     Module that calculates some variables for a Linear Discriminant Analysis of a specific event and stores them at the station level.
-
-
     """
-
     def __init__(self):
         pass
 
@@ -41,7 +38,7 @@ class stationDeepCRVariables:
 
 
     @register_run()
-    def run(self, event, station, detector, ref_ch_id=0):
+    def run(self, event, station, detector, ref_ch_id = 0):
 
         """
         Calculate LDA variables and add to the station object.
@@ -62,7 +59,6 @@ class stationDeepCRVariables:
             reference channel for the coherent sum
 
         """
-        station.set_parameter(stpRNOG.avg_ch_snr, self.avg_ch_snr(event, station, detector))
         sum_chan=self.coherent_sum(event, station, station.get_channel(ref_ch_id))
         station.set_parameter(stpRNOG.coherent_snr, self.coherent_snr(sum_chan))
         return
@@ -70,15 +66,8 @@ class stationDeepCRVariables:
     def end(self):
         pass
 
-    def avg_ch_snr(self, event, station, detector):
-        snrs = []
-        for channel in station.iter_channels(use_channels=self.__channel_ids):
-            snrs.append(channel[chp.SNR]['peak_2_peak_amplitude_split_noise_rms'])
-        avg_snr = np.mean(snrs)
-        return avg_snr
-
     def coherent_snr(self, coherent_sum):
-        snr = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(coherent_sum,self.__coincidence_window_size))
+        snr = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(coherent_sum, self.__coincidence_window_size))
         snr /= trace_utilities.split_trace_noise_rms(coherent_sum, segments=4, lowest=2)
         snr /= 2
         return snr
@@ -86,9 +75,9 @@ class stationDeepCRVariables:
     def coherent_sum_step_by_step(self, event, station):
         # Plot the four original waveforms before any alignment and save
         matplotlib.rcParams.update({"font.size": 20})
-        plt.figure(figsize=(10, 6))
-        for channel in station.iter_channels(use_channels=self.__channel_ids):
-            plt.plot(channel.get_trace(), label=f'Original wf[{channel.get_id()}]')
+        plt.figure(figsize = (10, 6))
+        for channel in station.iter_channels(use_channels = self.__channel_ids):
+            plt.plot(channel.get_trace(), label = f'Original wf[{channel.get_id()}]')
         plt.title('Original Waveforms')
         plt.xlabel('Sample')
         plt.ylabel('Amplitude')
@@ -98,11 +87,11 @@ class stationDeepCRVariables:
         
         # Iterate over each channel as a potential reference
         for ref_ch in station.iter_channels(use_channels = self.__channel_ids):
-            fig, axs = plt.subplots(2, 2, figsize=(12, 10))  # Create 2x2 grid for each step with a single reference
+            fig, axs = plt.subplots(2, 2, figsize = (12, 10))  # Create 2x2 grid for each step with a single reference
             fig.suptitle(f'Coherent Sum Steps with Reference: wf[{ref_ch.get_id()}]', fontsize = 16)
             
-            sum_chan = np.pad(ref_ch.get_trace(), self.__pad_length, mode='constant')  # Pad reference waveform
-            channels = [ch for ch in station.iter_channels(use_channels=self.__channel_ids) if ch.get_id() != ref_ch.get_id()]  # Exclude the reference channel
+            sum_chan = np.pad(ref_ch.get_trace(), self.__pad_length, mode = 'constant')  # Pad reference waveform
+            channels = [ch for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]  # Exclude the reference channel
             
             # Initialize the coherent sum with the padded reference waveform
             current_sum = sum_chan.copy()
@@ -138,7 +127,7 @@ class stationDeepCRVariables:
 
     def coherent_sum(self, event, station, ref_ch):
         sum_chan = ref_ch.get_trace()
-        channels = [ch for ch in station.iter_channels(use_channels=self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
+        channels = [ch for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
         for idx, ch in enumerate(channels):
             cor = signal.correlate(np.abs(hilbert(sum_chan)), np.abs(hilbert(ch.get_trace())), mode = "full")
             lag = int(np.argmax((cor)) - (np.size(cor)/2.))
