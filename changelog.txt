@@ -83,6 +83,8 @@ are created automatically when importing the packages, and a new STATUS logging 
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
+- Fixed minor bugs in analyticraytracing module. Path length and travel times are affected by O(0.001) ns,
+  and the focusing factor is reduced by <1% for most geometries. See #649 for details.
 
 version 2.2.1
 bugfixes:
