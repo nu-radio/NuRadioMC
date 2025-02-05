@@ -625,6 +625,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.signal</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.axes_grid1</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_axes_locatable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 
 
 <div class="viewcode-block" id="sphericalWaveFitter">
@@ -643,9 +644,9 @@
         <span class="k">pass</span></div>
 
 
-
 <div class="viewcode-block" id="sphericalWaveFitter.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.sphericalWaveFitter.html#NuRadioReco.modules.sphericalWaveFitter.sphericalWaveFitter.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">start_pulser_position</span><span class="p">,</span> <span class="n">n_index</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">debug</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;channels used for this reconstruction:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channel_ids</span><span class="p">)</span>

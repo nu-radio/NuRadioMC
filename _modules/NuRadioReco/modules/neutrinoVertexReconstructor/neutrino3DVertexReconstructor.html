@@ -618,6 +618,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">cm</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.antennapattern</span>
@@ -788,6 +789,7 @@
 
 <div class="viewcode-block" id="neutrino3DVertexReconstructor.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">event</span><span class="p">,</span>

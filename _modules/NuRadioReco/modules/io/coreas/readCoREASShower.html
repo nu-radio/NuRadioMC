@@ -617,6 +617,7 @@
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.event</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.station</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.coreas</span><span class="w"> </span><span class="kn">import</span> <span class="n">coreas</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">coordinatesystems</span>
@@ -684,6 +685,7 @@
 
 <div class="viewcode-block" id="readCoREASShower.run">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</span>

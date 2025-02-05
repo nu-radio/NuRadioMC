@@ -618,6 +618,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.signal</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
@@ -734,6 +735,7 @@
 
 <div class="viewcode-block" id="neutrino2DVertexReconstructor.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.html#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">,</span> <span class="n">z_width</span><span class="p">,</span> <span class="n">grid_spacing</span><span class="p">,</span> <span class="n">direction_guess</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_dnr</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute the 2D vertex reconstruction</span>

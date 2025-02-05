@@ -626,6 +626,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.voltageToEfieldConverterPerChannel</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.electricFieldBandPassFilter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 
 
 <span class="n">electricFieldBandPassFilter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">electricFieldBandPassFilter</span><span class="o">.</span><span class="n">electricFieldBandPassFilter</span><span class="p">()</span>
@@ -724,6 +725,7 @@
 
 <div class="viewcode-block" id="beamFormingDirectionFitter.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.beamFormingDirectionFitter.html#NuRadioReco.modules.beamFormingDirectionFitter.beamFormingDirectionFitter.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">polarization</span><span class="p">,</span> <span class="n">n_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ZenLim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">AziLim</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

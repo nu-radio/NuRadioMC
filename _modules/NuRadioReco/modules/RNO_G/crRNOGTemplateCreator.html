@@ -636,6 +636,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 
 
 <div class="viewcode-block" id="crRNOGTemplateCreator">
@@ -761,6 +762,7 @@
 
 <div class="viewcode-block" id="crRNOGTemplateCreator.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html#NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.crRNOGTemplateCreator.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_filename</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;templates_cr_station_101.pickle&#39;</span><span class="p">,</span> <span class="n">include_hardware_response</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hardware_response_source</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> 
             <span class="n">return_templates</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bandpass_filter</span><span class="p">:</span><span class="kc">None</span><span class="o">|</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="n">Any</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="o">|</span><span class="nb">list</span><span class="p">[</span><span class="n">Event</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

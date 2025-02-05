@@ -614,18 +614,19 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.channelCWNotchFilter</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains module to filter continuous wave out of the signal using notch filters</span>
+<span class="sd">on peaks in frequency spectrum</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.channelCWNotchFilter&quot;</span><span class="p">)</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">fft</span>
-
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Contains module to filter continuous wave out of the signal using notch filters</span>
-<span class="sd">on peaks in frequency spectrum</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 
 
 <div class="viewcode-block" id="find_frequency_peaks_from_trace">
@@ -863,6 +864,7 @@
 
 <div class="viewcode-block" id="channelCWNotchFilter.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.channelCWNotchFilter.run">[docs]</a>
+    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">fs</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
