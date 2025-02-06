@@ -144,7 +144,7 @@ class efieldInterferometricDepthReco:
 
             point_on_axis = shower_axis * dist + core
             if self._interpolation:
-                sum_trace = interferometry.interfere_traces_interpolation(
+                sum_trace = interferometry.interfere_traces_rit(
                     point_on_axis, station_positions, traces, times, tab=self._tab)
             else:
                 # sum_trace = interferometry.interfere_traces_padding(
@@ -439,7 +439,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             for ydx, y in enumerate(ys):
                 p = p_axis + cs.transform_from_vxB_vxvxB(np.array([x, y, 0]))
 
-                sum_trace = interferometry.interfere_traces_interpolation(
+                sum_trace = interferometry.interfere_traces_rit(
                     p, station_positions, traces, times, tab=self._tab)
                 signal = interferometry.get_signal(
                     sum_trace, tstep, kind=self._signal_kind)
