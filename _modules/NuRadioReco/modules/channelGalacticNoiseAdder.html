@@ -691,7 +691,8 @@
             <span class="n">n_side</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
             <span class="n">freq_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">interpolation_frequencies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">seed</span><span class="o">=</span><span class="kc">None</span>
+            <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">caching</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set up important parameters for the module</span>
@@ -720,6 +721,9 @@
 <span class="sd">        seed : {None, int, array_like[ints], SeedSequence}, optional</span>
 <span class="sd">            The seed that is passed on to the `numpy.random.Philox` bitgenerator used for random</span>
 <span class="sd">            number generation.</span>
+<span class="sd">        caching: bool, default: True</span>
+<span class="sd">            If True, the antenna response is cached for each channel. This can speed up this module</span>
+<span class="sd">            by a lot. If the frequencies of the channels change, the cache is cleared.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This argument is deprecated and will be removed in future versions.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
@@ -727,6 +731,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span> <span class="o">=</span> <span class="n">n_side</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solid_angle</span> <span class="o">=</span> <span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2pixarea</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Caching for the vector effective length is enabled (with `maxsize=1024`) and `n_side &gt;= 10`, and thus &quot;</span>
+                <span class="s2">&quot;it produces to many different caching entries for two antenna models to be stored of one `station_time`. &quot;</span>
+                <span class="s2">&quot;Either decrease `n_side` or increase `maxsize` (has to be done in the source code).&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">interpolation_frequencies</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">freq_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -781,6 +793,18 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[</span><span class="n">i_freq</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__radio_sky</span></div>
 
 
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_cached_antenna_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ant_pattern</span><span class="p">,</span> <span class="n">zen</span><span class="p">,</span> <span class="n">azi</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Returns the cached antenna reponse for a given antenna patter, antenna orientation </span>
+<span class="sd">        and signal arrival direction. This wrapper is necessary as arrays and list are not</span>
+<span class="sd">        hashable (i.e., can not be used as arguments in functions one wants to cache). </span>
+<span class="sd">        This module ensures that the cache is clearied if the vector `self.__freqs` changes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ant_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">zen</span><span class="p">,</span> <span class="n">azi</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="channelGalacticNoiseAdder.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
@@ -826,6 +850,20 @@
         <span class="n">freqs</span> <span class="o">=</span> <span class="n">last_freqs</span>
         <span class="n">d_f</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">freqs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
+        <span class="c1"># If we cache the antenna pattern, we need to make sure that the frequencies have not changed</span>
+        <span class="c1"># between stations. If they have, we need to clear the cache.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;Frequencies have changed. Clearing antenna response cache. &quot;</span>
+                        <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
+
+
         <span class="k">if</span> <span class="n">passband</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">passband</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">]</span>
 
@@ -859,9 +897,8 @@
             <span class="k">if</span> <span class="n">fresnel_zenith</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
 
-            <span class="n">temperature_interpolator</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">,</span>
-                                                                  <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[:,</span> <span class="n">i_pixel</span><span class="p">]),</span>
-                                                                  <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
+            <span class="n">temperature_interpolator</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[:,</span> <span class="n">i_pixel</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
             <span class="n">noise_temperature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">temperature_interpolator</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">]))</span>
 
             <span class="c1"># calculate spectral radiance of radio signal using rayleigh-jeans law</span>
@@ -887,6 +924,7 @@
             <span class="n">channel_noise_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">noise_spectrum</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+
                 <span class="n">channel_pos</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
                 <span class="k">if</span> <span class="n">channel_pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">curr_t_theta</span> <span class="o">=</span> <span class="n">t_theta</span>
@@ -923,9 +961,15 @@
                 <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">=</span> <span class="n">noise_spectrum</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
                     <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">delta_phases</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">polarizations</span><span class="p">)</span>
 
+
                 <span class="c1"># fold electric field with antenna response</span>
-                <span class="n">antenna_response</span> <span class="o">=</span> <span class="n">antenna_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">curr_fresnel_zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span>
-                                                                                   <span class="o">*</span><span class="n">antenna_orientation</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
+                    <span class="n">antenna_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="p">(</span>
+                        <span class="n">antenna_pattern</span><span class="p">,</span> <span class="n">curr_fresnel_zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">antenna_orientation</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">antenna_response</span> <span class="o">=</span> <span class="n">antenna_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span>
+                        <span class="n">freqs</span><span class="p">,</span> <span class="n">curr_fresnel_zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">antenna_orientation</span><span class="p">)</span>
+
                 <span class="n">channel_noise_spectrum</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">curr_t_theta</span>
                     <span class="o">+</span> <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">curr_t_phi</span>
