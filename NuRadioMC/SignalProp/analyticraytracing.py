@@ -318,6 +318,12 @@ def get_z_unmirrored(z, C_0, n_ice, b, z_0, delta_n):
 def get_y_diff(z_raw, C_0, n_ice, b, z_0, delta_n, in_air=False):
     """
     derivative dy(z)/dz
+
+    Uses equation C.12 from [1]_
+
+    References
+    ----------
+    .. [1] https://arxiv.org/abs/1906.01670
     """
     correct_for_air = False
     # if we are above the ice surface, the analytic expression below
@@ -567,8 +573,29 @@ class ray_tracing_2D(ray_tracing_base):
 
 
     def get_path_length_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
-        """
+        r"""
         Analytic solution for the path length
+
+        Notes
+        -----
+        Based on the equation in Sjoerd Bouma's PhD thesis, reproduced below.
+        For an analytic ice model :math:`n(z) = n_\mathrm{ice} - \Delta n e^{z/z_0}`,
+        a ray launched from depth :math:`z_s` at angle :math:`\theta_s`, and using the notation
+
+        .. math::
+
+          \beta &= n(z_s) \sin \theta_s, \\
+	      \alpha &= n^2_\mathrm{ice} - \beta^2,\\
+	      \gamma(z) &= n(z)^2 - \beta^2, \\
+	      k_1(z) &= \sqrt{\alpha\gamma(z)} + n_\mathrm{ice} n(z) - \beta^2,
+
+        the path length for one segment is given by
+
+        .. math::
+
+          s &= \int \frac{dz}{\cos{\theta}} = \int dz \sec\left[\arcsin\left(\frac{\beta}{n(z)}\right)\right] \\
+	      &= \frac{n_\mathrm{ice}}{\sqrt{\alpha}} \left[z - z_0 \log \left(k_1(z)\right)\right] + z_0 \log \left(\sqrt{\gamma(z)} + n(z)\right) + C.
+
 
         """
         s = 0
@@ -637,8 +664,29 @@ class ray_tracing_2D(ray_tracing_base):
         return s
 
     def get_travel_time_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
-        """
-        Analytic solution for the path length
+        r"""
+        Analytic solution for the travel time
+
+        Notes
+        -----
+        Based on the equation in Sjoerd Bouma's PhD thesis, reproduced below.
+        For an analytic ice model :math:`n(z) = n_\mathrm{ice} - \Delta n e^{z/z_0}`,
+        a ray launched from depth :math:`z_s` at angle :math:`\theta_s`, and using the notation
+
+        .. math::
+
+          \beta &= n(z_s) \sin \theta_s, \\
+	      \alpha &= n^2_\mathrm{ice} - \beta^2,\\
+	      \gamma(z) &= n(z)^2 - \beta^2, \\
+	      k_1(z) &= \sqrt{\alpha\gamma(z)} + n_\mathrm{ice} n(z) - \beta^2,
+
+        the propagation time along one ray segment is given by:
+
+        .. math::
+
+            ct &= \int \frac{n(z)dz}{\cos{\theta}} \\
+            &= \frac{n_\mathrm{ice}^2}{\sqrt{\alpha}} \left[z - z_0 \log \left(k_1(z)\right) \right]
+            + z_0 \left[\sqrt{\gamma(z)} + n_\mathrm{ice} \log\left(\sqrt{\gamma(z)} + n(z) \right)\right] + C'.
 
         """
         ct = 0
@@ -712,6 +760,13 @@ class ray_tracing_2D(ray_tracing_base):
     def get_focusing_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
         Analytic solution to calculate the focusing factor
+
+        .. warning::
+
+            Note that this solution is unstable for a refracted ray trajectory
+            as the focusing integral diverges when the ray trajectory becomes horizontal!
+
+        Based on the appendix of Sjoerd Bouma's PhD thesis.
 
         """
 
@@ -2523,6 +2578,12 @@ class ray_tracing(ray_tracing_base):
         -------
         distance: float
             distance from x1 to x2 along the ray path
+
+        Notes
+        -----
+        The analytic solution is based on the equation in the appendix of Sjoerd Bouma's PhD thesis.
+        For more details, see there, or see the notes of `ray_tracing_2D.get_path_length_analytic`.
+
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
@@ -2553,17 +2614,23 @@ class ray_tracing(ray_tracing_base):
 
         Parameters
         ----------
-        iS: int
+        iS : int
             choose for which solution to compute the launch vector, counting
             starts at zero
 
-        analytic: bool
+        analytic : bool
             If True the analytic solution is used. If False, a numerical integration is used. (default: True)
 
         Returns
         -------
         time: float
             travel time
+
+        Notes
+        -----
+        The analytic solution is based on the equation in the appendix of Sjoerd Bouma's PhD thesis.
+        For more details, see there, or see the notes of `ray_tracing_2D.get_travel_time_analytic`.
+
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
