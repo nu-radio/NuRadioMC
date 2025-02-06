@@ -234,6 +234,25 @@ class hardwareResponseIncorporator:
             channel.set_frequency_spectrum(
                 trace_fft, channel.get_sampling_rate())
 
+        if not sim_to_data:
+            if not event.has_been_processed_by_module('channelAddCableDelay'):
+                self.logger.warning(
+                    "The hardwareResponseIncorporator module should be used to remove the cable delay "
+                    "from data anymore. Please use channelAddCableDelay module for this (before running "
+                    "the hardwareResponseIncorporator module). The channelAddCableDelay was not applied "
+                    "to this event, hence, you are receiving this warning. The cable delay is now "
+                    "removed. Please add the channelAddCableDelay module to your processing chain "
+                    "to avoid this warning in the future (in that case the cable delay will not be "
+                    "removed by this module).")
+
+                # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+                # in the efieldToVoltageConverter or with the channelCableDelayAdder
+                # (if efieldToVoltageConverterPerEfield was used).
+                signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
+                if has_trigger_channels:
+                    signal_processing.add_cable_delay(
+                            station, det, sim_to_data, trigger=True, logger=self.logger)
+
         self.__t += time.time() - t
 
     def end(self):
