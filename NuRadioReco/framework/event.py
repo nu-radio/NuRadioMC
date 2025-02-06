@@ -36,7 +36,8 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
-        self.__modules_station = {}  # saves which modules were executed with what parameters on station level
+        # saves which modules were executed with what parameters on station level
+        self.__modules_station = collections.defaultdict(list)
 
     def register_module_event(self, instance, name, kwargs):
         """
@@ -69,9 +70,6 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         kwargs:
             the key word arguments of the run method
         """
-        if station_id not in self.__modules_station:
-            self.__modules_station[station_id] = []
-
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
@@ -85,14 +83,35 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         iE = 0
         iS = 0
         while True:
-            if(station_id in self.__modules_station and (len(self.__modules_station[station_id]) > iS) and self.__modules_station[station_id][iS][0] == iE):
+            if (station_id in self.__modules_station and (len(self.__modules_station[station_id]) > iS)
+                    and self.__modules_station[station_id][iS][0] == iE):
                 iS += 1
                 yield self.__modules_station[station_id][iS - 1][1:]
             else:
-                if(len(self.__modules_event) == iE):
+                if len(self.__modules_event) == iE:
                     break
+
                 iE += 1
                 yield self.__modules_event[iE - 1]
+
+    def has_been_processed_by_module(self, module_name):
+        """
+        Checks if the event has been processed by a module with a specific name.
+
+        Parameters
+        ----------
+        module_name: str
+            The name of the module to check for.
+
+        Returns
+        -------
+        bool
+        """
+        for module in self.__modules_event:
+            if module[0] == module_name:
+                return True
+
+        return False
 
     def get_generator_info(self, key):
         logger.warning("`get_generator_info` is deprecated. Use `get_parameter` instead.")
