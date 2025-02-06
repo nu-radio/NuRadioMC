@@ -1115,6 +1115,9 @@ class simulation:
         self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
 
         self._config = get_config(config_file)
+        
+        self._simulate_trigger_channels = self._config.get("simulate_non_trigger_channels", True)
+
         if self._config['seed'] is None:
             # the config seeting None means a random seed. To have the simulation be reproducable, we generate a new
             # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
@@ -1535,7 +1538,7 @@ class simulation:
                 # we loop through all non-trigger channels and simulate the electric fields for all showers.
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
-                if len(non_trigger_channels):
+                if len(non_trigger_channels) and self._simulate_trigger_channels:
                     logger.status(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
