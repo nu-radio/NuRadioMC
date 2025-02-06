@@ -1642,8 +1642,9 @@ class simulation:
                                     self._add_empty_channel(station, channel_id)
 
                                 channel = station.get_channel(sim_channel.get_id())
-                                # ... and now add the sim channel to the correct window defined by the "empty tradce"
-                                channel.add_to_trace(sim_channel)
+                                # ... and now add the sim channel to the correct window defined by the "empty trace"
+                                # At this point the traces are noiseless, hence, we do not have to raise an error.
+                                channel.add_to_trace(sim_channel, raise_error=False)
 
                 for evt in output_buffer[station_id].values():
                     # We might not have a channel object in case there was no ray tracing solution to this channel,
