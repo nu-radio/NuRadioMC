@@ -16,6 +16,7 @@ which relies on IO in order to ensure that the correct pickling functions are us
 
 import pickle
 import numpy as np
+import copyreg
 from ._fastnumpyio import pack, unpack # these are essentially faster alternatives for np.load/save
 
 # we overwrite the default pickling mechanism for numpy arrays
@@ -46,16 +47,17 @@ def _pickle_numpy_scalar(i):
     else:
         raise TypeError(f"Unsupported type of numpy scalar {i} (type {type(i)})")
 
-# the __reduce__ methods are overwritten by pickle.dispatch_table
-# see https://docs.python.org/3/library/pickle.html#pickle.Pickler.dispatch_table
-pickle.dispatch_table[np.ndarray] = _pickle_numpy_array
+# The __reduce__ methods are overwritten by the global dispatch_table.
+# We modify this by using copyreg.pickle.
+# see https://docs.python.org/3/library/pickle.html#dispatch-tables
 
+copyreg.pickle(np.ndarray, _pickle_numpy_array)
 # there are multiple numpy scalar types (float64, float32 etc.)
 # we overwrite the pickling __reduce__ for all of them
 # note that this might upcast in some cases
 for dtype in np.ScalarType:
     if dtype.__module__ == 'numpy':
-        pickle.dispatch_table[dtype] = _pickle_numpy_scalar
+        copyreg.pickle(dtype, _pickle_numpy_scalar)
 
 
 def read_pickle(filename, encoding='latin1'):
