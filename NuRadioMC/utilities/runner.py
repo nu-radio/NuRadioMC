@@ -70,6 +70,8 @@ class NuRadioMCRunner(object):
                     else:
                         if(not self.q.empty()):
                             n_trig = self.q.get_nowait()
+                            if n_trig is None:
+                                n_trig=0
                             self.n_triggers += n_trig
                     print(f"{iN} has finished with {n_trig} events, total number of triggered events is {self.n_triggers}", flush=True)
                     outputfilename = self.get_outputfilename()

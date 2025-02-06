@@ -879,6 +879,25 @@ class DetectorBase(object):
         amp_phase = amp_response_functions['phase'](frequencies)
         return amp_gain * amp_phase
 
+    def get_trigger_amplifier_type(self, station_id, channel_id):
+        """
+        Returns the type of the amplifier used only for trigger channels.
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns
+        -------
+        amp_type: string
+            The type/name of the amplifier
+        """
+        res = self.__get_channel(station_id, channel_id)
+        return res['trigger_amp_type']
+
     def get_sampling_frequency(self, station_id, channel_id):
         """
         returns the sampling frequency

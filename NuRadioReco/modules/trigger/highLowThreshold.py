@@ -253,6 +253,8 @@ class triggerSimulator:
 
         self.__t += time.time() - t
 
+        return has_triggered
+
     def end(self):
         from datetime import timedelta
         dt = timedelta(seconds=self.__t)
