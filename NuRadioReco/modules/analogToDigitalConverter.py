@@ -3,7 +3,7 @@ import time
 import numpy as np
 from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
-from scipy.signal import resample
+import scipy.signal
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.trace_utilities import delay_trace
 
@@ -290,7 +290,8 @@ class analogToDigitalConverter:
 
             adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
         else:
-            adc_ref_voltage = Vrms * (2 ** (adc_n_bits - 1) - 1) / (2 ** (adc_noise_n_bits - 1) - 1)
+            adc_ref_voltage = Vrms * (2 ** adc_n_bits - 1) / (2 ** (adc_noise_n_bits - 1))
+
 
         if(adc_sampling_frequency > channel.get_sampling_rate()):
             error_msg = 'The ADC sampling rate is greater than '
@@ -320,18 +321,16 @@ class analogToDigitalConverter:
 
         if(upsampling_frequency > MC_sampling_frequency):
             upsampling_nsamples = int(upsampling_frequency * len(trace) / MC_sampling_frequency)
-            perfectly_upsampled_trace = resample(trace, upsampling_nsamples)
+            perfectly_upsampled_trace, perfectly_upsampled_times = scipy.signal.resample(trace, upsampling_nsamples, t=times)
 
-            perfectly_upsampled_times = np.arange(len(perfectly_upsampled_trace)) / upsampling_frequency
-            perfectly_upsampled_times += times[0]
         else:
-            perfectly_upsampled_trace = trace[:]
-            perfectly_upsampled_times = times[:]
+            perfectly_upsampled_trace = trace
+            perfectly_upsampled_times = times
 
-        interpolate_delayed_trace = interp1d(perfectly_upsampled_times, perfectly_upsampled_trace,
-                                             kind='linear',
-                                             fill_value=(perfectly_upsampled_trace[0], perfectly_upsampled_trace[-1]),
-                                             bounds_error=False)
+        interpolate_delayed_trace = interp1d(
+            perfectly_upsampled_times, perfectly_upsampled_trace, kind='linear',
+            fill_value=(perfectly_upsampled_trace[0], perfectly_upsampled_trace[-1]),
+            bounds_error=False)
 
         # Downsampling to ADC frequency
         new_n_samples = int((adc_sampling_frequency / MC_sampling_frequency) * len(trace))
