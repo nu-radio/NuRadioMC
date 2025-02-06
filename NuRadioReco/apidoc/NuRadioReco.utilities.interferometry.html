@@ -623,7 +623,7 @@
 <span id="nuradioreco-utilities-interferometry-module"></span><h1>NuRadioReco.utilities.interferometry module<a class="headerlink" href="#module-NuRadioReco.utilities.interferometry" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.get_signal">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">get_signal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sum_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tstep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'power'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#get_signal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.get_signal" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">get_signal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sum_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tstep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'power'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#get_signal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.get_signal" title="Link to this definition"></a></dt>
 <dd><p>Calculates signal quantity from beam-formed waveform</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -648,10 +648,9 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.interfere_traces_interpolation">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">interfere_traces_interpolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#interfere_traces_interpolation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.interfere_traces_interpolation" title="Link to this definition"></a></dt>
-<dd><p>Calculate sum of time shifted waveforms.</p>
-<p>Performs a linear interpolation between samples.</p>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.interfere_traces_rit">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">interfere_traces_rit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#interfere_traces_rit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.interfere_traces_rit" title="Link to this definition"></a></dt>
+<dd><p>Shifts the waveforms of observers to the source location and sums them up.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -677,8 +676,60 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.get_time_shifts">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">get_time_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#get_time_shifts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.get_time_shifts" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.interfere_traces_plane">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">interfere_traces_plane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.000292</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#interfere_traces_plane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.interfere_traces_plane" title="Link to this definition"></a></dt>
+<dd><p>Shifts the waveforms of observers onto a plane wave.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>positions</strong><span class="classifier">np.array(n, 3)</span></dt><dd><p>Observer positions at observation height</p>
+</dd>
+<dt><strong>traces</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>waveforms of n observers with m samples</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>time stampes of the waveforms of each observer</p>
+</dd>
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>Zenith angle of the plane wavefront</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>Azimuth angle of the plane wavefront</p>
+</dd>
+<dt><strong>n0</strong><span class="classifier">float (default: 1.000292)</span></dt><dd><p>Refractivity at observation level</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>sum_trace</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>Summed trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.interfere_traces_interpolation">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">interfere_traces_interpolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#interfere_traces_interpolation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.interfere_traces_interpolation" title="Link to this definition"></a></dt>
+<dd><p>Calculate sum of time shifted waveforms. Performs a linear interpolation between samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>waveforms of n observers with m samples</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>(Shifted) time stampes of the waveforms of each observer</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>sum_trace</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>Summed trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.get_time_shifts_rit">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">get_time_shifts_rit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#get_time_shifts_rit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.get_time_shifts_rit" title="Link to this definition"></a></dt>
 <dd><p>Calculates the time delay of an electromagnetic wave along a straight trajectories between
 a source/traget location and several observers.</p>
 <dl class="field-list simple">
@@ -695,6 +746,32 @@ a source/traget location and several observers.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>tshifts</strong><span class="classifier">np.array(n,)</span></dt><dd><p>Time delay in sec</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.get_time_shifts_plane">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">get_time_shifts_plane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#get_time_shifts_plane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.get_time_shifts_plane" title="Link to this definition"></a></dt>
+<dd><p>Calculate time shifts for a plane wavefront for a given set of observers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>positions</strong><span class="classifier">np.array(n, 3)</span></dt><dd><p>observer positions (n observers)</p>
+</dd>
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>Zenith angle of the plane wavefront</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>Azimuth angle of the plane wavefront</p>
+</dd>
+<dt><strong>n0</strong><span class="classifier">float</span></dt><dd><p>Refractivity at observation level</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tshifts</strong><span class="classifier">np.array(n,)</span></dt><dd><p>Time delay for n observers</p>
 </dd>
 </dl>
 </dd>
