@@ -88,9 +88,9 @@ The station-level attributes can be accessed using ``f[station_<station_id>].att
         :header-rows: 1
         :widths: auto
         :delim: |
-        
+
         Key | Description
-        ``Vrms`` | RMS of the voltage used as thermal noise floor :math:`v_{n} = (k_{B} \, R \, T \, \Delta f) ^ {0.5}`. See the relevant section "Noise voltage and power" in this `wiki article <https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise>`_ (last two equations). Determine from ``Tnoise`` and ``bandwidth`` (see below).
+        ``Vrms`` | RMS of the voltage used as thermal noise floor :math:`v_{n} = (k_{B} \, R \, T \, \Delta f) ^ {0.5}`. See the relevant section "Maximum transfer of noise power" in this `wiki article <https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise>`_ . Determine from ``Tnoise`` and ``bandwidth`` (see below).
         ``Vrms_trigger`` | (Optional) Same as ``Vrms`` but for the trigger channels if they were simulated with a different response.
         ``bandwidth`` | Bandwidth is above equation. Calculated as the integral over the simulated filter response (`filt`) squared: :math:`\Delta f = np.trapz(np.abs(filt) ** 2, ff)`.
         ``antenna_positions`` | Relative position of all simulated antennas (channels)
