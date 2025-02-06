@@ -303,9 +303,9 @@ class BaseTrace:
         """
         Adds the trace of another channel to the trace of this channel.
 
-        The trace of `channel` is only added within the time window of `this`. If `this` is an empty
+        The trace of "channel" is only added within the time window of "this". If "this" is an empty
         trace (i.e., a trace containing zeros) with a defined trace_start_time, this function can be
-        seen as recording a channel in the specified readout window. Hence, `this` is referred
+        seen as recording a channel in the specified readout window. Hence, "this" is referred
         to as the "readout" in the comments of this function.
 
         Parameters
@@ -317,7 +317,7 @@ class BaseTrace:
             to be added. Below this threshold the residual time shift is not applied to increase performance
             and minimize numerical artifacts from Fourier transforms.
         raise_error: bool (default: True)
-            If True, an error is raised if `self` is not fully contained in `channel`.
+            If True, an error is raised if "self" is not fully contained in "channel".
         """
         assert self.get_number_of_samples() is not None, "No trace is set for this channel"
         assert self.get_sampling_rate() == channel.get_sampling_rate(), "Sampling rates of the two channels do not match"
