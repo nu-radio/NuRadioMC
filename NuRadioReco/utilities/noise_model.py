@@ -1,8 +1,9 @@
 import numpy as np
-from NuRadioReco.utilities import fft
 import scipy as scp
 import matplotlib.pyplot as plt
 
+from NuRadioReco.utilities import fft
+import NuRadioReco.framework.channel
 
 class NoiseModel:
     """
@@ -41,7 +42,7 @@ class NoiseModel:
             the distribution cancels out and can just be set to 1. This speeds up initializing the class/covariance matrices.
     """
 
-    def __init__(self, n_antennas, n_samples, sampling_rate, matrix_inversion_method="pseudo_inv", threshold_amplitude=1e-3, increase_cov_diagonal=0, ignore_llh_normalization=True):
+    def __init__(self, n_antennas, n_samples, sampling_rate, matrix_inversion_method="pseudo_inv", threshold_amplitude=1e-2, increase_cov_diagonal=0, ignore_llh_normalization=True):
         self.n_antennas = n_antennas
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
@@ -211,8 +212,8 @@ class NoiseModel:
         covariance_matrices_inverse = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
 
         for i in range(self.n_antennas):
-            active_amplitudes = amplitudes[i, amplitudes[i,:] > np.max(amplitudes) * self.threshold_amplitude]
-            active_frequencies = self.frequencies[amplitudes[i,:]  > np.max(amplitudes) * self.threshold_amplitude]
+            active_amplitudes = amplitudes[i, amplitudes[i,:] > np.max(amplitudes[i,:]) * self.threshold_amplitude]
+            active_frequencies = self.frequencies[amplitudes[i,:]  > np.max(amplitudes[i,:]) * self.threshold_amplitude]
 
             # Calculate first row of covariance matrix:
             covariance_one_row = np.zeros(self.n_samples)
@@ -407,6 +408,104 @@ class NoiseModel:
                 Minus two delta log likelihood for the data given the noise model
         """
         return -2*self.calculate_delta_llh(data, signal=signal, frequency_domain=frequency_domain)
+    
+    def calculate_minus_two_delta_llh_channels(self, channel_list_data, channel_list_sim, time_grid, frequency_domain=False, plot=True, return_traces=False):
+        """
+        Calculates the minus two delta log likelihood with NuRadioReco channels as input. Each entry in channel_list_sim can have
+        several elements, e.g. different ray-tracing solutions, that will be added up. By providing a time_grid, the likelihood
+        can be calculated for different time offsets between the data and the signal.
+
+        Parameters
+        ----------
+            channel_list_data : list
+                List of length n_antennas of NuRadioReco channels containing the data. Each entry in the list should be a channel object.
+            channel_list_sim : list
+                List of length n_antennas of NuRadioReco channels containing the signal. Each entry in the list can be be a list of channel objects,
+                e.g. different ray-tracing solutions.
+            time_grid : numpy.ndarray
+                Array (or single number) containing time offsets between the data and the signal to calculate the likelihood for. The time offset is
+                the time between the start of the data cahannel of the first antenna and the start of the signal/sim channel (first solution) of the 
+                first antenna.
+            frequency_domain : bool, optional
+                If True, calculate the delta log likelihood in the frequency domain, which is faster.
+            plot : bool, optional
+                If True, plot the data and signal for each time offset in the time_grid.
+        
+        Returns
+        -------
+            float
+                Best minus two delta log likelihood
+            float
+                Best time offset
+            numpy.ndarray
+                Array containing the minus two delta log likelihood for each time offset in the time_grid
+            numpy.ndarray, optional
+                Array containing the data traces. Only returned if return_traces is True.
+            numpy.ndarray, optional
+                Array containing the signal traces for the best time offset. Only returned if return_traces is True.
+        """
+        assert len(channel_list_data) == self.n_antennas, f"Number of channels ({len(channel_list_data)}) does not match the number of antennas ({self.n_antennas})"
+        assert len(channel_list_sim) == self.n_antennas, f"Number of channels ({len(channel_list_sim)}) does not match the number of antennas ({self.n_antennas})"
+
+        data_array = np.zeros([self.n_antennas, self.n_samples])
+
+        # We use the time different between the start of the data and first solution in the first antenna as a reference
+        t_0_data = channel_list_data[0].get_trace_start_time()
+        t_0_sim = np.atleast_1d(channel_list_sim[0])[0].get_trace_start_time()
+        referece_time_offset = t_0_sim - t_0_data
+
+        trace_start_times = np.zeros(self.n_antennas)
+        for i_ant, channel in enumerate(channel_list_data):
+            if not isinstance(channel, NuRadioReco.framework.channel.Channel):
+                continue
+            assert channel.get_number_of_samples() == self.n_samples, f"Number of samples in data channel {i_ant} ({channel.get_number_of_samples()}) does not match the number of samples in the noise model ({self.n_samples})"
+            data_array[i_ant,:] = channel.get_trace()
+            trace_start_times[i_ant]  = channel.get_trace_start_time()
+
+        # Loop over the times in the time_grid:
+        LLH_array = np.zeros(len(np.atleast_1d(time_grid)))
+        signal_arrays = np.zeros([len(time_grid), self.n_antennas, self.n_samples])
+        for i_time, time_offset in enumerate(np.atleast_1d(time_grid)):
+
+            for i_ant in range(self.n_antennas):
+                if not isinstance(np.atleast_1d(channel_list_sim[i_ant])[0], NuRadioReco.framework.channel.Channel):
+                    continue
+                # Make empty channel:
+                signal_readout_channel = NuRadioReco.framework.channel.Channel(1)
+                signal_readout_channel.set_trace(np.zeros(self.n_samples), self.sampling_rate)
+
+                # Set trace start time of the readout window so it keeps track of the relative readout times
+                # of the data windows, but moved to where the signal is located:
+                signal_readout_channel.set_trace_start_time(trace_start_times[i_ant] + referece_time_offset - time_offset) # a positive time_offset moves the signal to the right relative to the data
+                
+                # Now add the simulation to the readout window:
+                for i_solution, channel_sim in enumerate(np.atleast_1d(channel_list_sim[i_ant])):
+                    signal_readout_channel.add_to_trace(channel_sim)
+
+                signal_arrays[i_time,i_ant,:] = signal_readout_channel.get_trace()
+
+            LLH_array[i_time] = self.calculate_minus_two_delta_llh(data_array, signal_arrays[i_time,:,:], frequency_domain=frequency_domain)
+
+            if plot:
+                fig, ax = plt.subplots(self.n_antennas, figsize=[10,2*self.n_antennas])
+                for i_ant in range(self.n_antennas):
+                    ax[i_ant].plot(data_array[i_ant,:], "k-", label="Data")
+                    ax[i_ant].plot(signal_arrays[i_time,i_ant,:], "b--", label="Signal")
+                    ax[i_ant].set_xlabel("Time bin")
+                    ax[i_ant].set_ylabel("Voltage [V]")
+                    ax[i_ant].legend()
+                fig.tight_layout()
+
+        llh_best = np.min(LLH_array)
+        t_best = time_grid[np.argmin(LLH_array)]
+
+        if return_traces:
+            return llh_best, t_best, LLH_array, data_array, signal_arrays[np.argmin(LLH_array),:,:]
+        else:
+            return llh_best, t_best, LLH_array
+
+
+
 
     def get_minus_two_delta_llh_function(self, data_to_fit, signal_function, frequency_domain=False):
         """
@@ -564,8 +663,8 @@ class NoiseModel:
                     if not frequency_domain:
                         fisher_information_matrix[i,j] += np.matmul(derivatives[i,k,:], np.matmul(self.cov_inv[k,:,:], derivatives[j,k,:]))
                     elif frequency_domain:
-                        integrand = np.real(derivatives_fft[i,k,:]*derivatives_fft[j,k,:].conj())/self.noise_psd
-                        fisher_information_matrix[i,j] += 4*np.sum(integrand[self.noise_psd > np.max(self.noise_psd) * self.threshold_amplitude**2]) * (self.frequencies[1]-self.frequencies[0]) # Maybe wrong by a factor
+                        integrand = np.real(derivatives_fft[i,k,:]*derivatives_fft[j,k,:].conj())/self.noise_psd[k,:]
+                        fisher_information_matrix[i,j] += 4*np.sum(integrand[self.noise_psd[k,:] > np.max(self.noise_psd[k,:]) * self.threshold_amplitude**2]) * (self.frequencies[1]-self.frequencies[0]) # Maybe wrong by a factor
         
         return fisher_information_matrix
 
