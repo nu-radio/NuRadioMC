@@ -145,7 +145,7 @@ class triggerSimulator:
         set_not_triggered: bool (default: False)
             if True not trigger simulation will be performed and this trigger will be set to not_triggered
         Vrms: float
-            If supplied, overrides adc_reference_voltage as supplied in the detector description file
+            If supplied, overrides adc_voltage_range as supplied in the detector description file
         trigger_adc: bool
             If True, the relevant ADC parameters in the config file are the ones
             that start with `'trigger_'`
