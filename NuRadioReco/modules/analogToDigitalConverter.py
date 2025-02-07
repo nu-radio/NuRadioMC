@@ -312,7 +312,7 @@ class analogToDigitalConverter:
 
         # Downsampling to ADC frequency
         resampled_times, resampled_trace = downsampling_linear_interpolation(
-            channel.get_trace(), sampling_rate, adc_sampling_frequency)
+            channel.get_trace(), channel.get_sampling_rate(), adc_sampling_frequency)
         resampled_times += channel.get_trace_start_time()
 
         # Digitisation

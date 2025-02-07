@@ -217,7 +217,6 @@ class triggerBoardResponse:
                 clock_offset=self._clock_offset,
                 adc_output=self._adc_output,
                 return_sampling_frequency=True,
-                channel_id=channel_id,
             )
 
             channel.set_trace(digitized_trace, adc_sampling_frequency)
