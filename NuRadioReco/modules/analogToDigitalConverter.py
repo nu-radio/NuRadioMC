@@ -163,8 +163,8 @@ class analogToDigitalConverter:
 
     """
 
-    def __init__(self):
-        self.__t = 0
+    def __init__(self, log_level=logging.NOTSET):
+        logger.setLevel(log_level)
         self._adc_types = {
             'perfect_floor_comparator': perfect_floor_comparator,
             'perfect_ceiling_comparator': perfect_ceiling_comparator}
@@ -398,11 +398,7 @@ class analogToDigitalConverter:
         self.__t += time.time() - t
 
     def end(self):
-        from datetime import timedelta
-        logger.setLevel(logging.INFO)
-        dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
 
 
 def downsampling_linear_interpolation(trace, sampling_rate, new_sampling_rate):
