@@ -1,10 +1,9 @@
-import logging
-import numpy as np
-
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 from NuRadioReco.utilities import units
 
+import numpy as np
+import logging
 logger = logging.getLogger("NuRadioReco.triggerBoardResponse")
 
 
@@ -19,8 +18,7 @@ class triggerBoardResponse:
 
     def __init__(self, log_level=logging.WARNING):
         logger.setLevel(log_level)
-        self.logger = logger
-        self.__t = 0
+        self._log_level = log_level
         self.begin()
 
     def begin(self, adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage"):
@@ -39,7 +37,7 @@ class triggerBoardResponse:
 
         """
 
-        self._adc = analogToDigitalConverter()
+        self._adc = analogToDigitalConverter(log_level=self._log_level)
         self._clock_offset = clock_offset
         self._adc_output = adc_output
 
@@ -139,7 +137,7 @@ class triggerBoardResponse:
         if vrms_noise is None:
             vrms_noise = self.get_noise_vrms_per_trigger_channel(station, trigger_channels)
 
-        self.logger.debug("Applying gain at ADC level")
+        logger.debug("Applying gain at ADC level")
 
         if not hasattr(vrms_noise, "__len__"):
             vrms_noise = np.full_like(trigger_channels, vrms_noise, dtype=float)
@@ -153,7 +151,7 @@ class triggerBoardResponse:
             volts_per_adc = self._adc_input_range / (2 ** total_bits - 1)
             ideal_vrms = volts_per_adc * (2 ** (noise_bits - 1))
 
-            self.logger.debug(("\t Ch: {}\t Target Vrms: {:0.3f} mV"
+            logger.debug(("\t Ch: {}\t Target Vrms: {:0.3f} mV"
                 "\t V/ADC: {:0.3f} mV").format(channel_id, ideal_vrms, volts_per_adc))
 
             # find the ADC gain from the possible values that makes the realized
@@ -169,15 +167,15 @@ class triggerBoardResponse:
 
             # Get trigger channel, log rms before gain
             channel = station.get_trigger_channel(channel_id)
-            self.logger.debug("\t Ch: {}\t Actuall Vrms: {:0.3f} mV".format(channel_id, np.std(channel.get_trace() * gain_to_use) / units.mV))
+            logger.debug("\t Ch: {}\t Actuall Vrms: {:0.3f} mV".format(channel_id, np.std(channel.get_trace() * gain_to_use) / units.mV))
 
             # Apply gain
             channel.set_trace(channel.get_trace() * gain_to_use, channel.get_sampling_rate())
-            self.logger.debug("\t Used Vrms: {:0.3f} mV\tADC Gain {}".format(vrms_after_gain[-1] / units.mV, gain_to_use))
+            logger.debug("\t Used Vrms: {:0.3f} mV\tADC Gain {}".format(vrms_after_gain[-1] / units.mV, gain_to_use))
 
             # Calculate the effective number of noise bits
             eff_noise_bits = np.log2(vrms_after_gain[-1] / volts_per_adc) + 1
-            self.logger.debug("\t Eff noise bits: {:0.2f}\tRequested: {}".format(eff_noise_bits, noise_bits))
+            logger.debug("\t Eff noise bits: {:0.2f}\tRequested: {}".format(eff_noise_bits, noise_bits))
 
         return np.array(vrms_after_gain), ideal_vrms
 
@@ -250,7 +248,7 @@ class triggerBoardResponse:
         trigger_board_vrms : float
             the RMS voltage of the waveforms on the trigger board after applying the ADC gain
         """
-        self.logger.debug("Applying the RNO-G trigger board response")
+        logger.debug("Applying the RNO-G trigger board response")
 
         if vrms is None:
             vrms = self.get_noise_vrms_per_trigger_channel(station, trigger_channels)
@@ -269,9 +267,4 @@ class triggerBoardResponse:
         return trigger_board_vrms
 
     def end(self):
-        from datetime import timedelta
-
-        self.logger.setLevel(logging.INFO)
-        dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
