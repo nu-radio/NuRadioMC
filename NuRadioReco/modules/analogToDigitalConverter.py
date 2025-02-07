@@ -244,7 +244,8 @@ class analogToDigitalConverter:
         adc_ref_voltage_label = field_prefix + "adc_reference_voltage"
         adc_sampling_frequency_label = field_prefix + "adc_sampling_frequency"
 
-        adc_time_delay = det_channel.get(adc_time_delay_label, 0) * units.ns
+        # Use "or" if adc_time_delay_label is in dict but value is None
+        adc_time_delay = (det_channel.get(adc_time_delay_label, 0) or 0) * units.ns
 
         adc_n_bits = det_channel[adc_n_bits_label]
         adc_noise_n_bits = det_channel[adc_noise_n_bits_label]
