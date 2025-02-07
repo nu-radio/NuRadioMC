@@ -1,11 +1,14 @@
-import logging
-import time
-import numpy as np
-from NuRadioReco.utilities import units
-from scipy.interpolate import interp1d
-import scipy.signal
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities.trace_utilities import delay_trace
+from NuRadioReco.utilities import units, trace_utilities
+
+import scipy.interpolate
+import scipy.signal
+
+import numpy as np
+import time
+
+import logging
+logger = logging.getLogger('NuRadioReco.analogToDigitalConverter')
 
 
 def perfect_comparator(trace, adc_n_bits, adc_voltage_range, mode='floor', output='voltage'):
@@ -37,7 +40,8 @@ def perfect_comparator(trace, adc_n_bits, adc_voltage_range, mode='floor', outpu
         Digitised voltage trace in volts or ADC counts
     """
 
-    lsb_voltage = adc_voltage_range / (2 ** adc_n_bits- 1)
+    lsb_voltage = adc_voltage_range / (2 ** adc_n_bits - 1)
+    logger.debug("LSB voltage: {} mV".format(lsb_voltage / units.mV))
 
     if mode == 'floor':
         digital_trace = np.floor(trace / lsb_voltage).astype(int)
@@ -167,8 +171,6 @@ class analogToDigitalConverter:
 
         self._mandatory_fields = ['adc_nbits', 'adc_sampling_frequency']
 
-        self.logger = logging.getLogger('NuRadioReco.analogToDigitalConverter')
-
     def _get_adc_parameters(self, det_channel, vrms=None, trigger_adc=False):
         """ Get the ADC parameters for a channel from the detector description """
 
@@ -198,17 +200,17 @@ class analogToDigitalConverter:
                     "If you want to simulate a ADC with a dynamic range from -1 V to 1 V, you should set have set "
                     "the adc_reference_voltage to 1 V. Now you have to set the adc_voltage_range to 2 V."
                 )
-                self.logger.error(error_msg)
+                logger.error(error_msg)
                 raise ValueError(error_msg)
 
 
-            adc_ref_voltage_label = field_prefix + "adc_voltage_range"
-            if adc_ref_voltage_label not in det_channel:
+            adc_voltage_label = field_prefix + "adc_voltage_range"
+            if adc_voltage_label not in det_channel:
                 raise ValueError(
-                    f"The field {adc_ref_voltage_label} is not present in channel {channel_id}. "
+                    f"The field {adc_voltage_label} is not present in channel {channel_id}. "
                     "Please specify it on your detector file.")
 
-            adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
+            adc_voltage_range = det_channel[adc_voltage_label] * units.V
         else:
             adc_noise_nbits_label = field_prefix + "adc_noise_nbits"
             if adc_noise_nbits_label not in det_channel:
@@ -217,18 +219,32 @@ class analogToDigitalConverter:
                     "Please specify it on your detector file.")
 
             adc_noise_n_bits = det_channel[adc_noise_nbits_label]
-            adc_ref_voltage = vrms * (2 ** adc_n_bits - 1) / (2 ** (adc_noise_n_bits - 1))
+            logger.debug(
+                "Use a noise VRMS of {} mV and {} ADC noise n bits to define the ADC voltage range".format(
+                    vrms / units.mV, adc_noise_n_bits))
+            adc_voltage_range = vrms * (2 ** adc_n_bits - 1) / (2 ** (adc_noise_n_bits - 1))
 
-        return adc_n_bits, adc_ref_voltage, adc_sampling_frequency, adc_time_delay
+        logger.debug(
+            ("ADC parameters: "
+            "\n\tadc_voltage_range: {} V"
+            "\n\tadc_n_bits: {}"
+            "\n\tadc_sampling_frequency: {} GHz"
+            "\n\tadc_time_delay: {} ns").format(
+                adc_voltage_range / units.V, adc_n_bits, adc_sampling_frequency / units.GHz,
+                adc_time_delay / units.ns
+            ))
 
-    def get_digital_trace(self, station, det, channel,
-                          Vrms=None,
-                          trigger_adc=False,
-                          clock_offset=0.0,
-                          adc_type='perfect_floor_comparator',
-                          return_sampling_frequency=False,
-                          adc_output='voltage',
-                          trigger_filter=None):
+        return adc_n_bits, adc_voltage_range, adc_sampling_frequency, adc_time_delay
+
+    def get_digital_trace(
+        self, station, det, channel,
+        Vrms=None,
+        trigger_adc=False,
+        clock_offset=0.0,
+        adc_type='perfect_floor_comparator',
+        return_sampling_frequency=False,
+        adc_output='voltage',
+        trigger_filter=None):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -295,7 +311,7 @@ class analogToDigitalConverter:
 
         if adc_time_delay:
             # Random clock offset
-            trace, dt_tstart = delay_trace(channel, sampling_rate, adc_time_delay)
+            trace, dt_tstart = trace_utilities.delay_trace(channel, sampling_rate, adc_time_delay)
             times = channel.get_times()
             if dt_tstart > 0:
                 # by design dt_tstart is a multiple of the sampling rate
@@ -303,20 +319,23 @@ class analogToDigitalConverter:
             times = times[:len(trace)]
             channel.set_trace(trace, sampling_rate, trace_start_time=times[0])
 
-        # Upsampling to 5 GHz before downsampling using interpolation.
-        # We cannot downsample with a Fourier method because we want to keep
-        # the higher Nyquist zones.
-        upsampling_frequency = 5.0 * units.GHz
-        if upsampling_frequency > sampling_rate:
-            channel.resample(upsampling_frequency)
+        if adc_sampling_frequency != sampling_rate:
+            # Upsampling to 5 GHz before downsampling using interpolation.
+            # We cannot downsample with a Fourier method because we want to keep
+            # the higher Nyquist zones.
+            upsampling_frequency = 5.0 * units.GHz
+            if upsampling_frequency > sampling_rate:
+                channel.resample(upsampling_frequency)
 
-        # Downsampling to ADC frequency
-        resampled_times, resampled_trace = downsampling_linear_interpolation(
-            channel.get_trace(), channel.get_sampling_rate(), adc_sampling_frequency)
-        resampled_times += channel.get_trace_start_time()
+            # Downsampling to ADC frequency
+            resampled_times, resampled_trace = downsampling_linear_interpolation(
+                channel.get_trace(), channel.get_sampling_rate(), adc_sampling_frequency)
+            resampled_times += channel.get_trace_start_time()
 
-        # Digitisation
-        digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits, adc_ref_voltage, adc_output)
+            # Digitisation
+            digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits, adc_ref_voltage, adc_output)
+        else:
+            digital_trace = self._adc_types[adc_type](channel.get_trace(), adc_n_bits, adc_ref_voltage, adc_output)
 
         # Ensuring trace has an even number of samples
         if len(digital_trace) % 2 == 1:
@@ -380,9 +399,9 @@ class analogToDigitalConverter:
 
     def end(self):
         from datetime import timedelta
-        self.logger.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
+        logger.info("total time used by this module is {}".format(dt))
         return dt
 
 
@@ -416,7 +435,7 @@ def downsampling_linear_interpolation(trace, sampling_rate, new_sampling_rate):
 
     # downsampled_trace = np.interp(
     #   resampled_times, times, trace, left=trace[0], right=trace[-1])
-    interpolate_trace = interp1d(
+    interpolate_trace = scipy.interpolate.interp1d(
         times, trace, kind='linear', fill_value=(trace[0], trace[-1]), bounds_error=False)
     downsampled_trace = interpolate_trace(times_downsampled)
 
