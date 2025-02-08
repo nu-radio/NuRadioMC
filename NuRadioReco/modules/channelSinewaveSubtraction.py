@@ -20,20 +20,22 @@ class channelSinewaveSubtraction:
     def __init__(self):
         pass
 
-    def begin(self,  save_filtred_freqs=False):
-        #self.peak_prominance = peak_prominance
-        self.save_filtred_freqs = [] if save_filtred_freqs else None
+    def begin(self,  save_filtered_freqs=False):
+        #self.peak_prominence = peak_prominance
+        self.save_filtered_freqs = [] if save_filtered_freqs else None
 
-    def run(self, event, station, det=None, peak_prominance=4.0):
+    def run(self, event, station, det=None, peak_prominence=4.0):
         for channel in station.iter_channels():
             sampling_rate = channel.get_sampling_rate()
 
             trace = channel.get_trace()
             trace_fil = sinewave_subtraction(
-                trace, peak_prominance, sampling_rate=sampling_rate, 
-                saved_noise_freqs=self.save_filtred_freqs)
+                trace, peak_prominence, sampling_rate=sampling_rate, 
+                saved_noise_freqs=self.save_filtered_freqs)
 
             channel.set_trace(trace_fil, sampling_rate)
+    def get_filtered_frequencies(self):
+        return self.save_filtered_freqs
 
 
 def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3.2):
@@ -70,8 +72,49 @@ def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3
 
     return amplitude
 
+def guess_amplitude_goertzel(wf: np.ndarray, target_freq: float, sampling_rate: float = 3.2): #doesnt work just yet..
+    """
+    Estimate the amplitude of a specific harmonic in the waveform using Goertzel algorithm. 
 
-def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_rate: float = 3.2,  saved_noise_freqs: list = None):
+    Paramters
+    ----------
+    wf: np.ndarray
+        Input waveform (1D array).
+    target_freq:  float
+        Target frequency (GHz) for which to estimate amplitude.
+    sampling_rate: float (default: 3.2)
+        Sampling rate of the waveform (GHz).
+
+    Returns
+    --------
+    ampl: float
+        Estimated amplitude of the target frequency.
+    """
+    N = len(wf)  # Number of samples
+    k = int(0.5 + (N * target_freq / sampling_rate))  # Index corresponding to target frequency
+    omega = (2.0 * np.pi * k) / N  # Angular frequency
+    coeff = 2 * np.cos(omega)  # Coefficient for recursion
+
+    # Initialize the previous two values
+    s_prev2 = 0.0
+    s_prev = 0.0
+
+    # Iterate through the waveform to compute the Goertzel algorithm
+    for n in range(N):
+        s = wf[n] + coeff * s_prev - s_prev2
+        s_prev2 = s_prev
+        s_prev = s
+
+    # Calculate the magnitude at the target frequency
+    real = s_prev - s_prev2 * np.cos(omega)
+    imag = s_prev2 * np.sin(omega)
+    magnitude = np.sqrt(real**2 + imag**2)
+
+    return magnitude
+
+
+
+def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_rate: float = 3.2,  saved_noise_freqs: list = None):
     """
     Perform sine subtraction on a waveform to remove CW noise.
 
@@ -105,14 +148,26 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_
 
     spec = abs(fft.time2freq(wf, sampling_rate))
     freqs = fft.freqs(len(wf), sampling_rate)
+    # find total power of the original waveform
+    power_orig = np.sum(spec ** 2)
 
     # find noise frequencies:
-    rms = np.sqrt(np.mean(np.abs(spec) ** 2))
-    peak_idxs = np.where(np.abs(spec) > peak_prominance * rms)[0]
+    # frequency range for RMS calculation, defined by bandpass
+    f_min, f_max = 0.1, 0.7  # GHz
+
+    # Mask frequencies within the range
+    band_mask = (freqs >= f_min) & (freqs <= f_max)
+    filtered_spec = spec[band_mask]
+
+    # Compute RMS in the selected frequency band
+    rms_band = np.sqrt(np.mean(filtered_spec ** 2))
+
+    # Find noise peaks based on this band-limited RMS
+    peak_idxs = np.where(spec > peak_prominence * rms_band)[0]
 
     noise_freqs = []
     corrected_waveform = wf.copy()
-    # find mean CW freq bean
+    # find mean CW freq bin
     if len(peak_idxs) > 0:
 
         # Initialize a list to hold groups of neighboring peak indices
@@ -142,12 +197,25 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_
         for noise_freq in noise_freqs:
 
             ampl_guess = guess_amplitude(wf, noise_freq, sampling_rate)
+
+            #ampl_guess_goertzel = guess_amplitude_goertzel(wf, noise_freq, sampling_rate)
+
+
             initial_guess = [ampl_guess, noise_freq, 0.01]
 
             # Fit the sinusoidal model to the waveform
             try:
-                params, _ = curve_fit(sinusoid, t, wf, p0=initial_guess)
+                params, covariance = curve_fit(sinusoid, t, wf, p0=initial_guess)
+
+                # Check if any parameters are NaN or Inf
+                if np.any(np.isnan(params)) or np.any(np.isinf(params)):
+                    raise RuntimeError("Fit returned invalid parameters.")
+        
                 estimated_amplitude, estimated_freq, estimated_phase = params
+
+                # Check if the covariance matrix is invalid
+                if np.all(np.isinf(covariance)) or np.all(np.isnan(covariance)):
+                    raise RuntimeError("Fit covariance matrix is invalid, fit may not have converged.")
 
                 # Generate the estimated CW noise
                 estimated_cw_noise = sinusoid(t, estimated_amplitude, estimated_freq,estimated_phase) 
@@ -157,6 +225,13 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominance: float = 4.0, sampling_
 
                 # Subtract the estimated CW noise
                 corrected_waveform -= estimated_cw_noise
+                power_after_subtraction = np.sum(abs(fft.time2freq(corrected_waveform, sampling_rate)) ** 2) 
+                logger.info(f"Power reduction: {100 * (1 - power_after_subtraction / power_orig):.1f}%")
+
+                if power_orig < power_after_subtraction:
+                    logger.warning("Power increased after subtraction. Skipping this frequency.")
+                    corrected_waveform += estimated_cw_noise
+                    raise RuntimeError("Power increased after subtraction. Reverse subtraction.")
 
                 # Save the identified noise frequency
 
@@ -246,7 +321,7 @@ if __name__ == "__main__":
                       convert_to_voltage=False,
                       mattak_kwargs=dict(backend="uproot"))
 
-    sub = channelSinewaveSubtraction()
+    sub = channelSinewaveSubtraction(save_filtered_freqs=True)
     sub.begin()
     ev_num = 66
 
