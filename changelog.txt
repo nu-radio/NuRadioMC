@@ -19,6 +19,7 @@ new features:
 - added 2024 detector decription file in NuRadioReco/detector/RNO_G/RNO_season_2024.json
 through a different response chain as the signals which are readout. To allow simulating this different response
 we added an optional trigger_channel object which lives within the corresponding channel obejct.
+- Updated IC limit
 
 bugfixes:
 -
