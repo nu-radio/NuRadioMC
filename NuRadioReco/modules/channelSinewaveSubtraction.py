@@ -98,7 +98,6 @@ def guess_amplitude_iir(wf: np.ndarray, target_freq: float, sampling_rate: float
     omega = (2.0 * np.pi * k) / N  # Angular frequency
     scaling_factor = N / 2.0 
 
-
     # IIR filter coefficients derived from Goertzel's difference equation
     b = [1.0, 0, 0.0]  # Numerator coefficients
     a = [1.0, -2.0 * np.cos(omega), 1.0]  # Denominator coefficients
