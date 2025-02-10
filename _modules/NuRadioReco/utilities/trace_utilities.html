@@ -614,13 +614,12 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.trace_utilities</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">ice</span><span class="p">,</span> <span class="n">geometryUtilities</span> <span class="k">as</span> <span class="n">geo_utl</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_trace</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.constants</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.signal</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">ice</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">geometryUtilities</span> <span class="k">as</span> <span class="n">geo_utl</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">fft</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.trace_utilities&#39;</span><span class="p">)</span>
 
@@ -638,7 +637,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    </span>
+
 <span class="sd">    station: Station</span>
 <span class="sd">    frequencies: array of complex</span>
 <span class="sd">        frequencies of the radio signal for which the antenna response is needed</span>
@@ -825,7 +824,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    </span>
+
 <span class="sd">    trace: array of floats</span>
 <span class="sd">        Trace to be upsampled</span>
 <span class="sd">    original_sampling_frequency: float</span>
@@ -943,52 +942,90 @@
 
 <div class="viewcode-block" id="delay_trace">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.delay_trace">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">delay_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_frequency</span><span class="p">,</span> <span class="n">time_delay</span><span class="p">,</span> <span class="n">delayed_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">delay_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_frequency</span><span class="p">,</span> <span class="n">time_delay</span><span class="p">,</span> <span class="n">crop_trace</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Delays a trace by transforming it to frequency and multiplying by phases.</span>
-<span class="sd">    Since this method is cyclic, the trace has to be cropped. It only accepts</span>
-<span class="sd">    positive delays, so some samples from the beginning are thrown away and then</span>
-<span class="sd">    some samples from the end so that the total number of samples is equal to</span>
-<span class="sd">    the argument delayed samples.</span>
+
+<span class="sd">    A positive delay means that the trace is shifted to the right, i.e., its delayed.</span>
+<span class="sd">    A negative delay would mean that the trace is shifted to the left. Since this</span>
+<span class="sd">    method is cyclic, the delayed trace will have unphysical samples at either the</span>
+<span class="sd">    beginning (delayed, positive `time_delay`) or at the end (negative `time_delay`).</span>
+<span class="sd">    Those samples can be cropped (optional, default=True).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    trace: array of floats</span>
+<span class="sd">    trace: array of floats or `NuRadioReco.framework.base_trace.BaseTrace`</span>
 <span class="sd">        Array containing the trace</span>
 <span class="sd">    sampling_frequency: float</span>
 <span class="sd">        Sampling rate for the trace</span>
 <span class="sd">    time_delay: float</span>
 <span class="sd">        Time delay used for transforming the trace. Must be positive or 0</span>
-<span class="sd">    delayed_samples: integer or None</span>
-<span class="sd">        Number of samples that the delayed trace must contain</span>
-<span class="sd">        if None: the trace is not cut</span>
+<span class="sd">    crop_trace: bool (default: True)</span>
+<span class="sd">        If True, the trace is cropped to remove samples what are unphysical</span>
+<span class="sd">        after delaying (rolling) the trace.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    delayed_trace: array of floats</span>
 <span class="sd">        The delayed, cropped trace</span>
+<span class="sd">    dt_start: float (optional)</span>
+<span class="sd">        The delta t of the trace start time. Only returned if crop_trace is True.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Do nothing if time_delay is 0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">time_delay</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">crop_trace</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">trace</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">trace</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">crop_trace</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">trace</span><span class="p">,</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">trace</span>
 
-    <span class="k">if</span> <span class="n">time_delay</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Time delay must be positive&#39;</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-
-    <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-
-    <span class="n">spectrum</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_frequency</span><span class="p">)</span>
-    <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">sampling_frequency</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">):</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
+        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">!=</span> <span class="n">sampling_frequency</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The sampling frequency of the trace does not match the given sampling frequency.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_frequency</span><span class="p">)</span>
+        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">sampling_frequency</span><span class="p">)</span>
 
     <span class="n">spectrum</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">frequencies</span> <span class="o">*</span> <span class="n">time_delay</span><span class="p">)</span>
 
     <span class="n">delayed_trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">sampling_frequency</span><span class="p">)</span>
+    <span class="n">cycled_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">time_delay</span> <span class="o">*</span> <span class="n">sampling_frequency</span><span class="p">))</span>
 
-    <span class="n">init_sample</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_delay</span> <span class="o">*</span> <span class="n">sampling_frequency</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">crop_trace</span><span class="p">:</span>
+        <span class="c1"># according to a NuRadio convention, traces should have an even number of samples.</span>
+        <span class="c1"># Make sure that after cropping the trace has an even number of samples (assuming that it was even before).</span>
+        <span class="k">if</span> <span class="n">cycled_samples</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cycled_samples</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="k">if</span> <span class="n">delayed_samples</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">delayed_trace</span> <span class="o">=</span> <span class="n">delayed_trace</span><span class="p">[</span><span class="n">init_sample</span><span class="p">:</span><span class="kc">None</span><span class="p">]</span>
-        <span class="n">delayed_trace</span> <span class="o">=</span> <span class="n">delayed_trace</span><span class="p">[:</span><span class="n">delayed_samples</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">time_delay</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">delayed_trace</span> <span class="o">=</span> <span class="n">delayed_trace</span><span class="p">[</span><span class="n">cycled_samples</span><span class="p">:]</span>
+            <span class="n">dt_start</span> <span class="o">=</span> <span class="n">cycled_samples</span> <span class="o">*</span> <span class="n">sampling_frequency</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">delayed_trace</span> <span class="o">=</span> <span class="n">delayed_trace</span><span class="p">[:</span><span class="o">-</span><span class="n">cycled_samples</span><span class="p">]</span>
+            <span class="n">dt_start</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">return</span> <span class="n">delayed_trace</span></div>
+        <span class="k">return</span> <span class="n">delayed_trace</span><span class="p">,</span> <span class="n">dt_start</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Check if unphysical samples contain any signal and if so, throw a warning</span>
+        <span class="k">if</span> <span class="n">time_delay</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delayed_trace</span><span class="p">[:</span><span class="n">cycled_samples</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">microvolt</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The delayed trace has unphysical samples that contain signal. &quot;</span>
+                    <span class="s2">&quot;Consider cropping the trace to remove these samples.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delayed_trace</span><span class="p">[</span><span class="o">-</span><span class="n">cycled_samples</span><span class="p">:])</span> <span class="o">&gt;</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">microvolt</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The delayed trace has unphysical samples that contain signal. &quot;</span>
+                    <span class="s2">&quot;Consider cropping the trace to remove these samples.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">delayed_trace</span></div>
 
 </pre></div>
 

@@ -805,29 +805,32 @@ input spectrum</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.delay_trace">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">delay_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delayed_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#delay_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.delay_trace" title="Link to this definition"></a></dt>
-<dd><p>Delays a trace by transforming it to frequency and multiplying by phases.
-Since this method is cyclic, the trace has to be cropped. It only accepts
-positive delays, so some samples from the beginning are thrown away and then
-some samples from the end so that the total number of samples is equal to
-the argument delayed samples.</p>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">delay_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#delay_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.delay_trace" title="Link to this definition"></a></dt>
+<dd><p>Delays a trace by transforming it to frequency and multiplying by phases.</p>
+<p>A positive delay means that the trace is shifted to the right, i.e., its delayed.
+A negative delay would mean that the trace is shifted to the left. Since this
+method is cyclic, the delayed trace will have unphysical samples at either the
+beginning (delayed, positive <em class="xref py py-obj">time_delay</em>) or at the end (negative <em class="xref py py-obj">time_delay</em>).
+Those samples can be cropped (optional, default=True).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>trace: array of floats</strong></dt><dd><p>Array containing the trace</p>
+<dt><strong>trace: array of floats or `NuRadioReco.framework.base_trace.BaseTrace`</strong></dt><dd><p>Array containing the trace</p>
 </dd>
 <dt><strong>sampling_frequency: float</strong></dt><dd><p>Sampling rate for the trace</p>
 </dd>
 <dt><strong>time_delay: float</strong></dt><dd><p>Time delay used for transforming the trace. Must be positive or 0</p>
 </dd>
-<dt><strong>delayed_samples: integer or None</strong></dt><dd><p>Number of samples that the delayed trace must contain
-if None: the trace is not cut</p>
+<dt><strong>crop_trace: bool (default: True)</strong></dt><dd><p>If True, the trace is cropped to remove samples what are unphysical
+after delaying (rolling) the trace.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>delayed_trace: array of floats</dt><dd><p>The delayed, cropped trace</p>
+</dd>
+<dt>dt_start: float (optional)</dt><dd><p>The delta t of the trace start time. Only returned if crop_trace is True.</p>
 </dd>
 </dl>
 </dd>
