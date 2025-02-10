@@ -225,7 +225,10 @@ class analogToDigitalConverter:
         channel_id = channel.get_id()
         det_channel = det.get_channel(station_id, channel_id)
 
-        field_prefix = 'trigger_' if trigger_adc else ''
+        field_prefix = ""
+        if trigger_adc:
+            field_prefix = "trigger_"
+                              
         for field in self._mandatory_fields:
             field_check = field_prefix + field
             if field_check not in det_channel:
