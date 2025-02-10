@@ -41,7 +41,7 @@ def perfect_comparator(trace, adc_n_bits, adc_voltage_range, mode='floor', outpu
     """
 
     lsb_voltage = adc_voltage_range / (2 ** adc_n_bits - 1)
-    logger.debug("LSB voltage: {} mV".format(lsb_voltage / units.mV))
+    logger.debug("LSB voltage: {:.2f} mV".format(lsb_voltage / units.mV))
 
     if mode == 'floor':
         digital_trace = np.floor(trace / lsb_voltage).astype(int)
@@ -171,7 +171,7 @@ class analogToDigitalConverter:
 
         self._mandatory_fields = ['adc_nbits', 'adc_sampling_frequency']
 
-    def _get_adc_parameters(self, det_channel, vrms=None, trigger_adc=False):
+    def _get_adc_parameters(self, det_channel, channel_id, vrms=None, trigger_adc=False):
         """ Get the ADC parameters for a channel from the detector description """
 
         field_prefix = 'trigger_' if trigger_adc else ''
@@ -220,7 +220,7 @@ class analogToDigitalConverter:
 
             adc_noise_n_bits = det_channel[adc_noise_nbits_label]
             logger.debug(
-                "Use a noise VRMS of {} mV and {} ADC noise n bits to define the ADC voltage range".format(
+                "Use a noise VRMS of {:.2f} mV and {} ADC noise n bits to define the ADC voltage range".format(
                     vrms / units.mV, adc_noise_n_bits))
             adc_voltage_range = vrms * (2 ** adc_n_bits - 1) / (2 ** (adc_noise_n_bits - 1))
 
@@ -294,7 +294,7 @@ class analogToDigitalConverter:
 
         det_channel = det.get_channel(station_id, channel_id)
         adc_n_bits, adc_ref_voltage, adc_sampling_frequency, adc_time_delay = self._get_adc_parameters(
-            det_channel, vrms=Vrms, trigger_adc=trigger_adc)
+            det_channel, channel_id=channel_id, vrms=Vrms, trigger_adc=trigger_adc)
 
         if clock_offset:
             adc_time_delay += clock_offset / adc_sampling_frequency

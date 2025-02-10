@@ -21,12 +21,10 @@ class triggerBoardResponse:
         self._log_level = log_level
         self.begin()
 
-    def begin(self, adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage"):
+    def begin(self, clock_offset=0.0, adc_output="voltage"):
         """
         Parameters
         ----------
-        adc_input_range : float (default: 2V)
-            the voltage range of the ADC (should be given in units of volts)
         clock_offset: bool
             If True, a random clock offset between -1 and 1 clock cycles is added
         adc_output: string
@@ -46,7 +44,8 @@ class triggerBoardResponse:
 
         # Table 21 in https://www.analog.com/media/en/technical-documentation/data-sheets/hmcad1511.pdf
         self._triggerBoardAmplifications = np.array([1, 1.25, 2, 2.5, 4, 5, 8, 10, 12.5, 16, 20, 25, 32, 50])
-        self._adc_input_range = adc_input_range
+        self._adc_input_range = None
+        self._n_bits = None
 
     def apply_trigger_filter(self, station, trigger_channels, trigger_filter):
         """
@@ -92,8 +91,8 @@ class triggerBoardResponse:
         vrms : list of floats
             RMS voltage of the waveforms
         """
-        vrms = []
-        for channel_id in trigger_channels:
+        vrms = np.zeros(len(trigger_channels))
+        for idx, channel_id in enumerate(trigger_channels):
             channel = station.get_trigger_channel(channel_id)
             trace = channel.get_trace()
 
@@ -101,9 +100,9 @@ class triggerBoardResponse:
             trace = trace[:n_samples_to_split].reshape((trace_split, -1))
             approx_vrms = np.median(np.std(trace, axis=1))
 
-            logger.debug("\tCh {}:\tobs. Vrms {:0.3f} mV".format(channel_id, approx_vrms / units.mV))
-            vrms.append(approx_vrms)
+            vrms[idx] = approx_vrms
 
+        logger.debug("obs. Vrms {} mV".format(np.around(vrms / units.mV, 3)))
         return vrms
 
     def apply_adc_gain(self, station, det, trigger_channels, vrms_noise=None):
@@ -136,6 +135,7 @@ class triggerBoardResponse:
 
         if vrms_noise is None:
             vrms_noise = self.get_noise_vrms_per_trigger_channel(station, trigger_channels)
+            logger.debug("obs. Vrms {} mV".format(np.around(vrms / units.mV, 3)))
 
         logger.debug("Applying gain at ADC level")
 
@@ -147,12 +147,21 @@ class triggerBoardResponse:
             det_channel = det.get_channel(station.get_id(), channel_id)
             noise_bits = det_channel["trigger_adc_noise_nbits"]
             total_bits = det_channel["trigger_adc_nbits"]
+            adc_input_range = det_channel["trigger_adc_voltage_range"]
 
-            volts_per_adc = self._adc_input_range / (2 ** total_bits - 1)
+            volts_per_adc = adc_input_range / (2 ** total_bits - 1)
             ideal_vrms = volts_per_adc * (2 ** (noise_bits - 1))
 
-            logger.debug(("\t Ch: {}\t Target Vrms: {:0.3f} mV"
-                "\t V/ADC: {:0.3f} mV").format(channel_id, ideal_vrms, volts_per_adc))
+            if self._adc_input_range is None:
+                self._adc_input_range = adc_input_range
+            else:
+                assert self._adc_input_range == adc_input_range, "ADC input range is not consistent across channels"
+
+            if self._n_bits is None:
+                self._n_bits = total_bits
+            else:
+                assert self._n_bits == total_bits, "ADC bits are not consistent across channels"
+
 
             # find the ADC gain from the possible values that makes the realized
             # vrms closest-to-but-greater-than the ideal value
@@ -165,17 +174,16 @@ class triggerBoardResponse:
                 gain_to_use = self._triggerBoardAmplifications[-1]
                 vrms_after_gain.append(amplified_vrms_values[-1])
 
-            # Get trigger channel, log rms before gain
-            channel = station.get_trigger_channel(channel_id)
-            logger.debug("\t Ch: {}\t Actuall Vrms: {:0.3f} mV".format(channel_id, np.std(channel.get_trace() * gain_to_use) / units.mV))
-
             # Apply gain
+            channel = station.get_trigger_channel(channel_id)
             channel.set_trace(channel.get_trace() * gain_to_use, channel.get_sampling_rate())
-            logger.debug("\t Used Vrms: {:0.3f} mV\tADC Gain {}".format(vrms_after_gain[-1] / units.mV, gain_to_use))
 
             # Calculate the effective number of noise bits
             eff_noise_bits = np.log2(vrms_after_gain[-1] / volts_per_adc) + 1
-            logger.debug("\t Eff noise bits: {:0.2f}\tRequested: {}".format(eff_noise_bits, noise_bits))
+
+            logger.debug("\t Ch {}: ampl. Vrms {:0.3f} ({:.3f}) mV (gain: {}, eff. noise bits {:0.2f})".format(
+                channel_id, np.std(channel.get_trace()) / units.mV, vrms_after_gain[-1] / units.mV, gain_to_use, eff_noise_bits))
+        logger.debug("Target Vrms: {:0.3f} mV; Target noise bits: {}".format(ideal_vrms / units.mV, noise_bits))
 
         return np.array(vrms_after_gain), ideal_vrms
 
@@ -254,17 +262,19 @@ class triggerBoardResponse:
             vrms = self.get_noise_vrms_per_trigger_channel(station, trigger_channels)
 
         if apply_adc_gain:
-            trigger_board_vrms, ideal_vrms = self.apply_adc_gain(station, det, trigger_channels, vrms)
+            equalized_vrms, ideal_vrms = self.apply_adc_gain(station, det, trigger_channels, vrms)
         else:
-            trigger_board_vrms = vrms
+            equalized_vrms = vrms
             ideal_vrms = vrms
 
         if digitize_trace:
             self.digitize_trace(station, det, trigger_channels, ideal_vrms)
             if self._adc_output == "counts":
-                trigger_board_vrms = self.get_noise_vrms_per_trigger_channel(station, trigger_channels)
+                lsb_voltage = self._adc_input_range / (2 ** self._n_bits - 1)
+                equalized_vrms = np.floor(equalized_vrms / lsb_voltage).astype(int)
+                logger.debug("obs. Vrms {} ADC".format(equalized_vrms))
 
-        return trigger_board_vrms
+        return equalized_vrms
 
     def end(self):
         pass
