@@ -2,10 +2,10 @@ from NuRadioReco.utilities import units, fft
 
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-
+from scipy.signal import lfilter
 import numpy as np
 import sys
-
+import time
 import logging
 logger = logging.getLogger("NuRadioReco.modules.channelSinewaveSubtraction")
 
@@ -20,9 +20,9 @@ class channelSinewaveSubtraction:
     def __init__(self):
         pass
 
-    def begin(self,  save_filtered_freqs=False):
-        #self.peak_prominence = peak_prominance
+    def begin(self,  save_filtered_freqs=False, freq_band=(0.1, 0.7)):
         self.save_filtered_freqs = [] if save_filtered_freqs else None
+        self.freq_band = freq_band
 
     def run(self, event, station, det=None, peak_prominence=4.0):
         for channel in station.iter_channels():
@@ -31,7 +31,7 @@ class channelSinewaveSubtraction:
             trace = channel.get_trace()
             trace_fil = sinewave_subtraction(
                 trace, peak_prominence, sampling_rate=sampling_rate, 
-                saved_noise_freqs=self.save_filtered_freqs)
+                saved_noise_freqs=self.save_filtered_freqs, freq_band=self.freq_band)
 
             channel.set_trace(trace_fil, sampling_rate)
     def get_filtered_frequencies(self):
@@ -72,49 +72,56 @@ def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3
 
     return amplitude
 
-def guess_amplitude_goertzel(wf: np.ndarray, target_freq: float, sampling_rate: float = 3.2): #doesnt work just yet..
+def guess_amplitude_iir(wf: np.ndarray, target_freq: float, sampling_rate: float = 3.2):
     """
-    Estimate the amplitude of a specific harmonic in the waveform using Goertzel algorithm. 
+    Estimate the amplitude of a specific frequency using an IIR filter representation of Goertzel.
 
-    Paramters
+    Parameters
     ----------
     wf: np.ndarray
         Input waveform (1D array).
-    target_freq:  float
-        Target frequency (GHz) for which to estimate amplitude.
+    target_freq: float
+        Target frequency (GHz) to analyze.
     sampling_rate: float (default: 3.2)
         Sampling rate of the waveform (GHz).
 
     Returns
     --------
-    ampl: float
-        Estimated amplitude of the target frequency.
+    amplitude: float
+        Estimated amplitude at the target frequency.
     """
+    if np.any(np.isnan(wf)):
+        raise ValueError("Input signal contains NaNs!")
+
     N = len(wf)  # Number of samples
-    k = int(0.5 + (N * target_freq / sampling_rate))  # Index corresponding to target frequency
+    k = int(0.5 + (N * target_freq / sampling_rate))  # Frequency bin index
     omega = (2.0 * np.pi * k) / N  # Angular frequency
-    coeff = 2 * np.cos(omega)  # Coefficient for recursion
+    scaling_factor = N / 2.0 
 
-    # Initialize the previous two values
-    s_prev2 = 0.0
-    s_prev = 0.0
 
-    # Iterate through the waveform to compute the Goertzel algorithm
-    for n in range(N):
-        s = wf[n] + coeff * s_prev - s_prev2
-        s_prev2 = s_prev
-        s_prev = s
+    # IIR filter coefficients derived from Goertzel's difference equation
+    b = [1.0, 0, 0.0]  # Numerator coefficients
+    a = [1.0, -2.0 * np.cos(omega), 1.0]  # Denominator coefficients
+    #print(b,a)
+    # Apply the filter
+    filtered_signal = lfilter(b, a, wf)
+    #print(filtered_signal)
+    # Extract last two values for amplitude estimation
+    s_prev = filtered_signal[-1]
+    s_prev2 = filtered_signal[-2]
 
-    # Calculate the magnitude at the target frequency
+    # Compute real and imaginary parts of the signal at the target frequency
     real = s_prev - s_prev2 * np.cos(omega)
     imag = s_prev2 * np.sin(omega)
-    magnitude = np.sqrt(real**2 + imag**2)
 
-    return magnitude
+    # Compute magnitude (amplitude)
+    amplitude = np.sqrt(real**2 + imag**2) / scaling_factor
+    #print(amplitude)
+    return amplitude
 
 
 
-def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_rate: float = 3.2,  saved_noise_freqs: list = None):
+def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_rate: float = 3.2,  saved_noise_freqs: list = None, freq_band: tuple = (0.1, 0.7)):
     """
     Perform sine subtraction on a waveform to remove CW noise.
 
@@ -128,8 +135,8 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_
         Threshold for identifying prominent peaks in the FFT spectrum.
     saved_noise_freqs: list (default: None)
         A list to store identified noise frequencies for each channel.
-    verbose: bool (default: False)
-        Print additional information.
+    freq_band: tuple (default for RNO-g: (0.1, 0.7))
+        Frequency band to calculate baseline RMS of fft spectrum. Used to identify noise peaks.
 
     Returns
     -------
@@ -152,8 +159,9 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_
     power_orig = np.sum(spec ** 2)
 
     # find noise frequencies:
+
     # frequency range for RMS calculation, defined by bandpass
-    f_min, f_max = 0.1, 0.7  # GHz
+    f_min, f_max = freq_band
 
     # Mask frequencies within the range
     band_mask = (freqs >= f_min) & (freqs <= f_max)
@@ -196,10 +204,18 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_
 
         for noise_freq in noise_freqs:
 
-            ampl_guess = guess_amplitude(wf, noise_freq, sampling_rate)
+            # Time the guess_amplitude_goertzel function
+            #start_time = time.time()
+            ampl_guess = guess_amplitude_iir(wf, noise_freq, sampling_rate)
+            #time_goertzel = time.time() - start_time
 
-            #ampl_guess_goertzel = guess_amplitude_goertzel(wf, noise_freq, sampling_rate)
+            # start_time = time.time()
+            # ampl_guess = guess_amplitude(wf, noise_freq, sampling_rate)
+            # time_guess = time.time() - start_time
 
+            # Print results
+            # print(f"guess_amplitude execution time: {time_guess:.6f} seconds")
+            # print(f"guess_amplitude_goertzel execution time: {time_goertzel:.6f} seconds")
 
             initial_guess = [ampl_guess, noise_freq, 0.01]
 
@@ -321,8 +337,8 @@ if __name__ == "__main__":
                       convert_to_voltage=False,
                       mattak_kwargs=dict(backend="uproot"))
 
-    sub = channelSinewaveSubtraction(save_filtered_freqs=True)
-    sub.begin()
+    sub = channelSinewaveSubtraction()
+    sub.begin(save_filtered_freqs=True)
     ev_num = 66
 
     logger.setLevel(logging.DEBUG)
