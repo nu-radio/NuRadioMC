@@ -1,22 +1,14 @@
 """
 IO utilities for NuRadioReco/NuRadioMC
 
-This module overwrites some pickling functions to allow
+This module provides some pickling functions to allow
 for faster, numpy 2 cross-compatible pickled numpy arrays. This mostly happens
 'internally', so end users normally do not need to use this module.
-
-Developers should import `pickle` from this module when adding new NuRadioMC functionality
-which relies on IO in order to ensure that the correct pickling functions are used, i.e.
-
-.. code-block::
-
-  from NuRadioReco.utilities.io_utilities import pickle
 
 """
 
 import pickle
 import numpy as np
-import copyreg
 from ._fastnumpyio import pack, unpack # these are essentially faster alternatives for np.load/save
 
 # we overwrite the default pickling mechanism for numpy arrays
@@ -32,6 +24,7 @@ def _unpickle_numpy_array(data):
     return unpack(data)
 
 def _pickle_numpy_scalar(i):
+    """Convert a numpy scalar to its pure Python equivalent"""
     if isinstance(i, np.floating):
         return float, (float(i),)
     elif isinstance(i, np.integer):
@@ -46,18 +39,6 @@ def _pickle_numpy_scalar(i):
         return bytes, (bytes(i),)
     else:
         raise TypeError(f"Unsupported type of numpy scalar {i} (type {type(i)})")
-
-# The __reduce__ methods are overwritten by the global dispatch_table.
-# We modify this by using copyreg.pickle.
-# see https://docs.python.org/3/library/pickle.html#dispatch-tables
-
-copyreg.pickle(np.ndarray, _pickle_numpy_array)
-# there are multiple numpy scalar types (float64, float32 etc.)
-# we overwrite the pickling __reduce__ for all of them
-# note that this might upcast in some cases
-for dtype in np.ScalarType:
-    if dtype.__module__ == 'numpy':
-        copyreg.pickle(dtype, _pickle_numpy_scalar)
 
 
 def read_pickle(filename, encoding='latin1'):
