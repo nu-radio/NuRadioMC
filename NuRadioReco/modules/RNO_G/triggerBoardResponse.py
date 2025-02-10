@@ -271,7 +271,8 @@ class triggerBoardResponse:
             self.digitize_trace(station, det, trigger_channels, ideal_vrms)
             if self._adc_output == "counts":
                 lsb_voltage = self._adc_input_range / (2 ** self._n_bits - 1)
-                equalized_vrms = np.floor(equalized_vrms / lsb_voltage).astype(int)
+                # We do not floor/convert the vrms to integers here. But this has to happen before the trigger.
+                equalized_vrms = equalized_vrms / lsb_voltage
                 logger.debug("obs. Vrms {} ADC".format(equalized_vrms))
 
         return equalized_vrms
