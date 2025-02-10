@@ -6,7 +6,7 @@ import numpy as np
 from scipy import signal
 import argparse
 from datetime import datetime
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import os
 
 from NuRadioReco.utilities import units

@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.hybrid_information

@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
 from radiotools import helper as hp, coordinatesystems
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 
 import logging
 logger = logging.getLogger('Shower')

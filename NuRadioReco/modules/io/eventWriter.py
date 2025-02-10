@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
 import logging

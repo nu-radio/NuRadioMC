@@ -3,7 +3,7 @@ from NuRadioReco.utilities import units
 import os
 from scipy import interpolate as intp
 import glob
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import sys
 
 rho = 0.924 * units.g / units.cm**3  # density g cm^-3

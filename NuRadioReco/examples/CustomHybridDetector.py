@@ -3,7 +3,7 @@ import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.framework.hybrid_shower
 import NuRadioReco.detector.detector
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import datetime
 import numpy
 """

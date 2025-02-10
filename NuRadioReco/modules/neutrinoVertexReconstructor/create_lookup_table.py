@@ -1,7 +1,7 @@
 import numpy as np
 import NuRadioMC.SignalProp.analyticraytracing
 import NuRadioMC.utilities.medium
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import argparse
 
 parser = argparse.ArgumentParser(description='Create lookup tables for vertex reconstructor')

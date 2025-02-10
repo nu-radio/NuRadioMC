@@ -3,7 +3,7 @@ import NuRadioReco.framework.base_station
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_channel
 import collections
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import logging
 logger = logging.getLogger('SimStation')
 

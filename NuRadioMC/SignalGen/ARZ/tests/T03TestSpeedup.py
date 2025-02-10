@@ -5,7 +5,7 @@ from NuRadioReco.utilities import units
 import os
 from scipy import interpolate as intp
 import glob
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import sys
 from radiotools import plthelpers as php
 from matplotlib import pyplot as plt

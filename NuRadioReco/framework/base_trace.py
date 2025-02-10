@@ -7,7 +7,7 @@ import numbers
 from NuRadioReco.utilities import fft, bandpass_filter
 import scipy.signal
 import copy
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 logger = logging.getLogger("BaseTrace")
 
 
