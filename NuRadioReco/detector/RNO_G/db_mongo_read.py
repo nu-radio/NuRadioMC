@@ -1055,7 +1055,7 @@ class Database(object):
         return complete_info
 
 
-    def query_modification_timestamps_per_station(self):
+    def query_modification_timestamps_per_station(self, station_ids=None):
         """
         Collects all the timestamps for station and channel (de)commissioning from the database.
         Combines those to get a list of timestamps when modifications happened which requiers to update the buffer.
@@ -1070,7 +1070,12 @@ class Database(object):
             timestamps.
         """
         # get distinct set of stations:
-        station_ids = self.db[self.__station_collection].distinct("id")
+        if isinstance(station_ids, int):
+            station_ids = [station_ids]
+
+        if station_ids is None:
+            station_ids = self.db[self.__station_collection].distinct("id")
+
         modification_timestamp_dict = {}
         for station_id in station_ids:
             # get set of (de)commission times for stations
