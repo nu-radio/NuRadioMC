@@ -94,6 +94,7 @@ def guess_amplitude_goertzel(wf: np.ndarray, target_freq: float, sampling_rate: 
     k = int(0.5 + (N * target_freq / sampling_rate))  # Index corresponding to target frequency
     omega = (2.0 * np.pi * k) / N  # Angular frequency
     coeff = 2 * np.cos(omega)  # Coefficient for recursion
+    scaling_factor = N / 2.0  # Scaling factor for the magnitude
 
     # Initialize the previous two values
     s_prev2 = 0.0
@@ -108,7 +109,7 @@ def guess_amplitude_goertzel(wf: np.ndarray, target_freq: float, sampling_rate: 
     # Calculate the magnitude at the target frequency
     real = s_prev - s_prev2 * np.cos(omega)
     imag = s_prev2 * np.sin(omega)
-    magnitude = np.sqrt(real**2 + imag**2)
+    magnitude = np.sqrt(real**2 + imag**2) / scaling_factor
 
     return magnitude
 
