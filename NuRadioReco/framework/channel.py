@@ -3,7 +3,7 @@ import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
 
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import logging
 logger = logging.getLogger('channel')
 

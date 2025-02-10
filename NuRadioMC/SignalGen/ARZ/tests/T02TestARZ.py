@@ -7,7 +7,7 @@ from scipy import integrate as int
 from scipy import constants
 from matplotlib import pyplot as plt
 import os
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 from time import time
 from NuRadioMC.SignalGen.ARZ import ARZ
 from radiotools import coordinatesystems as cstrafo

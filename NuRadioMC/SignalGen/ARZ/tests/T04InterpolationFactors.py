@@ -6,7 +6,7 @@ from scipy import interpolate as intp
 from scipy import constants
 from matplotlib import pyplot as plt
 import os
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 from time import time
 from NuRadioMC.SignalGen.ARZ.ARZ import get_vector_potential_fast
 import json

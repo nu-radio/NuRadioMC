@@ -7,7 +7,7 @@ import datetime
 import astropy.time
 import NuRadioReco.framework.parameter_serialization
 
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import logging
 import collections
 

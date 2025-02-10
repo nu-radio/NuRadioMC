@@ -1,4 +1,4 @@
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 import NuRadioReco.framework.event
 
 

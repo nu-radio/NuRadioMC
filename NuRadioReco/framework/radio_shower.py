@@ -1,5 +1,5 @@
 import NuRadioReco.framework.base_shower
-from NuRadioReco.utilities.io_utilities import pickle
+import pickle
 
 
 class RadioShower(NuRadioReco.framework.base_shower.BaseShower):
