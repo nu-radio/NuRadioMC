@@ -7,7 +7,6 @@ from scipy.signal import resample
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.trace_utilities import delay_trace
 
-
 def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output='voltage'):
     """
     Simulates a perfect comparator flash ADC that compares the voltage to the
@@ -256,7 +255,7 @@ class analogToDigitalConverter:
 
         times = channel.get_times()[:]
         trace = channel.get_trace()[:]
-        MC_sampling_frequency = channel.get_sampling_rate()
+        sampling_rate = channel.get_sampling_rate()
 
         if(trigger_adc):  # assumes that the trigger uses
             adc_time_delay_label = "trigger_adc_time_delay"
@@ -306,20 +305,21 @@ class analogToDigitalConverter:
 
             trace = np.fft.irfft(trace_fft * trigger_filter)
 
-        # Random clock offset
-        delayed_samples = len(trace) - int(np.round(MC_sampling_frequency / adc_sampling_frequency)) - 1
-        trace = delay_trace(trace, MC_sampling_frequency, adc_time_delay, delayed_samples)
-
-        times = times + 1.0 / adc_sampling_frequency
-        times = times[:len(trace)]
+        if adc_time_delay:
+            # Random clock offset
+            trace, dt_tstart = delay_trace(trace, sampling_rate, adc_time_delay)
+            if dt_tstart > 0:
+                # by design dt_tstart is a multiple of the sampling rate
+                times = times[int(round(dt_tstart / sampling_rate)):]
+            times = times[:len(trace)]
 
         # Upsampling to 5 GHz before downsampling using interpolation.
         # We cannot downsample with a Fourier method because we want to keep
         # the higher Nyquist zones.
         upsampling_frequency = 5.0 * units.GHz
 
-        if(upsampling_frequency > MC_sampling_frequency):
-            upsampling_nsamples = int(upsampling_frequency * len(trace) / MC_sampling_frequency)
+        if(upsampling_frequency > sampling_rate):
+            upsampling_nsamples = int(upsampling_frequency * len(trace) / sampling_rate)
             perfectly_upsampled_trace = resample(trace, upsampling_nsamples)
 
             perfectly_upsampled_times = np.arange(len(perfectly_upsampled_trace)) / upsampling_frequency
@@ -334,7 +334,7 @@ class analogToDigitalConverter:
                                              bounds_error=False)
 
         # Downsampling to ADC frequency
-        new_n_samples = int((adc_sampling_frequency / MC_sampling_frequency) * len(trace))
+        new_n_samples = int((adc_sampling_frequency / sampling_rate) * len(trace))
         resampled_times = np.arange(new_n_samples) / adc_sampling_frequency
         resampled_times += channel.get_trace_start_time()
         resampled_trace = interpolate_delayed_trace(resampled_times)
