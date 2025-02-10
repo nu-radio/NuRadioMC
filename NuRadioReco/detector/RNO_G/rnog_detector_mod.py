@@ -64,7 +64,7 @@ class ModDetector(Detector):
             self.logger.error(err)
             raise ValueError(err)
 
-        channel_dict = self.get_channel(station_id, channel_id)
+        channel_dict = self._Detector__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True)
         if _keys_not_in_dict(channel_dict, keys):  # to simplify the code here all keys have to exist already
             raise KeyError(
                 f"Could not find {keys} for station.channel {station_id}.{channel_id}.")
