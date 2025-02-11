@@ -260,6 +260,7 @@ class BaseTrace:
         """
         if delta_t > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
             logger.warning('Trace is shifted by more than 10% of its length')
+
         spec = self.get_frequency_spectrum()
         spec *= np.exp(-2.j * np.pi * delta_t * self.get_frequencies())
         self.set_frequency_spectrum(spec, self._sampling_rate)
