@@ -36,7 +36,7 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
     digital_trace: array of floats
         Digitised voltage trace in volts or ADC counts
     """
-    lsb_voltage = adc_ref_voltage / (2 ** (adc_n_bits) - 1)
+    lsb_voltage = adc_ref_voltage / (2 ** adc_n_bits - 1)
     if (mode == 'floor'):
         digital_trace = np.floor(trace / lsb_voltage)
     elif (mode == 'ceiling'):
@@ -44,7 +44,7 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
     else:
         raise ValueError('Choose floor or ceiing as modes for the comparator ADC')
 
-    digital_trace = apply_saturation(digital_trace, adc_n_bits, adc_ref_voltage)
+    digital_trace = apply_saturation(digital_trace, adc_n_bits)
     digital_trace = round_to_int(digital_trace)
 
     if (output == 'voltage'):
@@ -75,7 +75,7 @@ def perfect_ceiling_comparator(trace, adc_n_bits, adc_ref_voltage, output='volta
     return perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='ceiling', output=output)
 
 
-def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
+def apply_saturation(adc_counts_trace, adc_n_bits):
     """
     Takes a digitised trace in ADC counts and clips the parts of the
     trace with values higher than 2**(adc_n_bits-1)-1 or lower than
@@ -87,9 +87,6 @@ def apply_saturation(adc_counts_trace, adc_n_bits, adc_ref_voltage):
         Voltage in ADC counts, unclipped
     adc_n_bits: int
         Number of bits of the ADC
-    adc_ref_voltage: float
-        Voltage corresponding to the maximum number of counts given by the
-        ADC: 2**(adc_n_bits-1) - 1
 
     Returns
     -------
@@ -175,7 +172,7 @@ class analogToDigitalConverter:
         self._adc_types = {'perfect_floor_comparator': perfect_floor_comparator,
                            'perfect_ceiling_comparator': perfect_ceiling_comparator}
         self._mandatory_fields = ['adc_nbits',
-                                  'adc_noise_nbits',
+                                  'adc_noise_counts',
                                   'adc_sampling_frequency']
 
         self.logger = logging.getLogger('NuRadioReco.analogToDigitalConverter')
@@ -259,14 +256,14 @@ class analogToDigitalConverter:
         if(trigger_adc):  # assumes that the trigger uses
             adc_time_delay_label = "trigger_adc_time_delay"
             adc_n_bits_label = "trigger_adc_nbits"
-            adc_noise_n_bits_label = "trigger_adc_noise_nbits"
+            adc_noise_counts_label = "trigger_adc_noise_counts"
             adc_ref_voltage_label = "trigger_adc_reference_voltage"
             adc_sampling_frequency_label = "trigger_adc_sampling_frequency"
         else:
             adc_time_delay_label = "adc_time_delay"
             adc_n_bits_label = "adc_nbits"
-            adc_noise_n_bits = "adc_noise_nbits"
-            adc_noise_n_bits_label = "adc_noise_nbits"
+            adc_noise_counts = "adc_noise_counts"
+            adc_noise_counts_label = "adc_noise_counts"
             adc_ref_voltage_label = "adc_reference_voltage"
             adc_sampling_frequency_label = "adc_sampling_frequency"
 
@@ -276,7 +273,7 @@ class analogToDigitalConverter:
                 adc_time_delay = det_channel[adc_time_delay_label] * units.ns
 
         adc_n_bits = det_channel[adc_n_bits_label]
-        adc_noise_n_bits = det_channel[adc_noise_n_bits_label]
+        adc_noise_counts = det_channel[adc_noise_counts_label]
         adc_sampling_frequency = det_channel[adc_sampling_frequency_label] * units.GHz
         adc_time_delay += clock_offset / adc_sampling_frequency
 
@@ -288,7 +285,7 @@ class analogToDigitalConverter:
 
             adc_ref_voltage = det_channel[adc_ref_voltage_label] * units.V
         else:
-            adc_ref_voltage = Vrms * (2 ** (adc_n_bits) - 1) / (2 ** (adc_noise_n_bits ) - 1)
+            adc_ref_voltage = Vrms * (2 ** adc_n_bits - 1) / (adc_noise_counts)
 
         if(adc_sampling_frequency > channel.get_sampling_rate()):
             error_msg = 'The ADC sampling rate is greater than '

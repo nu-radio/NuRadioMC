@@ -112,13 +112,8 @@ class triggerBoardResponse:
             gain values applied to each channel
         """
 
-        if avg_vrms is None:
-            avg_vrms = self.get_vrms(station, trigger_channels)
-
         self.logger.debug("Applying gain at ADC level")
 
-        if not hasattr(avg_vrms, "__len__"):
-            avg_vrms = np.full_like(trigger_channels, avg_vrms, dtype=float)
 
         vrms_after_gain = []
         ret_gain_values = []
@@ -126,10 +121,10 @@ class triggerBoardResponse:
         for channel_id, vrms in zip(trigger_channels, avg_vrms):
             det_channel = det.get_channel(station.get_id(), channel_id)
 
-            noise_bits = det_channel["trigger_adc_noise_nbits"]
+            noise_counts = det_channel["trigger_adc_noise_counts"]
             total_bits = det_channel["trigger_adc_nbits"]
-            volts_per_adc = self._adc_input_range / (2 ** total_bits)
-            ideal_vrms = volts_per_adc * (2 ** (noise_bits) - 1)
+            volts_per_adc = self._adc_input_range / (2 ** total_bits - 1)
+            ideal_vrms = volts_per_adc * noise_counts
 
             if gain_values is not None:
                 vrms_after_gain.append(vrms * gain_values[channel_id])
@@ -157,13 +152,13 @@ class triggerBoardResponse:
                 ret_gain_values.append(gain_to_use)
                 channel = station.get_trigger_channel(channel_id)
                 channel.set_trace(channel.get_trace() * gain_to_use, channel.get_sampling_rate())
-                eff_noise_bits = np.log2(vrms_after_gain[-1] / volts_per_adc) + 1
+                #eff_noise_bits = np.log2(vrms_after_gain[-1] / volts_per_adc) + 1
 
-                self.logger.debug(f"\t Ch: {channel_id}\t Actuall Vrms: {np.std(channel.get_trace() * gain_to_use) / units.mV:0.3f} mV")
-                self.logger.debug(f"\t Used Vrms: {vrms_after_gain[-1] / units.mV:0.3f} mV" + f"\tADC Gain {gain_to_use}")
-                self.logger.debug(f"\t Eff noise bits: {eff_noise_bits:0.2f}\tRequested: {noise_bits}")
+                #self.logger.debug(f"\t Ch: {channel_id}\t Actuall Vrms: {np.std(channel.get_trace() * gain_to_use) / units.mV:0.3f} mV")
+                #self.logger.debug(f"\t Used Vrms: {vrms_after_gain[-1] / units.mV:0.3f} mV" + f"\tADC Gain {gain_to_use}")
+                #self.logger.debug(f"\t Eff noise bits: {eff_noise_bits:0.2f}\tRequested: {noise_bits}")
 
-        return np.array(vrms_after_gain), ideal_vrms, np.array(ret_gain_values)
+        return np.array(vrms_after_gain), np.array(vrms_after_gain)/volts_per_adc, ideal_vrms, np.array(ret_gain_values)
 
     def digitize_trace(self, station, det, trigger_channels, vrms):
         for channel_id in trigger_channels:
@@ -176,7 +171,7 @@ class triggerBoardResponse:
                 Vrms=vrms,
                 trigger_adc=True,
                 adc_type="perfect_floor_comparator",
-                trigger_filter=None,  # Applied already
+                trigger_filter=None,
                 clock_offset=self._clock_offset,
                 adc_output=self._adc_output,
                 return_sampling_frequency=True,
@@ -187,7 +182,7 @@ class triggerBoardResponse:
 
     @register_run()
     def run(self, evt, station, det, trigger_channels, vrms=None, apply_adc_gain=True,
-            digitize_trace=True, gain_values=None):
+            digitize_trace=True, gain_values=None, recalculate_rms=False):
         """
         Applies the additional filters on the trigger board and performs a gain amplification
         to get the correct number of trigger bits.
@@ -222,15 +217,24 @@ class triggerBoardResponse:
         if vrms is None:
             vrms = self.get_vrms(station, trigger_channels)
 
+        if not hasattr(vrms, "__len__"):
+            vrms = np.full_like(trigger_channels, vrms, dtype=float)
+
         if apply_adc_gain:
-            trigger_board_vrms, ideal_vrms, ret_gain_values = self.apply_adc_gain(station, det, trigger_channels, vrms, gain_values)
+            trigger_board_vrms, adc_vrms, ideal_vrms, ret_gain_values = self.apply_adc_gain(station, det, trigger_channels, vrms, gain_values)
         else:
             trigger_board_vrms = vrms
+            adc_vrms = vrms * self._adc_input_range / 2** (det.get_channel(station.get_id(), 0)["trigger_adc_nbits"])
             ideal_vrms = np.mean(vrms)
             ret_gain_values = None
 
+        if self._adc_output=="counts":
+            trigger_board_vrms=adc_vrms
+
         if digitize_trace:
             self.digitize_trace(station, det, trigger_channels, ideal_vrms)
+
+        if recalculate_rms:
             trigger_board_vrms = self.get_vrms(station, trigger_channels)
 
         return trigger_board_vrms, ret_gain_values

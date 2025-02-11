@@ -100,7 +100,6 @@ class triggerSimulator(phasedArray):
                        upsampling_method='fft',
                        coeff_gain=128,
                        rnog_like=False,
-                       trig_type='power_integration'
                        ):
         """
         simulates phased array trigger for each event
@@ -250,6 +249,9 @@ class triggerSimulator(phasedArray):
 
         phased_traces = self.phase_signals(traces, beam_rolls)
 
+        if adc_output == "counts":
+            threshold=np.trunc(threshold)
+
         trigger_time = None
         trigger_times = {}
         channel_trace_start_time = self.get_channel_trace_start_time(station, trigger_channels)
@@ -261,7 +263,6 @@ class triggerSimulator(phasedArray):
 
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered=False
-
 
             squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output, rnog_like=rnog_like)
             maximum_amps[iTrace] = np.max(squared_mean)

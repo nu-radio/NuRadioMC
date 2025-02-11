@@ -6,7 +6,7 @@ import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.multiHighLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
-import NuRadioReco.modules.phasedarray.triggerSimulator
+import NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger
 import NuRadioReco.modules.efieldToVoltageConverter
 from NuRadioReco.utilities import units
 import datetime
@@ -23,7 +23,7 @@ event_writer.begin('NuRadioReco/test/trigger_tests/trigger_test_output.nur')
 high_low_trigger = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 multi_high_low_trigger = NuRadioReco.modules.trigger.multiHighLowThreshold.triggerSimulator()
 simple_threshold_trigger = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
-phased_array_trigger = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
+phased_array_trigger = NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger.triggerSimulator()
 efield_to_voltage_converter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efield_to_voltage_converter.begin()
 hardware_response_incorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()

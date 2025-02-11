@@ -39,8 +39,8 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     logger.debug("length of trace {} bins, coincidence window {} bins".format(len(trace), len(c)))
 
     c2 = np.array([1, -1])
-    m1 = np.convolve(trace > high_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
-    m2 = np.convolve(trace < low_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
+    m1 = np.convolve(trace >= high_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
+    m2 = np.convolve(trace <= low_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
     return np.convolve(m1 & m2, c2, mode='same') > 0
 
 
@@ -207,6 +207,10 @@ class triggerSimulator:
                     threshold_low_tmp = threshold_low[channel_id]
                 else:
                     threshold_low_tmp = threshold_low
+
+                if adc_output == "counts":
+                    threshold_low_tmp = np.trunc(threshold_low_tmp)
+                    threshold_high_tmp = np.trunc(threshold_high_tmp)
 
                 triggerd_bins = get_high_low_triggers(
                     trace, threshold_high_tmp, threshold_low_tmp, high_low_window, dt)

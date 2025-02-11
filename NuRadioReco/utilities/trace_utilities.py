@@ -256,7 +256,7 @@ def digital_upsampling(
 
             if rnog_like:
                 filter_taps = 45
-                coeff_gain = 128
+                coeff_gain = 256
 
             upsampled_trace = upsampling_fir(
                 trace, adc_sampling_frequency, int_factor=upsampling_factor, ntaps=filter_taps, coeff_gain=coeff_gain)

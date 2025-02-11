@@ -306,7 +306,7 @@ class thermalNoiseGeneratorPhasedArray():
         if self.quantize:
             det_channel = self.det.get_channel(station_id, triggered_channels[0])
             self.adc_n_bits = det_channel["trigger_adc_nbits"]
-            self.adc_noise_n_bits = det_channel["trigger_adc_noise_nbits"]
+            self.adc_noise_counts = det_channel["trigger_adc_noise_counts"]
 
         self.n_channels = len(triggered_channels)
         self.triggered_channels = triggered_channels

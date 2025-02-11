@@ -213,6 +213,9 @@ class triggerSimulator(phasedArray):
 
         phased_traces = self.phase_signals(traces, beam_rolls)
 
+        if adc_output == "counts":
+            threshold=np.trunc(threshold)
+
         trigger_time = None
         trigger_times = {}
         channel_trace_start_time = self.get_channel_trace_start_time(station, trigger_channels)
