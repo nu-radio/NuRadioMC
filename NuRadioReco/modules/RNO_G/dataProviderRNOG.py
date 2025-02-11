@@ -12,7 +12,7 @@ class dataProvideRNOG:
     def __init__(self):
 
         self.channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector()
-        self.channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsetFitter()
+        self.channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets()
         self.reader = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData()
 
         self.channelCableDelayAdder = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
@@ -23,14 +23,15 @@ class dataProvideRNOG:
 
         self.channelGlitchDetector.begin()
         self.channelBlockOffsetFitter.begin()
-        self.reader.begin(self.files, apply_baseline_correction=None, **reader_kwargs)
+        self.reader.begin(self.files, **reader_kwargs)
         self.channelCableDelayAdder.begin()
 
         assert det is not None, "Detector object is None, please provide a detector object."
         self.detector = det
 
     def end(self):
-        pass
+        self.reader.end()
+        self.channelGlitchDetector.end()
 
     def run(self):
 
@@ -38,14 +39,12 @@ class dataProvideRNOG:
 
             # This will throw an error if the event has more than one station
             station = event.get_station()
+            self.detector.update(station.get_station_time())
 
-            if self.channelGlitchDetector.run(event, station, self.detector):
-                logger.warning(f"Glitch found in run.event {event.get_run_number()}{event.get_id()}. "
-                               "Skipping this event.")
-                continue  # skip the rest of the loop if a glitch is found in the station
+            self.channelGlitchDetector.run(event, station, self.detector)
 
             self.channelBlockOffsetFitter.run(event, station, self.detector)
 
-            self.channelCableDelayAdder.run(evt, station, self.detector, mode='subtract')
+            self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
 
             yield event

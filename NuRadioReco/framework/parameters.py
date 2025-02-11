@@ -82,12 +82,25 @@ class channelParameters(Enum):
 class channelParametersRNOG(Enum):
     # RNO-G specific channel parameters
     # FS: I did not start with a negative parameter on the 1, hence I chose 100
-    glitch = 100 #: True if channel has a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
+    glitch = 100 #: True if channel is likely to have a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
+    glitch_test_statistic = 101 #: Numerical value delivered by the glitch detector. Positive values indicate a likely glitch.
 
 class stationParametersRNOG(Enum):
     # RNO-G specific station parameters
     coherent_snr = 1  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr 
-    
+        
+class eventParametersRNOG(Enum):
+    max_corr_coords = 4 #: azimuth, zenith corresponding to max correlation
+    max_corr = 5 #: maximum correlation value obtained through reconstruction
+    csw_snr = 6 #: signal to noise ratio of coherently summed waveform
+    csw_rpr = 7 #: root power ratio of coherently summed waveform
+    csw_hilbert_snr = 8 #: signal to noise ratio of hilberted coherently summed waveform
+    csw_impulsivity = 9 #: coherently summed waveform's impulsivity and other statistical measures (dict)
+    surf_corr_ratio = 10 #: ratio comparing max surface correlation to max overall correlation
+    max_surf_corr = 11 #: maximum surface correlation
+    avg_snr = 12 #: average signal to noise ratio across all channels ("peak to peak")
+    avg_rpr = 13 #: average root power ratio across all channels 
+
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
     polarization_angle = 2  #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi

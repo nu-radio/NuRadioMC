@@ -580,12 +580,13 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         Returns the average SNR in every station  
         """
-        if (len(self.get_stations()) == 1):
-            return station.avg_SNR()
+        if (len(list(self.get_stations())) == 1):
+            for station in self.get_stations():
+                return station.get_average_signal_to_noise_ratio()
         else:
             avg_snrs = {}
             for station in self.get_stations():
-                avg_snrs[station.get_id()] = station.avg_SNR()
+                avg_snrs[station.get_id()] = station.get_average_signal_to_noise_ratio()
                 
         return avg_snrs
         
@@ -593,12 +594,13 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         Returns the average RPR in every station 
         """
-        if (len(self.get_stations()) == 1):
-            return station.avg_RPR()
+        if (len(list(self.get_stations())) == 1):
+            for station in self.get_stations():
+                return station.get_average_root_power_ratio()
         else:
             avg_rprs = {}
             for station in self.get_stations():
-                avg_rprs[station.get_id()] = station.avg_RPR()
+                avg_rprs[station.get_id()] = station.get_average_root_power_ratio()
                 
         return avg_rprs
 
