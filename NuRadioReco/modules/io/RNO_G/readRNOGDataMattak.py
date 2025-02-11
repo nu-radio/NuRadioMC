@@ -214,8 +214,8 @@ class readRNOGData:
                                         "Runs can not be filtered.")
                 except ImportError:
                     self.logger.warn(
-                        "import run_table failed. You can still use readRNOGData, but runs can not be filtered. "
-                        "To install the run table, run\n\n"
+                        "\nImport `from rnog_data.runtable import RunTable` failed. You can still use readRNOGData, "
+                        "but runs can not be filtered. To install the run table, run:\n\n"
                         "\tpip install git+ssh://git@github.com/RNO-G/rnog-runtable.git\n"
                     )
             else:
