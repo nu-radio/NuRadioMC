@@ -648,7 +648,7 @@ class DetectorBase(object):
             channel_ids.append(channel['channel_id'])
         return sorted(channel_ids)
 
-    def get_parallel_channels(self, station_id):
+    def get_parallel_channels(self, station_id, tol=1 * units.deg, anti_parallel=False):
         """
         get a list of parallel antennas
 
@@ -656,9 +656,18 @@ class DetectorBase(object):
         ----------
         station_id: int
             the station id
+        tol:        float
+            tolerance to difference in angles between parallel channels
+        atni-parallel: bool
+            if True, also returns anti-parallel channels
 
         Returns list of list of ints
         """
+        def angle_diff(a, b):
+            if anti_parallel:
+                return np.abs(hp.get_normalized_angle(a - b, interval=np.deg2rad([-90, 90])))
+            return np.abs(hp.get_normalized_angle(a - b, interval=np.deg2rad([-180, 180])))
+
         res = self.__get_channels(station_id)
         orientations = np.zeros((len(res), 4))
         antenna_types = []
@@ -669,23 +678,27 @@ class DetectorBase(object):
             antenna_types.append(self.get_antenna_type(station_id, channel_id))
             orientations[iCh] = self.get_antenna_orientation(station_id, channel_id)
             orientations[iCh][3] = hp.get_normalized_angle(orientations[iCh][3], interval=np.deg2rad([0, 180]))
+
         channel_ids = np.array(channel_ids)
         antenna_types = np.array(antenna_types)
-        orientations = np.round(np.rad2deg(orientations))  # round to one degree to overcome rounding errors
         parallel_antennas = []
         for antenna_type in np.unique(antenna_types):
             for u_zen_ori in np.unique(orientations[:, 0]):
                 for u_az_ori in np.unique(orientations[:, 1]):
                     for u_zen_rot in np.unique(orientations[:, 2]):
                         for u_az_rot in np.unique(orientations[:, 3]):
-                            mask = (antenna_types == antenna_type) \
-                                & (orientations[:, 0] == u_zen_ori) & (orientations[:, 1] == u_az_ori) \
-                                & (orientations[:, 2] == u_zen_rot) & (orientations[:, 3] == u_az_rot)
-                            if np.sum(mask):
-                                parallel_antennas.append(channel_ids[mask])
-        return np.array(parallel_antennas)
+                            mask = (antenna_types == antenna_type) & np.all(angle_diff(orientations, [u_zen_ori, u_az_ori, u_zen_rot, u_az_rot]) <= tol)
 
+                            if (antenna_types == antenna_type and
+                                np.all(angle_diff(orientations, [u_zen_ori, u_az_ori, u_zen_rot, u_az_rot]) <= tol)):
+                                match = False
+                                for pair in parallel_antennas:
+                                    if np.array_equal(pair, channel_ids[mask] or np.all(np.isin(channel_ids[mask], pair)):
+                                        match = True
 
+                                if not match:
+                                    parallel_antennas.append(channel_ids[mask])
+        return parallel_antennas
 
 
     def get_number_of_devices(self, station_id):
@@ -977,7 +990,7 @@ class DetectorBase(object):
             return channel_id
         else:
             return res['channel_group_id']
-        
+
     def get_antenna_mode(self, station_id, channel_id):
         """
         returns the antenna mode of a given channel - this is specific to LOFAR antennas, as they operate in either inner or outer mode.
