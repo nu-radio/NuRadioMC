@@ -23,6 +23,7 @@ class hardwareResponseIncorporator:
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
+        self.trigger_channels = None
 
     def begin(self, trigger_channels=None):
         """
@@ -207,7 +208,7 @@ class hardwareResponseIncorporator:
                 between the two. While this might be true/a good approximation for the moment it is not given that
                 this holds for the future. You have been warned!
 
-                See also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.
+                See Also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.
                 """
                 trig_filter = self.get_filter(
                     frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
