@@ -14,7 +14,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.trigger
-from NuRadioReco.framework.parameters import channelParameters, channelParametersRNOG
+from NuRadioReco.framework.parameters import channelParameters, channelParametersRNOG, stationParametersRNOG
 
 from NuRadioReco.utilities import units
 import mattak.Dataset
@@ -785,7 +785,8 @@ class readRNOGData:
         evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
         station = NuRadioReco.framework.station.Station(event_info.station)
         station.set_station_time(astropy.time.Time(trigger_time, format='unix'))
-
+        station.add_parameter_type(stationParametersRNOG)
+        
         trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
         trigger.set_triggered()
         trigger.set_trigger_time(0)  # The trigger time is relative to the event/station time
