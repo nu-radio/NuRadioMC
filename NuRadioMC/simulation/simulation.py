@@ -1679,19 +1679,27 @@ class simulation:
                         self.add_filtered_noise_to_channels(evt, station, non_trigger_channels)
 
                     channelSignalReconstructor.run(evt, station, self._det)
-                    self._set_generator_attributes(evt)
+                    self._set_event_station_parameters(evt)
 
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
                         sampling_rate_detector = self._det.get_sampling_frequency(
                             station_id, self._det.get_channel_ids(station_id)[0])
 
-                        channelResampler.run(
-                            evt, station, self._det, sampling_rate=sampling_rate_detector)
-                        channelResampler.run(
-                            evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
-                        electricFieldResampler.run(
-                            evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
+                        if self._config['output']['channel_traces']:
+                            channelResampler.run(evt, station, self._det, sampling_rate=sampling_rate_detector)
+
+                        if self._config['output']['electric_field_traces']:
+                            electricFieldResampler.run(
+                                evt, station, self._det, sampling_rate=sampling_rate_detector)
+
+                        if self._config['output']['sim_channel_traces']:
+                            channelResampler.run(
+                                evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
+
+                        if self._config['output']['sim_electric_field_traces']:
+                            electricFieldResampler.run(
+                                evt, station.get_sim_station(), self._det, sampling_rate=sampling_rate_detector)
 
                         output_mode = {
                             'Channels': self._config['output']['channel_traces'],
@@ -1738,7 +1746,7 @@ class simulation:
                     filt *= instance.get_filter(ff, station_id, channel_id, self._det, **kwargs)
 
             noise = channelGenericNoiseAdder.bandlimited_noise_from_spectrum(
-                len(channel.get_trace()), channel.get_sampling_rate(),
+                channel.get_number_of_samples(), channel.get_sampling_rate(),
                 spectrum=filt, amplitude=self._Vrms_per_channel[station.get_id()][channel_id],
                 type='rayleigh', time_domain=False)
 
@@ -1756,7 +1764,7 @@ class simulation:
         channel.set_trace_start_time(station.get_channel(station.get_channel_ids()[0]).get_trace_start_time())
         station.add_channel(channel)
 
-    def _set_generator_attributes(self, evt):
+    def _set_event_station_parameters(self, evt):
         """ Store generator / simulation attributes in the event """
         # save RMS and bandwidth to channel object
         evt.set_parameter(genattrs.Vrms, self._Vrms)
