@@ -40,7 +40,7 @@ class triggerBoardResponse:
         self._adc_output = adc_output
 
         # the fields that need to exist in the detector description for this module to work
-        self._mandatory_fields = ["trigger_adc_nbits", "trigger_adc_noise_nbits"]
+        self._mandatory_fields = ["trigger_adc_nbits"]
 
         # Table 21 in https://www.analog.com/media/en/technical-documentation/data-sheets/hmcad1511.pdf
         self._triggerBoardAmplifications = np.array([1, 1.25, 2, 2.5, 4, 5, 8, 10, 12.5, 16, 20, 25, 32, 50])
