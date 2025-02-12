@@ -135,7 +135,7 @@ class triggerBoardResponse:
 
         if vrms_noise is None:
             vrms_noise = self.get_noise_vrms_per_trigger_channel(station, trigger_channels)
-            logger.debug("obs. Vrms {} mV".format(np.around(vrms / units.mV, 3)))
+            logger.debug("obs. Vrms {} mV".format(np.around(vrms_noise / units.mV, 3)))
 
         logger.debug("Applying gain at ADC level")
 
