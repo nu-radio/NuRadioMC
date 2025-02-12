@@ -4,8 +4,8 @@
         "0": {
             "adc_id": null,
             "adc_n_samples": 256,
-            "adc_nbits": 7,
-            "adc_noise_nbits": 4.9069,
+            "adc_nbits": 8,
+            "adc_noise_nbits": 5,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
             "amp_reference_measurement": null,
@@ -33,8 +33,8 @@
         "1": {
             "adc_id": null,
             "adc_n_samples": 256,
-            "adc_nbits": 7,
-            "adc_noise_nbits": 4.9069,
+            "adc_nbits": 8,
+            "adc_noise_nbits": 5,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
             "amp_reference_measurement": null,
@@ -62,8 +62,8 @@
         "2": {
             "adc_id": null,
             "adc_n_samples": 256,
-            "adc_nbits": 7,
-            "adc_noise_nbits": 4.9069,
+            "adc_nbits": 8,
+            "adc_noise_nbits": 5,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
             "amp_reference_measurement": null,
@@ -91,8 +91,8 @@
         "3": {
             "adc_id": null,
             "adc_n_samples": 256,
-            "adc_nbits": 7,
-            "adc_noise_nbits": 4.9069,
+            "adc_nbits": 8,
+            "adc_noise_nbits": 5,
             "adc_sampling_frequency": 1.0,
             "adc_time_delay": null,
             "amp_reference_measurement": null,

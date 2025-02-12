@@ -224,7 +224,7 @@ class analogToDigitalConverter:
             logger.debug(
                 "Use a noise VRMS of {:.2f} mV and {} ADC noise n bits to define the ADC voltage range".format(
                     vrms / units.mV, adc_noise_n_bits))
-            adc_voltage_range = vrms * (2 ** adc_n_bits - 1) / (2 ** (adc_noise_n_bits - 1))
+            adc_voltage_range = vrms * (2 ** adc_n_bits - 1) / (2 ** ((adc_noise_n_bits - 1) - 1))
 
         logger.debug(
             ("ADC parameters: "
