@@ -1100,6 +1100,44 @@ orientation is not set, the values for the Y dipole are returned.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_FEKO_mat">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_FEKO_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downscale_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downscale_zenith</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downscale_azimuth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_FEKO_mat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_FEKO_mat" title="Link to this definition"></a></dt>
+<dd><p>used to convert FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat for the SKALA4 antenna to a pickle file</p>
+<p>The file contains the embedded element simulation of the SKALA4 antenna in the frequency range of 50-350 MHz.
+The values correspond to the far-field emission of this antenna; it is converted
+to the realized vector effective length for a receiving antenna using Eq. 6 in <a class="reference internal" href="#r593f2281caeb-1" id="id1">[1]</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>directory</strong><span class="classifier">str</span></dt><dd><p>The path to the directory where the files are stored</p>
+</dd>
+<dt><strong>polarization</strong><span class="classifier">str, default=’X’</span></dt><dd><p>X polarization is the antenna in east-west orientation, Y polarization is the antenna in north-south orientation.</p>
+</dd>
+<dt><strong>downscale_freq</strong><span class="classifier">int, default: 1</span></dt><dd><p>The downscaling factor for the frequency spacing.
+The native frequency spacing is 1 MHz, and the default
+downscaling factor is 1 (no downscaling).</p>
+</dd>
+<dt><strong>downscale_zenith</strong><span class="classifier">int, default: 4</span></dt><dd><p>The downscaling factor for the zenith spacing.
+The native zenith spacing is 0.5 degrees, and the default
+downscaling factor is 4, resulting in a spacing of 2 degrees.</p>
+</dd>
+<dt><strong>downscale_azimuth</strong><span class="classifier">int, default: 4</span></dt><dd><p>The downscaling factor for the azimuth spacing.
+The native azimuth spacing is 0.5 degrees, and the default
+downscaling factor is 4, resulting in a spacing of 2 degrees.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r593f2281caeb-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="https://arxiv.org/abs/2412.01699">https://arxiv.org/abs/2412.01699</a></p>
+</div>
+</div>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternBase">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">AntennaPatternBase</span></span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase" title="Link to this definition"></a></dt>
