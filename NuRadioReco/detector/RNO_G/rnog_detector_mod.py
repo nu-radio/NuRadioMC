@@ -38,8 +38,7 @@ def replace_value_in_dict(d, keys, value):
 class ModDetector(Detector):
     def __init__(self, *args, **kwargs):
         super(ModDetector, self).__init__(*args, **kwargs)
-        self.logger = logging.getLogger("NuRadioReco.RNOGDetectorMod")
-        self.logger.setLevel(kwargs["log_level"])
+        self.logger = logging.getLogger("NuRadioReco.RNOGDetector.Mod")
 
 
     def modify_channel_description(self, station_id, channel_id, keys, value):
