@@ -1076,7 +1076,10 @@ default True</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.run" title="NuRadioMC.simulation.simulation.simulation.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels" title="NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_filtered_noise_to_channels</span></code></a>(evt, station, ...)</p></td>
+<td><p>Add noise to the traces of the channels in the event.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.run" title="NuRadioMC.simulation.simulation.simulation.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
 <td><p>run the NuRadioMC simulation</p></td>
 </tr>
 </tbody>
@@ -1098,6 +1101,15 @@ default True</p>
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.run" title="Link to this definition"></a></dt>
 <dd><p>run the NuRadioMC simulation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels">
+<span class="sig-name descname"><span class="pre">add_filtered_noise_to_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation.add_filtered_noise_to_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels" title="Link to this definition"></a></dt>
+<dd><p>Add noise to the traces of the channels in the event.
+This function is used to add noise to the traces of the non-trigger channels.
+The traces of the non-trigger channels already have the detector response applied to them.
+Hence we add “filtered” noise, i.e., noise which is based through the same filter seperatly.</p>
 </dd></dl>
 
 <dl class="py method">
