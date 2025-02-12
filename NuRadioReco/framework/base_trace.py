@@ -221,7 +221,7 @@ class BaseTrace:
         else:
             nsamples = int(np.sum(window_mask))
 
-        return get_frequencies(nsamples, self._sampling_rate)
+        return fft.freqs(nsamples, self._sampling_rate)
 
     def get_hilbert_envelope(self):
         from scipy import signal
@@ -490,7 +490,3 @@ class BaseTrace:
             raise ValueError('Cant divide baseTrace by number because no value is set for trace.')
         else:
             raise TypeError('Division of baseTrace object with object of type {} is not defined'.format(type(x)))
-
-@functools.lru_cache(maxsize=1024)
-def get_frequencies(length, sampling_rate):
-    return np.fft.rfftfreq(length, d=1. / sampling_rate)
