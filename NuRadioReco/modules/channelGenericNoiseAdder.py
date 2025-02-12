@@ -122,10 +122,10 @@ class channelGenericNoiseAdder:
             max_freq = max(frequencies)
             self.logger.info('Set max_freq from None to {} GHz!'.format(max_freq / units.GHz))
         else:
-            if max_freq > frequencies[-1]:
+            if round(max_freq, 3) > round(frequencies[-1], 3):
                 self.logger.warning(
-                    f'max_freq ({max_freq / units.MHz:.2f}) is above the Nyquist frequency '
-                    f'({frequencies[-1] / units.MHz:.2f}). This means the simulated noise ampitude '
+                    f'max_freq ({max_freq / units.MHz:.2f} MHz) is above the Nyquist frequency '
+                    f'({frequencies[-1] / units.MHz:.2f} MHz). This means the simulated noise ampitude '
                     'might deviate from what you intended. To fix that, you either need to lower '
                     'max_freq or increase the sampling_rate.')
 
@@ -304,7 +304,7 @@ class channelGenericNoiseAdder:
             return noise
 
 
-    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude = None, type='perfect_white',
+    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type='perfect_white',
                           time_domain=True):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
