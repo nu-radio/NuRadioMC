@@ -204,7 +204,7 @@ if __name__ == "__main__":
     defaults = {
         "trigger_adc_sampling_frequency": 0.472,
         "trigger_adc_nbits": 8,
-        "trigger_adc_noise_nbits": 3.321,
+        "trigger_adc_noise_count": 5,
     }
 
     det = rnog_detector.Detector(
