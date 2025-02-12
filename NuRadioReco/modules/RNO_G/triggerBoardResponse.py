@@ -179,11 +179,11 @@ class triggerBoardResponse:
             channel.set_trace(channel.get_trace() * gain_to_use, channel.get_sampling_rate())
 
             # Calculate the effective number of noise bits
-            eff_noise_bits = np.log2(vrms_after_gain[-1] / volts_per_adc) + 1
+            eff_noise_count = vrms_after_gain[-1] / volts_per_adc
 
-            logger.debug("\t Ch {}: ampl. Vrms {:0.3f} ({:.3f}) mV (gain: {}, eff. noise bits {:0.2f})".format(
-                channel_id, np.std(channel.get_trace()) / units.mV, vrms_after_gain[-1] / units.mV, gain_to_use, eff_noise_bits))
-        logger.debug("Target Vrms: {:0.3f} mV; Target noise bits: {}".format(ideal_vrms / units.mV, noise_bits))
+            logger.debug("\t Ch {}: ampl. Vrms {:0.3f} ({:.3f}) mV (gain: {}, eff. noise count {:0.2f})".format(
+                channel_id, np.std(channel.get_trace()) / units.mV, vrms_after_gain[-1] / units.mV, gain_to_use, eff_noise_count))
+        logger.debug("Target Vrms: {:0.3f} mV; Target noise count: {}".format(ideal_vrms / units.mV, noise_count))
 
         return np.array(vrms_after_gain), ideal_vrms
 
