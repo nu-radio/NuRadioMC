@@ -194,10 +194,12 @@ class analogToDigitalConverter:
                     f"The field \"{field_prefix}adc_reference_voltage\" is present in channel {channel_id}. "
                     "This field is deprecated. Please use the field adc_voltage_range instead. However, "
                     "be aware that the definition of the two fields are different. The \"adc_reference_voltage\" "
-                    "referred to the maximum voltage V_max of the maximum ADC count 2^n - 1, assuming that the "
-                    "ADC operates from -V_max to V_max. The \"adc_voltage_range\" refers to the maximum voltage "
-                    "range V_range = V_max - V_min where V_max corresponds to 2^n - 1 and V_min to 0. Example: "
-                    "If you want to simulate a ADC with a dynamic range from -1 V to 1 V, you should set have set "
+                    "referred to the maximum voltage V_max of the maximum ADC count 2^n - 1 with n being \"adc_nbits\", "
+                    "assuming that the ADC operates from -V_max to V_max. As a consquence the voltage per ADC count "
+                    "was calculated using: dV = adc_reference_voltage / (2^(n - 1) - 1). The \"adc_voltage_range\" "
+                    "refers to the maximum voltage range V_range = V_max - V_min where V_max corresponds to 2^n - 1 "
+                    "and V_min to 0. The voltage per ADC count was calculated using: dV = adc_voltage_range / (2^n - 1). "
+                    "Example: If you want to simulate a ADC with a dynamic range from -1 V to 1 V, you should set have set "
                     "the adc_reference_voltage to 1 V. Now you have to set the adc_voltage_range to 2 V."
                 )
                 logger.error(error_msg)
