@@ -192,7 +192,7 @@ class analogToDigitalConverter:
             if field_prefix + "adc_reference_voltage" in det_channel:
                 error_msg = (
                     f"The field \"{field_prefix}adc_reference_voltage\" is present in channel {channel_id}. "
-                    "This field is deprecated. Please use the field adc_voltage_range instead. However, "
+                    f"This field is deprecated. Please use the field \"{field_prefix}adc_voltage_range\" instead. However, "
                     "be aware that the definition of the two fields are different. The \"adc_reference_voltage\" "
                     "referred to the maximum voltage V_max of the maximum ADC count 2^n - 1 with n being \"adc_nbits\", "
                     "assuming that the ADC operates from -V_max to V_max. As a consquence the voltage per ADC count "
@@ -214,17 +214,28 @@ class analogToDigitalConverter:
 
             adc_voltage_range = det_channel[adc_voltage_label] * units.V
         else:
-            adc_noise_nbits_label = field_prefix + "adc_noise_nbits"
-            if adc_noise_nbits_label not in det_channel:
+            if field_prefix + "adc_noise_nbits" in det_channel:
+                error_msg = (
+                    f"The field \"{field_prefix}adc_noise_nbits\" is present the detector description of channel "
+                    f"{channel_id}. This field is deprecated. Please use the field \"{field_prefix}adc_noise_count\" "
+                    "instead. To calculate the count form the nbits, use the formula: count = 2^(nbits - 1) - 1. "
+                    "(This forumla is not intuitive which is why the old field was deprecated)."
+                )
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+
+
+            adc_noise_count_label = field_prefix + "adc_noise_count"
+            if adc_noise_count_label not in det_channel:
                 raise ValueError(
-                    f"The field {adc_noise_nbits_label} is not present in channel {channel_id}. "
+                    f"The field {adc_noise_count_label} is not present in channel {channel_id}. "
                     "Please specify it on your detector file.")
 
-            adc_noise_n_bits = det_channel[adc_noise_nbits_label]
+            adc_noise_count = det_channel[adc_noise_count_label]
             logger.debug(
-                "Use a noise VRMS of {:.2f} mV and {} ADC noise n bits to define the ADC voltage range".format(
-                    vrms / units.mV, adc_noise_n_bits))
-            adc_voltage_range = vrms * (2 ** adc_n_bits - 1) / (2 ** ((adc_noise_n_bits - 1) - 1))
+                "Use a noise VRMS of {:.2f} mV and a ADC noise count of {} to define the ADC voltage range".format(
+                    vrms / units.mV, adc_noise_count))
+            adc_voltage_range = vrms * (2 ** adc_n_bits - 1) / adc_noise_count
 
         logger.debug(
             ("ADC parameters: "

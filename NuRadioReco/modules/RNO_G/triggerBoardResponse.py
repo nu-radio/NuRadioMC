@@ -45,7 +45,7 @@ class triggerBoardResponse:
         # Table 21 in https://www.analog.com/media/en/technical-documentation/data-sheets/hmcad1511.pdf
         self._triggerBoardAmplifications = np.array([1, 1.25, 2, 2.5, 4, 5, 8, 10, 12.5, 16, 20, 25, 32, 50])
         self._adc_input_range = None
-        self._n_bits = None
+        self._nbits = None
 
     def apply_trigger_filter(self, station, trigger_channels, trigger_filter):
         """
@@ -145,22 +145,22 @@ class triggerBoardResponse:
         vrms_after_gain = []
         for channel_id, vrms in zip(trigger_channels, vrms_noise):
             det_channel = det.get_channel(station.get_id(), channel_id)
-            noise_bits = det_channel["trigger_adc_noise_nbits"]
+            noise_count = det_channel["trigger_adc_noise_count"]
             total_bits = det_channel["trigger_adc_nbits"]
             adc_input_range = det_channel["trigger_adc_voltage_range"]
 
             volts_per_adc = adc_input_range / (2 ** total_bits - 1)
-            ideal_vrms = volts_per_adc * (2 ** (noise_bits - 1))
+            ideal_vrms = volts_per_adc * noise_count
 
             if self._adc_input_range is None:
                 self._adc_input_range = adc_input_range
             else:
                 assert self._adc_input_range == adc_input_range, "ADC input range is not consistent across channels"
 
-            if self._n_bits is None:
-                self._n_bits = total_bits
+            if self._nbits is None:
+                self._nbits = total_bits
             else:
-                assert self._n_bits == total_bits, "ADC bits are not consistent across channels"
+                assert self._nbits == total_bits, "ADC bits are not consistent across channels"
 
 
             # find the ADC gain from the possible values that makes the realized
@@ -270,7 +270,7 @@ class triggerBoardResponse:
         if digitize_trace:
             self.digitize_trace(station, det, trigger_channels, ideal_vrms)
             if self._adc_output == "counts":
-                lsb_voltage = self._adc_input_range / (2 ** self._n_bits - 1)
+                lsb_voltage = self._adc_input_range / (2 ** self._nbits - 1)
                 # We do not floor/convert the vrms to integers here. But this has to happen before the trigger.
                 equalized_vrms = equalized_vrms / lsb_voltage
                 logger.debug("obs. Vrms {} ADC".format(equalized_vrms))
