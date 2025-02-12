@@ -124,8 +124,10 @@ class channelGenericNoiseAdder:
         else:
             if max_freq > frequencies[-1]:
                 self.logger.warning(
-                    f'max_freq ({max_freq / units.MHz:.2f}) is above the Nyquist frequency ({frequencies[-1] / units.MHz:.2f}), '
-                    'You need to lower max_freq or increase sampling_rate!')
+                    f'max_freq ({max_freq / units.MHz:.2f}) is above the Nyquist frequency '
+                    f'({frequencies[-1] / units.MHz:.2f}). This means the simulated noise ampitude '
+                    'might deviate from what you intended. To fix that, you either need to lower '
+                    'max_freq or increase the sampling_rate.')
 
         selection = (frequencies >= min_freq) & (frequencies <= max_freq)
 
