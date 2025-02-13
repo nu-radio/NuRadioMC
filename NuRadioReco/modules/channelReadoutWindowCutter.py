@@ -95,39 +95,50 @@ class channelReadoutWindowCutter:
             # channel.set_trace(windowed_channel.get_trace(), windowed_channel.get_sampling_rate())
             # channel.set_trace_start_time(windowed_channel.get_trace_start_time())
 
-            trigger_time_channel = trigger_time - channel.get_trace_start_time()
-            trigger_time_sample = int(np.round(trigger_time_channel * sampling_rate))
-
             channel_id = channel.get_id()
             pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id)
-            samples_before_trigger = int(pre_trigger_time * sampling_rate)
 
+            pre_trigger_time_channel = trigger_time - pre_trigger_time - channel.get_trace_start_time()
+            
+            # throw warinings or errors depending on if the readout window is outside or too far outside the trace
             trace_length = len(trace)
-            cut_samples_beginning = 0
-            if samples_before_trigger <= trigger_time_sample:
-                cut_samples_beginning = trigger_time_sample - samples_before_trigger
-                if cut_samples_beginning + number_of_samples > trace_length:
-                    logger.warning(("trigger time is sample {} but total trace length is only {} "
-                                    "samples (requested trace length is {} with an offest of {} "
-                                    "before trigger). To achieve desired configuration, trace "
-                                    "will be rolled").format(trigger_time_sample, trace_length,
-                                                             number_of_samples, samples_before_trigger))
+            if pre_trigger_time_channel < -pre_trigger_time:
+                msg = ("Start of the readout window is more than pre_trigger_time before the start of the "
+                       "trace (trigger time = {}ns, pre-trigger time = {}ns, start of trace {}ns, requested "
+                       "time before trace = {}ns), this would result in rolling over the edge of the trace "
+                       "and is not the intended use of this function").format(
+                            trigger_time, pre_trigger_time, channel.get_trace_start_time(), pre_trigger_time_channel)
+                logger.error(msg)
+                raise AttributeError(msg)
+            elif pre_trigger_time_channel < 0:
+                msg = ("Start of the readout window is before the start of the trace (trigger time = {}ns, "
+                       "pre-trigger time = {}ns, start of trace {}ns, requested time before trace = {}ns), "
+                       "the trace will be rolled over the edge to fit in the readout window").format(
+                            trigger_time, pre_trigger_time, channel.get_trace_start_time(), pre_trigger_time_channel)
+                logger.warning(msg)
+            elif trigger_time > channel.get_trace_start_time() + trace_length / sampling_rate:
+                msg = ("Trigger time is after the end of the trace (trigger time = {}ns, end of trace {}ns), "
+                       "this would result in rolling over the edge of the trace and is not the intended use "
+                       "of this function").format(
+                            trigger_time, channel.get_trace_start_time() + trace_length / sampling_rate,
+                            pre_trigger_time_channel + number_of_samples / sampling_rate - trace_length / sampling_rate)
+                logger.error(msg)
+                raise AttributeError(msg)
+            elif pre_trigger_time_channel + number_of_samples / sampling_rate > trace_length / sampling_rate:
+                msg = ("End of the readout window is outside the end of the trace (trigger time = {}ns, "
+                       "pre-trigger time = {}ns, length of readout window {}ns, end of trace {}, requested time after trace = {}ns), "
+                       "the trace will be rolled over the edge to fit in the readout window").format(
+                            trigger_time, pre_trigger_time, number_of_samples/sampling_rate, channel.get_trace_start_time() + trace_length/sampling_rate,
+                            pre_trigger_time_channel + number_of_samples / sampling_rate - trace_length / sampling_rate)
+                logger.warning(msg)
 
-                    roll_by = cut_samples_beginning + number_of_samples - trace_length  # roll_by is positive
-                    trace = np.roll(trace, -1 * roll_by)
-                    cut_samples_beginning -= roll_by
+            # "roll" the start of the readout window to the start of the trace
+            channel.apply_time_shift(-pre_trigger_time_channel, silent=True)
 
-            else:
-                roll_by = samples_before_trigger - trigger_time_sample
-                logger.warning(("trigger time is before 'trigger offset window' (requested samples before trigger = {},"
-                                "trigger time sample = {}), the trace needs to be rolled by {} samples first"
-                                " = {}ns").format(samples_before_trigger, trigger_time_sample, roll_by,
-                                                  round(roll_by / sampling_rate/units.ns, 2)))
+            # cut the trace
+            trace = channel.get_trace()
+            trace = trace[:number_of_samples]
 
-                trace = np.roll(trace, roll_by)
-
-            # shift trace to be in the correct location for cutting
-            trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
             channel.set_trace(trace, channel.get_sampling_rate())
             channel.set_trace_start_time(trigger_time - pre_trigger_time)
 
