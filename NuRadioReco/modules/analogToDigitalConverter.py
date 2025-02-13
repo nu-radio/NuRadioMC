@@ -312,8 +312,8 @@ class analogToDigitalConverter:
         if clock_offset:
             adc_time_delay += clock_offset / adc_sampling_frequency
 
-        sampling_rate = channel.get_sampling_rate()
-        if adc_sampling_frequency > channel.get_sampling_rate():
+        sampling_frequency = channel.get_sampling_rate()
+        if adc_sampling_frequency > sampling_frequency:
             raise ValueError(
                 'The ADC sampling rate is greater than '
                 f'the channel {channel.get_id()} sampling rate. '
@@ -324,20 +324,20 @@ class analogToDigitalConverter:
 
         if adc_time_delay:
             # Random clock offset
-            trace, dt_tstart = trace_utilities.delay_trace(channel, sampling_rate, adc_time_delay)
+            trace, dt_tstart = trace_utilities.delay_trace(channel, sampling_frequency, adc_time_delay)
             times = channel.get_times()
             if dt_tstart > 0:
                 # by design dt_tstart is a multiple of the sampling rate
                 times = times[int(round(dt_tstart / sampling_frequency)):]
             times = times[:len(trace)]
-            channel.set_trace(trace, sampling_rate, trace_start_time=times[0])
+            channel.set_trace(trace, sampling_frequency, trace_start_time=times[0])
 
-        if adc_sampling_frequency != sampling_rate:
+        if adc_sampling_frequency != sampling_frequency:
             # Upsampling to 5 GHz before downsampling using interpolation.
             # We cannot downsample with a Fourier method because we want to keep
             # the higher Nyquist zones.
             upsampling_frequency = 5.0 * units.GHz
-            if upsampling_frequency > sampling_rate:
+            if upsampling_frequency > sampling_frequency:
                 channel.resample(upsampling_frequency)
 
             # Downsampling to ADC frequency
