@@ -22,7 +22,9 @@ logger = logging.getLogger('NuRadioReco.BaseStation')
 class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, station_id):
-        super().__init__(parameters.stationParameters)
+        super().__init__(
+            [parameters.stationParameters, parameters.stationParametersRNOG,
+             parameters.ARIANNAParameters])
         self._station_id = station_id
         self._station_time = None
         self._triggers = collections.OrderedDict()

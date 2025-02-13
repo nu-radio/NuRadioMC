@@ -565,45 +565,6 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         return self.__hybrid_information
 
-    def has_glitch(self):
-        """
-        Returns true if any channel in any station has a glitch
-        """
-        for station in self.get_stations():
-            for channel in station.iter_channels():
-                if channel.has_parameter(chp.glitch) and channel.get_parameter(chp.glitch):
-                    return True
-
-        return False
-
-    def avg_SNR_all_stations(self):
-        """
-        Returns the average SNR in every station  
-        """
-        if (len(list(self.get_stations())) == 1):
-            for station in self.get_stations():
-                return station.get_average_signal_to_noise_ratio()
-        else:
-            avg_snrs = {}
-            for station in self.get_stations():
-                avg_snrs[station.get_id()] = station.get_average_signal_to_noise_ratio()
-                
-        return avg_snrs
-        
-    def avg_RPR_all_stations(self):
-        """
-        Returns the average RPR in every station 
-        """
-        if (len(list(self.get_stations())) == 1):
-            for station in self.get_stations():
-                return station.get_average_root_power_ratio()
-        else:
-            avg_rprs = {}
-            for station in self.get_stations():
-                avg_rprs[station.get_id()] = station.get_average_root_power_ratio()
-                
-        return avg_rprs
-
     def serialize(self, mode):
         stations_pkl = []
         try:
