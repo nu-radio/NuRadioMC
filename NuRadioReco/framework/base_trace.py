@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 from NuRadioReco.utilities import fft, bandpass_filter
 import NuRadioReco.detector.response
+from NuRadioReco.utilities import units
 
 import numpy as np
 import logging
@@ -243,7 +244,7 @@ class BaseTrace:
             length = (self._frequency_spectrum.shape[-1] - 1) * 2
         return length
 
-    def apply_time_shift(self, delta_t, silent=False):
+    def apply_time_shift(self, delta_t, silent=False, fourier_shift_threshold = 1e-5 * units.ns):
         """
         Uses the fourier shift theorem to apply a time shift to the trace
         Note that this is a cyclic shift, which means the trace will wrap
@@ -257,12 +258,23 @@ class BaseTrace:
             Turn off warnings if time shift is larger than 10% of trace length
             Only use this option if you are sure that your trace is long enough
             to acommodate the time shift
+        fourier_shift_threshold: float (default: 1e-5 * units.ns)
+            Threshold for the Fourier shift. If the shift is closer to a multiple of
+            1 / sampling_rate than this, the trace is rolled instead of using the Fourier 
+            shift theorem to save time and avoid numerical errors in the Fourier transforms.
         """
-        if delta_t > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
+        if np.abs(delta_t) > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
             logger.warning('Trace is shifted by more than 10% of its length')
-        spec = self.get_frequency_spectrum()
-        spec *= np.exp(-2.j * np.pi * delta_t * self.get_frequencies())
-        self.set_frequency_spectrum(spec, self._sampling_rate)
+        
+        if np.abs(np.round(delta_t * self.get_sampling_rate()) - delta_t * self.get_sampling_rate()) < fourier_shift_threshold:
+            roll_by = int(np.round(delta_t * self.get_sampling_rate()))
+            trace = self.get_trace()
+            trace = np.roll(trace, roll_by, axis=-1)
+            self.set_trace(trace, self.get_sampling_rate())
+        else:
+            spec = self.get_frequency_spectrum()
+            spec *= np.exp(-2.j * np.pi * delta_t * self.get_frequencies())
+            self.set_frequency_spectrum(spec, self.get_sampling_rate())
 
     def resample(self, sampling_rate):
         if sampling_rate == self.get_sampling_rate():
