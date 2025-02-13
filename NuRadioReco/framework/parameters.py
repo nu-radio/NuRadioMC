@@ -48,16 +48,16 @@ class channelParameters(Enum):
     azimuth = 2  #: azimuth angle of the incoming signal direction
     maximum_amplitude = 4  #: the maximum ampliude of the magnitude of the trace
     SNR = 5  #: a dictionary with the following signal-to-noise ratio definitions:
-    # 'integrated_power': 
+    # 'integrated_power':
         # Difference of the sum of the squared amplitudes in the signal window and in the noise window
         # SNR = sum_sig(V_i^2) - sum_noise(V_i^2)
-    # 'peak_amplitude': 
+    # 'peak_amplitude':
         # Maximum amplitude of the absolute signal trace divided by the rms of the noise window
         # SNR = max(abs(V_sig))/V_rms_noise
-    # 'peak_2_peak_amplitude': 
+    # 'peak_2_peak_amplitude':
         # Difference between max and min of the signal trace divided by twice the rms value in the noise window
         # SNR = (max(V_sig)-min(V_sig))/2*V_rms_noise
-    # 'peak_2_peak_amplitude_split_noise_rms': 
+    # 'peak_2_peak_amplitude_split_noise_rms':
         # Peak to peak amplitude in the trace divided by twice the noise rms value, where the latter is calculated by splitting the trace into segments and taking the mean of the lowest few segment rms values
         # SNR = V_p2p/2*V_rms_noise
     maximum_amplitude_envelope = 6  #: the maximum ampliude of the hilbert envelope of the trace
@@ -76,9 +76,9 @@ class channelParameters(Enum):
     Vrms_NuRadioMC_simulation = 19  #: the noise rms used in the MC simulation
     bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
     Vrms_trigger_NuRadioMC_simulation = 21  #: the noise rms of the trigger channels (optional) used in the MC simulation
-    root_power_ratio = 22 #: the root power ratio (float) 
+    root_power_ratio = 22 #: the root power ratio (float)
     impulsivity = 23  #: average of the CDF about the peak of the coherently summed waveform
-    
+
 class channelParametersRNOG(Enum):
     # RNO-G specific channel parameters
     # FS: I did not start with a negative parameter on the 1, hence I chose 100
@@ -87,19 +87,7 @@ class channelParametersRNOG(Enum):
 
 class stationParametersRNOG(Enum):
     # RNO-G specific station parameters
-    coherent_snr = 1  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr 
-        
-class eventParametersRNOG(Enum):
-    max_corr_coords = 4 #: azimuth, zenith corresponding to max correlation
-    max_corr = 5 #: maximum correlation value obtained through reconstruction
-    csw_snr = 6 #: signal to noise ratio of coherently summed waveform
-    csw_rpr = 7 #: root power ratio of coherently summed waveform
-    csw_hilbert_snr = 8 #: signal to noise ratio of hilberted coherently summed waveform
-    csw_impulsivity = 9 #: coherently summed waveform's impulsivity and other statistical measures (dict)
-    surf_corr_ratio = 10 #: ratio comparing max surface correlation to max overall correlation
-    max_surf_corr = 11 #: maximum surface correlation
-    avg_snr = 12 #: average signal to noise ratio across all channels ("peak to peak")
-    avg_rpr = 13 #: average root power ratio across all channels 
+    coherent_snr = 1  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
