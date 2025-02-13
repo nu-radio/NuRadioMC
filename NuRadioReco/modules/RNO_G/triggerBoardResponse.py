@@ -34,13 +34,9 @@ class triggerBoardResponse:
             * 'counts' to store the ADC output in ADC counts
 
         """
-
         self._adc = analogToDigitalConverter(log_level=self._log_level)
         self._clock_offset = clock_offset
         self._adc_output = adc_output
-
-        # the fields that need to exist in the detector description for this module to work
-        self._mandatory_fields = ["trigger_adc_nbits"]
 
         # Table 21 in https://www.analog.com/media/en/technical-documentation/data-sheets/hmcad1511.pdf
         self._triggerBoardAmplifications = np.array([1, 1.25, 2, 2.5, 4, 5, 8, 10, 12.5, 16, 20, 25, 32, 50])

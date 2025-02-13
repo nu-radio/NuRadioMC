@@ -260,4 +260,7 @@ def _get_threshold_channel(threshold, channel_id):
     """ Returns channel specific threshold if threshold is a dict, otherwise returns threshold """
     if isinstance(threshold, dict):
         return threshold[channel_id]
-    return threshold
+    elif isinstance(threshold, (int, float)):
+        return threshold
+    else:
+        raise TypeError(f"Threshold must be a int/float or dict, not {type(threshold)}")
