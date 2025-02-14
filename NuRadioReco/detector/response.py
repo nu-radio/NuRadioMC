@@ -114,16 +114,13 @@ class Response:
         y_phase_orig = np.copy(y_phase)
 
         if remove_time_delay:
-            if np.any(np.abs(2 * time_delay * np.diff(self.__frequency)) > 1):
-                df_max = 1 / np.abs(2 * time_delay) * 0.8  # the factor of 0.8 is to be lower
-                self.logger.warning(
+            if abs(2 * time_delay) > 1 / np.diff(self.__frequency)[0]:
+                self.logger.error(
                     f"The frequency binning (resolution) of {np.diff(self.__frequency)[0] * 1e3:.2f} MHz "
                     f"of the response function is to large/corse to correctly remove the time delay of {time_delay} ns. "
-                    f"The response function is now upsampled to {df_max * 1e3:.2f} MHz.")
-                new_frequencies = np.arange(self.__frequency[0], self.__frequency[-1], df_max)
-                gain = np.interp(new_frequencies, self.__frequency, gain)
-                y_phase = np.interp(new_frequencies, self.__frequency, y_phase)
-                self.__frequency = new_frequencies
+                    f"This is a sign of potential aliasing. You need to upsample the response function "
+                    "(zero padding in the time domain).")
+                raise ValueError("Time delay to large for frequency resolution. Upsample the response function.")
 
         # Remove the average group delay from response
         if remove_time_delay and time_delay:
