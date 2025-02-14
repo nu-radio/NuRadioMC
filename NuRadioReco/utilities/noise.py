@@ -236,17 +236,22 @@ class thermalNoiseGenerator():
                             number_of_triggers += 1
                             t_bins[iCh] = triggered_bins
                             trace_to_keep = trace if not self.keep_full_band else trace_copy
-                            if iCh == 0:
+                            if number_of_triggers == 1:
+                                print(f"Channel {iCh} triggered")
                                 n_traces[iCh] = np.roll(trace_to_keep, self.trigger_bin - np.argwhere(triggered_bins == True)[0])
                             else:
                                 tmp = np.random.randint(self.trigger_bin_low, self.trigger_bin)
+                                print(f"Channel {iCh} triggered, random trigger bin {tmp}")
                                 n_traces[iCh] = np.roll(trace_to_keep, tmp - np.argwhere(triggered_bins == True)[0])
+                if number_of_triggers == self.n_majority:
+                    # this additional break is needed because another channel might trigger
+                    # within the channel loop before the while statement is checked
+                    break
 
         traces = np.zeros((self.n_channels, self.n_samples))
         for iCh in range(self.n_channels):
             if(n_traces[iCh] is not None):
                 traces[iCh] = n_traces[iCh]
-                print(f"Channel {iCh} triggered")
             else:
                 spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples, self.sampling_rate,
                                                     self.amplitude[iCh], type=self.noise_type, time_domain=False)
