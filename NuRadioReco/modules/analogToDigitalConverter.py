@@ -33,7 +33,7 @@ def perfect_comparator(trace, adc_n_bits, adc_voltage_range, output='voltage', m
         * 'counts' to store the ADC output in ADC counts
 
     mode_func: callable
-        Either `np.floor` or `np.ceil` to choose the mode of the comparator
+        Either ``np.floor`` or ``np.ceil`` to choose the mode of the comparator
 
     Returns
     -------
