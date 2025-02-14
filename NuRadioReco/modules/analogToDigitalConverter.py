@@ -49,11 +49,14 @@ def perfect_comparator(trace, adc_n_bits, adc_voltage_range, output='voltage', m
     digital_trace = mode_func((trace - adc_voltage_range[0]) / lsb_voltage).astype(int)
     digital_trace = apply_saturation(digital_trace, adc_n_bits)
 
+    # Add the minimum voltage to the trace again
+    v_min_adc = mode_func(adc_voltage_range[0] / lsb_voltage).astype(int)
+    digital_trace += v_min_adc
+
     if output == 'voltage':
-        digital_trace = lsb_voltage * digital_trace.astype(float) + adc_voltage_range[0]
+        digital_trace = lsb_voltage * digital_trace.astype(float)
     elif output == 'counts':
-        v_min_adc = mode_func(adc_voltage_range[0] / lsb_voltage).astype(int)
-        digital_trace = digital_trace + v_min_adc
+        pass
     else:
         raise ValueError("The ADC output format is unknown. Please choose 'voltage' or 'counts'")
 
