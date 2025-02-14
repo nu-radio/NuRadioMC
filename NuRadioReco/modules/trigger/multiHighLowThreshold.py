@@ -6,7 +6,7 @@ from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
 import time
 import logging
-logger = logging.getLogger('multiHighLowTrigger')
+logger = logging.getLogger('NuRadioReco.multiHighLowTrigger')
 
 
 def get_high_triggers(trace, threshold):
@@ -123,18 +123,18 @@ class triggerSimulator:
             logger.error("Impossible trigger configuration, high {0} low {1}.".format(threshold_high, threshold_low))
             raise NotImplementedError
 
-        sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
+        sampling_rate = station.get_trigger_channel(station.get_channel_ids()[0]).get_sampling_rate()
         if not set_not_triggered:
             triggerd_bins_channels = []
             dt = 1. / sampling_rate
             if triggered_channels is None:
-                for channel in station.iter_channels():
+                for channel in station.iter_trigger_channels():
                     channel_trace_start_time = channel.get_trace_start_time()
                     break
             else:
-                channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+                channel_trace_start_time = station.get_trigger_channel(triggered_channels[0]).get_trace_start_time()
             channels_that_passed_trigger = []
-            for channel in station.iter_channels():
+            for channel in station.iter_trigger_channels():
                 channel_id = channel.get_id()
                 if triggered_channels is not None and channel_id not in triggered_channels:
                     continue
@@ -159,7 +159,7 @@ class triggerSimulator:
             # set maximum signal aplitude
             max_signal = 0
             if(has_triggered):
-                for channel in station.iter_channels():
+                for channel in station.iter_trigger_channels():
                     max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
                 station.set_parameter(stnp.channels_max_amplitude, max_signal)
         else:
@@ -186,7 +186,6 @@ class triggerSimulator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

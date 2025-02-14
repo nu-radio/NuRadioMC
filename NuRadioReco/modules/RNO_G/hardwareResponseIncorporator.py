@@ -1,34 +1,43 @@
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, signal_processing
+import NuRadioReco.framework.station
 
 from NuRadioReco.detector.RNO_G import analog_components
-import NuRadioReco.detector.detector as detector
+from NuRadioReco.detector import detector
 
 import numpy as np
+import copy
 import time
 import logging
 
 
 class hardwareResponseIncorporator:
     """
-    Incorporates the gain and phase induced by the RNO-G hardware.
+    Incorporates the compex response of the RNO-G hardware. The response is obtained from the detector description.
+    The response is applied in the frequency domain.
     """
 
     def __init__(self):
         self.logger = logging.getLogger(
-            "NuRadioReco.hardwareResponseIncorporator")
+            "NuRadioReco.RNOG.hardwareResponseIncorporator")
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
-        self.__debug = None
-        self.begin()
+        self.trigger_channels = None
 
-    def begin(self, debug=False):
-        self.__debug = debug
+    def begin(self, trigger_channels=None):
+        """
+        Parameters
+        ----------
+        trigger_channels: list of int
+            List of channels for which an extra trigger channel with a different response is used. (Default: None)
+        """
+        self.trigger_channels = trigger_channels
+
 
     def get_filter(self, frequencies, station_id, channel_id, det,
                    temp=293.15, sim_to_data=False, phase_only=False,
-                   mode=None, mingainlin=None):
+                   mode=None, mingainlin=None, is_trigger=False):
         """
         Helper function to return the filter that the module applies.
 
@@ -63,8 +72,8 @@ class hardwareResponseIncorporator:
             * 'phase_only': only the phases response is applied but not the amplitude response
               (identical to phase_only=True )
             * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
-              filter response is 1 (before applying cable response). This makes it easier
-              to compare the filtered to unfiltered signal
+              filter response is 1 (before applying cable response). This makes it easier to compare
+              the filtered to unfiltered signal
             * None : default, gain and phase effects are applied 'normally'
 
         mingainlin: float
@@ -76,6 +85,9 @@ class hardwareResponseIncorporator:
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
 
+        is_trigger: bool
+            Use trigger channel response instead. Only relevant for RNO-G. (Default: False)
+
         Returns
         -------
         array of complex floats
@@ -83,8 +95,8 @@ class hardwareResponseIncorporator:
         """
 
         if isinstance(det, detector.rnog_detector.Detector):
-            amp_response = det.get_signal_chain_response(
-                station_id, channel_id)(frequencies)
+            resp = det.get_signal_chain_response(station_id, channel_id, is_trigger)
+            amp_response = resp(frequencies)
         elif isinstance(det, detector.detector_base.DetectorBase):
             amp_type = det.get_amplifier_type(station_id, channel_id)
             # it reads the log file. change this to load_amp_measurement if you want the RI file
@@ -103,13 +115,16 @@ class hardwareResponseIncorporator:
                 mingainlin * ampmax) * np.exp(1j * np.angle(amp_response[iamp_gain_low]))
 
         cable_response = 1
-        if mode == 'phase_only':
-            cable_response = np.ones_like(
-                cable_response) * np.exp(1j * np.angle(cable_response))
-            amp_response = np.ones_like(amp_response) * np.angle(amp_response)
+        if mode is None:
+            pass
+        elif mode == 'phase_only':
+            cable_response = np.ones_like(cable_response) * np.exp(1j * np.angle(cable_response))
+            amp_response = np.ones_like(amp_response) * np.exp(1j * np.angle(amp_response))
         elif mode == 'relative':
             ampmax = np.max(np.abs(amp_response))
             amp_response /= ampmax
+        else:
+            raise NotImplementedError(f"Operating mode \"{mode}\" has not been implemented.")
 
         if sim_to_data:
             return amp_response * cable_response
@@ -147,10 +162,10 @@ class hardwareResponseIncorporator:
             Options:
 
             * 'phase_only': only the phases response is applied but not the amplitude response
-              (identical to phase_only=True )
+              (identical to phase_only=True)
             * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
-              filter response is 1 (before applying cable response). This makes it easier
-              to compare the filtered to unfiltered signal
+              filter response is 1 (before applying cable response). This makes it easier to compare
+              the filtered to unfiltered signal
             * None: default, gain and phase effects are applied 'normally'
 
         mingainlin: float
@@ -171,12 +186,47 @@ class hardwareResponseIncorporator:
 
         t = time.time()
 
+        if self.trigger_channels is not None and not isinstance(det, detector.rnog_detector.Detector):
+            raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
+
+        has_trigger_channels = False
         for channel in station.iter_channels():
             frequencies = channel.get_frequencies()
             trace_fft = channel.get_frequency_spectrum()
 
-            trace_fft *= self.get_filter(
+            filter = self.get_filter(
                 frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
+
+            if (self.trigger_channels is not None and
+                channel.get_id() in self.trigger_channels and
+                isinstance(station, NuRadioReco.framework.station.Station)):
+                """
+                Create a copy of the channel and apply the readout and trigger channel response respectively.
+                We do this here under the assumption that up to this point no difference between the two channels
+                had to be made. This is acutally not strictly true. The cable delay is already added in the
+                efieldToVoltageConverter module. I.e., the assumption is made that the cable delay is no different
+                between the two. While this might be true/a good approximation for the moment it is not given that
+                this holds for the future. You have been warned!
+
+                See Also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.
+                """
+                trig_filter = self.get_filter(
+                    frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
+                    phase_only, mode, mingainlin, is_trigger=True)
+
+                trig_trace_fft = trace_fft * trig_filter
+                # zero first bins to avoid DC offset
+                trig_trace_fft[0] = 0
+
+                # Add trigger channel
+                trig_channel = copy.deepcopy(channel)
+                trig_channel.set_frequency_spectrum(
+                    trig_trace_fft, channel.get_sampling_rate())
+
+                channel.set_trigger_channel(trig_channel)
+                has_trigger_channels = True
+
+            trace_fft *= filter
             # zero first bins to avoid DC offset
             trace_fft[0] = 0
 
@@ -185,13 +235,14 @@ class hardwareResponseIncorporator:
             channel.set_frequency_spectrum(
                 trace_fft, channel.get_sampling_rate())
 
-            if not sim_to_data:
-                # Include cable delays
-                cable_delay = det.get_cable_delay(
-                    station.get_id(), channel.get_id())
-                self.logger.debug("cable delay of channel {} is {}ns".format(
-                    channel.get_id(), cable_delay / units.ns))
-                channel.add_trace_start_time(-cable_delay)
+        if not sim_to_data:
+            # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+            # in the efieldToVoltageConverter or with the channelCableDelayAdder
+            # (if efieldToVoltageConverterPerEfield was used).
+            signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
+            if has_trigger_channels:
+                signal_processing.add_cable_delay(
+                        station, det, sim_to_data, trigger=True, logger=self.logger)
 
         self.__t += time.time() - t
 
@@ -219,8 +270,8 @@ class hardwareResponseIncorporator:
         amp_response_phase = amp_response_f['phase'](ff)
         mask = (ff < 70 * units.MHz) & (ff > 40 * units.MHz)
         spec[~mask] = 0
-        trace2 = fft.freq2time(spec * amp_response_gain *
-                               amp_response_phase, sampling_rate)
+        trace2 = fft.freq2time(
+            spec * amp_response_gain * amp_response_phase, sampling_rate)
         max_time2 = np.abs(trace2).argmax() / sampling_rate
         return max_time2 - max_time
 

@@ -160,6 +160,10 @@ if __name__ == "__main__":
             import toml
             toml_dict = toml.load(os.path.join(top_dir, 'pyproject.toml'))
             reqs = toml_dict['tool']['poetry']['dependencies']
+            for req in list(reqs.keys()): # ignore optional requirements
+                if isinstance(reqs[req], dict):
+                    if 'optional' in reqs[req]:
+                        reqs.pop(req)
             reqs_pip = convert_poetry_to_pip(reqs)
 
             # install the requirements using pip
@@ -179,10 +183,10 @@ if __name__ == "__main__":
                 retcode |= subprocess.call([sys.executable, '-m', 'pip', 'install', 'toml'] + pip_install_as_user) # we need toml to read pyproject.toml
                 import toml
             toml_dict = toml.load(os.path.join(top_dir, 'pyproject.toml'))
-            reqs = toml_dict['tool']['poetry']['dev-dependencies']
+            reqs = toml_dict['tool']['poetry']['dependencies']
             extras = toml_dict['tool']['poetry']['extras']
-            header = "{:4s}|{:12s}|{:16s}|{}\n".format("id", "Install?", "extra", "modules")
-            str_format = "{:4s}|{:12s}|{:16s}|{}\n"
+            header = "{:4s}|{:10s}|{:16s}|{}\n".format("id", "Install?", "extra", "modules")
+            str_format = "{:4s}|{:10s}|{:16s}|{}\n"
             selected_for_install = []
             header = str_format.format("id", "Install?", "feature", "modules")
             footer = (

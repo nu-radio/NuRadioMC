@@ -4,7 +4,7 @@ from scipy.interpolate import interp1d
 from scipy import constants
 import logging
 
-logger = logging.getLogger("cross sections")
+logger = logging.getLogger("NuRadioMC.cross_sections")
 
 
 def param(energy, inttype='cc', parameterization='ctw'):
