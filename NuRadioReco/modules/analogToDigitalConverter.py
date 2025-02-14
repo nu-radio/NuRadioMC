@@ -237,21 +237,17 @@ class analogToDigitalConverter:
             # make the assumption that the voltage range is symmetric around 0
             adc_voltage_range = (-adc_voltage_range_tmp / 2, adc_voltage_range_tmp / 2)
 
-        # Get the baseline voltage, if not set assume 0
-        adc_voltage_baseline = det_channel.get(field_prefix + "adc_voltage_baseline", 0) * units.V
-
         logger.debug(
             ("ADC parameters: "
             "\n\tadc_voltage_range: ({}, {}) V"
-            "\n\tadc_voltage_baseline: {} V"
             "\n\tadc_n_bits: {}"
             "\n\tadc_sampling_frequency: {} GHz"
             "\n\tadc_time_delay: {} ns").format(
-                adc_voltage_range[0] / units.V, adc_voltage_range[1] / units.V, adc_voltage_baseline / units.V,
+                adc_voltage_range[0] / units.V, adc_voltage_range[1] / units.V,
                 adc_n_bits, adc_sampling_frequency / units.GHz, adc_time_delay / units.ns
             ))
 
-        return adc_n_bits, adc_voltage_range, adc_voltage_baseline, adc_sampling_frequency, adc_time_delay
+        return adc_n_bits, adc_voltage_range, adc_sampling_frequency, adc_time_delay
 
     def get_digital_trace(
         self, station, det, channel,
@@ -261,7 +257,8 @@ class analogToDigitalConverter:
         adc_type='perfect_floor_comparator',
         return_sampling_frequency=False,
         adc_output='voltage',
-        trigger_filter=None):
+        trigger_filter=None,
+        adc_baseline_voltage=0):
         """
         Returns the digital trace for a channel, without setting it. This allows
         the creation of a digital trace that can be used for triggering purposes
@@ -294,9 +291,11 @@ class analogToDigitalConverter:
             * 'voltage' to store the ADC output as discretised voltage trace
             * 'counts' to store the ADC output in ADC counts
 
-        trigger_filter: array floats
+        trigger_filter: array of floats
             Freq. domain of the response to be applied to post-ADC traces
             Must be length for "MC freq"
+        adc_baseline_voltage: float (default: 0 V)
+            The baseline voltage to be added to the trace before digitisation.
 
         Returns
         -------
@@ -310,7 +309,7 @@ class analogToDigitalConverter:
         channel_id = channel.get_id()
 
         det_channel = det.get_channel(station_id, channel_id)
-        adc_n_bits, adc_ref_voltage, adc_voltage_baseline, adc_sampling_frequency, adc_time_delay = self._get_adc_parameters(
+        adc_n_bits, adc_ref_voltage, adc_sampling_frequency, adc_time_delay = self._get_adc_parameters(
             det_channel, channel_id=channel_id, vrms=Vrms, trigger_adc=trigger_adc)
 
         if clock_offset:
@@ -337,8 +336,9 @@ class analogToDigitalConverter:
             channel.set_trace(trace, sampling_frequency, trace_start_time=times[0])
 
         # Add a baseline voltage to the trace
-        if adc_voltage_baseline:
-            channel.set_trace(channel.get_trace() + adc_voltage_baseline, "same")
+        if adc_baseline_voltage:
+            logger.debug("Adding a baseline voltage of {:.2f} V to the trace".format(adc_baseline_voltage))
+            channel.set_trace(channel.get_trace() + adc_baseline_voltage, "same")
 
         if adc_sampling_frequency != sampling_frequency:
             # Upsampling to 5 GHz before downsampling using interpolation.
@@ -372,7 +372,8 @@ class analogToDigitalConverter:
             clock_offset=0.0,
             adc_type='perfect_floor_comparator',
             adc_output='voltage',
-            trigger_filter=None):
+            trigger_filter=None,
+            adc_baseline_voltage=0):
         """
         Runs the analogToDigitalConverter and transforms the traces from all
         the channels of an input station to digital voltage values.
@@ -396,10 +397,11 @@ class analogToDigitalConverter:
             * 'voltage' to store the ADC output as discretised voltage trace
             * 'counts' to store the ADC output in ADC counts
 
-        upsampling_factor: integer
-            Upsampling factor. The digital trace will be a upsampled to a
-            sampling frequency int_factor times higher than the original one
-
+        trigger_filter: array of floats
+            Freq. domain of the response to be applied to post-ADC traces
+            Must be length for "MC freq"
+        adc_baseline_voltage: float (default: 0 V)
+            The baseline voltage to be added to the trace before digitisation.
         """
 
         t = time.time()
@@ -411,7 +413,8 @@ class analogToDigitalConverter:
                 adc_type=adc_type,
                 return_sampling_frequency=True,
                 adc_output=adc_output,
-                trigger_filter=trigger_filter
+                trigger_filter=trigger_filter,
+                adc_baseline_voltage=adc_baseline_voltage
             )
 
             channel.set_trace(digital_trace, adc_sampling_frequency)
