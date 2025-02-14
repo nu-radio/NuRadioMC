@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.analogToDigitalConverter')
 
 
-def perfect_comparator(trace, adc_n_bits, adc_voltage_range, mode='floor', output='voltage'):
+def perfect_comparator(trace, adc_n_bits, adc_voltage_range, output='voltage', mode_func=np.floor):
     """
     Simulates a perfect comparator flash ADC that compares the voltage to the
     voltage for the least significative bit and takes the floor or the ceiling
@@ -23,16 +23,17 @@ def perfect_comparator(trace, adc_n_bits, adc_voltage_range, mode='floor', outpu
         Trace containing the voltage to be digitised
     adc_n_bits: int
         Number of bits of the ADC
-    adc_voltage_range: float
-        Voltage range V_range = V_max - V_min where V_max corresponds to the maximum number of counts given by the
+    adc_voltage_range: (float, float)
+        Is a tuple (Vmin, Vmax) defining the voltage range where V_max corresponds to the maximum number of counts given by the
         ADC 2**adc_n_bits - 1 and V_min to the ADC count 0.
-    mode: string
-        'floor' or 'ceiling'
     output: {'voltage', 'counts'}, default 'voltage'
         Options:
 
         * 'voltage' to store the ADC output as discretised voltage trace
         * 'counts' to store the ADC output in ADC counts
+
+    mode_func: callable
+        Either `np.floor` or `np.ceil` to choose the mode of the comparator
 
     Returns
     -------
@@ -40,49 +41,45 @@ def perfect_comparator(trace, adc_n_bits, adc_voltage_range, mode='floor', outpu
         Digitised voltage trace in volts or ADC counts
     """
 
-    lsb_voltage = adc_voltage_range / (2 ** adc_n_bits - 1)
+    lsb_voltage = (adc_voltage_range[1] - adc_voltage_range[0]) / (2 ** adc_n_bits - 1)
     logger.debug("LSB voltage: {:.2f} mV".format(lsb_voltage / units.mV))
 
-    if mode == 'floor':
-        digital_trace = np.floor(trace / lsb_voltage).astype(int)
-    elif mode == 'ceiling':
-        digital_trace = np.ceil(trace / lsb_voltage).astype(int)
-    else:
-        raise ValueError('Choose floor or ceiing as modes for the comparator ADC')
+    assert mode_func in [np.floor, np.ceil], "Choose floor or ceiing as modes for the comparator ADC"
 
+    digital_trace = mode_func((trace - adc_voltage_range[0]) / lsb_voltage).astype(int)
     digital_trace = apply_saturation(digital_trace, adc_n_bits)
 
     if output == 'voltage':
-        digital_trace = lsb_voltage * digital_trace.astype(float)
+        digital_trace = lsb_voltage * digital_trace.astype(float) + adc_voltage_range[0]
     elif output == 'counts':
-        pass
+        v_min_adc = mode_func(adc_voltage_range[0] / lsb_voltage).astype(int)
+        digital_trace = digital_trace + v_min_adc
     else:
         raise ValueError("The ADC output format is unknown. Please choose 'voltage' or 'counts'")
 
     return digital_trace
 
 
-def perfect_floor_comparator(trace, adc_n_bits, adc_voltage_range, output='voltage'):
+def perfect_floor_comparator(*args, **kwargs):
     """
     Perfect comparator ADC that takes the floor value of the comparison.
     See perfect_comparator
     """
-    return perfect_comparator(trace, adc_n_bits, adc_voltage_range, mode='floor', output=output)
+    return perfect_comparator(*args, **kwargs, mode_func=np.floor)
 
 
-def perfect_ceiling_comparator(trace, adc_n_bits, adc_voltage_range, output='voltage'):
+def perfect_ceiling_comparator(*args, **kwargs):
     """
     Perfect comparator ADC that takes the floor value of the comparison.
-    See perfect_floor.
+    See perfect_comparator.
     """
-    return perfect_comparator(trace, adc_n_bits, adc_voltage_range, mode='ceiling', output=output)
+    return perfect_comparator(*args, **kwargs, mode_func=np.ceil)
 
 
 def apply_saturation(adc_counts_trace, adc_n_bits):
     """
     Takes a digitised trace in ADC counts and clips the parts of the
-    trace with values higher than 2**(adc_n_bits-1)-1 or lower than
-    -2**(adc_n_bits-1).
+    trace with values higher than 2**adc_n_bits - 1 or lower than 0.
 
     Parameters
     ----------
@@ -95,19 +92,9 @@ def apply_saturation(adc_counts_trace, adc_n_bits):
     saturated_trace: array of floats
         The clipped or saturated voltage trace
     """
-    # This function assumes that the digitized trace has counts in the range from -2**(adc_n_bits-1) to 2**(adc_n_bits-1)-1.
-    # Hence, if the trace has no negative entries, it is very likely that the trace is wrong (i.e., was maybe converted with a wrong convention).
-    if not np.any(adc_counts_trace < 0):
-        raise ValueError("The ADC trace has no negative entries. This is very likely wrong!")
-
-    highest_count = 2 ** (adc_n_bits - 1) - 1
-    high_saturation_mask = adc_counts_trace > highest_count
-    adc_counts_trace[high_saturation_mask] = highest_count
-
-    lowest_count = -2 ** (adc_n_bits - 1)
-    low_saturation_mask = adc_counts_trace < lowest_count
-    adc_counts_trace[low_saturation_mask] = lowest_count
-
+    highest_count = 2 ** adc_n_bits - 1
+    adc_counts_trace = np.where(adc_counts_trace > highest_count, highest_count, adc_counts_trace)
+    adc_counts_trace = np.where(adc_counts_trace < 0, 0, adc_counts_trace)
     return adc_counts_trace
 
 
@@ -207,12 +194,19 @@ class analogToDigitalConverter:
 
 
             adc_voltage_label = field_prefix + "adc_voltage_range"
-            if adc_voltage_label not in det_channel:
-                raise ValueError(
-                    f"The field {adc_voltage_label} is not present in channel {channel_id}. "
-                    "Please specify it on your detector file.")
+            if adc_voltage_label in det_channel:
+                adc_voltage_range_tmp = det_channel[adc_voltage_label] * units.V
 
-            adc_voltage_range = det_channel[adc_voltage_label] * units.V
+                # make the assumption that the voltage range is symmetric around 0
+                adc_voltage_range = (-adc_voltage_range_tmp / 2, adc_voltage_range_tmp / 2)
+            elif field_prefix + "adc_min_voltage" in det_channel and field_prefix + "adc_max_voltage" in det_channel:
+                adc_voltage_range = (det_channel[field_prefix + "adc_min_voltage"] * units.V,
+                                     det_channel[field_prefix + "adc_max_voltage"] * units.V)
+            else:
+                raise ValueError(
+                    f"Neither the field \"{field_prefix}adc_voltage_range\" nor "
+                    f"\"{field_prefix}adc_min_voltage\" and \"{field_prefix}adc_max_voltage\" "
+                    "are present in channel {channel_id}. Please specify them in your detector file.")
         else:
             if field_prefix + "adc_noise_nbits" in det_channel:
                 error_msg = (
@@ -235,19 +229,26 @@ class analogToDigitalConverter:
             logger.debug(
                 "Use a noise VRMS of {:.2f} mV and a ADC noise count of {} to define the ADC voltage range".format(
                     vrms / units.mV, adc_noise_count))
-            adc_voltage_range = vrms * (2 ** adc_n_bits - 1) / adc_noise_count
+            adc_voltage_range_tmp = vrms * (2 ** adc_n_bits - 1) / adc_noise_count
+
+            # make the assumption that the voltage range is symmetric around 0
+            adc_voltage_range = (-adc_voltage_range_tmp / 2, adc_voltage_range_tmp / 2)
+
+        # Get the baseline voltage, if not set assume 0
+        adc_voltage_baseline = det_channel.get(field_prefix + "adc_voltage_baseline", 0) * units.V
 
         logger.debug(
             ("ADC parameters: "
-            "\n\tadc_voltage_range: {} V"
+            "\n\tadc_voltage_range: ({}, {}) V"
+            "\n\tadc_voltage_baseline: {} V"
             "\n\tadc_n_bits: {}"
             "\n\tadc_sampling_frequency: {} GHz"
             "\n\tadc_time_delay: {} ns").format(
-                adc_voltage_range / units.V, adc_n_bits, adc_sampling_frequency / units.GHz,
-                adc_time_delay / units.ns
+                adc_voltage_range[0] / units.V, adc_voltage_range[1] / units.V, adc_voltage_baseline / units.V,
+                adc_n_bits, adc_sampling_frequency / units.GHz, adc_time_delay / units.ns
             ))
 
-        return adc_n_bits, adc_voltage_range, adc_sampling_frequency, adc_time_delay
+        return adc_n_bits, adc_voltage_range, adc_voltage_baseline, adc_sampling_frequency, adc_time_delay
 
     def get_digital_trace(
         self, station, det, channel,
@@ -306,7 +307,7 @@ class analogToDigitalConverter:
         channel_id = channel.get_id()
 
         det_channel = det.get_channel(station_id, channel_id)
-        adc_n_bits, adc_ref_voltage, adc_sampling_frequency, adc_time_delay = self._get_adc_parameters(
+        adc_n_bits, adc_ref_voltage, adc_voltage_baseline, adc_sampling_frequency, adc_time_delay = self._get_adc_parameters(
             det_channel, channel_id=channel_id, vrms=Vrms, trigger_adc=trigger_adc)
 
         if clock_offset:
@@ -331,6 +332,10 @@ class analogToDigitalConverter:
                 times = times[int(round(dt_tstart / sampling_frequency)):]
             times = times[:len(trace)]
             channel.set_trace(trace, sampling_frequency, trace_start_time=times[0])
+
+        # Add a baseline voltage to the trace
+        if adc_voltage_baseline:
+            channel.set_trace(channel.get_trace() + adc_voltage_baseline, "same")
 
         if adc_sampling_frequency != sampling_frequency:
             # Upsampling to 5 GHz before downsampling using interpolation.
