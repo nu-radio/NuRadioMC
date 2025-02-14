@@ -260,12 +260,12 @@ class BaseTrace:
             to acommodate the time shift
         fourier_shift_threshold: float (default: 1e-5 * units.ns)
             Threshold for the Fourier shift. If the shift is closer to a multiple of
-            1 / sampling_rate than this, the trace is rolled instead of using the Fourier 
+            1 / sampling_rate than this, the trace is rolled instead of using the Fourier
             shift theorem to save time and avoid numerical errors in the Fourier transforms.
         """
         if np.abs(delta_t) > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
             logger.warning('Trace is shifted by more than 10% of its length')
-        
+
         if np.abs(np.round(delta_t * self.get_sampling_rate()) - delta_t * self.get_sampling_rate()) < fourier_shift_threshold:
             roll_by = int(np.round(delta_t * self.get_sampling_rate()))
             trace = self.get_trace()

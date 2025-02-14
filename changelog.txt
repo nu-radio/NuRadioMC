@@ -16,8 +16,10 @@ new features:
 - added support for "ant_mode" keyword in detector description
 - added option to choose dipole orientation when creating the LOFAR LBA antenna pattern
 - implementation of additional trigger channels. The signals on which the trigger is determined might be passed
+- added 2024 detector decription file in NuRadioReco/detector/RNO_G/RNO_season_2024.json
 through a different response chain as the signals which are readout. To allow simulating this different response
 we added an optional trigger_channel object which lives within the corresponding channel obejct.
+- Updated IC limit
 
 bugfixes:
 -
@@ -83,6 +85,8 @@ are created automatically when importing the packages, and a new STATUS logging 
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
+- Fixed minor bugs in analyticraytracing module. Path length and travel times are affected by O(0.001) ns,
+  and the focusing factor is reduced by <1% for most geometries. See #649 for details.
 
 version 2.2.1
 bugfixes:

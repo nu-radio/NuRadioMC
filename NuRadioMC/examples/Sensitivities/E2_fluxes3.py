@@ -89,7 +89,7 @@ Radar[:, 2] *= energyBinsPerDecade
 # log (E^2 * Phi [GeV cm^02 s^-1 sr^-1]) : log (E [Gev])
 # Phys Rev D 98 062003 (2018)
 # Numbers private correspondence Shigeru Yoshida
-ice_cube_limit = np.array(([
+ice_cube_limit_18 = np.array(([
     (6.199999125, -7.698484687),
     (6.299999496, -8.162876678),
     (6.400000617, -8.11395291),
@@ -110,9 +110,9 @@ ice_cube_limit = np.array(([
     (10.89999987, -6.576523031)
 ]))
 
-ice_cube_limit[:, 0] = 10 ** ice_cube_limit[:, 0] * units.GeV
-ice_cube_limit[:, 1] = 10 ** ice_cube_limit[:, 1] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-ice_cube_limit[:, 1] *= energyBinsPerDecade
+ice_cube_limit_18[:, 0] = 10 ** ice_cube_limit_18[:, 0] * units.GeV
+ice_cube_limit_18[:, 1] = 10 ** ice_cube_limit_18[:, 1] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+ice_cube_limit_18[:, 1] *= energyBinsPerDecade
 
 # Fig. 2 from PoS ICRC2017 (2018) 981
 # IceCube preliminary
@@ -182,6 +182,27 @@ nu_mu_data[:, 3] = np.abs(nu_mu_data[:, 1] - nu_mu_data[:, 3])
 nu_mu_data[-1, 3] = 0
 nu_mu_data[-1, 2] = 2e-9 * 3 * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 nu_mu_data[:, 0] = 10 ** nu_mu_data[:, 0] * units.GeV
+
+
+# IceCube
+# 2025 EHE paper. Data available at  https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/JHK49D
+ice_cube_limit_25 = np.array(([
+(3162000,0.000000007011),
+(10000000,0.000000009136),
+(31620000,0.000000005377),
+(100000000,0.000000005743),
+(316200000,0.000000007535),
+(1000000000,0.00000001147),
+(3162000000,0.00000001978),
+(10000000000,0.00000003713),
+(31620000000,0.00000007529),
+(100000000000,0.0000002201)
+]))
+
+ice_cube_limit_25[:, 0] = ice_cube_limit_25[:, 0] * units.GeV
+ice_cube_limit_25[:, 1] = ice_cube_limit_25[:, 1] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+ice_cube_limit_25[:, 1] *= energyBinsPerDecade
+
 
 # ApJ slope=-2.13, offset=0.9 (https://arxiv.org/pdf/1607.08006.pdf)
 # ICR2017 slope=-2.19, offset=1.01 (https://pos.sissa.it/301/1005/)
@@ -621,7 +642,9 @@ def get_E2_limit_figure(diffuse=True,
                         show_ara_1year=False,
                         show_prediction_arianna_200=False,
                         show_PUEO_100=False,
-                        show_beacon=False):
+                        show_beacon=False,
+                        show_ice_cube_EHE_limit_18=False  # old IC limit
+                        ):
 
     # Limit E2 Plot
     # ---------------------------------------------------------------------------
@@ -760,16 +783,28 @@ def get_E2_limit_figure(diffuse=True,
                     xy=(1e9 * units.GeV / plotUnitsEnergy, 4.5e-8), xycoords='data',
                     horizontalalignment='left', color='0.7', rotation=45, fontsize=legendfontsize)
 
-    if show_ice_cube_EHE_limit:
-        ax.plot(ice_cube_limit[2:, 0] / plotUnitsEnergy, ice_cube_limit[2:, 1] / plotUnitsFlux, color='dodgerblue')
+    if show_ice_cube_EHE_limit_18:
+        ax.plot(ice_cube_limit_18[2:, 0] / plotUnitsEnergy, ice_cube_limit_18[2:, 1] / plotUnitsFlux, color='dodgerblue')
         if energyBinsPerDecade == 2:
-            ax.annotate('IceCube',
+            ax.annotate('IceCube18',
                     xy=(0.6e7 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
         else:
-            ax.annotate('IceCube',
+            ax.annotate('IceCube18',
                     xy=(3e6 * units.GeV / plotUnitsEnergy, 3e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
+    if show_ice_cube_EHE_limit:
+        ax.plot(ice_cube_limit_25[2:, 0] / plotUnitsEnergy, ice_cube_limit_25[2:, 1] / plotUnitsFlux, color='dodgerblue')
+        if energyBinsPerDecade == 2:
+            ax.annotate('IceCube25',
+                    xy=(0.6e8 * units.GeV / plotUnitsEnergy, 1.5e-8), xycoords='data',
+                    horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('IceCube25',
+                    xy=(8e7 * units.GeV / plotUnitsEnergy, 7e-9), xycoords='data',
+                    horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
+
+
 
     if show_ice_cube_HESE_data:
         # data points
