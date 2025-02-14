@@ -22,9 +22,9 @@ class Particle(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __str__(self):
         msg = (
-            "Particle ({}): "
-            "Flavor: {: 3}, lgE = {:.1f}, cos(theta) = {:.2f}".format(
-                hex(id(self)),
+            "Particle ({}) "
+            "(Flavor: {: 3}, lgE = {:.1f}, cos(theta) = {:.2f})".format(
+                self.get_id(),
                 self.get_parameter(partp.flavor),
                 math.log10(self.get_parameter(partp.energy)),
                 math.cos(self.get_parameter(partp.zenith)))
@@ -58,3 +58,40 @@ class Particle(NuRadioReco.framework.parameter_storage.ParameterStorage):
         data = pickle.loads(data_pkl)
         NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
         self._id = data.get('_id', None)
+
+    def show(self, show_parameters=0, print_stdout=True, **kwargs):
+        """
+        Print an overview of the structure of the Particle.
+
+        Parameters
+        ----------
+        show_parameters : int, default: 0
+            If > 0, print the parameters stored in the Particle.
+
+        Other Parameters
+        ----------------
+        print_stdout : bool, optional
+            If `True` (default), print the Particle structure to stdout.
+            Otherwise, return the string representation
+
+        Returns
+        -------
+        str_output : str, optional
+            A string representation of the Particle structure.
+
+        """
+        self_string = [str(self)]
+
+        if show_parameters > 0:
+            self_string += ['    Parameters']
+            par_string = [f'      {par.name:16s}: {val}'
+                for par, val in self.get_parameters().items()]
+            self_string += par_string
+
+        output = '\n'.join(self_string)
+
+        if print_stdout:
+            print(output)
+            return
+
+        return output

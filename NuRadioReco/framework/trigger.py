@@ -233,6 +233,35 @@ class Trigger:
             output += "{}: {}\n".format(key[1:], value)
         return output
 
+    def show(self, print_stdout=True, **kwargs):
+        """
+        Print an overview of the structure of the Trigger.
+
+        Other Parameters
+        ----------------
+        print_stdout : bool, optional
+            If `True` (default), print the Trigger structure to stdout.
+            Otherwise, return the string representation
+
+        Returns
+        -------
+        str_output : str, optional
+            A string representation of the Trigger structure.
+
+        """
+        self_string = (
+            f"Trigger({self.get_name()}) ({self.get_type()}, "
+            + ('primary, ' if self.is_primary() else '')
+            + ('triggered, ' if self.has_triggered() else '')
+            + (f'channels {self.get_triggered_channels()}')
+            + ')')
+
+        if print_stdout:
+            print(self_string)
+            return
+
+        return self_string
+
     def get_trigger_settings(self):
         output = {}
         for key, value in iteritems(self.__dict__):
