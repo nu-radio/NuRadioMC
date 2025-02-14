@@ -263,11 +263,11 @@ class BaseTrace:
             1 / sampling_rate than this, the trace is rolled instead of using the Fourier
             shift theorem to save time and avoid numerical errors in the Fourier transforms.
         """
-        if np.abs(delta_t) > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
+        if abs(delta_t) > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
             logger.warning('Trace is shifted by more than 10% of its length')
 
-        if np.abs(np.round(delta_t * self.get_sampling_rate()) - delta_t * self.get_sampling_rate()) < fourier_shift_threshold:
-            roll_by = int(np.round(delta_t * self.get_sampling_rate()))
+        if abs(round(delta_t * self.get_sampling_rate()) - delta_t * self.get_sampling_rate()) < fourier_shift_threshold:
+            roll_by = int(round(delta_t * self.get_sampling_rate()))
             trace = self.get_trace()
             trace = np.roll(trace, roll_by, axis=-1)
             self.set_trace(trace, self.get_sampling_rate())

@@ -100,14 +100,13 @@ class channelReadoutWindowCutter:
 
             pre_trigger_time_channel = trigger_time - pre_trigger_time - channel.get_trace_start_time()
             
-            # throw warinings or errors depending on if the readout window is outside or too far outside the trace
+            # throw error if the trigger time is outside the trace or warnings if the readout window is partially outside the trace
             trace_length = len(trace)
-            if pre_trigger_time_channel < -pre_trigger_time:
-                msg = ("Start of the readout window is more than pre_trigger_time before the start of the "
-                       "trace (trigger time = {}ns, pre-trigger time = {}ns, start of trace {}ns, requested "
-                       "time before trace = {}ns), this would result in rolling over the edge of the trace "
-                       "and is not the intended use of this function").format(
-                            trigger_time, pre_trigger_time, channel.get_trace_start_time(), pre_trigger_time_channel)
+            if trigger_time < channel.get_trace_start_time() or trigger_time > channel.get_trace_start_time() + trace_length / sampling_rate:
+                msg = ("trigger time outside trace (trigger time = {}ns, start of trace {}ns, end of trace {}ns, "
+                       "this would result in rolling over the edge of the trace and is not the intended use of "
+                       "this function").format(
+                            trigger_time, channel.get_trace_start_time(), channel.get_trace_start_time() + trace_length / sampling_rate)
                 logger.error(msg)
                 raise AttributeError(msg)
             elif pre_trigger_time_channel < 0:
@@ -116,14 +115,6 @@ class channelReadoutWindowCutter:
                        "the trace will be rolled over the edge to fit in the readout window").format(
                             trigger_time, pre_trigger_time, channel.get_trace_start_time(), pre_trigger_time_channel)
                 logger.warning(msg)
-            elif trigger_time > channel.get_trace_start_time() + trace_length / sampling_rate:
-                msg = ("Trigger time is after the end of the trace (trigger time = {}ns, end of trace {}ns), "
-                       "this would result in rolling over the edge of the trace and is not the intended use "
-                       "of this function").format(
-                            trigger_time, channel.get_trace_start_time() + trace_length / sampling_rate,
-                            pre_trigger_time_channel + number_of_samples / sampling_rate - trace_length / sampling_rate)
-                logger.error(msg)
-                raise AttributeError(msg)
             elif pre_trigger_time_channel + number_of_samples / sampling_rate > trace_length / sampling_rate:
                 msg = ("End of the readout window is outside the end of the trace (trigger time = {}ns, "
                        "pre-trigger time = {}ns, length of readout window {}ns, end of trace {}, requested time after trace = {}ns), "
