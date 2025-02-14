@@ -13,7 +13,10 @@ from datetime import datetime
 from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 import warnings
-from astropy.utils.exceptions import ErfaWarning
+try:
+    from erfa import ErfaWarning
+except ImportError: # users with astropy < 4.2 may not have pyerfa installed
+    from astropy.utils.exceptions import ErfaWarning
 import NuRadioReco.utilities.metaclasses
 
 logger = logging.getLogger('NuRadioReco.detector')
@@ -207,6 +210,42 @@ class DetectorBase(object):
         if antenna_by_depth:
             logger.info("the correct antenna model will be determined automatically based on the depth of the antenna")
         self._antenna_by_depth = antenna_by_depth
+
+    @property
+    def assume_inf(self):
+        """
+        Getter function for the `assume_inf` attribute
+        """
+        return self.__assume_inf
+
+    @assume_inf.setter
+    def assume_inf(self, value):
+        """
+        Setter function for the `assume_inf` attribute. Checks whether new value is boolean before assigning
+        the value to the attribute.
+        """
+        if isinstance(value, bool):
+            self.__assume_inf = value
+        else:
+            raise ValueError(f"Value for assume_inf should be boolean, not {type(value)}")
+
+    @property
+    def antenna_by_depth(self):
+        """
+        Getter function for the `antenna_by_depth` attribute
+        """
+        return self._antenna_by_depth
+
+    @antenna_by_depth.setter
+    def antenna_by_depth(self, value):
+        """
+        Setter function for the `antenna_by_depth` attribute. Checks whether new value is boolean before assigning
+        the value to the attribute.
+        """
+        if isinstance(value, bool):
+            self.__assume_inf = value
+        else:
+            raise ValueError(f"Value for antenna_by_depth should be boolean, not {type(value)}")
 
     def __query_channel(self, station_id, channel_id):
         Channel = Query()
@@ -570,9 +609,11 @@ class DetectorBase(object):
             'auger': (-35.10, -69.55),
             'mooresbay': (-78.74, 165.09),
             'southpole': (-90., 0.),
-            'summit': (72.57, -38.46)
+            'summit': (72.57, -38.46),
+            'lofar': (52.92, 6.87),
+            'ska': (-26.825, 116.764),
         }
-        site = self.get_site(station_id)
+        site = self.get_site(station_id).lower()
         if site in sites.keys():
             return sites[site]
         return (None, None)
@@ -911,6 +952,57 @@ class DetectorBase(object):
         else:
             antenna_model = antenna_type
         return antenna_model
+
+    def get_channel_group_id(self, station_id, channel_id):
+        """
+        returns the group ID of a channel. If the channel has no group ID, the channel ID is returned.
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns
+        -------
+        group_id : int
+            the channel group ID
+        """
+        res = self.__get_channel(station_id, channel_id)
+        if 'channel_group_id' not in res:
+            logger.info(
+                'Channel group ID not set for channel {} in station {}, returning channel_id'.format(
+                    channel_id, station_id))
+            return channel_id
+        else:
+            return res['channel_group_id']
+        
+    def get_antenna_mode(self, station_id, channel_id):
+        """
+        returns the antenna mode of a given channel - this is specific to LOFAR antennas, as they operate in either inner or outer mode.
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns
+        -------
+        ant_mode : str
+            the antenna mode (LBA inner/outer)
+        """
+
+        res = self.__get_channel(station_id, channel_id)
+        if 'ant_mode' not in res.keys():
+            logger.warning(
+                'Antenna mode not set for channel {} in station {}, returning None'.format(
+                    channel_id, station_id))
+            return None
+        else:
+            return res['ant_mode']
 
     def get_noise_RMS(self, station_id, channel_id, stage='amp'):
         """

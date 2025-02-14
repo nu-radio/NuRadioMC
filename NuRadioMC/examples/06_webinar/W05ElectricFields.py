@@ -3,6 +3,7 @@ from NuRadioMC.SignalGen.askaryan import get_time_trace, get_frequency_spectrum
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 """
 This file shows how to use the electric field modules for standalone calculations.
 First we start defining all the input parameters for the function get_time_trace

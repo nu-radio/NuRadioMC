@@ -10,7 +10,7 @@ import copy
 import time
 import logging
 
-logger = logging.getLogger('rnog_surface_trigger')
+logger = logging.getLogger('NuRadioReco.rnog_surface_trigger')
 
 def schottky_diode(trace, threshold, temperature=250*units.kelvin, Vbias=2*units.volt):
     '''
@@ -127,20 +127,20 @@ class triggerSimulator:
 
         t = time.time()  # absolute time of system
 
-        sampling_rate = station.get_channel(det.get_channel_ids(station.get_id())[0]).get_sampling_rate()
+        if triggered_channels is None:
+            tmp_channel = station.get_trigger_channel(station.get_channel_ids()[0])
+        else:
+            tmp_channel = station.get_trigger_channel(triggered_channels[0])
+
+        channel_trace_start_time = tmp_channel.get_trace_start_time()
+        sampling_rate = tmp_channel.get_sampling_rate()
+
         dt = 1. / sampling_rate
 
         triggered_bins_channels = []
         channels_that_passed_trigger = []
 
-        if triggered_channels is None:  # caveat: all channels start at the same time
-            for channel in station.iter_channels():
-                channel_trace_start_time = channel.get_trace_start_time()
-                break
-        else:
-            channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
-
-        for channel in station.iter_channels():
+        for channel in station.iter_trigger_channels():
             channel_id = channel.get_id()
             logger.debug(f'channel id {channel_id}')
             if triggered_channels is not None and channel_id not in triggered_channels:
@@ -196,7 +196,6 @@ class triggerSimulator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

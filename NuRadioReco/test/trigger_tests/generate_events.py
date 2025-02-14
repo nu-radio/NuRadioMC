@@ -4,6 +4,9 @@ import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 from NuRadioMC.simulation import simulation
 
+
+
+
 # initialize detector sim modules
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
