@@ -143,7 +143,7 @@ class triggerBoardResponse:
             det_channel = det.get_channel(station.get_id(), channel_id)
             noise_count = det_channel["trigger_adc_noise_count"]
             total_bits = det_channel["trigger_adc_nbits"]
-            adc_input_range = det_channel["trigger_adc_voltage_range"]
+            adc_input_range = det_channel["trigger_adc_max_voltage"] - det_channel["trigger_adc_min_voltage"]
 
             volts_per_adc = adc_input_range / (2 ** total_bits - 1)
             ideal_vrms = volts_per_adc * noise_count
