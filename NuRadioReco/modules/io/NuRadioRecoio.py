@@ -189,24 +189,9 @@ class NuRadioRecoio(object):
                         self.__event_headers[station_id][key] = []
 
                     if key == stnp.station_time:
-<<<<<<< HEAD
-                        import astropy.time
-                        station_time = None
-                        if value is not None:
-                            if isinstance(value, dict):
-                                station_time = astropy.time.Time(value["value"], format=value["format"])
-                            # For backward compatibility, we also keep supporting station times stored as astropy.time objects
-                            elif isinstance(value, astropy.time.Time):
-                                station_time = value
-                            else:
-                                err = f"Station time not stored as dict or astropy.time.Time: ({type(value)})"
-                                self.logger.error(err)
-                                raise ValueError(err)
-=======
                         station_time = io_utilities._time_object_to_astropy(value)
 
                         if station_time is not None:
->>>>>>> 4105940e1566fa7cf3cad03cd31c5636903c4a13
                             try:
                                 station_time.format = 'isot'
                             except AttributeError:
