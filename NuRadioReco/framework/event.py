@@ -94,7 +94,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
                 iE += 1
                 yield self.__modules_event[iE - 1]
 
-    def has_been_processed_by_module(self, module_name):
+    def has_been_processed_by_module(self, module_name, station_id):
         """
         Checks if the event has been processed by a module with a specific name.
 
@@ -102,12 +102,14 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         ----------
         module_name: str
             The name of the module to check for.
+        station_id: int
+            The station id for which the module is run.
 
         Returns
         -------
         bool
         """
-        for module in self.__modules_event:
+        for module in self.iter_modules(station_id):
             if module[0] == module_name:
                 return True
 
