@@ -36,7 +36,7 @@ class triggerBoardResponse:
         """
         self._adc = analogToDigitalConverter(log_level=self._log_level)
         self._clock_offset = clock_offset
-        self._adc_output = adc_output
+        self.adc_output = adc_output
 
         # Table 21 in https://www.analog.com/media/en/technical-documentation/data-sheets/hmcad1511.pdf
         self._triggerBoardAmplifications = np.array([1, 1.25, 2, 2.5, 4, 5, 8, 10, 12.5, 16, 20, 25, 32, 50])
@@ -216,7 +216,7 @@ class triggerBoardResponse:
                 adc_type="perfect_floor_comparator",
                 trigger_filter=None,  # Applied already
                 clock_offset=self._clock_offset,
-                adc_output=self._adc_output,
+                adc_output=self.adc_output,
                 return_sampling_frequency=True,
             )
 
@@ -265,7 +265,7 @@ class triggerBoardResponse:
 
         if digitize_trace:
             self.digitize_trace(station, det, trigger_channels, ideal_vrms)
-            if self._adc_output == "counts":
+            if self.adc_output == "counts":
                 lsb_voltage = self._adc_input_range / (2 ** self._nbits - 1)
                 # We do not floor/convert the vrms to integers here. But this has to happen before the trigger.
                 equalized_vrms = equalized_vrms / lsb_voltage
