@@ -2,6 +2,13 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 2.2.2
+bugfixes:
+- Change to the way numpy objects are stored inside .nur files. This ensures .nur
+  files created with both numpy>2 or numpy<2 are readable by either version.
+- Fixed a bug where .nur files created with an older version of astropy can not
+  be read with a newer version due to pickling incompatibility.
+
 version 2.2.1
 bugfixes:
 - readRNOGDataMattak: fix bug where .root files would not be found if they are passed as relative paths (instead of absolute paths or folder)
