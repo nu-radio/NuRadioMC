@@ -147,6 +147,28 @@ class channelReadoutWindowCutter:
 
 
 def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
+    """
+    Returns a channel with a trace containing zeros. The trace start time is given by the trigger, 
+    the duration of the trace is determined by the detector description, and the number of samples 
+    determined by the duration and the given sampling rate.
+
+    Parameters
+    ----------
+    station_id: int
+        The station id
+    
+    channel_id: int
+        The channel id
+
+    detector: `NuRadioReco.detector.detector.Detector`
+        The detector description
+
+    trigger: `NuRadioReco.framework.trigger.Trigger`
+        The trigger that triggered the station
+
+    sampling_rate: float
+        The sampling rate of the channel
+    """
     channel = NuRadioReco.framework.channel.Channel(channel_id)
 
     # Get the correct number of sample for the final sampling rate
