@@ -19,7 +19,7 @@ and for the detector simulation and event reconstruction part
 
 NuRadioMC is continuously improved and new features are being added. The following papers document new features (in reverse chronological order):
 
-* N. Heyer and C. Glaser, “First-principle calculation of birefringence effects for in-ice radio detection of neutrinos”, [arXiv:2205.06169](https://arxiv.org/abs/2205.15872)  (adds birefringence modelling to NuRadioMC)
+* N. Heyer and C. Glaser, “First-principle calculation of birefringence effects for in-ice radio detection of neutrinos”, [Astroparticle Physics 145 (2023) 102781](https://doi.org/10.1016/j.astropartphys.2022.102781) [arXiv:2205.06169](https://arxiv.org/abs/2205.15872)  (adds birefringence modelling to NuRadioMC)
 
 * B. Oeyen, I. Plaisier, A. Nelles, C. Glaser, T. Winchen, "Effects of firn ice models on radio neutrino simulations using a RadioPropa ray tracer", [PoS(ICRC2021)1027](https://doi.org/10.22323/1.395.1027)  (adds numerical ray tracer RadioPropa to allow signal propagation in arbitrary 3D index-of-refraction profiles)
 
@@ -28,18 +28,25 @@ NuRadioMC is continuously improved and new features are being added. The followi
 * D. García-Fernández, C. Glaser and A. Nelles, “The signatures of secondary leptons in radio-neutrino detectors in ice”, [Phys. Rev. D 102, 083011](https://dx.doi.org/10.1103/PhysRevD.102.083011), [arXiv:2003.13442](https://arxiv.org/abs/2003.13442) (addition of secondary interactions of muons and taus) 
 
 
-If you would like to contribute, please contact @cg-laser or @anelles for permissions to work on NuRadioMC. We work with pull requests only that can be merged after review.
+If you would like to contribute, please contact @cg-laser or @anelles for permission to work on NuRadioMC. We work with pull requests only that can be merged after review.
 Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html for details on our workflow and coding conventions.
 
 
 ## Publications builing up on NuRadioMC/Reco
-NuRadioMC is used in an increasing number of studies. To get an overview for what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
+NuRadioMC is used in an increasing number of studies. To get an overview of what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
+* A. Nozdrina and D. Besson, "Implications of in-ice volume scattering for radio-frequency neutrino experiments", Journal of Cosmology and Astroparticle Physics 10(2024)086, [doi:10.1088/1475-7516/2024/10/086](https://doi.org/10.1088/1475-7516/2024/10/086)
+* F. Testagrossa, D. F. G. Fiorillo, and M. Bustamante, "Two-detector flavor sensitivity to ultrahigh-energy cosmic neutrinos", Phys. Rev. D 110, 083026 (2024), [doi:10.1103/PhysRevD.110.083026](https://doi.org/10.1103/PhysRevD.110.083026)
+* M. Ravn, C. Glaser, T. Glüsenkamp, A. Coleman, "Likelihood reconstruction of radio signals of neutrinos and cosmic rays", Proceedings of ARENA2024, [arXiv:2409.11888](https://arxiv.org/abs/2409.11888)
+* M. Mukhopadhyay, K. Kotera, S. Wissel, K. Murase, S. Kimura, "Ultrahigh-energy neutrino searches using next-generation gravitational wave detectors at radio neutrino detectors: GRAND, IceCube-Gen2 Radio, and RNO-G", [Phys.Rev.D 110 (2024) 6, 063004](https://doi.org/10.1103/PhysRevD.110.063004) arXiv:2406.19440
+* A. Coleman, O. Ericsson, C. Glaser, and M. Bustamante, "Flavor composition of ultrahigh-energy cosmic neutrinos: Measurement forecasts for in-ice radio-based EeV neutrino telescopes", [Phys. Rev. D 110, 023044 (2024)](https://doi.org/10.1103/PhysRevD.110.023044)
+* RNO-G collaboration, "Solar flare observations with the Radio Neutrino Observatory Greenland (RNO-G)", [Astroparticle Physics 164 (2025) 103024](https://doi.org/10.1016/j.astropartphys.2024.103024)
+* S. De Kockere et al., "Simulation of radio signals from cosmic-ray cascades in air and ice as observed by in-ice Askaryan radio detectors", (Phys.Rev.D 110 (2024) 2, 023010)[https://doi.org/10.1103/PhysRevD.110.023010]
 * V. Valera, M. Bustamante, O. Mena, "Joint measurement of the ultra-high-energy neutrino spectrum and cross section", [arXiv:2308.07709](https://arxiv.org/abs/2308.07709)
 * IceCube-Gen2 collaboration, [IceCube-Gen2 Technical Design Report](https://icecube-gen2.wisc.edu/science/publications/TDR)
 * ARIANNA collaboration (A. Anker et al.), "Developing New Analysis Tools for Near Surface Radio-based Neutrino Detectors", [arXiv:2307.07188](https://arxiv.org/abs/2307.07188)
 * L. Pyras, C. Glaser S. Hallmann and A. Nelles, "Atmospheric muons at PeV energies in radio neutrino detectors", JCAP 10 (2023) 043, [arXiv:2307.04736](https://arxiv.org/abs/2307.04736)
-* I. Plaisier, S. Bouma, A. Nelles, "Reconstructing the arrival direction of neutrinos in deep in-ice radio detectors", [arXiv:2302.00054](https://arxiv.org/abs/2302.00054)
+* I. Plaisier, S. Bouma, A. Nelles, "Reconstructing the arrival direction of neutrinos in deep in-ice radio detectors", [Eur. Phys. J. C 83, 443 (2023)](https://doi.org/10.1140/epjc/s10052-023-11604-w) [arXiv:2302.00054](https://arxiv.org/abs/2302.00054)
 * S. Bouma, A. Nelles for the IceCube-Gen2 collaboration, "Direction reconstruction performance for IceCube-Gen2 Radio", [PoS(ICRC2023)1045](https://pos.sissa.it/444/1045/pdf)
 * F. Schlüter and S. Toscano for the IceCube-Gen2 collaboration, "Estimating the coincidence rate between the optical and radio array of IceCube-Gen2", [PoS(ICRC2023)1022](https://pos.sissa.it/444/1022/pdf)
 * C. Glaser, A. Coleman and T. Glusenkamp, "NuRadioOpt: Optimization of Radio Detectors of Ultra-High Energy Neutrinos through Deep Learning and Differential Programming", [PoS(ICRC2023)1114](https://pos.sissa.it/444/1114/pdf) 

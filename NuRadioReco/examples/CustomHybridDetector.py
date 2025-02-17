@@ -6,6 +6,8 @@ import NuRadioReco.detector.detector
 import pickle
 import datetime
 import numpy
+
+
 """
 To accomodate radio experiments that are part of a hybrid detector, NuRadioReco
 can support custom detector classes and write them into  NuRadioReco event files.

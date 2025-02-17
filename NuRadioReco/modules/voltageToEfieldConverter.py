@@ -13,7 +13,7 @@ import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
-logger = logging.getLogger('voltageToEfieldConverter')
+logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
@@ -97,7 +97,19 @@ def stacked_lstsq(L, b, rcond=1e-10):
     Solve L x = b, via SVD least squares cutting of small singular values
     L is an array of shape (..., M, N) and b of shape (..., M).
     Returns x of shape (..., N)
+
+    Note that if L is symmetric, it is inverted analytically instead.
     """
+    if L.shape[-2] == L.shape[-1]: # try analytic matrix inversion if possible
+
+        if L.shape[-1] == 2: # use explicit formula for matrix inverse
+            denom = (L[:,0,0] * L[:,1,1] - L[:,0,1] * L[:,1,0])
+            e_theta = (b[:,0] * L[:,1,1] - b[:,1] * L[:,0,1]) / denom
+            e_phi = (b[:,1] - L[:,1,0] * e_theta) / L[:,1,1]
+            return np.stack((e_theta, e_phi), axis=-1)
+        else:
+            return np.sum(np.linalg.inv(L) * b[:, None], axis=-1)
+
     u, s, v = np.linalg.svd(L, full_matrices=False)
     s_max = s.max(axis=-1, keepdims=True)
     s_min = rcond * s_max
@@ -110,11 +122,17 @@ def stacked_lstsq(L, b, rcond=1e-10):
 
 class voltageToEfieldConverter:
     """
-    This module reconstructs the electric field by solving the system of equation that related the incident electric field via the antenna response functions to the measured voltages
-    (see Eq. 4 of the NuRadioReco paper https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5).
-    The module assumed that the electric field is identical at the antennas/channels that are used for the reconstruction. Furthermore, at least two antennas with
+    Unfold the electric field from the channel voltages
+
+    This module reconstructs the electric field by solving the system of equation
+    that relate the incident electric field via the antenna response functions
+    to the measured voltages (see Eq. 4 of the NuRadioReco paper
+    https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5).
+    The module assumed that the electric field is identical at the antennas/channels
+    that are used for the reconstruction. Furthermore, at least two antennas with
     orthogonal polarization response are needed to reconstruct the 3dim electric field.
-    Alternatively, the polarization of the resulting efield could be forced to a single polarization component. In that case, a single antenna is sufficient.
+    Alternatively, the polarization of the resulting efield could be forced to a
+    single polarization component. In that case, a single antenna is sufficient.
     """
 
     def __init__(self):
@@ -132,17 +150,17 @@ class voltageToEfieldConverter:
 
         Parameters
         ----------
-        evt
-        station
-        det
+        evt : `NuRadioReco.framework.event.Event`
+        station : `NuRadioReco.framework.base_station.BaseStation`
+        det : Detector object
         use_channels: array of ints (default: [0, 1, 2, 3])
             the channel ids to use for the electric field reconstruction
-        use_MC_direction: bool
-            if True uses zenith and azimuth direction from simulated station
-            if False uses reconstructed direction from station parameters.
-        force_Polarization: str
-            if eTheta or ePhi, then only reconstructs chosen polarization of electric field,
-            assuming the other is 0. Otherwise, reconstructs electric field for both eTheta and ePhi
+        use_MC_direction: bool, default: False
+            If True uses zenith and azimuth direction from simulated station.
+            Otherwise, uses reconstructed direction from station parameters.
+        force_Polarization: str, optional
+            If eTheta or ePhi, then only reconstructs chosen polarization of electric field,
+            assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi
         """
         if use_channels is None:
             use_channels = [0, 1, 2, 3]
@@ -158,31 +176,23 @@ class voltageToEfieldConverter:
 
         efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
         n_frequencies = len(V[0])
-        denom = (efield_antenna_factor[0][0] * efield_antenna_factor[1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[1][0])
-        mask = np.abs(denom) != 0
-        # solving for electric field using just two orthorgonal antennas
-        E1 = np.zeros_like(V[0])
-        E2 = np.zeros_like(V[0])
-        E1[mask] = (V[0] * efield_antenna_factor[1][1] - V[1] * efield_antenna_factor[0][1])[mask] / denom[mask]
-        E2[mask] = (V[1] - efield_antenna_factor[1][0] * E1)[mask] / efield_antenna_factor[1][1][mask]
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
         mask = np.abs(denom) != 0
-        E1[mask] = (V[0] * efield_antenna_factor[-1][1] - V[-1] * efield_antenna_factor[0][1])[mask] / denom[mask]
-        E2[mask] = (V[-1] - efield_antenna_factor[-1][0] * E1)[mask] / efield_antenna_factor[-1][1][mask]
-        # solve it in a vectorized way
-        efield3_f = np.zeros((2, n_frequencies), dtype=complex)
-        if force_Polarization == 'eTheta':
-            efield3_f[:1, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 0, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
-        elif force_Polarization == 'ePhi':
-            efield3_f[1:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 1, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
-        else:
-            efield3_f[:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
-        # add eR direction
-        efield3_f = np.array([np.zeros_like(efield3_f[0], dtype=complex),
-                             efield3_f[0],
-                             efield3_f[1]])
 
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, [0, 0, 0])
+        # solve it in a vectorized way
+        efield3_f = np.zeros((3, n_frequencies), dtype=complex)
+        if force_Polarization == 'eTheta':
+            efield3_f[1:2, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 0, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+        elif force_Polarization == 'ePhi':
+            efield3_f[2:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 1, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+        else:
+            efield3_f[1:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+
+        efield_position = np.mean([
+            det.get_relative_position(station.get_id(), channel_id)
+            for channel_id in use_channels], axis=0)
+
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, efield_position)
         electric_field.set_frequency_spectrum(efield3_f, station.get_channel(use_channels[0]).get_sampling_rate())
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)

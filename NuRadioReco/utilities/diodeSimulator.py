@@ -7,7 +7,7 @@ from NuRadioReco.utilities.fft import time2freq, freq2time
 from scipy.signal import butter, freqs
 import NuRadioReco.framework.channel
 
-logger = logging.getLogger('diodeSimulator')
+logger = logging.getLogger('NuRadioReco.diodeSimulator')
 
 
 class diodeSimulator:

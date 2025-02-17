@@ -1,28 +1,46 @@
 from __future__ import absolute_import, division, print_function
+
+from NuRadioReco.utilities import fft, bandpass_filter
+import NuRadioReco.detector.response
+
 import numpy as np
 import logging
 import fractions
 import decimal
 import numbers
-from NuRadioReco.utilities import fft, bandpass_filter
+import functools
 import scipy.signal
 import copy
 import pickle
-logger = logging.getLogger("BaseTrace")
+logger = logging.getLogger("NuRadioReco.BaseTrace")
 
 
 class BaseTrace:
 
-    def __init__(self):
+    def __init__(self, trace=None, sampling_rate=None, trace_start_time=0):
+        """
+        Initialize the BaseTrace object.
+
+        Parameters
+        ----------
+        trace : np.array of floats (default: None)
+            The time trace. Can also be set later with the `set_trace` method.
+        sampling_rate : float (default: None)
+            The sampling rate of the trace, i.e., the inverse of the bin width.
+        trace_start_time : float (default: 0)
+            The start time of the trace.
+        """
         self._sampling_rate = None
         self._time_trace = None
         self._frequency_spectrum = None
         self.__time_domain_up_to_date = True
-        self._trace_start_time = 0
+        self._trace_start_time = trace_start_time
+        if trace is not None:
+            self.set_trace(trace, sampling_rate)
 
     def get_trace(self):
         """
-        returns the time trace.
+        Returns the time trace.
 
         If the frequency spectrum was modified before,
         an ifft is performed automatically to have the time domain representation
@@ -58,43 +76,93 @@ class BaseTrace:
         spec *= filter_response
         return fft.freq2time(spec, self.get_sampling_rate())
 
-    def get_frequency_spectrum(self):
-        if self.__time_domain_up_to_date:
-            self._frequency_spectrum = fft.time2freq(self._time_trace, self._sampling_rate)
-            self._time_trace = None
-            # logger.debug("frequency spectrum has shape {}".format(self._frequency_spectrum.shape))
-            self.__time_domain_up_to_date = False
-        return np.copy(self._frequency_spectrum)
-
-    def set_trace(self, trace, sampling_rate):
+    def get_frequency_spectrum(self, window_mask=None):
         """
-        sets the time trace
+        Returns the frequency spectrum.
 
         Parameters
         ----------
-        trace: np.array of floats
-            the time series
-        sampling_rate: float
-            the sampling rage of the trace, i.e., the inverse of the bin width
+        window_mask: array of bools (default: None)
+            If not None, specifies the time window to be used for the FFT. Has to have the same length as the trace.
+
+        Returns
+        -------
+        frequency_spectrum: np.array of floats
+            The frequency spectrum.
+        """
+        if window_mask is None:
+            if self.__time_domain_up_to_date:
+                self._frequency_spectrum = fft.time2freq(self._time_trace, self._sampling_rate)
+                self._time_trace = None
+                self.__time_domain_up_to_date = False
+
+            return np.copy(self._frequency_spectrum)
+        else:
+            trace = copy.copy(self.get_trace())
+            # The double transpose allows to work with 1D and ND traces
+            return fft.time2freq(trace.T[window_mask].T, self._sampling_rate)
+
+    def set_trace(self, trace, sampling_rate):
+        """
+        Sets the time trace.
+
+        Parameters
+        ----------
+        trace : np.array of floats
+            The time series
+        sampling_rate : float or str
+            The sampling rate of the trace, i.e., the inverse of the bin width.
+            If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
         """
         if trace is not None:
             if trace.shape[trace.ndim - 1] % 2 != 0:
-                raise ValueError(('Attempted to set trace with an uneven number ({}) of samples. '
-                                 'Only traces with an even number of samples are allowed.').format(trace.shape[trace.ndim - 1]))
+                raise ValueError(
+                    f'Attempted to set trace with an uneven number ({trace.shape[trace.ndim - 1]}) '
+                    'of samples. Only traces with an even number of samples are allowed.')
         self.__time_domain_up_to_date = True
         self._time_trace = np.copy(trace)
-        self._sampling_rate = sampling_rate
+
         self._frequency_spectrum = None
 
+        if isinstance(sampling_rate, str) and sampling_rate.lower() == "same":
+            if self._sampling_rate is None:
+                raise ValueError(
+                    "You specified to keep the sampling rate but no value have been set previously.")
+                pass  # keep value of self._sampling_rate
+        elif sampling_rate is not None:
+            self._sampling_rate = sampling_rate
+        else:
+            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_trace(...)`")
+
     def set_frequency_spectrum(self, frequency_spectrum, sampling_rate):
+        """
+        Sets the frequency spectrum.
+
+        Parameters
+        ----------
+        frequency_spectrum : np.array of floats
+            The frequency spectrum
+        sampling_rate : float or str
+            The sampling rate of the trace, i.e., the inverse of the bin width.
+            If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
+        """
         self.__time_domain_up_to_date = False
         self._frequency_spectrum = np.copy(frequency_spectrum)
-        self._sampling_rate = sampling_rate
         self._time_trace = None
+
+        if isinstance(sampling_rate, str) and sampling_rate.lower() == "same":
+            if self._sampling_rate is None:
+                raise ValueError(
+                    "You specified to keep the sampling rate but no value have been set previously.")
+            pass  # keep value of self._sampling_rate
+        elif sampling_rate is not None:
+            self._sampling_rate = sampling_rate
+        else:
+            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`")
 
     def get_sampling_rate(self):
         """
-        returns the sampling rate of the trace
+        Returns the sampling rate of the trace.
 
         Returns
         -------
@@ -106,9 +174,11 @@ class BaseTrace:
     def get_times(self):
         try:
             length = self.get_number_of_samples()
-            times = np.arange(0, length / self._sampling_rate - 0.1 / self._sampling_rate, 1. / self._sampling_rate) + self._trace_start_time
+            times = np.arange(0, length / self._sampling_rate - 0.1 / self._sampling_rate,
+                1. / self._sampling_rate) + self._trace_start_time
             if len(times) != length:
-                err = f"time array does not have the same length as the trace. n_samples = {length:d}, sampling rate = {self._sampling_rate:.5g}"
+                err = ("time array does not have the same length as the trace. "
+                    f"n_samples = {length:d}, sampling rate = {self._sampling_rate:.5g}")
                 logger.error(err)
                 raise ValueError(err)
         except (ValueError, AttributeError):
@@ -124,9 +194,26 @@ class BaseTrace:
     def get_trace_start_time(self):
         return self._trace_start_time
 
-    def get_frequencies(self):
-        length = self.get_number_of_samples()
-        return np.fft.rfftfreq(length, d=(1. / self._sampling_rate))
+    def get_frequencies(self, window_mask=None):
+        """
+        Returns the frequencies of the frequency spectrum.
+
+        Parameters
+        ----------
+        window_mask: array of bools (default: None)
+            If not None, used to determine the number of samples in the time domain used for the frequency spectrum.
+
+        Returns
+        -------
+        frequencies: np.array of floats
+            The frequencies of the frequency spectrum.
+        """
+        if window_mask is None:
+            nsamples = self.get_number_of_samples()
+        else:
+            nsamples = int(np.sum(window_mask))
+
+        return get_frequencies(nsamples, self._sampling_rate)
 
     def get_hilbert_envelope(self):
         from scipy import signal
@@ -140,7 +227,7 @@ class BaseTrace:
 
     def get_number_of_samples(self):
         """
-        returns the number of samples in the time domain
+        Returns the number of samples in the time domain.
 
         Returns
         -------
@@ -170,6 +257,7 @@ class BaseTrace:
         """
         if delta_t > .1 * self.get_number_of_samples() / self.get_sampling_rate() and not silent:
             logger.warning('Trace is shifted by more than 10% of its length')
+
         spec = self.get_frequency_spectrum()
         spec *= np.exp(-2.j * np.pi * delta_t * self.get_frequencies())
         self.set_frequency_spectrum(spec, self._sampling_rate)
@@ -208,6 +296,76 @@ class BaseTrace:
         self.set_trace(data['time_trace'], data['sampling_rate'])
         if 'trace_start_time' in data.keys():
             self.set_trace_start_time(data['trace_start_time'])
+
+    def add_to_trace(self, channel):
+        """
+        Adds the trace of another channel to the trace of this channel. The trace is only added within the
+        time window of "this" channel.
+        If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a
+        _time_trace containing zeros, this function can be seen as recording a channel in the specified
+        readout window.
+
+        Parameters
+        ----------
+        channel: BaseTrace
+            The channel whose trace is to be added to the trace of this channel.
+        """
+
+        assert self.get_number_of_samples() is not None, "No trace is set for this channel"
+        assert self.get_sampling_rate() == channel.get_sampling_rate(), "Sampling rates of the two channels do not match"
+
+        tt_readout = self.get_times()
+        t0_readout = self.get_trace_start_time()
+        t1_readout = tt_readout[-1]
+        sampling_rate_readout = self.get_sampling_rate()
+        n_samples_readout = self.get_number_of_samples()
+
+        tt_channel = channel.get_times()
+        t0_channel = channel.get_trace_start_time()
+        t1_channel = tt_channel[-1]
+        sampling_rate_channel = channel.get_sampling_rate()
+        n_samples_channel = channel.get_number_of_samples()
+
+        # We handle 1+2x2 cases:
+        # 1. Channel is completely outside readout window:
+        if t1_channel < t0_readout or t1_readout < t0_channel:
+            return
+        # 2. Channel starts before readout window:
+        if t0_channel < t0_readout:
+            i_start_readout = 0
+            t_start_readout = t0_readout
+            i_start_channel = int((t0_readout-t0_channel) * sampling_rate_channel) + 1 # The first bin of channel inside readout
+            t_start_channel = tt_channel[i_start_channel]
+        # 3. Channel starts after readout window:
+        elif t0_channel >= t0_readout:
+            i_start_readout = int((t0_channel-t0_readout) * sampling_rate_readout) # The bin of readout right before channel starts
+            t_start_readout = tt_readout[i_start_readout]
+            i_start_channel = 0
+            t_start_channel = t0_channel
+        # 4. Channel ends after readout window:
+        if t1_channel >= t1_readout:
+            i_end_readout = n_samples_readout - 1
+            t_end_readout = t1_readout
+            i_end_channel = int((t1_readout - t0_channel) * sampling_rate_channel) + 1 # The bin of channel right after readout ends
+            t_end_channel = tt_channel[i_end_channel]
+        # 5. Channel ends before readout window:
+        elif t1_channel < t1_readout:
+            i_end_readout = int((t1_channel - t0_readout) * sampling_rate_readout) # The bin of readout right before channel ends
+            t_end_readout = tt_readout[i_end_readout]
+            i_end_channel = n_samples_channel - 1
+            t_end_channel = t1_channel
+
+        # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
+        residual_time_offset = t_start_channel - t_start_readout
+        tmp_channel = copy.deepcopy(channel)
+        tmp_channel.apply_time_shift(residual_time_offset)
+        trace_to_add = tmp_channel.get_trace()[i_start_channel:i_end_channel]
+
+        # Add the trace to the original trace:
+        original_trace = self.get_trace()
+        original_trace[i_start_readout:i_end_readout] += trace_to_add
+        self.set_trace(original_trace, sampling_rate_readout)
+
 
     def __add__(self, x):
         """
@@ -305,6 +463,8 @@ class BaseTrace:
                 self._frequency_spectrum *= x
                 return self
             raise ValueError('Cant multiply baseTrace with number because no value is set for trace.')
+        elif isinstance(x, NuRadioReco.detector.response.Response):
+            return x * self  # operation defined in detector.response.Response
         else:
             raise TypeError('Multiplication of baseTrace object with object of type {} is not defined'.format(type(x)))
 
@@ -322,3 +482,7 @@ class BaseTrace:
             raise ValueError('Cant divide baseTrace by number because no value is set for trace.')
         else:
             raise TypeError('Division of baseTrace object with object of type {} is not defined'.format(type(x)))
+
+@functools.lru_cache(maxsize=1024)
+def get_frequencies(length, sampling_rate):
+    return np.fft.rfftfreq(length, d=1. / sampling_rate)

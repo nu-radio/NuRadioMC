@@ -17,11 +17,10 @@ import NuRadioReco.modules.electricFieldSignalReconstructor
 import NuRadioReco.modules.voltageToAnalyticEfieldConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.io.eventWriter
-from NuRadioReco.modules.base import module
 
 # Logging level
 import logging
-logger = module.setup_logger(level=logging.INFO)
+logger = logging.getLogger("NuRadioReco.SimpleMCReconstruction")   # Logging level is globally controlled
 
 plt.switch_backend('agg')
 
