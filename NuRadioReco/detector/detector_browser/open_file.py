@@ -20,7 +20,8 @@ layout = html.Div([
                         options=[
                             {'label': 'Detector', 'value': 'detector'},
                             {'label': 'Generic Detector', 'value': 'generic_detector'},
-                            {'label': 'Event File', 'value': 'event_file'}
+                            {'label': 'Event File', 'value': 'event_file'},
+                            {'label': 'RNO-G Detector', 'value': 'rnog_detector'}
                         ],
                         value='detector',
                         multi=False
@@ -99,10 +100,11 @@ layout = html.Div([
                 html.Div([
                     dcc.Slider(
                         id='detector-time-slider',
-                        value=10000,
+                        value=0,
                         min=0,
-                        max=1551092200,
-                        step=1000
+                        max=1000,
+                        step=1000,
+                        marks = {}
                     )
                 ], style={'flex': '1'}),
                 html.Button(
@@ -196,6 +198,9 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
     context = dash.callback_context
     options = []
 
+    if file_type == 'rnog_detector':
+        options.append({'label': "~ from Database ~", 'value': "from Database"})
+        return options
     if file_type == 'event_file':
         suffix = '/*.nur'
     else:
@@ -247,7 +252,7 @@ def open_detector(
     time_n_clicks: int
         Similar use as n_clicks, but for the
     """
-    if filename is None:
+    if (filename is None) and (detector_type != "rnog_detector"):
         return ''
     detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
     context = dash.callback_context
@@ -261,16 +266,6 @@ def open_detector(
     antenna_by_depth = antenna_options.count('antenna_by_depth') > 0
     if detector_type == 'detector':
         detector_provider.set_detector(filename, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
-        detector = detector_provider.get_detector()
-        unix_times = []
-        datetimes = []
-        for station_id in detector.get_station_ids():
-            for dt in detector.get_unique_time_periods(station_id):
-                if dt.unix not in unix_times:
-                    unix_times.append(dt.unix)
-                    datetimes.append(dt)
-        detector_provider.set_time_periods(unix_times, datetimes)
-        detector.update(np.array(datetimes)[np.argmin(unix_times)])
     elif detector_type == 'generic_detector':
         if len(need_defaults) > 0:
             detector_provider.set_generic_detector(filename, default_station, default_channel, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
@@ -278,6 +273,29 @@ def open_detector(
             detector_provider.set_generic_detector(filename, default_station=None, default_channel=None, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
     elif detector_type == 'event_file':
         detector_provider.set_event_file(filename)
+    elif detector_type == 'rnog_detector':
+        detector_provider.set_rnog_detector()
+    
+    if detector_type in ['detector', 'rnog_detector']:
+        now = astropy.time.Time.now()
+        detector = detector_provider.get_detector()
+        unix_times = [now.unix]
+        datetimes = [now]
+        if detector_type == 'detector':
+            for station_id in detector.get_station_ids():
+                for dt in detector.get_unique_time_periods(station_id):
+                    if dt.unix not in unix_times:
+                        unix_times.append(dt.unix)
+                        datetimes.append(dt)
+        else:
+            # messy list comprehension over all commission, decommission and modification timestamps for all stations in the database
+            for dt in np.concatenate([astropy.time.Time(k) for j in detector._time_periods_per_station.values() for k in j.values()]):
+                if dt.unix not in unix_times:
+                    unix_times.append(dt.unix)
+                    datetimes.append(dt)
+        detector_provider.set_time_periods(unix_times, datetimes)
+        detector.update(now)
+
     return n_clicks
 
 
@@ -342,11 +360,11 @@ def toggle_open_button_active(filename, detector_type, default_station, need_def
 
 @app.callback(
     Output('detector-time-div', 'style'),
-    [Input('load-detector-button', 'n_clicks'),
+    [Input('output-dummy', 'children'),
      Input('file-type-dropdown', 'value')]
 )
 def show_detector_time_slider(load_detector_click, detector_type):
-    if detector_type == 'detector':
+    if detector_type in ['detector', 'rnog_detector']:
         detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
         if detector_provider.get_detector() is not None:
             return {'z-index': '0'}
@@ -376,15 +394,16 @@ def set_detector_time_slider(load_detector_click, detector_type):
     detector_provider = NuRadioReco.detector.detector_browser.detector_provider.DetectorProvider()
     detector = detector_provider.get_detector()
     if detector is None:
-        return None, 0, 1, {}
-    if detector_type != 'detector':
-        return None, 0, 1, {}
+        return 0, 0, 1, {}
+    if detector_type not in ['detector', 'rnog_detector']:
+        return 0, 0, 1, {}
     unix_times, datetimes = detector_provider.get_time_periods()
     marks = {}
     for i_time, unix_time in enumerate(unix_times):
         datetimes[i_time].format = 'iso'
-        marks[unix_time] = {'label': str(datetimes[i_time].value)}
-    return detector.get_detector_time().unix, np.min(unix_times), np.max(unix_times), marks
+        marks[str(int(unix_time))] = datetimes[i_time].iso.split()[0]
+
+    return int(astropy.time.Time(detector.get_detector_time()).unix), int(np.min(unix_times)), int(np.max(unix_times)), marks
 
 
 @app.callback(

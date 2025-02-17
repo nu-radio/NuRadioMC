@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import NuRadioReco.framework.event
 import NuRadioReco.detector.detector
-import NuRadioReco.detector.generic_detector
 import NuRadioReco.modules.io.event_parser_factory
+from NuRadioReco.utilities import io_utilities
 
 import numpy as np
 import astropy.time
@@ -20,7 +20,7 @@ class NuRadioRecoio(object):
 
     def __init__(self, filenames, parse_header=True, parse_detector=True, fail_on_version_mismatch=True,
                  fail_on_minor_version_mismatch=False,
-                 max_open_files=10, log_level=None, buffer_size=104857600):
+                 max_open_files=10, log_level=logging.NOTSET, buffer_size=104857600):
         """
         Initialize NuRadioReco io
 
@@ -40,8 +40,8 @@ class NuRadioRecoio(object):
             Controls if the module should try to read files with a different minor version
         max_open_files: int
             the maximum number of files that remain open simultaneously
-        log_level: None or log level
-            the log level of this class
+        log_level: int, default=logging.NOTSET
+            Override the log level of this class
         buffer_size: int
             the size of the read buffer in bytes (default 100MB)
         """
@@ -52,8 +52,7 @@ class NuRadioRecoio(object):
         self.logger = logging.getLogger('NuRadioReco.NuRadioRecoio')
         self.logger.info("initializing NuRadioRecoio with file {}".format(filenames))
         t = time.time()
-        if log_level is not None:
-            self.logger.setLevel(log_level)
+        self.logger.setLevel(log_level)
 
         # Initialize attributes
         self._filenames = None
@@ -190,6 +189,7 @@ class NuRadioRecoio(object):
                         self.__event_headers[station_id][key] = []
 
                     if key == stnp.station_time:
+<<<<<<< HEAD
                         import astropy.time
                         station_time = None
                         if value is not None:
@@ -202,6 +202,11 @@ class NuRadioRecoio(object):
                                 err = f"Station time not stored as dict or astropy.time.Time: ({type(value)})"
                                 self.logger.error(err)
                                 raise ValueError(err)
+=======
+                        station_time = io_utilities._time_object_to_astropy(value)
+
+                        if station_time is not None:
+>>>>>>> 4105940e1566fa7cf3cad03cd31c5636903c4a13
                             try:
                                 station_time.format = 'isot'
                             except AttributeError:
@@ -349,7 +354,7 @@ class NuRadioRecoio(object):
         """
 
         if not self._parse_detector:
-            self.logger.warn(f"You called \"get_detector\", however, \"parse_detector\" is set to false. Return None!")
+            self.logger.warn("You called \"get_detector\", however, \"parse_detector\" is set to false. Return None!")
             return None
 
         # Check if detector object for current file already exists
@@ -365,21 +370,24 @@ class NuRadioRecoio(object):
                     return None
 
             detector_dict = self._detector_dicts[self._current_file_id]
-            if 'generic_detector' in detector_dict.keys():
+
+            # Extract keywords from detector dict (if not present in nur file, "detector_parameters" is empty dict)
+            assume_inf = detector_dict['detector_parameters'].get('assume_inf', None)
+            antenna_by_depth = detector_dict['detector_parameters'].get('antenna_by_depth', None)
+
+            if 'generic_detector' in detector_dict:
                 if detector_dict['generic_detector']:
+
                     # Detector is a generic detector, so we have to consider default
                     # station/channel and event-specific changes
-                    self.__detectors[self._current_file_id] = NuRadioReco.detector.generic_detector.GenericDetector.__new__(
-                        NuRadioReco.detector.generic_detector.GenericDetector)
                     # the use of default_station and default_channel is deprecated. Allow to
                     # set it for now, to ensure backward compatibility
-                    if 'default_station' not in detector_dict:
-                        detector_dict['default_station'] = None
-                    if 'default_channel' not in detector_dict:
-                        detector_dict['default_channel'] = None
-                    self.__detectors[self._current_file_id].__init__(
-                        source='dictionary', json_filename='', dictionary=detector_dict,
-                        default_station=detector_dict['default_station'], default_channel=detector_dict['default_channel'])
+                    self.__detectors[self._current_file_id] = NuRadioReco.detector.detector.Detector(
+                        source='dictionary', dictionary=detector_dict,
+                        default_station=detector_dict.get('default_station', None),
+                        default_channel=detector_dict.get('default_channel', None),
+                        assume_inf=assume_inf, antenna_by_depth=antenna_by_depth,
+                        create_new=True)
 
                     if self._current_file_id in self._event_specific_detector_changes.keys():
                         for change in self._event_specific_detector_changes[self._current_file_id]:
@@ -393,10 +401,11 @@ class NuRadioRecoio(object):
                     return self.__detectors[self._current_file_id]
 
             # Detector is a normal detector
-            self.__detectors[self._current_file_id] = NuRadioReco.detector.detector.Detector.__new__(
-                NuRadioReco.detector.detector.Detector)
-            self.__detectors[self._current_file_id].__init__(
-                source='dictionary', json_filename='', dictionary=self._detector_dicts[self._current_file_id])
+            self.__detectors[self._current_file_id] = NuRadioReco.detector.detector.Detector(
+                source='dictionary', dictionary=self._detector_dicts[self._current_file_id],
+                assume_inf=assume_inf, antenna_by_depth=antenna_by_depth,
+                create_new=True
+            )
 
         # Detector object for current file already exists. If it is a generic detector,
         # we update it to the run number and ID of the last event that was requested

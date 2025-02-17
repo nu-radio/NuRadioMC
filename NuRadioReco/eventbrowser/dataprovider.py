@@ -6,8 +6,7 @@ import os
 import time
 from NuRadioReco.modules.io import NuRadioRecoio
 
-logging.basicConfig()
-logger = logging.getLogger('eventbrowser.dataprovider')
+logger = logging.getLogger('NuRadioReco.eventbrowser.dataprovider')
 logger.setLevel(logging.INFO)
 
 try:

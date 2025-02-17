@@ -7,6 +7,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('filename', help='name of the file that should be compared to reference')
 parser.add_argument('reference_file', help='name of the reference file')
