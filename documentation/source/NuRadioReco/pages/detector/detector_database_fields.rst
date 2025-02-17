@@ -93,11 +93,11 @@ ADC Table
 We document here the properties that are part of the analog-to-digital converter (ADC) description.
 
 - `adc_nbits`: the number of bits of the ADC
-- `adc_voltage_range`: the voltage range in volts which is divided by 2**(adc_nbits)-1 to determine the voltage resolution
+- `adc_min_voltage`, `adc_max_voltage`: the voltage range in volts which is divided by 2**(adc_nbits)-1 to determine the voltage resolution
 - `adc_sampling_frequency`, the sampling frequency in GHz
 
 If the user wants to use an ADC for triggering but wants to keep the analog voltage waveforms or wants to use a different ADC for saving the channel data, the following properties can be used:
 
 - `trigger_adc_nbits`: the number of bits of the ADC for the trigger ADC
-- `trigger_adc_voltage_range`: the reference voltage in volts for the trigger ADC
+- `trigger_adc_min_voltage`, `trigger_adc_max_voltage`: the reference voltage in volts for the trigger ADC
 - `trigger_adc_sampling_frequency`, the sampling frequency in GHz for the trigger ADC

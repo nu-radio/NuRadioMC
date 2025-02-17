@@ -195,21 +195,15 @@ class analogToDigitalConverter:
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 
-
-            adc_voltage_label = field_prefix + "adc_voltage_range"
-            if adc_voltage_label in det_channel:
-                adc_voltage_range_tmp = det_channel[adc_voltage_label] * units.V
-
-                # make the assumption that the voltage range is symmetric around 0
-                adc_voltage_range = (-adc_voltage_range_tmp / 2, adc_voltage_range_tmp / 2)
-            elif field_prefix + "adc_min_voltage" in det_channel and field_prefix + "adc_max_voltage" in det_channel:
-                adc_voltage_range = (det_channel[field_prefix + "adc_min_voltage"] * units.V,
-                                     det_channel[field_prefix + "adc_max_voltage"] * units.V)
-            else:
+            if field_prefix + "adc_min_voltage" not in det_channel and field_prefix + "adc_max_voltage" not in det_channel:
                 raise ValueError(
-                    f"Neither the field \"{field_prefix}adc_voltage_range\" nor "
-                    f"\"{field_prefix}adc_min_voltage\" and \"{field_prefix}adc_max_voltage\" "
-                    "are present in channel {channel_id}. Please specify them in your detector file.")
+                    f"The fields \"{field_prefix}adc_min_voltage\" and \"{field_prefix}adc_max_voltage\" "
+                    f"are not present in channel {channel_id}. Please specify them in your detector file.")
+
+                adc_voltage_range = (
+                    det_channel[field_prefix + "adc_min_voltage"] * units.V,
+                    det_channel[field_prefix + "adc_max_voltage"] * units.V
+                )
         else:
             if field_prefix + "adc_noise_nbits" in det_channel:
                 error_msg = (
@@ -220,7 +214,6 @@ class analogToDigitalConverter:
                 )
                 logger.error(error_msg)
                 raise ValueError(error_msg)
-
 
             adc_noise_count_label = field_prefix + "adc_noise_count"
             if adc_noise_count_label not in det_channel:
