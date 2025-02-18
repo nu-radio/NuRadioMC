@@ -22,19 +22,19 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Run standard RNO-G data processing')
 
-    parser.add_argument('--filenames', type=str, nargs="*",
+    parser.add_argument('filenames', type=str, nargs="*",
                         help='Specify root data files if not specified in the config file')
     parser.add_argument('--outputfile', type=str, nargs=1, default=None)
     parser.add_argument('--detectorfile', type=str, nargs=1, default=None,
-                        help='Specify detector file. If you do not specified a file. "
+                        help="Specify detector file. If you do not specified a file. "
                         "the description is queried from the database.")
 
     args = parser.parse_args()
     nulogging.set_general_log_level(logging.WARNING)
 
     if args.outputfile is None:
-        if len(args.filenames) > 1:
-            raise ValueError("Please specify an output file")
+        if len(args.filenames) < 1:
+            raise ValueError("Please specify an input file")
 
         path = args.filenames[0]
 
