@@ -1,10 +1,3 @@
-import argparse
-import logging
-import time
-import os
-import numpy as np
-from matplotlib import pyplot as plt
-import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.RNO_G.dataProviderRNOG
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelResampler
@@ -12,6 +5,14 @@ import NuRadioReco.detector.RNO_G.rnog_detector
 from NuRadioReco.utilities import units, logging as nulogging
 
 from NuRadioReco.examples.RNOG.processing import process_event
+
+
+from matplotlib import pyplot as plt
+import numpy as np
+import argparse
+import logging
+import time
+import os
 
 logger = logging.getLogger("NuRadioReco.example.RNOG.rnog_standard_data_processing")
 logger.setLevel(nulogging.LOGGING_STATUS)
@@ -24,6 +25,9 @@ if __name__ == "__main__":
     parser.add_argument('--filenames', type=str, nargs="*",
                         help='Specify root data files if not specified in the config file')
     parser.add_argument('--outputfile', type=str, nargs=1, default=None)
+    parser.add_argument('--detectorfile', type=str, nargs=1, default=None,
+                        help='Specify detector file. If you do not specified a file. "
+                        "the description is queried from the database.")
 
     args = parser.parse_args()
     nulogging.set_general_log_level(logging.WARNING)
@@ -44,7 +48,7 @@ if __name__ == "__main__":
     logger.status(f"writing output to {args.outputfile}")
 
     # Initialize detector class
-    det = NuRadioReco.detector.RNO_G.rnog_detector.Detector()
+    det = NuRadioReco.detector.RNO_G.rnog_detector.Detector(detector_file=args.detectorfile)
 
     # Initialize io modules
     dataProviderRNOG = NuRadioReco.modules.RNO_G.dataProviderRNOG.dataProvideRNOG()
@@ -81,19 +85,22 @@ if __name__ == "__main__":
 
         # the following code is just an example of how to access station and channel information:
 
-        station = evt.get_station()  # this assumes that there is only one station per event. If multiple stations are present, use evt.get_stations() and iterate over them
+        # this assumes that there is only one station per event. If multiple stations are present,
+        # this will throw an error. Use evt.get_stations() to iterate over several stations.
+        station = evt.get_station()
 
         # the following code is just an example of how to access reconstructed parameters
         # (the ones that were calculated in the processing steps by the channelSignalReconstructor)
         from NuRadioReco.framework.parameters import channelParameters as chp
         max_SNR = 0
         for channel in station.iter_channels():
-            SNR = channel[chp.SNR]['peak_2_peak_amplitude'] # alternatively, channel.get_parameter(chp.SNR)
+            SNR = channel[chp.SNR]['peak_2_peak_amplitude']  # alternatively, channel.get_parameter(chp.SNR)
             max_SNR = max(max_SNR, SNR)
             signal_amplitude = channel[chp.maximum_amplitude_envelope]
             signal_time = channel[chp.signal_time]
 
-            print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude/units.mV:.2f}mV, signal time={signal_time/units.ns:.2f}ns")
+            print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
+                  f"signal time={signal_time / units.ns:.2f}ns")
 
 
         # the following code is just an example of how to access the channel waveforms and plot them
@@ -103,8 +110,8 @@ if __name__ == "__main__":
             fig, ax = plt.subplots(4, 2)
             for channel_id in range(4): # iterate over the first 4 channels
                 channel = station.get_channel(channel_id)
-                ax[channel_id, 0].plot(channel.get_times()/units.ns, channel.get_trace()/units.mV)  # plot the timetrace in nanoseconds vs. microvolts
-                ax[channel_id, 1].plot(channel.get_frequencies()/units.MHz, np.abs(channel.get_frequency_spectrum())/units.mV)  # plot the frequency spectrum in MHz vs. microvolts
+                ax[channel_id, 0].plot(channel.get_times()/units.ns, channel.get_trace() / units.mV)  # plot the timetrace in nanoseconds vs. microvolts
+                ax[channel_id, 1].plot(channel.get_frequencies() / units.MHz, np.abs(channel.get_frequency_spectrum()) / units.mV)  # plot the frequency spectrum in MHz vs. microvolts
                 ax[channel_id, 0].set_xlabel('Time [ns]')
                 ax[channel_id, 0].set_ylabel('Voltage [mV]')
                 ax[channel_id, 1].set_xlabel('Frequency [MHz]')
@@ -121,7 +128,7 @@ if __name__ == "__main__":
         # this will save disk space and make the data processing faster
         # Here, we implement a simple SNR cut as an example
         interesting_event = False
-        if(max_SNR > 5):
+        if max_SNR > 5:
             interesting_event = True  #determined by some analysis cuts
         # Write event - the RNO-G detector class is not stored within the nur files.
         if interesting_event:
