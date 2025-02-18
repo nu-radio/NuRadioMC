@@ -46,10 +46,16 @@ def perfect_comparator(trace, adc_n_bits, adc_voltage_range, output='voltage', m
 
     assert mode_func in [np.floor, np.ceil], "Choose floor or ceiing as modes for the comparator ADC"
 
-    digital_trace = mode_func(trace / lsb_voltage).astype(int)
+    # digital_trace = mode_func(trace / lsb_voltage).astype(int)
+    # v_min_adc = mode_func(adc_voltage_range[0] / lsb_voltage).astype(int)
+
+    # digital_trace -= v_min_adc
+    # digital_trace = apply_saturation(digital_trace, adc_n_bits)
+    # digital_trace += v_min_adc
+
+    digital_trace = mode_func((trace - adc_voltage_range[0]) / lsb_voltage).astype(int)
     v_min_adc = mode_func(adc_voltage_range[0] / lsb_voltage).astype(int)
 
-    digital_trace -= v_min_adc
     digital_trace = apply_saturation(digital_trace, adc_n_bits)
     digital_trace += v_min_adc
 
