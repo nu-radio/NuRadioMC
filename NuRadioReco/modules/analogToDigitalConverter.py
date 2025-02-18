@@ -24,7 +24,7 @@ def perfect_comparator(trace, adc_n_bits, adc_voltage_range, output='voltage', m
     adc_n_bits: int
         Number of bits of the ADC
     adc_voltage_range: (float, float)
-        Is a tuple (Vmin, Vmax) defining the voltage range where V_max corresponds to the maximum number of counts given by the
+        Is a tuple (Vmin, Vmax) defining the "full scale" voltage range where V_max corresponds to the maximum number of counts given by the
         ADC 2**adc_n_bits - 1 and V_min to the ADC count 0.
     output: {'voltage', 'counts'}, default 'voltage'
         Options:
@@ -39,19 +39,22 @@ def perfect_comparator(trace, adc_n_bits, adc_voltage_range, output='voltage', m
     -------
     digital_trace: array of floats
         Digitised voltage trace in volts or ADC counts
+
+    Notes
+    -----
+    There is often some ambiguity in the definition of the "Least Significant Bit" (i.e., resolution) for an ADC.
+    People either define it as lsb = V / 2^n or lsb = V / (2^n - 1). As you can see we are adopting the latter. The ambiguity
+    comes from an amibguity of what the symbol V in the prev. equations acutally is. The following link provides an explanation [1].
+    In short: If you divide by 2^n, V refers to a reference voltage which can never be reached. If you divide by 2^n - 1 V refers to
+    the "full scale" voltage which can be reached. How your ADC works will be defined in its datasheet.
+
+    [1]: https://masteringelectronicsdesign.com/an-adc-and-dac-least-significant-bit-lsb/
     """
 
     lsb_voltage = (adc_voltage_range[1] - adc_voltage_range[0]) / (2 ** adc_n_bits - 1)
     logger.debug("LSB voltage: {:.2f} mV".format(lsb_voltage / units.mV))
 
     assert mode_func in [np.floor, np.ceil], "Choose floor or ceiing as modes for the comparator ADC"
-
-    # digital_trace = mode_func(trace / lsb_voltage).astype(int)
-    # v_min_adc = mode_func(adc_voltage_range[0] / lsb_voltage).astype(int)
-
-    # digital_trace -= v_min_adc
-    # digital_trace = apply_saturation(digital_trace, adc_n_bits)
-    # digital_trace += v_min_adc
 
     digital_trace = mode_func((trace - adc_voltage_range[0]) / lsb_voltage).astype(int)
     v_min_adc = mode_func(adc_voltage_range[0] / lsb_voltage).astype(int)
