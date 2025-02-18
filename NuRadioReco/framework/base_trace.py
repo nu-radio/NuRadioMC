@@ -311,7 +311,7 @@ class BaseTrace:
         if 'trace_start_time' in data.keys():
             self.set_trace_start_time(data['trace_start_time'])
 
-    def add_to_trace(self, channel, min_residual_time_offset=1e-5, raise_error=True):
+    def add_to_trace(self, channel, min_residual_time_offset=1e-5 * units.ns, raise_error=True):
         """
         Adds the trace of another channel to the trace of this channel.
 
@@ -325,12 +325,13 @@ class BaseTrace:
         ----------
         channel: BaseTrace
             The channel whose trace is to be added to the trace of the current channel.
-        min_residual_time_offset: float (default: 1e-5)
+        min_residual_time_offset: float (default: 1e-5 * units.ns)
             Minimum residual time between the target bin of this channel and the target bin of the channel
             to be added. Below this threshold the residual time shift is not applied to increase performance
             and minimize numerical artifacts from Fourier transforms.
         raise_error: bool (default: True)
-            If True, an error is raised if the incoming channel is not fully contained in the current channel.
+            If True, errors are raised if the incoming channel is comletely outside or partially outside 
+            the current channel.
         """
         assert self.get_number_of_samples() is not None, "No trace is set for this channel"
         assert self.get_sampling_rate() == channel.get_sampling_rate(), "Sampling rates of the two channels do not match"
@@ -354,25 +355,24 @@ class BaseTrace:
                 logger.error("The channel is completely outside the readout window")
                 raise ValueError('The channel is completely outside the readout window')
             return
-
+        
         def floor(x):
-            return int(np.floor(round(x, 5)))
+            return int(np.floor(round(x, int(np.log10(1/(0.01*units.ps))))))
 
         def ceil(x):
-            return int(np.ceil(round(x, 5)))
+            return int(np.ceil(round(x, int(np.log10(1/(0.01*units.ps))))))
 
         # 2. Channel starts before readout window:
         if t0_channel < t0_readout:
+            if raise_error:
+                logger.error("The channel starts before the readout window")
+                raise ValueError('The channel starts before the readout window')
             i_start_readout = 0
             t_start_readout = t0_readout
             i_start_channel = ceil((t0_readout - t0_channel) * sampling_rate_channel) # The first bin of channel inside readout
             t_start_channel = tt_channel[i_start_channel]
         # 3. Channel starts after readout window:
         elif t0_channel >= t0_readout:
-            if t0_channel > t0_readout and raise_error:
-                logger.error("The channel starts after the readout window")
-                raise ValueError('The channel starts after the readout window')
-
             i_start_readout = floor((t0_channel - t0_readout) * sampling_rate_readout) # The bin of readout right before channel starts
             t_start_readout = tt_readout[i_start_readout]
             i_start_channel = 0
@@ -380,14 +380,13 @@ class BaseTrace:
 
         # 4. Channel ends after readout window:
         if t1_channel >= t1_readout:
+            if t1_channel > t1_readout and raise_error:
+                logger.error("The channel ends after the readout window")
+                raise ValueError('The channel ends after the readout window')
             i_end_readout = n_samples_readout
             i_end_channel = ceil((t1_readout - t0_channel) * sampling_rate_channel) + 1 # The bin of channel right after readout ends
         # 5. Channel ends before readout window:
         elif t1_channel < t1_readout:
-            if raise_error:
-                logger.error("The channel ends before the readout window")
-                raise ValueError('The channel ends before the readout window')
-
             i_end_readout = floor((t1_channel - t0_readout) * sampling_rate_readout) + 1 # The bin of readout right before channel ends
             i_end_channel = n_samples_channel
 
