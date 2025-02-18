@@ -219,7 +219,7 @@ def get_attenuation_length(z, frequency, model):
         # the temparature profile of the Ross Ice shelf is from 10.1126/science.203.4379.433 and rescaled to the shelf
         # thickness of the ARIANNA site (almost linear from -28 - -2deg C.
         # this theoretical depth dependence is scaled to match the depth-averaged measurement of the attenuation length.
-        d = -z * 420. * units.m / d_ice;
+        d = -z * 420. * units.m / d_ice
         L = (1250.*0.08886 * np.exp(-0.048827 * (225.6746 - 86.517596 * np.log10(848.870 - (d)))))
         # this differs from the equation published in F. Wu PhD thesis UCI.
         # 262m is supposed to be the depth averaged attenuation length but the
