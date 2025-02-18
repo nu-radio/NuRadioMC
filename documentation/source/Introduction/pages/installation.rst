@@ -3,7 +3,7 @@ Installing NuRadioMC / NuRadioReco
 
 Requirements
 ------------
-In order to use ``NuRadioMC`` / ``NuRadioReco``, please ensure you are using a version of Python ``>=3.6``, and a UNIX operating system (linux or MacOS).
+In order to use ``NuRadioMC`` / ``NuRadioReco``, please ensure you are using a version of Python ``>=3.7``, and a UNIX operating system (linux or MacOS).
 If you are using Windows, consider installing the `Windows Subsystem for Linux <https://docs.microsoft.com/en-us/windows/wsl/install>`_.
 
 Installation using ``pip``
