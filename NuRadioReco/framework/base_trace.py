@@ -11,10 +11,7 @@ import numbers
 import functools
 import scipy.signal
 import copy
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 logger = logging.getLogger("NuRadioReco.BaseTrace")
 
 

@@ -2,6 +2,7 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+
 version 3.0.0-dev
 new features:
 - created module and files to retrieve cable and RCU responses for LOFAR
@@ -87,6 +88,13 @@ bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
 - Fixed minor bugs in analyticraytracing module. Path length and travel times are affected by O(0.001) ns,
   and the focusing factor is reduced by <1% for most geometries. See #649 for details.
+
+version 2.2.2
+bugfixes:
+- Change to the way numpy objects are stored inside .nur files. This ensures .nur
+  files created with both numpy>2 or numpy<2 are readable by either version.
+- Fixed a bug where .nur files created with an older version of astropy can not
+  be read with a newer version due to pickling incompatibility.
 
 version 2.2.1
 bugfixes:
