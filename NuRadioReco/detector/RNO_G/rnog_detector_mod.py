@@ -221,3 +221,31 @@ class ModDetector(Detector):
 
         # add the component to the response chain
         self.add_component(station_id, channel_id, component)
+
+    def set_channel_position(self, station_id, channel_id, value):
+        """
+        Set the relative position of a channel.
+
+        Parameters
+        ----------
+        station_id: int
+            The station id
+        channel_id: int
+            The channel id
+        value: array/list of float
+            The relative position of the channel
+        """
+        channel_info = self._Detector__get_channel(
+            station_id, channel_id, with_position=True)
+        channel_info["channel_position"]['position'] = np.asarray(value)
+
+
+if __name__ == "__main__":
+
+    det = ModDetector(select_stations=11)
+
+    import datetime
+    det.update(datetime.datetime(2023, 1, 1, 0, 0, 0))
+    print(det.get_relative_position(11, 0))
+    det.set_channel_position(11, 0, [1, 2, 3])
+    print(det.get_relative_position(11, 0))
