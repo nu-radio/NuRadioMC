@@ -7,11 +7,6 @@ import pickle
 import datetime
 import numpy
 
-from NuRadioReco.utilities.logging import setup_logger
-
-
-logger = setup_logger()
-
 
 """
 To accomodate radio experiments that are part of a hybrid detector, NuRadioReco
