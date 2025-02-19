@@ -256,10 +256,12 @@ class triggerSimulator:
         logger.info("total time used by this module is {}".format(dt))
         return dt
 
+
 def _get_threshold_channel(threshold, channel_id):
     """ Returns channel specific threshold if threshold is a dict, otherwise returns threshold """
     if isinstance(threshold, dict):
         return threshold[channel_id]
+
     elif isinstance(threshold, (int, float)):
         return threshold
     else:
