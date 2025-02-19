@@ -144,6 +144,9 @@ class mySimulation(simulation.simulation):
             if(np.sum(channel.get_trace()) == 0):
                 return
 
+        # Downsample trace to the new sampling rate
+        channelResampler.run(evt, station, det, sampling_rate=new_sampling_rate)
+
         filtered_signal_traces = {}
         for channel in station.iter_channels(use_channels=channels):
             trace = np.array(channel.get_trace())
