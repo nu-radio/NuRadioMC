@@ -2,7 +2,7 @@ from NuRadioReco.framework.parameters import channelParametersRNOG as chpRNOG
 from NuRadioReco.framework.event import Event
 
 
-def has_glitch(self):
+def has_glitch(event_or_station):
     """
     Returns true if any channel in any station has a glitch
     """
