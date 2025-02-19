@@ -330,7 +330,7 @@ class BaseTrace:
             to be added. Below this threshold the residual time shift is not applied to increase performance
             and minimize numerical artifacts from Fourier transforms.
         raise_error: bool (default: True)
-            If True, errors are raised if the incoming channel is comletely outside or partially outside 
+            If True, errors are raised if the incoming channel is completely outside or partially outside
             the current channel.
         """
         assert self.get_number_of_samples() is not None, "No trace is set for this channel"
