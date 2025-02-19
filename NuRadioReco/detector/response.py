@@ -126,10 +126,10 @@ class Response:
             if abs(2 * time_delay) > 1 / np.diff(self.__frequency)[0]:
                 self.logger.error(
                     f"The frequency binning (resolution) of {np.diff(self.__frequency)[0] * 1e3:.2f} MHz "
-                    f"of the response function is to large/corse to correctly remove the time delay of {time_delay} ns. "
+                    f"of the response function is too large/coarse to correctly remove the time delay of {time_delay} ns. "
                     f"This is a sign of potential aliasing. You need to upsample the response function "
                     "(zero padding in the time domain).")
-                raise ValueError("Time delay to large for frequency resolution. Upsample the response function.")
+                raise ValueError("Time delay too large for frequency resolution. Upsample the response function.")
 
         # Remove the average group delay from response
         if remove_time_delay and time_delay:
