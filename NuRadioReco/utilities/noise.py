@@ -308,7 +308,7 @@ class thermalNoiseGeneratorPhasedArray():
         if self.quantize:
             det_channel = self.det.get_channel(station_id, triggered_channels[0])
             self.adc_n_bits = det_channel["trigger_adc_nbits"]
-            self.adc_noise_n_bits = det_channel["trigger_adc_noise_nbits"]
+            self.adc_noise_count = det_channel["trigger_adc_noise_count"]
 
         self.n_channels = len(triggered_channels)
         self.triggered_channels = triggered_channels
@@ -365,7 +365,7 @@ class thermalNoiseGeneratorPhasedArray():
         logger.info(f"frequency range {self.min_freq / units.MHz}MHz - {self.max_freq / units.MHz}MHz")
 
         if self.quantize:
-            self.adc_ref_voltage = self.Vrms * (2 ** (self.adc_n_bits - 1) - 1) / (2 ** (self.adc_noise_n_bits - 1) - 1)
+            self.adc_ref_voltage = self.Vrms * (2 ** self.adc_n_bits - 1) / self.adc_noise_count
 
         self.window = int(window_length * self.sampling_rate * self.upsampling)
         self.step = int(step_size * self.sampling_rate * self.upsampling)

@@ -105,7 +105,7 @@ class channelGenericNoiseAdder:
         *   Add 'multi_white' noise option on 20-Sept-2018 (RL)
 
         """
-        frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
+        frequencies = fft.freqs(n_samples, sampling_rate)
 
         n_samples_freq = len(frequencies)
 
@@ -115,22 +115,26 @@ class channelGenericNoiseAdder:
             # to take the difference between two frequencies to determine the minimum frequency, in case
             # future versions of numpy change the order and maybe put the negative frequencies first
             min_freq = 0.5 * (frequencies[2] - frequencies[1])
-            self.logger.info(' Set min_freq from None to {} MHz!'.format(min_freq / units.MHz))
+            self.logger.info('Set min_freq from None to {} MHz!'.format(min_freq / units.MHz))
+
         if max_freq is None:
             # sample up to Nyquist frequency
             max_freq = max(frequencies)
-            self.logger.info(' Set max_freq from None to {} GHz!'.format(max_freq / units.GHz))
+            self.logger.info('Set max_freq from None to {} GHz!'.format(max_freq / units.GHz))
+        else:
+            if round(max_freq, 3) > round(frequencies[-1], 3):
+                self.logger.warning(
+                    f'max_freq ({max_freq / units.MHz:.2f} MHz) is above the Nyquist frequency '
+                    f'({frequencies[-1] / units.MHz:.2f} MHz). This means the simulated noise ampitude '
+                    'might deviate from what you intended. To fix that, you either need to lower '
+                    'max_freq or increase the sampling_rate.')
+
         selection = (frequencies >= min_freq) & (frequencies <= max_freq)
 
         nbinsactive = np.sum(selection)
         self.logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples, nbinsactive))
 
-        # Debug plots
-#         f1 = plt.figure()
-#         plt.plot (frequencies/max(frequencies))
-#         plt.plot(fbinsactive,'kx')
-
-        if(bandwidth is not None):
+        if bandwidth is not None:
             sampling_bandwidth = min(0.5 * sampling_rate, max_freq) - min_freq
             amplitude *= 1. / (bandwidth / (sampling_bandwidth)) ** 0.5  # normalize noise level to the bandwidth its generated for
 
@@ -141,21 +145,22 @@ class channelGenericNoiseAdder:
         elif type == 'rayleigh':
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
-#         elif type == 'white':
-# FIXME: amplitude normalization is not correct for 'white'
-#             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
+        # FIXME: amplitude normalization is not correct for 'white'
+        # elif type == 'white':
+        #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
         else:
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
         noise = self.add_random_phases(ampl, n_samples) / sampling_rate
-        if(time_domain):
+        if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
             return noise
 
-    def precalculate_bandlimited_noise_parameters(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white',
-                          bandwidth=None):
+    def precalculate_bandlimited_noise_parameters(
+            self, min_freq, max_freq, n_samples, sampling_rate, amplitude,
+            type='perfect_white', bandwidth=None):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
@@ -298,8 +303,8 @@ class channelGenericNoiseAdder:
         else:
             return noise
 
-        
-    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude = None, type='perfect_white',
+
+    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type='perfect_white',
                           time_domain=True):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
@@ -311,11 +316,11 @@ class channelGenericNoiseAdder:
         sampling_rate: float
             desired sampling rate of data
         spectrum: numpy.ndarray, function
-            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function 
+            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function
             that takes the frequencies as an argument and returns the amplitudes. The overall normalization
             of the spectrum is ignored if the paramter "amplitude" is set.
         amplitude: float, optional
-            desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the 
+            desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the
             power of the spectrum.
         type: string
             perfect_white: flat frequency spectrum

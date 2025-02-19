@@ -3,7 +3,7 @@
         "1": {
             "adc_n_samples": 256,
             "adc_nbits": 8,
-            "adc_noise_nbits": 5,
+            "adc_noise_count": 15,
             "adc_sampling_frequency": 0.5,
             "ant_orientation_phi": 0,
             "ant_orientation_theta": 0,
@@ -26,7 +26,7 @@
         "2": {
             "adc_n_samples": 256,
             "adc_nbits": 8,
-            "adc_noise_nbits": 5,
+            "adc_noise_count": 15,
             "adc_sampling_frequency": 0.5,
             "ant_orientation_phi": 0,
             "ant_orientation_theta": 0,
@@ -49,7 +49,7 @@
         "3": {
             "adc_n_samples": 256,
             "adc_nbits": 8,
-            "adc_noise_nbits": 5,
+            "adc_noise_count": 15,
             "adc_sampling_frequency": 0.5,
             "ant_orientation_phi": 0,
             "ant_orientation_theta": 0,
@@ -72,7 +72,7 @@
         "4": {
             "adc_n_samples": 256,
             "adc_nbits": 8,
-            "adc_noise_nbits": 5,
+            "adc_noise_count": 15,
             "adc_sampling_frequency": 0.5,
             "ant_orientation_phi": 0,
             "ant_orientation_theta": 0,
