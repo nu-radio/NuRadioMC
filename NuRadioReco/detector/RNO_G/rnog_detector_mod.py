@@ -1,11 +1,12 @@
-import copy
-import logging
-
-import numpy as np
+from NuRadioReco.utilities import fft
 from NuRadioReco.detector.response import Response
 
 from NuRadioReco.detector.RNO_G.rnog_detector import \
     Detector, _keys_not_in_dict, _check_detector_time
+
+import copy
+import logging
+import numpy as np
 
 
 def replace_value_in_dict(d, keys, value):
@@ -164,14 +165,10 @@ class ModDetector(Detector):
 
         # generate a response object from the component dict
         component_response = Response(
-            component['frequencies'],
-            np.array([component['mag'], component['phase']]),
-            component['y-axis_units'],
-            time_delay=component['time_delay'],
-            name=component['name'],
+            **component,
             station_id=station_id,
             channel_id=channel_id
-    )
+        )
 
         orig_response = self.get_signal_chain_response(station_id, channel_id)
         signal_chain_dict = self.get_channel_signal_chain(station_id, channel_id)
@@ -204,20 +201,24 @@ class ModDetector(Detector):
             The name of the component to be added
         """
 
+        sampling_rate = self.get_sampling_frequency(station_id, channel_id)
+
+        # number of samples a trace would have with a length at least that of the time delay
+        n_samples = int(time_delay * 1.5 * sampling_rate)
+        freqs = fft.freqs(n_samples, sampling_rate)
+
+        # pseudo data
+        phase = -2 * np.pi * time_delay * freqs
+        mag = np.ones_like(phase)
+
         component = {
             'weight': weight,
-            'y-axis_units': ['mag', 'rad'],
-            'mag': [1, 1],
-            'phase': [0, 0],
-            'frequencies': [1e-3, 1e1],
+            'y_unit': ['mag', 'rad'],
+            'y': [mag, phase],
+            'frequency': freqs,
             'name': name,
             'time_delay': time_delay
         }
-
-        # specify component starting from defaults
-        component = copy.copy(null_component)
-        component['name'] = "MOD_manual_time_delay"
-        component['time_delay'] = time_delay
 
         # add the component to the response chain
         self.add_component(station_id, channel_id, component)
@@ -246,6 +247,8 @@ if __name__ == "__main__":
 
     import datetime
     det.update(datetime.datetime(2023, 1, 1, 0, 0, 0))
-    print(det.get_relative_position(11, 0))
-    det.set_channel_position(11, 0, [1, 2, 3])
-    print(det.get_relative_position(11, 0))
+    resp = det.get_signal_chain_response(11, 0)
+    print(resp.get_time_delay(), resp._calculate_time_delay())
+    det.add_manual_time_delay(11, 0, 250)
+    resp = det.get_signal_chain_response(11, 0)
+    print(resp.get_time_delay(), resp._calculate_time_delay())
