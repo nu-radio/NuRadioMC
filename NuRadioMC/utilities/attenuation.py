@@ -67,7 +67,7 @@ def read_grip_temperature():
 @functools.lru_cache(maxsize=1)
 def grip_temperature_profile():
     """
-    Returns interpolation function for temperature profile from grip borehole measurements.
+    Returns interpolation function for temperature profile from Greenland Ice Core Project (GRIP) borehole measurements.
 
     Returns
     -------
@@ -76,6 +76,22 @@ def grip_temperature_profile():
     """
     d, t = read_grip_temperature()
     return scipy.interpolate.interp1d(d, t, fill_value="extrapolate")
+
+def get_grip_temperature(depth):
+    """
+    Returns temperature at a given depth from Greenland Ice Core Project (GRIP) borehole measurements.
+
+    Parameters
+    ----------
+    depth : float
+        Depth in meters. Positive values are below the surface.
+
+    Returns
+    -------
+    float
+        Temperature in Kelvin.
+    """
+    return grip_temperature_profile()(depth)
 
 def fit_GL1(z):
     """
@@ -111,7 +127,7 @@ def fit_GL1(z):
 
 def get_temperature(z):
     """
-    returns the temperature in Celsius as a function of depth for South Pole
+    Returns the temperature in Celsius as a function of depth for South Pole
 
     Parameters
     ----------
