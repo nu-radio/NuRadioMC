@@ -330,8 +330,8 @@ class BaseTrace:
             to be added. Below this threshold the residual time shift is not applied to increase performance
             and minimize numerical artifacts from Fourier transforms.
         raise_error: bool (default: True)
-            If True, errors are raised if the incoming channel is completely outside or partially outside
-            the current channel.
+            If True, an error is raised if (part of) the current channel
+            (readout window) is outside the incoming channel.
         """
         assert self.get_number_of_samples() is not None, "No trace is set for this channel"
         assert self.get_sampling_rate() == channel.get_sampling_rate(), "Sampling rates of the two channels do not match"
@@ -355,7 +355,7 @@ class BaseTrace:
                 logger.error("The channel is completely outside the readout window")
                 raise ValueError('The channel is completely outside the readout window')
             return
-        
+
         def floor(x):
             return int(np.floor(round(x, int(np.log10(1/(0.01*units.ps))))))
 
@@ -364,15 +364,16 @@ class BaseTrace:
 
         # 2. Channel starts before readout window:
         if t0_channel < t0_readout:
-            if raise_error:
-                logger.error("The channel starts before the readout window")
-                raise ValueError('The channel starts before the readout window')
             i_start_readout = 0
             t_start_readout = t0_readout
             i_start_channel = ceil((t0_readout - t0_channel) * sampling_rate_channel) # The first bin of channel inside readout
             t_start_channel = tt_channel[i_start_channel]
         # 3. Channel starts after readout window:
         elif t0_channel >= t0_readout:
+            if raise_error:
+                logger.error("The readout window starts before the incoming channel")
+                raise ValueError('The readout window starts before the incoming channel')
+
             i_start_readout = floor((t0_channel - t0_readout) * sampling_rate_readout) # The bin of readout right before channel starts
             t_start_readout = tt_readout[i_start_readout]
             i_start_channel = 0
@@ -380,13 +381,14 @@ class BaseTrace:
 
         # 4. Channel ends after readout window:
         if t1_channel >= t1_readout:
-            if t1_channel > t1_readout and raise_error:
-                logger.error("The channel ends after the readout window")
-                raise ValueError('The channel ends after the readout window')
             i_end_readout = n_samples_readout
             i_end_channel = ceil((t1_readout - t0_channel) * sampling_rate_channel) + 1 # The bin of channel right after readout ends
         # 5. Channel ends before readout window:
         elif t1_channel < t1_readout:
+            if t1_channel > t1_readout and raise_error:
+                logger.error("The readout window ends after the incoming channel")
+                raise ValueError('The readout window ends after the incoming channel')
+
             i_end_readout = floor((t1_channel - t0_readout) * sampling_rate_readout) + 1 # The bin of readout right before channel ends
             i_end_channel = n_samples_channel
 
