@@ -17,10 +17,10 @@ class channelReadoutWindowCutter:
 
     def __init__(self, log_level=logging.NOTSET):
         logger.setLevel(log_level)
-        self.__sampling_rate_warning_issued = False
         self.begin()
 
     def begin(self):
+        self.__sampling_rate_warning_issued = False
         pass
 
     @register_run()
@@ -69,16 +69,15 @@ class channelReadoutWindowCutter:
 
             detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
             sampling_rate = channel.get_sampling_rate()
-            n_samples = detector.get_number_of_samples(station.get_id(), channel.get_id())
-            self.__check_sampling_rates(channel, detector_sampling_rate, sampling_rate, n_samples)
+            detector_n_samples = detector.get_number_of_samples(station.get_id(), channel.get_id())
 
+            number_of_samples, valid_sampling_rate = _get_number_of_samples(
+                sampling_rate, detector_sampling_rate, detector_n_samples,
+                issue_warning=not self.__sampling_rate_warning_issued
+                )
 
-            # this should ensure that 1) the number of samples is even and
-            # 2) resampling to the detector sampling rate results in the correct number of samples
-            # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
-            # current sampling rate)
-            number_of_samples = int(
-                2 * np.ceil(n_samples / 2 * sampling_rate / detector_sampling_rate))
+            if not self.__sampling_rate_warning_issued:
+                self.__sampling_rate_warning_issued = not valid_sampling_rate # this ensures the warning is printed only once
 
             trace = channel.get_trace()
             if number_of_samples > trace.shape[0]:
@@ -87,13 +86,6 @@ class channelReadoutWindowCutter:
                     "Channels has only {} samples but {} samples are requested.").format(
                     trace.shape[0], number_of_samples))
                 raise AttributeError
-
-            # windowed_channel = get_empty_channel(
-            #     station.get_id(), channel.get_id(), detector, trigger, sampling_rate)
-            # windowed_channel.add_to_trace(channel)
-
-            # channel.set_trace(windowed_channel.get_trace(), windowed_channel.get_sampling_rate())
-            # channel.set_trace_start_time(windowed_channel.get_trace_start_time())
 
             channel_id = channel.get_id()
             pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id)
@@ -134,21 +126,62 @@ class channelReadoutWindowCutter:
             channel.set_trace_start_time(trigger_time - pre_trigger_time)
 
 
-    def __check_sampling_rates(self, channel, detector_sampling_rate, channel_sampling_rate, n_samples):
-        if not self.__sampling_rate_warning_issued: # we only issue this warning once
-            if not np.isclose(detector_sampling_rate, channel_sampling_rate):
-                logger.warning(
-                    'channelReadoutWindowCutter was called, but the channel sampling rate '
-                    f'({channel_sampling_rate/units.GHz:.3f} GHz) is not equal to '
-                    f'the target detector sampling rate ({detector_sampling_rate/units.GHz:.3f} GHz). '
-                    'Traces may not have the correct trace length after resampling.'
-                )
-                self.__sampling_rate_warning_issued = True
+def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_samples, issue_warning=True):
+    """
+    Calculate the number of samples that will result in the correct number of samples after resampling.
+
+    Parameters
+    ----------
+    sampling_rate : float
+        The current sampling rate
+    detector_sampling_rate : float
+        The target sampling rate
+    detector_n_samples : int
+        The target number of samples after resampling to `detector_sampling_rate`
+    issue_warning : bool, optional
+        Print a warning if the sampling rate is not an integer multiple
+        of the target `detector_sampling_rate`; in this case the number of samples
+        returned cannot be guaranteed to result in the desired number of samples
+        after resampling.
+
+    Returns
+    -------
+    number_of_samples : int
+        The number of samples at sampling rate `sampling_rate`
+        that will result in the desired number of samples after resampling.
+    valid_sampling_rate : bool
+        `True` if the sampling rate is an integer multiple of the target sampling rate,
+        `False` otherwise.
+    """
+    # Check that the current sampling rate is an integer multiple of the target
+    # sampling rate. If this is not the case, we may not be able to guarantee
+    # the number of samples after resampling will be correct
+    valid_sampling_rate = sampling_rate % detector_sampling_rate < 1e-8
+
+    if issue_warning and not valid_sampling_rate:
+            logger.warning(
+                'The current sampling rate '
+                f'({sampling_rate/units.GHz:.3f} GHz) is not a multiple of '
+                f'the target detector sampling rate ({detector_sampling_rate/units.GHz:.3f} GHz). '
+                'Traces may not have the correct trace length after resampling.'
+            )
+
+    # this should ensure that 1) the number of samples is even and
+    # 2) resampling to the detector sampling rate results in the correct number of samples
+    # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
+    # current sampling rate)
+    number_of_samples = int(
+        2 * np.ceil(detector_n_samples / 2 * sampling_rate / detector_sampling_rate))
+
+    return number_of_samples, valid_sampling_rate
+
 
 
 def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     """
-    Returns a channel with a trace containing zeros. The trace start time is given by the trigger, 
+    Returns a channel with a trace containing zeros.
+
+    The trace start time is given by the trigger,
     the duration of the trace is determined by the detector description, and the number of samples 
     determined by the duration and the given sampling rate.
 
@@ -171,9 +204,11 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     """
     channel = NuRadioReco.framework.channel.Channel(channel_id)
 
-    # Get the correct number of sample for the final sampling rate
-    sampling_rate_ratio = sampling_rate / detector.get_sampling_frequency(station_id, channel_id)
-    n_samples = int(round(detector.get_number_of_samples(station_id, channel_id) * sampling_rate_ratio))
+    detector_n_samples = detector.get_number_of_samples(station_id, channel_id)
+    detector_sampling_rate = detector.get_sampling_frequency(station_id, channel_id)
+
+    n_samples = _get_number_of_samples(
+        sampling_rate, detector_sampling_rate, detector_n_samples, issue_warning=False)
 
     # get the correct trace start time taking into account different `pre_trigger_times`
     channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
