@@ -3,7 +3,6 @@ from NuRadioReco.utilities import units
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import numpy as np
 import logging
-logging.basicConfig()
 
 """
 Structure of a ray-tracing module. For documentation and development purposes.
@@ -15,8 +14,8 @@ class ray_tracing_base:
     """
 
 
-    def __init__(self, medium, attenuation_model=None, log_level=logging.WARNING, 
-                 n_frequencies_integration=None, n_reflections=None, config=None, 
+    def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
+                 n_frequencies_integration=None, n_reflections=None, config=None,
                  detector=None, ray_tracing_2D_kwards={}):
         """
         class initilization
@@ -26,7 +25,10 @@ class ray_tracing_base:
         medium: medium class
             class describing the index-of-refraction profile
         attenuation_model: string
-            signal attenuation model (so far only "SP1" is implemented)
+            if this parameter is also defined in the config file, the value from the config file
+            will be used. If not, the value from this parameter will be used.
+
+            signal attenuation model
         log_level: logging object
             specify the log level of the ray tracing class
 
@@ -35,12 +37,18 @@ class ray_tracing_base:
             * logging.INFO
             * logging.DEBUG
 
-            default is WARNING
+            default is NOTSET (ie global control)
         n_frequencies_integration: int
-            the number of frequencies for which the frequency dependent attenuation
+            if this parameter is also defined in the config file, the value from the config file
+            will be used. If not, the value from this parameter will be used.
+
+            This parameter specifies the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
         n_reflections: int (default 0)
+            if this parameter is also defined in the config file, the value from the config file
+            will be used. If not, the value from this parameter will be used.
+
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
         config: nested dictionary
             loaded yaml config file
@@ -48,7 +56,7 @@ class ray_tracing_base:
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
         """
-        self.__logger = logging.getLogger('ray_tracing_base')
+        self.__logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_base')
         self.__logger.setLevel(log_level)
 
         self._medium = medium
@@ -61,11 +69,31 @@ class ray_tracing_base:
         self._n_reflections = n_reflections
 
         self._config = config
+        if self._config is not None:
+            if 'n_freq' in self._config['propagation']:
+                if n_frequencies_integration is not None:
+                    self.__logger.warning(f"overriding n_frequencies_integration from config file from {n_frequencies_integration} to {self._config['propagation']['n_freq']}")
+                self._n_frequencies_integration = self._config['propagation']['n_freq']
+            if 'n_reflections' in self._config['propagation']:
+                if n_reflections is not None:
+                    self.__logger.warning(f"overriding n_reflections from config file from {n_reflections} to {self._config['propagation']['n_reflections']}")
+                self._n_reflections = self._config['propagation']['n_reflections']
+            if 'attenuation_model' in self._config['propagation']:
+                if attenuation_model is not None:
+                    self.__logger.warning(f"overriding attenuation_model from config file from {attenuation_model} to {self._config['propagation']['attenuation_model']}")
+                self._attenuation_model = self._config['propagation']['attenuation_model']
         self._detector = detector
         self._max_detector_frequency = None
         if self._detector is not None:
             for station_id in self._detector.get_station_ids():
-                sampling_frequency = self._detector.get_sampling_frequency(station_id, 0)
+                channel_id_1st = self._detector.get_channel_ids(station_id)[0]
+                sampling_frequency = self._detector.get_sampling_frequency(station_id, channel_id_1st)
+                for channel_id in self._detector.get_channel_ids(station_id):
+                    if self._detector.get_sampling_frequency(station_id, channel_id) != sampling_frequency:
+                        self.__logger.warning(f"Different channels have different sampling frequencies. Channel {channel_id} has sampling frequency" \
+                                               f"{self._detector.get_sampling_frequency(station_id, channel_id)/units.GHz:.1f}." \
+                                                f"Using the sampoing frequency of the first channel with id {channel_id_1st} with {sampling_frequency/units.GHz:.1f} GHz." \
+                                                    "to calculate the maximum relevant frequency for calculating signal attenuation.")
                 if self._max_detector_frequency is None or sampling_frequency * .5 > self._max_detector_frequency:
                     self._max_detector_frequency = sampling_frequency * .5
 
@@ -88,7 +116,7 @@ class ray_tracing_base:
         ----------
         x1: np.array of shape (3,), default unit
             start point of the ray
-        x2: np.array of shape (3,), default unit 
+        x2: np.array of shape (3,), default unit
             stop point of the ray
         """
         self.reset_solutions()
@@ -103,7 +131,7 @@ class ray_tracing_base:
 
     def use_optional_function(self, function_name, *args, **kwargs):
         """
-        Use optional function which may be different for each ray tracer. 
+        Use optional function which may be different for each ray tracer.
         If the name of the function is not present for the ray tracer this function does nothing.
 
         Parameters
@@ -119,10 +147,10 @@ class ray_tracing_base:
         Examples
         --------
         .. code-block::
-        
+
             use_optional_function('set_shower_axis',np.array([0,0,1]))
             use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
-        
+
         """
         if not hasattr(self,function_name):
             pass
