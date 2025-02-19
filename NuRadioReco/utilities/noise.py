@@ -188,13 +188,24 @@ class thermalNoiseGenerator():
                 self.threshold[i] = threshold[i]
         self.filt = {}
         if isinstance(filt, np.ndarray):
-            for i in range(n_channels):
-                self.filt[i] = filt
-        else:
+            if filt.ndim == 1:
+                for i in range(n_channels):
+                    self.filt[i] = filt
+            elif filt.ndim == 2:
+                if filt.shape[0] != n_channels:
+                    raise ValueError(f"filt has {filt.shape[0]} values, but {n_channels} channels are requested")
+                for i in range(n_channels):
+                    self.filt[i] = filt[i]
+            else:
+                raise ValueError("filt must be a 1D or 2D numpy array")
+        elif isinstance(filt, list):
             if len(filt) != n_channels:
                 raise ValueError(f"filt has {len(filt)} values, but {n_channels} channels are requested")
             for i in range(n_channels):
-                self.filt[i] = filt[i]
+                self.filt[i] = np.array(filt[i])
+        else:
+            raise ValueError("filt must be a numpy array or a list of numpy arrays")
+
 
         self.trigger_bin = int(self.trigger_time / self.dt)
         self.trigger_bin_low = int((self.trigger_time - self.time_coincidence_majority) / self.dt)
@@ -237,11 +248,9 @@ class thermalNoiseGenerator():
                             t_bins[iCh] = triggered_bins
                             trace_to_keep = trace if not self.keep_full_band else trace_copy
                             if number_of_triggers == 1:
-                                print(f"Channel {iCh} triggered")
                                 n_traces[iCh] = np.roll(trace_to_keep, self.trigger_bin - np.argwhere(triggered_bins == True)[0])
                             else:
                                 tmp = np.random.randint(self.trigger_bin_low, self.trigger_bin)
-                                print(f"Channel {iCh} triggered, random trigger bin {tmp}")
                                 n_traces[iCh] = np.roll(trace_to_keep, tmp - np.argwhere(triggered_bins == True)[0])
                 if number_of_triggers == self.n_majority:
                     # this additional break is needed because another channel might trigger
