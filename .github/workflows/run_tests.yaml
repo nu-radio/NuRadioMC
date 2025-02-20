@@ -197,3 +197,9 @@ jobs:
         export PYTHONPATH=$(pwd):$PYTHONPATH
         python install_dev.py --dev cr_interpolator --no-interactive
         NuRadioReco/test/test_examples.sh
+    - name: "Test module structure of all modules in NuRadioReco.modules"
+      if: always()
+      run: |
+        export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        python NuRadioReco/test/check_modules.py -r

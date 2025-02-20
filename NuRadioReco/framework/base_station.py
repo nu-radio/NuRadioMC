@@ -10,11 +10,7 @@ import datetime
 import astropy.time
 import logging
 import collections
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 
 logger = logging.getLogger('NuRadioReco.BaseStation')
 
