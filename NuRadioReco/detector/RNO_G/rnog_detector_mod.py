@@ -1,11 +1,12 @@
-import copy
-import logging
-
-import numpy as np
+from NuRadioReco.utilities import fft
 from NuRadioReco.detector.response import Response
 
 from NuRadioReco.detector.RNO_G.rnog_detector import \
     Detector, _keys_not_in_dict, _check_detector_time
+
+import copy
+import logging
+import numpy as np
 
 
 def replace_value_in_dict(d, keys, value):
@@ -38,8 +39,7 @@ def replace_value_in_dict(d, keys, value):
 class ModDetector(Detector):
     def __init__(self, *args, **kwargs):
         super(ModDetector, self).__init__(*args, **kwargs)
-        self.logger = logging.getLogger("NuRadioReco.RNOGDetectorMod")
-        self.logger.setLevel(kwargs["log_level"])
+        self.logger = logging.getLogger("NuRadioReco.RNOGDetector.Mod")
 
 
     def modify_channel_description(self, station_id, channel_id, keys, value):
@@ -48,7 +48,6 @@ class ModDetector(Detector):
 
         Parameters
         ----------
-
         station_id: int
             The station id
         channel_id: int
@@ -64,7 +63,7 @@ class ModDetector(Detector):
             self.logger.error(err)
             raise ValueError(err)
 
-        channel_dict = self.get_channel(station_id, channel_id)
+        channel_dict = self._Detector__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True)
         if _keys_not_in_dict(channel_dict, keys):  # to simplify the code here all keys have to exist already
             raise KeyError(
                 f"Could not find {keys} for station.channel {station_id}.{channel_id}.")
@@ -86,7 +85,6 @@ class ModDetector(Detector):
 
         Returns
         -------
-
         channel_info: dict
             Dictionary of channel parameters
         """
@@ -110,7 +108,6 @@ class ModDetector(Detector):
 
         Parameters
         ----------
-
         station_id: int
             The station id
         keys: list of str
@@ -131,7 +128,6 @@ class ModDetector(Detector):
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -142,7 +138,6 @@ class ModDetector(Detector):
             A response object to be added to the `total_response`
 
         """
-
         orig_response = self.get_signal_chain_response(station_id, channel_id)
         signal_chain_dict = self.get_channel_signal_chain(station_id, channel_id)
 
@@ -157,7 +152,6 @@ class ModDetector(Detector):
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -166,17 +160,15 @@ class ModDetector(Detector):
 
         componennt: dict
             A dictionary with the properties of the component to be added
-          
+
         """
 
         # generate a response object from the component dict
-        component_response = Response(component['frequencies'],
-                                        np.array([component['mag'], component['phase']]),
-                                        component['y-axis_units'],
-                                        time_delay=component['time_delay'],
-                                        name=component['name'],
-                                        station_id=station_id,
-                                        channel_id=channel_id)
+        component_response = Response(
+            **component,
+            station_id=station_id,
+            channel_id=channel_id
+        )
 
         orig_response = self.get_signal_chain_response(station_id, channel_id)
         signal_chain_dict = self.get_channel_signal_chain(station_id, channel_id)
@@ -188,12 +180,11 @@ class ModDetector(Detector):
         # write the modified signal chain back to the buffered station
         self._Detector__buffered_stations[station_id]["channels"][channel_id]['signal_chain'] = signal_chain_dict
 
-    def add_manual_time_delay(self, station_id, channel_id, time_delay):
+    def add_manual_time_delay(self, station_id, channel_id, time_delay, weight=1, name="MOD_manual_time_delay"):
         """ Add an additional time delay to the signal chain and total response
 
         Parameters
         ----------
-
         station_id: int
             The station id
 
@@ -203,35 +194,61 @@ class ModDetector(Detector):
         time_delay: float
             The manual time delay to be added
 
+        weight: float (default: 1)
+            The weight of the time delay in the total response (either 1 or -1)
+
+        name: str (default: "MOD_manual_time_delay")
+            The name of the component to be added
         """
 
-        # dummy dict, that would just add a unity to the response
-        null_component = {'weight': 1,
-                          'y-axis_units': ['mag', 'rad'],
-                          'mag': [1,1],
-                          'phase': [0,0],
-                          'frequencies': [1e-3,1e1],
-                          'time_delay': 0}
+        sampling_rate = self.get_sampling_frequency(station_id, channel_id)
 
-        # specify component starting from defaults
-        component = copy.copy(null_component)
-        component['name'] = "MOD_manual_time_delay"
-        component['time_delay'] = time_delay
+        # number of samples a trace would have with a length at least that of the time delay
+        n_samples = int(time_delay * 1.5 * sampling_rate)
+        freqs = fft.freqs(n_samples, sampling_rate)
+
+        # pseudo data
+        phase = -2 * np.pi * time_delay * freqs
+        mag = np.ones_like(phase)
+
+        component = {
+            'weight': weight,
+            'y_unit': ['mag', 'rad'],
+            'y': [mag, phase],
+            'frequency': freqs,
+            'name': name,
+            'time_delay': time_delay
+        }
 
         # add the component to the response chain
         self.add_component(station_id, channel_id, component)
 
-    def export(self, filename, json_kwargs=None):
+    def set_channel_position(self, station_id, channel_id, value):
         """
-        Export the buffered detector description.
+        Set the relative position of a channel.
 
         Parameters
         ----------
-
-        filename: str
-            Filename of the exported detector description
-
-        json_kwargs: dict
-            Arguments passed to json.dumps(..). (Default: None -> dict(indent=0, default=_json_serial))
+        station_id: int
+            The station id
+        channel_id: int
+            The channel id
+        value: array/list of float
+            The relative position of the channel
         """
-        raise NotImplementedError("Exporting the detector description is not implemented for this class.")
+        channel_info = self._Detector__get_channel(
+            station_id, channel_id, with_position=True)
+        channel_info["channel_position"]['position'] = np.asarray(value)
+
+
+if __name__ == "__main__":
+
+    det = ModDetector(select_stations=11)
+
+    import datetime
+    det.update(datetime.datetime(2023, 1, 1, 0, 0, 0))
+    resp = det.get_signal_chain_response(11, 0)
+    print(resp.get_time_delay(), resp._calculate_time_delay())
+    det.add_manual_time_delay(11, 0, 250)
+    resp = det.get_signal_chain_response(11, 0)
+    print(resp.get_time_delay(), resp._calculate_time_delay())
