@@ -1,6 +1,7 @@
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io.coreas import coreas
 import numpy as np
 import time
@@ -57,6 +58,7 @@ class readCoREASShower:
 
         self.__ascending_run_and_event_number = 1 if set_ascending_run_and_event_number else 0
 
+    @register_run()
     def run(self, declination=None):
         """
         Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.
