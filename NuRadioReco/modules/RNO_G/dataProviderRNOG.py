@@ -1,3 +1,5 @@
+from NuRadioReco.modules.base.module import register_run
+
 import NuRadioReco.modules.io.RNO_G.readRNOGDataMattak
 import NuRadioReco.modules.RNO_G.channelGlitchDetector
 import NuRadioReco.modules.RNO_G.channelBlockOffsetFitter
@@ -33,6 +35,7 @@ class dataProvideRNOG:
         self.reader.end()
         self.channelGlitchDetector.end()
 
+    @register_run()
     def run(self):
 
         for event in self.reader.run():
