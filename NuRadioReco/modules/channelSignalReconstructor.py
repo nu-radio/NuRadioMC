@@ -192,12 +192,7 @@ class channelSignalReconstructor:
         )  # compute analytic signal using hilbert transform from signal voltages
         envelope = np.abs(analytical_signal)
         maxv = np.argmax(envelope)
-        self.maxspot = (
-            maxv  ## index where the max voltage of the coherent sum is located
-        )
-        power_indexes = np.linspace(
-            0, len(envelope) - 1, len(envelope)
-        )  ## just a list of indices the same length as the array
+        power_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
         closeness = list(
             np.abs(power_indexes - maxv)
         )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
