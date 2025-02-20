@@ -5,8 +5,11 @@ import NuRadioReco.framework.emitter
 import NuRadioReco.framework.sim_emitter
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
-import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_storage
+
+from NuRadioReco.framework.parameters import (
+    eventParameters as evp, channelParameters as chp, showerParameters as shp,
+    particleParameters as pap, generatorAttributes as gta)
 
 from NuRadioReco.utilities import io_utilities, version
 
@@ -24,7 +27,7 @@ logger = logging.getLogger('NuRadioReco.Event')
 class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, run_number, event_id):
-        super().__init__([parameters.eventParameters, parameters.generatorAttributes])
+        super().__init__([evp, gta])
 
         self.__run_number = run_number
         self._id = event_id
@@ -311,9 +314,9 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         returns the parent of a particle or a shower
         """
         if isinstance(particle_or_shower, NuRadioReco.framework.base_shower.BaseShower):
-            par_id = particle_or_shower[parameters.showerParameters.parent_id]
+            par_id = particle_or_shower[shp.parent_id]
         elif isinstance(particle_or_shower, NuRadioReco.framework.particle.Particle):
-            par_id = particle_or_shower[parameters.particleParameters.parent_id]
+            par_id = particle_or_shower[pap.parent_id]
         else:
             raise ValueError("particle_or_shower needs to be an instance of NuRadioReco.framework.base_shower.BaseShower or NuRadioReco.framework.particle.Particle")
         if par_id is None:
@@ -348,12 +351,12 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         # iterate over sim_showers to look for parent id
         if showers is True:
             for shower in self.get_showers():
-                if shower[parameters.showerParameters.parent_id] == parent_id:
+                if shower[shp.parent_id] == parent_id:
                     yield shower
         # iterate over secondary particles to look for parent id
         if particles is True:
             for particle in self.get_particles():
-                if particle[parameters.particleParameters.parent_id] == parent_id:
+                if particle[pap.parent_id] == parent_id:
                     yield particle
 
     def add_shower(self, shower):
@@ -566,10 +569,10 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         stations_pkl = []
         try:
             commit_hash = version.get_NuRadioMC_commit_hash()
-            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
+            self.set_parameter(evp.hash_NuRadioMC, commit_hash)
         except:
             logger.warning("Event is serialized without commit hash!")
-            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
+            self.set_parameter(evp.hash_NuRadioMC, None)
 
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))

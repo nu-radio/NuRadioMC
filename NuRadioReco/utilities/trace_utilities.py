@@ -1,9 +1,11 @@
 from NuRadioReco.utilities import units, ice, geometryUtilities as geo_utl, fft
 import NuRadioReco.framework.base_trace
 
+import scipy.ndimage
 import numpy as np
 import scipy.constants
 import scipy.signal
+
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
 
@@ -387,3 +389,47 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
                     "Consider cropping the trace to remove these samples.")
 
         return delayed_trace
+
+
+def maximum_peak_to_peak_amplitude(trace, coincidence_window_size):
+    """
+    Calculates the maximal peak to peak amplitude of a given trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Array containing the trace
+    coincidence_window_size: int
+        Length along which to calculate minimum
+
+    Returns
+    -------
+    maximal peak to peak amplitude of the trace
+    """
+    return scipy.ndimage.maximum_filter1d(trace, coincidence_window_size) - scipy.ndimage.minimum_filter1d(trace, coincidence_window_size)
+
+def split_trace_noise_rms(trace, segments=4, lowest=2):
+    """
+    Calculates the noise rms of a given trace by splitting the trace into segments, calculating the rms of each trace and subsequently taking the mean of the lowest few segemt rms values.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Array containing the trace
+    segments: int
+        Amount of segments to cut the trace int
+    lowest: int
+        Amount of lowest segment rms values to use when calculating the mean rms end result
+
+    Returns
+    -------
+    rms: float
+        The mean rms of the lowest few segment rms values
+    """
+    split_array = np.array_split(trace, segments)
+    split_array = np.array(split_array, dtype="object") #Objectify dtype to allow timetraces indivisible by amount of segments 
+    rms_of_splits = [np.std(split) for split in split_array]
+    ordered_rmss = np.sort(rms_of_splits)
+    lowest_rmss = ordered_rmss[:lowest]
+    rms = np.mean(lowest_rmss)
+    return rms
