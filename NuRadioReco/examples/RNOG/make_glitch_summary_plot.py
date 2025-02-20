@@ -10,12 +10,12 @@ def plot(plot_data, outpath, fs=13, zoomfact=1.1):
         2: "tab:green",
         3: "tab:red"
     }
-    
+
     num_bins = 10
-    
+
     channels = [key for key in plot_data.keys() if isinstance(key, int)]
     num_channels = len(channels)
-    
+
     import matplotlib as mpl
     mpl.use('Agg')
     import matplotlib.pyplot as plt
@@ -31,7 +31,7 @@ def plot(plot_data, outpath, fs=13, zoomfact=1.1):
         evt_nums = plot_data["evt_num"]
         channel_ts = plot_data[channel]
         yscale = zoomfact * np.max(np.abs(channel_ts))
-        
+
         ax = fig.add_subplot(gs[ind, 0])
         ax_hist = fig.add_subplot(gs[ind, 1], sharey = ax)
         ax.set_ylim(-yscale, yscale)
@@ -40,7 +40,7 @@ def plot(plot_data, outpath, fs=13, zoomfact=1.1):
 
         ax.text(0.02, 0.95, f"CH {channel}", fontsize = fs, transform = ax.transAxes, color = color, ha = "left", va = "top")
         ax.set_ylabel("Test stat.", fontsize = fs)
-        
+
         ax.scatter(evt_nums, channel_ts, s = 2, color = color)
         ax_hist.hist(channel_ts, histtype = "step", bins = num_bins, orientation = "horizontal", color = color)
 
@@ -50,7 +50,7 @@ def plot(plot_data, outpath, fs=13, zoomfact=1.1):
 
         ax.axhline(0.0, color = "gray", ls = "dashed", lw = 1.0)
         ax_hist.axhline(0.0, color = "gray", ls = "dashed", lw = 1.0)
-        
+
         ax_hist.tick_params(axis = "x", direction = "in", which = "both", bottom = True, top = True, labelbottom = ind == len(channels) - 1,
                             labelsize = fs)
         ax_hist.tick_params(axis = "y", direction = "in", which = "both", left = True, right = True, labelsize = fs,
@@ -67,7 +67,7 @@ def plot(plot_data, outpath, fs=13, zoomfact=1.1):
 
     ax.set_xlabel("Event Number", fontsize = fs)
     ax_hist.set_xlabel("Evts. / bin", fontsize = fs)
-        
+
     fig.savefig(outpath)
     plt.close()
 
@@ -77,7 +77,7 @@ def make_glitch_summary_plot(nur_path, plot_path, channels=[0, 1, 2, 3]):
     reader.begin(nur_path)
 
     plot_data = {"evt_num": []}
-    
+
     for evt in reader.run():
         station = evt.get_station()
         plot_data["evt_num"].append(evt.get_id())
@@ -86,7 +86,7 @@ def make_glitch_summary_plot(nur_path, plot_path, channels=[0, 1, 2, 3]):
             ch_data = station.get_channel(channel)
             ch_data.add_parameter_type(parameters.channelParametersRNOG)
             ch_number = ch_data.get_id()
-            
+
             ts = ch_data.get_parameter(parameters.channelParametersRNOG.glitch_test_statistic)
 
             if ch_number not in plot_data:
@@ -96,7 +96,7 @@ def make_glitch_summary_plot(nur_path, plot_path, channels=[0, 1, 2, 3]):
     plot(plot_data, plot_path)
 
 if __name__ == "__main__":
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--nur", type = str, action = "store", dest = "nur_path")
     parser.add_argument("--plot", type = str, action = "store", dest = "plot_path")
