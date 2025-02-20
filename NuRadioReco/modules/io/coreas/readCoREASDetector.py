@@ -183,6 +183,34 @@ class readCoREASDetector:
         evt : `NuRadioReco.framework.event.Event`
             An Event containing a Station object for every selected station, which holds a SimStation containing
             the interpolated ElectricField traces for the selected channels.
+
+        Examples
+        --------
+        >>> reader = readCoREASDetector()
+        >>> reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)
+        >>> for evt in reader.run(detector, [[0, 0, 0], [10 * units.m, 10 * units.m, 0]]):
+        >>>     print(evt.get_id())
+
+        If we only want to simulate a subset of the stations of our detector, we can select them by passing a dictionary
+        for the selected_station_channel_ids parameter. The keys should be the station IDs and the value should be
+        `None` to indicate we want to simulate all channels. So to simulate all channels of stations 2 and 7,
+        we would do the following.
+
+        >>> my_selection = {2: None, 7: None}
+        >>> reader = readCoREASDetector()
+        >>> reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)
+        >>> for evt in reader.run(detector, [[0, 0, 0], [10 * units.m, 10 * units.m, 0]], selected_station_channel_ids):
+        >>>     print(evt.get_id())
+
+        Setting the value to a list of channel IDs will only simulate these selected channels of the station
+        they are associated to. Here we simulate the first 4 channels of station 2 and the first 2 channels
+        of station 7, for the case of the LOFAR detector description.
+
+        >>> my_selection = {2: [2000000, 2000001, 2000002, 2000003], 7: [7000000, 7000001]}
+        >>> reader = readCoREASDetector()
+        >>> reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)
+        >>> for evt in reader.run(detector, [[0, 0, 0], [10 * units.m, 10 * units.m, 0]], selected_station_channel_ids):
+        >>>     print(evt.get_id())
         """
 
         if selected_station_channel_ids is None:
