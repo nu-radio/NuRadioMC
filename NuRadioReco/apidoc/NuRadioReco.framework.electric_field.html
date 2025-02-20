@@ -309,6 +309,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelReadoutWindowCutter.html">NuRadioReco.modules.channelReadoutWindowCutter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -328,7 +329,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.eventTypeIdentifier.html">NuRadioReco.modules.eventTypeIdentifier module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.sphericalWaveFitter.html">NuRadioReco.modules.sphericalWaveFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.templateDirectionFitter.html">NuRadioReco.modules.templateDirectionFitter module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.triggerTimeAdjuster.html">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
@@ -651,10 +651,10 @@ channel separately)</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.add_parameter_type" title="NuRadioReco.framework.electric_field.ElectricField.add_parameter_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_parameter_type</span></code></a>(parameter_type)</p></td>
 <td><p>Add a parameter class to the list of allowed parameter classes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.add_to_trace" title="NuRadioReco.framework.electric_field.ElectricField.add_to_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_to_trace</span></code></a>(channel)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.add_to_trace" title="NuRadioReco.framework.electric_field.ElectricField.add_to_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_to_trace</span></code></a>(channel[, ...])</p></td>
 <td><p>Adds the trace of another channel to the trace of this channel.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.apply_time_shift" title="NuRadioReco.framework.electric_field.ElectricField.apply_time_shift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_time_shift</span></code></a>(delta_t[, silent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.apply_time_shift" title="NuRadioReco.framework.electric_field.ElectricField.apply_time_shift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_time_shift</span></code></a>(delta_t[, silent, ...])</p></td>
 <td><p>Uses the fourier shift theorem to apply a time shift to the trace Note that this is a cyclic shift, which means the trace will wrap around, which might lead to problems, especially for large time shifts.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.electric_field.ElectricField.get_filtered_trace" title="NuRadioReco.framework.electric_field.ElectricField.get_filtered_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filtered_trace</span></code></a>(passband[, filter_type, ...])</p></td>
@@ -882,16 +882,24 @@ window sizes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.electric_field.ElectricField.add_to_trace">
-<span class="sig-name descname"><span class="pre">add_to_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.electric_field.ElectricField.add_to_trace" title="Link to this definition"></a></dt>
-<dd><p>Adds the trace of another channel to the trace of this channel. The trace is only added within the
-time window of “this” channel.
-If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a
-_time_trace containing zeros, this function can be seen as recording a channel in the specified
-readout window.</p>
+<span class="sig-name descname"><span class="pre">add_to_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_residual_time_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.electric_field.ElectricField.add_to_trace" title="Link to this definition"></a></dt>
+<dd><p>Adds the trace of another channel to the trace of this channel.</p>
+<p>The trace of the incoming channel is only added within the time window of the current 
+channel. If the current channel has an empty trace (i.e., a trace containing zeros) with 
+a defined trace_start_time, this function can be seen as recording the incoming channel 
+in the specified readout window. Hence, the current channel is referred to as the “readout” 
+in the comments of this function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>channel: BaseTrace</strong></dt><dd><p>The channel whose trace is to be added to the trace of this channel.</p>
+<dt><strong>channel: BaseTrace</strong></dt><dd><p>The channel whose trace is to be added to the trace of the current channel.</p>
+</dd>
+<dt><strong>min_residual_time_offset: float (default: 1e-5 * units.ns)</strong></dt><dd><p>Minimum residual time between the target bin of this channel and the target bin of the channel
+to be added. Below this threshold the residual time shift is not applied to increase performance
+and minimize numerical artifacts from Fourier transforms.</p>
+</dd>
+<dt><strong>raise_error: bool (default: True)</strong></dt><dd><p>If True, an error is raised if (part of) the current channel
+(readout window) is outside the incoming channel.</p>
 </dd>
 </dl>
 </dd>
@@ -905,7 +913,7 @@ readout window.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.electric_field.ElectricField.apply_time_shift">
-<span class="sig-name descname"><span class="pre">apply_time_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.electric_field.ElectricField.apply_time_shift" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">apply_time_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fourier_shift_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.electric_field.ElectricField.apply_time_shift" title="Link to this definition"></a></dt>
 <dd><p>Uses the fourier shift theorem to apply a time shift to the trace
 Note that this is a cyclic shift, which means the trace will wrap
 around, which might lead to problems, especially for large time shifts.</p>
@@ -917,6 +925,10 @@ around, which might lead to problems, especially for large time shifts.</p>
 <dt><strong>silent: boolean (default:False)</strong></dt><dd><p>Turn off warnings if time shift is larger than 10% of trace length
 Only use this option if you are sure that your trace is long enough
 to acommodate the time shift</p>
+</dd>
+<dt><strong>fourier_shift_threshold: float (default: 1e-5 * units.ns)</strong></dt><dd><p>Threshold for the Fourier shift. If the shift is closer to a multiple of
+1 / sampling_rate than this, the trace is rolled instead of using the Fourier
+shift theorem to save time and avoid numerical errors in the Fourier transforms.</p>
 </dd>
 </dl>
 </dd>

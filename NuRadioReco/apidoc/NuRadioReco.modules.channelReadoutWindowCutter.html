@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.triggerTimeAdjuster module &mdash; NuRadio 2.3.0-dev documentation</title>
+  <title>NuRadioReco.modules.channelReadoutWindowCutter module &mdash; NuRadio 2.3.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -20,8 +20,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.voltageToAnalyticEfieldConverter module" href="NuRadioReco.modules.voltageToAnalyticEfieldConverter.html" />
-    <link rel="prev" title="NuRadioReco.modules.templateDirectionFitter module" href="NuRadioReco.modules.templateDirectionFitter.html" /> 
+    <link rel="next" title="NuRadioReco.modules.channelResampler module" href="NuRadioReco.modules.channelResampler.html" />
+    <link rel="prev" title="NuRadioReco.modules.channelLengthAdjuster module" href="NuRadioReco.modules.channelLengthAdjuster.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -309,6 +309,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.modules.channelReadoutWindowCutter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -328,7 +329,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.eventTypeIdentifier.html">NuRadioReco.modules.eventTypeIdentifier module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.sphericalWaveFitter.html">NuRadioReco.modules.sphericalWaveFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.templateDirectionFitter.html">NuRadioReco.modules.templateDirectionFitter module</a></li>
-<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
@@ -609,9 +609,9 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.triggerTimeAdjuster module</li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.channelReadoutWindowCutter module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -619,11 +619,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.triggerTimeAdjuster">
-<span id="nuradioreco-modules-triggertimeadjuster-module"></span><h1>NuRadioReco.modules.triggerTimeAdjuster module<a class="headerlink" href="#module-NuRadioReco.modules.triggerTimeAdjuster" title="Link to this heading"></a></h1>
+  <section id="module-NuRadioReco.modules.channelReadoutWindowCutter">
+<span id="nuradioreco-modules-channelreadoutwindowcutter-module"></span><h1>NuRadioReco.modules.channelReadoutWindowCutter module<a class="headerlink" href="#module-NuRadioReco.modules.channelReadoutWindowCutter" title="Link to this heading"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.triggerTimeAdjuster.</span></span><span class="sig-name descname"><span class="pre">triggerTimeAdjuster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/triggerTimeAdjuster.html#triggerTimeAdjuster"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelReadoutWindowCutter.</span></span><span class="sig-name descname"><span class="pre">channelReadoutWindowCutter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelReadoutWindowCutter.html#channelReadoutWindowCutter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Modifies channel traces to simulate the effects of the trigger</p>
 <p>The trace is cut to the length defined in the detector description relative to the trigger time.
@@ -631,11 +631,8 @@ If no trigger exists, nothing is done.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time" title="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time</span></code></a>(trigger_name, channel_id)</p></td>
-<td><p>Get the pre_trigger_time for a given trigger_name and channel_id</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run" title="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, mode])</p></td>
-<td><p>Run the trigger time adjuster.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run" title="NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector)</p></td>
+<td><p>Cuts the traces to the readout window defined in the trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -647,46 +644,54 @@ If no trigger exists, nothing is done.</p>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/triggerTimeAdjuster.html#triggerTimeAdjuster.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.begin" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelReadoutWindowCutter.html#channelReadoutWindowCutter.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.begin" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time">
-<span class="sig-name descname"><span class="pre">get_pre_trigger_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/triggerTimeAdjuster.html#triggerTimeAdjuster.get_pre_trigger_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time" title="Link to this definition"></a></dt>
-<dd><p>Get the pre_trigger_time for a given trigger_name and channel_id</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sim_to_data'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/triggerTimeAdjuster.html#triggerTimeAdjuster.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run" title="Link to this definition"></a></dt>
-<dd><p>Run the trigger time adjuster.</p>
-<p>This module can be used either to ‘cut’ the simulated traces into
-the appropriate readout windows, or to adjust the trace start times
-of simulated / real data to account for the different trigger readout
-delays.</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelReadoutWindowCutter.html#channelReadoutWindowCutter.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run" title="Link to this definition"></a></dt>
+<dd><p>Cuts the traces to the readout window defined in the trigger.</p>
 <p>If multiple triggers exist, the primary trigger is used. If multiple
 primary triggers exist, an error is raised.
 If no primary trigger exists, the trigger with the earliest trigger time
 is defined as the primary trigger and used to set the readout windows.</p>
-<dl class="field-list">
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
+<dd class="field-odd"><dl class="simple">
 <dt><strong>event: `NuRadioReco.framework.event.Event`</strong></dt><dd></dd>
 <dt><strong>station: `NuRadioReco.framework.base_station.Station`</strong></dt><dd></dd>
 <dt><strong>detector: `NuRadioReco.detector.detector.Detector`</strong></dt><dd></dd>
-<dt><strong>mode: ‘sim_to_data’ (default) | ‘data_to_sim’</strong></dt><dd><p>If ‘sim_to_data’, cuts the (arbitrary-length) simulated traces
-to the appropriate readout windows.
-If ‘data_to_sim’, looks through all triggers in the station and adjusts the
-trace_start_time according to the different readout delays</p>
-<p>If the <code class="docutils literal notranslate"><span class="pre">trigger_name</span></code> was specified in the <code class="docutils literal notranslate"><span class="pre">begin</span></code> function,
-only this trigger is considered.</p>
-</dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelReadoutWindowCutter.get_empty_channel">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelReadoutWindowCutter.</span></span><span class="sig-name descname"><span class="pre">get_empty_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelReadoutWindowCutter.html#get_empty_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelReadoutWindowCutter.get_empty_channel" title="Link to this definition"></a></dt>
+<dd><p>Returns a channel with a trace containing zeros.</p>
+<p>The trace start time is given by the trigger,
+the duration of the trace is determined by the detector description, and the number of samples 
+determined by the duration and the given sampling rate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+<dt><strong>detector: `NuRadioReco.detector.detector.Detector`</strong></dt><dd><p>The detector description</p>
+</dd>
+<dt><strong>trigger: `NuRadioReco.framework.trigger.Trigger`</strong></dt><dd><p>The trigger that triggered the station</p>
+</dd>
+<dt><strong>sampling_rate: float</strong></dt><dd><p>The sampling rate of the channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -695,8 +700,8 @@ only this trigger is considered.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.templateDirectionFitter.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.templateDirectionFitter module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.voltageToAnalyticEfieldConverter.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.voltageToAnalyticEfieldConverter module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.channelLengthAdjuster.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.channelLengthAdjuster module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.channelResampler.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.channelResampler module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

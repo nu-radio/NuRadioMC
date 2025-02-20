@@ -41,6 +41,7 @@ Submodules
    NuRadioReco.modules.channelGalacticNoiseAdder
    NuRadioReco.modules.channelGenericNoiseAdder
    NuRadioReco.modules.channelLengthAdjuster
+   NuRadioReco.modules.channelReadoutWindowCutter
    NuRadioReco.modules.channelResampler
    NuRadioReco.modules.channelSignalReconstructor
    NuRadioReco.modules.channelStopFilter
@@ -60,7 +61,6 @@ Submodules
    NuRadioReco.modules.eventTypeIdentifier
    NuRadioReco.modules.sphericalWaveFitter
    NuRadioReco.modules.templateDirectionFitter
-   NuRadioReco.modules.triggerTimeAdjuster
    NuRadioReco.modules.voltageToAnalyticEfieldConverter
    NuRadioReco.modules.voltageToEfieldConverter
    NuRadioReco.modules.voltageToEfieldConverterPerChannel

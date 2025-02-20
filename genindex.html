@@ -306,6 +306,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html">NuRadioReco.modules.channelReadoutWindowCutter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -325,7 +326,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.eventTypeIdentifier.html">NuRadioReco.modules.eventTypeIdentifier module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.sphericalWaveFitter.html">NuRadioReco.modules.sphericalWaveFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.templateDirectionFitter.html">NuRadioReco.modules.templateDirectionFitter module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
@@ -951,6 +951,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html#NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster.begin">(NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.begin">(NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html#NuRadioReco.modules.channelResampler.channelResampler.begin">(NuRadioReco.modules.channelResampler.channelResampler method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.begin">(NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor method)</a>
@@ -1063,8 +1065,6 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.simpleThreshold.html#NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator.begin">(NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator method)</a>
 </li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.begin">(NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster method)</a>
-</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html#NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter.begin">(NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter.begin">(NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter method)</a>
@@ -1152,6 +1152,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParameters">channelParameters (class in NuRadioReco.framework.parameters)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter">channelReadoutWindowCutter (class in NuRadioReco.modules.channelReadoutWindowCutter)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html#NuRadioReco.modules.channelResampler.channelResampler">channelResampler (class in NuRadioReco.modules.channelResampler)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.channels_max_amplitude">channels_max_amplitude (NuRadioReco.framework.parameters.stationParameters attribute)</a>
@@ -1166,10 +1168,10 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelTimeWindow.html#NuRadioReco.modules.channelTimeWindow.channelTimeWindow">channelTimeWindow (class in NuRadioReco.modules.channelTimeWindow)</a>
 </li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.charge_excess_profile_id">charge_excess_profile_id (NuRadioReco.framework.parameters.showerParameters attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.charge_excess_profile_id">charge_excess_profile_id (NuRadioReco.framework.parameters.showerParameters attribute)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.check_for_good_ant">check_for_good_ant() (in module NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces.check_trace_quality">check_trace_quality() (NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces method)</a>
@@ -2302,6 +2304,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_electric_fields_for_channels">(NuRadioReco.framework.station.Station method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.get_empty_channel">get_empty_channel() (in module NuRadioReco.modules.channelReadoutWindowCutter)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energies">get_energies() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energy_from_flux">get_energy_from_flux() (in module NuRadioMC.EvtGen.generator)</a>
@@ -2740,10 +2744,10 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_n_events">get_n_events() (NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio method)</a>
 </li>
-      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.get_n_steps">get_n_steps() (in module NuRadioMC.SignalProp.analyticraytracing)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.get_n_steps">get_n_steps() (in module NuRadioMC.SignalProp.analyticraytracing)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.get_name">get_name() (NuRadioReco.framework.hybrid_shower.HybridShower method)</a>
 
       <ul>
@@ -3055,8 +3059,6 @@
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.powerIntegration.html#NuRadioReco.modules.trigger.powerIntegration.get_power_int_triggers">get_power_int_triggers() (in module NuRadioReco.modules.trigger.powerIntegration)</a>
-</li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.get_pre_trigger_time">get_pre_trigger_time() (NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_time_channel">get_pre_trigger_time_channel() (NuRadioReco.framework.trigger.EnvelopePhasedTrigger method)</a>
 
@@ -4392,6 +4394,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html#module-NuRadioReco.modules.channelLengthAdjuster">NuRadioReco.modules.channelLengthAdjuster</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#module-NuRadioReco.modules.channelReadoutWindowCutter">NuRadioReco.modules.channelReadoutWindowCutter</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html#module-NuRadioReco.modules.channelResampler">NuRadioReco.modules.channelResampler</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html#module-NuRadioReco.modules.channelSignalReconstructor">NuRadioReco.modules.channelSignalReconstructor</a>
@@ -4557,8 +4561,6 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.rnog_surface_trigger.html#module-NuRadioReco.modules.trigger.rnog_surface_trigger">NuRadioReco.modules.trigger.rnog_surface_trigger</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.simpleThreshold.html#module-NuRadioReco.modules.trigger.simpleThreshold">NuRadioReco.modules.trigger.simpleThreshold</a>
-</li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#module-NuRadioReco.modules.triggerTimeAdjuster">NuRadioReco.modules.triggerTimeAdjuster</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html#module-NuRadioReco.modules.voltageToAnalyticEfieldConverter">NuRadioReco.modules.voltageToAnalyticEfieldConverter</a>
 </li>
@@ -5457,6 +5459,13 @@
 </li>
       </ul></li>
       <li>
+    NuRadioReco.modules.channelReadoutWindowCutter
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#module-NuRadioReco.modules.channelReadoutWindowCutter">module</a>
+</li>
+      </ul></li>
+      <li>
     NuRadioReco.modules.channelResampler
 
       <ul>
@@ -6035,13 +6044,6 @@
 
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.simpleThreshold.html#module-NuRadioReco.modules.trigger.simpleThreshold">module</a>
-</li>
-      </ul></li>
-      <li>
-    NuRadioReco.modules.triggerTimeAdjuster
-
-      <ul>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#module-NuRadioReco.modules.triggerTimeAdjuster">module</a>
 </li>
       </ul></li>
       <li>
@@ -6637,6 +6639,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html#NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster.run">(NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run">(NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html#NuRadioReco.modules.channelResampler.channelResampler.run">(NuRadioReco.modules.channelResampler.channelResampler method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run">(NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor method)</a>
@@ -6750,8 +6754,6 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.triggerSimulator.run">(NuRadioReco.modules.trigger.rnog_surface_trigger.triggerSimulator method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.simpleThreshold.html#NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator.run">(NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator method)</a>
-</li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run">(NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html#NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter.run">(NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter method)</a>
 </li>
@@ -7424,8 +7426,6 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.simpleThreshold.html#NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator">(class in NuRadioReco.modules.trigger.simpleThreshold)</a>
 </li>
       </ul></li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster">triggerTimeAdjuster (class in NuRadioReco.modules.triggerTimeAdjuster)</a>
-</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html#NuRadioReco.utilities.diodeSimulator.diodeSimulator.tunnel_diode">tunnel_diode() (NuRadioReco.utilities.diodeSimulator.diodeSimulator method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.type">type (NuRadioReco.framework.parameters.showerParameters attribute)</a>

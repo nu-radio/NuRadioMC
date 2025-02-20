@@ -309,6 +309,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html">NuRadioReco.modules.channelReadoutWindowCutter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -328,7 +329,6 @@
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.eventTypeIdentifier.html">NuRadioReco.modules.eventTypeIdentifier module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.sphericalWaveFitter.html">NuRadioReco.modules.sphericalWaveFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.templateDirectionFitter.html">NuRadioReco.modules.templateDirectionFitter module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.triggerTimeAdjuster.html">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
@@ -708,14 +708,6 @@ This delay is applied to the trace in the frequency domain (i.e. the signal is s
 </ul>
 </div></blockquote>
 </li>
-<li><dl class="simple">
-<dt><a class="reference internal" href="../apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#module-NuRadioReco.modules.triggerTimeAdjuster" title="NuRadioReco.modules.triggerTimeAdjuster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.triggerTimeAdjuster</span></code></a></dt><dd><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">sim_to_data</span></code> mode: This modules cuts the trace to the correct length (as specified in the detector description) around the trigger time with a pre-trigger time as defined by the respective trigger module. In the case of multiple triggers it used the primary trigger. If no primary trigger is defined, it uses the trigger with the earliest trigger time. In the end, the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> is set to the trigger time. This is done because this reflects what raw experimental data looks like.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">data_to_sim</span></code> mode: The module determines the trigger that was used to cut the trace to its current length (the ‘sim_to_data’ step above in case of simulations) and adjusts the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> according to the different readout delays. The “primary trigger” defines the readout delays. <strong>After</strong> applying this module in the “data_to_sim” direction, the position in the trace that caused the trigger can be found via the <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trigger_time</span></code></a>.</p></li>
-</ul>
-</dd>
-</dl>
-</li>
 <li><p><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelStopFilter.html#module-NuRadioReco.modules.channelStopFilter" title="NuRadioReco.modules.channelStopFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelStopFilter</span></code></a>: this module prepends and appends all channels with a fixed length (128ns by default).
 The ‘prepend’ time is subtracted from the trace start time (because all channels get the same time delay).
 It additionally applies a tukey window to taper off the start and end (by default, the first and last 5%) of the trace.</p></li>
@@ -723,6 +715,22 @@ It additionally applies a tukey window to taper off the start and end (by defaul
 <dt><a class="reference internal" href="../apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#module-NuRadioReco.modules.voltageToEfieldConverter" title="NuRadioReco.modules.voltageToEfieldConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.voltageToEfieldConverter</span></code></a>:</dt><dd><ul class="simple">
 <li><p>the traces from all used channels are cut to the overlapping region (including delays due to geometry and differences in delays due to different group delays in hardware, e.g. different antenna/amplifier responses)</p></li>
 <li><p>the E-field <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> is set accordingly</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#module-NuRadioReco.modules.channelReadoutWindowCutter" title="NuRadioReco.modules.channelReadoutWindowCutter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelReadoutWindowCutter</span></code></a>:</dt><dd><ul class="simple">
+<li><p>Cuts out the readout windows from simulated traces according to the <em class="xref py py-obj">trigger_time</em>, <em class="xref py py-obj">pre_trigger_time</em>, and <em class="xref py py-obj">number_of_samples</em> (i.e., length of trace) parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>NuRadioReco.modules._deprecated.triggerTimeAdjuster (deprecated):</dt><dd><ul class="simple">
+<li><p>This module is now deprecated. It was replaced by the <a class="reference internal" href="../apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#module-NuRadioReco.modules.channelReadoutWindowCutter" title="NuRadioReco.modules.channelReadoutWindowCutter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelReadoutWindowCutter</span></code></a> module for simulation (doing essential what the mode <code class="docutils literal notranslate"><span class="pre">sim_to_data</span></code> did with the notable difference that it sets the trace start time to <em class="xref py py-obj">trigger_time - pre_trigger_time</em>. The mode <code class="docutils literal notranslate"><span class="pre">data_to_sim</span></code> is not needed anymore, i.e., the experiment specific IO modules have to make sure that the trace start time is set correctly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sim_to_data</span></code> mode: This modules cuts the trace to the correct length (as specified in the detector description) around the trigger time with a pre-trigger time as defined by the respective trigger module. In the case of multiple triggers it used the primary trigger. If no primary trigger is defined, it uses the trigger with the earliest trigger time. In the end, the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> is set to the trigger time. This is done because this reflects what raw experimental data looks like.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_to_sim</span></code> mode: The module determines the trigger that was used to cut the trace to its current length (the ‘sim_to_data’ step above in case of simulations) and adjusts the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> according to the different readout delays. The “primary trigger” defines the readout delays. <strong>After</strong> applying this module in the “data_to_sim” direction, the position in the trace that caused the trigger can be found via the <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trigger_time</span></code></a>.</p></li>
 </ul>
 </dd>
 </dl>

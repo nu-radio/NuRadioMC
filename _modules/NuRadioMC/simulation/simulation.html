@@ -306,6 +306,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html">NuRadioReco.modules.channelReadoutWindowCutter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -325,7 +326,6 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.eventTypeIdentifier.html">NuRadioReco.modules.eventTypeIdentifier module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.sphericalWaveFitter.html">NuRadioReco.modules.sphericalWaveFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.templateDirectionFitter.html">NuRadioReco.modules.templateDirectionFitter module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
@@ -645,7 +645,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelSignalReconstructor</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelResampler</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelGenericNoiseAdder</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.triggerTimeAdjuster</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelReadoutWindowCutter</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">detector</span><span class="p">,</span> <span class="n">antennapattern</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_station</span>
@@ -675,7 +675,7 @@
 <span class="n">channelResampler</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelResampler</span><span class="o">.</span><span class="n">channelResampler</span><span class="p">()</span>
 <span class="n">channelGenericNoiseAdder</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="p">()</span>
 <span class="n">eventWriter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">eventWriter</span><span class="o">.</span><span class="n">eventWriter</span><span class="p">()</span>
-<span class="n">triggerTimeAdjuster</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">triggerTimeAdjuster</span><span class="o">.</span><span class="n">triggerTimeAdjuster</span><span class="p">()</span>
+<span class="n">channelReadoutWindowCutter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelReadoutWindowCutter</span><span class="o">.</span><span class="n">channelReadoutWindowCutter</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="merge_config">
@@ -2256,7 +2256,7 @@
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">():</span>
                         <span class="k">continue</span>
 
-                    <span class="n">triggerTimeAdjuster</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">)</span>
+                    <span class="n">channelReadoutWindowCutter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">)</span>
                     <span class="n">evt_group_triggered</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">output_buffer</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">evt</span>
                 <span class="c1"># end event loop</span>
@@ -2308,21 +2308,23 @@
                         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding sim_station to station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> for event group &quot;</span>
                                      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event_group</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">()</span><span class="si">}</span><span class="s2">, channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                         <span class="n">station</span><span class="o">.</span><span class="n">add_sim_station</span><span class="p">(</span><span class="n">sim_station</span><span class="p">)</span>  <span class="c1"># this will add the channels and efields to the existing sim_station object</span>
-                        <span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">output_buffer</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-                            <span class="c1"># determine the trigger that was used to determine the readout window</span>
 
+                        <span class="c1"># The non-triggered channels were simulated using the efieldToVoltageConverterPerEfield</span>
+                        <span class="c1"># (notice the &quot;PerEfield&quot; in the name). This means that each electric field was converted to</span>
+                        <span class="c1"># a sim channel. Now we still have to add together all sim channels associated with one &quot;physical&quot;</span>
+                        <span class="c1"># channel. Furthermore we have to cut out the correct readout window. For the trigger channels</span>
+                        <span class="c1"># this is done with the channelReadoutWindowCutter, here we have to do it manually.</span>
+                        <span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">output_buffer</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                             <span class="k">for</span> <span class="n">sim_channel</span> <span class="ow">in</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_channels_by_channel_id</span><span class="p">(</span><span class="n">channel_id</span><span class="p">):</span>
                                 <span class="k">if</span> <span class="ow">not</span> <span class="n">station</span><span class="o">.</span><span class="n">has_channel</span><span class="p">(</span><span class="n">sim_channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()):</span>
-                                    <span class="c1"># add empty channel with the correct length and time if it doesn&#39;t exist yet.</span>
+                                    <span class="c1"># For each physical channel we first create a &quot;empty&quot; trace (all zeros)</span>
+                                    <span class="c1"># with the start time and length ....</span>
                                     <span class="bp">self</span><span class="o">.</span><span class="n">_add_empty_channel</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
-                                <span class="c1"># Add the sim_channel to the station channel:</span>
                                 <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">sim_channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
-                                <span class="c1"># we need to account for the pre trigger time of the trigger that was used to determine the readout window</span>
-                                <span class="n">pre_trigger_time</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_primary_trigger</span><span class="p">()</span><span class="o">.</span><span class="n">get_pre_trigger_time_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
-                                <span class="n">sim_channel_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">sim_channel</span><span class="p">)</span>
-                                <span class="n">sim_channel_copy</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">sim_channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">pre_trigger_time</span><span class="p">)</span>
-                                <span class="n">channel</span><span class="o">.</span><span class="n">add_to_trace</span><span class="p">(</span><span class="n">sim_channel_copy</span><span class="p">)</span>
+                                <span class="c1"># ... and now add the sim channel to the correct window defined by the &quot;empty trace&quot;</span>
+                                <span class="c1"># At this point the traces are noiseless, hence, we do not have to raise an error.</span>
+                                <span class="n">channel</span><span class="o">.</span><span class="n">add_to_trace</span><span class="p">(</span><span class="n">sim_channel</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
                 <span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">output_buffer</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                     <span class="n">station</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>
@@ -2333,7 +2335,7 @@
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">station</span><span class="o">.</span><span class="n">has_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">):</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_add_empty_channel</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
-                    <span class="c1"># the only thing left is to add noise to the non-trigger traces</span>
+                    <span class="c1"># The only thing left is to add noise to the non-trigger traces</span>
                     <span class="c1"># we need to do it a bit differently than for the trigger traces,</span>
                     <span class="c1"># because we need to add noise to traces where the amplifier response</span>
                     <span class="c1"># was already applied to.</span>
@@ -2421,13 +2423,10 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_empty_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time &quot;&quot;&quot;</span>
-        <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
-        <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">))</span>
-                        <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">))</span>
-        <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_samples</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">])</span>
-        <span class="c1"># we need to use any other channel to get the correct trace_start_time. All channels have the same start time at the end</span>
-        <span class="c1"># of the simulation.</span>
-        <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">())</span>
+        <span class="n">trigger</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_primary_trigger</span><span class="p">()</span>
+        <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelReadoutWindowCutter</span><span class="o">.</span><span class="n">get_empty_channel</span><span class="p">(</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="n">trigger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">])</span>
+
         <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_event_station_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">):</span>

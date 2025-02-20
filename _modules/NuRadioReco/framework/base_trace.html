@@ -306,6 +306,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html">NuRadioReco.modules.channelReadoutWindowCutter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -325,7 +326,6 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.eventTypeIdentifier.html">NuRadioReco.modules.eventTypeIdentifier module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.sphericalWaveFitter.html">NuRadioReco.modules.sphericalWaveFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.templateDirectionFitter.html">NuRadioReco.modules.templateDirectionFitter module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
@@ -618,6 +618,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">bandpass_filter</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.response</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -902,7 +903,7 @@
 
 <div class="viewcode-block" id="BaseTrace.apply_time_shift">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.apply_time_shift">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">apply_time_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_time_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fourier_shift_threshold</span> <span class="o">=</span> <span class="mf">1e-5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Uses the fourier shift theorem to apply a time shift to the trace</span>
 <span class="sd">        Note that this is a cyclic shift, which means the trace will wrap</span>
@@ -916,13 +917,23 @@
 <span class="sd">            Turn off warnings if time shift is larger than 10% of trace length</span>
 <span class="sd">            Only use this option if you are sure that your trace is long enough</span>
 <span class="sd">            to acommodate the time shift</span>
+<span class="sd">        fourier_shift_threshold: float (default: 1e-5 * units.ns)</span>
+<span class="sd">            Threshold for the Fourier shift. If the shift is closer to a multiple of</span>
+<span class="sd">            1 / sampling_rate than this, the trace is rolled instead of using the Fourier</span>
+<span class="sd">            shift theorem to save time and avoid numerical errors in the Fourier transforms.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">delta_t</span> <span class="o">&gt;</span> <span class="mf">.1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">delta_t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">.1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Trace is shifted by more than 10</span><span class="si">% o</span><span class="s1">f its length&#39;</span><span class="p">)</span>
 
-        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
-        <span class="n">spec</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">2.</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">delta_t</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">delta_t</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span> <span class="o">-</span> <span class="n">delta_t</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span> <span class="o">&lt;</span> <span class="n">fourier_shift_threshold</span><span class="p">:</span>
+            <span class="n">roll_by</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">delta_t</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()))</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">roll_by</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
+            <span class="n">spec</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">2.</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">delta_t</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="BaseTrace.resample">
@@ -971,20 +982,28 @@
 
 <div class="viewcode-block" id="BaseTrace.add_to_trace">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.add_to_trace">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_to_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_to_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">min_residual_time_offset</span><span class="o">=</span><span class="mf">1e-5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds the trace of another channel to the trace of this channel. The trace is only added within the</span>
-<span class="sd">        time window of &quot;this&quot; channel.</span>
-<span class="sd">        If this channel is an empty trace with a defined _sampling_rate and _trace_start_time, and a</span>
-<span class="sd">        _time_trace containing zeros, this function can be seen as recording a channel in the specified</span>
-<span class="sd">        readout window.</span>
+<span class="sd">        Adds the trace of another channel to the trace of this channel.</span>
+
+<span class="sd">        The trace of the incoming channel is only added within the time window of the current </span>
+<span class="sd">        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with </span>
+<span class="sd">        a defined trace_start_time, this function can be seen as recording the incoming channel </span>
+<span class="sd">        in the specified readout window. Hence, the current channel is referred to as the &quot;readout&quot; </span>
+<span class="sd">        in the comments of this function.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        channel: BaseTrace</span>
-<span class="sd">            The channel whose trace is to be added to the trace of this channel.</span>
+<span class="sd">            The channel whose trace is to be added to the trace of the current channel.</span>
+<span class="sd">        min_residual_time_offset: float (default: 1e-5 * units.ns)</span>
+<span class="sd">            Minimum residual time between the target bin of this channel and the target bin of the channel</span>
+<span class="sd">            to be added. Below this threshold the residual time shift is not applied to increase performance</span>
+<span class="sd">            and minimize numerical artifacts from Fourier transforms.</span>
+<span class="sd">        raise_error: bool (default: True)</span>
+<span class="sd">            If True, an error is raised if (part of) the current channel</span>
+<span class="sd">            (readout window) is outside the incoming channel.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No trace is set for this channel&quot;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">==</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span> <span class="s2">&quot;Sampling rates of the two channels do not match&quot;</span>
 
@@ -1003,37 +1022,59 @@
         <span class="c1"># We handle 1+2x2 cases:</span>
         <span class="c1"># 1. Channel is completely outside readout window:</span>
         <span class="k">if</span> <span class="n">t1_channel</span> <span class="o">&lt;</span> <span class="n">t0_readout</span> <span class="ow">or</span> <span class="n">t1_readout</span> <span class="o">&lt;</span> <span class="n">t0_channel</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">raise_error</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The channel is completely outside the readout window&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The channel is completely outside the readout window&#39;</span><span class="p">)</span>
             <span class="k">return</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">floor</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mf">0.01</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ps</span><span class="p">))))))</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">ceil</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mf">0.01</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ps</span><span class="p">))))))</span>
+
         <span class="c1"># 2. Channel starts before readout window:</span>
         <span class="k">if</span> <span class="n">t0_channel</span> <span class="o">&lt;</span> <span class="n">t0_readout</span><span class="p">:</span>
             <span class="n">i_start_readout</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">t_start_readout</span> <span class="o">=</span> <span class="n">t0_readout</span>
-            <span class="n">i_start_channel</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t0_readout</span><span class="o">-</span><span class="n">t0_channel</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_channel</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The first bin of channel inside readout</span>
+            <span class="n">i_start_channel</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">((</span><span class="n">t0_readout</span> <span class="o">-</span> <span class="n">t0_channel</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_channel</span><span class="p">)</span> <span class="c1"># The first bin of channel inside readout</span>
             <span class="n">t_start_channel</span> <span class="o">=</span> <span class="n">tt_channel</span><span class="p">[</span><span class="n">i_start_channel</span><span class="p">]</span>
         <span class="c1"># 3. Channel starts after readout window:</span>
         <span class="k">elif</span> <span class="n">t0_channel</span> <span class="o">&gt;=</span> <span class="n">t0_readout</span><span class="p">:</span>
-            <span class="n">i_start_readout</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t0_channel</span><span class="o">-</span><span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="c1"># The bin of readout right before channel starts</span>
+            <span class="k">if</span> <span class="n">raise_error</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The readout window starts before the incoming channel&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The readout window starts before the incoming channel&#39;</span><span class="p">)</span>
+
+            <span class="n">i_start_readout</span> <span class="o">=</span> <span class="n">floor</span><span class="p">((</span><span class="n">t0_channel</span> <span class="o">-</span> <span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="c1"># The bin of readout right before channel starts</span>
             <span class="n">t_start_readout</span> <span class="o">=</span> <span class="n">tt_readout</span><span class="p">[</span><span class="n">i_start_readout</span><span class="p">]</span>
             <span class="n">i_start_channel</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">t_start_channel</span> <span class="o">=</span> <span class="n">t0_channel</span>
+
         <span class="c1"># 4. Channel ends after readout window:</span>
         <span class="k">if</span> <span class="n">t1_channel</span> <span class="o">&gt;=</span> <span class="n">t1_readout</span><span class="p">:</span>
-            <span class="n">i_end_readout</span> <span class="o">=</span> <span class="n">n_samples_readout</span> <span class="o">-</span> <span class="mi">1</span>
-            <span class="n">t_end_readout</span> <span class="o">=</span> <span class="n">t1_readout</span>
-            <span class="n">i_end_channel</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t1_readout</span> <span class="o">-</span> <span class="n">t0_channel</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_channel</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The bin of channel right after readout ends</span>
-            <span class="n">t_end_channel</span> <span class="o">=</span> <span class="n">tt_channel</span><span class="p">[</span><span class="n">i_end_channel</span><span class="p">]</span>
+            <span class="n">i_end_readout</span> <span class="o">=</span> <span class="n">n_samples_readout</span>
+            <span class="n">i_end_channel</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">((</span><span class="n">t1_readout</span> <span class="o">-</span> <span class="n">t0_channel</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_channel</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The bin of channel right after readout ends</span>
         <span class="c1"># 5. Channel ends before readout window:</span>
         <span class="k">elif</span> <span class="n">t1_channel</span> <span class="o">&lt;</span> <span class="n">t1_readout</span><span class="p">:</span>
-            <span class="n">i_end_readout</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t1_channel</span> <span class="o">-</span> <span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="c1"># The bin of readout right before channel ends</span>
-            <span class="n">t_end_readout</span> <span class="o">=</span> <span class="n">tt_readout</span><span class="p">[</span><span class="n">i_end_readout</span><span class="p">]</span>
-            <span class="n">i_end_channel</span> <span class="o">=</span> <span class="n">n_samples_channel</span> <span class="o">-</span> <span class="mi">1</span>
-            <span class="n">t_end_channel</span> <span class="o">=</span> <span class="n">t1_channel</span>
+            <span class="k">if</span> <span class="n">t1_channel</span> <span class="o">&gt;</span> <span class="n">t1_readout</span> <span class="ow">and</span> <span class="n">raise_error</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The readout window ends after the incoming channel&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The readout window ends after the incoming channel&#39;</span><span class="p">)</span>
+
+            <span class="n">i_end_readout</span> <span class="o">=</span> <span class="n">floor</span><span class="p">((</span><span class="n">t1_channel</span> <span class="o">-</span> <span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The bin of readout right before channel ends</span>
+            <span class="n">i_end_channel</span> <span class="o">=</span> <span class="n">n_samples_channel</span>
 
         <span class="c1"># Determine the remaining time between the binning of the two traces and use time shift as interpolation:</span>
         <span class="n">residual_time_offset</span> <span class="o">=</span> <span class="n">t_start_channel</span> <span class="o">-</span> <span class="n">t_start_readout</span>
-        <span class="n">tmp_channel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-        <span class="n">tmp_channel</span><span class="o">.</span><span class="n">apply_time_shift</span><span class="p">(</span><span class="n">residual_time_offset</span><span class="p">)</span>
-        <span class="n">trace_to_add</span> <span class="o">=</span> <span class="n">tmp_channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="n">i_start_channel</span><span class="p">:</span><span class="n">i_end_channel</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residual_time_offset</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_residual_time_offset</span><span class="p">:</span>
+            <span class="n">tmp_channel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+            <span class="n">tmp_channel</span><span class="o">.</span><span class="n">apply_time_shift</span><span class="p">(</span><span class="n">residual_time_offset</span><span class="p">)</span>
+            <span class="n">trace_to_add</span> <span class="o">=</span> <span class="n">tmp_channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="n">i_start_channel</span><span class="p">:</span><span class="n">i_end_channel</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trace_to_add</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="n">i_start_channel</span><span class="p">:</span><span class="n">i_end_channel</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">i_end_readout</span> <span class="o">-</span> <span class="n">i_start_readout</span> <span class="o">!=</span> <span class="n">i_end_channel</span> <span class="o">-</span> <span class="n">i_start_channel</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The traces do not have the same length. This should not happen.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The traces do not have the same length. This should not happen.&#39;</span><span class="p">)</span>
 
         <span class="c1"># Add the trace to the original trace:</span>
         <span class="n">original_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
