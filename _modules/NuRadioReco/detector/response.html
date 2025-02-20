@@ -740,6 +740,15 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span>
 
+        <span class="k">if</span> <span class="n">time_delay</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">time_delay</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The frequency binning (resolution) of </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MHz &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;of the response function is too large/coarse to correctly remove the time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">}</span><span class="s2"> ns. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;This is a sign of potential aliasing. You need to upsample the response function &quot;</span>
+                    <span class="s2">&quot;(zero padding in the time domain).&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Time delay too large for frequency resolution. Upsample the response function.&quot;</span><span class="p">)</span>
+
         <span class="c1"># Remove the average group delay from response</span>
         <span class="k">if</span> <span class="n">remove_time_delay</span> <span class="ow">and</span> <span class="n">time_delay</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Remove a time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns from </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1186,6 +1195,11 @@
 
     <span class="k">if</span> <span class="n">time_delay</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have to specify a time delay&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">time_delay</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">frequencies</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The frequency binning (resolution) of the response function &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;is to large/corse to correctly remove the time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">}</span><span class="s2"> ns. &quot;</span>
+                         <span class="s2">&quot;You need to upsample the response function.&quot;</span><span class="p">)</span>
 
     <span class="n">resp</span> <span class="o">=</span> <span class="n">gain</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="p">(</span><span class="n">phase</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">time_delay</span> <span class="o">*</span> <span class="n">frequencies</span><span class="p">))</span>
 
