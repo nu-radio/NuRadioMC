@@ -427,7 +427,8 @@ def split_trace_noise_rms(trace, segments=4, lowest=2):
         The mean rms of the lowest few segment rms values
     """
     split_array = np.array_split(trace, segments)
-    rms_of_splits = np.std(split_array, axis=1)
+    split_array = np.array(split_array, dtype="object") #Objectify dtype to allow timetraces indivisible by amount of segments 
+    rms_of_splits = [np.std(split) for split in split_array]
     ordered_rmss = np.sort(rms_of_splits)
     lowest_rmss = ordered_rmss[:lowest]
     rms = np.mean(lowest_rmss)
