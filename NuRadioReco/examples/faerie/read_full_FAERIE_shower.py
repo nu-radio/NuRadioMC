@@ -1,4 +1,4 @@
-import NuRadioReco.modules.io.coreas.readFEARIEShower
+import NuRadioReco.modules.io.coreas.readFAERIEShower
 
 from NuRadioReco.modules import efieldToVoltageConverter
 
@@ -32,10 +32,10 @@ det = detector.GenericDetector(
 efield_converter = efieldToVoltageConverter.efieldToVoltageConverter()
 efield_converter.begin()
 
-readFEARIEShower = NuRadioReco.modules.io.coreas.readFEARIEShower.readFEARIEShower()
-readFEARIEShower.begin(args.inputfilename, det=det)
+readFAERIEShower = NuRadioReco.modules.io.coreas.readFAERIEShower.readFAERIEShower()
+readFAERIEShower.begin(args.inputfilename, det=det)
 
-for event, det in readFEARIEShower.run(depth=100):
+for event, det in readFAERIEShower.run(depth=100):
     print('Event {} {}'.format(event.get_run_number(), event.get_id()))
     print('Number of stations: {}'.format(len(list(event.get_stations()))))
     for station in event.get_stations():

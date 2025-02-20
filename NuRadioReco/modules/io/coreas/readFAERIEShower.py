@@ -19,10 +19,10 @@ import copy
 import sys
 
 import logging
-logger = logging.getLogger('readFEARIEShower')
+logger = logging.getLogger('readFAERIEShower')
 
 
-class readFEARIEShower:
+class readFAERIEShower:
 
     def __init__(self):
         self.__t = 0
@@ -37,7 +37,7 @@ class readFEARIEShower:
         """
         begin method
 
-        initialize readFEARIEShower module
+        initialize readFAERIEShower module
 
         Parameters
         ----------
@@ -187,7 +187,7 @@ class readFEARIEShower:
                     efields = sim_station_ice.get_electric_fields()
                     assert len(efields) == 1, "Not exactly one electric field found"
 
-                    # No point in calculating the ray tracing solution if the electric field is zero (= ray tracing in fearie did not give result)
+                    # No point in calculating the ray tracing solution if the electric field is zero (= ray tracing in faerie did not give result)
                     if np.sum(np.abs(efields[0].get_trace())) != 0:
                         # find ray tracing solution for in-ice signal
                         self._rays.set_start_and_end_point(shower_inice_position, antenna_position_in_ice)
