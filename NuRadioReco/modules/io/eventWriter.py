@@ -12,7 +12,7 @@ logger = logging.getLogger("NuRadioReco.eventWriter")
 
 
 def get_header(evt):
-    header = {'stations': {}}
+    header = {'stations': {}, 'showers': {}}
     for iS, station in enumerate(evt.get_stations()):
         header['stations'][station.get_id()] = station.get_parameters().copy()
         header['stations'][station.get_id()][stnp.station_time] = io_utilities._astropy_to_dict(station.get_station_time())
