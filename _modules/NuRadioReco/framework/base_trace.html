@@ -732,7 +732,7 @@
 
 <div class="viewcode-block" id="BaseTrace.set_trace">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.set_trace">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">trace_start_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the time trace.</span>
 
@@ -743,6 +743,8 @@
 <span class="sd">        sampling_rate : float or str</span>
 <span class="sd">            The sampling rate of the trace, i.e., the inverse of the bin width.</span>
 <span class="sd">            If `sampling_rate=&quot;same&quot;`, sampling rate is not changed (requires previous initialisation).</span>
+<span class="sd">        trace_start_time : float (default: None)</span>
+<span class="sd">            Set the start time of the trace. If None, the start time is not changed/set.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -762,7 +764,10 @@
         <span class="k">elif</span> <span class="n">sampling_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have to specify a sampling rate for `BaseTrace.set_trace(...)`&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have to specify a sampling rate for `BaseTrace.set_trace(...)`&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">trace_start_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">trace_start_time</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseTrace.set_frequency_spectrum">
@@ -864,7 +869,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">nsamples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">window_mask</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">get_frequencies</span><span class="p">(</span><span class="n">nsamples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">nsamples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseTrace.get_hilbert_envelope">
@@ -1198,13 +1203,6 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cant divide baseTrace by number because no value is set for trace.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Division of baseTrace object with object of type </span><span class="si">{}</span><span class="s1"> is not defined&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span></div>
-
-
-<div class="viewcode-block" id="get_frequencies">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.get_frequencies">[docs]</a>
-<span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_frequencies</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span></div>
 
 </pre></div>
 

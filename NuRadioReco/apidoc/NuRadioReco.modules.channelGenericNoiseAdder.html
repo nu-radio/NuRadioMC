@@ -832,11 +832,11 @@ is implemented (RL 17-Sept-2018)</p></li>
 </dd>
 <dt><strong>sampling_rate: float</strong></dt><dd><p>desired sampling rate of data</p>
 </dd>
-<dt><strong>spectrum: numpy.ndarray, function</strong></dt><dd><p>disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function 
+<dt><strong>spectrum: numpy.ndarray, function</strong></dt><dd><p>disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function
 that takes the frequencies as an argument and returns the amplitudes. The overall normalization
 of the spectrum is ignored if the paramter “amplitude” is set.</p>
 </dd>
-<dt><strong>amplitude: float, optional</strong></dt><dd><p>desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the 
+<dt><strong>amplitude: float, optional</strong></dt><dd><p>desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the
 power of the spectrum.</p>
 </dd>
 <dt><strong>type: string</strong></dt><dd><p>perfect_white: flat frequency spectrum

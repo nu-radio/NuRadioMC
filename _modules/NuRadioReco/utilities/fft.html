@@ -645,13 +645,16 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+
 
 <div class="viewcode-block" id="freqs">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html#NuRadioReco.utilities.fft.freqs">[docs]</a>
+<span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">freqs</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns frequency bins for FFT.</span>
-<span class="sd">  </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    num_samples: int</span>
@@ -665,6 +668,7 @@
 <span class="sd">        Frequency binning</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="time2freq">

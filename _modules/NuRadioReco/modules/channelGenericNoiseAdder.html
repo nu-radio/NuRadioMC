@@ -731,7 +731,7 @@
 <span class="sd">        *   Add &#39;multi_white&#39; noise option on 20-Sept-2018 (RL)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
+        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
 
         <span class="n">n_samples_freq</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
 
@@ -741,22 +741,26 @@
             <span class="c1"># to take the difference between two frequencies to determine the minimum frequency, in case</span>
             <span class="c1"># future versions of numpy change the order and maybe put the negative frequencies first</span>
             <span class="n">min_freq</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">frequencies</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; Set min_freq from None to </span><span class="si">{}</span><span class="s1"> MHz!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set min_freq from None to </span><span class="si">{}</span><span class="s1"> MHz!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="n">max_freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># sample up to Nyquist frequency</span>
             <span class="n">max_freq</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; Set max_freq from None to </span><span class="si">{}</span><span class="s1"> GHz!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set max_freq from None to </span><span class="si">{}</span><span class="s1"> GHz!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">round</span><span class="p">(</span><span class="n">max_freq</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">round</span><span class="p">(</span><span class="n">frequencies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;max_freq (</span><span class="si">{</span><span class="n">max_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> MHz) is above the Nyquist frequency &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">frequencies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> MHz). This means the simulated noise ampitude &#39;</span>
+                    <span class="s1">&#39;might deviate from what you intended. To fix that, you either need to lower &#39;</span>
+                    <span class="s1">&#39;max_freq or increase the sampling_rate.&#39;</span><span class="p">)</span>
+
         <span class="n">selection</span> <span class="o">=</span> <span class="p">(</span><span class="n">frequencies</span> <span class="o">&gt;=</span> <span class="n">min_freq</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">frequencies</span> <span class="o">&lt;=</span> <span class="n">max_freq</span><span class="p">)</span>
 
         <span class="n">nbinsactive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Total number of frequency bins (bilateral spectrum) : </span><span class="si">{}</span><span class="s1"> , of those active: </span><span class="si">{}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">nbinsactive</span><span class="p">))</span>
 
-        <span class="c1"># Debug plots</span>
-<span class="c1">#         f1 = plt.figure()</span>
-<span class="c1">#         plt.plot (frequencies/max(frequencies))</span>
-<span class="c1">#         plt.plot(fbinsactive,&#39;kx&#39;)</span>
-
-        <span class="k">if</span><span class="p">(</span><span class="n">bandwidth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">bandwidth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">sampling_bandwidth</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">)</span> <span class="o">-</span> <span class="n">min_freq</span>
             <span class="n">amplitude</span> <span class="o">*=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="n">bandwidth</span> <span class="o">/</span> <span class="p">(</span><span class="n">sampling_bandwidth</span><span class="p">))</span> <span class="o">**</span> <span class="mf">0.5</span>  <span class="c1"># normalize noise level to the bandwidth its generated for</span>
 
@@ -767,15 +771,15 @@
         <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;rayleigh&#39;</span><span class="p">:</span>
             <span class="n">fsigma</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sigscale</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
             <span class="n">ampl</span><span class="p">[</span><span class="n">selection</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="n">fsigma</span><span class="p">,</span> <span class="n">nbinsactive</span><span class="p">)</span>
-<span class="c1">#         elif type == &#39;white&#39;:</span>
-<span class="c1"># FIXME: amplitude normalization is not correct for &#39;white&#39;</span>
-<span class="c1">#             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)</span>
+        <span class="c1"># FIXME: amplitude normalization is not correct for &#39;white&#39;</span>
+        <span class="c1"># elif type == &#39;white&#39;:</span>
+        <span class="c1">#   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
 
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">sampling_rate</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">time_domain</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">time_domain</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n_samples</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">noise</span></div>
@@ -783,8 +787,9 @@
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.precalculate_bandlimited_noise_parameters">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.precalculate_bandlimited_noise_parameters">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">precalculate_bandlimited_noise_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
-                          <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">precalculate_bandlimited_noise_parameters</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
 
@@ -931,10 +936,10 @@
             <span class="k">return</span> <span class="n">noise</span></div>
 
 
-        
+
 <div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise_from_spectrum">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">amplitude</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
                           <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
@@ -946,11 +951,11 @@
 <span class="sd">        sampling_rate: float</span>
 <span class="sd">            desired sampling rate of data</span>
 <span class="sd">        spectrum: numpy.ndarray, function</span>
-<span class="sd">            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function </span>
+<span class="sd">            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function</span>
 <span class="sd">            that takes the frequencies as an argument and returns the amplitudes. The overall normalization</span>
 <span class="sd">            of the spectrum is ignored if the paramter &quot;amplitude&quot; is set.</span>
 <span class="sd">        amplitude: float, optional</span>
-<span class="sd">            desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the </span>
+<span class="sd">            desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the</span>
 <span class="sd">            power of the spectrum.</span>
 <span class="sd">        type: string</span>
 <span class="sd">            perfect_white: flat frequency spectrum</span>

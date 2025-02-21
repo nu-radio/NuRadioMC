@@ -656,9 +656,13 @@
     <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_bins_coincidence</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;length of trace </span><span class="si">{}</span><span class="s2"> bins, coincidence window </span><span class="si">{}</span><span class="s2"> bins&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)))</span>
 
+    <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">high_threshold</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The trace (</span><span class="si">{</span><span class="n">trace</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">) and the threshold (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">high_threshold</span><span class="p">)</span><span class="si">}</span><span class="s2">) must have the same type&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The trace (</span><span class="si">{</span><span class="n">trace</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">) and the threshold (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">high_threshold</span><span class="p">)</span><span class="si">}</span><span class="s2">) must have the same type&quot;</span><span class="p">)</span>
+
     <span class="n">c2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-    <span class="n">m1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">trace</span> <span class="o">&gt;</span> <span class="n">high_threshold</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="p">(</span><span class="n">n_bins_coincidence</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
-    <span class="n">m2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">trace</span> <span class="o">&lt;</span> <span class="n">low_threshold</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="p">(</span><span class="n">n_bins_coincidence</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="n">m1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">trace</span> <span class="o">&gt;=</span> <span class="n">high_threshold</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="p">(</span><span class="n">n_bins_coincidence</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="n">m2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">trace</span> <span class="o">&lt;=</span> <span class="n">low_threshold</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="p">(</span><span class="n">n_bins_coincidence</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">m1</span> <span class="o">&amp;</span> <span class="n">m2</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
 
 
@@ -774,7 +778,7 @@
 <span class="sd">        set_not_triggered: bool (default: False)</span>
 <span class="sd">            if True not trigger simulation will be performed and this trigger will be set to not_triggered</span>
 <span class="sd">        Vrms: float</span>
-<span class="sd">            If supplied, overrides adc_reference_voltage as supplied in the detector description file</span>
+<span class="sd">            If supplied, overrides adc_voltage_range as supplied in the detector description file</span>
 <span class="sd">        trigger_adc: bool</span>
 <span class="sd">            If True, the relevant ADC parameters in the config file are the ones</span>
 <span class="sd">            that start with `&#39;trigger_&#39;`</span>
@@ -827,18 +831,11 @@
                     <span class="c1"># overwrite the dt defined for the original trace by the digitized one</span>
                     <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">trigger_sampling_rate</span>
 
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold_high</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="n">threshold_high_tmp</span> <span class="o">=</span> <span class="n">threshold_high</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">threshold_high_tmp</span> <span class="o">=</span> <span class="n">threshold_high</span>
-
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold_low</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="n">threshold_low_tmp</span> <span class="o">=</span> <span class="n">threshold_low</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">threshold_low_tmp</span> <span class="o">=</span> <span class="n">threshold_low</span>
-
                 <span class="n">triggerd_bins</span> <span class="o">=</span> <span class="n">get_high_low_triggers</span><span class="p">(</span>
-                    <span class="n">trace</span><span class="p">,</span> <span class="n">threshold_high_tmp</span><span class="p">,</span> <span class="n">threshold_low_tmp</span><span class="p">,</span> <span class="n">high_low_window</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+                    <span class="n">trace</span><span class="p">,</span>
+                    <span class="n">_get_threshold_channel</span><span class="p">(</span><span class="n">threshold_high</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">),</span>
+                    <span class="n">_get_threshold_channel</span><span class="p">(</span><span class="n">threshold_low</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">),</span>
+                    <span class="n">high_low_window</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">triggerd_bins</span><span class="p">):</span>
                     <span class="n">channels_that_passed_trigger</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
@@ -892,6 +889,16 @@
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_threshold_channel</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns channel specific threshold if threshold is a dict, otherwise returns threshold &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">threshold</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">threshold</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Threshold must be a int/float or dict, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 
            </div>

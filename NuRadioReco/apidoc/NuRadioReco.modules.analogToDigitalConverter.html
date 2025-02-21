@@ -623,7 +623,7 @@
 <span id="nuradioreco-modules-analogtodigitalconverter-module"></span><h1>NuRadioReco.modules.analogToDigitalConverter module<a class="headerlink" href="#module-NuRadioReco.modules.analogToDigitalConverter" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.perfect_comparator">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">perfect_comparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_ref_voltage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'floor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#perfect_comparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.perfect_comparator" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">perfect_comparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_voltage_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output='voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode_func=&lt;ufunc</span> <span class="pre">'floor'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#perfect_comparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.perfect_comparator" title="Link to this definition"></a></dt>
 <dd><p>Simulates a perfect comparator flash ADC that compares the voltage to the
 voltage for the least significative bit and takes the floor or the ceiling
 of their ratio as a digitised value of the trace.</p>
@@ -634,16 +634,16 @@ of their ratio as a digitised value of the trace.</p>
 </dd>
 <dt><strong>adc_n_bits: int</strong></dt><dd><p>Number of bits of the ADC</p>
 </dd>
-<dt><strong>adc_ref_voltage: float</strong></dt><dd><p>Voltage corresponding to the maximum number of counts given by the
-ADC: 2**adc_n_bits - 1</p>
-</dd>
-<dt><strong>mode: string</strong></dt><dd><p>‘floor’ or ‘ceiling’</p>
+<dt><strong>adc_voltage_range: (float, float)</strong></dt><dd><p>Is a tuple (Vmin, Vmax) defining the “full scale” voltage range where V_max corresponds to the maximum number of counts given by the
+ADC 2**adc_n_bits - 1 and V_min to the ADC count 0.</p>
 </dd>
 <dt><strong>output: {‘voltage’, ‘counts’}, default ‘voltage’</strong></dt><dd><p>Options:</p>
 <ul class="simple">
 <li><p>‘voltage’ to store the ADC output as discretised voltage trace</p></li>
 <li><p>‘counts’ to store the ADC output in ADC counts</p></li>
 </ul>
+</dd>
+<dt><strong>mode_func: callable</strong></dt><dd><p>Either <code class="docutils literal notranslate"><span class="pre">np.floor</span></code> or <code class="docutils literal notranslate"><span class="pre">np.ceil</span></code> to choose the mode of the comparator</p>
 </dd>
 </dl>
 </dd>
@@ -654,28 +654,34 @@ ADC: 2**adc_n_bits - 1</p>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>There is often some ambiguity in the definition of the “Least Significant Bit” (i.e., resolution) for an ADC.
+People either define it as lsb = V / 2^n or lsb = V / (2^n - 1). As you can see we are adopting the latter. The ambiguity
+comes from an amibguity of what the symbol V in the prev. equations acutally is. The following link provides an explanation [1].
+In short: If you divide by 2^n, V refers to a reference voltage which can never be reached. If you divide by 2^n - 1 V refers to
+the “full scale” voltage which can be reached. How your ADC works will be defined in its datasheet.</p>
+<p>[1]: <a class="reference external" href="https://masteringelectronicsdesign.com/an-adc-and-dac-least-significant-bit-lsb/">https://masteringelectronicsdesign.com/an-adc-and-dac-least-significant-bit-lsb/</a></p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.perfect_floor_comparator">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">perfect_floor_comparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_ref_voltage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#perfect_floor_comparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.perfect_floor_comparator" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">perfect_floor_comparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#perfect_floor_comparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.perfect_floor_comparator" title="Link to this definition"></a></dt>
 <dd><p>Perfect comparator ADC that takes the floor value of the comparison.
 See perfect_comparator</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.perfect_ceiling_comparator">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">perfect_ceiling_comparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_ref_voltage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#perfect_ceiling_comparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.perfect_ceiling_comparator" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">perfect_ceiling_comparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#perfect_ceiling_comparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.perfect_ceiling_comparator" title="Link to this definition"></a></dt>
 <dd><p>Perfect comparator ADC that takes the floor value of the comparison.
-See perfect_floor.</p>
+See perfect_comparator.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.apply_saturation">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">apply_saturation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adc_counts_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_ref_voltage</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#apply_saturation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.apply_saturation" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">apply_saturation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adc_counts_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_n_bits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#apply_saturation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.apply_saturation" title="Link to this definition"></a></dt>
 <dd><p>Takes a digitised trace in ADC counts and clips the parts of the
-trace with values higher than 2**(adc_n_bits-1)-1 or lower than
--2**(adc_n_bits-1).</p>
+trace with values higher than 2**adc_n_bits - 1 or lower than 0.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -683,14 +689,9 @@ trace with values higher than 2**(adc_n_bits-1)-1 or lower than
 </dd>
 <dt><strong>adc_n_bits: int</strong></dt><dd><p>Number of bits of the ADC</p>
 </dd>
-<dt><strong>adc_ref_voltage: float</strong></dt><dd><p>Voltage corresponding to the maximum number of counts given by the
-ADC: 2**(adc_n_bits-1) - 1</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>saturated_trace: array of floats</dt><dd><p>The clipped or saturated voltage trace</p>
+<dt><strong>Returns</strong></dt><dd></dd>
+<dt><strong>——-</strong></dt><dd></dd>
+<dt><strong>saturated_trace: array of floats</strong></dt><dd><p>The clipped or saturated voltage trace</p>
 </dd>
 </dl>
 </dd>
@@ -699,7 +700,7 @@ ADC: 2**(adc_n_bits-1) - 1</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">analogToDigitalConverter</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">analogToDigitalConverter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>This class simulates an analog to digital converter. The steps followed
 by this module to achieve the conversion are:</p>
@@ -783,7 +784,7 @@ in the detector configuration, and use them setting <em class="xref py py-obj">t
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace">
-<span class="sig-name descname"><span class="pre">get_digital_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_adc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_floor_comparator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter.get_digital_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_digital_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_adc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_floor_comparator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_baseline_voltage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter.get_digital_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.get_digital_trace" title="Link to this definition"></a></dt>
 <dd><p>Returns the digital trace for a channel, without setting it. This allows
 the creation of a digital trace that can be used for triggering purposes
 without removing the original information on the channel.</p>
@@ -815,8 +816,10 @@ that start with <em class="xref py py-obj">‘trigger_’</em></p>
 <li><p>‘counts’ to store the ADC output in ADC counts</p></li>
 </ul>
 </dd>
-<dt><strong>trigger_filter: array floats</strong></dt><dd><p>Freq. domain of the response to be applied to post-ADC traces
+<dt><strong>trigger_filter: array of floats</strong></dt><dd><p>Freq. domain of the response to be applied to post-ADC traces
 Must be length for “MC freq”</p>
+</dd>
+<dt><strong>adc_baseline_voltage: float (default: 0 V)</strong></dt><dd><p>The baseline voltage to be added to the trace before digitisation.</p>
 </dd>
 </dl>
 </dd>
@@ -833,7 +836,7 @@ Must be length for “MC freq”</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_floor_comparator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_floor_comparator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_baseline_voltage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.run" title="Link to this definition"></a></dt>
 <dd><p>Runs the analogToDigitalConverter and transforms the traces from all
 the channels of an input station to digital voltage values.</p>
 <dl class="field-list">
@@ -855,8 +858,10 @@ the channels of an input station to digital voltage values.</p>
 <li><p>‘counts’ to store the ADC output in ADC counts</p></li>
 </ul>
 </dd>
-<dt><strong>upsampling_factor: integer</strong></dt><dd><p>Upsampling factor. The digital trace will be a upsampled to a
-sampling frequency int_factor times higher than the original one</p>
+<dt><strong>trigger_filter: array of floats</strong></dt><dd><p>Freq. domain of the response to be applied to post-ADC traces
+Must be length for “MC freq”</p>
+</dd>
+<dt><strong>adc_baseline_voltage: float (default: 0 V)</strong></dt><dd><p>The baseline voltage to be added to the trace before digitisation.</p>
 </dd>
 </dl>
 </dd>
@@ -868,6 +873,48 @@ sampling frequency int_factor times higher than the original one</p>
 <span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#analogToDigitalConverter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.analogToDigitalConverter.end" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.downsampling_linear_interpolation">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">downsampling_linear_interpolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#downsampling_linear_interpolation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.downsampling_linear_interpolation" title="Link to this definition"></a></dt>
+<dd><p>Downsamples a trace using linear interpolation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>The trace to be downsampled</p>
+</dd>
+<dt><strong>sampling_rate: float</strong></dt><dd><p>The sampling rate of the input trace</p>
+</dd>
+<dt><strong>new_sampling_rate: float</strong></dt><dd><p>The sampling rate of the output trace</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>times_downsampled: array of floats</dt><dd><p>The times of the downsampled trace (without start time)</p>
+</dd>
+<dt>downsampled_trace: array of floats</dt><dd><p>The downsampled trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.analogToDigitalConverter.apply_filter">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.analogToDigitalConverter.</span></span><span class="sig-name descname"><span class="pre">apply_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/analogToDigitalConverter.html#apply_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.analogToDigitalConverter.apply_filter" title="Link to this definition"></a></dt>
+<dd><p>Applies a filter to a trace in the frequency domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>channel: `NuRadioReco.framework.channel.Channel` object</strong></dt><dd><p>The (channel) trace to be filtered</p>
+</dd>
+<dt><strong>filter: array of floats</strong></dt><dd><p>The filter to be applied</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

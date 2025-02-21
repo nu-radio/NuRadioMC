@@ -697,7 +697,7 @@ a shower and ray tracing solution id</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
 <td><p>Set the error of a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate[, ...])</p></td>
 <td><p>Sets the time trace.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_channel</span></code></a>(trigger_channel)</p></td>
@@ -830,7 +830,7 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
 <td><p>Set the error of a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate[, ...])</p></td>
 <td><p>Sets the time trace.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_channel</span></code></a>(trigger_channel)</p></td>
@@ -1195,7 +1195,7 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_trace">
-<span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="Link to this definition"></a></dt>
 <dd><p>Sets the time trace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1204,6 +1204,8 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 </dd>
 <dt><strong>sampling_rate</strong><span class="classifier">float or str</span></dt><dd><p>The sampling rate of the trace, i.e., the inverse of the bin width.
 If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is not changed (requires previous initialisation).</p>
+</dd>
+<dt><strong>trace_start_time</strong><span class="classifier">float (default: None)</span></dt><dd><p>Set the start time of the trace. If None, the start time is not changed/set.</p>
 </dd>
 </dl>
 </dd>

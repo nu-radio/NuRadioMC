@@ -640,35 +640,33 @@ Includes:
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_trigger_filter" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_trigger_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_trigger_filter</span></code></a>(station, ...)</p></td>
 <td><p>Applies the requested trigger filter to the <em class="xref py py-obj">trigger_channels</em></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([adc_input_range, clock_offset, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([clock_offset, adc_output])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_avg_vrms" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_avg_vrms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_avg_vrms</span></code></a>(station, trigger_channels[, ...])</p></td>
-<td><p>Estimates the RMS voltage of the triggering antennas by splitting the waveforms into chunks and taking the median of standard deviation of the chunks</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.digitize_trace" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.digitize_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">digitize_trace</span></code></a>(station, det, ...)</p></td>
+<td><p>Digitizes the traces of the trigger channels.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det, trigger_channels[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_noise_vrms_per_trigger_channel" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_noise_vrms_per_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_vrms_per_trigger_channel</span></code></a>(station, ...)</p></td>
+<td><p>Estimates the RMS voltage of the triggering antennas by splitting the waveforms into chunks and taking the median of standard deviation of the chunks.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run" title="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det, trigger_channels[, ...])</p></td>
 <td><p>Applies the additional filters on the trigger board and performs a gain amplification to get the correct number of trigger bits.</p></td>
 </tr>
 </tbody>
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>digitize_trace</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>end</strong></p></td>
+<tr class="row-odd"><td><p><strong>end</strong></p></td>
 <td></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adc_input_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>adc_input_range</strong><span class="classifier">float (default: 2V)</span></dt><dd><p>the voltage range of the ADC (should be given in units of volts)</p>
-</dd>
 <dt><strong>clock_offset: bool</strong></dt><dd><p>If True, a random clock offset between -1 and 1 clock cycles is added</p>
 </dd>
 <dt><strong>adc_output: string</strong></dt><dd><p>Options:</p>
@@ -702,10 +700,10 @@ Includes:
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_avg_vrms">
-<span class="sig-name descname"><span class="pre">get_avg_vrms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.get_avg_vrms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_avg_vrms" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_noise_vrms_per_trigger_channel">
+<span class="sig-name descname"><span class="pre">get_noise_vrms_per_trigger_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.get_noise_vrms_per_trigger_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_noise_vrms_per_trigger_channel" title="Link to this definition"></a></dt>
 <dd><p>Estimates the RMS voltage of the triggering antennas by splitting the waveforms
-into chunks and taking the median of standard deviation of the chunks</p>
+into chunks and taking the median of standard deviation of the chunks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -713,14 +711,14 @@ into chunks and taking the median of standard deviation of the chunks</p>
 </dd>
 <dt><strong>trigger_channels</strong><span class="classifier">list</span></dt><dd><p>Channels that this function should be applied to</p>
 </dd>
-<dt><strong>trace_split</strong><span class="classifier">int (default: 9)</span></dt><dd><p>How many chunks each of the waveforms will be split into before calculating
+<dt><strong>trace_split</strong><span class="classifier">int (default: 20)</span></dt><dd><p>How many chunks each of the waveforms will be split into before calculating
 the standard deviation</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>approx_vrms</strong><span class="classifier">float</span></dt><dd><p>the median RMS voltage of the waveforms</p>
+<dt><strong>vrms</strong><span class="classifier">list of floats</span></dt><dd><p>RMS voltage of the waveforms</p>
 </dd>
 </dl>
 </dd>
@@ -729,7 +727,7 @@ the standard deviation</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_adc_gain">
-<span class="sig-name descname"><span class="pre">apply_adc_gain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avg_vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.apply_adc_gain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_adc_gain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">apply_adc_gain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vrms_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.apply_adc_gain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_adc_gain" title="Link to this definition"></a></dt>
 <dd><p>Calculates and applies the gain adjustment such that the correct number
 of “noise bits” are realized. The ADC has fixed possible gain values and
 this module sets the one that is closest-to-but-greater-than the ideal value</p>
@@ -742,8 +740,8 @@ this module sets the one that is closest-to-but-greater-than the ideal value</p>
 </dd>
 <dt><strong>trigger_channels</strong><span class="classifier">list</span></dt><dd><p>Channels that this function should be applied to</p>
 </dd>
-<dt><strong>avg_rms</strong><span class="classifier">float (default: None)</span></dt><dd><p>The Vrms of the trigger channels including the trigger board filters
-If set to <em class="xref py py-obj">None</em>, this will be estimated using the waveforms</p>
+<dt><strong>vrms_noise</strong><span class="classifier">float (default: None)</span></dt><dd><p>The (noise) Vrms of the trigger channels including the trigger board filters
+If set to <em class="xref py py-obj">None</em>, this will be estimated using the waveforms.</p>
 </dd>
 </dl>
 </dd>
@@ -761,7 +759,26 @@ If set to <em class="xref py py-obj">None</em>, this will be estimated using the
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.digitize_trace">
 <span class="sig-name descname"><span class="pre">digitize_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vrms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/triggerBoardResponse.html#triggerBoardResponse.digitize_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.digitize_trace" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Digitizes the traces of the trigger channels.</p>
+<p>This function uses the <a class="reference internal" href="NuRadioReco.modules.analogToDigitalConverter.html#module-NuRadioReco.modules.analogToDigitalConverter" title="NuRadioReco.modules.analogToDigitalConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.analogToDigitalConverter</span></code></a> module to digitize the traces.
+The resulting digitized traces are either in discrete voltage values or in ADC counts
+(depeding on the argument <em class="xref py py-obj">adc_output</em>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station</strong><span class="classifier">Station</span></dt><dd><p>Station to use</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd><p>The detector description</p>
+</dd>
+<dt><strong>trigger_channels</strong><span class="classifier">list</span></dt><dd><p>Channels that this function should be applied to</p>
+</dd>
+<dt><strong>vrms</strong><span class="classifier">float</span></dt><dd><p>The (noise) RMS voltage of the trigger channels including the trigger board filters.
+This can be used to simulate a dynamic range of the ADC which depends on the noise level.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.run">
