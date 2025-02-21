@@ -9,7 +9,7 @@ import NuRadioReco.modules.channelAddCableDelay
 import logging
 logger = logging.getLogger('NuRadioReco.RNO_G.dataProviderRNOG')
 
-class dataProvideRNOG:
+class dataProviderRNOG:
 
     def __init__(self):
 
