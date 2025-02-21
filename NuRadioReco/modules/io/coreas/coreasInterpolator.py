@@ -101,7 +101,7 @@ class coreasInterpolator:
         in the shower plane and the electric field.
         """
         if not np.all(self.shower.get_parameter(shp.core)[:2] == 0):
-            logger.info(
+            logger.status(
                 "The shower core is not at the origin. "
                 "Be careful to adjust antenna positions accordingly when retrieving interpolated values."
             )
@@ -295,7 +295,8 @@ class coreasInterpolator:
             logger.warning(
                 f'The geomagnetic angle is {geomagnetic_angle / units.deg:.2f} deg, '
                 f'which is smaller than 15deg, which is the lower limit for the signal interpolation. '
-                f'The closest observer is used instead.')
+                f'The closest observer is used instead.'
+            )
 
             self.efield_interpolator = cr_pulse_interpolator.interpolation_fourier.interp2d_fourier(
                 self.obs_positions_showerplane[:, 0], self.obs_positions_showerplane[:, 1], self.efield_times
@@ -397,7 +398,7 @@ class coreasInterpolator:
             )
         elif abs(position_on_ground[2] - core[2]) > 5 * units.cm:
             logger.warning(
-                f"The antenna z-coordinate {position_on_ground[2]} differs significantly from"
+                f"The antenna z-coordinate {position_on_ground[2]} differs significantly from "
                 f"the observation level {core[2]}. This behaviour is not tested, so only proceed "
                 f"if you know what you are doing."
             )
@@ -454,7 +455,8 @@ class coreasInterpolator:
                 filter_up_to_cutoff=False,
                 account_for_timing=True,
                 pulse_centered=True,
-                full_output=True)
+                full_output=True
+            )
 
             trace_start_time *= units.second  # interpolator returns start time in seconds
 
@@ -528,8 +530,9 @@ class coreasInterpolator:
         # is also in internal units, ie no need to multiply with units.second here
         efield_start_time = self.efield_interpolator(*antenna_pos_showerplane[:2])
         logger.debug(
-        f'Returning the electric field of the closest observer position, '
-        f'which is {distances[index] / units.m:.2f}m away from the antenna, the time is interpolated')
+            f'Returning the electric field of the closest observer position, '
+            f'which is {distances[index] / units.m:.2f}m away from the antenna, the time is interpolated'
+        )
         return efield, efield_start_time
 
     def plot_fluence_footprint(self, radius=300):
