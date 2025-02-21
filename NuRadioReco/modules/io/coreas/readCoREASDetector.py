@@ -132,7 +132,7 @@ class readCoREASDetector:
 
         This function creates an Event using the provided CoREAS HDF5 file, using the `coreas.read_CORSIKA7()` function.
         The latter takes in the `declination` and `site` parameters in order to specify the declination of the magnetic
-        field. Then, it creates a `coreasInterpolator.coreasInterpolator` object with the event and initializes the
+        field. Then, it creates a `coreasInterpolator.coreasInterpolator()` object with the event and initializes the
         electric field interpolator.
 
         Parameters
