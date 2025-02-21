@@ -103,7 +103,7 @@ class BaseTrace:
             # The double transpose allows to work with 1D and ND traces
             return fft.time2freq(trace.T[window_mask].T, self._sampling_rate)
 
-    def set_trace(self, trace, sampling_rate):
+    def set_trace(self, trace, sampling_rate, trace_start_time=None):
         """
         Sets the time trace.
 
@@ -114,6 +114,8 @@ class BaseTrace:
         sampling_rate : float or str
             The sampling rate of the trace, i.e., the inverse of the bin width.
             If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
+        trace_start_time : float (default: None)
+            Set the start time of the trace. If None, the start time is not changed/set.
         """
         if trace is not None:
             if trace.shape[trace.ndim - 1] % 2 != 0:
@@ -134,6 +136,9 @@ class BaseTrace:
             self._sampling_rate = sampling_rate
         else:
             raise ValueError("You have to specify a sampling rate for `BaseTrace.set_trace(...)`")
+
+        if trace_start_time is not None:
+            self.set_trace_start_time(trace_start_time)
 
     def set_frequency_spectrum(self, frequency_spectrum, sampling_rate):
         """
@@ -214,7 +219,7 @@ class BaseTrace:
         else:
             nsamples = int(np.sum(window_mask))
 
-        return get_frequencies(nsamples, self._sampling_rate)
+        return fft.freqs(nsamples, self._sampling_rate)
 
     def get_hilbert_envelope(self):
         from scipy import signal
@@ -523,7 +528,3 @@ class BaseTrace:
             raise ValueError('Cant divide baseTrace by number because no value is set for trace.')
         else:
             raise TypeError('Division of baseTrace object with object of type {} is not defined'.format(type(x)))
-
-@functools.lru_cache(maxsize=1024)
-def get_frequencies(length, sampling_rate):
-    return np.fft.rfftfreq(length, d=1. / sampling_rate)
