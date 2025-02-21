@@ -51,7 +51,7 @@ if __name__ == "__main__":
     det = NuRadioReco.detector.RNO_G.rnog_detector.Detector(detector_file=args.detectorfile)
 
     # Initialize io modules
-    dataProviderRNOG = NuRadioReco.modules.RNO_G.dataProviderRNOG.dataProvideRNOG()
+    dataProviderRNOG = NuRadioReco.modules.RNO_G.dataProviderRNOG.dataProviderRNOG()
     dataProviderRNOG.begin(files=args.filenames, det=det)
 
     eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
