@@ -126,9 +126,14 @@ class readCoREASDetector:
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
     def begin(self, input_file, interp_lowfreq=30 * units.MHz, interp_highfreq=1000 * units.MHz,
-              log_level=logging.NOTSET):
+              site=None, declination=None, log_level=logging.NOTSET):
         """
-        begin method, initialize readCoREASDetector module
+        Begin method to initialize readCoREASDetector module.
+
+        This function creates an Event using the provided CoREAS HDF5 file, using the `coreas.read_CORSIKA7()` function.
+        The latter takes in the `declination` and `site` parameters in order to specify the declination of the magnetic
+        field. Then, it creates a `coreasInterpolator.coreasInterpolator` object with the event and initializes the
+        electric field interpolator.
 
         Parameters
         ----------
@@ -140,6 +145,12 @@ class readCoREASDetector:
         interp_highfreq: float, default=1000 * units.MHz
             higher frequency for the bandpass filter in interpolation,
             should be broader than the sensitivity band of the detector
+        declination: float, default=None
+            The declination to use for the magnetic field, in internal units. Takes precedence over site.
+            This parameter is passed on to the `coreas.read_CORSIKA7()` function.
+        site: str, default=None
+            Instead of declination, a site name can be given to retrieve the declination.
+            This parameter is passed on to the `coreas.read_CORSIKA7()` function.
         log_level: default=logging.NOTSET
             log level for the logger
         """
@@ -149,7 +160,7 @@ class readCoREASDetector:
         if filesize < 18456 * 2:  # based on the observation that a file with such a small filesize is corrupt
             self.logger.warning("file {} seems to be corrupt".format(input_file))
 
-        self.__corsika_evt = coreas.read_CORSIKA7(input_file)
+        self.__corsika_evt = coreas.read_CORSIKA7(input_file, site=site, declination=declination)
         self.logger.info(
             f"Using coreas simulation {input_file} with "
             f"E={self.__corsika_evt.get_first_sim_shower().get_parameter(shp.energy):.2g}eV, "
