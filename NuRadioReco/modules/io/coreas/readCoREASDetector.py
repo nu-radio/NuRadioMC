@@ -172,7 +172,10 @@ class readCoREASDetector:
         detector: `NuRadioReco.detector.detector_base.DetectorBase`
             Detector description of the detector that shall be simulated
         core_position_list: list of (list of float)
-            list of core positions in the format [[x1, y1, z1], [x2, y2, z2], ...]
+            List of 2D or 3D core positions in the format [[x1, y1, (z1)], [x2, y2, (z2)], ...]
+            The z coordinate is optional. It is actually encouraged to **not** use it, as it can mess with
+            the observation level of the event. If not provided, all oberser positions are put at the
+            observation by the interpolator (this is the behaviour of `coreasInterpolator.get_interp_efield_value`).
         selected_station_channel_ids: dict, default=None
             A dictionary containing the list of channels IDs to simulate per station.
             If None, all channels of all stations in the detector are simulated.
@@ -186,9 +189,13 @@ class readCoREASDetector:
 
         Examples
         --------
+        When running the module, you will probably want to run it with 2-dimensional core positions. This
+        ensures that the observation level is not altered. It is possible to run with 3-dimensional core positions,
+        but be careful to have the correct altitude, otherwise unexpected results might occur.
+
         >>> reader = readCoREASDetector()
         >>> reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)
-        >>> for evt in reader.run(detector, [[0, 0, 0], [10 * units.m, 10 * units.m, 0]]):
+        >>> for evt in reader.run(detector, [[0, 0], [10 * units.m, 10 * units.m]]):
         >>>     print(evt.get_id())
 
         If we only want to simulate a subset of the stations of our detector, we can select them by passing a dictionary
@@ -199,7 +206,7 @@ class readCoREASDetector:
         >>> my_selection = {2: None, 7: None}
         >>> reader = readCoREASDetector()
         >>> reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)
-        >>> for evt in reader.run(detector, [[0, 0, 0], [10 * units.m, 10 * units.m, 0]], selected_station_channel_ids):
+        >>> for evt in reader.run(detector, [[0, 0], [10 * units.m, 10 * units.m]], selected_station_channel_ids):
         >>>     print(evt.get_id())
 
         Setting the value to a list of channel IDs will only simulate these selected channels of the station
@@ -209,7 +216,7 @@ class readCoREASDetector:
         >>> my_selection = {2: [2000000, 2000001, 2000002, 2000003], 7: [7000000, 7000001]}
         >>> reader = readCoREASDetector()
         >>> reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)
-        >>> for evt in reader.run(detector, [[0, 0, 0], [10 * units.m, 10 * units.m, 0]], selected_station_channel_ids):
+        >>> for evt in reader.run(detector, [[0, 0], [10 * units.m, 10 * units.m]], selected_station_channel_ids):
         >>>     print(evt.get_id())
         """
 
