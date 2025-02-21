@@ -161,7 +161,9 @@ def sinewave_subtraction(wf: np.ndarray, sampling_rate: float = 3.2, peak_promin
             except RuntimeError:
                 logger.error(f"Curve fitting failed for frequency: {noise_freq / units.MHz} MHz")
 
-    return corrected_waveform
+        return corrected_waveform
+    else:
+        return wf
 
 
 def plot_ft(channel, ax, label=None, plot_kwargs=dict()):
