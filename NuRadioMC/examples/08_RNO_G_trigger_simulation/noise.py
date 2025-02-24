@@ -85,15 +85,8 @@ def calculate_vrms_from_temperature(noise_temp_channel, bandwidth):
     vrms_per_channel: float
         The vrms of the channel
     """
-
-    freqs = np.arange(0, 2.5, 0.001) * units.GHz
-    window = np.zeros_like(freqs, dtype=bool)
-    window[np.all([freqs > bandwidth[0], freqs < bandwidth[1]], axis=0)] = True
-
-    # Bandwidth, i.e., \Delta f in equation
-    integrated_channel_response = np.trapz(np.abs(window) ** 2, freqs)
-    vrms_per_channel = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
-
+    vrms_per_channel = (noise_temp_channel * 50 * constants.k *
+                        (bandwidth[1] - bandwidth[0]) / units.Hz) ** 0.5
     return vrms_per_channel
 
 
@@ -326,24 +319,14 @@ if __name__ == "__main__":
     if args.label != "":
         args.label = f"_{args.label}"
 
-    # Defaults for the trigger simulation which are not yet in the hardware DB
-    defaults = {
-        "trigger_adc_sampling_frequency": 0.472,
-        "trigger_adc_nbits": 8,
-        "trigger_adc_noise_count": 20,
-        "trigger_adc_min_voltage": -1,
-        "trigger_adc_max_voltage": 1,
-    }
-
     det = rnog_detector.Detector(
         detector_file=args.detectordescription, log_level=logging.INFO,
-        always_query_entire_description=True, select_stations=args.station_id,
-        over_write_handset_values=defaults)
+        always_query_entire_description=True, select_stations=args.station_id)
 
     det.update(dt.datetime(2023, 8, 3))
 
     n_events = args.nevents
-    max_freq = defaults["trigger_adc_sampling_frequency"] / 2
+    max_freq = det.get_sampling_frequency(args.station_id, None, trigger=True) / 2
     bandwidth = np.array([50, max_freq / units.MHz]) * units.MHz
     vrms = calculate_vrms_from_temperature(300 * units.kelvin, bandwidth)
     logger.info(f"VRMS [for bandwidth {bandwidth / units.MHz} MHz]: {vrms / units.microvolt:.2f} muV")
@@ -354,11 +337,12 @@ if __name__ == "__main__":
         "n_samples": args.n_samples,
     }
 
-    freqs = fft.freqs(noise_kwargs['n_samples'], defaults["trigger_adc_sampling_frequency"])
+    freqs = fft.freqs(noise_kwargs['n_samples'], det.get_sampling_frequency(args.station_id, None, trigger=True))
     filters = {channel_id: det.get_signal_chain_response(args.station_id, channel_id, trigger=True)(freqs)
         for channel_id in deep_trigger_channels}
 
     if not args.running_vrms:
+        # These values were optained with the function get_vrms_per_channel
         if args.station_id == 13:
             vrms_per_channel = np.array([6.83, 4.84, 3.87, 4.50]) * units.mV
         elif args.station_id == 11:
@@ -412,7 +396,7 @@ if __name__ == "__main__":
         vrms = [np.mean(vrms, axis=0).tolist(), np.std(vrms, axis=0).tolist()]
         print(vrms)
 
-    dt = noise_kwargs["n_samples"] / defaults["trigger_adc_sampling_frequency"]
+    dt = noise_kwargs["n_samples"] / det.get_sampling_frequency(args.station_id, None, trigger=True)
     total_time = dt * (n_events * args.nruns)
     print(f"Total time simulated: {total_time / units.s:.1f}s ({n_events * args.nruns} events)")
     tsim = time.time() - t0
