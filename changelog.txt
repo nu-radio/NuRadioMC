@@ -2,6 +2,11 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 2.2.3
+bugfixes:
+- Fixed an error when attempting to write an event that included non-contiguous
+  numpy arrays, by explicitly converting these to contiguous form in that case.
+
 version 2.2.2
 bugfixes:
 - Change to the way numpy objects are stored inside .nur files. This ensures .nur
