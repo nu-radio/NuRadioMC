@@ -9,7 +9,7 @@ on:
         description: Specify Python version to run tests on
         type: string
         required: true
-        default: '3.7'
+        default: '3.10'
       os:
         description: OS to run tests on
         type: string
@@ -20,14 +20,14 @@ on:
         description: Specify Python version to run tests on
         type: string
         required: true
-        default: '3.7'
+        default: '3.10'
       os:
         description: OS to run tests on
         type: string
         default: ubuntu-latest
 
-env: # set the python_version to 3.7 if the workflow is not triggered by workflow_call or workflow_dispatch
-  PYTHON_VERSION: ${{ inputs.python_version || '3.7' }}
+env: # set the python_version to 3.10 if the workflow is not triggered by workflow_call or workflow_dispatch
+  PYTHON_VERSION: ${{ inputs.python_version || '3.10' }}
 
 jobs:
   build:
@@ -129,12 +129,6 @@ jobs:
          export PYTHONPATH=$PWD:$PYTHONPATH
          export GSLDIR=$(gsl-config --prefix)
          NuRadioMC/test/SignalProp/run_signal_test.sh
-    - name: "Test ray tracing modules"
-      if: always()
-      run: |
-         export PYTHONPATH=$PWD:$PYTHONPATH
-         export GSLDIR=$(gsl-config --prefix)
-         python NuRadioMC/SignalProp/examples/ray_tracing_modules.py
     - name: "Test Birefringence"
       if: always()
       run: |
@@ -196,9 +190,21 @@ jobs:
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
+    - name: "Test channelGalacticNoiseAdder"
+      if: always()
+      run: |
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        python install_dev.py --dev galacticnoise --no-interactive
+        python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
     - name: "Test all examples"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/test_examples.sh
+    - name: "Test module structure of all modules in NuRadioReco.modules"
+      if: always()
+      run: |
+        export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        python NuRadioReco/test/check_modules.py -r

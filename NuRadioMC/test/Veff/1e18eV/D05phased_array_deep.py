@@ -4,6 +4,7 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.phasedarray.triggerSimulator
 import NuRadioReco.modules.channelBandPassFilter
+
 from NuRadioReco.utilities import units
 import numpy as np
 import scipy
@@ -52,7 +53,6 @@ for channel_id in range(0, 9):
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-
         channelBandPassFilter.run(evt, station, det,
                                   passband=passband_low, filter_type=filter_type, order=order_low, rp=0.1)
         channelBandPassFilter.run(evt, station, det,
