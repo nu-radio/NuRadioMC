@@ -1,5 +1,6 @@
+import NuRadioReco.modules.channelAddCableDelay
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, fft, signal_processing
+from NuRadioReco.utilities import units, fft
 import NuRadioReco.framework.station
 
 from NuRadioReco.detector.RNO_G import analog_components
@@ -23,6 +24,8 @@ class hardwareResponseIncorporator:
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
+        self.channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
+
 
     def begin(self, trigger_channels=None):
         """
@@ -237,7 +240,7 @@ class hardwareResponseIncorporator:
         if not sim_to_data:
             if not evt.has_been_processed_by_module('channelAddCableDelay', station.get_id()):
                 self.logger.warning(
-                    "The hardwareResponseIncorporator module should be used to remove the cable delay "
+                    "The hardwareResponseIncorporator module should _not_ be used to remove the cable delay "
                     "from data anymore. Please use channelAddCableDelay module for this (before running "
                     "the hardwareResponseIncorporator module). The channelAddCableDelay was not applied "
                     "to this event, hence, you are receiving this warning. The cable delay is now "
@@ -248,10 +251,7 @@ class hardwareResponseIncorporator:
                 # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
                 # in the efieldToVoltageConverter or with the channelCableDelayAdder
                 # (if efieldToVoltageConverterPerEfield was used).
-                signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
-                if has_trigger_channels:
-                    signal_processing.add_cable_delay(
-                            station, det, sim_to_data, trigger=True, logger=self.logger)
+                self.channelAddCableDelay.run(evt, station, det, mode='subtract')
 
         self.__t += time.time() - t
 
