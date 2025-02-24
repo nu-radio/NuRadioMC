@@ -39,7 +39,7 @@ class channelSignalReconstructor:
         signal_window_length = 120 * units.ns,
         noise_window_start = None,
         noise_window_length = None,
-        coincidence_window_size = 6
+        coincidence_window_size = 6 * units.ns
     ):
         """
         Parameters
@@ -57,7 +57,7 @@ class channelSignalReconstructor:
         noise_window_length: float or None
             Length of the noise window, with time units
             If noise_window_start or noise_window_length are None, the noise window is the part of the trace outside the signal window
-        coincidence_window_size : int (default: 6)
+        coincidence_window_size : float (default: 6ns)
             Window size used for calculating the maximum peak to peak amplitude used for the max_a_norm variable
         """
         self.__signal_window_start = signal_window_start
@@ -151,7 +151,8 @@ class channelSignalReconstructor:
             snr['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
 
         #Calculate peak to peak voltage SNR using the RMS of the split waveform
-        snr['peak_2_peak_amplitude_split_noise_rms'] = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(channel.get_trace(), self.__coincidence_window_size)) 
+        coincidence_window_size_bins = int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
+        snr['peak_2_peak_amplitude_split_noise_rms'] = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(channel.get_trace(), coincidence_window_size_bins))
         snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.split_trace_noise_rms(channel.get_trace(), segments=4, lowest=2)
         snr['peak_2_peak_amplitude_split_noise_rms'] /= 2
         
@@ -187,6 +188,24 @@ class channelSignalReconstructor:
         return snr, noise_rms, root_power_ratio
 
     def get_impulsivity(self, channel):
+        """
+        Calculate the impulsivity of a signal.
+
+        This function computes the impulsivity of a signal by performing a Hilbert transform 
+        to obtain the analytic signal, calculating the envelope, and then determining the 
+        cumulative distribution function (CDF) of the sorted envelope values based on their 
+        closeness to the maximum value. The average of the CDF is then scaled and returned 
+        as the impulsivity measure.
+
+        Parameters
+        ----------
+        channel : Channel
+            The channel object containing the signal trace.
+        Returns
+        -------
+        float
+            The impulsivity measure of the signal, scaled between 0 and 1.
+        """
         analytical_signal = signal.hilbert(
             channel.get_trace()
         )  # compute analytic signal using hilbert transform from signal voltages
@@ -202,7 +221,7 @@ class channelSignalReconstructor:
         cdf = cdf / cdf[-1]
 
         cdf_avg = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
-        
+
         if cdf_avg < 0:
             cdf_avg = 0.0
         return cdf_avg
@@ -211,15 +230,15 @@ class channelSignalReconstructor:
         maxaval = 0
         for channel in station.iter_channels():
             normalized_wf = channel.get_trace() / np.std(channel.get_trace())
+            coincidence_window_size_bins =  int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
             thismax = np.amax(
-                trace_utilities.maximum_peak_to_peak_amplitude(normalized_wf,self.__coincidence_window_size)
+                trace_utilities.maximum_peak_to_peak_amplitude(normalized_wf, coincidence_window_size_bins)
             )
             if thismax > maxaval:
                 maxaval = thismax
         return maxaval
 
-    
-    
+
     @register_run()
     def run(self, evt, station, det, stored_noise = False, rms_stage = 'amp'):
         """
