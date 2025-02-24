@@ -97,6 +97,11 @@ deprecations:
 - Remove support for Python 3.6. Most features will still work, but are no longer tested and may therefore
   break in future versions without warning.
 
+version 2.2.3
+bugfixes:
+- Fixed an error when attempting to write an event that included non-contiguous
+  numpy arrays, by explicitly converting these to contiguous form in that case.
+
 version 2.2.2
 bugfixes:
 - Change to the way numpy objects are stored inside .nur files. This ensures .nur
@@ -125,8 +130,6 @@ new features:
 - triggerTimeAdjuster now works more reliably and supports different readout windows per channel.
   The readout time adjustment now is stored in the trigger object and needs to be accounted for in analysis
   by running the triggerTimeAdjuster, analogously to the channelAddCableDelay module.
-
-
 
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
