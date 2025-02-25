@@ -1,11 +1,15 @@
 # NuRadioMC and NuRadioReco
+### [Quickstart](https://nu-radio.github.io/NuRadioMC/Introduction/pages/quickstart.html)
+### [Documentation](https://nu-radio.github.io/NuRadioMC/main.html)
+### [Contributing](https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html)
+
 NuRadioMC: A Monte Carlo simulation package for radio neutrino detectors.
 
 NuRadioReco: A reconstruction and detector simulation framework for radio detectors of high-energy neutrinos and cosmic-rays. (NuRadioReco is independent of NuRadioMC
 and used by NuRadioMC for the detector and trigger simulation. To simplify the development and continuous integration testing, both codes are developed 
 in the same github repository.)
 
-The documentation can be found at https://nu-radio.github.io/NuRadioMC/main.html
+The documentation can be found at https://nu-radio.github.io/NuRadioMC/main.html.
 
 
 If you're using NuRadioMC for your research, please cite
@@ -32,7 +36,7 @@ If you would like to contribute, please contact @cg-laser or @anelles for permis
 Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html for details on our workflow and coding conventions.
 
 
-## Publications builing up on NuRadioMC/Reco
+## Publications using NuRadioMC/Reco
 NuRadioMC is used in an increasing number of studies. To get an overview of what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
 * A. Nozdrina and D. Besson, "Implications of in-ice volume scattering for radio-frequency neutrino experiments", Journal of Cosmology and Astroparticle Physics 10(2024)086, [doi:10.1088/1475-7516/2024/10/086](https://doi.org/10.1088/1475-7516/2024/10/086)
