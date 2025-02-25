@@ -1,8 +1,5 @@
 from six import iteritems
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 import numpy as np
 from NuRadioReco.utilities import units
 

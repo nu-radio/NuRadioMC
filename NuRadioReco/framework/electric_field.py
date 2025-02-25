@@ -4,10 +4,8 @@ import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_storage
 import radiotools.coordinatesystems
 from NuRadioReco.utilities.trace_utilities import get_stokes
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+
+import pickle
 import logging
 logger = logging.getLogger('NuRadioReco.ElectricField')
 
