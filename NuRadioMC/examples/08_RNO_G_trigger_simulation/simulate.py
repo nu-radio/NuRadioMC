@@ -16,6 +16,7 @@ from NuRadioReco.detector.RNO_G import rnog_detector
 
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
+from noise import calculate_vrms_from_temperature
 
 import logging
 logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
@@ -27,20 +28,8 @@ def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_chan
     vrms_per_channel = []
     for channel_id in trigger_channels:
         resp = det.get_signal_chain_response(station_id, channel_id, trigger=True)
-
-        freqs = np.linspace(10, 1200, 1000) * units.MHz
-        filt = resp(freqs)
-
-        # Calculation of Vrms. For details see from elog:1566 and
-        # https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
-        # (last two Eqs. in "noise voltage and power" section) or our wiki
-        # https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
-
-        # Bandwidth, i.e., \Delta f in equation
-        integrated_channel_response = np.trapz(np.abs(filt) ** 2, freqs)
-
         vrms_per_channel.append(
-            (temperature * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
+            calculate_vrms_from_temperature(noise_temp_channel=temperature, response=resp)
         )
 
     return vrms_per_channel
@@ -94,14 +83,14 @@ def RNO_G_HighLow_Thresh(lgRate_per_hz):
 
 class mySimulation(simulation.simulation):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, trigger_channel_noise_vrms=None, **kwargs):
         # this module is needed in super().__init__ to calculate the vrms
         self.rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
         self.rnogHarwareResponse.begin(trigger_channels=kwargs['trigger_channels'])
 
         super().__init__(*args, **kwargs)
         self.logger = logger
-        self.deep_trigger_channels = deep_trigger_channels
+        self.deep_trigger_channels = kwargs['trigger_channels']
 
         self.highLowThreshold = highLowThreshold.triggerSimulator()
         self.rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
@@ -124,6 +113,8 @@ class mySimulation(simulation.simulation):
             "3Hz": RNO_G_HighLow_Thresh(np.log10(3)),
         }
 
+        assert trigger_channel_noise_vrms is not None, "Please provide the trigger channel noise vrms"
+        self.trigger_channel_noise_vrms = trigger_channel_noise_vrms
 
     def _detector_simulation_filter_amp(self, evt, station, det):
         # apply the amplifiers and filters to get to RADIANT-level
@@ -131,24 +122,16 @@ class mySimulation(simulation.simulation):
 
     def _detector_simulation_trigger(self, evt, station, det):
 
-        vrms_input_to_adc = get_vrms_from_temperature_for_trigger_channels(
-            det, station.get_id(), self.deep_trigger_channels, 300)
-
-        sampling_rate = det.get_sampling_frequency(station.get_id())
-        self.logger.debug('Radiant sampling rate is {:.1f} MHz'.format(
-            sampling_rate / units.MHz
-        ))
-
         # Runs the FLOWER board response
         vrms_after_gain = self.rnogADCResponse.run(
             evt, station, det, trigger_channels=self.deep_trigger_channels,
-            vrms=copy.copy(vrms_input_to_adc), digitize_trace=True,
+            vrms=self.trigger_channel_noise_vrms, digitize_trace=True,
         )
 
         for idx, trigger_channel in enumerate(self.deep_trigger_channels):
             self.logger.debug(
                 'Vrms = {:.2f} mV / {:.2f} mV (after gain).'.format(
-                    vrms_input_to_adc[idx] / units.mV, vrms_after_gain[idx] / units.mV
+                    self.trigger_channel_noise_vrms[idx] / units.mV, vrms_after_gain[idx] / units.mV
                 ))
             self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
 
@@ -221,10 +204,14 @@ if __name__ == "__main__":
         always_query_entire_description=False, select_stations=args.station_id)
 
     det.update(dt.datetime(2023, 8, 3))
+    config = simulation.get_config(args.config)
 
-    volume = get_fiducial_volume(args.energy)
+    # Get the trigger channel noise vrms
+    trigger_channel_noise_vrms = get_vrms_from_temperature_for_trigger_channels(
+        det, args.station_id, deep_trigger_channels, config['trigger']['noise_temperature'])
 
     # Simulate fiducial volume around station
+    volume = get_fiducial_volume(args.energy)
     pos = det.get_absolute_position(args.station_id)
     logger.info(f"Simulating around center x0={pos[0]:.2f}m, y0={pos[1]:.2f}m")
     volume.update({"x0": pos[0], "y0": pos[1]})
@@ -276,6 +263,7 @@ if __name__ == "__main__":
         outputfilenameNuRadioReco=nur_output_filename,
         config_file=args.config,
         trigger_channels=deep_trigger_channels,
+        trigger_channel_noise_vrms=trigger_channel_noise_vrms,
     )
 
     sim.run()

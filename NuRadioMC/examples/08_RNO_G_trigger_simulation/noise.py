@@ -70,10 +70,9 @@ high_low_trigger_thresholds = {s: s for s in sigma_thresholds}
 def calculate_vrms_from_temperature(noise_temp_channel, bandwidth=None, response=None):
     """ Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
 
-    This function does not take into account the individual channel response.
-    It assumes a flat rectangular filter with the given bandwidth. We have to
-    simulate the noise for each channel in the exact same bandwith and apply
-    the hardware response afterwards to get correct results.
+    For details see https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
+    (sec. "Maximum transfer of noise power") or our wiki
+    https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
 
     Parameters
     ----------
