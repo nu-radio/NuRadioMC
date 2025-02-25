@@ -31,7 +31,7 @@ class channelSinewaveSubtraction:
             Flag to save the identified noise frequencies for each channel.
         freq_band: tuple (default: (0.1, 0.7))
             Frequency band to calculate baseline RMS of fft spectrum. Used to identify noise peaks.
-            0.1 to 0.7 GHz is the default for RNO-G, based on bandpass. 
+            0.1 to 0.7 GHz is the default for RNO-G, based on bandpass.
 
         """
         self.save_filtered_freqs = [] if save_filtered_freqs else None
@@ -41,23 +41,23 @@ class channelSinewaveSubtraction:
     def run(self, event: 'NuRadioReco.framework.event.Event', station: 'NuRadioReco.framework.station.Station', det: 'NuRadioReco.detector.Detector' = None, peak_prominence: float = 4.0) -> None:
         """
         Run the CW filter module on a given event and station. Removes all the CW peaks > peak_prominence * RMS.
-    
+
         Parameters
-        ----------  
+        ----------
         event: `NuRadioReco.framework.event.Event`
             Event object to process.
         station: `NuRadioReco.framework.station.Station`
-            Station object to process.  
+            Station object to process.
         det: `NuRadioReco.detector.detector.Detector` (default: None)
             Detector object to process.
         peak_prominence: float (default: 4.0)
-            Threshold for identifying prominent peaks in the FFT spectrum. 
+            Threshold for identifying prominent peaks in the FFT spectrum.
         """
         for channel in station.iter_channels():
             sampling_rate = channel.get_sampling_rate()
             trace = channel.get_trace()
             trace_fil = sinewave_subtraction(
-                trace, peak_prominence, sampling_rate=sampling_rate, 
+                trace, peak_prominence, sampling_rate=sampling_rate,
                 saved_noise_freqs=self.save_filtered_freqs, freq_band=self.freq_band)
 
             channel.set_trace(trace_fil, sampling_rate)
@@ -126,7 +126,7 @@ def guess_amplitude_iir(wf: np.ndarray, target_freq: float, sampling_rate: float
     N = len(wf)  # Number of samples
     k = int(0.5 + (N * target_freq / sampling_rate))  # Frequency bin index
     omega = (2.0 * np.pi * k) / N  # Angular frequency
-    scaling_factor = N / 2.0 
+    scaling_factor = N / 2.0
 
     # IIR filter coefficients derived from Goertzel's difference equation
     b = [1.0, 0, 0.0]  # Numerator coefficients
@@ -265,11 +265,11 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_
             # Fit the sinusoidal model to the waveform
             try:
 
-                params, covariance = curve_fit(sinusoid, t, wf, p0=initial_guess) 
+                params, covariance = curve_fit(sinusoid, t, wf, p0=initial_guess)
                 # Check if any parameters are NaN or Inf
                 if np.any(np.isnan(params)) or np.any(np.isinf(params)):
                     raise RuntimeError("Fit returned invalid parameters.")
-        
+
                 estimated_amplitude, estimated_freq, estimated_phase = params
 
                 # Check if the covariance matrix is invalid
@@ -277,14 +277,14 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_
                     raise RuntimeError("Fit covariance matrix is invalid, fit may not have converged.")
 
                 # Generate the estimated CW noise
-                estimated_cw_noise = sinusoid(t, estimated_amplitude, estimated_freq,estimated_phase) 
+                estimated_cw_noise = sinusoid(t, estimated_amplitude, estimated_freq,estimated_phase)
 
                 logger.info(f"Subtract sinewave with a frequency: {estimated_freq / units.MHz:.1f} MHz, "
                             f"an amplitude: {estimated_amplitude:.1e} V/GHz and a phase: {estimated_phase / units.deg:.1f} deg")
 
                 # Subtract the estimated CW noise
                 corrected_waveform -= estimated_cw_noise
-                power_after_subtraction = np.sum(abs(fft.time2freq(corrected_waveform, sampling_rate)) ** 2) 
+                power_after_subtraction = np.sum(abs(fft.time2freq(corrected_waveform, sampling_rate)) ** 2)
                 logger.info(f"Power reduction: {100 * (1 - power_after_subtraction / power_orig):.1f}%")
 
                 if power_orig < power_after_subtraction:
