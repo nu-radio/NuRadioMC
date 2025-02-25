@@ -724,7 +724,7 @@ new connection. Set to True to create a new database connection.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position_device" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position_device"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position_device</span></code></a>(station_id, ...)</p></td>
 <td><p>Get the relative position of a specific device with respect to the station center</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_frequency</span></code></a>(station_id[, channel_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_frequency</span></code></a>(station_id[, ...])</p></td>
 <td><p>Get sampling frequency per station / channel</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_components" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_components"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_signal_chain_components</span></code></a>(station_id, ...)</p></td>
@@ -1252,7 +1252,7 @@ it here for consistency with outer detector classes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency">
-<span class="sig-name descname"><span class="pre">get_sampling_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_sampling_frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_sampling_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_sampling_frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency" title="Link to this definition"></a></dt>
 <dd><p>Get sampling frequency per station / channel</p>
 <p>All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep
 it here for consistency with other detector classes.</p>
@@ -1263,11 +1263,13 @@ it here for consistency with other detector classes.</p>
 </dd>
 <dt><strong>channel_id: int (default: None)</strong></dt><dd><p>Not Used!</p>
 </dd>
+<dt><strong>trigger: bool</strong></dt><dd><p>If True, the sampling rate of the trigger board is returned (FLOWER). (Default: False)</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>sampling_rate: int</dt><dd><p>Sampling frequency</p>
+<dt>sampling_rate: float</dt><dd><p>Sampling frequency</p>
 </dd>
 </dl>
 </dd>

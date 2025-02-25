@@ -1279,6 +1279,13 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">channel_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
+        <span class="c1"># Add ADC parameter to channel description. This is needed for ADC and trigger modules.</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;signal_digitizer_config&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">channel_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;adc_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;trigger_digitizer_config&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">channel_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;trigger_adc_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
         <span class="k">return</span> <span class="n">channel_data</span></div>
 
 
@@ -1821,17 +1828,17 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">_keys_not_in_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">,</span> <span class="p">[</span><span class="n">station_id</span><span class="p">,</span> <span class="s2">&quot;number_of_samples&quot;</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">_keys_not_in_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">,</span> <span class="p">[</span><span class="n">station_id</span><span class="p">,</span> <span class="s2">&quot;signal_digitizer_config&quot;</span><span class="p">,</span> <span class="s2">&quot;number_of_samples&quot;</span><span class="p">]):</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Could not find </span><span class="se">\&quot;</span><span class="s2">number_of_samples</span><span class="se">\&quot;</span><span class="s2"> for station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> in buffer. Did you call det.update(...)?&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s1">&#39;number_of_samples&#39;</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;signal_digitizer_config&quot;</span><span class="p">][</span><span class="s1">&#39;number_of_samples&#39;</span><span class="p">])</span></div>
 
 
 
 <div class="viewcode-block" id="Detector.get_sampling_frequency">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_sampling_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sampling_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get sampling frequency per station / channel</span>
 
 <span class="sd">        All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep</span>
@@ -1839,17 +1846,18 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        station_id: int</span>
 <span class="sd">            Station id</span>
 
 <span class="sd">        channel_id: int (default: None)</span>
 <span class="sd">            Not Used!</span>
 
+<span class="sd">        trigger: bool</span>
+<span class="sd">            If True, the sampling rate of the trigger board is returned (FLOWER). (Default: False)</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
-<span class="sd">        sampling_rate: int</span>
+<span class="sd">        sampling_rate: float</span>
 <span class="sd">            Sampling frequency</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
@@ -1857,11 +1865,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">_keys_not_in_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">,</span> <span class="p">[</span><span class="n">station_id</span><span class="p">,</span> <span class="s2">&quot;sampling_rate&quot;</span><span class="p">]):</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Could not find </span><span class="se">\&quot;</span><span class="s2">sampling_rate</span><span class="se">\&quot;</span><span class="s2"> for station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> in buffer. Did you call det.update(...)?&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">trigger</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;trigger_digitizer_config&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;signal_digitizer_config&quot;</span>
 
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">])</span></div>
+        <span class="k">if</span> <span class="n">_keys_not_in_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">,</span> <span class="p">[</span><span class="n">station_id</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s2">&quot;sampling_frequency&quot;</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not find </span><span class="se">\&quot;</span><span class="s2">sampling_frequency</span><span class="se">\&quot;</span><span class="s2"> for station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> in buffer. Did you call det.update(...)?&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;sampling_frequency&#39;</span><span class="p">])</span></div>
 
 
 
