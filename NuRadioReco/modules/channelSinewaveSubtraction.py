@@ -48,7 +48,7 @@ class channelSinewaveSubtraction:
             Event object to process.
         station: `NuRadioReco.framework.station.Station`
             Station object to process.
-        det: `NuRadioReco.detector.detector.Detector` (default: None)
+        det: ``NuRadioReco.detector.detector.Detector`` (default: None)
             Detector object to process.
         peak_prominence: float (default: 4.0)
             Threshold for identifying prominent peaks in the FFT spectrum.
