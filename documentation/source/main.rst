@@ -13,6 +13,7 @@ Welcome to NuRadio's documentation!
    Introduction/pages/welcome_page.rst
    NuRadioReco/pages/welcome_page.rst
    NuRadioMC/pages/welcome_page.rst
+   Experiments/welcome_page.rst
 
 Indices and tables
 ==================
