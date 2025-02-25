@@ -716,9 +716,11 @@ coincidence logic (as used by ARIANNA)</p>
 </dd>
 <dt><strong>sampling_rate: float</strong></dt><dd><p>the sampling rate</p>
 </dd>
-<dt><strong>Vrms: float</strong></dt><dd><p>the RMS noise</p>
+<dt><strong>Vrms: float or list of floats</strong></dt><dd><p>the RMS noise
+if only one value is supplied, it is assumed to be the same for all channels</p>
 </dd>
-<dt><strong>threshold: float</strong></dt><dd><p>the trigger threshold (assuming a symmetric high and low threshold)</p>
+<dt><strong>threshold: float or list of floats</strong></dt><dd><p>the trigger threshold (assuming a symmetric high and low threshold)
+if only one value is supplied, it is assumed to be the same for all channels</p>
 </dd>
 <dt><strong>time_coincidence: float</strong></dt><dd><p>the high/low coincidence time</p>
 </dd>
@@ -730,7 +732,8 @@ coincidence logic (as used by ARIANNA)</p>
 </dd>
 <dt><strong>trigger_time: float</strong></dt><dd><p>the trigger time (time when the trigger completes)</p>
 </dd>
-<dt><strong>filt: array of floats</strong></dt><dd><p>the filter that should be applied after noise generation (needs to match frequency binning)</p>
+<dt><strong>filt: array of floats or list of array of floats</strong></dt><dd><p>the filter that should be applied after noise generation (needs to match frequency binning)
+if only one array is supplied, it is assumed to be the same for all channels</p>
 </dd>
 <dt><strong>noise_type: string</strong></dt><dd><p>the type of the noise, can be
 * “rayleigh” (default)
