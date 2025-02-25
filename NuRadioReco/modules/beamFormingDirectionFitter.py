@@ -10,6 +10,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 import NuRadioReco.modules.voltageToEfieldConverterPerChannel
 import NuRadioReco.modules.electricFieldBandPassFilter
+from NuRadioReco.modules.base.module import register_run
 
 
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
@@ -98,6 +99,7 @@ class beamFormingDirectionFitter:
         self.logger.setLevel(log_level)
         self.__debug = debug
 
+    @register_run()
     def run(self, evt, station, det, polarization, n_index=None, channels=None, ZenLim=None,
             AziLim=None):
         """

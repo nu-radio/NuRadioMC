@@ -139,6 +139,8 @@ class Database(object):
 
         self.__station_collection = "station_rnog"
 
+        self.__digitizer_collection = "digitizer_configuration"
+
 
     def set_database_time(self, time):
         ''' Set time for database. This affects which primary measurement is used.
@@ -266,6 +268,40 @@ class Database(object):
                 break
 
         return infos
+    
+
+    def get_digitizer_configuration(self, config_id):
+        """ Get digitizer configuration from the database. Access information in the digitizer collection.
+
+        Parameters
+        ----------
+
+        config_id: int
+            Identifier to get the correct configuration
+
+        Returns
+        -------
+
+        config: dict
+        """
+
+        # filter to get the correct configuration
+        filter = [{"$match": {'id': config_id}}]
+
+        # query the configuration from the database
+        config = list(self.db[self.__digitizer_collection].aggregate(filter))
+
+        if len(config) > 1:
+            err = f"Found to many digitizer configurations (f{len(config)}) for: config_id = {config_id}"
+            logger.error(err)
+            raise ValueError(err)
+        elif len(config) == 0:
+            err = f"Found no digitizer configuration for: config_id = {config_id}"
+            logger.error(err)
+            raise ValueError(err)
+        
+        return config[0]
+
 
     @_check_database_time
     def get_general_station_information(self, station_id):
@@ -330,6 +366,15 @@ class Database(object):
         for key in ['channels', 'devices']:
             if key not in station_info[station_id].keys():
                 station_info[station_id][key] = {}
+
+        # load the signal / trigger digitizer configuration
+        for digitizer_type in ["signal", "trigger"]:
+            # get the correct key for the dict
+            digitizer_key = digitizer_type + "_digitizer_config"
+            
+            # get the id and load the information from the digitizer collection
+            digitizer_id = station_info[station_id][digitizer_key]
+            station_info[station_id][digitizer_key] = self.get_digitizer_configuration(config_id=digitizer_id)
 
         return station_info
 
@@ -1055,7 +1100,7 @@ class Database(object):
         return complete_info
 
 
-    def query_modification_timestamps_per_station(self):
+    def query_modification_timestamps_per_station(self, station_ids=None):
         """
         Collects all the timestamps for station and channel (de)commissioning from the database.
         Combines those to get a list of timestamps when modifications happened which requiers to update the buffer.
@@ -1070,7 +1115,12 @@ class Database(object):
             timestamps.
         """
         # get distinct set of stations:
-        station_ids = self.db[self.__station_collection].distinct("id")
+        if isinstance(station_ids, int):
+            station_ids = [station_ids]
+
+        if station_ids is None:
+            station_ids = self.db[self.__station_collection].distinct("id")
+
         modification_timestamp_dict = {}
         for station_id in station_ids:
             # get set of (de)commission times for stations
