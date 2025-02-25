@@ -1,3 +1,18 @@
+"""
+Interface to the MongoDB that contains RNO-G hardware and calibration information
+
+The :mod:`NuRadioReco.detector.RNO_G.db_mongo_read` module and the `Database` class herein mostly serve as the
+backend of the `NuRadioReco.detector.RNO_G.rnog_detector.Detector` class. Most users
+will want to use that class to obtain information about deployed RNO-G stations and hardware.
+`NuRadioReco.detector.RNO_G.rnog_detector.Detector` class has an interface similar to that of
+other detector descriptions in NuRadioMC, and is documented there.
+
+However, for some specific use cases (e.g. finding measurements for individual hardware components
+that have not been deployed to the field), one can use the `Database` class directly, using the
+`Database.get_component_data` method.
+
+"""
+
 import six
 import os
 import urllib.parse
@@ -110,8 +125,9 @@ class Database(object):
             logger.error(f'Could not find database "{database_name}" in mongo client.')
             raise KeyError
 
+        logger.info("Attempting to connect to the database ...")
         self.db = self.__mongo_client[database_name]
-        logger.info("database connection to {} established".format(self.db.name))
+        logger.info(f"... connection to {self.db.name} established")
 
         # Set timestamp of database. This is used to determine which primary measurement is used
         self.__database_time = datetime.datetime.utcnow()
@@ -122,6 +138,8 @@ class Database(object):
         self.__get_collection_names = None
 
         self.__station_collection = "station_rnog"
+
+        self.__digitizer_collection = "digitizer_configuration"
 
 
     def set_database_time(self, time):
@@ -250,6 +268,40 @@ class Database(object):
                 break
 
         return infos
+    
+
+    def get_digitizer_configuration(self, config_id):
+        """ Get digitizer configuration from the database. Access information in the digitizer collection.
+
+        Parameters
+        ----------
+
+        config_id: int
+            Identifier to get the correct configuration
+
+        Returns
+        -------
+
+        config: dict
+        """
+
+        # filter to get the correct configuration
+        filter = [{"$match": {'id': config_id}}]
+
+        # query the configuration from the database
+        config = list(self.db[self.__digitizer_collection].aggregate(filter))
+
+        if len(config) > 1:
+            err = f"Found to many digitizer configurations (f{len(config)}) for: config_id = {config_id}"
+            logger.error(err)
+            raise ValueError(err)
+        elif len(config) == 0:
+            err = f"Found no digitizer configuration for: config_id = {config_id}"
+            logger.error(err)
+            raise ValueError(err)
+        
+        return config[0]
+
 
     @_check_database_time
     def get_general_station_information(self, station_id):
@@ -314,6 +366,15 @@ class Database(object):
         for key in ['channels', 'devices']:
             if key not in station_info[station_id].keys():
                 station_info[station_id][key] = {}
+
+        # load the signal / trigger digitizer configuration
+        for digitizer_type in ["signal", "trigger"]:
+            # get the correct key for the dict
+            digitizer_key = digitizer_type + "_digitizer_config"
+            
+            # get the id and load the information from the digitizer collection
+            digitizer_id = station_info[station_id][digitizer_key]
+            station_info[station_id][digitizer_key] = self.get_digitizer_configuration(config_id=digitizer_id)
 
         return station_info
 
@@ -719,8 +780,42 @@ class Database(object):
             return {k:collection_info[0]['measurements'][k] for k in ('VEL', 'response_chain', 'primary_components')}
 
 
-    def get_component_data(self, component_type, component_id, supplementary_info, primary_time, verbose=True, sparameter='S21'):
-        """ returns the current primary measurement of the component, reads in the component collection"""
+    def get_component_data(self, component_type, component_id, supplementary_info={}, primary_time=None, verbose=True, sparameter='S21'):
+        """
+        returns the current primary measurement of the component, reads in the component collection
+
+        Returns a single measurement (e.g. gain of an IGLU)
+
+        Examples
+        --------
+
+        .. code-block::
+
+            import NuRadioReco.detector.RNO_G.db_mongo_read
+            import datetime
+
+            db = NuRadioReco.detector.RNO_G.db_mongo_read.Database()
+
+            # gives you the entry in the database
+            database_entry = db.get_component_data(
+                component_type='iglu_board',
+                component_id='C0069',
+                supplementary_info={}, # if you want a DRAB you have to specify the channel: {'channel_id':0}
+                verbose=True,
+                sparameter='S21', # you can also read the other S parameters
+                primary_time=datetime.datetime.now())
+
+
+            # extract the gain + phase data
+            y_axis_units = database_entry['y-axis_units']
+            frequencies = database_entry['frequencies']
+            gain_data = database_entry['mag']
+            phase_data = database_entry['phase']
+
+        """
+
+        if primary_time is None:
+            primary_time = self.get_database_time()
 
         # define a search filter
         search_filter = [{'$match': {'name': component_id}}, {'$unwind': '$measurements'}, {'$match': {}}]
@@ -857,50 +952,56 @@ class Database(object):
         channel_sig_info = self.get_channel_signal_chain_measurement(
             channel_signal_id=channel_signal_id, measurement_name=measurement_name, verbose=verbose)
 
-        # extract the information about the used components
-        component_dict = channel_sig_info.pop('response_chain')
+        for chain_key in ['response_chain', 'trigger_response_chain']:
 
-        # Certain keys in the response chain only carry additional information of other components
-        # and do not describe own components on their own ("channel", "breakout", "weight")
-        # extract the information about the components, the additional information and the weights from the response chain dict
-        filtered_component_dict = {}
-        additional_information = {}
-        weight_dict = {}
+            # Not every channel has a trigger response chain
+            if chain_key not in channel_sig_info:
+                continue
 
-        for key, ele in component_dict.items():
-            if re.search("(channel|breakout|weight)", key) is None:
-                filtered_component_dict[key] = ele
-            elif re.search("weight", key) is not None:
-                weight_dict[key.replace("_weight", "")] = ele
-            else:
-                additional_information[key] = ele
+            # extract the information about the used components
+            component_dict = channel_sig_info.pop(chain_key)
 
-        # go through all components and load the s parameter measurements for each used component
-        components_data = {}
-        for component, component_id in filtered_component_dict.items():
-            # Add the additional informatio which were filtered out above to the correct components
-            supp_info = {k.replace(component + "_", ""): additional_information[k] for k in additional_information
-                         if re.search(component, k)}
+            # Certain keys in the response chain only carry additional information of other components
+            # and do not describe own components on their own ("channel", "breakout", "weight")
+            # extract the information about the components, the additional information and the weights from the response chain dict
+            filtered_component_dict = {}
+            additional_information = {}
+            weight_dict = {}
 
-            if re.search("_\d+", component, re.IGNORECASE):
-                collection_suffix = re.findall("(_\d+)", component, re.IGNORECASE)[0]
-                collection_component = component.replace(collection_suffix, "")
-            else:
-                collection_component = component
+            for key, ele in component_dict.items():
+                if re.search("(channel|breakout|weight)", key) is None:
+                    filtered_component_dict[key] = ele
+                elif re.search("weight", key) is not None:
+                    weight_dict[key.replace("_weight", "")] = ele
+                else:
+                    additional_information[key] = ele
 
-            # load the s21 parameter measurement
-            component_data = self.get_component_data(
-                collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
+            # go through all components and load the s parameter measurements for each used component
+            components_data = {}
+            for component, component_id in filtered_component_dict.items():
+                # Add the additional informatio which were filtered out above to the correct components
+                supp_info = {k.replace(component + "_", ""): additional_information[k] for k in additional_information
+                            if re.search(component, k)}
 
-            # add the component name, the weight of the s21 measurement and the actual s21 measurement (component_data) to a combined dictionary
-            components_data[component] = {'name': component_id}
-            if component in weight_dict:
-                components_data[component].update({'weight': weight_dict[component]})
+                if re.search("_[0-9]+", component, re.IGNORECASE):
+                    collection_suffix = re.findall("(_[0-9]+)", component, re.IGNORECASE)[0]
+                    collection_component = component.replace(collection_suffix, "")
+                else:
+                    collection_component = component
 
-            components_data[component].update(component_data)
+                # load the s21 parameter measurement
+                component_data = self.get_component_data(
+                    collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
 
-        # add/update the signal chain to the channel data
-        channel_sig_info['response_chain'] = components_data
+                # add the component name, the weight of the s21 measurement and the actual s21 measurement (component_data) to a combined dictionary
+                components_data[component] = {'name': component_id}
+                if component in weight_dict:
+                    components_data[component].update({'weight': weight_dict[component]})
+
+                components_data[component].update(component_data)
+
+            # add/update the signal chain to the channel data
+            channel_sig_info[chain_key] = components_data
 
         return channel_sig_info
 
@@ -999,7 +1100,7 @@ class Database(object):
         return complete_info
 
 
-    def query_modification_timestamps_per_station(self):
+    def query_modification_timestamps_per_station(self, station_ids=None):
         """
         Collects all the timestamps for station and channel (de)commissioning from the database.
         Combines those to get a list of timestamps when modifications happened which requiers to update the buffer.
@@ -1014,7 +1115,12 @@ class Database(object):
             timestamps.
         """
         # get distinct set of stations:
-        station_ids = self.db[self.__station_collection].distinct("id")
+        if isinstance(station_ids, int):
+            station_ids = [station_ids]
+
+        if station_ids is None:
+            station_ids = self.db[self.__station_collection].distinct("id")
+
         modification_timestamp_dict = {}
         for station_id in station_ids:
             # get set of (de)commission times for stations

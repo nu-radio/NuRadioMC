@@ -213,8 +213,11 @@ class readRNOGData:
                         self.logger.warn("No connect to RunTable database could be established. "
                                         "Runs can not be filtered.")
                 except ImportError:
-                    self.logger.warn("Import of run table failed. Runs can not be filtered.! \n"
-                            "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
+                    self.logger.warn(
+                        "import run_table failed. You can still use readRNOGData, but runs can not be filtered. "
+                        "To install the run table, run\n\n"
+                        "\tpip install git+ssh://git@github.com/RNO-G/rnog-runtable.git\n"
+                    )
             else:
                 # some users may mistakenly try to pass the .root files to __init__
                 # we check for this and raise a (hopefully) helpful error message
@@ -237,7 +240,7 @@ class readRNOGData:
             read_calibrated_data=False,
             select_triggers=None,
             select_runs=False,
-            apply_baseline_correction='approximate',
+            apply_baseline_correction='auto',
             convert_to_voltage=True,
             selectors=[],
             run_types=["physics"],
@@ -269,15 +272,19 @@ class readRNOGData:
         Other Parameters
         ----------------
 
-        apply_baseline_correction: 'fit' | 'approximate' | 'median' | 'none'
+        apply_baseline_correction: str {'auto', 'fit', 'approximate', 'median', 'none'}, optional
             Removes the DC (baseline) block offsets (pedestals).
             Options are, in order of decreasing precision and increasing performance:
 
             * 'fit' : do a full out-of-band fit to determine the block offsets; for more details,
               see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter` (slow)
-            * 'approximate' : estimate block offsets by looking at the low-pass filtered trace (default)
+            * 'approximate' : estimate block offsets by looking at the low-pass filtered trace
             * 'median' : subtract the median of each block (faster)
             * 'none' : do not apply a baseline correction (fastest)
+
+            The default ('auto') first performs the 'approximate' block offset removal, then
+            automatically decides whether to continue with the full 'fit' depending on the estimated
+            block offset size.
 
         convert_to_voltage: bool
             Only applies when non-calibrated data are read. If true, convert ADC to voltage.
@@ -317,11 +324,14 @@ class readRNOGData:
             the data in batches based on this number.
             NOTE: This is only relevant for the mattak uproot backend
         """
-
         t0 = time.time()
 
         self._read_calibrated_data = read_calibrated_data
-        baseline_correction_valid_options = ['approximate', 'fit', 'median', 'none']
+
+        baseline_correction_valid_options = ['auto', 'approximate', 'fit', 'median', 'none']
+        if apply_baseline_correction is None:
+            apply_baseline_correction = 'none'
+
         if apply_baseline_correction.lower() not in baseline_correction_valid_options:
             raise ValueError(
                 f"Value for apply_baseline_correction ({apply_baseline_correction}) not recognized. "
@@ -565,7 +575,8 @@ class readRNOGData:
         skip: bool
             Returns False to skip/reject event, return True to keep/read event
         """
-        self.logger.debug(f"Processing event number {self.__counter} out of total {self._n_events_total}")
+        self.logger.debug(
+            f"(_select_events) Processing event number {self.__counter} out of total {self._n_events_total}")
 
         self.__counter += 1  # for logging
         if self._selectors is not None:
@@ -675,7 +686,7 @@ class readRNOGData:
 
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
-            if apply_baseline_correction in ['fit', 'approximate']: # we need the sampling rate
+            if apply_baseline_correction in ['auto', 'fit', 'approximate']: # we need the sampling rate
                 try:
                     sampling_rate = dataset.eventInfo()[0].sampleRate
                 except AttributeError:
@@ -688,7 +699,7 @@ class readRNOGData:
                 selectors=self._select_events)):
 
                 if self._read_calibrated_data:
-                    wfs = wfs * units.mV
+                    wfs = wfs * units.V
                 else:
                     # wf stores ADC counts
                     if self._convert_to_voltage:
@@ -697,7 +708,7 @@ class readRNOGData:
 
                 if apply_baseline_correction == 'median':
                     wfs = _baseline_correction(wfs)
-                elif apply_baseline_correction in ['fit', 'approximate']:
+                elif apply_baseline_correction in ['auto', 'fit', 'approximate']:
                     wfs = np.vstack([
                         fit_block_offsets(
                             wf, mode=self._apply_baseline_correction,
@@ -778,17 +789,18 @@ class readRNOGData:
 
         trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
         trigger.set_triggered()
-        trigger.set_trigger_time(trigger_time)
+        trigger.set_trigger_time(0)  # The trigger time is relative to the event/station time
         station.set_trigger(trigger)
         block_offsets = None
 
         if self._apply_baseline_correction == 'median':
             waveforms, block_offsets = _baseline_correction(waveforms, return_offsets=True)
 
+        readout_delays = event_info.readoutDelay
         for channel_id, wf in enumerate(waveforms):
             channel = NuRadioReco.framework.channel.Channel(channel_id)
             if self._read_calibrated_data:
-                channel.set_trace(wf * units.mV, sampling_rate * units.GHz)
+                channel.set_trace(wf * units.V, sampling_rate * units.GHz)
             else:
                 # wf stores ADC counts
                 if self._convert_to_voltage:
@@ -797,7 +809,7 @@ class readRNOGData:
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
 
-            time_offset = get_time_offset(event_info.triggerType)
+            time_offset = get_time_offset(event_info.triggerType) + readout_delays[channel_id]
             channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
             if block_offsets is not None:
                 channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, block_offsets.T[channel_id])
@@ -805,7 +817,7 @@ class readRNOGData:
             station.add_channel(channel)
 
         evt.set_station(station)
-        if self._apply_baseline_correction in ['fit', 'approximate']:
+        if self._apply_baseline_correction in ['auto', 'fit', 'approximate']:
             self._blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
 
         return evt
@@ -889,7 +901,7 @@ class readRNOGData:
         evt: `NuRadioReco.framework.event.Event`
         """
 
-        self.logger.debug(f"Processing event {event_id}")
+        self.logger.debug(f"Getting event {event_id}")
         t0 = time.time()
 
         event_infos = self.get_events_information(keys=["eventNumber", "run"])
