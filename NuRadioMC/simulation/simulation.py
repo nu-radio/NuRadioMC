@@ -1172,7 +1172,7 @@ class simulation:
                         "This can be inefficient. Processing time can be saved by specifying the trigger channels.")
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
-        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
+        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger, update_interval=60)  # sec
 
         self._config = get_config(config_file)
         if self._config['seed'] is None:
