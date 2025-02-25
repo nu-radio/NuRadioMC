@@ -1,3 +1,4 @@
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 
 import matplotlib.pyplot as plt
@@ -8,7 +9,6 @@ import sys
 import time
 import logging
 logger = logging.getLogger("NuRadioReco.modules.channelSinewaveSubtraction")
-from NuRadioReco.modules.base.module import register_run
 
 """
 This module provides a class for continuous wave (CW) noise filtering using sine subtraction.
@@ -63,10 +63,7 @@ class channelSinewaveSubtraction:
             channel.set_trace(trace_fil, sampling_rate)
 
     def get_filtered_frequencies(self):
-        """
-        Get the list of identified noise frequencies for each channel.
-
-        """
+        """ Get the list of identified noise frequencies for each channel. """
         return self.save_filtered_freqs
 
 
@@ -104,6 +101,7 @@ def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3
     amplitude = amplitude_spectrum[bin_index]
 
     return amplitude
+
 
 def guess_amplitude_iir(wf: np.ndarray, target_freq: float, sampling_rate: float = 3.2):
     """
@@ -148,6 +146,7 @@ def guess_amplitude_iir(wf: np.ndarray, target_freq: float, sampling_rate: float
     amplitude = np.sqrt(real**2 + imag**2) / scaling_factor
     return amplitude
 
+
 def guess_phase(fft_spec: np.ndarray, freqs: np.ndarray, target_freq: float):
     """
     Estimate the phase of a specific frequency in the FFT spectrum.
@@ -173,6 +172,7 @@ def guess_phase(fft_spec: np.ndarray, freqs: np.ndarray, target_freq: float):
     phase = np.angle(fft_spec[bin_index])
 
     return phase
+
 
 def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_rate: float = 3.2,  saved_noise_freqs: list = None, freq_band: tuple = (0.1, 0.7)):
     """
