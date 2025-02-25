@@ -15,8 +15,6 @@ jobs:
         python_version: ["3.9", "3.11", "3.x"] # 3.x = latest available
         os: [ubuntu-latest]
         include:
-          - python_version: "3.6"
-            os: ubuntu-20.04 # python 3.6 is not available with 22.04 on github actions
           - python_version: "3.7"
             os: ubuntu-22.04
           - python_version: "3.8" # technically available on 24.04 but not pre-installed
