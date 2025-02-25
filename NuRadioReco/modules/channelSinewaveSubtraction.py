@@ -94,11 +94,14 @@ def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3
     if target_freq < 0 or target_freq > sampling_rate / 2:
         raise ValueError("Target frequency is out of range (0 to Nyquist frequency).")
 
-    fft_spectrum = fft.time2freq(wf, sampling_rate) * sampling_rate / np.sqrt(2) # take into account nuradio normalization
     frequencies = fft.freqs(len(wf), sampling_rate)
 
+    # Here we intentionally use a different FFT normalization which retains the amplitude
+    # in the time domain.
+    amplitude_spectrum = np.abs(np.fft.rfft(wf, sampling_rate) * 2 / len(wf))
+
     bin_index = np.argmin(np.abs(frequencies - target_freq))
-    amplitude = np.abs(fft_spectrum[bin_index]) * 2 / len(wf) # Extract the amplitude (real + imaginary parts)
+    amplitude = amplitude_spectrum[bin_index]
 
     return amplitude
 
