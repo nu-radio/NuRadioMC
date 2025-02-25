@@ -19,7 +19,9 @@ In contrast to the module channelCWNOtchFilter, which uses a notch filter to rem
 class channelSinewaveSubtraction:
     """ Continuous wave (CW) filter module. Uses sine subtraction based on scipy curve_fit. """
     def __init__(self):
-        pass
+        self.freq_band = None
+        self.save_filtered_freqs = None
+        self.begin()
 
     def begin(self, save_filtered_freqs: bool = False, freq_band: tuple[float, float] = (0.1, 0.7)) -> None:
         """
