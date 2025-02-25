@@ -291,6 +291,8 @@ def process(det, filters, n_events, noise_kwargs, noiseAdder=None):
     seed = np.random.randint(0, 2**32)
     noiseAdder.begin(seed=seed)
 
+    # take out the argument again which is not meant to be used for the
+    # noise adder module. 
     vrms_per_channel = noise_kwargs.pop("vrms_per_channel", None)
 
     for _ in range(n_events):
@@ -367,6 +369,9 @@ if __name__ == "__main__":
             for channel_id in deep_trigger_channels]
         )
 
+        # We are highjacking this dict to carry arguments for the triggerBoardResponse module
+        # This vrms (with amplification) is used to calculate the FLOWER gain. This argument
+        # also effects the realized trigger thresholds.
         noise_kwargs["vrms_per_channel"] = vrms_per_channel
 
     n_events = args.nevents
