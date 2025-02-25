@@ -1,6 +1,4 @@
-import NuRadioReco.framework.parameters as parameters
-import NuRadioReco.framework.parameter_serialization
-import pickle
+import NuRadioReco.framework.emitter
 
 import logging
 logger = logging.getLogger('NuRadioReco.SimEmitter')
