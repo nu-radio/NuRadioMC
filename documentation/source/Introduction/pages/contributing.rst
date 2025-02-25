@@ -9,6 +9,19 @@ If you intend to contribute significantly to NuRadioMC, please contact
 `@anelles <https://github.com/anelles>`_ and `@cg-laser <https://github.com/cg-laser>`_ on GitHub so that we are informed about ongoing
 activities. Both will also be able to provide commit access to the repository.
 
+Installing NuRadioMC for developers
+-----------------------------------
+Please follow the instructions :ref:`here <Introduction/pages/installation:Development version>` to install NuRadioMC as a developer.
+In particular, we strongly recommend that you install the `pre-commit hook <https://pre-commit.com>`__ provided using
+
+.. code-block:: bash
+
+  pre-commit install
+
+This will run a small set of checks every time you try to add a commit to the repository, which prevents you from
+accidentally adding large files, makes sure you don't commit to a protected branch,
+as well as another couple of small checks.
+
 Workflow
 --------
 If you find an issue or bug in NuRadioMC, please `create an issue on GitHub <https://github.com/nu-radio/NuRadioMC/issues>`_.
@@ -37,7 +50,7 @@ To start developing a new feature or hotfix, first create a new branch:
 .. Note::
 
   If you are writing a **hotfix**, which should also be merged into ``master``,
-  replace the first line by ``git checkout master``
+  replace the first line by ``git checkout master``.
 
 Now code can be written, fixed, committed and pushed to git as normally (**exception**: for your first
 push to the git repository, you need to include ``--set-upstream``, as the branch initially only exists
@@ -46,7 +59,6 @@ on your local machine).
 .. code-block:: Python
 
   git push --set-upstream origin feature/my_new_feature
-
 
 Once you are ready for your code to be merged into ``develop`` (for features and hotfixes) and/or
 ``master`` (for hotfixes only), you should `create a pull request <https://github.com/nu-radio/NuRadioMC/pulls>`_.
