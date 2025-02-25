@@ -184,3 +184,10 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         python NuRadioReco/test/check_modules.py -r
+    - name: "Test interactive examples"
+      run: |
+        export GSLDIR=$(gsl-config --prefix)
+        pip install jupyter
+        jupyter execute NuRadioMC/examples/Interactive/W01-simulate-neutrino-detector.ipynb
+        jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
+
