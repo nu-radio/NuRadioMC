@@ -2,13 +2,11 @@
 
 import argparse
 import copy
-import logging
 import numpy as np
 import os
 import secrets
 import datetime as dt
 from scipy import constants
-
 
 from NuRadioMC.EvtGen import generator
 from NuRadioMC.simulation import simulation
@@ -19,9 +17,9 @@ from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
 
-
-root_seed = secrets.randbits(128)
-deep_trigger_channels = np.array([0, 1, 2, 3])
+import logging
+logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
+logger.setLevel(logging.INFO)
 
 
 def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_channels, temperature):
@@ -33,8 +31,10 @@ def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_chan
         freqs = np.linspace(10, 1200, 1000) * units.MHz
         filt = resp(freqs)
 
-        # Calculation of Vrms. For details see from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
-        # (last two Eqs. in "noise voltage and power" section) or our wiki https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
+        # Calculation of Vrms. For details see from elog:1566 and
+        # https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
+        # (last two Eqs. in "noise voltage and power" section) or our wiki
+        # https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
 
         # Bandwidth, i.e., \Delta f in equation
         integrated_channel_response = np.trapz(np.abs(filt) ** 2, freqs)
@@ -47,7 +47,8 @@ def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_chan
 
 
 def get_fiducial_volume(energy):
-    # Fiducial volume for a Greenland station. From Martin: https://radio.uchicago.edu/wiki/images/2/26/TriggerSimulation_May2023.pdf
+    # Fiducial volume for a Greenland station.
+    # From Martin: https://radio.uchicago.edu/wiki/images/2/26/TriggerSimulation_May2023.pdf
 
     # key: log10(E), value: radius in km
     max_radius_shallow = {
@@ -70,9 +71,9 @@ def get_fiducial_volume(energy):
         return np.array(list(dic.values()))[np.amin(idx)] * units.km
 
     r_max = get_limits(max_radius_shallow, energy)
-    print(f"Maximum radius {r_max}")
     z_min = get_limits(min_z_shallow, energy)
-    print(f"Depth {z_min}")
+    logger.info(f"Cylindric fiducial volume for (lgE = {np.log10(energy):.1f}): "
+                f"r_max = {r_max:.2f}m, z_min: {z_min:.2f}m")
 
     volume = {
         "fiducial_rmax": r_max,
@@ -96,12 +97,11 @@ class mySimulation(simulation.simulation):
     def __init__(self, *args, **kwargs):
         # this module is needed in super().__init__ to calculate the vrms
         self.rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
-        self.rnogHarwareResponse.begin(trigger_channels=deep_trigger_channels)
+        self.rnogHarwareResponse.begin(trigger_channels=kwargs['trigger_channels'])
 
         super().__init__(*args, **kwargs)
-        self.logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
+        self.logger = logger
         self.deep_trigger_channels = deep_trigger_channels
-
 
         self.highLowThreshold = highLowThreshold.triggerSimulator()
         self.rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
@@ -135,7 +135,9 @@ class mySimulation(simulation.simulation):
             det, station.get_id(), self.deep_trigger_channels, 300)
 
         sampling_rate = det.get_sampling_frequency(station.get_id())
-        self.logger.info(f'Radiant sampling rate is {sampling_rate / units.MHz:.1f} MHz')
+        self.logger.debug('Radiant sampling rate is {:.1f} MHz'.format(
+            sampling_rate / units.MHz
+        ))
 
         # Runs the FLOWER board response
         vrms_after_gain = self.rnogADCResponse.run(
@@ -144,14 +146,17 @@ class mySimulation(simulation.simulation):
         )
 
         for idx, trigger_channel in enumerate(self.deep_trigger_channels):
-            self.logger.info(
-                f'Vrms = {vrms_input_to_adc[idx] / units.mV:.2f} mV / {vrms_after_gain[idx] / units.mV:.2f} mV (after gain).')
+            self.logger.debug(
+                'Vrms = {:.2f} mV / {:.2f} mV (after gain).'.format(
+                    vrms_input_to_adc[idx] / units.mV, vrms_after_gain[idx] / units.mV
+                ))
             self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
-
 
         # this is only returning the correct value if digitize_trace=True for self.rnogADCResponse.run(..)
         flower_sampling_rate = station.get_trigger_channel(self.deep_trigger_channels[0]).get_sampling_rate()
-        self.logger.info(f'Flower sampling rate is {flower_sampling_rate / units.MHz:.1f} MHz')
+        self.logger.debug('Flower sampling rate is {:.1f} MHz'.format(
+            flower_sampling_rate / units.MHz
+        ))
 
         for thresh_key, threshold in self.high_low_trigger_thresholds.items():
 
@@ -168,9 +173,7 @@ class mySimulation(simulation.simulation):
                     in zip(self.deep_trigger_channels, vrms_after_gain)}
 
             self.highLowThreshold.run(
-                evt,
-                station,
-                det,
+                evt, station, det,
                 threshold_high=threshold_high,
                 threshold_low=threshold_low,
                 use_digitization=False, #the trace has already been digitized with the rnogADCResponse
@@ -210,19 +213,12 @@ if __name__ == "__main__":
     kwargs = args.__dict__
     assert args.station_id is not None, "Please specify a station id with `--station_id`"
 
-    # Defaults for the trigger simulation which are not yet in the hardware DB
-    defaults = {
-        "trigger_adc_sampling_frequency": 0.472,
-        "trigger_adc_nbits": 8,
-        "trigger_adc_noise_count": 5,
-        "trigger_adc_min_voltage": -1,
-        "trigger_adc_max_voltage": 1,
-    }
+    root_seed = secrets.randbits(128)
+    deep_trigger_channels = np.array([0, 1, 2, 3])
 
     det = rnog_detector.Detector(
         detector_file=args.detectordescription, log_level=logging.INFO,
-        always_query_entire_description=False, select_stations=args.station_id,
-        over_write_handset_values=defaults)
+        always_query_entire_description=False, select_stations=args.station_id)
 
     det.update(dt.datetime(2023, 8, 3))
 
@@ -230,21 +226,22 @@ if __name__ == "__main__":
 
     # Simulate fiducial volume around station
     pos = det.get_absolute_position(args.station_id)
-    print(f"Simulating around center x0={pos[0]:.2f}m, y0={pos[1]:.2f}m")
+    logger.info(f"Simulating around center x0={pos[0]:.2f}m, y0={pos[1]:.2f}m")
     volume.update({"x0": pos[0], "y0": pos[1]})
 
     output_path = f"{args.data_dir}/station_{args.station_id}/nu_{args.flavor}_{args.interaction_type}"
 
     if not os.path.exists(output_path):
-        print("Making dirs", output_path)
+        logger.info("Making dirs", output_path)
         os.makedirs(output_path, exist_ok=True)
 
-    output_filename = f"{output_path}/{args.flavor}_{args.interaction_type}_1e{np.log10(args.energy):.2f}eV_{args.index:08d}.hdf5"
+    output_filename = (f"{output_path}/{args.flavor}_{args.interaction_type}"
+                       f"_1e{np.log10(args.energy):.2f}eV_{args.index:08d}.hdf5")
 
     flavor_ids = {"e": [12, -12], "mu": [14, -14], "tau": [16, -16], "all": [12, 14, 16, -12, -14, -16]}
     run_proposal = args.proposal and ("cc" in args.interaction_type) and (args.flavor in ["mu", "tau", "all"])
     if run_proposal:
-        print(f"Using PROPOSAL for simulation of {args.flavor} {args.interaction_type}")
+        logger.info(f"Using PROPOSAL for simulation of {args.flavor} {args.interaction_type}")
 
     input_data = generator.generate_eventlist_cylinder(
         "on-the-fly",
@@ -279,7 +276,6 @@ if __name__ == "__main__":
         outputfilenameNuRadioReco=nur_output_filename,
         config_file=args.config,
         trigger_channels=deep_trigger_channels,
-        # log_level=logging.INFO,
     )
 
     sim.run()
