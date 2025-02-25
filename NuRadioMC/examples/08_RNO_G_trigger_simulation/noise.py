@@ -10,15 +10,17 @@ from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoard
 from NuRadioReco.modules.trigger import highLowThreshold
 import NuRadioReco.modules.channelGenericNoiseAdder
 
+from matplotlib import pyplot as plt
 from collections import defaultdict
+from scipy import constants
+import datetime as dt
+import numpy as np
 import argparse
 import copy
-import numpy as np
-import datetime as dt
 import time
 import json
-from scipy import constants
-from matplotlib import pyplot as plt
+import sys
+
 
 import NuRadioMC  # to init the logger
 import logging
@@ -292,7 +294,7 @@ def process(det, filters, n_events, noise_kwargs, noiseAdder=None):
     noiseAdder.begin(seed=seed)
 
     # take out the argument again which is not meant to be used for the
-    # noise adder module. 
+    # noise adder module.
     vrms_per_channel = noise_kwargs.pop("vrms_per_channel", None)
 
     for _ in range(n_events):
@@ -335,6 +337,9 @@ if __name__ == "__main__":
     if args.label != "":
         args.label = f"_{args.label}"
 
+    logger.info(f"Simulate the noise trigger rate for station {args.station_id} "
+                f"(using channels {deep_trigger_channels})")
+
     det = rnog_detector.Detector(
         detector_file=args.detectordescription, log_level=logging.INFO,
         always_query_entire_description=True, select_stations=args.station_id)
@@ -372,6 +377,7 @@ if __name__ == "__main__":
         # We are highjacking this dict to carry arguments for the triggerBoardResponse module
         # This vrms (with amplification) is used to calculate the FLOWER gain. This argument
         # also effects the realized trigger thresholds.
+        logger.info(f"VRMS per channel (incl. amplifier): {np.around(vrms_per_channel / units.mV, 2)} mV")
         noise_kwargs["vrms_per_channel"] = vrms_per_channel
 
     n_events = args.nevents
@@ -417,7 +423,14 @@ if __name__ == "__main__":
     if vrms is not None:
         vrms = np.array(vrms)
         vrms = [np.mean(vrms, axis=0).tolist(), np.std(vrms, axis=0).tolist()]
-        print(vrms)
+        if adc_output == "counts":
+            logger.info(
+                f"VRMS (gain equalized): {np.around(vrms[0], 2)} +- {np.around(vrms[1], 2)} ADC")
+        else:
+            logger.info(
+                f"VRMS (gain equalized): {np.around(vrms[0] / units.mV, 2)} +- "
+                f"{np.around(vrms[1] / units.mV, 2)} mV")
+
 
     dt = noise_kwargs["n_samples"] / det.get_sampling_frequency(args.station_id, None, trigger=True)
     total_time = dt * (n_events * args.nruns)
