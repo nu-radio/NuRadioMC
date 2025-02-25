@@ -641,6 +641,13 @@ class Detector():
             else:
                 channel_data[key] = self.__default_values[key]
 
+        # Add ADC parameter to channel description. This is needed for ADC and trigger modules.
+        for key, value in self.__buffered_stations[station_id]["signal_digitizer_config"].items():
+            channel_data[f"adc_{key}"] = value
+
+        for key, value in self.__buffered_stations[station_id]["trigger_digitizer_config"].items():
+            channel_data[f"trigger_adc_{key}"] = value
+
         return channel_data
 
     @_check_detector_time
@@ -1135,14 +1142,14 @@ class Detector():
             self.logger.error(err)
             raise ValueError(err)
 
-        if _keys_not_in_dict(self.__buffered_stations, [station_id, "number_of_samples"]):
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "signal_digitizer_config", "number_of_samples"]):
             raise KeyError(
                 f"Could not find \"number_of_samples\" for station {station_id} in buffer. Did you call det.update(...)?")
 
-        return int(self.__buffered_stations[station_id]['number_of_samples'])
+        return int(self.__buffered_stations[station_id]["signal_digitizer_config"]['number_of_samples'])
 
 
-    def get_sampling_frequency(self, station_id, channel_id=None):
+    def get_sampling_frequency(self, station_id, channel_id=None, trigger=False):
         """ Get sampling frequency per station / channel
 
         All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep
@@ -1150,17 +1157,18 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             Station id
 
         channel_id: int (default: None)
             Not Used!
 
+        trigger: bool
+            If True, the sampling rate of the trigger board is returned (FLOWER). (Default: False)
+
         Returns
         -------
-
-        sampling_rate: int
+        sampling_rate: float
             Sampling frequency
         """
         if not self.has_station(station_id):
@@ -1168,11 +1176,16 @@ class Detector():
             self.logger.error(err)
             raise ValueError(err)
 
-        if _keys_not_in_dict(self.__buffered_stations, [station_id, "sampling_rate"]):
-            raise KeyError(
-                f"Could not find \"sampling_rate\" for station {station_id} in buffer. Did you call det.update(...)?")
+        if trigger:
+            key = "trigger_digitizer_config"
+        else:
+            key = "signal_digitizer_config"
 
-        return float(self.__buffered_stations[station_id]['sampling_rate'])
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, key, "sampling_frequency"]):
+            raise KeyError(
+                f"Could not find \"sampling_frequency\" for station {station_id} in buffer. Did you call det.update(...)?")
+
+        return float(self.__buffered_stations[station_id][key]['sampling_frequency'])
 
 
     def get_noise_temperature(self, station_id, channel_id):
