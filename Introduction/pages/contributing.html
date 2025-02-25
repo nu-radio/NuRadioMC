@@ -51,10 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
 <li class="toctree-l3"><a class="reference internal" href="installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="installation.html#development-version">Development version</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="installation.html#pythonpath">PYTHONPATH</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#development-version">Development version</a></li>
 <li class="toctree-l3"><a class="reference internal" href="installation.html#manual-installation">Manual installation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="installation.html#pip-installable-dependencies">Pip-installable dependencies</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="installation.html#core-dependencies">Core Dependencies</a></li>
@@ -81,6 +78,7 @@
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Contributing to NuRadioMC</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installing-nuradiomc-for-developers">Installing NuRadioMC for developers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#workflow">Workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-to">How to</a><ul>
@@ -626,6 +624,17 @@ software for their experiment.</p>
 <p>If you intend to contribute significantly to NuRadioMC, please contact
 <a class="reference external" href="https://github.com/anelles">&#64;anelles</a> and <a class="reference external" href="https://github.com/cg-laser">&#64;cg-laser</a> on GitHub so that we are informed about ongoing
 activities. Both will also be able to provide commit access to the repository.</p>
+<section id="installing-nuradiomc-for-developers">
+<h2>Installing NuRadioMC for developers<a class="headerlink" href="#installing-nuradiomc-for-developers" title="Link to this heading"></a></h2>
+<p>Please follow the instructions <a class="reference internal" href="installation.html#development-version"><span class="std std-ref">here</span></a> to install NuRadioMC as a developer.
+In particular, we strongly recommend that you install the <a class="reference external" href="https://pre-commit.com">pre-commit hook</a> provided using</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
+<p>This will run a small set of checks every time you try to add a commit to the repository, which prevents you from
+accidentally adding large files, makes sure you don’t commit to a protected branch,
+as well as another couple of small checks.</p>
+</section>
 <section id="workflow">
 <h2>Workflow<a class="headerlink" href="#workflow" title="Link to this heading"></a></h2>
 <p>If you find an issue or bug in NuRadioMC, please <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/issues">create an issue on GitHub</a>.
@@ -652,7 +661,7 @@ Make sure to specify that you want to merge into <code class="docutils literal n
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you are writing a <strong>hotfix</strong>, which should also be merged into <code class="docutils literal notranslate"><span class="pre">master</span></code>,
-replace the first line by <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">master</span></code></p>
+replace the first line by <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">master</span></code>.</p>
 </div>
 <p>Now code can be written, fixed, committed and pushed to git as normally (<strong>exception</strong>: for your first
 push to the git repository, you need to include <code class="docutils literal notranslate"><span class="pre">--set-upstream</span></code>, as the branch initially only exists
