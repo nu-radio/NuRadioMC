@@ -49,6 +49,12 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=1)
         amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=2)
         correction_function = surface_correction_func
+    elif amp_type == 'rno_surface_impulse':
+        ph = os.path.join(path, 'HardwareResponses/surface_impulse_response_normalised_placeholder.csv')
+        ff = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=0)
+        ff *= units.Hz
+        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=1)
+        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=2)
     elif amp_type == 'iglu':
         ph = os.path.join(path, 'HardwareResponses/iglu_drab_placeholder.csv')
         ff = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=0)
@@ -93,4 +99,4 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
 
 
 def get_available_amplifiers():
-    return ['iglu', 'rno_surface', 'phased_array', 'ULP_216']
+    return ['iglu', 'rno_surface', 'rno_surface_impulse', 'phased_array', 'ULP_216']
