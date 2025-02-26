@@ -187,6 +187,11 @@ class crRNOGTemplateCreator:
                         temp_evt = _create_Efield(det_temp, rid, eid, cid, sid, station_time, self.__template_sample_number, e_width,
                                                  self.__efield_amplitudes[1], self.__efield_amplitudes[0], cr_zen, cr_az, self.__sampling_rate, self.__debug)
 
+                        # First remove channels to reproduce them with the efieldToVoltageConverter
+                        station = temp_evt.get_station(sid)
+                        for chid in station.get_channel_ids():
+                            station.remove_channel(chid)
+
                         self.__efieldToVoltageConverter.run(temp_evt, temp_evt.get_station(sid), det_temp)
 
                         if include_hardware_response:
