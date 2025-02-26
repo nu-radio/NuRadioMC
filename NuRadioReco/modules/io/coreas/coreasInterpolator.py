@@ -18,15 +18,16 @@ logger = logging.getLogger('NuRadioReco.coreasInterpolator')
 
 class coreasInterpolator:
     """
-    This class provides an interface to interpolate the electric field traces, as for example provided
-    by CoREAS. For the best results, ensure that the electric fields are in on-sky coordinates (this is
-    the case when using the `coreas.read_CORSIKA7()` function).
+    Interface to interpolate the electric field traces, as for example provided by CoREAS.
+
+    For the best results, ensure that the electric fields are in on-sky coordinates (this is
+    the case when using the `NuRadioReco.modules.io.coreas.coreas.read_CORSIKA7` function).
 
     After having created the interpolator, you can either choose to interpolate the electric field traces
     or either the fluence (or both, but be careful to not mix them up). In order to do this, you first need
     to initialize the corresponding interpolator with the desired settings. Refer to the documentation of
-    `initialize_efield_interpolator()` and `initialize_fluence_interpolator()` for more information. After
-    initialization, you can call the `interpolate_efield()` and `interpolate_fluence()` functions to get the
+    `initialize_efield_interpolator` and `initialize_fluence_interpolator` for more information. After
+    initialization, you can call the `interpolate_efield` and `interpolate_fluence` functions to get the
     interpolated values.
 
     Note that when trying to interpolate the electric fields of an air shower with a geomagnetic angle
@@ -34,7 +35,7 @@ class coreasInterpolator:
     instead of performing the Fourier interpolation. Also, when attempting to extrapolate (ie get a value
     for a position that is outside the star shape pattern), the default behaviour is to return zeros when
     r > r_max and return a constant value when r <= r_min. This behaviour can be changed using the
-    `allow_extrapolation` keyword argument when initialising the interpolator.
+    ``allow_extrapolation`` keyword argument when initialising the interpolator.
 
     Parameters
     ----------
@@ -45,7 +46,7 @@ class coreasInterpolator:
     -----
     The interpolation method is based on the Fourier interpolation method described in
     Corstanje et al. (2023), JINST 18 P09005. The implementation lives in a separate package
-    called `cr-pulse-interpolator` (this package is a optional dependency of NuRadioReco).
+    called ``cr-pulse-interpolator`` (this package is a optional dependency of NuRadioReco).
 
     In short, the interpolation method works as follows: everything is done in the showerplane,
     where we expect circular symmetries due to the emission mechanisms. In case of fluence interpolation,
@@ -128,14 +129,17 @@ class coreasInterpolator:
 
     @property
     def zenith(self):
+        """The zenith of the shower axis"""
         return self.shower.get_parameter(shp.zenith)
 
     @property
     def azimuth(self):
+        """The azimuth of the shower axis"""
         return self.shower.get_parameter(shp.azimuth)
 
     @property
     def magnetic_field_vector(self):
+        """The magnetic field vector stored inside the shower"""
         return self.shower.get_parameter(shp.magnetic_field_vector)
 
     @property
@@ -179,11 +183,11 @@ class coreasInterpolator:
 
     def set_fluence_of_efields(self, function, quantity=efp.signal_energy_fluence):
         """
-        This helper function is used to set the fluence quantity of all electric fields
-        in the SimStation of the interpolator. These values can then be used for fluence
-        interpolation.
+        Set the fluence quantity of all electric fields in the SimStation of the interpolator.
 
-        One option to use as `function` is `trace_utilities.get_electric_field_energy_fluence()`.
+        Helper function to set the fluence of electric fields. These values can then be used for fluence interpolation.
+
+        One option to use as ``function`` is `NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence`.
 
         Parameters
         ----------
@@ -192,6 +196,12 @@ class coreasInterpolator:
             array and return a float (or an array with 3 elements if you want the fluence per polarisation).
         quantity: electric field parameter, default=efp.signal_energy_fluence
             The parameter where to store the result of the fluence calculation
+
+        See Also
+        --------
+        NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence
+            Function that can be passed as ``function`` to obtain the energy fluence of
+            the electric fields in the SimStation.
         """
         coreas.set_fluence_of_efields(function, self.sim_station, quantity)
 
@@ -238,19 +248,21 @@ class coreasInterpolator:
 
     def initialize_efield_interpolator(self, interp_lowfreq, interp_highfreq, **kwargs):
         """
-        Initialise the efield signal interpolator and return it if initialised correctly (it is also stored
-        as the `efield_interpolator` attribute of the class). If the latter, the `efield_interpolator_initialized`
-        is also set to `True`.
+        Initialise the efield signal interpolator
+
+        If initialised correctly, this method returns the resulting efield interpolator (it is also stored
+        as the ``efield_interpolator`` attribute of the class). If the latter, the ``efield_interpolator_initialized``
+        is also set to ``True``.
 
         If the geomagnetic angle is smaller than 15deg, the interpolator switches to using the closest
         observer position instead. In this case, no interpolator object is returned and the
-        `efield_interpolator` attribute is set to a Fourier interpolator which interpolates
+        ``efield_interpolator`` attribute is set to a Fourier interpolator which interpolates
         the arrival times. To distinguish between the two cases, you can check the
-        `efield_interpolator_initialized` attribute, which is `True` when the signal interpolator is
-        initialised and `False` when the closest observer is used.
+        ``efield_interpolator_initialized`` attribute, which is ``True`` when the signal interpolator is
+        initialised and ``False`` when the closest observer is used.
 
         To adjust the parameters of the signal interpolation, the options for the `interp2d_signal` class
-        can be passed as keyword arguments. Please refer to the `cr-pulse-interpolator` documentation
+        can be passed as keyword arguments. Please refer to the ``cr-pulse-interpolator`` documentation
         for all available options.
 
         Parameters
@@ -333,7 +345,9 @@ class coreasInterpolator:
 
     def initialize_fluence_interpolator(self, quantity=efp.signal_energy_fluence, **kwargs):
         """
-        Initialise fluence interpolator, using the values stored in the `quantity` parameter of the electric
+        Initialise fluence interpolator.
+
+        Initialize the fluence interpolator using the values stored in the ``quantity`` parameter of the electric
         fields.
 
         Parameters
@@ -409,12 +423,14 @@ class coreasInterpolator:
 
     def get_interp_efield_value(self, position_on_ground, cs_transform='no_transform'):
         """
-        Calculate the interpolated electric field given an antenna position on ground. If the geomagnetic angle
-        is smaller than 15deg, the electric field of the closest observer position is returned instead.
+        Calculate the interpolated electric field given an antenna position on ground.
+
+        If the geomagnetic angle is smaller than 15deg,
+        the electric field of the closest observer position is returned instead.
 
         Note that `position_on_ground` is in absolute coordinates, not relative to the core position.
-        Extrapolation outside of the starshape is handled by the `cr-pulse-interpolator` package (see
-        also `kwargs` in `initialize_efield_interpolator()`).
+        Extrapolation outside of the starshape is handled by the ``cr-pulse-interpolator`` package (see
+        also the description of ``kwargs`` in `initialize_efield_interpolator`).
 
         Parameters
         ----------
@@ -474,9 +490,9 @@ class coreasInterpolator:
         """
         Calculate the interpolated fluence for a given position on the ground.
 
-        Note that `position_on_ground` is in absolute coordinates, not relative to the core position.
-        Extrapolation outside of the starshape is handled by the `cr-pulse-interpolator` package (see
-        also `kwargs` in `initialize_fluence_interpolator()`).
+        Note that ``position_on_ground`` is in absolute coordinates, not relative to the core position.
+        Extrapolation outside of the starshape is handled by the ``cr-pulse-interpolator`` package (see
+        also the description of ``kwargs`` in `initialize_fluence_interpolator`).
 
         Parameters
         ----------
@@ -505,11 +521,12 @@ class coreasInterpolator:
     def get_closest_observer_efield(self, antenna_pos_showerplane):
         """
         Returns the electric field of the closest observer position for an antenna position in the shower plane.
+
         The start time of the trace is also returned, by interpolating the start times of the electric field traces.
 
-        This function is not meant to be called directly, but only from `get_interp_efield_value()` as it assumes
-        the `efield_interpolator` attribute is set to the start time interpolator, which is done in
-        `initialize_efield_interpolator()`.
+        This function is not meant to be called directly, but only from `get_interp_efield_value` as it assumes
+        the ``efield_interpolator`` attribute is set to the start time interpolator, which is done in
+        `initialize_efield_interpolator`.
 
         Parameters
         ----------
