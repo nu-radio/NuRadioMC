@@ -34,7 +34,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           export GSLDIR=$(gsl-config --prefix)
-          python install_dev.py --install --dev documentation proposal cr_interpolator --no-interactive
+          pip install -e .[dev,proposal,cr_interpolator]
           export PYTHONPATH=$PWD:$PYTHONPATH
           echo $PYTHONPATH
           NuRadioMC/SignalProp/install.sh
