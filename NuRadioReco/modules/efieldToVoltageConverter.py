@@ -41,7 +41,8 @@ class efieldToVoltageConverter():
     def begin(self, debug=False, uncertainty=None,
               time_resolution=None,
               pre_pulse_time=200 * units.ns,
-              post_pulse_time=200 * units.ns
+              post_pulse_time=200 * units.ns,
+              caching=False,
               ):
         """
         Begin method, sets general parameters of module
@@ -70,7 +71,7 @@ class efieldToVoltageConverter():
         if time_resolution is not None:
             self.logger.warning("`time_resolution` is deprecated and will be removed in the future. "
                                 "The argument is ignored.")
-
+        self.__caching = caching
         self.__debug = debug
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
@@ -87,6 +88,17 @@ class efieldToVoltageConverter():
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
 
         self.antenna_provider = antennapattern.AntennaPatternProvider()
+
+    @functools.lru_cache(maxsize=1024)
+    def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
+        """
+        Returns the cached antenna reponse for a given antenna patter, antenna orientation
+        and signal arrival direction. This wrapper is necessary as arrays and list are not
+        hashable (i.e., can not be used as arguments in functions one wants to cache).
+        This module ensures that the cache is clearied if the vector `self.__freqs` changes.
+        """
+        return ant_pattern.get_antenna_response_vectorized(self.__freqs, zen, azi, *ant_orient)
+
 
     @register_run()
     def run(self, evt, station, det, channel_ids=None):
@@ -219,9 +231,18 @@ class efieldToVoltageConverter():
                 zenith = electric_field[efp.zenith]
                 azimuth = electric_field[efp.azimuth]
 
-                # get antenna pattern for current channel
-                VEL = trace_utilities.get_efield_antenna_factor(
-                    sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
+                if self.__caching:
+                    antenna_model = detector.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
+                    antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model)
+                    ant_orient = detector.get_antenna_orientation(station.get_id(), channel_id)
+                    zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith)
+
+                    vel_tmp = self._get_cached_antenna_response(antenna_pattern, zenith_antenna, azi, *ant_orient)
+                    VEL = [np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])]
+                else:
+                    # get antenna pattern for current channel
+                    VEL = trace_utilities.get_efield_antenna_factor(
+                        sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
 
                 if VEL is None:  # this can happen if there is not signal path to the antenna
                     voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros

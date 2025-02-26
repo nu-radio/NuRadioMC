@@ -39,7 +39,8 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
             logger.warning("Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
             return None
 
-        logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
+        logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(
+            np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
         antenna_model = detector.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
         antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_model)
         ori = detector.get_antenna_orientation(station.get_id(), channel_id)
