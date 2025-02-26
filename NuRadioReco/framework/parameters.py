@@ -78,6 +78,8 @@ class channelParameters(Enum):
     Vrms_trigger_NuRadioMC_simulation = 21  #: the noise rms of the trigger channels (optional) used in the MC simulation
     root_power_ratio = 22 #: the root power ratio (float)
     impulsivity = 23  #: average of the CDF about the peak of the coherently summed waveform
+    entropy = 24  #: Shannon entropy of a waveform
+    kurtosis = 25  #: kurtosis of a waveform
 
 class channelParametersRNOG(Enum):
     # RNO-G specific channel parameters
