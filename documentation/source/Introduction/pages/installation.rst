@@ -73,7 +73,7 @@ To install all (optional and non-optional) dependencies available in pip at once
 
 .. code-block:: bash
 
-  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-connector-python pymongo dash plotly toml peakutils future radiotools filelock mattak git+https://github.com/telegraphic/pygdsm pylfmap MCEq crflux
+  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-connector-python pymongo dash plotly toml peakutils future radiotools filelock mattak git+https://github.com/telegraphic/pygdsm pylfmap MCEq crflux git+https://github.com/nu-radio/cr-pulse-interpolator
 
 Only for developers, we also recommend
 
@@ -167,7 +167,7 @@ Optional Dependencies
 
 These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's features.
 They can be installed by including adding ``[option]`` when installing NuRadioMC. Alternatively,
-use ``pip install nuradiomc[all]`` to install all optional dependencies.
+use ``pip install nuradiomc[all]`` to install all optional dependencies (or ``[all,dev]`` to also install development dependencies).
 
 - ``[RNO-G]``
 
@@ -216,6 +216,15 @@ use ``pip install nuradiomc[all]`` to install all optional dependencies.
   .. code-block:: bash
 
     pip install MCEq crflux
+
+- ``[cr-interpolator]``
+
+  Installs the cosmic-ray interpolator from https://github.com/nu-radio/cr-pulse-interpolator,
+  used to interpolate cosmic-ray air-shower emission from CoREAS star-shaped patterns:
+
+  .. code-block:: bash
+
+    pip install git+https://github.com/nu-radio/cr-pulse-interpolator
 
 - ``[dev]``
 
