@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import constants
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, ice
 from numpy.lib import scimath as SM
 import logging
 logger = logging.getLogger('NuRadioReco.geometryUtilities')
@@ -169,3 +169,36 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
     n = n_2 / n_1
     return (np.cos(zenith_incoming) - SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
            (np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2))
+
+
+def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
+    n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
+
+    # no reflection/refraction at the ice-air boundary
+    zenith_antenna = zenith
+    t_theta = 1.
+    t_phi = 1.
+
+    # first check case if signal comes from above
+    if zenith <= 0.5 * np.pi and station.is_cosmic_ray():
+        # is antenna below surface?
+        position = detector.get_relative_position(station.get_id(), channel_id)
+        if position[2] <= 0:
+            zenith_antenna = get_fresnel_angle(zenith, n_ice, 1)
+            t_theta = get_fresnel_t_p(zenith, n_ice, 1)
+            t_phi = get_fresnel_t_s(zenith, n_ice, 1)
+            logger.debug(("Channel {:d}: electric field is refracted into the firn. "
+                            "theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) "
+                            "{:.2f} s (ePhi) {:.2f}".format(
+                                iCh, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi)))
+    else:
+        # now the signal is coming from below, do we have an antenna above the surface?
+        position = detector.get_relative_position(station.get_id(), channel_id)
+        if position[2] > 0:
+            zenith_antenna = get_fresnel_angle(zenith, 1., n_ice)
+
+    if zenith_antenna is None:
+        logger.warning("Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
+        return None, None, None
+
+    return zenith_antenna, t_theta, t_phi
