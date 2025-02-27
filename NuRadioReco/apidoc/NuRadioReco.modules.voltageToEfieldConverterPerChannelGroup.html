@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.io.coreas.readCoREASStationGrid module &mdash; NuRadio 3.0.0-dev documentation</title>
+  <title>NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module &mdash; NuRadio 3.0.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -20,8 +20,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.io.coreas.simulationSelector module" href="NuRadioReco.modules.io.coreas.simulationSelector.html" />
-    <link rel="prev" title="NuRadioReco.modules.io.coreas.readCoREASStation module" href="NuRadioReco.modules.io.coreas.readCoREASStation.html" /> 
+    <link rel="next" title="NuRadioReco.detector package" href="NuRadioReco.detector.html" />
+    <link rel="prev" title="NuRadioReco.modules.voltageToEfieldConverterPerChannel module" href="NuRadioReco.modules.voltageToEfieldConverterPerChannel.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -281,7 +281,7 @@
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="NuRadioReco.modules.html">NuRadioReco.modules package</a><ul class="current">
-<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
@@ -289,7 +289,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
-<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
@@ -297,7 +297,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#submodules">Submodules</a><ul>
+<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.analogToDigitalConverter.html">NuRadioReco.modules.analogToDigitalConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.beamFormingDirectionFitter.html">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelAddCableDelay.html">NuRadioReco.modules.channelAddCableDelay module</a></li>
@@ -330,6 +330,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module</a></li>
 </ul>
 </li>
 </ul>
@@ -394,6 +395,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html">Using the cosmic-ray pulse interpolator in NRR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#initialising-the-interpolator">Initialising the interpolator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
 </ul>
 </li>
 </ul>
@@ -607,11 +615,9 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
-          <li class="breadcrumb-item"><a href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
-          <li class="breadcrumb-item"><a href="NuRadioReco.modules.io.coreas.html">NuRadioReco.modules.io.coreas package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.io.coreas.readCoREASStationGrid module</li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStationGrid.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -619,24 +625,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.io.coreas.readCoREASStationGrid">
-<span id="nuradioreco-modules-io-coreas-readcoreasstationgrid-module"></span><h1>NuRadioReco.modules.io.coreas.readCoREASStationGrid module<a class="headerlink" href="#module-NuRadioReco.modules.io.coreas.readCoREASStationGrid" title="Link to this heading"></a></h1>
+  <section id="module-NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup">
+<span id="nuradioreco-modules-voltagetoefieldconverterperchannelgroup-module"></span><h1>NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module<a class="headerlink" href="#module-NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup" title="Link to this heading"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.readCoREASStationGrid.</span></span><span class="sig-name descname"><span class="pre">readCoREAS</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASStationGrid.html#readCoREAS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.</span></span><span class="sig-name descname"><span class="pre">voltageToEfieldConverterPerChannelGroup</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/voltageToEfieldConverterPerChannelGroup.html#voltageToEfieldConverterPerChannelGroup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>coreas input module for fixed grid of stations.
-This module distributes core positions randomly within a user defined area and calculates the electric field
-at the detector positions as specified in the detector description by choosing the closest antenna
-of the star shape pattern simulation</p>
+<p>This module is intended to reconstruct the electric field from dual-polarized antennas, 
+i.e., two antennas with orthogonal polarizations combined in one mechanical structure. 
+This is the typical case for air-shower detectors such as Auger and LOFAR.</p>
+<p>Converts voltage trace to electric field per channel group.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.begin" title="NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>(input_files, xmin, xmax, ymin, ymax[, ...])</p></td>
-<td><p>begin method</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.begin" title="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([use_MC_direction])</p></td>
+<td><p>Initializes the module</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.run" title="NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(detector[, output_mode])</p></td>
-<td><p>Read in a random sample of stations from a CoREAS file.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.run" title="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det)</p></td>
+<td><p>Performs computation for voltage trace to electric field per channel</p></td>
 </tr>
 </tbody>
 </table>
@@ -648,26 +654,13 @@ of the star shape pattern simulation</p>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASStationGrid.html#readCoREAS.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.begin" title="Link to this definition"></a></dt>
-<dd><p>begin method</p>
-<p>initialize readCoREAS module</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_MC_direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/voltageToEfieldConverterPerChannelGroup.html#voltageToEfieldConverterPerChannelGroup.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.begin" title="Link to this definition"></a></dt>
+<dd><p>Initializes the module</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>input_files: input files</strong></dt><dd><p>list of coreas hdf5 files</p>
-</dd>
-<dt><strong>xmin: float</strong></dt><dd><p>minimum x coordinate of the area in which core positions are distributed</p>
-</dd>
-<dt><strong>xmax: float</strong></dt><dd><p>maximum x coordinate of the area in which core positions are distributed</p>
-</dd>
-<dt><strong>ymin: float</strong></dt><dd><p>minimum y coordinate of the area in which core positions are distributed</p>
-</dd>
-<dt><strong>ynax: float</strong></dt><dd><p>maximum y coordinate of the area in which core positions are distributed</p>
-</dd>
-<dt><strong>n_cores: number of cores (integer)</strong></dt><dd><p>the number of random core positions to generate for each input file</p>
-</dd>
-<dt><strong>seed: int (default: None)</strong></dt><dd><p>Seed for the random number generation. If None is passed, no seed is set</p>
+<dt><strong>use_MC_direction: bool</strong></dt><dd><p>If True, the MC direction is used for the reconstruction. If False, the reconstructed angles are used.</p>
 </dd>
 </dl>
 </dd>
@@ -675,24 +668,18 @@ of the star shape pattern simulation</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASStationGrid.html#readCoREAS.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.run" title="Link to this definition"></a></dt>
-<dd><p>Read in a random sample of stations from a CoREAS file.
-For each position the closest observer is selected and a simulated
-event is created for that observer.</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/voltageToEfieldConverterPerChannelGroup.html#voltageToEfieldConverterPerChannelGroup.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.run" title="Link to this definition"></a></dt>
+<dd><p>Performs computation for voltage trace to electric field per channel</p>
+<p>Will provide a deconvoluted (electric field) trace for each channel from the stations input voltage traces</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>detector: Detector object</strong></dt><dd><p>Detector description of the detector that shall be simulated</p>
+<dt><strong>evt: event data structure</strong></dt><dd><p>the event data structure</p>
 </dd>
-<dt><strong>output_mode: integer (default 0)</strong></dt><dd><ul class="simple">
-<li><p>0: only the event object is returned</p></li>
-<li><dl class="simple">
-<dt>1: the function reuturns the event object, the current inputfilename, the distance between the choosen station and the requested core position,</dt><dd><p>and the area in which the core positions are randomly distributed</p>
+<dt><strong>station: station data structure</strong></dt><dd><p>the station data structure</p>
 </dd>
-</dl>
-</li>
-</ul>
+<dt><strong>det: detector object</strong></dt><dd><p>the detector object</p>
 </dd>
 </dl>
 </dd>
@@ -700,8 +687,8 @@ event is created for that observer.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASStationGrid.html#readCoREAS.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.end" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/voltageToEfieldConverterPerChannelGroup.html#voltageToEfieldConverterPerChannelGroup.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.end" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -712,8 +699,8 @@ event is created for that observer.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.io.coreas.readCoREASStation.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.coreas.readCoREASStation module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.io.coreas.simulationSelector.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.coreas.simulationSelector module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.voltageToEfieldConverterPerChannel.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.voltageToEfieldConverterPerChannel module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.detector.html" class="btn btn-neutral float-right" title="NuRadioReco.detector package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

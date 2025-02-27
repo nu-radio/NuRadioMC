@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="NuRadioReco.modules.io.coreas.readCoREASStation module" href="NuRadioReco.modules.io.coreas.readCoREASStation.html" />
-    <link rel="prev" title="NuRadioReco.modules.io.coreas.readCoREAS module" href="NuRadioReco.modules.io.coreas.readCoREAS.html" /> 
+    <link rel="prev" title="NuRadioReco.modules.io.coreas.readCoREASDetector module" href="NuRadioReco.modules.io.coreas.readCoREASDetector.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -330,6 +330,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module</a></li>
 </ul>
 </li>
 </ul>
@@ -394,6 +395,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html">Using the cosmic-ray pulse interpolator in NRR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#initialising-the-interpolator">Initialising the interpolator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
 </ul>
 </li>
 </ul>
@@ -637,7 +645,7 @@ object per antenna.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.begin" title="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>(input_files[, det, logger_level, ...])</p></td>
 <td><p>begin method</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run" title="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run" title="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>([declination])</p></td>
 <td><p>Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</p></td>
 </tr>
 </tbody>
@@ -677,11 +685,17 @@ This can be used to avoid ambiguities values (default: False)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">declination</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#readCoREASShower.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run" title="Link to this definition"></a></dt>
 <dd><p>Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</p>
 <dl class="field-list">
-<dt class="field-odd">Yields<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>declination: float, default=None</strong></dt><dd><p>The declination of the magnetic field to use when reading in the CoREAS file</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
 <dt><strong>evt</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.event.Event</span></code></a></span></dt><dd><p>The event containing the simulated observer as sim. stations.</p>
 </dd>
 <dt><strong>det</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector" title="NuRadioReco.detector.generic_detector.GenericDetector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.generic_detector.GenericDetector</span></code></a></span></dt><dd><p>Optional, only if a detector description is passed to the begin method.
@@ -699,20 +713,13 @@ Contains the detector description with the on-the-fly added stations.</p>
 
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.readCoREASShower.</span></span><span class="sig-name descname"><span class="pre">antenna_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASShower.html#antenna_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id" title="Link to this definition"></a></dt>
-<dd><p>This function parses the antenna names given in a CoREAS simulation and tries to find an ID
-It can be extended to other name patterns</p>
-</dd></dl>
-
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.io.coreas.readCoREAS.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.coreas.readCoREAS module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.io.coreas.readCoREASDetector.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.coreas.readCoREASDetector module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="NuRadioReco.modules.io.coreas.readCoREASStation.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.coreas.readCoREASStation module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

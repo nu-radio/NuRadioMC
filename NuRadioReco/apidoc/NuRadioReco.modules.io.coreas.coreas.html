@@ -20,7 +20,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.io.coreas.readCoREAS module" href="NuRadioReco.modules.io.coreas.readCoREAS.html" />
+    <link rel="next" title="NuRadioReco.modules.io.coreas.coreasInterpolator module" href="NuRadioReco.modules.io.coreas.coreasInterpolator.html" />
     <link rel="prev" title="NuRadioReco.modules.io.coreas package" href="NuRadioReco.modules.io.coreas.html" /> 
 </head>
 
@@ -330,6 +330,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module</a></li>
 </ul>
 </li>
 </ul>
@@ -394,6 +395,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html">Using the cosmic-ray pulse interpolator in NRR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#initialising-the-interpolator">Initialising the interpolator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
 </ul>
 </li>
 </ul>
@@ -622,39 +630,337 @@
   <section id="module-NuRadioReco.modules.io.coreas.coreas">
 <span id="nuradioreco-modules-io-coreas-coreas-module"></span><h1>NuRadioReco.modules.io.coreas.coreas module<a class="headerlink" href="#module-NuRadioReco.modules.io.coreas.coreas" title="Link to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.make_sim_shower">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">make_sim_shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#make_sim_shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.make_sim_shower" title="Link to this definition"></a></dt>
+<dd><p>DEPRECATED: This function has been moved to <em class="xref py py-obj">create_sim_shower_from_hdf5()</em>, however its functionality has been
+modified heavily. You will probably want to move to <em class="xref py py-obj">create_sim_shower()</em> instead, which has an easier
+interface. Please refer to the documentation of <em class="xref py py-obj">create_sim_shower()</em> for more information.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.make_sim_station">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">make_sim_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#make_sim_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.make_sim_station" title="Link to this definition"></a></dt>
+<dd><p>DEPRECATED: This function has been moved to <em class="xref py py-obj">create_sim_station()</em>, however its functionality has been modified. Please
+refer to the documentation of <em class="xref py py-obj">create_sim_station()</em> for more information.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.get_angles">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">get_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#get_angles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.get_angles" title="Link to this definition"></a></dt>
-<dd><p>Converting angles in corsika coordinates to local coordinates</p>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">get_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">declination</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#get_angles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.get_angles" title="Link to this definition"></a></dt>
+<dd><p>Converting angles in corsika coordinates to local coordinates.</p>
+<p>Corsika positive x-axis points to the magnetic north, NRR coordinates positive x-axis points to the geographic east.
+Corsika positive y-axis points to the west, NRR coordinates positive y-axis points to the geographic north.
+Corsika z-axis points upwards, NuRadio z-axis points upwards.</p>
+<p>Corsika’s zenith angle of a particle trajectory is defined between the particle momentum vector and the negative
+z-axis, meaning that the particle is described in the direction where it is going to. The azimuthal angle is
+described between the positive x-axis and the horizontal component of the particle momentum vector
+(i.e. with respect to the magnetic north) proceeding counterclockwise.</p>
+<p>NRR describes the particle zenith and azimuthal angle in the direction where the particle is coming from.
+Therefore, the zenith angle is the same, but the azimuthal angle has to be shifted by 180 + 90 degrees.
+The north has to be shifted by 90 degrees plus difference between geomagnetic and magnetic north.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>corsika</strong><span class="classifier">hdf5 file object</span></dt><dd><p>the open hdf5 file object of the corsika hdf5 file</p>
+</dd>
+<dt><strong>declination</strong><span class="classifier">float</span></dt><dd><p>declination of the magnetic field, in internal units</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>zenith angle</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>azimuth angle</p>
+</dd>
+<dt><strong>magnetic_field_vector</strong><span class="classifier">np.ndarray</span></dt><dd><p>magnetic field vector</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The declinations can be obtained using the functions in the radiotools helper package, if you
+have the magnetic field for the site you are interested in.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">magnet</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">get_magnetic_field_vector</span><span class="p">(</span><span class="s1">&#39;mooresbay&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dec</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">get_declination</span><span class="p">(</span><span class="n">magnet</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evt</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s1">&#39;NuRadioReco/examples/example_data/example_data.hdf5&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_angles</span><span class="p">(</span><span class="n">corsika</span><span class="p">,</span> <span class="n">dec</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">gauss</span>
+<span class="go">array([ 0.05646405, -0.08733734,  0.614     ])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">magnet</span>
+<span class="go">array([ 0.058457, -0.09042 ,  0.61439 ])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.get_geomagnetic_angle">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">get_geomagnetic_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetic_field_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#get_geomagnetic_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.get_geomagnetic_angle" title="Link to this definition"></a></dt>
+<dd><p>Calculates the angle between the geomagnetic field and the shower axis defined by <em class="xref py py-obj">zenith</em> and <em class="xref py py-obj">azimuth</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>zenith angle (in internal units)</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>azimuth angle (in internal units)</p>
+</dd>
+<dt><strong>magnetic_field_vector</strong><span class="classifier">np.ndarray</span></dt><dd><p>The magnetic field vector in the NRR coordinate system (x points East, y points North, z points up)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>geomagnetic_angle</strong><span class="classifier">float</span></dt><dd><p>geomagnetic angle</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.convert_obs_to_nuradio_efield">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">convert_obs_to_nuradio_efield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetic_field_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#convert_obs_to_nuradio_efield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.convert_obs_to_nuradio_efield" title="Link to this definition"></a></dt>
+<dd><p>Converts the electric field from one CoREAS observer to NuRadio units and the on-sky coordinate system.</p>
+<p>The on-sky CS in NRR has basis vectors eR, eTheta, ePhi.
+Before going to the on-sky CS, we account for the magnetic field which does not point strictly North.
+To get the zenith, azimuth and magnetic field vector, one can use <em class="xref py py-obj">get_angles()</em>.
+The <em class="xref py py-obj">observer</em> array should have the shape (n_samples, 4) with the columns (time, Ey, -Ex, Ez),
+where (x, y, z) is the NuRadio CS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>observer</strong><span class="classifier">np.ndarray</span></dt><dd><p>The observer as in the HDF5 file, e.g. list(corsika[‘CoREAS’][‘observers’].values())[i].</p>
+</dd>
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>zenith angle (in internal units)</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>azimuth angle (in internal units)</p>
+</dd>
+<dt><strong>magnetic_field_vector</strong><span class="classifier">np.ndarray</span></dt><dd><p>magnetic field vector</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>efield: np.array (3, n_samples)</dt><dd><p>Electric field in the on-sky CS (r, theta, phi)</p>
+</dd>
+<dt>efield_times: np.array (n_samples)</dt><dd><p>The time values corresponding to the electric field samples</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.convert_obs_positions_to_nuradio_on_ground">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">convert_obs_positions_to_nuradio_on_ground</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observer_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetic_field_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#convert_obs_positions_to_nuradio_on_ground"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.convert_obs_positions_to_nuradio_on_ground" title="Link to this definition"></a></dt>
+<dd><p>Convert observer positions from the CORSIKA CS to the NRR ground CS.</p>
+<p>First, the observer position is converted to the NRR coordinate conventions (i.e. x pointing East,
+y pointing North, z pointing up). Then, the observer position is corrected for magnetic north
+(as CORSIKA only has two components to its magnetic field vector) and put in the geographic CS.
+To get the zenith, azimuth and magnetic field vector, one can use the <em class="xref py py-obj">get_angles()</em> function.
+If multiple observers are to be converted, the <em class="xref py py-obj">observer</em> array should have the shape (n_observers, 3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>observer_pos</strong><span class="classifier">np.ndarray</span></dt><dd><p>The observer’s position as extracted from the HDF5 file, e.g. corsika[‘CoREAS’][‘my_observer’].attrs[‘position’]</p>
+</dd>
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>zenith angle (in internal units)</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>azimuth angle (in internal units)</p>
+</dd>
+<dt><strong>magnetic_field_vector</strong><span class="classifier">np.ndarray</span></dt><dd><p>magnetic field vector</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>obs_positions_geo: np.ndarray</dt><dd><p>observer positions in geographic coordinates, shaped as (n_observers, 3).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.read_CORSIKA7">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">read_CORSIKA7</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">declination</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#read_CORSIKA7"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.read_CORSIKA7" title="Link to this definition"></a></dt>
+<dd><p>This function reads in a CORSIKA/CoREAS HDF5 file and returns an Event object with all relevant information
+from the file. This Event object can then be used to create an interpolator, for example.</p>
+<p>The structure of the Event is as follows. It contains one station with ID equal to 0, which hosts a SimStation.
+The SimStation stores the simulated ElectricField objects in on-sky coordinates (ie eR, eTheta, ePhi).
+They are equipped with a position attribute that contains the position of the simulated antenna
+(in the NRR ground coordinate system) and are associated to a channel with an ID equal to the index of the
+channel as it was read from the HDF5 file.</p>
+<p>Next to the (Sim)Station, the Event also contains a SimShower object, which stores the CORSIKA input parameters.
+For a list of stored parameters, see the <em class="xref py py-obj">create_sim_shower_from_hdf5()</em> function.</p>
+<p>Note that the function assumes the energy has been fixed to a single value, as is typical with a CoREAS simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>input_file: str</strong></dt><dd><p>Path to the CORSIKA HDF5 file</p>
+</dd>
+<dt><strong>declination: float, default=0</strong></dt><dd><p>The declination to use for the magnetic field, in internal units</p>
+</dd>
+<dt><strong>site: str, default=None</strong></dt><dd><p>Instead of declination, a site name can be given to retrieve the declination using the magnetic field
+as obtained from the radiotools.helper.get_magnetic_field_vector() function</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>evt: NuRadioReco.framework.event.Event</dt><dd><p>Event object containing the CORSIKA information</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.create_sim_shower_from_hdf5">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">create_sim_shower_from_hdf5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">declination</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#create_sim_shower_from_hdf5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.create_sim_shower_from_hdf5" title="Link to this definition"></a></dt>
+<dd><p>Creates an NuRadioReco <em class="xref py py-obj">RadioShower</em> from a CoREAS HDF5 file, which contains the simulation inputs shower parameters.
+These include</p>
+<ul class="simple">
+<li><p>the primary particle type</p></li>
+<li><p>the observation level</p></li>
+<li><p>the zenith and azimuth angles</p></li>
+<li><p>the magnetic field vector</p></li>
+<li><p>the energy of the primary particle</p></li>
+</ul>
+<p>The following parameters are retrieved from the REAS file:</p>
+<ul class="simple">
+<li><p>the core position</p></li>
+<li><p>the depth of the shower maximum (in g/cm2, converted to internal units)</p></li>
+<li><p>the distance of the shower maximum (in cm, converted to internal units)</p></li>
+<li><p>the refractive index at ground level</p></li>
+<li><p>the declination of the magnetic field</p></li>
+</ul>
+<p>Lastly, these parameters are also saved IF they are available in the HDF5 file:</p>
+<ul class="simple">
+<li><p>the atmospheric model used for the simulation</p></li>
+<li><p>the electromagnetic energy of the shower (only present in high-level quantities are present)</p></li>
+</ul>
+<p>This function is used in the <em class="xref py py-obj">read_CORSIKA7()</em> function to create the SimShower object. In order to copy a
+<em class="xref py py-obj">SimShower</em> object from an Event object, use the <em class="xref py py-obj">create_sim_shower()</em> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>corsika</strong><span class="classifier">hdf5 file object</span></dt><dd><p>the open hdf5 file object of the corsika hdf5 file</p>
+</dd>
+<dt><strong>declination</strong><span class="classifier">float</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>sim_shower: RadioShower</dt><dd><p>simulated shower object</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.create_sim_shower">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">create_sim_shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#create_sim_shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.create_sim_shower" title="Link to this definition"></a></dt>
+<dd><p>Create an NuRadioReco <em class="xref py py-obj">SimShower</em> from an Event object created with e.g. read_CORSIKA7(),
+and apply a core shift if desired. If no core shift is given, the returned SimShower will
+have the same core as used in the CoREAS simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt: Event</strong></dt><dd><p>event object containing the CoREAS output, e.g. created with read_CORSIKA7()</p>
+</dd>
+<dt><strong>core_shift: np.ndarray, default=None</strong></dt><dd><p>The core shift to apply to the core position, in internal units. Must be 3D array.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>sim_shower: RadioShower</dt><dd><p>simulated shower object</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.create_sim_station">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">create_sim_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#create_sim_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.create_sim_station" title="Link to this definition"></a></dt>
+<dd><p>Creates an NuRadioReco <em class="xref py py-obj">SimStation</em> with the information from an <em class="xref py py-obj">Event</em> object created with e.g. read_CORSIKA7().</p>
+<p>Optionally, station can be assigned a weight. Note that the station is empty. To add an
+electric field the function add_electric_field_to_sim_station() has to be used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id</strong><span class="classifier">int</span></dt><dd><p>The id to assign to the new station</p>
+</dd>
+<dt><strong>evt</strong><span class="classifier">Event</span></dt><dd><p>event object containing the CoREAS output</p>
+</dd>
+<dt><strong>weight</strong><span class="classifier">float</span></dt><dd><p>weight corresponds to area covered by station</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>sim_station: SimStation</dt><dd><p>simulated station object</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.add_electric_field_to_sim_station">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">add_electric_field_to_sim_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efield</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efield_start_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efield_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#add_electric_field_to_sim_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.add_electric_field_to_sim_station" title="Link to this definition"></a></dt>
+<dd><p>Adds an electric field trace to an existing SimStation, with the provided attributes.</p>
+<p>All variables should be provided in internal units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sim_station</strong><span class="classifier">SimStation</span></dt><dd><p>The simulated station object, e.g. from make_empty_sim_station()</p>
+</dd>
+<dt><strong>channel_ids</strong><span class="classifier">list of int</span></dt><dd><p>Channel IDs to associate to the electric field</p>
+</dd>
+<dt><strong>efield</strong><span class="classifier">np.ndarray</span></dt><dd><p>Electric field trace, shaped as (3, n_samples)</p>
+</dd>
+<dt><strong>efield_start_time</strong><span class="classifier">float</span></dt><dd><p>Start time of the electric field trace</p>
+</dd>
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>Zenith angle</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>Azimuth angle</p>
+</dd>
+<dt><strong>sampling_rate</strong><span class="classifier">float</span></dt><dd><p>Sampling rate of the trace</p>
+</dd>
+<dt><strong>efield_position</strong><span class="classifier">np.ndarray or list of float</span></dt><dd><p>Position to associate to the electric field</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.calculate_simulation_weights">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">calculate_simulation_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'summit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#calculate_simulation_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.calculate_simulation_weights" title="Link to this definition"></a></dt>
-<dd><p>Calculate weights according to the area that one simulated position represents.
+<dd><p>Calculate weights according to the area that one observer position in a starshape pattern represents.
 Weights are therefore given in units of area.
 Note: The volume of a 2d convex hull is the area.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.make_sim_station">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">make_sim_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#make_sim_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.make_sim_station" title="Link to this definition"></a></dt>
-<dd><p>creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>station_id</strong><span class="classifier">station id</span></dt><dd><p>the id of the station to create</p>
+<dt><strong>positions</strong><span class="classifier">list</span></dt><dd><p>station position with [x, y, z] on ground</p>
 </dd>
-<dt><strong>corsika</strong><span class="classifier">hdf5 file object</span></dt><dd><p>the open hdf5 file object of the corsika hdf5 file</p>
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>zenith angle of the shower</p>
 </dd>
-<dt><strong>observer</strong><span class="classifier">hdf5 observer object</span></dt><dd></dd>
-<dt><strong>channel_ids</strong></dt><dd></dd>
-<dt><strong>weight</strong><span class="classifier">weight of individual station</span></dt><dd><p>weight corresponds to area covered by station</p>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>azimuth angle of the shower</p>
+</dd>
+<dt><strong>site</strong><span class="classifier">str</span></dt><dd><p>site of the simulation, default is ‘summit’</p>
+</dd>
+<dt><strong>debug</strong><span class="classifier">bool</span></dt><dd><p>if true, plots are created for debugging</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>sim_station: sim station</dt><dd><p>simulated station object</p>
+<dt><strong>weights</strong><span class="classifier">np.array</span></dt><dd><p>weights of the observer position</p>
 </dd>
 </dl>
 </dd>
@@ -662,22 +968,20 @@ Note: The volume of a 2d convex hull is the area.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.make_sim_shower">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">make_sim_shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#make_sim_shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.make_sim_shower" title="Link to this definition"></a></dt>
-<dd><p>creates an NuRadioReco sim shower from the coreas hdf5 file</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.set_fluence_of_efields">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">set_fluence_of_efields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantity=&lt;electricFieldParameters.signal_energy_fluence:</span> <span class="pre">4&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#set_fluence_of_efields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.set_fluence_of_efields" title="Link to this definition"></a></dt>
+<dd><p>This helper function is used to set the fluence quantity of all electric fields in a SimStation.
+Use this to calculate the fluences to use for interpolation.</p>
+<p>One option to use as <em class="xref py py-obj">function</em> is <em class="xref py py-obj">trace_utilities.get_electric_field_energy_fluence()</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>corsika</strong><span class="classifier">hdf5 file object</span></dt><dd><p>the open hdf5 file object of the corsika hdf5 file</p>
+<dt><strong>function: callable</strong></dt><dd><p>The function to apply to the traces in order to calculate the fluence. Should take in a (3, n_samples) shaped
+array and return a float (or an array with 3 elements if you want the fluence per polarisation).</p>
 </dd>
-<dt><strong>observer</strong><span class="classifier">hdf5 observer object</span></dt><dd></dd>
-<dt><strong>detector</strong><span class="classifier">detector object</span></dt><dd></dd>
-<dt><strong>station_id</strong><span class="classifier">station id of the station relativ to which the shower core is given</span></dt><dd></dd>
-</dl>
+<dt><strong>sim_station: SimStation</strong></dt><dd><p>The simulated station object</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>sim_shower: sim shower</dt><dd><p>simulated shower object</p>
+<dt><strong>quantity: electric field parameter, default=efp.signal_energy_fluence</strong></dt><dd><p>The parameter where to store the result of the fluence calculation</p>
 </dd>
 </dl>
 </dd>
@@ -691,7 +995,7 @@ Note: The volume of a 2d convex hull is the area.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="NuRadioReco.modules.io.coreas.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.coreas package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.io.coreas.readCoREAS.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.coreas.readCoREAS module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.io.coreas.coreasInterpolator.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.coreas.coreasInterpolator module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

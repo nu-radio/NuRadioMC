@@ -327,6 +327,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module</a></li>
 </ul>
 </li>
 </ul>
@@ -391,6 +392,13 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco/pages/how_to/coreas_interpolation.html">Using the cosmic-ray pulse interpolator in NRR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/coreas_interpolation.html#initialising-the-interpolator">Initialising the interpolator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
 </ul>
 </li>
 </ul>
@@ -662,6 +670,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.add_electric_field">(NuRadioReco.framework.station.Station method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.add_electric_field_to_sim_station">add_electric_field_to_sim_station() (in module NuRadioReco.modules.io.coreas.coreas)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_entry_to_database">add_entry_to_database() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.simulation.output_writer_hdf5.html#NuRadioMC.simulation.output_writer_hdf5.outputWriterHDF5.add_event_group">add_event_group() (NuRadioMC.simulation.output_writer_hdf5.outputWriterHDF5 method)</a>
@@ -806,8 +816,6 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.antenna_by_depth">(NuRadioReco.detector.generic_detector.GenericDetector property)</a>
 </li>
       </ul></li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id">antenna_id() (in module NuRadioReco.modules.io.coreas.readCoREASShower)</a>
-</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.emitterParameters.antenna_type">antenna_type (NuRadioReco.framework.parameters.emitterParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.AntennaPattern">AntennaPattern (class in NuRadioReco.detector.antennapattern)</a>
@@ -839,6 +847,8 @@
       <li><a href="NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.apply_det_response_sim">apply_det_response_sim() (in module NuRadioMC.simulation.simulation)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.analogToDigitalConverter.html#NuRadioReco.modules.analogToDigitalConverter.apply_filter">apply_filter() (in module NuRadioReco.modules.analogToDigitalConverter)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.apply_hanning">apply_hanning() (in module NuRadioReco.modules.io.coreas.readCoREASDetector)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.apply_propagation_effects">apply_propagation_effects() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
 
@@ -902,6 +912,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.azimuth">(NuRadioReco.framework.parameters.showerParameters attribute)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.azimuth">(NuRadioReco.framework.parameters.stationParameters attribute)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.azimuth">(NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator property)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -991,13 +1003,11 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.html#NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor.begin">(NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor method)</a>
 </li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.html#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.begin">(NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS method)</a>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector.begin">(NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.begin">(NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStation.html#NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation.begin">(NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation method)</a>
-</li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStationGrid.html#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.begin">(NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.simulationSelector.html#NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector.begin">(NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector method)</a>
 </li>
@@ -1070,6 +1080,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter.begin">(NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html#NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel.begin">(NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.begin">(NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.variableWindowSizeCorrelation.html#NuRadioReco.utilities.variableWindowSizeCorrelation.variableWindowSizeCorrelation.begin">(NuRadioReco.utilities.variableWindowSizeCorrelation.variableWindowSizeCorrelation method)</a>
 </li>
@@ -1168,14 +1180,14 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelTimeWindow.html#NuRadioReco.modules.channelTimeWindow.channelTimeWindow">channelTimeWindow (class in NuRadioReco.modules.channelTimeWindow)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.charge_excess_profile_id">charge_excess_profile_id (NuRadioReco.framework.parameters.showerParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.check_for_good_ant">check_for_good_ant() (in module NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces.check_trace_quality">check_trace_quality() (NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.check_vertical_string">check_vertical_string() (NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.chi2_efield_time_direction_fit">chi2_efield_time_direction_fit (NuRadioReco.framework.parameters.stationParameters attribute)</a>
@@ -1196,6 +1208,10 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.ARIANNAParameters.comm_period">comm_period (NuRadioReco.framework.parameters.ARIANNAParameters attribute)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.convert_obs_positions_to_nuradio_on_ground">convert_obs_positions_to_nuradio_on_ground() (in module NuRadioReco.modules.io.coreas.coreas)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.convert_obs_to_nuradio_efield">convert_obs_to_nuradio_efield() (in module NuRadioReco.modules.io.coreas.coreas)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.readARAEventList.html#NuRadioMC.EvtGen.readARAEventList.convert_to_hdf5">convert_to_hdf5() (in module NuRadioMC.EvtGen.readARAEventList)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.html#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.convertITRFToLocal">convertITRFToLocal() (in module NuRadioReco.modules.io.LOFAR.rawTBBio_metadata)</a>
@@ -1203,6 +1219,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.html#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.convertPhase_to_Timing">convertPhase_to_Timing() (in module NuRadioReco.modules.io.LOFAR.rawTBBio_metadata)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.core">core (NuRadioReco.framework.parameters.showerParameters attribute)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator">coreasInterpolator (class in NuRadioReco.modules.io.coreas.coreasInterpolator)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel">CoreMantleCrustModel (class in NuRadioMC.utilities.earth_attenuation)</a>
 </li>
@@ -1251,6 +1269,12 @@
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.create_empty_collection">create_empty_collection() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.create_sim_shower">create_sim_shower() (in module NuRadioReco.modules.io.coreas.coreas)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.create_sim_shower_from_hdf5">create_sim_shower_from_hdf5() (in module NuRadioReco.modules.io.coreas.coreas)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.create_sim_station">create_sim_station() (in module NuRadioReco.modules.io.coreas.coreas)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.NuRadioLogger.critical">critical() (NuRadioReco.utilities.logging.NuRadioLogger method)</a>
 </li>
@@ -1428,6 +1452,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco">efieldInterferometricDepthReco (class in NuRadioReco.modules.efieldRadioInterferometricReconstruction)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.efields_rotation_angle">efields_rotation_angle (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator property)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldTimeDirectionFitter.html#NuRadioReco.modules.efieldTimeDirectionFitter.efieldTimeDirectionFitter">efieldTimeDirectionFitter (class in NuRadioReco.modules.efieldTimeDirectionFitter)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter">efieldToVoltageConverter (class in NuRadioReco.modules.efieldToVoltageConverter)</a>
@@ -1511,13 +1537,11 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.electricFieldSignalReconstructor.html#NuRadioReco.modules.electricFieldSignalReconstructor.electricFieldSignalReconstructor.end">(NuRadioReco.modules.electricFieldSignalReconstructor.electricFieldSignalReconstructor method)</a>
 </li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.html#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.end">(NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS method)</a>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector.end">(NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.end">(NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStation.html#NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation.end">(NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation method)</a>
-</li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStationGrid.html#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.end">(NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.simulationSelector.html#NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector.end">(NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector method)</a>
 </li>
@@ -1582,6 +1606,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter.end">(NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html#NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel.end">(NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel method)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.end">(NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html#NuRadioReco.utilities.diodeSimulator.diodeSimulator.end">(NuRadioReco.utilities.diodeSimulator.diodeSimulator method)</a>
 </li>
@@ -2116,6 +2142,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channels_by_shower_id">get_channels_by_shower_id() (NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_closest_observer_efield">get_closest_observer_efield() (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_read.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_collection_information">get_collection_information() (NuRadioReco.detector.RNO_G.db_mongo_read.Database method)</a>
 
       <ul>
@@ -2312,6 +2340,8 @@
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.get_empty_channel">get_empty_channel() (in module NuRadioReco.modules.channelReadoutWindowCutter)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_empty_efield">get_empty_efield() (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energies">get_energies() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energy_from_flux">get_energy_from_flux() (in module NuRadioMC.EvtGen.generator)</a>
@@ -2479,6 +2509,8 @@
 </li>
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_generator_info">get_generator_info() (NuRadioReco.framework.event.Event method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.get_geomagnetic_angle">get_geomagnetic_angle() (in module NuRadioReco.modules.io.coreas.coreas)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1.get_geometric_delays">get_geometric_delays() (NuRadioReco.modules.io.LOFAR.rawTBBio.MultiFile_Dal1 method)</a>
 </li>
@@ -2670,6 +2702,10 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#NuRadioMC.utilities.muon_flux.MuonFlux.get_interp_angle_mu_flux">get_interp_angle_mu_flux() (NuRadioMC.utilities.muon_flux.MuonFlux method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value">get_interp_efield_value() (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_fluence_value">get_interp_fluence_value() (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_interpolated_cr_flux">get_interpolated_cr_flux() (in module NuRadioReco.utilities.cr_flux)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_intersection_between_line_and_plane">get_intersection_between_line_and_plane() (in module NuRadioReco.utilities.interferometry)</a>
@@ -2746,10 +2782,10 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalGen.HCRB2017.html#NuRadioMC.SignalGen.HCRB2017.get_N_AskDepthA">get_N_AskDepthA() (in module NuRadioMC.SignalGen.HCRB2017)</a>
 </li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_n_events">get_n_events() (NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_n_events">get_n_events() (NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio method)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.get_n_steps">get_n_steps() (in module NuRadioMC.SignalProp.analyticraytracing)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html#NuRadioReco.framework.hybrid_shower.HybridShower.get_name">get_name() (NuRadioReco.framework.hybrid_shower.HybridShower method)</a>
@@ -3064,6 +3100,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.get_position">(NuRadioReco.framework.electric_field.ElectricField method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_position_showerplane">get_position_showerplane() (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.powerIntegration.html#NuRadioReco.modules.trigger.powerIntegration.get_power_int_triggers">get_power_int_triggers() (in module NuRadioReco.modules.trigger.powerIntegration)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_time_channel">get_pre_trigger_time_channel() (NuRadioReco.framework.trigger.EnvelopePhasedTrigger method)</a>
@@ -3124,6 +3162,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_quantity_names">(NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions">get_random_core_positions() (in module NuRadioReco.modules.io.coreas.readCoREASDetector)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_raw_channel">get_raw_channel() (NuRadioReco.detector.generic_detector.GenericDetector method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_raw_station">get_raw_station() (NuRadioReco.detector.generic_detector.GenericDetector method)</a>
@@ -3970,6 +4010,12 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.NuRadioLogger.info">info() (NuRadioReco.utilities.logging.NuRadioLogger method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator">initialize_efield_interpolator() (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator">initialize_fluence_interpolator() (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_star_shape">initialize_star_shape() (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.operators.html#NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter">Inserter (class in NuRadioReco.modules.iftElectricFieldReconstructor.operators)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.simulation.integrated_channel_response">integrated_channel_response (NuRadioMC.simulation.simulation.simulation property)</a>
@@ -4004,6 +4050,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.is_candidate">is_candidate() (NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless">is_channel_noiseless() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
@@ -4014,8 +4062,6 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.is_channel_noiseless">(NuRadioReco.detector.RNO_G.rnog_detector.Detector method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.is_cosmic_ray">is_cosmic_ray() (NuRadioReco.framework.base_station.BaseStation method)</a>
 
       <ul>
@@ -4143,7 +4189,11 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.magnetic_field_rotation">magnetic_field_rotation (NuRadioReco.framework.parameters.showerParameters attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.magnetic_field_vector">magnetic_field_vector (NuRadioReco.framework.parameters.showerParameters attribute)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.magnetic_field_vector">(NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator property)</a>
 </li>
+      </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.html#NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.make_antennaID_filter">make_antennaID_filter() (in module NuRadioReco.modules.io.LOFAR.rawTBBio_metadata)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.html#NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor.make_priors_plot">make_priors_plot() (NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor method)</a>
@@ -4454,13 +4504,13 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#module-NuRadioReco.modules.io.coreas.coreas">NuRadioReco.modules.io.coreas.coreas</a>
 </li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.html#module-NuRadioReco.modules.io.coreas.readCoREAS">NuRadioReco.modules.io.coreas.readCoREAS</a>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#module-NuRadioReco.modules.io.coreas.coreasInterpolator">NuRadioReco.modules.io.coreas.coreasInterpolator</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#module-NuRadioReco.modules.io.coreas.readCoREASDetector">NuRadioReco.modules.io.coreas.readCoREASDetector</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#module-NuRadioReco.modules.io.coreas.readCoREASShower">NuRadioReco.modules.io.coreas.readCoREASShower</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStation.html#module-NuRadioReco.modules.io.coreas.readCoREASStation">NuRadioReco.modules.io.coreas.readCoREASStation</a>
-</li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStationGrid.html#module-NuRadioReco.modules.io.coreas.readCoREASStationGrid">NuRadioReco.modules.io.coreas.readCoREASStationGrid</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.simulationSelector.html#module-NuRadioReco.modules.io.coreas.simulationSelector">NuRadioReco.modules.io.coreas.simulationSelector</a>
 </li>
@@ -4573,6 +4623,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#module-NuRadioReco.modules.voltageToEfieldConverter">NuRadioReco.modules.voltageToEfieldConverter</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html#module-NuRadioReco.modules.voltageToEfieldConverterPerChannel">NuRadioReco.modules.voltageToEfieldConverterPerChannel</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html#module-NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.html#module-NuRadioReco.utilities">NuRadioReco.utilities</a>
 </li>
@@ -5654,10 +5706,17 @@
 </li>
       </ul></li>
       <li>
-    NuRadioReco.modules.io.coreas.readCoREAS
+    NuRadioReco.modules.io.coreas.coreasInterpolator
 
       <ul>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.html#module-NuRadioReco.modules.io.coreas.readCoREAS">module</a>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#module-NuRadioReco.modules.io.coreas.coreasInterpolator">module</a>
+</li>
+      </ul></li>
+      <li>
+    NuRadioReco.modules.io.coreas.readCoREASDetector
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#module-NuRadioReco.modules.io.coreas.readCoREASDetector">module</a>
 </li>
       </ul></li>
       <li>
@@ -5672,13 +5731,6 @@
 
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStation.html#module-NuRadioReco.modules.io.coreas.readCoREASStation">module</a>
-</li>
-      </ul></li>
-      <li>
-    NuRadioReco.modules.io.coreas.readCoREASStationGrid
-
-      <ul>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStationGrid.html#module-NuRadioReco.modules.io.coreas.readCoREASStationGrid">module</a>
 </li>
       </ul></li>
       <li>
@@ -6074,6 +6126,13 @@
 </li>
       </ul></li>
       <li>
+    NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html#module-NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup">module</a>
+</li>
+      </ul></li>
+      <li>
     NuRadioReco.utilities
 
       <ul>
@@ -6324,6 +6383,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.plot">plot() (NuRadioReco.detector.response.Response method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.plot_fluence_footprint">plot_fluence_footprint() (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.channelCWNotchFilter.html#NuRadioReco.modules.channelCWNotchFilter.plot_ft">plot_ft() (in module NuRadioReco.modules.channelCWNotchFilter)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.plot_lateral_cross_section">plot_lateral_cross_section() (in module NuRadioReco.modules.efieldRadioInterferometricReconstruction)</a>
@@ -6448,6 +6509,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.rawTBBio.html#NuRadioReco.modules.io.LOFAR.rawTBBio.read_bad_antennas">read_bad_antennas() (in module NuRadioReco.modules.io.LOFAR.rawTBBio)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.read_CORSIKA7">read_CORSIKA7() (in module NuRadioReco.modules.io.coreas.coreas)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.readEventList_ASCII.html#NuRadioMC.EvtGen.readEventList_ASCII.read_eventlist">read_eventlist() (in module NuRadioMC.EvtGen.readEventList_ASCII)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.read_input_hdf5">read_input_hdf5() (in module NuRadioMC.simulation.simulation)</a>
@@ -6462,12 +6525,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.snowshovel.readARIANNADataCalib.html#NuRadioReco.modules.io.snowshovel.readARIANNADataCalib.readARIANNAData">(class in NuRadioReco.modules.io.snowshovel.readARIANNADataCalib)</a>
 </li>
       </ul></li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.html#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS">readCoREAS (class in NuRadioReco.modules.io.coreas.readCoREAS)</a>
-
-      <ul>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStationGrid.html#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS">(class in NuRadioReco.modules.io.coreas.readCoREASStationGrid)</a>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector">readCoREASDetector (class in NuRadioReco.modules.io.coreas.readCoREASDetector)</a>
 </li>
-      </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower">readCoREASShower (class in NuRadioReco.modules.io.coreas.readCoREASShower)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStation.html#NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation">readCoREASStation (class in NuRadioReco.modules.io.coreas.readCoREASStation)</a>
@@ -6687,13 +6746,11 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.html#NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor.run">(NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor method)</a>
 </li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.html#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.run">(NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS method)</a>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector.run">(NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run">(NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStation.html#NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation.run">(NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation method)</a>
-</li>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStationGrid.html#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS.run">(NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS method)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.simulationSelector.html#NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector.run">(NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector method)</a>
 </li>
@@ -6767,6 +6824,8 @@
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html#NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel.run">(NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel method)</a>
 </li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.run">(NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup method)</a>
+</li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.variableWindowSizeCorrelation.html#NuRadioReco.utilities.variableWindowSizeCorrelation.variableWindowSizeCorrelation.run">(NuRadioReco.utilities.variableWindowSizeCorrelation.variableWindowSizeCorrelation method)</a>
 </li>
       </ul></li>
@@ -6799,6 +6858,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.schottky_diode">schottky_diode() (in module NuRadioReco.modules.trigger.rnog_surface_trigger)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties">SecondaryProperties (class in NuRadioMC.EvtGen.NuRadioProposal)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.select_channels_per_station">select_channels_per_station() (in module NuRadioReco.modules.io.coreas.readCoREASDetector)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.ARIANNAParameters.seq_num">seq_num (NuRadioReco.framework.parameters.ARIANNAParameters attribute)</a>
 </li>
@@ -6910,6 +6971,12 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_event_time">set_event_time() (NuRadioReco.framework.event.Event method)</a>
 </li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.set_fluence_of_efields">set_fluence_of_efields() (in module NuRadioReco.modules.io.coreas.coreas)</a>
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.set_fluence_of_efields">(NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator method)</a>
+</li>
+      </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum">set_frequency_spectrum() (NuRadioReco.framework.base_trace.BaseTrace method)</a>
 
       <ul>
@@ -7336,6 +7403,10 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.stacked_lstsq">(in module NuRadioReco.modules.voltageToEfieldConverter)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius">starshape_radius (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator property)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius_ground">starshape_radius_ground (NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator property)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.start_event_id">start_event_id (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.start_time">start_time() (NuRadioMC.simulation.time_logger.timeLogger method)</a>
@@ -7506,15 +7577,17 @@
       </ul></li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.viewing_angles">viewing_angles (NuRadioReco.framework.parameters.stationParameters attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html#NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter">voltageToAnalyticEfieldConverter (class in NuRadioReco.modules.voltageToAnalyticEfieldConverter)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.html#NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos">voltageToAnalyticEfieldConverterNeutrinos (class in NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter">voltageToEfieldConverter (class in NuRadioReco.modules.voltageToEfieldConverter)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html#NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel">voltageToEfieldConverterPerChannel (class in NuRadioReco.modules.voltageToEfieldConverterPerChannel)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup">voltageToEfieldConverterPerChannelGroup (class in NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.volume">volume (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
 </li>
@@ -7584,6 +7657,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.zenith">(NuRadioReco.framework.parameters.showerParameters attribute)</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParameters.zenith">(NuRadioReco.framework.parameters.stationParameters attribute)</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.zenith">(NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator property)</a>
 </li>
       </ul></li>
   </ul></td>

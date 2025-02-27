@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.coreas.coreasInterpolator module
+=======================================================
+
+.. automodule:: NuRadioReco.modules.io.coreas.coreasInterpolator
+   :members:
+   :undoc-members:
+   :show-inheritance:

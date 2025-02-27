@@ -327,6 +327,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module</a></li>
 </ul>
 </li>
 </ul>
@@ -391,6 +392,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../NuRadioReco/pages/how_to/coreas_interpolation.html">Using the cosmic-ray pulse interpolator in NRR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../NuRadioReco/pages/how_to/coreas_interpolation.html#initialising-the-interpolator">Initialising the interpolator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../NuRadioReco/pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../NuRadioReco/pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../NuRadioReco/pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
 </ul>
 </li>
 </ul>
@@ -617,12 +625,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.coreas</span><span class="w"> </span><span class="kn">import</span> <span class="n">coreas</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">coordinatesystems</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.coreas.readCoREASShower&#39;</span><span class="p">)</span>
@@ -684,9 +688,14 @@
 <div class="viewcode-block" id="readCoREASShower.run">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        declination: float, default=None</span>
+<span class="sd">            The declination of the magnetic field to use when reading in the CoREAS file</span>
 
 <span class="sd">        Yields</span>
 <span class="sd">        ------</span>
@@ -701,85 +710,72 @@
             <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
             <span class="n">t_per_event</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
-            <span class="n">filesize</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">])</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">]</span>
+            <span class="n">filesize</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">filesize</span> <span class="o">&lt;</span> <span class="mi">18456</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># based on the observation that a file with such a small filesize is corrupt</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;file </span><span class="si">{}</span><span class="s2"> seems to be corrupt, skipping to next file&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">]</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
+                    <span class="s2">&quot;file </span><span class="si">{}</span><span class="s2"> seems to be corrupt, skipping to next file&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reading </span><span class="si">%s</span><span class="s1"> ...&#39;</span> <span class="o">%</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">])</span>
 
-            <span class="n">corsika</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">],</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;using coreas simulation </span><span class="si">{}</span><span class="s2"> with E=</span><span class="si">{:2g}</span><span class="s2"> theta = </span><span class="si">{:.0f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">],</span> <span class="n">corsika</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;ERANGE&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span><span class="p">,</span>
-                <span class="n">corsika</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;THETAP&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
-
-            <span class="n">f_coreas</span> <span class="o">=</span> <span class="n">corsika</span><span class="p">[</span><span class="s2">&quot;CoREAS&quot;</span><span class="p">]</span>
+            <span class="n">corsika_evt</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">read_CORSIKA7</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">],</span> <span class="n">declination</span><span class="o">=</span><span class="n">declination</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ascending_run_and_event_number</span><span class="p">:</span>
                 <span class="n">evt</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__ascending_run_and_event_number</span><span class="p">,</span>
                                                         <span class="bp">self</span><span class="o">.</span><span class="n">__ascending_run_and_event_number</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__ascending_run_and_event_number</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">evt</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span>
-                    <span class="n">corsika</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;RUNNR&#39;</span><span class="p">],</span> <span class="n">corsika</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;EVTNR&#39;</span><span class="p">])</span>
+                <span class="n">evt</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">corsika_evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">corsika_evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
 
-            <span class="n">evt</span><span class="o">.</span><span class="n">__event_time</span> <span class="o">=</span> <span class="n">f_coreas</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;GPSSecs&quot;</span><span class="p">]</span>
-
-            <span class="c1"># create sim shower, no core is set since no external detector description is given</span>
-            <span class="n">sim_shower</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">make_sim_shower</span><span class="p">(</span><span class="n">corsika</span><span class="p">)</span>
-            <span class="n">sim_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">core</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">f_coreas</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateWest&quot;</span><span class="p">],</span> <span class="n">f_coreas</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateNorth&quot;</span><span class="p">],</span> <span class="n">f_coreas</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateVertical&quot;</span><span class="p">]]</span>
-                <span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span>  <span class="c1"># set core</span>
+            <span class="c1"># create sim shower, core is already set in read_CORSIKA7()</span>
+            <span class="n">sim_shower</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">create_sim_shower</span><span class="p">(</span><span class="n">corsika_evt</span><span class="p">)</span>
+            <span class="n">evt</span><span class="o">.</span><span class="n">set_event_time</span><span class="p">(</span><span class="n">corsika_evt</span><span class="o">.</span><span class="n">get_event_time</span><span class="p">())</span>
             <span class="n">evt</span><span class="o">.</span><span class="n">add_sim_shower</span><span class="p">(</span><span class="n">sim_shower</span><span class="p">)</span>
 
-            <span class="c1"># initialize coordinate transformation</span>
-            <span class="n">cs</span> <span class="o">=</span> <span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span>
-                <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
-                <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">))</span>
-
             <span class="c1"># add simulated pulses as sim station</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">observer</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f_coreas</span><span class="p">[</span><span class="s1">&#39;observers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-                <span class="c1"># returns proper station id if possible</span>
-                <span class="n">station_id</span> <span class="o">=</span> <span class="n">antenna_id</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
-
+            <span class="n">corsika_efields</span> <span class="o">=</span> <span class="n">corsika_evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">corsika_efield</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">corsika_efields</span><span class="p">):</span>
                 <span class="n">station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
+                <span class="n">sim_station</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">create_sim_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">corsika_evt</span><span class="p">)</span>
+                <span class="n">efield_trace</span> <span class="o">=</span> <span class="n">corsika_efield</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+                <span class="n">efield_sampling_rate</span> <span class="o">=</span> <span class="n">corsika_efield</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+                <span class="n">efield_times</span> <span class="o">=</span> <span class="n">corsika_efield</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
+
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">sim_station</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">make_sim_station</span><span class="p">(</span>
-                        <span class="n">station_id</span><span class="p">,</span> <span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="n">channel_ids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">sim_station</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">make_sim_station</span><span class="p">(</span>
-                        <span class="n">station_id</span><span class="p">,</span> <span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="p">,</span>
-                        <span class="n">channel_ids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">get_default_station_id</span><span class="p">()))</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">has_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
+                        <span class="n">channel_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">channel_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">get_reference_station_ids</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+                <span class="n">coreas</span><span class="o">.</span><span class="n">add_electric_field_to_sim_station</span><span class="p">(</span>
+                    <span class="n">sim_station</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">,</span> <span class="n">efield_trace</span><span class="p">,</span> <span class="n">efield_times</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
+                    <span class="n">efield_sampling_rate</span><span class="p">)</span>
 
                 <span class="n">station</span><span class="o">.</span><span class="n">set_sim_station</span><span class="p">(</span><span class="n">sim_station</span><span class="p">)</span>
                 <span class="n">evt</span><span class="o">.</span><span class="n">set_station</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">position</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]</span>
-                    <span class="n">antenna_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span>
-                    <span class="n">antenna_position</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_magnetic_to_geographic</span><span class="p">(</span><span class="n">antenna_position</span><span class="p">)</span>
+                    <span class="n">efield_pos</span> <span class="o">=</span> <span class="n">corsika_efield</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
 
                     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">has_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">add_generic_station</span><span class="p">({</span>
                             <span class="s1">&#39;station_id&#39;</span><span class="p">:</span> <span class="n">station_id</span><span class="p">,</span>
-                            <span class="s1">&#39;pos_easting&#39;</span><span class="p">:</span> <span class="n">antenna_position</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                            <span class="s1">&#39;pos_northing&#39;</span><span class="p">:</span> <span class="n">antenna_position</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                            <span class="s1">&#39;pos_altitude&#39;</span><span class="p">:</span> <span class="n">antenna_position</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                            <span class="s1">&#39;pos_easting&#39;</span><span class="p">:</span> <span class="n">efield_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="s1">&#39;pos_northing&#39;</span><span class="p">:</span> <span class="n">efield_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="s1">&#39;pos_altitude&#39;</span><span class="p">:</span> <span class="n">efield_pos</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
                             <span class="s1">&#39;reference_station&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">get_reference_station_ids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
                         <span class="p">})</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__det</span><span class="o">.</span><span class="n">add_station_properties_for_event</span><span class="p">({</span>
-                            <span class="s1">&#39;pos_easting&#39;</span><span class="p">:</span> <span class="n">antenna_position</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                            <span class="s1">&#39;pos_northing&#39;</span><span class="p">:</span> <span class="n">antenna_position</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                            <span class="s1">&#39;pos_altitude&#39;</span><span class="p">:</span> <span class="n">antenna_position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                            <span class="s1">&#39;pos_easting&#39;</span><span class="p">:</span> <span class="n">efield_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="s1">&#39;pos_northing&#39;</span><span class="p">:</span> <span class="n">efield_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="s1">&#39;pos_altitude&#39;</span><span class="p">:</span> <span class="n">efield_pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
                         <span class="p">},</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__t_per_event</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t_per_event</span>
@@ -805,22 +801,6 @@
             <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t_per_event</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
-
-
-
-<div class="viewcode-block" id="antenna_id">
-<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">antenna_id</span><span class="p">(</span><span class="n">antenna_name</span><span class="p">,</span> <span class="n">default_id</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This function parses the antenna names given in a CoREAS simulation and tries to find an ID</span>
-<span class="sd">    It can be extended to other name patterns</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;AERA_&quot;</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">):</span>
-        <span class="n">new_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">antenna_name</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;AERA_&quot;</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">new_id</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">default_id</span></div>
 
 </pre></div>
 

@@ -1,0 +1,7 @@
+NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module
+==================================================================
+
+.. automodule:: NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup
+   :members:
+   :undoc-members:
+   :show-inheritance:

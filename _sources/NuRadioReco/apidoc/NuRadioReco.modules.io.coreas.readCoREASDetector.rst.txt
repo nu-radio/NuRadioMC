@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.coreas.readCoREASDetector module
+=======================================================
+
+.. automodule:: NuRadioReco.modules.io.coreas.readCoREASDetector
+   :members:
+   :undoc-members:
+   :show-inheritance:

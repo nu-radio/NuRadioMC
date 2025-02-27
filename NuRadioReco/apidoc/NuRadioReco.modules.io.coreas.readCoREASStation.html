@@ -20,7 +20,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.io.coreas.readCoREASStationGrid module" href="NuRadioReco.modules.io.coreas.readCoREASStationGrid.html" />
+    <link rel="next" title="NuRadioReco.modules.io.coreas.simulationSelector module" href="NuRadioReco.modules.io.coreas.simulationSelector.html" />
     <link rel="prev" title="NuRadioReco.modules.io.coreas.readCoREASShower module" href="NuRadioReco.modules.io.coreas.readCoREASShower.html" /> 
 </head>
 
@@ -330,6 +330,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module</a></li>
 </ul>
 </li>
 </ul>
@@ -394,6 +395,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html">Using the cosmic-ray pulse interpolator in NRR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#initialising-the-interpolator">Initialising the interpolator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
 </ul>
 </li>
 </ul>
@@ -625,6 +633,9 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.readCoREASStation.</span></span><span class="sig-name descname"><span class="pre">readCoREASStation</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREASStation.html#readCoREASStation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Reads in CoREAS simulations and creates simulated events for each observer, i.e., a new event for each simulated observer.</p>
+<p>This module is useful for studies of individual electric fields, e.g., to detemine how well the energy fluence
+can be reconstructed as a function of singal-to-noise ratio, or to study the polarization reconstruction.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -689,7 +700,7 @@ respect to a given detector with a single station.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="NuRadioReco.modules.io.coreas.readCoREASShower.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.coreas.readCoREASShower module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.io.coreas.readCoREASStationGrid.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.coreas.readCoREASStationGrid module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.io.coreas.simulationSelector.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.coreas.simulationSelector module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

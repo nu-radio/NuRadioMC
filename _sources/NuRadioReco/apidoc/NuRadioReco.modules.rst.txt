@@ -64,3 +64,4 @@ Submodules
    NuRadioReco.modules.voltageToAnalyticEfieldConverter
    NuRadioReco.modules.voltageToEfieldConverter
    NuRadioReco.modules.voltageToEfieldConverterPerChannel
+   NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup

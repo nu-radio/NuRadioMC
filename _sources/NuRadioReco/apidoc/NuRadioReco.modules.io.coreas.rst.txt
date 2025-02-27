@@ -13,8 +13,8 @@ Submodules
    :maxdepth: 1
 
    NuRadioReco.modules.io.coreas.coreas
-   NuRadioReco.modules.io.coreas.readCoREAS
+   NuRadioReco.modules.io.coreas.coreasInterpolator
+   NuRadioReco.modules.io.coreas.readCoREASDetector
    NuRadioReco.modules.io.coreas.readCoREASShower
    NuRadioReco.modules.io.coreas.readCoREASStation
-   NuRadioReco.modules.io.coreas.readCoREASStationGrid
    NuRadioReco.modules.io.coreas.simulationSelector

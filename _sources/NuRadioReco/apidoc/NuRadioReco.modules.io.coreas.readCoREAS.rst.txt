@@ -1,7 +1,0 @@
-NuRadioReco.modules.io.coreas.readCoREAS module
-===============================================
-
-.. automodule:: NuRadioReco.modules.io.coreas.readCoREAS
-   :members:
-   :undoc-members:
-   :show-inheritance:

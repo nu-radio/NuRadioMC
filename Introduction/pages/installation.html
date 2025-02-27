@@ -330,6 +330,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module</a></li>
 </ul>
 </li>
 </ul>
@@ -394,6 +395,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioReco/pages/how_to/coreas_interpolation.html">Using the cosmic-ray pulse interpolator in NRR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/how_to/coreas_interpolation.html#initialising-the-interpolator">Initialising the interpolator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
 </ul>
 </li>
 </ul>
@@ -679,7 +687,7 @@ helps to keep the repository clean from accidentally added large files</strong>.
 <section id="pip-installable-dependencies">
 <h3>Pip-installable dependencies<a class="headerlink" href="#pip-installable-dependencies" title="Link to this heading"></a></h3>
 <p>To install all (optional and non-optional) dependencies available in pip at once, use the command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib<span class="w"> </span>astropy<span class="w"> </span>tinydb<span class="w"> </span>tinydb-serialization<span class="w"> </span>aenum<span class="w"> </span>h5py<span class="w"> </span>mysql-connector-python<span class="w"> </span>pymongo<span class="w"> </span>dash<span class="w"> </span>plotly<span class="w"> </span>toml<span class="w"> </span>peakutils<span class="w"> </span>future<span class="w"> </span>radiotools<span class="w"> </span>filelock<span class="w"> </span>mattak<span class="w"> </span>git+https://github.com/telegraphic/pygdsm<span class="w"> </span>pylfmap<span class="w"> </span>MCEq<span class="w"> </span>crflux
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib<span class="w"> </span>astropy<span class="w"> </span>tinydb<span class="w"> </span>tinydb-serialization<span class="w"> </span>aenum<span class="w"> </span>h5py<span class="w"> </span>mysql-connector-python<span class="w"> </span>pymongo<span class="w"> </span>dash<span class="w"> </span>plotly<span class="w"> </span>toml<span class="w"> </span>peakutils<span class="w"> </span>future<span class="w"> </span>radiotools<span class="w"> </span>filelock<span class="w"> </span>mattak<span class="w"> </span>git+https://github.com/telegraphic/pygdsm<span class="w"> </span>pylfmap<span class="w"> </span>MCEq<span class="w"> </span>crflux<span class="w"> </span>git+https://github.com/nu-radio/cr-pulse-interpolator
 </pre></div>
 </div>
 <p>Only for developers, we also recommend</p>
@@ -760,7 +768,7 @@ pip<span class="w"> </span>install<span class="w"> </span>plotly
 <h4>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading"></a></h4>
 <p>These packages are recommended to be able to use all of NuRadioMC/NuRadioReco’s features.
 They can be installed by including adding <code class="docutils literal notranslate"><span class="pre">[option]</span></code> when installing NuRadioMC. Alternatively,
-use <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">nuradiomc[all]</span></code> to install all optional dependencies.</p>
+use <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">nuradiomc[all]</span></code> to install all optional dependencies (or <code class="docutils literal notranslate"><span class="pre">[all,dev]</span></code> to also install development dependencies).</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">[RNO-G]</span></code></p>
 <p><a class="reference external" href="https://github.com/RNO-G/mattak">mattak</a> is required to open RNO-G root files:</p>
@@ -796,6 +804,13 @@ Some additional galactic noise models used by LOFAR for calibration purposes are
 <li><p><code class="docutils literal notranslate"><span class="pre">[muon-flux]</span></code></p>
 <p>Needed for some muon flux calculations</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>MCEq<span class="w"> </span>crflux
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[cr-interpolator]</span></code></p>
+<p>Installs the cosmic-ray interpolator from <a class="reference external" href="https://github.com/nu-radio/cr-pulse-interpolator">https://github.com/nu-radio/cr-pulse-interpolator</a>,
+used to interpolate cosmic-ray air-shower emission from CoREAS star-shaped patterns:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/nu-radio/cr-pulse-interpolator
 </pre></div>
 </div>
 </li>

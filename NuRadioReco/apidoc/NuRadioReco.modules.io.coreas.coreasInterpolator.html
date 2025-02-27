@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.io.coreas.readCoREAS module &mdash; NuRadio 3.0.0-dev documentation</title>
+  <title>NuRadioReco.modules.io.coreas.coreasInterpolator module &mdash; NuRadio 3.0.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -20,7 +20,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.io.coreas.readCoREASShower module" href="NuRadioReco.modules.io.coreas.readCoREASShower.html" />
+    <link rel="next" title="NuRadioReco.modules.io.coreas.readCoREASDetector module" href="NuRadioReco.modules.io.coreas.readCoREASDetector.html" />
     <link rel="prev" title="NuRadioReco.modules.io.coreas.coreas module" href="NuRadioReco.modules.io.coreas.coreas.html" /> 
 </head>
 
@@ -330,6 +330,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html">NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup module</a></li>
 </ul>
 </li>
 </ul>
@@ -394,6 +395,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html">Using the cosmic-ray pulse interpolator in NRR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#initialising-the-interpolator">Initialising the interpolator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
 </ul>
 </li>
 </ul>
@@ -609,9 +617,9 @@
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.io.coreas.html">NuRadioReco.modules.io.coreas package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.io.coreas.readCoREAS module</li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.io.coreas.coreasInterpolator module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -619,84 +627,369 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.io.coreas.readCoREAS">
-<span id="nuradioreco-modules-io-coreas-readcoreas-module"></span><h1>NuRadioReco.modules.io.coreas.readCoREAS module<a class="headerlink" href="#module-NuRadioReco.modules.io.coreas.readCoREAS" title="Link to this heading"></a></h1>
+  <section id="module-NuRadioReco.modules.io.coreas.coreasInterpolator">
+<span id="nuradioreco-modules-io-coreas-coreasinterpolator-module"></span><h1>NuRadioReco.modules.io.coreas.coreasInterpolator module<a class="headerlink" href="#module-NuRadioReco.modules.io.coreas.coreasInterpolator" title="Link to this heading"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.readCoREAS.</span></span><span class="sig-name descname"><span class="pre">readCoREAS</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREAS.html#readCoREAS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreasInterpolator.</span></span><span class="sig-name descname"><span class="pre">coreasInterpolator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corsika_evt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Interface to interpolate the electric field traces, as for example provided by CoREAS.</p>
+<p>For the best results, ensure that the electric fields are in on-sky coordinates (this is
+the case when using the <a class="reference internal" href="NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.read_CORSIKA7" title="NuRadioReco.modules.io.coreas.coreas.read_CORSIKA7"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.io.coreas.coreas.read_CORSIKA7</span></code></a> function).</p>
+<p>After having created the interpolator, you can either choose to interpolate the electric field traces
+or either the fluence (or both, but be careful to not mix them up). In order to do this, you first need
+to initialize the corresponding interpolator with the desired settings. Refer to the documentation of
+<a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_efield_interpolator</span></code></a> and <a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_fluence_interpolator</span></code></a> for more information. After
+initialization, you can call the <em class="xref py py-obj">interpolate_efield</em> and <em class="xref py py-obj">interpolate_fluence</em> functions to get the
+interpolated values.</p>
+<p>Note that when trying to interpolate the electric fields of an air shower with a geomagnetic angle
+smaller than 15 degrees, the interpolator will fall back to using the closest observer position
+instead of performing the Fourier interpolation. Also, when attempting to extrapolate (ie get a value
+for a position that is outside the star shape pattern), the default behaviour is to return zeros when
+r &gt; r_max and return a constant value when r &lt;= r_min. This behaviour can be changed using the
+<code class="docutils literal notranslate"><span class="pre">allow_extrapolation</span></code> keyword argument when initialising the interpolator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>corsika_evt</strong><span class="classifier">Event</span></dt><dd><p>An Event object containing the CoREAS output, from read_CORSIKA7()</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.azimuth" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.azimuth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">azimuth</span></code></a></dt><dd><p>The azimuth of the shower axis</p>
+</dd>
+<dt><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.efields_rotation_angle" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.efields_rotation_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">efields_rotation_angle</span></code></a></dt><dd><p>The angle with which the e_theta and e_phi components of the electric field were rotated</p>
+</dd>
+<dt><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.magnetic_field_vector" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.magnetic_field_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">magnetic_field_vector</span></code></a></dt><dd><p>The magnetic field vector stored inside the shower</p>
+</dd>
+<dt><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius"><code class="xref py py-obj docutils literal notranslate"><span class="pre">starshape_radius</span></code></a></dt><dd><p>returns the maximal radius of the star shape pattern in the shower plane</p>
+</dd>
+<dt><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius_ground" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius_ground"><code class="xref py py-obj docutils literal notranslate"><span class="pre">starshape_radius_ground</span></code></a></dt><dd><p>returns the maximal radius of the star shape pattern on ground</p>
+</dd>
+<dt><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.zenith" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.zenith"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zenith</span></code></a></dt><dd><p>The zenith of the shower axis</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.begin" title="NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>(input_files, station_id[, n_cores, ...])</p></td>
-<td><p>begin method</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_closest_observer_efield" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_closest_observer_efield"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_closest_observer_efield</span></code></a>(...)</p></td>
+<td><p>Returns the electric field of the closest observer position for an antenna position in the shower plane.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.run" title="NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(detector[, output_mode])</p></td>
-<td><p>Read in a random sample of stations from a CoREAS file.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_empty_efield" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_empty_efield"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_empty_efield</span></code></a>()</p></td>
+<td><p>Get an array of zeros in the shape of the electric field on the sky</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interp_efield_value</span></code></a>(position_on_ground)</p></td>
+<td><p>Calculate the interpolated electric field given an antenna position on ground.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_fluence_value" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_fluence_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interp_fluence_value</span></code></a>(position_on_ground)</p></td>
+<td><p>Calculate the interpolated fluence for a given position on the ground.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_position_showerplane" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_position_showerplane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_position_showerplane</span></code></a>(position_on_ground)</p></td>
+<td><p>Transform the position of the antenna on ground to the shower plane.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_efield_interpolator</span></code></a>(...)</p></td>
+<td><p>Initialise the efield signal interpolator</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_fluence_interpolator</span></code></a>([quantity])</p></td>
+<td><p>Initialise fluence interpolator.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_star_shape" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_star_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_star_shape</span></code></a>()</p></td>
+<td><p>Initializes the star shape pattern for interpolation, e.g. creates the arrays with the observer positions in the shower plane and the electric field.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.plot_fluence_footprint" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.plot_fluence_footprint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_fluence_footprint</span></code></a>([radius])</p></td>
+<td><p>plots the interpolated values of the fluence in the shower plane</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.set_fluence_of_efields" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.set_fluence_of_efields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_fluence_of_efields</span></code></a>(function[, quantity])</p></td>
+<td><p>Set the fluence quantity of all electric fields in the SimStation of the interpolator.</p></td>
 </tr>
 </tbody>
 </table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>end</strong></p></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+<p class="rubric">Notes</p>
+<p>The interpolation method is based on the Fourier interpolation method described in
+Corstanje et al. (2023), JINST 18 P09005. The implementation lives in a separate package
+called <code class="docutils literal notranslate"><span class="pre">cr-pulse-interpolator</span></code> (this package is a optional dependency of NuRadioReco).</p>
+<p>In short, the interpolation method works as follows: everything is done in the showerplane,
+where we expect circular symmetries due to the emission mechanisms. In case of fluence interpolation,
+we are working with a single value per observer position. The positions are expected to be in a
+starshape pattern, such that for each ring a Fourier series can be constructed for the fluence values.
+The components of the Fourier series are then radially interpolated using a cubic spline.</p>
+<p>When interpolating electric fields, the traces are first transformed to frequency spectra. The amplitude
+in each frequency bin is then interpolated as a single value, as described above. The phases are also
+interpolated, making the relative timings consistent. To also get an absolute timing, one can provide
+the trace start times to also be interpolated (this is done in this implementation).</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREAS.html#readCoREAS.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.begin" title="Link to this definition"></a></dt>
-<dd><p>begin method</p>
-<p>initialize readCoREAS module</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>input_files: input files</strong></dt><dd><p>list of coreas hdf5 files</p>
-</dd>
-<dt><strong>station_id: station id</strong></dt><dd><p>id number of the station</p>
-</dd>
-<dt><strong>n_cores: number of cores (integer)</strong></dt><dd><p>the number of random core positions to generate for each input file</p>
-</dd>
-<dt><strong>max_distance: radius of random cores (double or None)</strong></dt><dd><p>if None: max distance is set to the maximum ground distance of the
-star pattern simulation</p>
-</dd>
-<dt><strong>seed: int (default: None)</strong></dt><dd><p>Seed for the random number generation. If None is passed, no seed is set</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_star_shape">
+<span class="sig-name descname"><span class="pre">initialize_star_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.initialize_star_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_star_shape" title="Link to this definition"></a></dt>
+<dd><p>Initializes the star shape pattern for interpolation, e.g. creates the arrays with the observer positions
+in the shower plane and the electric field.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.zenith">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">zenith</span></span><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.zenith" title="Link to this definition"></a></dt>
+<dd><p>The zenith of the shower axis</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.azimuth">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">azimuth</span></span><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.azimuth" title="Link to this definition"></a></dt>
+<dd><p>The azimuth of the shower axis</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.magnetic_field_vector">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">magnetic_field_vector</span></span><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.magnetic_field_vector" title="Link to this definition"></a></dt>
+<dd><p>The magnetic field vector stored inside the shower</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">starshape_radius</span></span><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius" title="Link to this definition"></a></dt>
+<dd><p>returns the maximal radius of the star shape pattern in the shower plane</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius_ground">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">starshape_radius_ground</span></span><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.starshape_radius_ground" title="Link to this definition"></a></dt>
+<dd><p>returns the maximal radius of the star shape pattern on ground</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.efields_rotation_angle">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">efields_rotation_angle</span></span><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.efields_rotation_angle" title="Link to this definition"></a></dt>
+<dd><p>The angle with which the e_theta and e_phi components of the electric field were rotated</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREAS.html#readCoREAS.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.run" title="Link to this definition"></a></dt>
-<dd><p>Read in a random sample of stations from a CoREAS file.
-A number of random positions is selected within a certain radius.
-For each position the closest observer is selected and a simulated
-event is created for that observer.</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_empty_efield">
+<span class="sig-name descname"><span class="pre">get_empty_efield</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.get_empty_efield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_empty_efield" title="Link to this definition"></a></dt>
+<dd><p>Get an array of zeros in the shape of the electric field on the sky</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.set_fluence_of_efields">
+<span class="sig-name descname"><span class="pre">set_fluence_of_efields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantity=&lt;electricFieldParameters.signal_energy_fluence:</span> <span class="pre">4&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.set_fluence_of_efields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.set_fluence_of_efields" title="Link to this definition"></a></dt>
+<dd><p>Set the fluence quantity of all electric fields in the SimStation of the interpolator.</p>
+<p>Helper function to set the fluence of electric fields. These values can then be used for fluence interpolation.</p>
+<p>One option to use as <code class="docutils literal notranslate"><span class="pre">function</span></code> is <a class="reference internal" href="NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence" title="NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>detector: Detector object</strong></dt><dd><p>Detector description of the detector that shall be simulated</p>
+<dt><strong>function: callable</strong></dt><dd><p>The function to apply to the traces in order to calculate the fluence. Should take in a (3, n_samples) shaped
+array and return a float (or an array with 3 elements if you want the fluence per polarisation).</p>
 </dd>
-<dt><strong>output_mode: integer (default 0)</strong></dt><dd><ul class="simple">
-<li><p>0: only the event object is returned</p></li>
-<li><dl class="simple">
-<dt>1: the function reuturns the event object, the current inputfilename, the distance between the choosen station and the requested core position,</dt><dd><p>and the area in which the core positions are randomly distributed</p>
+<dt><strong>quantity: electric field parameter, default=efp.signal_energy_fluence</strong></dt><dd><p>The parameter where to store the result of the fluence calculation</p>
 </dd>
 </dl>
-</li>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence" title="NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence</span></code></a></dt><dd><p>Function that can be passed as <code class="docutils literal notranslate"><span class="pre">function</span></code> to obtain the energy fluence of the electric fields in the SimStation.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator">
+<span class="sig-name descname"><span class="pre">initialize_efield_interpolator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interp_lowfreq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp_highfreq</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.initialize_efield_interpolator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator" title="Link to this definition"></a></dt>
+<dd><p>Initialise the efield signal interpolator</p>
+<p>If initialised correctly, this method returns the resulting efield interpolator (it is also stored
+as the <code class="docutils literal notranslate"><span class="pre">efield_interpolator</span></code> attribute of the class). If the latter, the <code class="docutils literal notranslate"><span class="pre">efield_interpolator_initialized</span></code>
+is also set to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<p>If the geomagnetic angle is smaller than 15deg, the interpolator switches to using the closest
+observer position instead. In this case, no interpolator object is returned and the
+<code class="docutils literal notranslate"><span class="pre">efield_interpolator</span></code> attribute is set to a Fourier interpolator which interpolates
+the arrival times. To distinguish between the two cases, you can check the
+<code class="docutils literal notranslate"><span class="pre">efield_interpolator_initialized</span></code> attribute, which is <code class="docutils literal notranslate"><span class="pre">True</span></code> when the signal interpolator is
+initialised and <code class="docutils literal notranslate"><span class="pre">False</span></code> when the closest observer is used.</p>
+<p>To adjust the parameters of the signal interpolation, the options for the <em class="xref py py-obj">interp2d_signal</em> class
+can be passed as keyword arguments. Please refer to the <code class="docutils literal notranslate"><span class="pre">cr-pulse-interpolator</span></code> documentation
+for all available options.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>interp_lowfreq</strong><span class="classifier">float</span></dt><dd><p>Lower frequency for the bandpass filter in interpolation (in internal units)</p>
+</dd>
+<dt><strong>interp_highfreq</strong><span class="classifier">float</span></dt><dd><p>Upper frequency for the bandpass filter in interpolation (in internal units)</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">options to pass on to the <em class="xref py py-obj">interp2d_signal</em> class</span></dt><dd><p>Default values are:</p>
+<ul class="simple">
+<li><p>phase_method : ‘phasor’</p></li>
+<li><p>radial_method : ‘cubic’</p></li>
+<li><p>upsample_factor : 5</p></li>
+<li><p>coherency_cutoff_threshold : 0.9</p></li>
+<li><p>allow_extrapolation : False</p></li>
+<li><p>ignore_cutoff_freq_in_timing : False</p></li>
+<li><p>verbose : False</p></li>
 </ul>
 </dd>
 </dl>
 </dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>efield_interpolator</strong><span class="classifier">interpolator object</span></dt><dd></dd>
+</dl>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/readCoREAS.html#readCoREAS.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.end" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator">
+<span class="sig-name descname"><span class="pre">initialize_fluence_interpolator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantity=&lt;electricFieldParameters.signal_energy_fluence:</span> <span class="pre">4&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.initialize_fluence_interpolator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator" title="Link to this definition"></a></dt>
+<dd><p>Initialise fluence interpolator.</p>
+<p>Initialize the fluence interpolator using the values stored in the <code class="docutils literal notranslate"><span class="pre">quantity</span></code> parameter of the electric
+fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>quantity</strong><span class="classifier">electric field parameter, default=efp.signal_energy_fluence</span></dt><dd><p>The quantity to get the values from which are fed to the interpolator. It needs to be available
+as parameter in the electric field object! You can use the <em class="xref py py-obj">set_fluence_of_efields()</em> function to
+set this value for all electric fields.</p>
+</dd>
+<dt><strong>**kwargs: options to pass on to the `interp2d_fourier` class</strong></dt><dd><p>Default values are:</p>
+<ul class="simple">
+<li><p>radial_method : ‘cubic’</p></li>
+<li><p>fill_value : None</p></li>
+<li><p>recover_concentric_rings : False</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>fluence_interpolator</strong><span class="classifier">interpolator object</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_position_showerplane">
+<span class="sig-name descname"><span class="pre">get_position_showerplane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position_on_ground</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.get_position_showerplane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_position_showerplane" title="Link to this definition"></a></dt>
+<dd><p>Transform the position of the antenna on ground to the shower plane.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position_on_ground</strong><span class="classifier">np.ndarray</span></dt><dd><p>Position of the antenna on ground
+This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the
+z-coordinate is automatically set to the observation level of the simulation.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value">
+<span class="sig-name descname"><span class="pre">get_interp_efield_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position_on_ground</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs_transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'no_transform'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.get_interp_efield_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value" title="Link to this definition"></a></dt>
+<dd><p>Calculate the interpolated electric field given an antenna position on ground.</p>
+<p>If the geomagnetic angle is smaller than 15deg,
+the electric field of the closest observer position is returned instead.</p>
+<p>Note that <em class="xref py py-obj">position_on_ground</em> is in absolute coordinates, not relative to the core position.
+Extrapolation outside of the starshape is handled by the <code class="docutils literal notranslate"><span class="pre">cr-pulse-interpolator</span></code> package (see
+also the description of <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> in <a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_efield_interpolator</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position_on_ground</strong><span class="classifier">np.ndarray</span></dt><dd><p>Position of the antenna on ground
+This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the
+z-coordinate is automatically set to the observation level of the simulation.</p>
+</dd>
+<dt><strong>cs_transform: {‘no_transform’, ‘sky_to_ground’}, default=’no_transform’</strong></dt><dd><p>Optional coordinate system transformation to apply to the interpolated electric field. If ‘no_transform’,
+the default, the electric field is returned in the same coordinate system as it was stored in the Event
+used for initialisation (usually on-sky).
+If ‘sky_to_ground’, the electric field is transformed to the ground coordinate system using the
+<em class="xref py py-obj">cstrafo.transform_from_onsky_to_ground()</em> function.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>efield_interp</strong><span class="classifier">float</span></dt><dd><p>Interpolated efield value</p>
+</dd>
+<dt><strong>trace_start_time</strong><span class="classifier">float</span></dt><dd><p>Start time of the trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_fluence_value">
+<span class="sig-name descname"><span class="pre">get_interp_fluence_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position_on_ground</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.get_interp_fluence_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_fluence_value" title="Link to this definition"></a></dt>
+<dd><p>Calculate the interpolated fluence for a given position on the ground.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">position_on_ground</span></code> is in absolute coordinates, not relative to the core position.
+Extrapolation outside of the starshape is handled by the <code class="docutils literal notranslate"><span class="pre">cr-pulse-interpolator</span></code> package (see
+also the description of <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> in <a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_fluence_interpolator</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position_on_ground</strong><span class="classifier">np.ndarray</span></dt><dd><p>Position of the antenna on ground
+This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the
+z-coordinate is automatically set to the observation level of the simulation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>fluence_interp</strong><span class="classifier">float</span></dt><dd><p>interpolated fluence value</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_closest_observer_efield">
+<span class="sig-name descname"><span class="pre">get_closest_observer_efield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_pos_showerplane</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.get_closest_observer_efield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_closest_observer_efield" title="Link to this definition"></a></dt>
+<dd><p>Returns the electric field of the closest observer position for an antenna position in the shower plane.</p>
+<p>The start time of the trace is also returned, by interpolating the start times of the electric field traces.</p>
+<p>This function is not meant to be called directly, but only from <a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interp_efield_value</span></code></a> as it assumes
+the <code class="docutils literal notranslate"><span class="pre">efield_interpolator</span></code> attribute is set to the start time interpolator, which is done in
+<a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_efield_interpolator</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>antenna_pos_showerplane</strong><span class="classifier">np.ndarray</span></dt><dd><p>antenna position in the shower plane</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>efield: np.ndarray</dt><dd><p>electric field, as an array shaped</p>
+</dd>
+<dt>efield_start_time: float</dt><dd><p>The start time of the selected electric field trace (in internal units)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.plot_fluence_footprint">
+<span class="sig-name descname"><span class="pre">plot_fluence_footprint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.plot_fluence_footprint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.plot_fluence_footprint" title="Link to this definition"></a></dt>
+<dd><p>plots the interpolated values of the fluence in the shower plane</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>radius</strong><span class="classifier">float</span></dt><dd><p>radius around shower core which should be plotted</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>fig</strong><span class="classifier">figure object</span></dt><dd></dd>
+<dt><strong>ax</strong><span class="classifier">axis object</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -707,7 +1000,7 @@ event is created for that observer.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="NuRadioReco.modules.io.coreas.coreas.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.coreas.coreas module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.io.coreas.readCoREASShower.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.coreas.readCoREASShower module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.io.coreas.readCoREASDetector.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.coreas.readCoREASDetector module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
