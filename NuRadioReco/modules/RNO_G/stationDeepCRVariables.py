@@ -139,7 +139,7 @@ class stationDeepCRVariables:
             else:
                 sig_ref = ref_trace
                 sig_i = trace
-            cor = signal.correlate(sig_ref, sig_i), mode = "full")
+            cor = signal.correlate(sig_ref, sig_i, mode = "full")
             lag = int(np.argmax((cor)) - (np.size(cor)/2.))
 
             aligned_wf = np.roll(trace, lag)
