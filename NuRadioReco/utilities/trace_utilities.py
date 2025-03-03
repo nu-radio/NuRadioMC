@@ -14,6 +14,11 @@ conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilo
 
 from NuRadioReco.utilities.fluence_rice_dist_estimator import get_signal_fluence_estimators, get_noise_fluence_estimators
 
+import sys
+sys.path.append("/home/mravn/fluence-and-uncertainty-estimation-based-on-rice-distribution")
+from signal_estimator import get_signal_fluence_estimators as get_signal_fluence_estimators_sara
+from noise_estimator import get_noise_fluence_estimators as get_noise_fluence_estimators_sara
+
 def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider):
     """
     Returns the antenna response to a radio signal coming from a specific direction
@@ -147,29 +152,76 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
                 f_low = 30 * units.MHz,
                 f_high = 80 * units.MHz,
                 window_length_tot = sum(signal_window_mask) * dt,
-                relative_taper_width = 0.142857143
+                relative_taper_width = 0.142857143,
+                )
+            
+            #sample frequency (after the windowing) in MHz
+            delta_f = frequencies_window[1] - frequencies_window[0]
+
+            #to convert the amplitudes squared into energy fluence units
+            conversion_factor = conversion_factor_integrated_signal #scipy.constants.epsilon_0 * scipy.constants.c / scipy.constants.e
+
+            #correcting for selecting positive frequencies
+            one_side_spectrum_corr_factor = 1 #np.sqrt(2)
+
+            #get the fluence of the trace summing up the frequency estimators and converting in eV/m^2
+            fluence_freq = np.sum(estimators) * ((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor
+
+            #get the variance of the trace fluence summing up the frequency variances and converting in (eV/m^2)^2
+            fluence_freq_variance = np.sum(variances) * (((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor) **2
+
+            #get the fluence uncertainty as the root square of the variance
+            fluence_freq_error = np.sqrt(fluence_freq_variance)
+
+            signal_energy_fluence[i_pol] = fluence_freq
+            signal_energy_fluence_error[i_pol] = fluence_freq_error
+
+    elif method == "rice_disttribution_sara":
+        signal_energy_fluence = np.zeros(len(electric_field_trace))
+        signal_energy_fluence_error = np.zeros(len(electric_field_trace))
+        for i_pol in range(len(electric_field_trace)):
+            noise_estimators, frequencies_window = get_noise_fluence_estimators_sara(
+                time_trace = electric_field_trace[i_pol,:],
+                t_peak_ns = np.mean(times[signal_window_mask]), # This is not necessarily the peak time
+                f_low_MHz = 30, #* units.MHz,
+                f_high_MHz = 80, #* units.MHz,
+                spacing_noise_signal_ns = 20,
+                window_length_tot_ns = sum(signal_window_mask) * dt,
+                relative_taper_width = 0.142857143,
+                dt_ns=dt,
+                use_median_value = True
+                )
+            estimators, variances = get_signal_fluence_estimators_sara(
+                time_trace = electric_field_trace[i_pol,:],
+                t_peak_ns = np.mean(times[signal_window_mask]),
+                noise_estimators = noise_estimators,
+                f_low_MHz = 30,# * units.MHz,
+                f_high_MHz = 80,# * units.MHz,
+                window_length_tot_ns = sum(signal_window_mask) * dt,
+                relative_taper_width = 0.142857143,
+                dt_ns=dt,
                 )
 
-        #sample frequency (after the windowing) in MHz
-        delta_f = frequencies_window[1] - frequencies_window[0]
+            #sample frequency (after the windowing) in MHz
+            delta_f = frequencies_window[1] - frequencies_window[0]
 
-        #to convert the amplitudes squared into energy fluence units
-        conversion_factor = scipy.constants.epsilon_0 * scipy.constants.c / scipy.constants.e 
+            #to convert the amplitudes squared into energy fluence units
+            conversion_factor = conversion_factor_integrated_signal #scipy.constants.epsilon_0 * scipy.constants.c / scipy.constants.e
 
-        #correcting for selecting positive frequencies
-        one_side_spectrum_corr_factor = np.sqrt(2)
+            #correcting for selecting positive frequencies
+            one_side_spectrum_corr_factor = np.sqrt(2)
 
-        #get the fluence of the trace summing up the frequency estimators and converting in eV/m^2
-        fluence_freq = np.sum(estimators) * ((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor
+            #get the fluence of the trace summing up the frequency estimators and converting in eV/m^2
+            fluence_freq = np.sum(estimators) * ((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor
 
-        #get the variance of the trace fluence summing up the frequency variances and converting in (eV/m^2)^2
-        fluence_freq_variance = np.sum(variances) * (((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor) **2
+            #get the variance of the trace fluence summing up the frequency variances and converting in (eV/m^2)^2
+            fluence_freq_variance = np.sum(variances) * (((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor) **2
+            
+            #get the fluence uncertainty as the root square of the variance
+            fluence_freq_error = np.sqrt(fluence_freq_variance)
 
-        #get the fluence uncertainty as the root square of the variance
-        fluence_freq_error = np.sqrt(fluence_freq_variance)
-
-        signal_energy_fluence[i_pol] = fluence_freq
-        signal_energy_fluence_error[i_pol] = fluence_freq_error
+            signal_energy_fluence[i_pol] = fluence_freq * 1000
+            signal_energy_fluence_error[i_pol] = fluence_freq_error * 1000
 
     if return_error:
         return signal_energy_fluence, signal_energy_fluence_error

@@ -8,6 +8,8 @@ from NuRadioReco.utilities import fft
 import logging
 logger = logging.getLogger('NuRadioReco.fluence_rice_dist_estimator')
 
+import matplotlib.pyplot as plt
+
 
 # def amp_spec(trace, dt_sec=1.e-9):
 # 	from scipy.fft import fft,fftfreq
@@ -54,14 +56,14 @@ def get_noise_fluence_estimators(trace, times, t_peak, f_low=30*units.MHz, f_hig
 	#times = np.arange(0, len(trace)*dt, dt)
 	dt = times[1] - times[0]
 	signal_start, signal_stop = t_peak - spacing_noise_signal - window_length_tot/2, t_peak + spacing_noise_signal + window_length_tot/2
-	list_ffts_squared=[]  
+	list_ffts_squared = []
+
 	# Generate Tukey window
-	print()
-	print(window_length_tot)
 	window = tukey_window(int(window_length_tot / dt), relative_taper_width)
 
 	#loop over the trace defining noise windows (excluding the signal window)
-	noise_start=0
+	noise_start = times[0]
+	count = 0
 	while noise_start < np.max(times):
 		
 		noise_stop = noise_start + window_length_tot
@@ -77,12 +79,12 @@ def get_noise_fluence_estimators(trace, times, t_peak, f_low=30*units.MHz, f_hig
 			#applying the Tukey window
 			if len(time_trace_clipped) != len(window): # This is prbabaly not the best solution, but it will run
 				window = tukey_window(len(time_trace_clipped), relative_taper_width)
+				print("Window length is not the same as the trace length. This is not optimal.")
 			windowed_trace = time_trace_clipped * window
 
 			#calculating the spectrum and frequencies
 			frequencies_window = np.fft.rfftfreq(len(windowed_trace), d=dt)
-			spectrum_window = fft.time2freq(windowed_trace, 1/dt)
-			#spec_wind, ff_wind = amp_spec(windowed_trace, dt_sec=dt_ns*1.e-9)
+			spectrum_window = np.abs(fft.time2freq(windowed_trace, 1/dt))
 
 			#masking the frequencies outside the initial frequency bandwidt
 			mask_freq = np.all([frequencies_window >= f_low, frequencies_window <= f_high], axis=0)
@@ -96,6 +98,9 @@ def get_noise_fluence_estimators(trace, times, t_peak, f_low=30*units.MHz, f_hig
 
 		else:
 			print("Your peak is at zero or negative time...! ") 
+			count += 1
+			if count > 1000:
+				break # find better solution
 
 	list_ffts_squared = np.array(list_ffts_squared, dtype=float)
 	
@@ -127,7 +132,7 @@ def get_signal_fluence_estimators(trace, times, t_peak, noise_estimators, f_low=
 
 	#calculating the spectrum and frequencies
 	frequencies_window = np.fft.rfftfreq(len(windowed_trace), d=dt)
-	spectrum_window = fft.time2freq(windowed_trace, 1/dt) #amp_spec(windowed_trace, dt_sec=dt_ns*1.e-9)
+	spectrum_window = np.abs(fft.time2freq(windowed_trace, 1/dt))
 
 	#masking the frequencies outside the initial frequency bandwidth
 	mask_freq = np.all([frequencies_window >= f_low, frequencies_window <= f_high], axis=0)
