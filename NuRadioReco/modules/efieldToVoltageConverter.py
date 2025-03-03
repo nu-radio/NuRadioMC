@@ -239,11 +239,17 @@ class efieldToVoltageConverter():
                     if self.__freqs is None:
                         self.__freqs = ff
                     else:
-                        if not np.allclose(self.__freqs, ff, rtol=0, atol=0.01 * units.MHz):
+                        if len(self.__freqs) != len(ff):
                             self.__freqs = ff
                             self._get_cached_antenna_response.cache_clear()
                             self.logger.warning(
-                                "Frequencies have changed. Clearing antenna response cache. "
+                                "Frequencies have changed (array length). Clearing antenna response cache. "
+                                "(If this happens often, something might be wrong...")
+                        elif not np.allclose(self.__freqs, ff, rtol=0, atol=0.01 * units.MHz):
+                            self.__freqs = ff
+                            self._get_cached_antenna_response.cache_clear()
+                            self.logger.warning(
+                                "Frequencies have changed (values). Clearing antenna response cache. "
                                 "(If this happens often, something might be wrong...")
 
 
