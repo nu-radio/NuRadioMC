@@ -43,6 +43,7 @@ except IndexError: # this is a common error if cfitsio is not found... there are
         "pylfmap import failed. This might be because you do not have a working "
         "installation of cfitsio. See https://github.com/F-Tomas/pylfmap/issues/2 for potential tips")
 
+
 class channelGalacticNoiseAdder:
     """
     Class that simulates the noise produced by galactic radio emission
@@ -190,7 +191,8 @@ class channelGalacticNoiseAdder:
             event,
             station,
             detector,
-            passband=None
+            passband=None,
+            selected_channel_ids=None
     ):
 
         """
@@ -207,7 +209,16 @@ class channelGalacticNoiseAdder:
         passband: list of float, optional
             Lower and upper bound of the frequency range in which noise shall be
             added. The default (no passband specified) is [10, 1000] MHz
+        selected_channel_ids: list, default=None
+            A list containing the channels IDs to apply noise per station.
+            If None, all channels of the selected station in the detector are simulated.
+            To select all channels, set this to None.
         """
+        if selected_channel_ids is None:
+            selected_channel_ids = station.get_channel_ids()
+            logger.info(f"Using all channel ids")
+        else:
+            logger.info(f"Using selected channel ids: {selected_channel_ids}")
 
         if self.__noise_temperatures is None: # check if .begin has been called, give helpful error message if not
             msg = "channelGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?"
@@ -217,6 +228,8 @@ class channelGalacticNoiseAdder:
         # check that or all channels channel.get_frequencies() is identical
         last_freqs = None
         for channel in station.iter_channels():
+            if channel.get_id() not in selected_channel_ids:
+                continue
             if last_freqs is not None and (
                     not np.allclose(last_freqs, channel.get_frequencies(), rtol=0, atol=0.1 * units.MHz)):
                 logger.error("The frequencies of each channel must be the same, but they are not!")
@@ -257,6 +270,8 @@ class channelGalacticNoiseAdder:
 
         channel_spectra = {}
         for channel in station.iter_channels():
+            if channel.get_id() not in selected_channel_ids:
+                continue
             channel_spectra[channel.get_id()] = channel.get_frequency_spectrum()
 
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
@@ -301,6 +316,8 @@ class channelGalacticNoiseAdder:
             channel_noise_spec = np.zeros_like(noise_spectrum)
 
             for channel in station.iter_channels():
+                if channel.get_id() not in selected_channel_ids:
+                    continue
 
                 channel_pos = detector.get_relative_position(station.get_id(), channel.get_id())
                 if channel_pos[2] < 0:
@@ -357,6 +374,8 @@ class channelGalacticNoiseAdder:
 
         # store the updated channel spectra
         for channel in station.iter_channels():
+            if channel.get_id() not in selected_channel_ids:
+                continue
             channel.set_frequency_spectrum(channel_spectra[channel.get_id()], "same")
 
 
