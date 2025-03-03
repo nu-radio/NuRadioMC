@@ -2,6 +2,7 @@ import numpy as np
 import time
 import logging
 import copy
+import functools
 
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.base_trace
@@ -72,6 +73,7 @@ class efieldToVoltageConverter():
             self.logger.warning("`time_resolution` is deprecated and will be removed in the future. "
                                 "The argument is ignored.")
         self.__caching = caching
+        self.__freqs = None
         self.__debug = debug
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
@@ -231,6 +233,20 @@ class efieldToVoltageConverter():
                 zenith = electric_field[efp.zenith]
                 azimuth = electric_field[efp.azimuth]
 
+                # If we cache the antenna pattern, we need to make sure that the frequencies have not changed
+                # between stations. If they have, we need to clear the cache.
+                if self.__caching:
+                    if self.__freqs is None:
+                        self.__freqs = ff
+                    else:
+                        if not np.allclose(self.__freqs, ff, rtol=0, atol=0.01 * units.MHz):
+                            self.__freqs = ff
+                            self._get_cached_antenna_response.cache_clear()
+                            self.logger.warning(
+                                "Frequencies have changed. Clearing antenna response cache. "
+                                "(If this happens often, something might be wrong...")
+
+
                 if self.__caching:
                     antenna_model = detector.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
                     antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model)
@@ -293,7 +309,7 @@ class efieldToVoltageConverter():
         self.logger.info("total time used by this module is {}".format(dt))
         return dt
 
-
+# this function is useless when using interpolator
 def calculate_time_shift_for_cosmic_ray(det, station, efield, channel_id):
     """
     Calculate the time shift for a cosmic ray event
@@ -311,7 +327,7 @@ def calculate_time_shift_for_cosmic_ray(det, station, efield, channel_id):
     """
     station_id = station.get_id()
     site = det.get_site(station_id)
-    antenna_position = det.get_relative_position(station_id, channel_id) - efield.get_position()
+    antenna_position = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id) - efield.get_position()
     if station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
     else:  # signal is coming from above, so we take IOR of air
