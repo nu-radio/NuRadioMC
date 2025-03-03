@@ -33,7 +33,7 @@ class electricFieldSignalReconstructor:
         logger.setLevel(log_level)
 
     @register_run()
-    def run(self, evt, station, det, debug=False):
+    def run(self, evt, station, det, fluence_method="noise_subtraction", debug=False):
         """
         reconstructs quantities for electric field
 
@@ -102,13 +102,7 @@ class electricFieldSignalReconstructor:
                 # set the noise window to the first "self.__noise_window" ns of the trace. If this cuts into the signal window, the noise window is reduced to not overlap with the signal window
                 mask_noise_window = times < min(times[0] + self.__noise_window, signal_time - self.__signal_window_pre)
 
-            signal_energy_fluence = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window)
-            dt = times[1] - times[0]
-            signal_energy_fluence_error = np.zeros(3)
-            if(np.sum(mask_noise_window)):
-                RMSNoise = np.sqrt(np.mean(trace[:, mask_noise_window] ** 2, axis=1))
-                signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence / self.__conversion_factor_integrated_signal) * RMSNoise ** 2 * dt + 2 * (self.__signal_window_pre + self.__signal_window_post) * RMSNoise ** 4 * dt) ** 0.5
-            signal_energy_fluence_error *= self.__conversion_factor_integrated_signal
+            signal_energy_fluence, signal_energy_fluence_error = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window, return_error=True, method=fluence_method)
             electric_field.set_parameter(efp.signal_energy_fluence, signal_energy_fluence)
             electric_field.set_parameter_error(efp.signal_energy_fluence, signal_energy_fluence_error)
 

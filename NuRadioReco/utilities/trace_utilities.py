@@ -12,6 +12,7 @@ conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilo
 # see Phys. Rev. D DOI: 10.1103/PhysRevD.93.122005
 # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
 
+from NuRadioReco.utilities.fluence_rice_dist_estimator import get_signal_fluence_estimators, get_noise_fluence_estimators
 
 def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider):
     """
@@ -98,18 +99,82 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
         return np.real(voltage_trace)
 
 
-def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None):
+def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None, RMSNoise=None, return_error=False, method="noise_subtraction"):
 
-    if signal_window_mask is None:
-        f_signal = np.sum(electric_field_trace ** 2, axis=1)
-    else:
-        f_signal = np.sum(electric_field_trace[:, signal_window_mask] ** 2, axis=1)
     dt = times[1] - times[0]
-    if noise_window_mask is not None and np.sum(noise_window_mask) > 0:
-        f_noise = np.sum(electric_field_trace[:, noise_window_mask] ** 2, axis=1)
-        f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
 
-    return f_signal * dt * conversion_factor_integrated_signal
+    if method == "noise_subtraction":
+        if signal_window_mask is None:
+            f_signal = np.sum(electric_field_trace ** 2, axis=1)
+        else:
+            f_signal = np.sum(electric_field_trace[:, signal_window_mask] ** 2, axis=1)
+        if noise_window_mask is not None and np.sum(noise_window_mask) > 0:
+            f_noise = np.sum(electric_field_trace[:, noise_window_mask] ** 2, axis=1)
+            f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
+
+            if RMSNoise is None:
+                RMSNoise = np.sqrt(np.mean(electric_field_trace[:, noise_window_mask] ** 2, axis=1))
+
+        signal_energy_fluence = f_signal * dt * conversion_factor_integrated_signal
+
+        # calculate error if RMSNoise is known:
+        if RMSNoise is not None and return_error:
+            signal_window_duration = sum(signal_window_mask) * dt if signal_window_mask is not None else len(times) * dt
+            signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence / conversion_factor_integrated_signal) * RMSNoise ** 2 * dt + 2 * signal_window_duration * RMSNoise ** 4 * dt) ** 0.5  * conversion_factor_integrated_signal
+        else:
+            signal_energy_fluence_error = np.zeros(3)
+    
+    elif method == "rice_disttribution":
+        signal_energy_fluence = np.zeros(len(electric_field_trace))
+        signal_energy_fluence_error = np.zeros(len(electric_field_trace))
+        for i_pol in range(len(electric_field_trace)):
+            noise_estimators, frequencies_window = get_noise_fluence_estimators(
+                trace = electric_field_trace[i_pol,:],
+                times = times,
+                t_peak = np.mean(times[signal_window_mask]), # This is not necessarily the peak time
+                f_low = 30 * units.MHz,
+                f_high = 80 * units.MHz,
+                spacing_noise_signal = 20,
+                window_length_tot = sum(signal_window_mask) * dt,
+                relative_taper_width = 0.142857143,
+                use_median_value = True
+                )
+            estimators, variances = get_signal_fluence_estimators(
+                trace = electric_field_trace[i_pol,:],
+                times = times,
+                t_peak = np.mean(times[signal_window_mask]),
+                noise_estimators = noise_estimators,
+                f_low = 30 * units.MHz,
+                f_high = 80 * units.MHz,
+                window_length_tot = sum(signal_window_mask) * dt,
+                relative_taper_width = 0.142857143
+                )
+
+        #sample frequency (after the windowing) in MHz
+        delta_f = frequencies_window[1] - frequencies_window[0]
+
+        #to convert the amplitudes squared into energy fluence units
+        conversion_factor = scipy.constants.epsilon_0 * scipy.constants.c / scipy.constants.e 
+
+        #correcting for selecting positive frequencies
+        one_side_spectrum_corr_factor = np.sqrt(2)
+
+        #get the fluence of the trace summing up the frequency estimators and converting in eV/m^2
+        fluence_freq = np.sum(estimators) * ((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor
+
+        #get the variance of the trace fluence summing up the frequency variances and converting in (eV/m^2)^2
+        fluence_freq_variance = np.sum(variances) * (((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor) **2
+
+        #get the fluence uncertainty as the root square of the variance
+        fluence_freq_error = np.sqrt(fluence_freq_variance)
+
+        signal_energy_fluence[i_pol] = fluence_freq
+        signal_energy_fluence_error[i_pol] = fluence_freq_error
+
+    if return_error:
+        return signal_energy_fluence, signal_energy_fluence_error
+    else:
+        return signal_energy_fluence
 
 def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
     """
