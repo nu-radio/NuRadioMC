@@ -248,13 +248,13 @@ class efieldToVoltageConverter():
 
 
                 if self.__caching:
-                    antenna_model = detector.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
+                    zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(det, station, channel_id, zenith)
+                    antenna_model = det.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
                     antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model)
-                    ant_orient = detector.get_antenna_orientation(station.get_id(), channel_id)
-                    zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith)
+                    ant_orient = det.get_antenna_orientation(station.get_id(), channel_id)
 
-                    vel_tmp = self._get_cached_antenna_response(antenna_pattern, zenith_antenna, azi, *ant_orient)
-                    VEL = [np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])]
+                    vel_tmp = self._get_cached_antenna_response(antenna_pattern, zenith_antenna, azimuth, *ant_orient)
+                    VEL = [np.array([vel_tmp['theta'] * t_theta, vel_tmp['phi'] * t_phi])]
                 else:
                     # get antenna pattern for current channel
                     VEL = trace_utilities.get_efield_antenna_factor(
