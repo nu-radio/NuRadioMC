@@ -137,8 +137,6 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
                 trace = electric_field_trace[i_pol,:],
                 times = times,
                 t_peak = np.mean(times[signal_window_mask]), # This is not necessarily the peak time
-                f_low = 30 * units.MHz,
-                f_high = 80 * units.MHz,
                 spacing_noise_signal = 20,
                 window_length_tot = sum(signal_window_mask) * dt,
                 relative_taper_width = 0.142857143,
@@ -149,8 +147,6 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
                 times = times,
                 t_peak = np.mean(times[signal_window_mask]),
                 noise_estimators = noise_estimators,
-                f_low = 30 * units.MHz,
-                f_high = 80 * units.MHz,
                 window_length_tot = sum(signal_window_mask) * dt,
                 relative_taper_width = 0.142857143,
                 )
@@ -183,8 +179,8 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
             noise_estimators, frequencies_window = get_noise_fluence_estimators_sara(
                 time_trace = electric_field_trace[i_pol,:],
                 t_peak_ns = np.mean(times[signal_window_mask]), # This is not necessarily the peak time
-                f_low_MHz = 30, #* units.MHz,
-                f_high_MHz = 80, #* units.MHz,
+                f_low_MHz = 0, #* units.MHz,
+                f_high_MHz = 1000, #* units.MHz,
                 spacing_noise_signal_ns = 20,
                 window_length_tot_ns = sum(signal_window_mask) * dt,
                 relative_taper_width = 0.142857143,
@@ -195,8 +191,8 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
                 time_trace = electric_field_trace[i_pol,:],
                 t_peak_ns = np.mean(times[signal_window_mask]),
                 noise_estimators = noise_estimators,
-                f_low_MHz = 30,# * units.MHz,
-                f_high_MHz = 80,# * units.MHz,
+                f_low_MHz = 0,# * units.MHz,
+                f_high_MHz = 1000,# * units.MHz,
                 window_length_tot_ns = sum(signal_window_mask) * dt,
                 relative_taper_width = 0.142857143,
                 dt_ns=dt,
