@@ -1,3 +1,4 @@
+import functools
 import json
 import logging
 import numpy as np
@@ -6,11 +7,11 @@ from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.base.module import register_run
 
 
-
+@functools.lru_cache(maxsize=1024)
 def load_scale_parameters(scale_parameter_path):
     with open(scale_parameter_path, "r") as scale_parameter_file:
-        scale_parameters = json.load(scale_parameter_file)
-    return scale_parameters
+        scale_parameters_dictionary = json.load(scale_parameter_file)
+    return scale_parameters_dictionary
 
 
 
@@ -161,11 +162,20 @@ class channelGenericNoiseAdder:
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
         elif type == "data-driven":
             self.logger.warning("You have selected to generate data-driven noise NOTE THAT THE HARDWARE RESPONSE IS ALREADY INLUDED IN THIS NOISE and hence this module should be run AFTER incorporating hardware response.")
+            
             if station_id is None or channel_id is None:
                 self.logger.error("When selecting data-driven noise, the station and channel ids should be passed to bandlimeted noise")
                 raise ValueError
-            fsigma = self.scale_parameters[station_id][channel_id]
-            ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
+            
+            if station_id in [11]:
+                scale_parameter_path = self.scale_parameter_dir + "/" + f"thermal_noise_scale_parameters_s{station_id}_season23.json"
+            else:
+                raise NotImplementedError("Other station parameters are being generated")
+            
+            scale_parameter_dictionary = load_scale_parameters(scale_parameter_path)
+            scale_parameters = np.array(scale_parameter_dictionary["scale_parameters"])
+            fsigma = scale_parameters[channel_id]
+            ampl[:] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
         # FIXME: amplitude normalization is not correct for 'white'
         # elif type == 'white':
         #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -391,14 +401,12 @@ class channelGenericNoiseAdder:
         self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
         self.begin()
 
-    def begin(self, debug=False, seed=None,
-              scale_parameter_path=None):
+    def begin(self, debug=False, seed=None):
         self.__debug = debug
         self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
-        if scale_parameter_path is not None:
-            self.scale_parameters = load_scale_parameters(scale_parameter_path)
+        self.scale_parameter_dir = "NuRadioReco/detector/RNO_G/ThermalNoiseMeasurements"
 
     @register_run()
     def run(self, event, station, detector,
@@ -491,3 +499,66 @@ class channelGenericNoiseAdder:
 
     def end(self):
         pass
+
+
+if __name__ == "__main__":
+    import argparse
+    from astropy.time import Time
+    import matplotlib.pyplot as plt
+    from NuRadioReco.framework.event import Event
+    from NuRadioReco.framework.station import Station
+    from NuRadioReco.framework.channel import Channel
+    from NuRadioReco.detector import detector
+
+    parser  =argparse.ArgumentParser()
+    parser.add_argument("--station", "-s", type=int, default=11)
+    parser.add_argument("--channel", "-c", type=int, default=0)
+    args = parser.parse_args()
+
+    def create_sim_event(station_id, channel_id, detector, frequencies, sampling_rate):
+        event = Event(run_number=-1, event_id=-1)
+        station = Station(station_id)
+        station.set_station_time(detector.get_detector_time())
+        channel = Channel(channel_id)
+        channel.set_frequency_spectrum(np.zeros_like(frequencies, dtype=np.complex128), sampling_rate)
+        station.add_channel(channel)
+        event.set_station(station)
+        return event, station
+    
+
+
+    log_level = logging.DEBUG
+
+    det = detector.Detector(source="rnog_mongo",
+                            always_query_entire_description=False,
+                            database_connection="RNOG_public",
+                            select_stations=args.station,
+                            log_level=log_level)
+    det.update(Time("2023-08-01"))
+
+    nr_samples = 2048
+    sampling_rate = 3.2 * units.GHz
+    frequencies = np.fft.rfftfreq(nr_samples, d=1./sampling_rate)
+
+    event, station = create_sim_event(args.station, args.channel, det, frequencies, sampling_rate)
+
+
+    generic_noise_adder = channelGenericNoiseAdder()
+    generic_noise_adder.begin()
+    generic_noise_adder.run(event, station, detector, type="data-driven")
+    
+    channel = station.get_channel(args.channel)
+    frequency_spectrum = channel.get_frequency_spectrum()
+    times = channel.get_times()
+    trace = channel.get_trace()
+    plt.plot(frequencies, np.abs(frequency_spectrum))
+    plt.xlabel("freq / GHz")
+    plt.ylabel("spectral amplitude / V/GHz")
+    plt.savefig("channelGenericNoiseAdder_spectrumtest.png")
+    plt.close()
+
+    plt.plot(times, trace)
+    plt.xlabel("times / ns")
+    plt.ylabel("amplitude / V")
+    plt.savefig("channelGenericNoiseAdder_tracetest.png")
+    plt.close()
