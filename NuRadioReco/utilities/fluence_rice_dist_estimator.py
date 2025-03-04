@@ -51,12 +51,12 @@ def tukey_window(n_samples, relative_taper_width):
 	return window
 
 
-def get_noise_fluence_estimators(trace, times, t_peak, spacing_noise_signal=20*units.ns, window_length_tot=140*units.ns, relative_taper_width=0.142857143, use_median_value=True):
+def get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=True):
 
 	dt = times[1] - times[0]
-	n_samples_window = int(window_length_tot / dt)
-	signal_start = t_peak - spacing_noise_signal - n_samples_window * dt / 2
-	signal_stop = t_peak + spacing_noise_signal + n_samples_window * dt / 2
+	n_samples_window = sum(signal_window_mask)
+	signal_start = times[signal_window_mask][0] - spacing_noise_signal
+	signal_stop = times[signal_window_mask][-1] + spacing_noise_signal
 	list_ffts_squared = []
 
 	#generate Tukey window
@@ -72,7 +72,7 @@ def get_noise_fluence_estimators(trace, times, t_peak, spacing_noise_signal=20*u
 
 		elif (noise_stop <= signal_start and noise_start < signal_start) or (noise_stop > signal_stop and noise_start >= signal_stop):
 
-			#clipping the noise window
+			#clipping the noise window (rounding is needed because noise_stop = noise_start + n_samples_window * dt has numerical uncertainties)
 			mask_time = np.all([np.round(times, 5) >= np.round(noise_start, 5), np.round(times, 5) < np.round(noise_stop, 5)], axis=0)
 			time_trace_clipped = trace[mask_time]
 
@@ -107,18 +107,18 @@ def get_noise_fluence_estimators(trace, times, t_peak, spacing_noise_signal=20*u
 
 
 
-def get_signal_fluence_estimators(trace, times, t_peak, noise_estimators, window_length_tot=140*units.ns, relative_taper_width=0.142857143):
+def get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, relative_taper_width=0.142857143):
 	
 	dt = times[1] - times[0]
-	n_samples_window = int(window_length_tot / dt)
-	signal_start = t_peak - n_samples_window * dt / 2
-	signal_stop = t_peak + n_samples_window * dt / 2
+	n_samples_window = sum(signal_window_mask)
+	signal_start = times[signal_window_mask][0]
+	signal_stop = times[signal_window_mask][-1] + dt
 
 	#generate Tukey window
 	window = tukey_window(n_samples_window, relative_taper_width)
 
 	#clipping the signal window around the pulse position
-	mask_time = np.all([np.round(times, 5) >= np.round(signal_start, 5), np.round(times, 5) < np.round(signal_stop, 5)], axis=0)
+	mask_time = np.all([times >= signal_start, times < signal_stop], axis=0)
 	trace_clipped = trace[mask_time]
 
 	#applying the Tukey window 
