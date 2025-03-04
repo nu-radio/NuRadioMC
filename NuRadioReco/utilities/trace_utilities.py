@@ -136,21 +136,19 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
             noise_estimators, frequencies_window = get_noise_fluence_estimators(
                 trace = electric_field_trace[i_pol,:],
                 times = times,
-                t_peak = np.mean(times[signal_window_mask]), # This is not necessarily the peak time
+                signal_window_mask = signal_window_mask,
                 spacing_noise_signal = 20,
-                window_length_tot = sum(signal_window_mask) * dt,
                 relative_taper_width = 0.142857143,
                 use_median_value = True
                 )
             estimators, variances = get_signal_fluence_estimators(
                 trace = electric_field_trace[i_pol,:],
                 times = times,
-                t_peak = np.mean(times[signal_window_mask]),
+                signal_window_mask = signal_window_mask,
                 noise_estimators = noise_estimators,
-                window_length_tot = sum(signal_window_mask) * dt,
                 relative_taper_width = 0.142857143,
                 )
-            
+
             #sample frequency (after the windowing) in MHz
             delta_f = frequencies_window[1] - frequencies_window[0]
 
