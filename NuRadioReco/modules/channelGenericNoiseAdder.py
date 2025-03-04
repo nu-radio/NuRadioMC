@@ -1,8 +1,17 @@
+import json
 import logging
 import numpy as np
 from numpy.random import Generator, Philox
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.base.module import register_run
+
+
+
+def load_scale_parameters(scale_parameter_path):
+    with open(scale_parameter_path, "r") as scale_parameter_file:
+        scale_parameters = json.load(scale_parameter_file)
+    return scale_parameters
+
 
 
 class channelGenericNoiseAdder:
@@ -64,7 +73,7 @@ class channelGenericNoiseAdder:
         return np.fft.ifft(f).real
 
     def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white',
-                          time_domain=True, bandwidth=None):
+                          time_domain=True, bandwidth=None, station_id=None, channel_id=None):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
@@ -88,6 +97,7 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            data_driven: Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution
             # white: flat frequency spectrum with random jitter
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
@@ -96,6 +106,10 @@ class channelGenericNoiseAdder:
             if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here
             Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
             If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
+        station_id: int or None (default)
+            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise
+        channel_id: int or None (default)
+            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise
 
         Notes
         -----
@@ -144,6 +158,13 @@ class channelGenericNoiseAdder:
             ampl[selection] = amplitude * sigscale
         elif type == 'rayleigh':
             fsigma = amplitude * sigscale / np.sqrt(2.)
+            ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
+        elif type == "data-driven":
+            self.logger.warning("You have selected to generate data-driven noise NOTE THAT THE HARDWARE RESPONSE IS ALREADY INLUDED IN THIS NOISE and hence this module should be run AFTER incorporating hardware response.")
+            if station_id is None or channel_id is None:
+                self.logger.error("When selecting data-driven noise, the station and channel ids should be passed to bandlimeted noise")
+                raise ValueError
+            fsigma = self.scale_parameters[station_id][channel_id]
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
         # FIXME: amplitude normalization is not correct for 'white'
         # elif type == 'white':
@@ -370,11 +391,14 @@ class channelGenericNoiseAdder:
         self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
         self.begin()
 
-    def begin(self, debug=False, seed=None):
+    def begin(self, debug=False, seed=None,
+              scale_parameter_path=None):
         self.__debug = debug
         self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
+        if scale_parameter_path is not None:
+            self.scale_parameters = load_scale_parameters(scale_parameter_path)
 
     @register_run()
     def run(self, event, station, detector,
@@ -408,6 +432,7 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            data-driven: Amplitude of each frequency bin is drawn from a data-informed Rayleigh distribution 
         excluded_channels: list of ints
             the channels ids of channels where no noise will be added, default is that no channel is excluded
         bandwidth: float or None (default)
@@ -418,9 +443,11 @@ class channelGenericNoiseAdder:
         """
         if excluded_channels is None:
             excluded_channels = []
+        station_id = station.get_id()
         channels = station.iter_channels()
         for channel in channels:
-            if(channel.get_id() in excluded_channels):
+            channel_id = channel.get_id()
+            if(channel_id in excluded_channels):
                 continue
 
             trace = channel.get_trace()
@@ -437,7 +464,9 @@ class channelGenericNoiseAdder:
                                            sampling_rate=sampling_rate,
                                            amplitude=tmp_ampl,
                                            type=type,
-                                           bandwidth=bandwidth)
+                                           bandwidth=bandwidth,
+                                           station_id=station_id,
+                                           channel_id=channel_id)
 
             if self.__debug:
                 new_trace = trace + noise
