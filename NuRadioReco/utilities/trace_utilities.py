@@ -190,7 +190,7 @@ def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
 def digital_upsampling(
         trace, adc_sampling_frequency, upsampling_method='fft',
         upsampling_factor=2, coeff_gain=1, filter_taps=45,
-        adc_output='voltage', rnog_like=False):
+        adc_output='voltage'):
     """
     Digital upsampling with various methods and settings.
 
@@ -216,9 +216,6 @@ def digital_upsampling(
             - "voltage" : keep upsampled trace as floats
             - "counts" : round upsampling trace to ints
 
-    rnog_like: bool (default False)
-        If true, this will apply the RNO-G FLOWER upsampling settings and the fixed
-        point math/rounding done in firmware.
 
     Returns
     -------
@@ -253,11 +250,6 @@ def digital_upsampling(
             upsampled_trace = np.interp(new_t, cur_t, trace)
 
         elif upsampling_method == 'fir':
-
-            if rnog_like:
-                filter_taps = 45
-                coeff_gain = 256
-
             upsampled_trace = upsampling_fir(
                 trace, adc_sampling_frequency, int_factor=upsampling_factor, ntaps=filter_taps, coeff_gain=coeff_gain)
 

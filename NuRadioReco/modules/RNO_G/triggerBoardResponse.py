@@ -10,6 +10,7 @@ main_low_angle = np.deg2rad(-60)
 main_high_angle = np.deg2rad(60)
 phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 12))
 sampling_rate = 472 * units.MHz
+
 #define the keyword arguments for the trigger modules here. these settings emulate the trigger firmware
 #the keys should only appear here and not in as named keyword arguments!
 powerTriggerKwargs={
@@ -24,7 +25,22 @@ powerTriggerKwargs={
                 "window": 24,
                 "step": 8,
                 "saturation_bits": 8,
-                "filter_taps":45 }
+                "filter_taps":45,
+                "coeff_gain": 256 }
+
+envelopeTriggerKwargs={
+                "phasing_angles": phasing_angles,
+                "ref_index": 1.75,
+                "trigger_adc": True,
+                "trigger_filter": None,
+                "apply_digitization": False,
+                "adc_output": "counts",
+                "upsampling_factor": 1,
+                "upsampling_method": "fir",
+                "saturation_bits": 8,
+                "filter_taps":45,
+                "coeff_gain": 256,
+                "ideal_transformer": False}
 
 highLowTriggerKwargs={
                         "high_low_window": 6 / sampling_rate,

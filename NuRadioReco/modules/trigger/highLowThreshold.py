@@ -112,7 +112,8 @@ class triggerSimulator:
             Vrms=None,
             trigger_adc=True,
             clock_offset=0,
-            adc_output='voltage'):
+            adc_output='voltage',
+            **kwargs):
         """
         simulate ARIANNA trigger logic
 

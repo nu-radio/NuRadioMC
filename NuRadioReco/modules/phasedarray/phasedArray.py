@@ -174,7 +174,7 @@ class phasedArray():
         if (sum(diff_x) > cut or sum(diff_y) > cut):
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
-    def phase_signals(self, traces, beam_rolls):
+    def phase_signals(self, traces, beam_rolls, adc_output="voltage", saturation_bits=None):
         """
         Phase signals together given the rolls
 
@@ -201,6 +201,10 @@ class phasedArray():
 
                 trace = traces[channel_id]
                 phased_trace += np.roll(trace, subbeam_rolls[channel_id])
+
+            if(adc_output == 'counts') and (saturation_bits is not None):
+                phased_trace[phased_trace>2**(saturation_bits-1)-1] = 2**(saturation_bits-1) - 1
+                phased_trace[phased_trace<-2**(saturation_bits-1)] = -2**(saturation_bits-1)
 
             phased_traces[running_i] = phased_trace
             running_i += 1

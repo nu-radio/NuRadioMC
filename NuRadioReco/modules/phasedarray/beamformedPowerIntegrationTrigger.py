@@ -29,7 +29,7 @@ class triggerSimulator(phasedArray):
     See https://arxiv.org/pdf/1809.04573.pdf
     """
 
-    def power_sum(self, coh_sum, window, step, adc_output='voltage',rnog_like=False):
+    def power_sum(self, coh_sum, window, step, adc_output='voltage'):
         """
         Calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'
 
@@ -45,7 +45,6 @@ class triggerSimulator(phasedArray):
             in between neighboring integration windows
             Units of ADC time ticks.
         adc_output: string
-
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
 
@@ -64,14 +63,7 @@ class triggerSimulator(phasedArray):
 
         num_frames = int(np.floor((len(coh_sum) - window) / step))
 
-        if(adc_output == 'voltage'):
-            coh_sum_squared = (coh_sum * coh_sum).astype(float)
-        else: #(adc_output == 'counts'):
-            if rnog_like:
-                sat_bit = 7
-                coh_sum[coh_sum>2**sat_bit-1] = 2**sat_bit - 1
-                coh_sum[coh_sum<-2**sat_bit] = -2**sat_bit
-            coh_sum_squared = (coh_sum * coh_sum)
+        coh_sum_squared = (coh_sum * coh_sum)
 
         coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, window),
                                                            (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
@@ -99,7 +91,8 @@ class triggerSimulator(phasedArray):
                        apply_digitization=False,
                        upsampling_method='fft',
                        coeff_gain=128,
-                       rnog_like=False,
+                       saturation_bits=8,
+                       filter_taps=31
                        ):
         """
         simulates phased array trigger for each event
@@ -160,13 +153,10 @@ class triggerSimulator(phasedArray):
             If using the FIR upsampling, this will convert the floating point output of the 
             scipy filter to a fixed point value by multiplying by this factor and rounding to an
             int.
-        rnog_like: bool (default False)
-            If true, this will apply the RNO-G FLOWER based math/rounding done in firmware.
-        trig_type: str (default "power_integration")
-            - "power_integration" do the power integration for the given window size and 
-                step length
-            - "envelope" perform a hilbrt envelope threshold trigger on the beamformed
-                traces
+        filter_taps: int (default )
+            If doing FIR upsampling, this determine the number of filter coefficients
+        saturation_bits: int (default None)
+            Determines what the coherenty summed waveforms will saturate to if using adc counts
 
         Returns
         -------
@@ -227,8 +217,8 @@ class triggerSimulator(phasedArray):
 
             if(upsampling_factor >= 2):
                 upsampled_trace, new_sampling_frequency = trace_utilities.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
-                                                                            upsampling_factor=upsampling_factor, rnog_like=rnog_like, coeff_gain=coeff_gain,
-                                                                            adc_output='voltage', filter_taps=31)
+                                                                            upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
+                                                                            adc_output='voltage', filter_taps=filter_taps)
 
                 #  If upsampled is performed, the final sampling frequency changes
                 trace = upsampled_trace[:]
@@ -247,7 +237,7 @@ class triggerSimulator(phasedArray):
                                                 ref_index=ref_index,
                                                 sampling_frequency=adc_sampling_frequency)
 
-        phased_traces = self.phase_signals(traces, beam_rolls)
+        phased_traces = self.phase_signals(traces, beam_rolls, adc_output=adc_output, saturation_bits=saturation_bits)
 
         if adc_output == "counts":
             threshold=np.trunc(threshold)
@@ -264,7 +254,7 @@ class triggerSimulator(phasedArray):
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered=False
 
-            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output, rnog_like=rnog_like)
+            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
             maximum_amps[iTrace] = np.max(squared_mean)
 
             if True in (squared_mean > threshold):
@@ -313,8 +303,10 @@ class triggerSimulator(phasedArray):
             apply_digitization=True,
             upsampling_method='fft',
             coeff_gain=128,
-            rnog_like=False,
-            return_n_triggers=False
+            filter_taps=45,
+            saturation_bits=8,
+            return_n_triggers=False,
+            **kwargs
             ):
 
         """
@@ -383,8 +375,10 @@ class triggerSimulator(phasedArray):
             If using the FIR upsampling, this will convert the floating point output of the 
             scipy filter to a fixed point value by multiplying by this factor and rounding to an
             int.
-        rnog_like: bool (default False)
-            If true, this will apply the RNO-G FLOWER based math/rounding done in firmware.
+        filter_taps: int (default 45)
+            If using FIR upsampling these are the number of filter coefficients
+        saturation_bits: int (default 8)
+            If using counts, determines how large the coherently summed waveforms will saturate
         return_n_triggers: bool (default False)
             To better estimate simulated thresholds one should count the total triggers
             in the entire trace for each beam. If true, this return the total trigger number.
@@ -430,7 +424,8 @@ class triggerSimulator(phasedArray):
                                                                                     apply_digitization=apply_digitization,
                                                                                     upsampling_method=upsampling_method,
                                                                                     coeff_gain=coeff_gain,
-                                                                                    rnog_like=rnog_like
+                                                                                    filter_taps=filter_taps,
+                                                                                    saturation_bits=saturation_bits
                                                                                     )
 
         # Create a trigger object to be returned to the station

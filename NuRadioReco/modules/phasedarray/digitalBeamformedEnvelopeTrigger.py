@@ -9,7 +9,7 @@ import scipy
 import numpy as np
 from scipy import constants
 from scipy.signal import hilbert
-
+import matplotlib.pyplot as plt
 logger = logging.getLogger('phasedEnvelopeTriggerSimulator')
 
 cspeed = constants.c * units.m / units.s
@@ -29,32 +29,38 @@ class triggerSimulator(phasedArray):
     Calculates Hilbert Envelope using digital FIR filters.
     """
 
-    def hilbert_envelope(self, coh_sum, adc_output='voltage', coeff_gain=1, rnog_like=False):
+    def hilbert_envelope(self, coh_sum, adc_output='voltage', coeff_gain=1, ideal_transformer=True):
 
-        if rnog_like:
-            coeff_gain = 128
+        if ideal_transformer:
 
-        #31 sample fir transformer
-        #hil=[ -0.0424413 , 0. , -0.0489708 , 0. , -0.0578745 , 0. , -0.0707355 , 0. , -0.0909457 , 0. , -0.127324 , 0. 
-        #       , -0.2122066 , 0. , -0.6366198 , 0., 0.6366198 , 0. , 0.2122066 , 0. , 0.127324 ,0. , 0.0909457 , 0. , .0707355  
-        #       , 0. , 0.0578745 , 0. , 0.0489708 , 0. , 0.0424413 ]
+            imag_an=np.imag(hilbert(coh_sum))
 
-        #middle 15 coefficients ^
-        hil = np.array([ -0.0909457 , 0. , -0.127324 , 0. , -0.2122066 , 0. , -0.6366198 , 0. , 0.6366198 , 0. , 0.2122066 ,
-                        0. , 0.127324 , 0. , 0.0909457 ])
+            if adc_output=='counts':
+                imag_an = np.round(imag_an)
 
-        if coeff_gain!=1:
-            hil = np.round(hil * coeff_gain) / coeff_gain
+            envelope=np.sqrt(coh_sum**2 + imag_an**2)
 
-        imag_an = np.convolve(coh_sum, hil, mode='full')[len(hil)//2 : len(coh_sum) + len(hil)//2]
-        #imag_an=np.imag(hilbert(coh_sum))
-        if adc_output=='counts':
-            imag_an = np.round(imag_an)
-
-        if rnog_like:
-            envelope = np.max(np.array((coh_sum,imag_an)), axis=0) + (3 / 8) * np.min(np.array((coh_sum,imag_an)), axis=0)
         else:
-            envelope = np.sqrt(coh_sum**2 + imag_an**2)
+            #firmware like
+
+            #31 sample fir transformer
+            #hil=[ -0.0424413 , 0. , -0.0489708 , 0. , -0.0578745 , 0. , -0.0707355 , 0. , -0.0909457 , 0. , -0.127324 , 0. 
+            #       , -0.2122066 , 0. , -0.6366198 , 0., 0.6366198 , 0. , 0.2122066 , 0. , 0.127324 ,0. , 0.0909457 , 0. , .0707355  
+            #       , 0. , 0.0578745 , 0. , 0.0489708 , 0. , 0.0424413 ]
+
+            #middle 15 coefficients ^
+            hil = np.array([ -0.0909457 , 0. , -0.127324 , 0. , -0.2122066 , 0. , -0.6366198 , 0. , 0.6366198 , 0. , 0.2122066 ,
+                            0. , 0.127324 , 0. , 0.0909457 ])
+
+            if coeff_gain!=1:
+                hil = np.round(hil * coeff_gain) / coeff_gain
+
+            imag_an = np.convolve(coh_sum, hil, mode='full')[len(hil)//2 : len(coh_sum) + len(hil)//2]
+
+            if adc_output=='counts':
+                imag_an = np.round(imag_an)
+
+            envelope = np.max(np.array((coh_sum,imag_an)), axis=0) + (3 / 8) * np.min(np.array((coh_sum,imag_an)), axis=0)
 
         if adc_output=='counts':
             envelope = np.round(envelope)
@@ -75,7 +81,9 @@ class triggerSimulator(phasedArray):
                        apply_digitization=False,
                        upsampling_method='fft',
                        coeff_gain=128,
-                       rnog_like=False,
+                       filter_taps=31,
+                       saturation_bits=8,
+                       ideal_transformer=False
                        ):
         """
         simulates phased array trigger for each event
@@ -129,9 +137,13 @@ class triggerSimulator(phasedArray):
             If using the FIR upsampling, this will convert the floating point output of the 
             scipy filter to a fixed point value by multiplying by this factor and rounding to an
             int.
-        rnog_like: bool (default False)
-            If true, this will apply the RNO-G FLOWER based math/rounding done in firmware.
-
+        filter_taps: int (default )
+            If doing FIR upsampling, this determine the number of filter coefficients
+        saturation_bits: int (default None)
+            Determines what the coherenty summed waveforms will saturate to if using adc counts
+        ideal_transformer: bool (default False)
+            To use ideal Hilbert transformer and enveloping or to use approximate firmware-like 
+            calculation
         Returns
         -------
         is_triggered: bool
@@ -191,8 +203,8 @@ class triggerSimulator(phasedArray):
 
             if(upsampling_factor >= 2):
                 upsampled_trace, new_sampling_frequency = trace_utilities.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
-                                                                            upsampling_factor=upsampling_factor, rnog_like=rnog_like, coeff_gain=coeff_gain,
-                                                                            adc_output='voltage', filter_taps=31)
+                                                                            upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
+                                                                            adc_output='voltage', filter_taps=filter_taps)
 
                 #  If upsampled is performed, the final sampling frequency changes
                 trace = upsampled_trace[:]
@@ -211,7 +223,7 @@ class triggerSimulator(phasedArray):
                                                 ref_index=ref_index,
                                                 sampling_frequency=adc_sampling_frequency)
 
-        phased_traces = self.phase_signals(traces, beam_rolls)
+        phased_traces = self.phase_signals(traces, beam_rolls, adc_output=adc_output, saturation_bits=saturation_bits)
 
         if adc_output == "counts":
             threshold=np.trunc(threshold)
@@ -227,7 +239,7 @@ class triggerSimulator(phasedArray):
 
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered=False
-            hilbert_env = self.hilbert_envelope(coh_sum=phased_trace, adc_output=adc_output, rnog_like=rnog_like)
+            hilbert_env = self.hilbert_envelope(coh_sum=phased_trace, adc_output=adc_output, coeff_gain=coeff_gain, ideal_transformer=ideal_transformer)
             maximum_amps[iTrace] = np.max(hilbert_env)
 
             if True in (hilbert_env>threshold):
@@ -268,8 +280,11 @@ class triggerSimulator(phasedArray):
             apply_digitization=True,
             upsampling_method='fft',
             coeff_gain=128,
-            rnog_like=False,
-            return_n_triggers=False
+            filter_taps=45,
+            saturation_bits=8,
+            ideal_transformer=False,
+            return_n_triggers=False,
+            **kwargs
             ):
 
         """
@@ -338,8 +353,13 @@ class triggerSimulator(phasedArray):
             If using the FIR upsampling, this will convert the floating point output of the 
             scipy filter to a fixed point value by multiplying by this factor and rounding to an
             int.
-        rnog_like: bool (default False)
-            If true, this will apply the RNO-G FLOWER based math/rounding done in firmware.
+        filter_taps: int (default 45)
+            If using FIR upsampling these are the number of filter coefficients
+        saturation_bits: int (default 8)
+            If using counts, determines how large the coherently summed waveforms will saturate
+        ideal_transformer: bool (default False)
+            To use ideal Hilbert transformer and enveloping or to use approximate firmware-like 
+            calculation
         return_n_triggers: bool (default False)
             To better estimate simulated thresholds one should count the total triggers
             in the entire trace for each beam. If true, this return the total trigger number.
@@ -383,7 +403,9 @@ class triggerSimulator(phasedArray):
                                                                                     apply_digitization=apply_digitization,
                                                                                     upsampling_method=upsampling_method,
                                                                                     coeff_gain=coeff_gain,
-                                                                                    rnog_like=rnog_like
+                                                                                    filter_taps=filter_taps,
+                                                                                    saturation_bits=saturation_bits,
+                                                                                    ideal_transformer=ideal_transformer
                                                                                     )
 
         # Create a trigger object to be returned to the station
