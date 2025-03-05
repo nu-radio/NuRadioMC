@@ -10,13 +10,12 @@ from scipy import constants
 
 from NuRadioMC.EvtGen import generator
 from NuRadioMC.simulation import simulation
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 
 from NuRadioReco.detector.RNO_G import rnog_detector
 
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
-from noise import calculate_vrms_from_temperature
 
 import logging
 logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
@@ -29,7 +28,7 @@ def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_chan
     for channel_id in trigger_channels:
         resp = det.get_signal_chain_response(station_id, channel_id, trigger=True)
         vrms_per_channel.append(
-            calculate_vrms_from_temperature(noise_temp_channel=temperature, response=resp)
+            signal_processing.calculate_vrms_from_temperature(temperature=temperature, response=resp)
         )
 
     return vrms_per_channel
