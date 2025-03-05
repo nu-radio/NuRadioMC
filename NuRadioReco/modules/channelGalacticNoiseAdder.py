@@ -192,7 +192,7 @@ class channelGalacticNoiseAdder:
             station,
             detector,
             passband=None,
-            selected_channel_ids=None
+            excluded_channel_ids=None
     ):
 
         """
@@ -209,15 +209,15 @@ class channelGalacticNoiseAdder:
         passband: list of float, optional
             Lower and upper bound of the frequency range in which noise shall be
             added. The default (no passband specified) is [10, 1000] MHz
-        selected_channel_ids: list, default=None
-            A list containing the channels IDs to apply noise per station.
-            If None, all channels of the selected station in the detector are simulated.
-            To select all channels, set this to None.
+        excluded_channel_ids: list, default=None
+            A list containing the channels IDs to exclude per station.
+            If None, all channels of the selected station in the detector are used.
         """
-        if selected_channel_ids is None:
+        if excluded_channel_ids is None:
             selected_channel_ids = station.get_channel_ids()
             logger.info(f"Using all channels: {selected_channel_ids}")
         else:
+            selected_channel_ids = [channel_id for channel_id in station.get_channel_ids() if channel_id not in excluded_channel_ids]
             logger.info(f"Using selected channel ids: {selected_channel_ids}")
 
         if self.__noise_temperatures is None: # check if .begin has been called, give helpful error message if not
