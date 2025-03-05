@@ -38,6 +38,10 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     c = np.ones(n_bins_coincidence, dtype=bool)
     logger.debug("length of trace {} bins, coincidence window {} bins".format(len(trace), len(c)))
 
+    if trace.dtype != type(high_threshold):
+        logger.error(f"The trace ({trace.dtype}) and the threshold ({type(high_threshold)}) must have the same type")
+        raise TypeError(f"The trace ({trace.dtype}) and the threshold ({type(high_threshold)}) must have the same type")
+
     c2 = np.array([1, -1])
     m1 = np.convolve(trace >= high_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
     m2 = np.convolve(trace <= low_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
@@ -146,7 +150,7 @@ class triggerSimulator:
         set_not_triggered: bool (default: False)
             if True not trigger simulation will be performed and this trigger will be set to not_triggered
         Vrms: float
-            If supplied, overrides adc_reference_voltage as supplied in the detector description file
+            If supplied, overrides adc_voltage_range as supplied in the detector description file
         trigger_adc: bool
             If True, the relevant ADC parameters in the config file are the ones
             that start with `'trigger_'`
@@ -199,22 +203,11 @@ class triggerSimulator:
                     # overwrite the dt defined for the original trace by the digitized one
                     dt = 1. / trigger_sampling_rate
 
-                if isinstance(threshold_high, dict):
-                    threshold_high_tmp = threshold_high[channel_id]
-                else:
-                    threshold_high_tmp = threshold_high
-
-                if isinstance(threshold_low, dict):
-                    threshold_low_tmp = threshold_low[channel_id]
-                else:
-                    threshold_low_tmp = threshold_low
-
-                if adc_output == "counts":
-                    threshold_low_tmp = np.trunc(threshold_low_tmp)
-                    threshold_high_tmp = np.trunc(threshold_high_tmp)
-
                 triggerd_bins = get_high_low_triggers(
-                    trace, threshold_high_tmp, threshold_low_tmp, high_low_window, dt)
+                    trace,
+                    _get_threshold_channel(threshold_high, channel_id),
+                    _get_threshold_channel(threshold_low, channel_id),
+                    high_low_window, dt)
 
                 if np.any(triggerd_bins):
                     channels_that_passed_trigger.append(channel.get_id())
@@ -265,3 +258,13 @@ class triggerSimulator:
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt
+
+
+def _get_threshold_channel(threshold, channel_id):
+    """ Returns channel specific threshold if threshold is a dict, otherwise returns threshold """
+    if isinstance(threshold, dict):
+        return threshold[channel_id]
+    elif isinstance(threshold, (int, float)):
+        return threshold
+    else:
+        raise TypeError(f"Threshold must be a int/float or dict, not {type(threshold)}")

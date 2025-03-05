@@ -2,27 +2,8 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+
 version 3.0.0-dev
-new features:
-- created module and files to retrieve cable and RCU responses for LOFAR
-- added module to incorporate the LOFAR hardware response into the signals
-- added files containing the coefficients for the LOFAR Galactic calibration module in utilities/data/galactic_calibration
-- added LOFAR modules to fit the arrival direction using a planewave fit and to visualize the results of the pipeline
-- added support for LBA INNER in the LOFAR reader
-- added LOFAR detector description in JSON format
-- cleaned up the LOFAR beamforming utilities module
-- updated logging in all LOFAR modules
-- added support for more Galactic noise models in channelGalacticNoiseAdder
-- added support for "ant_mode" keyword in detector description
-- added option to choose dipole orientation when creating the LOFAR LBA antenna pattern
-- implementation of additional trigger channels. The signals on which the trigger is determined might be passed
-through a different response chain as the signals which are readout. To allow simulating this different response
-we added an optional trigger_channel object which lives within the corresponding channel obejct.
-
-bugfixes:
--
-
-version 3.0
 NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enabling long-awaited features such as:
 - exposing functions to calculate voltage traces from showers for stand-alone use (needed e.g. for Likelihood forward folding reconstruction)
 - separate simulation of trigger channels (-> significant speed up of simulations)
@@ -37,52 +18,94 @@ was integrated into the main simulation routine and is not needed anymore in the
 See https://github.com/nu-radio/NuRadioMC/pull/680 for details.
 To simulate trigger channels separately, a list of trigger channels ids need to be passed to the __init__ function of the simulation class.
 
-new feature
-- pre trigger times, i.e., how much trace should be saved before the trigger occured, is defined in the
-trigger modules (and not implicitely through the triggerTimeAdjuster module). The trigger objects have a new flag
-`primary` which defines that this trigger was used to set the readout windows (in the case of multiple triggers.)
-Only one trigger can be the primary.
-- BaseTrace has a new utility function `add_to_trace`, which adds a trace into an existing one.
-
-version 2.3.0-dev
 new features:
+- Added birefringent ice models from https://doi.org/10.1140/epjc/s10052-023-11238-y
 - added module to create CR templates for RNO-G channels
 - added function to calculate correlation between two traces using a sliding window (with variable window size)
 - Enhanced detector_browser to allow display RNO-G database detector
 - Added download utility unifying download of antenna models/proposal tables/shower
-library with possibility to add/change fallback-server(s). Added Chicago
-server as fallback.
+  library with possibility to add/change fallback-server(s). Added Chicago
+  server as fallback.
 - Added new detector class for RNO-G (+db interface) which uses a mongo-db as source.
-The new class allows import/export via compressed json files and has a buffer machinary.
-It comes with a class to handle responses of the different signal chain components easily.
+  The new class allows import/export via compressed json files and has a buffer machinary.
+  It comes with a class to handle responses of the different signal chain components easily.
 - Improved logging module: streamlined logging for NuRadioReco and NuRadioMC modules,
-added new STATUS logging level by default, added logging documentation and moved logging
-module to NuRadioReco/utilities folder. Logging functionality from NuRadioReco/modules/base
-is now deprecated.
+  added new STATUS logging level by default, added logging documentation and moved logging
+  module to NuRadioReco/utilities folder. Logging functionality from NuRadioReco/modules/base
+  is now deprecated.
 - Added StationParameters to store channel IDs of flagged (i.e.) bad channels, the polarisation
-which contains the strongest CR pulse and the list of frequency bands which are flagged for RFI.
+  which contains the strongest CR pulse and the list of frequency bands which are flagged for RFI.
 - Added interface to give (Sim)Channel a group ID . This is implemented as a keyword in the
-Detector description, such that it can be added to the Detector description JSON file. The
-(Sim)Channel objects can now optionally take a channel_group_id parameter. In a Station, one
-can then iterate over a channel group, which yields all channels for a given group ID.
+  Detector description, such that it can be added to the Detector description JSON file. The
+  (Sim)Channel objects can now optionally take a channel_group_id parameter. In a Station, one
+  can then iterate over a channel group, which yields all channels for a given group ID.
 - Added Gaussian tapered and Hann tapered bandpass filters
 - Added LOFAR modules for reading data, removing RFI, beamforming and fitting the arrival direction
 - Added functionality to remove Channel from Station
 - Added LOFAR antenna pattern and function to parse TXT simulation file
 - The assume_inf and antenna_by_depth Detector keywords are now saved in the nur file, and will be
-loaded again when reading in the Detector from a nur file
+  loaded again when reading in the Detector from a nur file
 - Added LOFAR coordinates to Detector site coordinates
 - Added up to date in-ice VPol response (RNOG_vpol_v2_5inch_center_n1.75.pkl) sha-1 hash
 - Implemented mattak dataset iterator in readRNOGDataMattak.run()
 - Fixed bug in phased-array noise generation script where the sign of the time delays was being ignored
-for the phasing_mode == "slice"
+  for the phasing_mode == "slice"
 - Improved logging: created NuRadioLogger class which is now used by default, the NRR and NRMC loggers
-are created automatically when importing the packages, and a new STATUS logging level was added.
+  are created automatically when importing the packages, and a new STATUS logging level was added.
 - Updating the ray_tracing_2D class in order to be able to use Numba optimization
 - Add new cw filter module to NuRadioReco using notch filters on peaks in the frequency spectrum
+- pre trigger times, i.e., how much trace should be saved before the trigger occured, is defined in the
+  trigger modules (and not implicitely through the triggerTimeAdjuster module). The trigger objects have a new flag
+  `primary` which defines that this trigger was used to set the readout windows (in the case of multiple triggers.)
+  Only one trigger can be the primary.
+- BaseTrace has a new utility function `add_to_trace`, which adds a trace into an existing one.
+- created module and files to retrieve cable and RCU responses for LOFAR
+- added module to incorporate the LOFAR hardware response into the signals
+- added files containing the coefficients for the LOFAR Galactic calibration module in utilities/data/galactic_calibration
+- added LOFAR modules to fit the arrival direction using a planewave fit and to visualize the results of the pipeline
+- added support for LBA INNER in the LOFAR reader
+- added LOFAR detector description in JSON format
+- cleaned up the LOFAR beamforming utilities module
+- updated logging in all LOFAR modules
+- added support for more Galactic noise models in channelGalacticNoiseAdder
+- added support for "ant_mode" keyword in detector description
+- added option to choose dipole orientation when creating the LOFAR LBA antenna pattern
+- implementation of additional trigger channels. The signals on which the trigger is determined might be passed
+  through a different response chain as the signals which are readout. To allow simulating this different response
+  we added an optional trigger_channel object which lives within the corresponding channel obejct.
+- major refactoring of the coreas interface, together with a new function to read in HDF5 files
+- implementation of the interface for cosmic ray pulse interpolation, as well as a new module to combine the
+interpolation with a Detector (readCoREASDetector)
+- removed readCoREAS and readCoREASStationGrid modules
+- removed tiny_reconstruction test and FullReconstruction example
+- simplified cr_efficiency_analysis example and renamed it to cr_analysis
+- added voltageToEfieldConverterPerChannelGroup module
+- Updated IC limit
+- added 2024 detector decription file in NuRadioReco/detector/RNO_G/RNO_season_2024.json
+
+bugfixes:
+-
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
+- Fixed minor bugs in analyticraytracing module. Path length and travel times are affected by O(0.001) ns,
+  and the focusing factor is reduced by <1% for most geometries. See #649 for details.
+
+deprecations:
+- Remove support for Python 3.6. Most features will still work, but are no longer tested and may therefore
+  break in future versions without warning.
+
+version 2.2.3
+bugfixes:
+- Fixed an error when attempting to write an event that included non-contiguous
+  numpy arrays, by explicitly converting these to contiguous form in that case.
+
+version 2.2.2
+bugfixes:
+- Change to the way numpy objects are stored inside .nur files. This ensures .nur
+  files created with both numpy>2 or numpy<2 are readable by either version.
+- Fixed a bug where .nur files created with an older version of astropy can not
+  be read with a newer version due to pickling incompatibility.
 
 version 2.2.1
 bugfixes:
@@ -105,8 +128,6 @@ new features:
 - triggerTimeAdjuster now works more reliably and supports different readout windows per channel.
   The readout time adjustment now is stored in the trigger object and needs to be accounted for in analysis
   by running the triggerTimeAdjuster, analogously to the channelAddCableDelay module.
-
-
 
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices

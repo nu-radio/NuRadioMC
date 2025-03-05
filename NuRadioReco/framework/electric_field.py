@@ -4,10 +4,8 @@ import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_storage
 import radiotools.coordinatesystems
 from NuRadioReco.utilities.trace_utilities import get_stokes
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+
+import pickle
 import logging
 logger = logging.getLogger('NuRadioReco.ElectricField')
 
@@ -23,7 +21,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace,
 
         Parameters
         ----------
-        channel_ids: array of ints
+        channel_ids: list of ints
             the channels ids this electric field is valid for.
             (For cosmic rays one electric field is typically valid
             for several channels. For neutrino simulations, we typically

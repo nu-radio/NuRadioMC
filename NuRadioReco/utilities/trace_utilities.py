@@ -1,9 +1,9 @@
-from NuRadioReco.utilities import units, ice, fft, geometryUtilities as geo_utl
+from NuRadioReco.utilities import units, ice, geometryUtilities as geo_utl, fft
+import NuRadioReco.framework.base_trace
 
 import numpy as np
 import scipy.constants
 import scipy.signal
-
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
 
@@ -105,7 +105,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     else:
         f_signal = np.sum(electric_field_trace[:, signal_window_mask] ** 2, axis=1)
     dt = times[1] - times[0]
-    if noise_window_mask is not None:
+    if noise_window_mask is not None and np.sum(noise_window_mask) > 0:
         f_noise = np.sum(electric_field_trace[:, noise_window_mask] ** 2, axis=1)
         f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
 
@@ -269,6 +269,10 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7,
 
     Parameters
     ----------
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
     trace: array of floats
         Trace to be upsampled
     original_sampling_frequency: float
@@ -368,49 +372,87 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
     return filtered_spectrum
 
 
-def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
+def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     """
     Delays a trace by transforming it to frequency and multiplying by phases.
-    Since this method is cyclic, the trace has to be cropped. It only accepts
-    positive delays, so some samples from the beginning are thrown away and then
-    some samples from the end so that the total number of samples is equal to
-    the argument delayed samples.
+
+    A positive delay means that the trace is shifted to the right, i.e., its delayed.
+    A negative delay would mean that the trace is shifted to the left. Since this
+    method is cyclic, the delayed trace will have unphysical samples at either the
+    beginning (delayed, positive `time_delay`) or at the end (negative `time_delay`).
+    Those samples can be cropped (optional, default=True).
 
     Parameters
     ----------
-    trace: array of floats
+    trace: array of floats or `NuRadioReco.framework.base_trace.BaseTrace`
         Array containing the trace
     sampling_frequency: float
         Sampling rate for the trace
     time_delay: float
         Time delay used for transforming the trace. Must be positive or 0
-    delayed_samples: integer or None
-        Number of samples that the delayed trace must contain
-        if None: the trace is not cut
+    crop_trace: bool (default: True)
+        If True, the trace is cropped to remove samples what are unphysical
+        after delaying (rolling) the trace.
 
     Returns
     -------
     delayed_trace: array of floats
         The delayed, cropped trace
+    dt_start: float (optional)
+        The delta t of the trace start time. Only returned if crop_trace is True.
     """
+    # Do nothing if time_delay is 0
+    if not time_delay:
+        if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+            if crop_trace:
+                return trace.get_trace(), 0
+            else:
+                return trace.get_trace()
+        else:
+            if crop_trace:
+                return trace, 0
+            else:
+                return trace
 
-    if time_delay < 0:
-        msg = 'Time delay must be positive'
-        raise ValueError(msg)
-
-    n_samples = len(trace)
-
-    spectrum = fft.time2freq(trace, sampling_frequency)
-    frequencies = np.fft.rfftfreq(n_samples, 1 / sampling_frequency)
+    if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+        spectrum = trace.get_frequency_spectrum()
+        frequencies = trace.get_frequencies()
+        if trace.get_sampling_rate() != sampling_frequency:
+            raise ValueError("The sampling frequency of the trace does not match the given sampling frequency.")
+    else:
+        n_samples = len(trace)
+        spectrum = fft.time2freq(trace, sampling_frequency)
+        frequencies = np.fft.rfftfreq(n_samples, 1 / sampling_frequency)
 
     spectrum *= np.exp(-1j * 2 * np.pi * frequencies * time_delay)
 
     delayed_trace = fft.freq2time(spectrum, sampling_frequency)
+    cycled_samples = int(round(time_delay * sampling_frequency))
 
-    init_sample = int(time_delay * sampling_frequency) + 1
+    if crop_trace:
+        # according to a NuRadio convention, traces should have an even number of samples.
+        # Make sure that after cropping the trace has an even number of samples (assuming that it was even before).
+        if cycled_samples % 2 != 0:
+            cycled_samples += 1
 
-    if delayed_samples is not None:
-        delayed_trace = delayed_trace[init_sample:None]
-        delayed_trace = delayed_trace[:delayed_samples]
+        if time_delay >= 0:
+            delayed_trace = delayed_trace[cycled_samples:]
+            dt_start = cycled_samples * sampling_frequency
+        else:
+            delayed_trace = delayed_trace[:-cycled_samples]
+            dt_start = 0
 
-    return delayed_trace
+        return delayed_trace, dt_start
+
+    else:
+        # Check if unphysical samples contain any signal and if so, throw a warning
+        if time_delay > 0:
+            if np.any(np.abs(delayed_trace[:cycled_samples]) > 0.01 * units.microvolt):
+                logger.warning("The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples.")
+        else:
+            if np.any(np.abs(delayed_trace[-cycled_samples:]) > 0.01 * units.microvolt):
+                logger.warning("The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples.")
+
+        return delayed_trace

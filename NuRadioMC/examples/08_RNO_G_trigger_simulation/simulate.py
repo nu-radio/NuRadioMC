@@ -105,7 +105,8 @@ class mySimulation(simulation.simulation):
 
         self.highLowThreshold = highLowThreshold.triggerSimulator()
         self.rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
-        self.rnogADCResponse.begin(adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage")
+        self.rnogADCResponse.begin(
+            clock_offset=0.0, adc_output="counts")
 
         # future TODO: Add noise
         # self.channel_generic_noise_adder = channelGenericNoiseAdder.channelGenericNoiseAdder()
@@ -154,8 +155,17 @@ class mySimulation(simulation.simulation):
 
         for thresh_key, threshold in self.high_low_trigger_thresholds.items():
 
-            threshold_high = {channel_id: threshold * vrms for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
-            threshold_low = {channel_id: -1 * threshold * vrms for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
+            if self.rnogADCResponse.adc_output == "voltage":
+                threshold_high = {channel_id: threshold * vrms for channel_id, vrms
+                    in zip(self.deep_trigger_channels, vrms_after_gain)}
+                threshold_low = {channel_id: -1 * threshold * vrms for channel_id, vrms
+                    in zip(self.deep_trigger_channels, vrms_after_gain)}
+            else:
+                # We round here. This is not how an ADC works but I think this is not needed here.
+                threshold_high = {channel_id: int(round(threshold * vrms)) for channel_id, vrms
+                    in zip(self.deep_trigger_channels, vrms_after_gain)}
+                threshold_low = {channel_id: int(round(-1 * threshold * vrms)) for channel_id, vrms
+                    in zip(self.deep_trigger_channels, vrms_after_gain)}
 
             self.highLowThreshold.run(
                 evt,
@@ -204,7 +214,9 @@ if __name__ == "__main__":
     defaults = {
         "trigger_adc_sampling_frequency": 0.472,
         "trigger_adc_nbits": 8,
-        "trigger_adc_noise_counts": 5,
+        "trigger_adc_noise_count": 5,
+        "trigger_adc_min_voltage": -1,
+        "trigger_adc_max_voltage": 1,
     }
 
     det = rnog_detector.Detector(
