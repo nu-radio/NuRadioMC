@@ -24,7 +24,7 @@ except ImportError:
     print("Import of \"radiopropa\" failed. "
           "Please install this repo https://github.com/nu-radio/RadioPropa")
 
-
+# See PR https://github.com/nu-radio/NuRadioMC/pull/834 for some more information.
 z_min = -3000
 
 def get_angles_rhos(file):
