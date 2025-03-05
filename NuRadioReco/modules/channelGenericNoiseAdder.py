@@ -174,8 +174,13 @@ class channelGenericNoiseAdder:
             
             scale_parameter_dictionary = load_scale_parameters(scale_parameter_path)
             scale_parameters = np.array(scale_parameter_dictionary["scale_parameters"])
-            fsigma = scale_parameters[channel_id]
-            ampl[:] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
+
+            n_samples_freq = len(scale_parameters[channel_id])
+            sample_scaling = np.sqrt(len(frequencies)/n_samples_freq)
+
+
+            fsigma = scale_parameters[channel_id] * sample_scaling
+            ampl[1::int((len(ampl)-1)/(n_samples_freq-1))] = self.__random_generator.rayleigh(fsigma, n_samples_freq)[1:]
         # FIXME: amplitude normalization is not correct for 'white'
         # elif type == 'white':
         #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -406,7 +411,8 @@ class channelGenericNoiseAdder:
         self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
-        self.scale_parameter_dir = "NuRadioReco/detector/RNO_G/ThermalNoiseMeasurements"
+        # self.scale_parameter_dir = "NuRadioReco/detector/RNO_G/ThermalNoiseMeasurements"
+        self.scale_parameter_dir = "/home/ruben/Downloads"
 
     @register_run()
     def run(self, event, station, detector,
