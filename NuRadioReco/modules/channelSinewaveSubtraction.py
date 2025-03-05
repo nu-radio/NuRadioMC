@@ -1,6 +1,10 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 
+import NuRadioReco.framework.event
+import NuRadioReco.framework.station
+import NuRadioReco.detector.detector
+
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.signal import lfilter
@@ -40,7 +44,8 @@ class channelSinewaveSubtraction:
         self.freq_band = freq_band
 
     @register_run()
-    def run(self, event: 'NuRadioReco.framework.event.Event', station: 'NuRadioReco.framework.station.Station', det: 'NuRadioReco.detector.detector.Detector' = None, peak_prominence: float = 4.0) -> None:
+    def run(self, event: NuRadioReco.framework.event.Event, station: NuRadioReco.framework.station.Station,
+            det: NuRadioReco.detector.detector.Detector = None, peak_prominence: float = 4.0) -> None:
         """
         Run the CW filter module on a given event and station. Removes all the CW peaks > peak_prominence * RMS.
 
@@ -73,7 +78,7 @@ def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3
     """
     Estimate the amplitude of a specific harmonic in the waveform.
 
-    Paramters
+    Parameters
     ----------
     wf: np.ndarray
         Input waveform (1D array).
@@ -83,7 +88,7 @@ def guess_amplitude(wf: np.ndarray, target_freq: float, sampling_rate: float = 3
         Sampling rate of the waveform (GHz).
 
     Returns
-    --------
+    -------
     ampl: float
         Estimated amplitude of the target frequency.
     """
@@ -119,7 +124,7 @@ def guess_amplitude_iir(wf: np.ndarray, target_freq: float, sampling_rate: float
         Sampling rate of the waveform (GHz).
 
     Returns
-    --------
+    -------
     amplitude: float
         Estimated amplitude at the target frequency.
     """
@@ -176,7 +181,8 @@ def guess_phase(fft_spec: np.ndarray, freqs: np.ndarray, target_freq: float):
     return phase
 
 
-def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_rate: float = 3.2,  saved_noise_freqs: list = None, freq_band: tuple = (0.1, 0.7)):
+def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_rate: float = 3.2,
+                         saved_noise_freqs: list = None, freq_band: tuple = (0.1, 0.7)):
     """
     Perform sine subtraction on a waveform to remove CW noise.
 
