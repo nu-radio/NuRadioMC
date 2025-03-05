@@ -217,7 +217,7 @@ class channelSignalReconstructor:
             channel[chp.impulsivity] = trace_utilities.get_impulsivity(channel)
             
             # Use noise precalculated from forced triggers
-            signal_to_noise, noise_rms = self.get_SNR_and_RPR(
+            signal_to_noise, noise_rms = self.get_SNR(
                 station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
             
             channel[chp.SNR] = signal_to_noise
