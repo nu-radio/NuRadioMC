@@ -411,8 +411,7 @@ class channelGenericNoiseAdder:
         self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
-        # self.scale_parameter_dir = "NuRadioReco/detector/RNO_G/ThermalNoiseMeasurements"
-        self.scale_parameter_dir = "/home/ruben/Downloads"
+        self.scale_parameter_dir = "NuRadioReco/detector/RNO_G/ThermalNoiseMeasurements"
 
     @register_run()
     def run(self, event, station, detector,
