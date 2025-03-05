@@ -92,18 +92,17 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     """
 
     n = len(tts[0])
-    n_bins_coincidence = int(np.round(time_coincidence / dt))
+    n_bins_coincidence = int(np.round(time_coincidence / dt / step))
 
     if(n_bins_coincidence > n):  # reduce coincidence window to maximum trace length
         n_bins_coincidence = n
         logger.debug("specified coincidence window longer than tracelenght, reducing coincidence window to trace length")
 
-
     for i in range(len(tts)):
 
         if extend_trace:   
             #hack it by assuming noise at ends so that beginning and end of trace aren't completely neglected 
-            trace=np.concatenate((tts[i],tts[i][0:int(n_bins_coincidence/step)]))
+            trace=np.concatenate((tts[i],tts[i][0:n_bins_coincidence]))
         else: 
             trace=np.array(tts[i])
 
@@ -112,6 +111,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         #step size is 1 here since the output of get_high_low is already binned in 4 samples
         trace_windowed = np.lib.stride_tricks.as_strided(trace, (num_frames, n_bins_coincidence),
                                                             (trace.strides[0], trace.strides[0]))
+
         tts[i]=np.any(trace_windowed,axis=1)
 
     tt=np.array(tts)
