@@ -406,12 +406,20 @@ class channelGenericNoiseAdder:
         self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
         self.begin()
 
-    def begin(self, debug=False, seed=None):
+    def begin(self, debug=False, seed=None, scale_parameter_dir = None):
+        """
+        Parameters
+        ----------
+        scale_parameter_dir : string
+            Parameter for noise type "data-driven"
+            Path to the directory that contains the scale parameter files. One file contains one station.
+            The module expects the files to be named thermal_noise_scale_parameters_sXX_seasonXX.json
+        """
         self.__debug = debug
         self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
-        self.scale_parameter_dir = "NuRadioReco/detector/RNO_G/ThermalNoiseMeasurements"
+        self.scale_parameter_dir = scale_parameter_dir
 
     @register_run()
     def run(self, event, station, detector,
@@ -547,9 +555,10 @@ if __name__ == "__main__":
 
     event, station = create_sim_event(args.station, args.channel, det, frequencies, sampling_rate)
 
+    scale_parameter_dir = "Insert/path/to/scale/parameter/dir/here"
 
     generic_noise_adder = channelGenericNoiseAdder()
-    generic_noise_adder.begin()
+    generic_noise_adder.begin(scale_parameter_dir=scale_parameter_dir)
     generic_noise_adder.run(event, station, detector, type="data-driven")
     
     channel = station.get_channel(args.channel)
