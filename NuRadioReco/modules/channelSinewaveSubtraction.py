@@ -1,9 +1,9 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 
+# For typing
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
-import NuRadioReco.detector.detector
 
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
@@ -45,7 +45,7 @@ class channelSinewaveSubtraction:
 
     @register_run()
     def run(self, event: NuRadioReco.framework.event.Event, station: NuRadioReco.framework.station.Station,
-            det: NuRadioReco.detector.detector.Detector = None, peak_prominence: float = 4.0) -> None:
+            det=None, peak_prominence: float = 4.0) -> None:
         """
         Run the CW filter module on a given event and station. Removes all the CW peaks > peak_prominence * RMS.
 
@@ -55,7 +55,7 @@ class channelSinewaveSubtraction:
             Event object to process.
         station: `NuRadioReco.framework.station.Station`
             Station object to process.
-        det: ``NuRadioReco.detector.detector.Detector`` (default: None)
+        det: `NuRadioReco.detector.detector.Detector` (default: None)
             Detector object to process.
         peak_prominence: float (default: 4.0)
             Threshold for identifying prominent peaks in the FFT spectrum.
