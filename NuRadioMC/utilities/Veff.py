@@ -276,10 +276,7 @@ def get_Veff_Aeff_single(
     else:
         raise AttributeError(f"attributes do neither contain volume nor area")
 
-    try:
-        Vrms = fin.attrs['Vrms']
-    except:
-        Vrms = 1
+    Vrms = fin.attrs.get('Vrms', 1)
 
     # Solid angle needed for the effective volume calculations
     out['domega'] = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))

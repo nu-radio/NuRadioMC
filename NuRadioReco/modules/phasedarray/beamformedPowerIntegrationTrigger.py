@@ -22,7 +22,7 @@ default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_
 class triggerSimulator(phasedArray):
     """
     Calculates the trigger for a phased array with a primary beam.
-    
+
     The channels that participate in both beams and the pointing angle for each
     subbeam can be specified.
 
@@ -217,8 +217,8 @@ class triggerSimulator(phasedArray):
 
             if(upsampling_factor >= 2):
                 upsampled_trace, new_sampling_frequency = trace_utilities.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
-                                                                            upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
-                                                                            adc_output='voltage', filter_taps=filter_taps)
+                                                                                              upsampling_factor=upsampling_factor, coeff_gain=coeff_gain, 
+                                                                                              adc_output='voltage', filter_taps=filter_taps)
 
                 #  If upsampled is performed, the final sampling frequency changes
                 trace = upsampled_trace[:]
@@ -436,7 +436,7 @@ class triggerSimulator(phasedArray):
             trigger_channels=trigger_channels,
             primary_angles=phasing_angles, 
             trigger_delays=trigger_delays,
-            window_size=window, 
+            window_size=window,
             step_size=step,
             maximum_amps=maximum_amps
         )

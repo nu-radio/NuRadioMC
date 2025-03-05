@@ -269,10 +269,6 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7,
 
     Parameters
     ----------
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
     trace: array of floats
         Trace to be upsampled
     original_sampling_frequency: float
