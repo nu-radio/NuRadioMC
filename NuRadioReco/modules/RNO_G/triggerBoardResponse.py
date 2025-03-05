@@ -6,6 +6,32 @@ import numpy as np
 import logging
 logger = logging.getLogger("NuRadioReco.triggerBoardResponse")
 
+main_low_angle = np.deg2rad(-60)
+main_high_angle = np.deg2rad(60)
+phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 12))
+sampling_rate = 472 * units.MHz
+#define the keyword arguments for the trigger modules here. these settings emulate the trigger firmware
+#the keys should only appear here and not in as named keyword arguments!
+powerTriggerKwargs={
+                "phasing_angles": phasing_angles,
+                "ref_index": 1.75,
+                "trigger_adc": True,
+                "trigger_filter": None,
+                "apply_digitization": False,
+                "adc_output": "counts",
+                "upsampling_factor": 4,
+                "upsampling_method": "fir",
+                "window": 24,
+                "step": 8,
+                "saturation_bits": 8,
+                "filter_taps":45 }
+
+highLowTriggerKwargs={
+                        "high_low_window": 6 / sampling_rate,
+                        "coinc_window": 20 / sampling_rate,
+                        "number_concidences": 2,
+                        "step": 4}
+
 
 class triggerBoardResponse:
     """
