@@ -2,12 +2,13 @@ from NuRadioMC.utilities import attenuation, medium
 from NuRadioReco.utilities import units
 
 import os
-import h5py
-import numpy as np
 import sys
+import h5py
+import json
+import argparse
+import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
-import json
 
 try:
     from AntPosCal.ice_model import icemodel
@@ -150,6 +151,30 @@ def get_trace(theta, z_antenna, freq=403 * 1e6):
     return get_angles_rhos(file)
 
 
+def get_ray_depth_profile(zenith, z_antenna):
+    """ Return the depth profile of the ray path as simulated with radiopropa """
+    # get the track for respective zenith direction
+    # (distance vs depth)
+    _, radius_raytracing, depth_raytracing, distance_raytracing, reflected_power, _ = get_trace(zenith, z_antenna)
+
+    depth_interp = interp1d(distance_raytracing, depth_raytracing, fill_value="extrapolate")
+    power_interp = interp1d(distance_raytracing, reflected_power, fill_value="extrapolate")
+    radius_interp = interp1d(distance_raytracing, radius_raytracing, fill_value="extrapolate")
+
+    distance = np.linspace(0, 30000, 300000) * units.m
+
+    depth = depth_interp(distance)
+    reflection_coef = power_interp(distance)
+    radius = radius_interp(distance)
+
+
+    # # manually set cap stuff
+    # reflection_coef[depth < z_min] = 0
+    # depth[depth < z_min] = z_min
+
+    return distance, radius, depth, reflection_coef
+
+
 def temperature_integral(zenith, z_antenna, freq=400 * units.MHz, model="GL3"):
     """ Return the integral of the effective temperature along the ray path.
 
@@ -173,22 +198,9 @@ def temperature_integral(zenith, z_antenna, freq=400 * units.MHz, model="GL3"):
     eff_temperature : float
         Effective temperature at the antenna
     """
-    # get the track for respective zenith direction
-    # (distance vs depth)
-    _, radius, depth_raytracing, distance_raytracing, reflected_power, _ = get_trace(zenith, z_antenna)
 
-    # get the temperature at each of the track points
-    depth_interp = interp1d(distance_raytracing, depth_raytracing, fill_value="extrapolate")
-    power_interp = interp1d(distance_raytracing, reflected_power, fill_value="extrapolate")
-
-    distance = np.linspace(0, 30000, 300000) * units.m
+    distance, _, depth, reflection_coef = get_ray_depth_profile(zenith, z_antenna)
     d_distance = distance[1] - distance[0]
-
-    depth = depth_interp(distance)
-    ref = power_interp(distance)
-    # manually set cap stuff
-    ref[depth < z_min] = 0
-    depth[depth < z_min] = z_min
 
     l_att = attenuation.get_attenuation_length(depth, frequency=freq, model=model)
     meaned_l_att = np.cumsum(l_att) / np.cumsum(np.ones_like(distance))
@@ -198,22 +210,26 @@ def temperature_integral(zenith, z_antenna, freq=400 * units.MHz, model="GL3"):
     assert model.startswith("GL"), "Only the Greenland ice model is supported for now (because the GRIP temperature model is hardcoded.)"
     temp_env = attenuation.get_grip_temperature(depth)  # already in kelvin
 
-    return np.sum((ref * att_factor * temp_env / l_att * d_distance))
+    # l_att is the emissivity of the volume element. att_factor is the attenuation factor of the proagation of
+    # the signal from the volume element to the antenna. The reflection coefficient is the fraction of the signal
+    # being lost at the surface. The temperature is the temperature of the volume element.
+    return np.sum((reflection_coef * att_factor * temp_env / l_att * d_distance))
 
 
-def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, fname=None):
+def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, attenuation_model="GL3", fname=None):
     import time
     t0 = time.time()
     thetas = np.linspace(0, np.pi, n_theta)
 
     eff_temperatures = []
     for theta in thetas:
-        eff_temperatures.append(float(temperature_integral(theta, z_antenna)))
+        eff_temperatures.append(float(temperature_integral(theta, z_antenna, model=attenuation_model)))
 
     data = {
         "z_antenna": z_antenna,
         "theta": thetas.tolist(),
-        "eff_temperature": eff_temperatures
+        "eff_temperature": eff_temperatures,
+        "attenuation_model": attenuation_model
     }
 
     if fname is None:
@@ -221,6 +237,7 @@ def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, fname=None):
 
     with open(fname, "w") as f:
         json.dump(data, f, indent=4)
+
     print(time.time() - t0)
 
     if plot:
@@ -229,6 +246,7 @@ def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, fname=None):
         ax.set_xlabel("theta / deg")
         ax.set_ylabel("temperature / K")
         plt.show()
+
 
 def plot_ray_paths(z_antenna=-100, n_theta=100):
     thetas = np.linspace(0, np.pi, n_theta)
@@ -253,6 +271,52 @@ def plot_ray_paths(z_antenna=-100, n_theta=100):
     plt.savefig("plot.pdf")
 
 
+def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10):
+    thetas = np.linspace(np.pi / 2, np.pi, n_theta)
+
+    import matplotlib as mpl
+    cmap = plt.get_cmap('plasma')
+
+    # norm = mpl.colors.LogNorm(vmin=1e-2, vmax=1)
+    norm = mpl.colors.Normalize(vmin=0.03, vmax=1)
+    sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+
+    fig, ax = plt.subplots()
+
+    for theta in thetas:
+        distance, radius, depth, reflection_coef = get_ray_depth_profile(theta, z_antenna)
+        d_distance = distance[1] - distance[0]
+        l_att = attenuation.get_attenuation_length(depth, frequency=400 * units.MHz, model="GL3")
+        meaned_l_att = np.cumsum(l_att) / np.cumsum(np.ones_like(distance))
+        att_factor = np.exp(-distance / meaned_l_att)
+        att_factor[att_factor < 0.03] = np.nan
+        ax.scatter(radius[::100], depth[::100], c=att_factor[::100], cmap=cmap, norm=norm, alpha=0.8, marker='.')
+
+    cb = plt.colorbar(sm, ax=ax, pad=0.02)
+    cb.set_label("attenuation factor")
+
+    ax.set_xlabel("x / m")
+    ax.set_ylabel("z / m")
+
+    ax.set_ylim(-4000, 10)
+    ax.axhline(z_min, color='k', linestyle='--')
+    fig.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
 
-    get_eff_temperature(fname="eff_temperature_grip_GL3_400MHz.json")
+    parser = argparse.ArgumentParser(description='Calculate the effective temperature at the antenna. ')
+    parser.add_argument('--z_antenna', type=float, default=-100, help='Depth of the antenna in meters')
+    parser.add_argument('--n_theta', type=int, default=100, help='Number of angles to consider (equidistant in theta from 0 to pi)')
+    parser.add_argument('--plot', action='store_true', help='Plot the effective temperature as a function of the angle')
+
+    parser.add_argument('--attenuation_model', type=str, default="GL3", help='Specify the attenuation model to use')
+    parser.add_argument('--fname', type=str, default=None, help='Filename to save the data to')
+
+    args = parser.parse_args()
+
+    fname = args.fname or f"eff_temperature_{args.z_antenna}m_ntheta{args.n_theta}_{args.attenuation_model}.json"
+
+    get_eff_temperature(args.z_antenna, args.n_theta, args.plot, args.attenuation_model, fname)
+    # plot_ray_paths_attenuation(args.z_antenna, args.n_theta)
