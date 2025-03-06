@@ -1,5 +1,6 @@
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
+import NuRadioReco.framework.sim_station
 from NuRadioReco.framework.parameters import showerParameters as shp, electricFieldParameters as efp
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.utilities import medium
@@ -144,12 +145,42 @@ class readFAERIEShower:
 
             position_of_xmax = sim_shower.get_axis() * sim_shower.get_parameter(shp.distance_shower_maximum_geometric)
 
+            # get (unique) observer names form either or both observer groups
+            observer_names = []
+            for key in ["observers", "observers_geant"]:
+                if key in f_coreas:
+                    observer_names += list(f_coreas[key].keys())
+            observer_names = np.unique(observer_names)
+            assert len(observer_names) > 0, "No observer found in hdf5 file"
+
+            has_in_air_emission = "observers" in f_coreas
+            has_in_ice_emission = "observers_geant" in f_coreas
+
+            if not has_in_air_emission:
+                logger.warning("No in-air emission found in hdf5 file")
+
+            if not has_in_ice_emission:
+                logger.warning("No in-ice emission found in hdf5 file")
+
             # add simulated pulses as sim station
-            for idx, ((name_air, observer_air), (name_ice, observer_ice)) in enumerate(zip(f_coreas['observers'].items(), f_coreas['observers_geant'].items())):
-                assert name_air == name_ice, "observer names do not match"
-                assert np.all(observer_air.attrs['position'] == observer_ice.attrs['position']), "observer positions do not match"
+            for idx, observer_name in enumerate(observer_names):
+
+                if has_in_air_emission:
+                    assert observer_name in f_coreas["observers"], f"observer {observer_name} not found in observers"
+                    observer_air = f_coreas["observers"][observer_name]
+                    position = observer_air.attrs['position']
+
+                if has_in_ice_emission:
+                    assert observer_name in f_coreas["observers_geant"], f"observer {observer_name} not found in observers_geant"
+                    observer_ice = f_coreas["observers_geant"][observer_name]
+                    position = observer_ice.attrs['position']
+
+                # if both in-air and in-ice emission are present, we assure that the observer positions are the same
+                if has_in_air_emission and has_in_ice_emission:
+                    assert np.all(observer_air.attrs['position'] == observer_ice.attrs['position']), "observer positions do not match"
+
                 if depth is not None:
-                    antenna_depth = shower_core[2] - observer_ice.attrs['position'][2]
+                    antenna_depth = shower_core[2] - position[2]
                     if depth < 0:
                         raise ValueError("Depth is positivly defined, you can not select antennas which are above the ice.")
 
@@ -157,22 +188,23 @@ class readFAERIEShower:
                         continue
 
                 # returns proper station id if possible
-                station_id = antenna_id(name_air, idx)
+                station_id = antenna_id(observer_name, idx)
 
-                sim_station_air = coreas.make_sim_station(
-                    station_id, corsika, observer_air, channel_ids=[0])
+                if has_in_air_emission:
+                    sim_station_air = coreas.make_sim_station(
+                        station_id, corsika, observer_air, channel_ids=[0])
+                    # This is a hack! We need that for the efieldToVoltage converter modules
+                    sim_station_air.set_is_neutrino()
 
-                sim_station_ice = coreas.make_sim_station(
-                    station_id, corsika, observer_ice, channel_ids=[0])
-
-                # This is a hack! We need that for the efieldToVoltage converter modules
-                sim_station_air.set_is_neutrino()
-                sim_station_ice.set_is_neutrino()
+                if has_in_ice_emission:
+                    sim_station_ice = coreas.make_sim_station(
+                        station_id, corsika, observer_ice, channel_ids=[0])
+                    # This is a hack! We need that for the efieldToVoltage converter modules
+                    sim_station_ice.set_is_neutrino()
 
                 # within the NuRadio CS where the ice is at z=0
                 shower_inice_position = np.array([0, 0, -2]) * units.m
 
-                position = observer_ice.attrs['position']
                 antenna_position = np.array([-position[1], position[0], position[2]])
                 antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
 
@@ -182,66 +214,76 @@ class readFAERIEShower:
                 has_in_ice_solution = False
                 has_in_air_solution = False
                 if not self._skip_raytracing:
-                    efields = sim_station_ice.get_electric_fields()
-                    assert len(efields) == 1, "Not exactly one electric field found"
 
-                    # No point in calculating the ray tracing solution if the electric field is zero (= ray tracing in faerie did not give result)
-                    if np.sum(np.abs(efields[0].get_trace())) != 0:
-                        # find ray tracing solution for in-ice signal
-                        self._rays.set_start_and_end_point(shower_inice_position, antenna_position_in_ice)
-                        self._rays.find_solutions()
-                        has_in_ice_solution = self._rays.get_number_of_solutions() > 0
-                        if self._rays.get_number_of_solutions() and debug_plot_ice:
-                            debug_plot(self._rays)
+                    if has_in_ice_emission:
+                        efields = sim_station_ice.get_electric_fields()
+                        assert len(efields) == 1, "Not exactly one electric field found"
 
+                        # No point in calculating the ray tracing solution if the electric field is zero (= ray tracing in faerie did not give result)
+                        if np.sum(np.abs(efields[0].get_trace())) != 0:
+                            # find ray tracing solution for in-ice signal
+                            self._rays.set_start_and_end_point(shower_inice_position, antenna_position_in_ice)
+                            self._rays.find_solutions()
+                            has_in_ice_solution = self._rays.get_number_of_solutions() > 0
+                            if self._rays.get_number_of_solutions() and debug_plot_ice:
+                                debug_plot(self._rays)
+
+                            efield = efields[0]
+                            efield.set_position(antenna_position)
+                            efield._shower_id = 1  # set shower id to 1 of in-ice emission
+                            add_signal_direction_to_electric_field(efield, self._rays, sim_shower)
+
+                    if has_in_air_emission:
+                        # find ray tracing solution for in-air signal
+                        efields = sim_station_air.get_electric_fields()
+                        assert len(efields) == 1, "Not exactly one electric field found"
                         efield = efields[0]
                         efield.set_position(antenna_position)
-                        efield._shower_id = 1  # set shower id to 1 of in-ice emission
-                        add_signal_direction_to_electric_field(efield, self._rays, sim_shower)
+                        efield._shower_id = 0  # set shower id to 0 of in-air emission
 
-                    # find ray tracing solution for in-air signal
-                    efields = sim_station_air.get_electric_fields()
-                    assert len(efields) == 1, "Not exactly one electric field found"
-                    efield = efields[0]
-                    efield.set_position(antenna_position)
-                    efield._shower_id = 0  # set shower id to 0 of in-air emission
+                        if antenna_position_in_ice[2] < 0:
+                            self._rays.set_start_and_end_point(position_of_xmax, antenna_position_in_ice)
+                            self._rays.find_solutions()
 
-                    if antenna_position_in_ice[2] < 0:
-                        self._rays.set_start_and_end_point(position_of_xmax, antenna_position_in_ice)
-                        self._rays.find_solutions()
+                            if not self._rays.get_number_of_solutions() and xmax_above_ice:
+                                logger.warning("No ray tracing solution found for in-air signal. Skipping this entire antenna for now (including in-ice signal) ..")
 
-                        if not self._rays.get_number_of_solutions() and xmax_above_ice:
-                            logger.warning("No ray tracing solution found for in-air signal. Skipping this entire antenna for now (including in-ice signal) ..")
+                            has_in_air_solution = self._rays.get_number_of_solutions() > 0
 
-                        has_in_air_solution = self._rays.get_number_of_solutions() > 0
+                            if self._rays.get_number_of_solutions() and debug_plot_air:
+                                debug_plot(self._rays)
 
-                        if self._rays.get_number_of_solutions() and debug_plot_air:
-                            debug_plot(self._rays)
-
-                        add_signal_direction_to_electric_field(efield, self._rays, sim_shower)
-                    else:
-                        # antennas at the ice surface maintain the same direction as the shower axis
-                        # (zenith, azimuth) (set in make_sim_station)
-                        efield._ray_tracing_id = 0
-                        has_in_air_solution = True
+                            add_signal_direction_to_electric_field(efield, self._rays, sim_shower)
+                        else:
+                            # antennas at the ice surface maintain the same direction as the shower axis
+                            # (zenith, azimuth) (set in make_sim_station)
+                            efield._ray_tracing_id = 0
+                            has_in_air_solution = True
                 else:
                     has_in_ice_solution = True
                     has_in_air_solution = True
 
-                    efields = sim_station_air.get_electric_fields()
-                    assert len(efields) == 1, "Not exactly one electric field found"
-                    efield = efields[0]
-                    efield._shower_id = 0  # set shower id to 1 of in-ice emission
+                    if has_in_air_emission:
+                        efields = sim_station_air.get_electric_fields()
+                        assert len(efields) == 1, "Not exactly one electric field found"
+                        efield = efields[0]
+                        efield._shower_id = 0  # set shower id to 1 of in-ice emission
 
-
-                    efields = sim_station_ice.get_electric_fields()
-                    assert len(efields) == 1, "Not exactly one electric field found"
-                    efield = efields[0]
-                    efield._shower_id = 1  # set shower id to 1 of in-ice emission
+                    if has_in_ice_emission:
+                        efields = sim_station_ice.get_electric_fields()
+                        assert len(efields) == 1, "Not exactly one electric field found"
+                        efield = efields[0]
+                        efield._shower_id = 1  # set shower id to 1 of in-ice emission
 
                 # if no ray tracing solution was found for in-ice signal, we skip this observer/station
                 if skip_in_ice_pulses_with_no_solution and not has_in_air_solution and not has_in_ice_solution:
                     continue
+
+                # To simplify the following code we create empty sim_station objects if no emission as simulated
+                if not has_in_air_emission:
+                    sim_station_air = NuRadioReco.framework.sim_station.SimStation(station_id)
+                if not has_in_ice_emission:
+                    sim_station_ice = NuRadioReco.framework.sim_station.SimStation(station_id)
 
                 if not skip_in_ice_pulses_with_no_solution:  # no matter what, add both
                     sim_station = sim_station_air + sim_station_ice
