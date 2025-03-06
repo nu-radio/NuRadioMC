@@ -536,7 +536,7 @@ def get_impulsivity(trace):
 
     This function computes the impulsivity of a signal by performing a Hilbert transform
     to obtain the analytic signal, calculating the envelope, and then determining the
-    cumulative distribution function (CDF) of the sorted envelope values based on their
+    cumulative distribution function (CDF) of the square of sorted envelope values (power) based on their
     closeness to the maximum value. The average of the CDF is then scaled and returned
     as the impulsivity measure.
 
@@ -553,13 +553,14 @@ def get_impulsivity(trace):
 
     envelope = get_hilbert_envelope(trace)
     maxv = np.argmax(envelope)
-    power_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
+    envelope_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
     closeness = list(
-        np.abs(power_indexes - maxv)
+        np.abs(envelope_indexes - maxv)
     )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
 
-    sorted_power = [x for _, x in sorted(zip(closeness, envelope))]
-    cdf = np.cumsum(sorted_power)
+    sorted_envelope = [x for _, x in sorted(zip(closeness, envelope))]
+    cdf = np.cumsum(sorted_envelope**2) ## taken reference from ARA : https://github.com/ara-software/AraProc/blob/f7e28c03a6a0603d2ac580ab353bf70940ee97f9/araproc/analysis/impulsivity.py#L64
+
     cdf = cdf / cdf[-1]
 
     cdf_avg = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
