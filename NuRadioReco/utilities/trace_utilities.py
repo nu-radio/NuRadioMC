@@ -430,14 +430,14 @@ def split_trace_noise_rms(trace, segments=4, lowest=2):
         The mean rms of the lowest few segment rms values
     """
     split_array = np.array_split(trace, segments)
-    split_array = np.array(split_array, dtype="object") #Objectify dtype to allow timetraces indivisible by amount of segments 
+    split_array = np.array(split_array, dtype="object") #Objectify dtype to allow timetraces indivisible by amount of segments
     rms_of_splits = [np.std(split) for split in split_array]
     ordered_rmss = np.sort(rms_of_splits)
     lowest_rmss = ordered_rmss[:lowest]
     rms = np.mean(lowest_rmss)
     return rms
 
-def get_SNR(trace, noise_rms):
+def get_signal_to_noise_ratio(trace, noise_rms, window_size=None):
     """
     Computes the Signal to Noise Ratio (SNR) of a given trace.
 
@@ -447,24 +447,28 @@ def get_SNR(trace, noise_rms):
         the 1d array array containing trace of a channel
     noise_rms: float
         noise root mean square.
+    window_size: int
+        coincidence window size.
     Returns:
     --------
     root_power_ratio: float
         Root Power Ratio value.
     """
-    upper_peak_idx = argrelextrema(trace, np.greater_equal, order = 1)[0]
-    lower_peak_idx = argrelextrema(trace, np.less_equal, order = 1)[0]
-    peak_idx = np.unique(np.concatenate((upper_peak_idx, lower_peak_idx)))
+    if window_size:
+        p2p = np.amax(maximum_peak_to_peak_amplitude(trace, window_size))
+    else:
+        upper_peak_idx = argrelextrema(trace, np.greater_equal, order = 1)[0]
+        lower_peak_idx = argrelextrema(trace, np.less_equal, order = 1)[0]
+        peak_idx = np.unique(np.concatenate((upper_peak_idx, lower_peak_idx)))
+        peak = trace[peak_idx]
+        p2p = np.abs(np.diff(peak))
+        p2p = np.nanmax(p2p)
 
-    peak = trace[peak_idx]
-    p2p = np.abs(np.diff(peak))
-    p2p = np.nanmax(p2p)
     snr = p2p / (2 * noise_rms)
 
-    del upper_peak_idx, lower_peak_idx, peak_idx, peak
     return snr
 
-def get_RPR(trace, times, noise_rms):
+def get_root_power_ratio(trace, times, noise_rms):
     """
     Computes the Root Power Ratio (RPR) of a given trace.
 
@@ -563,6 +567,22 @@ def get_impulsivity(trace):
     if cdf_avg < 0:
         cdf_avg = 0.0
     return cdf_avg
+
+def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
+    sum_wf = ref_trace
+    for idx, trace in enumerate(trace_set):
+        if use_envelope:
+            sig_ref = trace_utilities.get_hilbert_envelope(ref_trace)
+            sig_i = trace_utilities.get_hilbert_envelope(trace)
+        else:
+            sig_ref = ref_trace
+            sig_i = trace
+        cor = signal.correlate(sig_ref, sig_i, mode = "full")
+        lag = int(np.argmax((cor)) - (np.size(cor)/2.))
+
+        aligned_wf = np.roll(trace, lag)
+        sum_wf += aligned_wf
+    return sum_wf
 
 def get_entropy(trace, n_hist_bins = 50):
     """
