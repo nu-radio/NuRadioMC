@@ -624,6 +624,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_station</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_station</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.channel</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">six</span><span class="w"> </span><span class="kn">import</span> <span class="n">iteritems</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -637,6 +638,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter_type</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">ARIANNAParameters</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">=</span> <span class="s1">&#39;RD&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sim_station</span> <span class="o">=</span> <span class="kc">None</span>
