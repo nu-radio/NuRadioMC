@@ -1,13 +1,13 @@
 from NuRadioReco.utilities import units, ice, geometryUtilities as geo_utl, fft
 import NuRadioReco.framework.base_trace
 
-import scipy.ndimage
-from scipy.ndimage import uniform_filter1d
 import numpy as np
-import scipy.constants
 import scipy.signal
-from scipy.signal import hilbert, argrelextrema
+import scipy.ndimage
+import scipy.constants
 from scipy.stats import kurtosis, entropy
+from scipy.signal import hilbert, argrelextrema
+from scipy.ndimage import uniform_filter1d, maximum_filter1d, minimum_filter1d
 
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
@@ -555,7 +555,7 @@ def get_impulsivity(trace):
 
     This function computes the impulsivity of a trace by first performing the Hilbert Transform
     to obtain an analytic signal (Hilbert envelope) and then determining the
-    cumulative distribution function (CDF) of the sorted envelope values based on their
+    cumulative distribution function (CDF) of the square of the sorted envelope values i.e. power values based on their
     closeness to the maximum value. The average of the CDF is then scaled and returned
     as the impulsivity value.
 
@@ -572,13 +572,13 @@ def get_impulsivity(trace):
 
     envelope = get_hilbert_envelope(trace)
     maxv = np.argmax(envelope)
-    power_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
+    envelope_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
     closeness = list(
-        np.abs(power_indexes - maxv)
+        np.abs(envelope_indexes - maxv)
     )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
 
-    sorted_power = [x for _, x in sorted(zip(closeness, envelope))]
-    cdf = np.cumsum(sorted_power)
+    sorted_envelope = [x for _, x in sorted(zip(closeness, envelope))]
+    cdf = np.cumsum(sorted_envelope**2)
     cdf = cdf / cdf[-1]
 
     impulsivity = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
@@ -613,8 +613,8 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
 
     for idx, trace in enumerate(trace_set):
         if use_envelope:
-            sig_ref = trace_utilities.get_hilbert_envelope(ref_trace)
-            sig_i = trace_utilities.get_hilbert_envelope(trace)
+            sig_ref = get_hilbert_envelope(ref_trace)
+            sig_i = get_hilbert_envelope(trace)
         else:
             sig_ref = ref_trace
             sig_i = trace
