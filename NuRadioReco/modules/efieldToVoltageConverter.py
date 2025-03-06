@@ -43,7 +43,8 @@ class efieldToVoltageConverter():
               time_resolution=None,
               pre_pulse_time=200 * units.ns,
               post_pulse_time=200 * units.ns,
-              caching=False,
+              caching=True,
+              interpolated=False
               ):
         """
         Begin method, sets general parameters of module
@@ -67,12 +68,20 @@ class efieldToVoltageConverter():
             length of empty samples that is added before the first pulse
         post_pulse_time: float
             length of empty samples that is added after the simulated trace
+        caching: bool
+            enable/disable caching of antenna response to save loading times (default: True)
+        interpolated: bool
+            whether or not you used the interpolator to interpolate the electric fields. 
+            If True the electric fields are already at the respective antenna position and no 
+            time travel shift is necessary. If False (default) there is usually only one 
+            electric field for all channels and a travel time shift is added.
         """
 
         if time_resolution is not None:
             self.logger.warning("`time_resolution` is deprecated and will be removed in the future. "
                                 "The argument is ignored.")
         self.__caching = caching
+        self.__interpolated = interpolated
         self.__freqs = None
         self.__debug = debug
         self.__pre_pulse_time = pre_pulse_time
@@ -94,7 +103,7 @@ class efieldToVoltageConverter():
     @functools.lru_cache(maxsize=1024)
     def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
         """
-        Returns the cached antenna reponse for a given antenna patter, antenna orientation
+        Returns the cached antenna reponse for a given antenna pattern, antenna orientation
         and signal arrival direction. This wrapper is necessary as arrays and list are not
         hashable (i.e., can not be used as arguments in functions one wants to cache).
         This module ensures that the cache is clearied if the vector `self.__freqs` changes.
@@ -123,8 +132,9 @@ class efieldToVoltageConverter():
                 cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                 t0 = electric_field.get_trace_start_time() + cab_delay
 
-                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
-                if sim_station.is_cosmic_ray():
+                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account 
+                # (only if the signal is not interpolated)
+                if (sim_station.is_cosmic_ray() and not self.__interpolated):
                     travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
                     t0 += travel_time_shift
 
@@ -182,12 +192,13 @@ class efieldToVoltageConverter():
                 # calculate the start bin
                 if not np.isnan(electric_field.get_trace_start_time()):
                     cab_delay = det.get_cable_delay(sim_station_id, channel_id)
-                    if sim_station.is_cosmic_ray():
+                    if self.__interpolated:
+                        travel_time_shift = 0
+                    elif sim_station.is_cosmic_ray():
                         travel_time_shift = calculate_time_shift_for_cosmic_ray(
                             det, sim_station, electric_field, channel_id)
                     else:
                         travel_time_shift = 0
-
                     start_time = electric_field.get_trace_start_time() - times_min + cab_delay + travel_time_shift
                     start_bin = int(round(start_time / time_resolution))
 
@@ -217,7 +228,7 @@ class efieldToVoltageConverter():
                         start_bin = 0
 
                     new_trace[:, start_bin:stop_bin] = tr
-
+                
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
 
@@ -333,7 +344,7 @@ def calculate_time_shift_for_cosmic_ray(det, station, efield, channel_id):
     """
     station_id = station.get_id()
     site = det.get_site(station_id)
-    antenna_position = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id) - efield.get_position()
+    antenna_position = det.get_relative_position(station_id, channel_id) - efield.get_position()
     if station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
         index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
     else:  # signal is coming from above, so we take IOR of air
