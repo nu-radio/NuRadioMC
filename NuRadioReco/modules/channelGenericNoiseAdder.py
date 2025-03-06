@@ -569,7 +569,7 @@ if __name__ == "__main__":
 
     event, station = create_sim_event(args.station, args.channel, det, frequencies, sampling_rate)
 
-    scale_parameter_dir = "/home/ruben/Downloads"
+    scale_parameter_dir = "/insert/path/to/scale/parameters/here"
 
     generic_noise_adder = channelGenericNoiseAdder()
     generic_noise_adder.begin(scale_parameter_dir=scale_parameter_dir)
