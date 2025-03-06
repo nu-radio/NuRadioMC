@@ -116,6 +116,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         if noise_window_mask is not None and np.sum(noise_window_mask) > 0:
             f_noise = np.sum(electric_field_trace[:, noise_window_mask] ** 2, axis=1)
             f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
+            f_signal[f_signal < 0] = 0
 
             if RMSNoise is None:
                 RMSNoise = np.sqrt(np.mean(electric_field_trace[:, noise_window_mask] ** 2, axis=1))
