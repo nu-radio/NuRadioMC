@@ -65,7 +65,7 @@ class stationDeepCRVariables:
         trace_set = [ch.get_trace() for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
 
         sum_trace = trace_utilities.get_coherent_sum(trace_set, ref_trace, use_envelope)
-        rms = trace_utilities.split_trace_noise_rms(sum_trace, segments=4, lowest=2)
+        rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
         snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=self.__coincidence_window_size)
         station.set_parameter(stpRNOG.coherent_snr, snr)
         return
