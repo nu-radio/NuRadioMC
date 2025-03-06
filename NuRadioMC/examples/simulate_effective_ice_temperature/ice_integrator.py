@@ -161,16 +161,15 @@ def get_ray_depth_profile(zenith, z_antenna):
     power_interp = interp1d(distance_raytracing, reflected_power, fill_value="extrapolate")
     radius_interp = interp1d(distance_raytracing, radius_raytracing, fill_value="extrapolate")
 
-    distance = np.linspace(0, 30000, 300000) * units.m
+    distance = np.linspace(0, 30000, 10000) * units.m
 
     depth = depth_interp(distance)
     reflection_coef = power_interp(distance)
     radius = radius_interp(distance)
 
 
-    # # manually set cap stuff
-    # reflection_coef[depth < z_min] = 0
-    # depth[depth < z_min] = z_min
+    # manually set cap stuff
+    reflection_coef[depth < z_min] = 0
 
     return distance, radius, depth, reflection_coef
 
@@ -213,7 +212,13 @@ def temperature_integral(zenith, z_antenna, freq=400 * units.MHz, model="GL3"):
     # l_att is the emissivity of the volume element. att_factor is the attenuation factor of the proagation of
     # the signal from the volume element to the antenna. The reflection coefficient is the fraction of the signal
     # being lost at the surface. The temperature is the temperature of the volume element.
-    return np.sum((reflection_coef * att_factor * temp_env / l_att * d_distance))
+    t_eff_at_antenna = np.sum(reflection_coef * att_factor * temp_env / l_att * d_distance)
+
+    if 1:
+        ground_idx = np.argmin(np.abs(depth - z_min))
+        t_eff_at_antenna += temp_env[ground_idx] * att_factor[ground_idx]
+
+    return t_eff_at_antenna
 
 
 def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, attenuation_model="GL3", fname=None):
@@ -271,29 +276,46 @@ def plot_ray_paths(z_antenna=-100, n_theta=100):
     plt.savefig("plot.pdf")
 
 
-def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10):
+def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10, model="GL3"):
     thetas = np.linspace(np.pi / 2, np.pi, n_theta)
-
+    # thetas = [np.pi]
     import matplotlib as mpl
     cmap = plt.get_cmap('plasma')
 
     # norm = mpl.colors.LogNorm(vmin=1e-2, vmax=1)
-    norm = mpl.colors.Normalize(vmin=0.03, vmax=1)
+    norm = mpl.colors.Normalize(vmin=0, vmax=1)
     sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
 
     fig, ax = plt.subplots()
 
     for theta in thetas:
         distance, radius, depth, reflection_coef = get_ray_depth_profile(theta, z_antenna)
+
         d_distance = distance[1] - distance[0]
         l_att = attenuation.get_attenuation_length(depth, frequency=400 * units.MHz, model="GL3")
+
+        # l_att[depth < z_min] = 1
+        reflection_coef[depth < z_min] = 0
+
         meaned_l_att = np.cumsum(l_att) / np.cumsum(np.ones_like(distance))
         att_factor = np.exp(-distance / meaned_l_att)
-        att_factor[att_factor < 0.03] = np.nan
-        ax.scatter(radius[::100], depth[::100], c=att_factor[::100], cmap=cmap, norm=norm, alpha=0.8, marker='.')
+
+        assert model.startswith("GL"), "Only the Greenland ice model is supported for now (because the GRIP temperature model is hardcoded.)"
+        temp_env = attenuation.get_grip_temperature(np.abs(depth))  # already in kelvin, depth is positivly defined
+
+        # l_att is the emissivity of the volume element. att_factor is the attenuation factor of the proagation of
+        # the signal from the volume element to the antenna. The reflection coefficient is the fraction of the signal
+        # being lost at the surface. The temperature is the temperature of the volume element.
+        eff_temp = reflection_coef * att_factor * temp_env / l_att * d_distance
+        print(np.sum(eff_temp))
+        eff_temp = 1 - np.cumsum(eff_temp) / np.sum(eff_temp)
+
+        eff_temp[eff_temp < 0.03] = np.nan
+
+        ax.scatter(radius, depth, c=eff_temp, cmap=cmap, norm=norm, alpha=0.8, marker='.')
 
     cb = plt.colorbar(sm, ax=ax, pad=0.02)
-    cb.set_label("attenuation factor")
+    cb.set_label(r"1 - $\sum T(x, z) / T_{eff}$")
 
     ax.set_xlabel("x / m")
     ax.set_ylabel("z / m")
