@@ -3,15 +3,34 @@ import json
 import logging
 import numpy as np
 from numpy.random import Generator, Philox
+import os
+from scipy.interpolate import interp1d
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.base.module import register_run
 
 
 @functools.lru_cache(maxsize=1024)
 def load_scale_parameters(scale_parameter_path):
+    """
+    Returns interpolated scale parameters ifo frequency per channel
+    Parameters
+    ----------
+    scale_parameter_path : str
+        path to the scale parameter json file
+
+    Returns
+    -------
+    scale_parameters : list length = number of channels
+        list of interpolated scale parameters per channel
+    """
     with open(scale_parameter_path, "r") as scale_parameter_file:
         scale_parameters_dictionary = json.load(scale_parameter_file)
-    return scale_parameters_dictionary
+        frequencies = scale_parameters_dictionary["freq"]
+        scale_parameters = scale_parameters_dictionary["scale_parameters"]
+        scale_parameters = [interp1d(frequencies, scale_parameter,
+                                     bounds_error=False, fill_value="extrapolate")
+                                     for scale_parameter in scale_parameters]
+    return scale_parameters
 
 
 
@@ -161,26 +180,21 @@ class channelGenericNoiseAdder:
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
         elif type == "data-driven":
-            self.logger.warning("You have selected to generate data-driven noise NOTE THAT THE HARDWARE RESPONSE IS ALREADY INLUDED IN THIS NOISE and hence this module should be run AFTER incorporating hardware response.")
-            
             if station_id is None or channel_id is None:
                 self.logger.error("When selecting data-driven noise, the station and channel ids should be passed to bandlimeted noise")
                 raise ValueError
             
             if station_id in [11]:
                 scale_parameter_path = self.scale_parameter_dir + "/" + f"thermal_noise_scale_parameters_s{station_id}_season23.json"
+                if not os.path.exists(scale_parameter_path):
+                    raise OSError(f"Path {scale_parameter_path} cannot be found")
             else:
                 raise NotImplementedError("Other station parameters are being generated")
             
-            scale_parameter_dictionary = load_scale_parameters(scale_parameter_path)
-            scale_parameters = np.array(scale_parameter_dictionary["scale_parameters"])
+            scale_parameters = load_scale_parameters(scale_parameter_path)
+            fsigma = scale_parameters[channel_id](frequencies[selection])
+            ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
 
-            n_samples_freq = len(scale_parameters[channel_id])
-            sample_scaling = np.sqrt(len(frequencies)/n_samples_freq)
-
-
-            fsigma = scale_parameters[channel_id] * sample_scaling
-            ampl[1::int((len(ampl)-1)/(n_samples_freq-1))] = self.__random_generator.rayleigh(fsigma, n_samples_freq)[1:]
         # FIXME: amplitude normalization is not correct for 'white'
         # elif type == 'white':
         #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -555,7 +569,7 @@ if __name__ == "__main__":
 
     event, station = create_sim_event(args.station, args.channel, det, frequencies, sampling_rate)
 
-    scale_parameter_dir = "Insert/path/to/scale/parameter/dir/here"
+    scale_parameter_dir = "/home/ruben/Downloads"
 
     generic_noise_adder = channelGenericNoiseAdder()
     generic_noise_adder.begin(scale_parameter_dir=scale_parameter_dir)
