@@ -33,7 +33,7 @@ class efieldToVoltageConverter():
         self.__pre_pulse_time = None
         self.__post_pulse_time = None
         self.__max_upsampling_factor = None
-        self.antenna_provider = None
+        self.__antenna_provider = None
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
         self.logger.setLevel(log_level)
         self.begin()
@@ -98,7 +98,7 @@ class efieldToVoltageConverter():
             for iCh in self.__uncertainty['sys_amp']:
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
 
-        self.antenna_provider = antennapattern.AntennaPatternProvider()
+        self.__antenna_provider = antennapattern.AntennaPatternProvider()
 
     @functools.lru_cache(maxsize=1024)
     def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
@@ -267,7 +267,7 @@ class efieldToVoltageConverter():
                 if self.__caching:
                     zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(det, station, channel_id, zenith)
                     antenna_model = det.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
-                    antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model)
+                    antenna_pattern = self.__antenna_provider.load_antenna_pattern(antenna_model)
                     ant_orient = det.get_antenna_orientation(station.get_id(), channel_id)
 
                     vel_tmp = self._get_cached_antenna_response(antenna_pattern, zenith_antenna, azimuth, *ant_orient)
@@ -275,7 +275,7 @@ class efieldToVoltageConverter():
                 else:
                     # get antenna pattern for current channel
                     VEL = trace_utilities.get_efield_antenna_factor(
-                        sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
+                        sim_station, ff, [channel_id], det, zenith, azimuth, self.__antenna_provider)
 
                 if VEL is None:  # this can happen if there is not signal path to the antenna
                     voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros
