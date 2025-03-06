@@ -545,7 +545,7 @@ def get_hilbert_envelope(trace):
         Hilbert envelope of the waveform trace
     """
     # Get the Hilbert envelope of the waveform trace
-    envelope = np.abs(hilbert(trace))
+    envelope = np.abs(scipy.signal.hilbert(trace))
 
     return envelope
 
@@ -577,7 +577,7 @@ def get_impulsivity(trace):
         np.abs(envelope_indexes - maxv)
     )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
 
-    sorted_envelope = [x for _, x in sorted(zip(closeness, envelope))]
+    sorted_envelope = np.array([x for _, x in sorted(zip(closeness, envelope))])
     cdf = np.cumsum(sorted_envelope**2)
     cdf = cdf / cdf[-1]
 
@@ -618,7 +618,7 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
         else:
             sig_ref = ref_trace
             sig_i = trace
-        cor = signal.correlate(sig_ref, sig_i, mode = "full")
+        cor = scipy.signal.correlate(sig_ref, sig_i, mode = "full")
         lag = int(np.argmax((cor)) - (np.size(cor)/2.))
 
         aligned_trace = np.roll(trace, lag)
