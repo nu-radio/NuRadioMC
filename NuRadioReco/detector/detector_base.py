@@ -172,10 +172,10 @@ class DetectorBase(object):
             self._db.truncate()
             stations_table = self._db.table('stations', cache_size=1000)
             for station in dictionary['stations'].values():
-                stations_table.insert(station)
+                stations_table.insert({**station})  # FS: The {**dict} syntax is necessary to avoid this tinydb error: ValueError: Document with ID 0 already exists
             channels_table = self._db.table('channels', cache_size=1000)
             for channel in dictionary['channels'].values():
-                channels_table.insert(channel)
+                channels_table.insert({**channel})  # FS: The {**dict} syntax is necessary to avoid this tinydb error: ValueError: Document with ID 0 already exists
         else:
             self._db = TinyDB(
                 json_filename,
