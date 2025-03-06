@@ -25,7 +25,8 @@ except ImportError:
           "Please install this repo https://github.com/nu-radio/RadioPropa")
 
 # See PR https://github.com/nu-radio/NuRadioMC/pull/834 for some more information.
-z_min = -3000
+# this value comes from the GRIP temperature data sheet NuRadioMC/utilities/data/griptemp.txt
+z_min = -3027.6
 
 def get_angles_rhos(file):
     """ Getting a simulated ray-traced path from a hdf5 file
@@ -157,6 +158,7 @@ def get_ray_depth_profile(zenith, z_antenna):
     # (distance vs depth)
     _, radius_raytracing, depth_raytracing, distance_raytracing, reflected_power, _ = get_trace(zenith, z_antenna)
 
+    # Using extrapolation here is not ideal, but we will "correct" for this in the temperature_integral function
     depth_interp = interp1d(distance_raytracing, depth_raytracing, fill_value="extrapolate")
     power_interp = interp1d(distance_raytracing, reflected_power, fill_value="extrapolate")
     radius_interp = interp1d(distance_raytracing, radius_raytracing, fill_value="extrapolate")
@@ -166,10 +168,6 @@ def get_ray_depth_profile(zenith, z_antenna):
     depth = depth_interp(distance)
     reflection_coef = power_interp(distance)
     radius = radius_interp(distance)
-
-
-    # manually set cap stuff
-    reflection_coef[depth < z_min] = 0
 
     return distance, radius, depth, reflection_coef
 
@@ -207,16 +205,25 @@ def temperature_integral(zenith, z_antenna, freq=400 * units.MHz, model="GL3"):
     att_factor = np.exp(-distance / meaned_l_att)
 
     assert model.startswith("GL"), "Only the Greenland ice model is supported for now (because the GRIP temperature model is hardcoded.)"
-    temp_env = attenuation.get_grip_temperature(depth)  # already in kelvin
+    temp_env = attenuation.get_grip_temperature(np.abs(depth))  # already in kelvin, this function takes the depth as a positive value
+
+    # We assume that we do not receive radiation from deep in the ice,
+    # hence, we are setting the att_factor to zero everything below z_min.
+    # However, we will add a black body radiation term at the end...
+    att_factor[depth < z_min] = 0
 
     # l_att is the emissivity of the volume element. att_factor is the attenuation factor of the proagation of
     # the signal from the volume element to the antenna. The reflection coefficient is the fraction of the signal
     # being lost at the surface. The temperature is the temperature of the volume element.
     t_eff_at_antenna = np.sum(reflection_coef * att_factor * temp_env / l_att * d_distance)
 
-    if 1:
-        ground_idx = np.argmin(np.abs(depth - z_min))
-        t_eff_at_antenna += temp_env[ground_idx] * att_factor[ground_idx]
+    # Adding the black body radiation ...
+    ground_idx = np.argmin(np.abs(depth - z_min))
+    if depth[ground_idx] < z_min:
+        ground_idx -= 1  # get the index which is just above z_min
+
+    # print(f"Temperature at the ground: {temp_env[ground_idx]} K, Attenuation factor: {att_factor[ground_idx]}")
+    t_eff_at_antenna += temp_env[ground_idx] * att_factor[ground_idx]  * reflection_coef[ground_idx]
 
     return t_eff_at_antenna
 
@@ -282,8 +289,8 @@ def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10, model="GL3"):
     import matplotlib as mpl
     cmap = plt.get_cmap('plasma')
 
-    # norm = mpl.colors.LogNorm(vmin=1e-2, vmax=1)
-    norm = mpl.colors.Normalize(vmin=0, vmax=1)
+    norm = mpl.colors.LogNorm(vmin=5e-3, vmax=1)
+    # norm = mpl.colors.Normalize(vmin=0, vmax=1)
     sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
 
     fig, ax = plt.subplots()
@@ -294,25 +301,28 @@ def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10, model="GL3"):
         d_distance = distance[1] - distance[0]
         l_att = attenuation.get_attenuation_length(depth, frequency=400 * units.MHz, model="GL3")
 
-        # l_att[depth < z_min] = 1
-        reflection_coef[depth < z_min] = 0
-
         meaned_l_att = np.cumsum(l_att) / np.cumsum(np.ones_like(distance))
         att_factor = np.exp(-distance / meaned_l_att)
 
         assert model.startswith("GL"), "Only the Greenland ice model is supported for now (because the GRIP temperature model is hardcoded.)"
         temp_env = attenuation.get_grip_temperature(np.abs(depth))  # already in kelvin, depth is positivly defined
 
-        # l_att is the emissivity of the volume element. att_factor is the attenuation factor of the proagation of
-        # the signal from the volume element to the antenna. The reflection coefficient is the fraction of the signal
-        # being lost at the surface. The temperature is the temperature of the volume element.
-        eff_temp = reflection_coef * att_factor * temp_env / l_att * d_distance
-        print(np.sum(eff_temp))
+        mask = depth < z_min
+
+        # We assume that we do not receive radiation from deep in the rock ...
+        eff_temp = (reflection_coef * att_factor * temp_env / l_att * d_distance)[~mask]
+
+        # ... but adding a black body radiator for the rock.
+        ground_idx = np.argmin(np.abs(depth - z_min))
+        if depth[ground_idx] < z_min:
+            ground_idx -= 1  # get the index which is just above z_min
+
+        # print(f"Temperature at the ground: {temp_env[ground_idx]} K, Attenuation factor: {att_factor[ground_idx]}")
+        eff_temp[-1] += temp_env[ground_idx] * att_factor[ground_idx] * reflection_coef[ground_idx]
+
         eff_temp = 1 - np.cumsum(eff_temp) / np.sum(eff_temp)
 
-        eff_temp[eff_temp < 0.03] = np.nan
-
-        ax.scatter(radius, depth, c=eff_temp, cmap=cmap, norm=norm, alpha=0.8, marker='.')
+        ax.scatter(radius[~mask], depth[~mask], c=eff_temp, cmap=cmap, norm=norm, alpha=0.8, marker='.')
 
     cb = plt.colorbar(sm, ax=ax, pad=0.02)
     cb.set_label(r"1 - $\sum T(x, z) / T_{eff}$")
@@ -320,7 +330,7 @@ def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10, model="GL3"):
     ax.set_xlabel("x / m")
     ax.set_ylabel("z / m")
 
-    ax.set_ylim(-4000, 10)
+    # ax.set_ylim(-4000, 10)
     ax.axhline(z_min, color='k', linestyle='--')
     fig.tight_layout()
     plt.show()
