@@ -13,14 +13,16 @@ from NuRadioReco.modules.base.module import register_run
 def load_scale_parameters(scale_parameter_path):
     """
     Returns interpolated scale parameters ifo frequency per channel
+
     Parameters
     ----------
+
     scale_parameter_path : str
         path to the scale parameter json file
 
     Returns
     -------
-    scale_parameters : list length = number of channels
+    scale_parameters : list
         list of interpolated scale parameters per channel
     """
     with open(scale_parameter_path, "r") as scale_parameter_file:
