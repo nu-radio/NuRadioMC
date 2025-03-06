@@ -64,18 +64,14 @@ class stationDeepCRVariables:
         ref_trace = ref_ch.get_trace()
         trace_set = [ch.get_trace() for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
 
-        sum_trace = self.coherent_sum(trace_set, ref_trace, use_envelope)
-        station.set_parameter(stpRNOG.coherent_snr, self.coherent_snr(sum_trace))
+        sum_trace = trace_utilities.get_coherent_sum(trace_set, ref_trace, use_envelope)
+        rms = trace_utilities.split_trace_noise_rms(sum_trace, segments=4, lowest=2)
+        snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=self.__coincidence_window_size)
+        station.set_parameter(stpRNOG.coherent_snr, snr)
         return
 
     def end(self):
         pass
-
-    def coherent_snr(self, coherent_sum):
-        snr = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(coherent_sum, self.__coincidence_window_size))
-        snr /= trace_utilities.split_trace_noise_rms(coherent_sum, segments=4, lowest=2)
-        snr /= 2
-        return snr
 
     def coherent_sum_step_by_step(self, station):
         # Plot the four original waveforms before any alignment and save
@@ -129,19 +125,3 @@ class stationDeepCRVariables:
             plt.tight_layout(rect = [0, 0, 1, 0.96])
             plt.savefig(f'coherent_sum_steps_reference_{ref_ch.get_id()}.png')
             plt.show()
-
-    def coherent_sum(self, trace_set, ref_trace, use_envelope = False):
-        sum_wf = ref_trace
-        for idx, trace in enumerate(trace_set):
-            if use_envelope:
-                sig_ref = trace_utilities.get_hilbert_envelope(ref_trace)
-                sig_i = trace_utilities.get_hilbert_envelope(trace)
-            else:
-                sig_ref = ref_trace
-                sig_i = trace
-            cor = signal.correlate(sig_ref, sig_i, mode = "full")
-            lag = int(np.argmax((cor)) - (np.size(cor)/2.))
-
-            aligned_wf = np.roll(trace, lag)
-            sum_wf += aligned_wf
-        return sum_wf
