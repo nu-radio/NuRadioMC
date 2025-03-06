@@ -33,7 +33,7 @@ class electricFieldSignalReconstructor:
         logger.setLevel(log_level)
 
     @register_run()
-    def run(self, evt, station, det, fluence_method="noise_subtraction", debug=False):
+    def run(self, evt, station, det, fluence_method="noise_subtraction", signal_search_window=None, debug=False):
         """
         reconstructs quantities for electric field
 
@@ -52,11 +52,19 @@ class electricFieldSignalReconstructor:
         for electric_field in station.get_electric_fields():
             trace_copy = copy.copy(electric_field.get_trace())
 
+            if signal_search_window is not None:
+                times = electric_field.get_times()
+                signal_search_window_mask = (times > signal_search_window[0]) & (times < signal_search_window[1])
+                times_masked = times[signal_search_window_mask]
+                trace_copy = trace_copy[:, signal_search_window_mask]
+            else:
+                times_masked = electric_field.get_times()
+
             # calculate hilbert envelope
             envelope = np.abs(signal.hilbert(trace_copy))
             envelope_mag = np.linalg.norm(envelope, axis=0)
             signal_time_bin = np.argmax(envelope_mag)
-            signal_time = electric_field.get_times()[signal_time_bin]
+            signal_time = times_masked[signal_time_bin]
             electric_field[efp.signal_time] = signal_time
 
     #
