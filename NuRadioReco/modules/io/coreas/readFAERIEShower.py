@@ -142,7 +142,6 @@ class readFAERIEShower:
             if dmax <= 0:
                 logger.warning("`distance_shower_maximum_geometric` is not positive. Either the calculation within CoREAS failed and/or the maximum is below the obslevel.")
 
-            print(sim_shower.get_parameter(shp.distance_shower_maximum_geometric), sim_shower.get_parameter(shp.shower_maximum) / (units.g / units.cm**2))
             position_of_xmax = sim_shower.get_axis() * sim_shower.get_parameter(shp.distance_shower_maximum_geometric)
 
             # add simulated pulses as sim station
@@ -161,15 +160,14 @@ class readFAERIEShower:
                 station_id = antenna_id(name_air, idx)
 
                 sim_station_air = coreas.make_sim_station(
-                    station_id, corsika, observer_air, channel_ids=[0, 1, 2])
+                    station_id, corsika, observer_air, channel_ids=[0])
 
                 sim_station_ice = coreas.make_sim_station(
-                    station_id, corsika, observer_ice, channel_ids=[0, 1, 2])
+                    station_id, corsika, observer_ice, channel_ids=[0])
 
                 # This is a hack! We need that for the efieldToVoltage converter modules
                 sim_station_air.set_is_neutrino()
                 sim_station_ice.set_is_neutrino()
-
 
                 # within the NuRadio CS where the ice is at z=0
                 shower_inice_position = np.array([0, 0, -2]) * units.m
@@ -299,9 +297,6 @@ class readFAERIEShower:
                     else:
                         self.__det.set_event(evt_per_station.get_run_number(), evt_per_station.get_id())
                         yield evt_per_station, self.__det
-
-
-
                 else:
                     evt.set_station(station)
 
