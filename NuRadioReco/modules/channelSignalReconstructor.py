@@ -150,12 +150,15 @@ class channelSignalReconstructor:
 
             snr['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
 
-        #Calculate peak to peak voltage SNR using the RMS of the split waveform
+        # Calculate peak to peak voltage SNR using the RMS of the split waveform
         coincidence_window_size_bins = int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
+        if coincidence_window_size_bins < 2:
+            logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
+
         snr['peak_2_peak_amplitude_split_noise_rms'] = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(channel.get_trace(), coincidence_window_size_bins))
         snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.split_trace_noise_rms(channel.get_trace(), segments=4, lowest=2)
         snr['peak_2_peak_amplitude_split_noise_rms'] /= 2
-        
+
         # Calculating RPR (Root Power Ratio)
         if noise_rms == 0:
             root_power_ratio = np.inf
@@ -191,10 +194,10 @@ class channelSignalReconstructor:
         """
         Calculate the impulsivity of a signal.
 
-        This function computes the impulsivity of a signal by performing a Hilbert transform 
-        to obtain the analytic signal, calculating the envelope, and then determining the 
-        cumulative distribution function (CDF) of the sorted envelope values based on their 
-        closeness to the maximum value. The average of the CDF is then scaled and returned 
+        This function computes the impulsivity of a signal by performing a Hilbert transform
+        to obtain the analytic signal, calculating the envelope, and then determining the
+        cumulative distribution function (CDF) of the sorted envelope values based on their
+        closeness to the maximum value. The average of the CDF is then scaled and returned
         as the impulsivity measure.
 
         Parameters
@@ -226,16 +229,34 @@ class channelSignalReconstructor:
             cdf_avg = 0.0
         return cdf_avg
 
-    def get_max_a_norm(self, event, station, detector):
+    def get_max_a_norm(self, station):
+        """
+        Calculate the maximum peak to peak amplitude of the signal normalized by the noise level over all channels in a station.
+
+        Parameters
+        ----------
+        station : Station
+            The station object containing the channels.
+
+        Returns
+        -------
+        maxaval : float
+            The maximum peak to peak amplitude of the signal normalized by the noise level over all channels in the station.
+        """
+
         maxaval = 0
         for channel in station.iter_channels():
             normalized_wf = channel.get_trace() / np.std(channel.get_trace())
-            coincidence_window_size_bins =  int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
+            coincidence_window_size_bins = int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
+            if coincidence_window_size_bins < 2:
+                logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
+
             thismax = np.amax(
-                trace_utilities.maximum_peak_to_peak_amplitude(normalized_wf, coincidence_window_size_bins)
-            )
+                trace_utilities.maximum_peak_to_peak_amplitude(normalized_wf, coincidence_window_size_bins))
+
             if thismax > maxaval:
                 maxaval = thismax
+
         return maxaval
 
 
@@ -275,7 +296,7 @@ class channelSignalReconstructor:
 
             #Calculate impulsivity of the signal
             channel[chp.impulsivity] = self.get_impulsivity(channel)
-            
+
             # Use noise precalculated from forced triggers
             signal_to_noise, noise_rms, root_power_ratio = self.get_SNR_and_RPR(
                 station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
@@ -284,7 +305,7 @@ class channelSignalReconstructor:
             channel[chp.root_power_ratio] = root_power_ratio
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
-        station[stnp.channels_max_amplitude_norm] = self.get_max_a_norm(evt, station, det)
+        station[stnp.channels_max_amplitude_norm] = self.get_max_a_norm(station)
         self.__t = time.time() - t
 
     def end(self):
