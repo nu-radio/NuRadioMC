@@ -290,7 +290,8 @@ class readCoREASDetector:
                     # Store the trace in an ElecticField object
                     coreas.add_electric_field_to_sim_station(
                         sim_station, channel_ids_for_group_id, smooth_res_efield.T, res_trace_start_time,
-                        sim_shower[shp.zenith], sim_shower[shp.azimuth], self.coreas_interpolator.sampling_rate)
+                        sim_shower[shp.zenith], sim_shower[shp.azimuth], self.coreas_interpolator.sampling_rate,
+                        efield_position=antenna_position_rel)
 
                 sim_station.set_parameter(stnp.zenith, sim_shower[shp.zenith])
                 sim_station.set_parameter(stnp.azimuth, sim_shower[shp.azimuth])
