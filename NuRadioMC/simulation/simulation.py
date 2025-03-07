@@ -1722,10 +1722,12 @@ class simulation:
             eventWriter.end()
             logger.debug("closing nur file")
 
-        self._output_writer_hdf5.calculate_Veff()
+        Veff, n_triggered = self._output_writer_hdf5.calculate_Veff()
         if not self._output_writer_hdf5.write_output_file():
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
+
+        return n_triggered
 
     def add_filtered_noise_to_channels(self, evt, station, channel_ids):
         """

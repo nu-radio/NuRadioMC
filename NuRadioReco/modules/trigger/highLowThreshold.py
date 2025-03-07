@@ -116,7 +116,8 @@ class triggerSimulator:
             Vrms=None,
             trigger_adc=True,
             clock_offset=0,
-            adc_output='voltage'):
+            adc_output='voltage',
+            **kwargs):
         """
         simulate ARIANNA trigger logic
 
@@ -249,6 +250,8 @@ class triggerSimulator:
         station.set_trigger(trigger)
 
         self.__t += time.time() - t
+
+        return has_triggered
 
     def end(self):
         from datetime import timedelta
