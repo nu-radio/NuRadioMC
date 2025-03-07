@@ -204,7 +204,7 @@ class triggerSimulator(phasedArray):
             if(upsampling_factor >= 2):
                 upsampled_trace, new_sampling_frequency = trace_utilities.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
                                                                             upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
-                                                                            adc_output='voltage', filter_taps=filter_taps)
+                                                                            adc_output=adc_output, filter_taps=filter_taps)
 
                 #  If upsampled is performed, the final sampling frequency changes
                 trace = upsampled_trace[:]

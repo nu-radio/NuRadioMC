@@ -198,6 +198,7 @@ class triggerBoardResponse:
                 channel = station.get_trigger_channel(channel_id)
                 channel.set_trace(channel.get_trace() * gain_values[channel_id], channel.get_sampling_rate())
                 ret_gain_values.append(gain_values[channel_id])
+                continue
 
             if self._adc_input_range is None:
                 self._adc_input_range = adc_input_range
@@ -309,7 +310,6 @@ class triggerBoardResponse:
         logger.debug("Applying the RNO-G trigger board response")
 
         if vrms is None:
-
             vrms = self.get_noise_vrms_per_trigger_channel(station, trigger_channels)
 
         if apply_adc_gain:
