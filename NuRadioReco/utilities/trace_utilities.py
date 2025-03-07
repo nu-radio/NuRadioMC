@@ -2,12 +2,10 @@ from NuRadioReco.utilities import units, ice, geometryUtilities as geo_utl, fft
 import NuRadioReco.framework.base_trace
 
 import numpy as np
+import scipy.stats
 import scipy.signal
 import scipy.ndimage
 import scipy.constants
-from scipy.stats import kurtosis, entropy
-from scipy.signal import hilbert, argrelextrema
-from scipy.ndimage import uniform_filter1d, maximum_filter1d, minimum_filter1d
 
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
@@ -410,7 +408,7 @@ def peak_to_peak_amplitudes(trace, coincidence_window_size):
     amplitudes: array of floats (same length as the input trace)
         Local peak to peak amplitudes
     """
-    amplitudes = maximum_filter1d(trace, coincidence_window_size) - minimum_filter1d(trace, coincidence_window_size)
+    amplitudes = scipy.ndimage.maximum_filter1d(trace, coincidence_window_size) - scipy.ndimage.minimum_filter1d(trace, coincidence_window_size)
 
     return amplitudes
 
@@ -469,11 +467,11 @@ def get_signal_to_noise_ratio(trace, noise_rms, window_size=None):
     signal_to_noise_ratio: float
         Signal to Noise Ratio (SNR) value
     """
-    if window_size:
+    if window_size or window_size == 0:
         p2p = np.amax(peak_to_peak_amplitudes(trace, window_size))
     else:
-        upper_peak_idx = argrelextrema(trace, np.greater_equal, order = 1)[0]
-        lower_peak_idx = argrelextrema(trace, np.less_equal, order = 1)[0]
+        upper_peak_idx = scipy.signal.argrelextrema(trace, np.greater_equal, order = 1)[0]
+        lower_peak_idx = scipy.signal.argrelextrema(trace, np.less_equal, order = 1)[0]
         peak_idx = np.unique(np.concatenate((upper_peak_idx, lower_peak_idx)))
         peak = trace[peak_idx]
         p2p = np.abs(np.diff(peak))
@@ -519,7 +517,7 @@ def get_root_power_ratio(trace, times, noise_rms):
         sum_win = 25  # Smoothing window in ns
         sum_win_idx = int(np.round(sum_win / dt))  # Convert window size to sample points
 
-        channel_wf = np.sqrt(uniform_filter1d(channel_wf, size=sum_win_idx, mode='constant'))
+        channel_wf = np.sqrt(scipy.ndimage.uniform_filter1d(channel_wf, size=sum_win_idx, mode='constant'))
 
         # Find the maximum value of the smoothed waveform
         max_bin = np.argmax(channel_wf)
@@ -639,7 +637,7 @@ def get_entropy(trace, n_hist_bins = 50):
 
     Returns
     -------
-    signal_entropy: float
+    entropy: float
         Shannon entropy of the signal (trace)
     """
 
@@ -653,9 +651,9 @@ def get_entropy(trace, n_hist_bins = 50):
 
     # Step 3: Calculate Shannon Entropy
     # Using base = 2 for entropy in bits
-    signal_entropy = entropy(probabilities, base = 2)
+    entropy = scipy.stats.entropy(probabilities, base = 2)
 
-    return signal_entropy
+    return entropy
 
 def get_kurtosis(trace):
     """
@@ -668,12 +666,12 @@ def get_kurtosis(trace):
 
     Returns
     -------
-    signal_kurtosis: float
+    kurtosis: float
         Kurtosis of the signal (trace)
     """
-    signal_kurtosis = kurtosis(trace)
+    kurtosis = scipy.stats.kurtosis(trace)
 
-    return signal_kurtosis
+    return kurtosis
 
 def is_NAN_or_INF(trace):
     """
@@ -700,8 +698,8 @@ def is_NAN_or_INF(trace):
 
     trace = np.array(trace)
 
-    npoints_NAN = len( np.argwhere(np.isnan(trace)) )
-    npoints_INF = len( np.argwhere(np.isinf(trace)) )
+    npoints_NAN = len(np.argwhere(np.isnan(trace)))
+    npoints_INF = len(np.argwhere(np.isinf(trace)))
 
     if npoints_NAN or npoints_INF:
        is_bad_trace = True
