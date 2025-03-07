@@ -29,7 +29,7 @@ def load_scale_parameters(scale_parameter_path):
         frequencies = scale_parameters_dictionary["freq"]
         scale_parameters = scale_parameters_dictionary["scale_parameters"]
         scale_parameters = [interp1d(frequencies, scale_parameter,
-                                     bounds_error=False, fill_value="extrapolate")
+                                     bounds_error=False, fill_value=0.)
                                      for scale_parameter in scale_parameters]
     return scale_parameters
 
@@ -185,14 +185,13 @@ class channelGenericNoiseAdder:
                 self.logger.error("When selecting data-driven noise, the station and channel ids should be passed to bandlimeted noise")
                 raise ValueError
             
-            if station_id in [11]:
-                scale_parameter_path = self.scale_parameter_dir + "/" + f"thermal_noise_scale_parameters_s{station_id}_season23.json"
-                if not os.path.exists(scale_parameter_path):
-                    raise OSError(f"Path {scale_parameter_path} cannot be found")
+            scale_parameter_path = f"thermal_noise_scale_parameters_s{station_id}_season23.json"
+            if scale_parameter_path in self.scale_parameter_paths:
+                scale_parameter_full_path = self.scale_parameter_dir + "/" + scale_parameter_path
             else:
                 raise NotImplementedError("Other station parameters are being generated")
             
-            scale_parameters = load_scale_parameters(scale_parameter_path)
+            scale_parameters = load_scale_parameters(scale_parameter_full_path)
             fsigma = scale_parameters[channel_id](frequencies[selection])
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
 
@@ -439,7 +438,13 @@ class channelGenericNoiseAdder:
         self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
-        self.scale_parameter_dir = scale_parameter_dir
+        if scale_parameter_dir is not None:
+            self.scale_parameter_dir = scale_parameter_dir
+            self.scale_parameter_paths = [scale_param_json for scale_param_json in os.listdir(scale_parameter_dir)
+                                          if np.logical_and(scale_param_json.endswith(".json"),
+                                                            scale_param_json.startswith("thermal_noise_scale_parameters"))]
+            if len(self.scale_parameter_paths) == 0:
+                raise OSError(f"No scale parameter json files found in {self.scale_parameter_dir}")
 
     @register_run()
     def run(self, event, station, detector,
