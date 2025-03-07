@@ -8,7 +8,6 @@ from scipy.interpolate import interp1d
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.base.module import register_run
 
-
 @functools.lru_cache(maxsize=1024)
 def load_scale_parameters(scale_parameter_path):
     """
@@ -204,7 +203,12 @@ class channelGenericNoiseAdder:
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
-        noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+        if type == "data-driven":
+            # data-driven parameters were sampled from spectra that follow the NuRadio conventions
+            # and were hence already divide by the sampling rate
+            noise = self.add_random_phases(ampl, n_samples)
+        else:
+            noise = self.add_random_phases(ampl, n_samples) / sampling_rate
         if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
