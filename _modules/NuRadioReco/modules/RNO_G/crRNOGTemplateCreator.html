@@ -880,9 +880,6 @@
 
     <span class="n">station</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">station_time</span><span class="p">))</span>
 
-    <span class="n">channel</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
-    <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-
     <span class="n">sim_station</span> <span class="o">=</span> <span class="n">SimStation</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
     <span class="n">station</span><span class="o">.</span><span class="n">set_sim_station</span><span class="p">(</span><span class="n">sim_station</span><span class="p">)</span>
 
