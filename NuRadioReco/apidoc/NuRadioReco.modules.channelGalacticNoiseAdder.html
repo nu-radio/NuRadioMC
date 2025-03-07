@@ -645,7 +645,7 @@ of the brightness temperature is interpolated in between.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([skymodel, debug, n_side, freq_range, ...])</p></td>
 <td><p>Set up important parameters for the module</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, passband])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, passband, ...])</p></td>
 <td><p>Adds noise resulting from galactic radio emission to the channel traces</p></td>
 </tr>
 </tbody>
@@ -689,7 +689,7 @@ by a lot. If the frequencies of the channels change, the cache is cleared.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run" title="Link to this definition"></a></dt>
 <dd><p>Adds noise resulting from galactic radio emission to the channel traces</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -702,6 +702,9 @@ by a lot. If the frequencies of the channels change, the cache is cleared.</p>
 </dd>
 <dt><strong>passband: list of float, optional</strong></dt><dd><p>Lower and upper bound of the frequency range in which noise shall be
 added. The default (no passband specified) is [10, 1000] MHz</p>
+</dd>
+<dt><strong>excluded_channels: list, default=None</strong></dt><dd><p>A list containing the channels IDs to exclude per station.
+If None, all channels of the selected station in the detector are used.</p>
 </dd>
 </dl>
 </dd>
