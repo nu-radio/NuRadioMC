@@ -10,7 +10,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 import matplotlib.pyplot as plt
 import logging
-logger = logging.getLogger('channelTemplateCorrelation')
+logger = logging.getLogger('NuRadioReco.channelTemplateCorrelation')
 
 
 class channelTemplateCorrelation:

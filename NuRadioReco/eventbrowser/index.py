@@ -17,9 +17,7 @@ import argparse
 import NuRadioReco.eventbrowser.dataprovider
 import logging
 import webbrowser
-from NuRadioReco.modules.base import module
 
-logger = module.setup_logger(level=logging.INFO)
 
 argparser = argparse.ArgumentParser(description="Starts the Event Display, which then can be accessed via a webbrowser")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")

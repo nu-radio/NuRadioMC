@@ -6,8 +6,8 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('test_raytracing')
+logger = logging.getLogger('NuRadioMC.test_raytracing')
+logger.setLevel(logging.INFO)
 
 """
 this unit test compares the numerical and analytic calculation of path length and travel time,

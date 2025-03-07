@@ -4,7 +4,7 @@ import random
 from NuRadioReco.utilities import units
 import numpy as np
 import logging
-logger = logging.getLogger('noiseImporterARIANNAROOT')
+logger = logging.getLogger('NuRadioReco.ARIANNA.noiseImporterARIANNAROOT')
 
 
 class noiseImporter:

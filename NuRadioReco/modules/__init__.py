@@ -1,0 +1,1 @@
+from NuRadioReco.modules._deprecated import triggerTimeAdjuster

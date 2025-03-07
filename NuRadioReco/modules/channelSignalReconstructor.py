@@ -9,7 +9,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
 import logging
-logger = logging.getLogger('channelSignalReconstructor')
+logger = logging.getLogger('NuRadioReco.channelSignalReconstructor')
 
 
 class channelSignalReconstructor:
@@ -18,7 +18,7 @@ class channelSignalReconstructor:
 
     """
 
-    def __init__(self, log_level=logging.WARNING):
+    def __init__(self, log_level=logging.NOTSET):
         self.__t = 0
         logger.setLevel(log_level)
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
@@ -99,7 +99,10 @@ class channelSignalReconstructor:
 
         # Various definitions
         noise_int = np.sum(np.square(trace[noise_window_mask]))
-        noise_int *= (self.__signal_window_length) / float(noise_window_length)
+        if(noise_window_length > 0):
+            noise_int *= (self.__signal_window_length) / float(noise_window_length)
+        else:
+            logger.warning(f"Noise window length is zero. This likely indicates that the tracelength is too small. Noise quantities can not be calcualted.")
 
         if stored_noise:
             # we use the RMS from forced triggers
@@ -120,9 +123,9 @@ class channelSignalReconstructor:
         SNR = {}
         if (noise_rms == 0) or (noise_int == 0):
             logger.info("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to infinity.")
-            SNR['peak_2_peak_amplitude'] = np.infty
-            SNR['peak_amplitude'] = np.infty
-            SNR['integrated_power'] = np.infty
+            SNR['peak_2_peak_amplitude'] = np.inf
+            SNR['peak_amplitude'] = np.inf
+            SNR['integrated_power'] = np.inf
         else:
 
             SNR['integrated_power'] = np.sum(np.square(trace[signal_window_mask])) - noise_int
@@ -196,7 +199,6 @@ class channelSignalReconstructor:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

@@ -1,7 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 import time
 import logging
-logger = logging.getLogger('efieldAirToIcePropagator')
+logger = logging.getLogger('NuRadioReco.efieldAirToIcePropagator')
 
 
 class efieldAirToIcePropagator:
@@ -27,7 +27,6 @@ class efieldAirToIcePropagator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

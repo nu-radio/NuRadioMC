@@ -15,8 +15,7 @@ try:
 except ImportError:
     numba_available = False
 
-logger = logging.getLogger("SignalGen.ARZ")
-logging.basicConfig()
+logger = logging.getLogger("NuRadioMC.SignalGen.ARZ")
 # logger.setLevel(logging.INFO)
 
 ######################
@@ -375,23 +374,17 @@ class ARZ(object):
                 if("{:d}.{:d}".format(*self._version) in lib_hashs.keys()):
                     if(sha1.hexdigest() != lib_hashs["{:d}.{:d}".format(*self._version)]):
                         logger.warning("shower library {} has changed on the server. downloading newest version...".format(self._version))
+                        os.remove(path)
                         download_file = True
                 else:
                     logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
         if not download_file:
             return True
         else:
-            import requests
-            URL = 'https://rnog-data.zeuthen.desy.de/shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
+            from NuRadioReco.utilities.dataservers import download_from_dataserver
 
-            logger.info("downloading shower library {} from {}. This can take a while...".format(self._version, URL))
-            r = requests.get(URL)
-            if (r.status_code != requests.codes.ok):
-                logger.error("error in download of antenna model")
-                raise IOError("error in download of antenna model")
-            with open(path, "wb") as code:
-                code.write(r.content)
-            logger.info("...download finished.")
+            remote_path = 'shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
+            download_from_dataserver(remote_path, path)
 
     def __set_model_parameters(self, arz_version='ARZ2020'):
         """
@@ -500,7 +493,8 @@ class ARZ(object):
 
 
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
-                       same_shower=False, iN=None, output_mode='trace', maximum_angle=20 * units.deg):
+                       same_shower=False, iN=None, output_mode='trace', maximum_angle=20 * units.deg,
+                       profile_depth=None, profile_ce=None):
         """
         calculates the electric-field Askaryan pulse from a charge-excess profile
 
@@ -543,6 +537,13 @@ class ARZ(object):
             Maximum angular difference allowed between the observer angle and the Cherenkov angle.
             If the difference is greater, the function returns an empty trace.
 
+        profile_depth: (optional) array of floats
+            shower depth values of the charge excess profile
+            if provided, profile_ce must also be provided
+            if provided, the function will not use the library to get the profile but use the provided profile
+        profile_ce: (optional) array of floats
+            charge-excess values of the charge excess profile
+
         Returns
         -------
         efield_trace: array of floats
@@ -551,6 +552,43 @@ class ARZ(object):
         if not shower_type in self._library.keys():
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
 
+        # determine closes available energy in shower library
+        if profile_depth is None:
+            energies = np.array([*self._library[shower_type]])
+            iE = np.argmin(np.abs(energies - shower_energy))
+            rescaling_factor = shower_energy / energies[iE]
+            logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
+            profiles = self._library[shower_type][energies[iE]]
+
+            N_profiles = len(profiles['charge_excess'])
+
+            if(iN is None or np.isnan(iN)):
+                if(same_shower):
+                    if(shower_type in self._random_numbers):
+                        iN = self._random_numbers[shower_type]
+                        logger.info("using previously used shower {}/{}".format(iN, N_profiles))
+                    else:
+                        logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
+                        iN = self._random_generator.randint(N_profiles)
+                        self._random_numbers[shower_type] = iN
+                        logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
+                else:
+                    iN = self._random_generator.randint(N_profiles)
+                    self._random_numbers[shower_type] = iN
+                    logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
+            else:
+                iN = int(iN)  # saveguard against iN being a float
+                logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
+                self._random_numbers[shower_type] = iN
+            profile_depth = profiles['depth']
+            profile_ce = profiles['charge_excess'][iN] * rescaling_factor
+        else: # if profile_depth is provided, we don't need to use the library
+            if profile_ce is None:
+                raise ValueError("if profile_depth is provided, profile_ce must also be provided")
+            logger.info("using provided charge-excess profile, shower_energy and iN will be ignored.")
+
+        xmax = profile_depth[np.argmax(profile_ce)]
+
         # Due to the oscillatory nature of the ARZ integral, some numerical instabilities arise
         #  for angles near the axis and near 90 degrees. This creates some waveforms with large
         # spikes due to numerical errors, while the real electric field should be much smaller
@@ -558,45 +596,12 @@ class ARZ(object):
         # should not trigger, we return an empty trace for angular differences > 20 degrees.
         cherenkov_angle = np.arccos(1 / n_index)
 
-        # determine closes available energy in shower library
-        energies = np.array([*self._library[shower_type]])
-        iE = np.argmin(np.abs(energies - shower_energy))
-        rescaling_factor = shower_energy / energies[iE]
-        logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
-        profiles = self._library[shower_type][energies[iE]]
-
-        N_profiles = len(profiles['charge_excess'])
-
-        if(iN is None or np.isnan(iN)):
-            if(same_shower):
-                if(shower_type in self._random_numbers):
-                    iN = self._random_numbers[shower_type]
-                    logger.info("using previously used shower {}/{}".format(iN, N_profiles))
-                else:
-                    logger.warning("no previous random number for shower type {} exists. Generating a new random number.".format(shower_type))
-                    iN = self._random_generator.randint(N_profiles)
-                    self._random_numbers[shower_type] = iN
-                    logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
-            else:
-                iN = self._random_generator.randint(N_profiles)
-                self._random_numbers[shower_type] = iN
-                logger.info("picking profile {}/{} randomly".format(iN, N_profiles))
-        else:
-            iN = int(iN)  # saveguard against iN being a float
-            logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
-            self._random_numbers[shower_type] = iN
-
         # we always need to generate a random shower realization. The second ray tracing solution might be closer
-        # to the cherenkov angle, but NuRadioMC will reuse the shower realization of the first ray tracing solution.
+        # to the Cherenkov angle, but NuRadioMC will reuse the shower realization of the first ray tracing solution.
         if np.abs(theta - cherenkov_angle) > maximum_angle:
-            logger.info(f"viewing angle {theta/units.deg:.1f}deg is more than {maximum_angle/units.deg:.1f}deg away from the cherenkov cone. Returning zero trace.")
+            logger.info(f"viewing angle {theta/units.deg:.1f}deg is more than {maximum_angle/units.deg:.1f}deg away from the Cherenkov cone. Returning zero trace.")
             empty_trace = np.zeros((3, N))
             return empty_trace
-
-        profile_depth = profiles['depth']
-        profile_ce = profiles['charge_excess'][iN] * rescaling_factor
-
-        xmax = profile_depth[np.argmax(profile_ce)]
 
         # get the appropriate model parameters
         if shower_type == "HAD":

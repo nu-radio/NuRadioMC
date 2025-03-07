@@ -7,7 +7,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
 
 import logging
-logger = logging.getLogger('templateDirectionFitter')
+logger = logging.getLogger('NuRadioReco.templateDirectionFitter')
 
 
 class templateDirectionFitter:

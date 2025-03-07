@@ -1,10 +1,11 @@
 from NuRadioReco.detector.ARA import analog_components
 from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.utilities import units, signal_processing
 import numpy as np
 import time
 import logging
 
-logger = logging.getLogger("hardwareResponseIncorporator")
+logger = logging.getLogger("NuRadioReco.ARA.hardwareResponseIncorporator")
 
 
 class hardwareResponseIncorporator:
@@ -46,14 +47,22 @@ class hardwareResponseIncorporator:
 
             else:
                 trace_before_system_fft = np.zeros_like(trace_fft)
-                trace_before_system_fft[np.abs(system_response['gain']) > 0] = trace_fft[np.abs(system_response['gain']) > 0] / (system_response['gain'] * system_response['phase'])[np.abs(system_response['gain']) > 0]
+                trace_before_system_fft[np.abs(system_response['gain']) > 0] = (
+                    trace_fft[np.abs(system_response['gain']) > 0] /
+                    (system_response['gain'] * system_response['phase'])[np.abs(system_response['gain']) > 0]
+                )
                 channel.set_frequency_spectrum(trace_before_system_fft, channel.get_sampling_rate())
+
+        if not sim_to_data:
+            # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+            # in the efieldToVoltageConverter or with the channelCableDelayAdder
+            # (if efieldToVoltageConverterPerEfield was used).
+            signal_processing.add_cable_delay(station, det, sim_to_data=False, logger=self.logger)
 
         self.__t += time.time() - t
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

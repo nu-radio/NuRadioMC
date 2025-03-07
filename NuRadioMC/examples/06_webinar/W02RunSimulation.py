@@ -5,11 +5,13 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
+
 from NuRadioReco.utilities import units
 import numpy as np
 from NuRadioMC.simulation import simulation
 import matplotlib.pyplot as plt
 import os
+
 
 if __name__ == "__main__":
     results_folder = 'results'
@@ -67,14 +69,14 @@ if __name__ == "__main__":
     functions that controls what the detector does after the electric field arrives
     at the antenna. That allows us to create our own class that inherits from
     the simulation class that we will call mySimulation, and define in it a
-    _detector_simulation_filter_amp and _detector_simulation_trigger 
+    _detector_simulation_filter_amp and _detector_simulation_trigger
     function with all the characteristics of our detector setup.
     """
 
 
     class mySimulation(simulation.simulation):
         """
-        
+
         """
 
         def _detector_simulation_filter_amp(self, evt, station, det):

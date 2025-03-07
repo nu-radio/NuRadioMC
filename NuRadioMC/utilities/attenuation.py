@@ -2,9 +2,7 @@ import numpy as np
 from NuRadioReco.utilities import units
 
 import logging
-logger = logging.getLogger("attenuation")
-logging.basicConfig()
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("NuRadioMC.attenuation")
 
 import scipy.interpolate
 import os

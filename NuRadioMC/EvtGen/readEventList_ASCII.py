@@ -5,7 +5,7 @@ from radiotools import helper as hp
 from NuRadioReco.utilities import units
 from io import BytesIO
 import logging
-logger = logging.getLogger("readEventList")
+logger = logging.getLogger("NuRadioMC.EvtGen.readEventList")
 
 VERSION = 0.2
 

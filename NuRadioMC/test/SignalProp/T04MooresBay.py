@@ -8,7 +8,9 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import logging
-logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger("NuRadioMC.T04MooresBay")
+logger.setLevel(logging.INFO)
 
 ice = medium.mooresbay_simple()
 

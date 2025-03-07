@@ -108,6 +108,8 @@ function on its children. Thanks to this implementation, it is easy to extend
 the framework, since all that has to be done is to define ``serialize`` and
 ``deserialize`` functions and adjust the ones of the parent object.
 
+.. _label_parameter_storage:
+
 Parameter Storage
 ----------------------
 NuRadioReco offers a flexible way to store properties in the data structure via
@@ -169,6 +171,15 @@ They are the same class as ``RadioShower``, but are stored separately to disting
 between simulated and reconstructed properties.
 
 It can be accessed by the ``get_sim_showers`` method of the :class:`Event<NuRadioReco.framework.event.Event>` class.
+
+SimEmitter
+____________
+The :class:`SimEmitter<NuRadioReco.framework.sim_emitter.SimEmitter>` class is used to hold parameters of simulated emitters via the parameter storage.
+The concept is similar to the SimShower, but is used when NuRadioMC is used to simulate emitters (and)
+not particle showers.
+
+It can be accessed by the ``get_sim_emitters`` method of the :class:`Event<NuRadioReco.framework.event.Event>` class.
+We allow for multiple emitters per event analogous to the multiple showers per event.
 
 Particle
 ________
@@ -241,8 +252,15 @@ ____________
 The :class:`Channel<NuRadioReco.framework.channel>`
 is used to store information about the voltage traces recorded in a channel,
 which can be accessed via the parameter storage and methods inherited from
-the ``BaseTrace`` class.
-
+the ``BaseTrace`` class. Optionally a ``trigger_channel`` object of the same class can
+be stored within a channel object. The idea is that the voltage traces on which the trigger(s)
+run can be a different from what the system reads out (additional filters may be applied to
+the trigger channels). One can access the ``trigger_channel`` from a channel object via the
+``get_trigger_channel()`` method. This function will always return a channel object. If no
+trigger channel was defined, ``self``, i.e., the channel object itself, is returned.
+The :class:`Station<NuRadioReco.framework.station>` class also has a method to return trigger channels
+(if defined). Trigger modules should typically call these ``get_trigger_channel()`` methods to
+get the channel objects.
 
 Hybrid Information
 ___________________
@@ -272,7 +290,7 @@ _________________
 A ``HybridDetector`` can be used to store more detailed and experiment-specific information
 about a complementary detector. The diversity of hybrid radio detectors makes it
 impractical to provide this functionality inside NuRadioReco itself, but a custom
-``HybridDetector`` class can be impemented inside an independent repository. This class
+``HybridDetector`` class can be implemented inside an independent repository. This class
 can be slotted into the data structure via the ``set_hybrid_detector`` method of the ``HybridShower``
 class and accessed via its ``get_hybrid_detector`` method.
 

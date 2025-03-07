@@ -9,6 +9,8 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 import NuRadioReco.modules.iftElectricFieldReconstructor.operators
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
+from NuRadioReco.modules.base.module import register_run
+
 import scipy
 import nifty5 as ift
 import matplotlib.pyplot as plt
@@ -188,6 +190,7 @@ class IftElectricFieldReconstructor:
         )
         self.__draw_priors(event, station, frequency_domain)
 
+    @register_run()
     def run(self, event, station, detector, channel_ids, efield_scaling, use_sim=False):
         """
         Run the electric field reconstruction

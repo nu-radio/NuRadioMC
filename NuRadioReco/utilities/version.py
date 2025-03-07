@@ -2,8 +2,7 @@ from subprocess import Popen, PIPE
 import os
 import re
 import logging
-logger = logging.getLogger("utilities.version")
-logging.basicConfig()
+logger = logging.getLogger("NuRadioReco.utilities.version")
 
 
 def get_git_commit_hash(path):
@@ -13,7 +12,7 @@ def get_git_commit_hash(path):
         h = stdout.decode('utf-8').split('\n')[0].split()[1]
         check = re.compile(r"^[a-f0-9]{40}(:.+)?$", re.IGNORECASE)
         if(not check.match(h)):
-            logging.error("NuRadioMC version could not be determined, returning None")
+            logger.error("NuRadioMC version could not be determined, returning None")
             return "none"
     except:
         return "none"

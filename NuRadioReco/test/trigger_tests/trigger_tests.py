@@ -11,6 +11,7 @@ import NuRadioReco.modules.efieldToVoltageConverter
 from NuRadioReco.utilities import units
 import datetime
 
+
 det = NuRadioReco.detector.detector.Detector(json_filename='NuRadioReco/test/trigger_tests/trigger_test_detector.json',
                                              antenna_by_depth=False)
 det.update(datetime.datetime(2018, 10, 1))
@@ -29,6 +30,11 @@ hardware_response_incorporator = NuRadioReco.modules.ARIANNA.hardwareResponseInc
 
 for event in event_reader.run():
     station = event.get_station(1)
+
+    # First remove channels to reproduce them with the efieldToVoltageConverter
+    for chid in station.get_channel_ids():
+        station.remove_channel(chid)
+
     efield_to_voltage_converter.run(event, station, det)
     hardware_response_incorporator.run(event, station, det, True)
     high_low_trigger.run(event, station, det, threshold_high=40 * units.mV, threshold_low=-40 * units.mV)

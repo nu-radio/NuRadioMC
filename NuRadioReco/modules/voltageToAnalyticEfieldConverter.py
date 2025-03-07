@@ -18,7 +18,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.framework.electric_field
 
 import logging
-logger = logging.getLogger('voltageToAnalyticEfieldConverter')
+logger = logging.getLogger('NuRadioReco.voltageToAnalyticEfieldConverter')
 
 
 def covariance(function, vmin, up, fast=False):

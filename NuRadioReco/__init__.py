@@ -2,6 +2,13 @@ import os
 import copyreg
 import numpy as np
 from .utilities.io_utilities import _pickle_numpy_array, _pickle_numpy_scalar
+import logging
+
+from NuRadioReco.utilities.logging import NuRadioLogger, _setup_logger
+
+logging.setLoggerClass(NuRadioLogger)
+_setup_logger(name="NuRadioReco")
+
 try:
     import importlib.metadata as importlib_metadata
 except ModuleNotFoundError:
@@ -20,7 +27,7 @@ if os.path.isfile(toml_file):
             __version__ = toml_dict['tool']['poetry']['version']
     except KeyError:
         pass
-    
+
 # If not available, we're probably using the pip installed package
 if __version__ == None:
     __version__ = importlib_metadata.version("NuRadioMC")

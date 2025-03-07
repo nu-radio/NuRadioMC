@@ -8,8 +8,8 @@ import NuRadioReco.framework.electric_field
 import logging
 from radiotools import helper as hp
 from radiotools import plthelpers as php
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('raytracing')
+logger = logging.getLogger('NuRadioMC.SignalProp.raytracing')
+logger.setLevel(logging.INFO)
 # ray.cpp_available=False
 
 x1 = np.array([0, 0., -149.]) * units.m

@@ -4,10 +4,10 @@ solution_types = {1: 'direct',
                       2: 'refracted',
                       3: 'reflected'}
 solution_types_revert = {v:k for k, v in solution_types.items()}
-
 available_modules = ['analytic',
-                     'radiopropa',
-                     'direct_ray']
+                    'radiopropa',
+                    'direct_ray']
+
 
 reflection_case = {1: 'upwards launch vector',
                    2: 'downward launch vector'}

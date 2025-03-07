@@ -5,9 +5,7 @@ import math
 from six import iteritems
 import numpy as np
 import h5py
-logger = logging.getLogger("HDF5-split")
-logging.basicConfig(level=logging.DEBUG)
-logger.setLevel(logging.WARNING)
+logger = logging.getLogger("NuRadioMC.HDF5-split")
 
 
 def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_file):

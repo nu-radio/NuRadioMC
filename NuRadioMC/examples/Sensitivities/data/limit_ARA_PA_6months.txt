@@ -1,0 +1,20 @@
+# Source: Phased Array Six-Month Real Limit
+# Data type: Upper limit
+# Energy bins per decade: 1
+# Column values:
+# Energy [eV]
+# Flux [eV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+1.00E+16  89771.61706761  0 0
+3.16E+16  27085.56086071  0 0
+1.00E+17  8786.44941194   0 0
+3.16E+17  4822.58991603   0 0
+1.00E+18  3210.43840531   0 0
+3.16E+18  3120.34963572     0 0
+1.00E+19  3255.37433081 0 0
+3.16E+19  4246.17439525 0 0
+1.00E+20  6213.49250206 0 0
+3.16E+20  8835.75610193 0 0
+1.00E+21  17992.49247862  0 0

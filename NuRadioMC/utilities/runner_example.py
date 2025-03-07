@@ -2,7 +2,7 @@ import numpy as np
 from NuRadioReco.utilities import units
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.triggerTimeAdjuster
+
 from NuRadioMC.EvtGen import generator
 from NuRadioMC.simulation import simulation
 import os
@@ -87,8 +87,6 @@ def task(q, iSim, nu_energy, nu_energy_max, detectordescription, config, output_
     highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
     channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
-    triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
-
     class mySimulation(simulation.simulation):
 
         def _detector_simulation_filter_amp(self, evt, station, det):
@@ -123,8 +121,6 @@ def task(q, iSim, nu_energy, nu_energy_max, detectordescription, config, output_
                                         triggered_channels=[0, 1, 2, 3],  # select the LPDA channels
                                         number_concidences=2,  # 2/4 majority logic
                                         trigger_name='LPDA_2of4_100Hz')
-
-            triggerTimeAdjuster.run(evt, station, det)
 
     flavor_ids = {'e': [12, -12],
                  'mu': [14, -14],

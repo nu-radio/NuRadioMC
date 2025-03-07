@@ -10,9 +10,7 @@ import NuRadioReco.eventbrowser.apps.overview_plots.trigger_properties
 import NuRadioReco.eventbrowser.apps.overview_plots.event_overview
 import logging
 
-logger = logging.getLogger('overview')
-parent_logger = logging.getLogger('NuRadioReco')
-logger.setLevel(parent_logger.level)
+logger = logging.getLogger('NuRadioReco.overview')
 
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 

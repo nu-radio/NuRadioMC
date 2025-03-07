@@ -13,6 +13,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities import fft
 from NuRadioReco.detector import detector
 
+
 parser = argparse.ArgumentParser(description='calculates noise trigger rate for phased array')
 parser.add_argument('--ntries', type=int, help='number noise traces to which a trigger is applied for each threshold',
                     default=1000)

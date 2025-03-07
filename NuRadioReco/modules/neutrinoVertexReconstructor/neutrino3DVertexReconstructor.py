@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
+from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.utilities.io_utilities
 import NuRadioReco.framework.electric_field
 import NuRadioReco.detector.antennapattern
@@ -165,6 +166,7 @@ class neutrino3DVertexReconstructor:
                 self.__header[int(channel_z)] = f['header']
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
 
+    @register_run()
     def run(
             self,
             event,

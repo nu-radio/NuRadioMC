@@ -5,7 +5,7 @@ import logging
 from NuRadioReco.framework.trigger import IntegratedPowerTrigger
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
 
-logger = logging.getLogger('ARAtriggerSimulator')
+logger = logging.getLogger('NuRadioReco.ARA.triggerSimulator')
 
 
 class triggerSimulator:
@@ -161,7 +161,6 @@ class triggerSimulator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

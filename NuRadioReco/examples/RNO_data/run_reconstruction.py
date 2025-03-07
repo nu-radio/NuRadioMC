@@ -64,8 +64,3 @@ for i_event, event in enumerate(readRNOGData.run()):
 
     fig.tight_layout()
     fig.savefig("trace_{}.pdf".format(i_event))
-    
-
-
-
-                    

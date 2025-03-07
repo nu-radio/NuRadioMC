@@ -1,7 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector.ARIANNA import analog_components
 import numpy as np
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, signal_processing
 import time
 import logging
 
@@ -14,7 +14,7 @@ class hardwareResponseIncorporator:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger("NuRadioReco.hardwareResponseIncorporator")
+        self.logger = logging.getLogger("NuRadioReco.ARIANNA.hardwareResponseIncorporator")
         self.__debug = False
         self.__time_delays = {}
         self.__t = 0
@@ -110,14 +110,14 @@ class hardwareResponseIncorporator:
             if True, only the phases response is applied but not the amplitude response
         mode: string or None, default None
             Options:
-            
+
             * 'phase_only': only the phases response is applied but not the amplitude response
                 (identical to phase_only=True )
             * 'relativ': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
                 filter response is 1 (before applying cable response). This makes it easier
                 to compare the filtered to unfiltered signal
             * None : default, gain and phase effects are applied 'normally'
-            
+
         mingainlin: float
             In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by
             dividing the measured signal by the gain) leads to excessively high values, due to the effect of
@@ -147,11 +147,11 @@ class hardwareResponseIncorporator:
             # otherwise, noise will be blown up
             channel.set_frequency_spectrum(trace_fft, channel.get_sampling_rate())
 
-            if not sim_to_data:
-                # Include cable delays
-                cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-                self.logger.debug("cable delay of channel {} is {}ns".format(channel.get_id(), cable_delay / units.ns))
-                channel.add_trace_start_time(-cable_delay)
+        if not sim_to_data:
+            # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+            # in the efieldToVoltageConverter or with the channelCableDelayAdder
+            # (if efieldToVoltageConverterPerEfield was used).
+            signal_processing.add_cable_delay(station, det, sim_to_data=False, logger=self.logger)
 
         self.__t += time.time() - t
 

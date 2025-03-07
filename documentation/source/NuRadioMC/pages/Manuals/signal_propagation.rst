@@ -27,8 +27,9 @@ Below you find the **default settings** of the **config file**.
       focusing: False
       focusing_limit: 2
       n_reflections: 0
+      birefringence: False 
 
-How to implement new ice-models and information on all the available ice-models and attenuation models can be found in the documentation. 
+How to implement new ice-models and information on all the available ice-models and attenuation/birefringence models can be found in the documentation. 
 
 Ray tracing
 -----------

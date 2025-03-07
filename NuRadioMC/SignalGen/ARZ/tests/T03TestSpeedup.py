@@ -14,8 +14,8 @@ import logging
 import matplotlib.gridspec as gridspec
 
 
-logger = logging.getLogger("test")
-logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger("NuRadioMC.SignalGen.test")
+logger.setLevel(level=logging.WARNING)
 rho = 0.924 * units.g / units.cm ** 3  # density g cm^-3
 
 if __name__ == "__main__":

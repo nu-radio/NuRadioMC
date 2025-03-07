@@ -8,6 +8,10 @@ There are two classes that provide this functionality: The
 Both are used very similarly, with the ``GenericDetector`` being more for
 simulation studies.
 
+For the RNO-G experiment, there is an additional detector class
+:class:`rnog_detector <NuRadioReco.detector.RNO_G.rnog_detector>`.
+Some more details about this detector class and its implementation are given
+:doc:`here </NuRadioReco/pages/detector/rnog>`.
 
 
 The Detector Class
@@ -24,9 +28,11 @@ at  specific time.
 
   import NuRadioReco.detector.detector
   import astropy.time
+
   det = NuRadioReco.detector.detector.Detector(source='json', json_filename='path/to/json/file')
   detector_time = astropy.time.Time('2018-01-01 20:00:00')
-  det.update(detector_time)
+  det.update(detector_time) # set the detector to the state it was in at detector_time
+
   station_position = det.get_absolute_position(42)
 
 .. Important:: Since the detector configuration can change with time, the detector has to be set to the correct time using the ``update`` method.

@@ -5,6 +5,7 @@ import NuRadioReco.modules.eventTypeIdentifier
 from NuRadioReco.detector import generic_detector as detector
 import argparse
 
+
 # Parse eventfile as argument
 parser = argparse.ArgumentParser(description='NuRadioSim file')
 parser.add_argument('inputfilename', type=str, nargs='*',
@@ -16,7 +17,7 @@ parser.add_argument('-o', '--output_filename', type=str, nargs='?',
                     help='output file name')
 
 parser.add_argument('--detectordescription', type=str, nargs='?',
-                    default='../examples/example_data/dummy_detector.json',
+                    default='../examples/example_data/dual_polerized_antenna_station.json',
                     help='path to detectordescription')
 
 parser.add_argument('--set_run_number', dest='set_run_number', action='store_true',
@@ -26,7 +27,7 @@ parser.add_argument('--set_run_number', dest='set_run_number', action='store_tru
 args = parser.parse_args()
 
 # initialize modules
-det = detector.GenericDetector(json_filename=args.detectordescription, default_station=102, default_channel=0)
+det = detector.GenericDetector(json_filename=args.detectordescription)
 readCoREASShower = NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower()
 readCoREASShower.begin(args.inputfilename, det, set_ascending_run_and_event_number=args.set_run_number)
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()

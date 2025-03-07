@@ -4,7 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from radiotools import plthelpers as php
 import logging
-logging.basicConfig(level=logging.INFO)
+
+
+logger = logging.getLogger("NuRadioMC.T04CompareModels")
+logger.setLevel(logging.INFO)
 
 interp_factor = 20
 # HAD for different viewing angles
@@ -22,7 +25,7 @@ fig, ax = plt.subplots(2, 3, sharex=True)
 ax = ax.flatten()
 for iTheta, theta in enumerate(thetas):
     trace = ask.get_time_trace(E, theta, N, dt, shower_type, n_index, R, "ARZ2019", interp_factor=interp_factor)
-    ax[iTheta].plot(tt, trace[1], '-C0'.format(iTheta), label="$\Delta \Theta$ = {:.1f}".format((theta-theta_C)/units.deg))
+    ax[iTheta].plot(tt, trace, '-C0'.format(iTheta), label="$\Delta \Theta$ = {:.1f}".format((theta-theta_C)/units.deg))
     trace = ask.get_time_trace(E, theta, N, dt, shower_type, n_index, R, "Alvarez2000")
     trace = np.roll(trace, int(-1 * units.ns/dt))
     ax[iTheta].plot(tt, trace, '--C1'.format(iTheta), label="$\Delta \Theta$ = {:.1f}".format((theta-theta_C)/units.deg))
@@ -39,7 +42,7 @@ fig, ax = plt.subplots(2, 3, sharex=True)
 ax = ax.flatten()
 for iTheta, theta in enumerate(thetas):
     trace = ask.get_time_trace(E, theta, N, dt, shower_type, n_index, R, "ARZ2019", interp_factor=interp_factor)
-    ax[iTheta].plot(tt, trace[1], '-C0'.format(iTheta), label="$\Delta \Theta$ = {:.1f}".format((theta-theta_C)/units.deg))
+    ax[iTheta].plot(tt, trace, '-C0'.format(iTheta), label="$\Delta \Theta$ = {:.1f}".format((theta-theta_C)/units.deg))
     trace = ask.get_time_trace(E, theta, N, dt, shower_type, n_index, R, "Alvarez2000")
     trace = np.roll(trace, int(-1 * units.ns/dt))
     ax[iTheta].plot(tt, trace, '--C1'.format(iTheta), label="$\Delta \Theta$ = {:.1f}".format((theta-theta_C)/units.deg))
@@ -58,7 +61,7 @@ fig, ax = plt.subplots(2, 3, sharex=True)
 ax = ax.flatten()
 for iTheta, theta in enumerate(thetas):
     trace = ask.get_time_trace(E, theta, N, dt, shower_type, n_index, R, "ARZ2019", interp_factor=interp_factor)
-    ax[iTheta].plot(tt, trace[1], '-C0'.format(iTheta), label="$\Delta \Theta$ = {:.1f}".format((theta-theta_C)/units.deg))
+    ax[iTheta].plot(tt, trace, '-C0'.format(iTheta), label="$\Delta \Theta$ = {:.1f}".format((theta-theta_C)/units.deg))
     trace = ask.get_time_trace(E, theta, N, dt, shower_type, n_index, R, "Alvarez2000")
     trace = np.roll(trace, int(-1 * units.ns/dt))
     ax[iTheta].plot(tt, trace, '--C1'.format(iTheta), label="$\Delta \Theta$ = {:.1f}".format((theta-theta_C)/units.deg))

@@ -4,7 +4,7 @@ import logging
 from NuRadioReco.utilities import units
 from NuRadioReco.detector.antennapattern import AntennaPatternProvider
 
-logger = logging.getLogger('channelAntennaDedispersion')
+logger = logging.getLogger('NuRadioReco.channelAntennaDedispersion')
 
 
 class channelAntennaDedispersion:

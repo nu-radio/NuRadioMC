@@ -159,7 +159,7 @@ def draw_station_view(station_id, checklist):
         antenna_rotations.append(channel_position)
         antenna_rotations.append(channel_position + ant_rot)
         antenna_rotations.append([None, None, None])
-        if 'createLPDA' in detector.get_antenna_type(station_id, channel_id) and 'sketch' in checklist:
+        if 'LPDA' in detector.get_antenna_type(station_id, channel_id) and 'sketch' in checklist:
             antenna_tip = channel_position + ant_ori
             antenna_tine_1 = channel_position + np.cross(ant_ori, ant_rot)
             antenna_tine_2 = channel_position - np.cross(ant_ori, ant_rot)
@@ -172,14 +172,17 @@ def draw_station_view(station_id, checklist):
                 delaunayaxis='x',
                 hoverinfo='skip'
             ))
+    # TODO: insert also device info once in the database
+
+
     channel_positions = np.array(channel_positions)
     antenna_types = np.array(antenna_types)
     antenna_orientations = np.array(antenna_orientations)
     antenna_rotations = np.array(antenna_rotations)
     channel_ids = np.array(channel_ids)
-    lpda_mask = (np.char.find(antenna_types, 'createLPDA') >= 0)
-    vpol_mask = (np.char.find(antenna_types, 'bicone_v8') >= 0) | (np.char.find(antenna_types, 'vpol') >= 0)
-    hpol_mask = (np.char.find(antenna_types, 'fourslot') >= 0) | (np.char.find(antenna_types, 'trislot') >= 0) | (np.char.find(antenna_types, 'quadslot') >= 0)
+    lpda_mask = (np.char.find(antenna_types, 'createLPDA') >= 0) | (np.char.find(antenna_types, 'LPDA') >= 0)
+    vpol_mask = (np.char.find(antenna_types, 'bicone_v8') >= 0) | (np.char.find(antenna_types, 'vpol') >= 0) | (np.char.find(antenna_types, 'VPol') >= 0)
+    hpol_mask = (np.char.find(antenna_types, 'fourslot') >= 0) | (np.char.find(antenna_types, 'trislot') >= 0) | (np.char.find(antenna_types, 'quadslot') >= 0) | (np.char.find(antenna_types, 'HPol') >= 0)
     if len(channel_positions[:, 0][lpda_mask]) > 0:
         data.append(go.Scatter3d(
             x=channel_positions[:, 0][lpda_mask],

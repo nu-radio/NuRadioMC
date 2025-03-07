@@ -9,8 +9,7 @@ import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("NuRadioMC.runstrawman")
 
 # initialize detector sim modules
 efieldToVoltageConverterPerChannel = NuRadioReco.modules.efieldToVoltageConverterPerChannel.efieldToVoltageConverterPerChannel()

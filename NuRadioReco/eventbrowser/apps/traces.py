@@ -9,9 +9,7 @@ from dash.dependencies import State, Input, Output
 from NuRadioReco.eventbrowser.app import app
 import logging
 
-logger = logging.getLogger('traces')
-parent_logger = logging.getLogger('NuRadioReco')
-logger.setLevel(parent_logger.level)
+logger = logging.getLogger('NuRadioReco.traces')
 
 layout = html.Div([
     html.Div(id='trigger-trace', style={'display': 'none'}),
