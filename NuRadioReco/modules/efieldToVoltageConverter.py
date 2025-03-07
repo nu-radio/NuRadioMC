@@ -43,8 +43,7 @@ class efieldToVoltageConverter():
               time_resolution=None,
               pre_pulse_time=200 * units.ns,
               post_pulse_time=200 * units.ns,
-              caching=True,
-              interpolated=False
+              caching=True
               ):
         """
         Begin method, sets general parameters of module
@@ -70,18 +69,12 @@ class efieldToVoltageConverter():
             length of empty samples that is added after the simulated trace
         caching: bool
             enable/disable caching of antenna response to save loading times (default: True)
-        interpolated: bool
-            whether or not you used the interpolator to interpolate the electric fields. 
-            If True the electric fields are already at the respective antenna position and no 
-            time travel shift is necessary. If False (default) there is usually only one 
-            electric field for all channels and a travel time shift is added.
         """
 
         if time_resolution is not None:
             self.logger.warning("`time_resolution` is deprecated and will be removed in the future. "
                                 "The argument is ignored.")
         self.__caching = caching
-        self.__interpolated = interpolated
         self.__freqs = None
         self.__debug = debug
         self.__pre_pulse_time = pre_pulse_time
@@ -133,8 +126,7 @@ class efieldToVoltageConverter():
                 t0 = electric_field.get_trace_start_time() + cab_delay
 
                 # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account 
-                # (only if the signal is not interpolated)
-                if (sim_station.is_cosmic_ray() and not self.__interpolated):
+                if sim_station.is_cosmic_ray():
                     travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
                     t0 += travel_time_shift
 
@@ -192,9 +184,7 @@ class efieldToVoltageConverter():
                 # calculate the start bin
                 if not np.isnan(electric_field.get_trace_start_time()):
                     cab_delay = det.get_cable_delay(sim_station_id, channel_id)
-                    if self.__interpolated:
-                        travel_time_shift = 0
-                    elif sim_station.is_cosmic_ray():
+                    if sim_station.is_cosmic_ray():
                         travel_time_shift = calculate_time_shift_for_cosmic_ray(
                             det, sim_station, electric_field, channel_id)
                     else:
