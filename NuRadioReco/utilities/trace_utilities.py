@@ -600,7 +600,7 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
     ref_trace: 1-D array of floats
         Trace of the reference channel
     use_envelope: bool
-        See if users would like to find the correlation between envelopes or just normal traces (default=False)
+        See if users would like to find the correlation between envelopes or just normal traces (default: False)
 
     Returns
     -------
@@ -633,7 +633,7 @@ def get_entropy(trace, n_hist_bins = 50):
     trace: array of floats
         Trace of a waveform
     n_hist_bins: int
-        Number of bins for the histogram (default = 50)
+        Number of bins for the histogram (default: 50)
 
     Returns
     -------
