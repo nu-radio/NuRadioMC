@@ -13,7 +13,7 @@ logger = logging.getLogger('NuRadioReco.HighLowTriggerSimulator')
 
 def get_high_low_triggers(trace, high_threshold, low_threshold,
                           time_coincidence=5 * units.ns, dt=1 * units.ns, 
-                          step=1, extend_trace=False):
+                          step=1):
     """
     calculates a high low trigger in a time coincidence window
 
@@ -31,9 +31,6 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
         the width of a time bin (inverse of sampling rate)
     step: int
         stride length for sampling rate and clock rate mismatch in trigger logic
-    extend_trace: bool
-        wrap beginning of trace to the back to allow beginning and
-        end of the trace to contribute to a trigger (overlapping windows)
 
     Returns
     -------
@@ -41,15 +38,18 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
         the bins where the trigger condition is satisfied
     """
 
+    if trace.dtype != type(high_threshold):
+        logger.error(f"The trace ({trace.dtype}) and the threshold ({type(high_threshold)}) must have the same type")
+        raise TypeError(f"The trace ({trace.dtype}) and the threshold ({type(high_threshold)}) must have the same type")
+
     n_bins_coincidence = int(np.round(time_coincidence / dt))
-
-    if extend_trace:
-        #hack it by assuming noise at ends so that beginning and end of trace aren't completely neglected, trace time may
-        trace=np.concatenate((trace,trace[:n_bins_coincidence])) 
-
     num_frames = int(np.floor((len(trace) - n_bins_coincidence) / step))
+
     logger.debug("length of trace {} samples, coincidence window {}, num window bins {}".format(len(trace), n_bins_coincidence, num_frames))
 
+    #This line transforms the trace (n samples) to an array with shape (num_frames,window) where each frame
+    #is extracted from trace in step sample intervals
+    #Ex. step=2, window=4, trace=1,2,3,4,5,6,7,8, trace_windowed=((1,2,3,4),(3,4,5,6),...)
     trace_windowed = np.lib.stride_tricks.as_strided(trace, (num_frames, n_bins_coincidence),
                                                         (trace.strides[0] * step, trace.strides[0]))
 
@@ -76,10 +76,6 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         the width of a time bin (inverse of sampling rate)
     step: int
         stride length for sampling rate and clock rate mismatch in trigger logic
-        if applied in get_high_low_triggers this should be 1
-    extend_trace: bool
-        wrap beginning of trace to the back to allow beginning and
-        end of the trace to contribute to a trigger (overlapping windows)
 
     Returns
     -------
@@ -92,6 +88,8 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     """
 
     n = len(tts[0])
+
+    #coincidence bins needs reduced by step since the output traces of get_high_low_triggers is already binned by step
     n_bins_coincidence = int(np.round(time_coincidence / dt / step))
 
     if(n_bins_coincidence > n):  # reduce coincidence window to maximum trace length
@@ -99,16 +97,10 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         logger.debug("specified coincidence window longer than tracelenght, reducing coincidence window to trace length")
 
     for i in range(len(tts)):
-
-        if extend_trace:   
-            #hack it by assuming noise at ends so that beginning and end of trace aren't completely neglected 
-            trace=np.concatenate((tts[i],tts[i][0:n_bins_coincidence]))
-        else: 
-            trace=np.array(tts[i])
-
+        trace=np.array(tts[i])
         num_frames = int(np.floor((len(trace) - n_bins_coincidence)))
 
-        #step size is 1 here since the output of get_high_low is already binned in 4 samples
+        #Force the step size here to be 1 since the output traces of get_high_low_triggers is already binned by step
         trace_windowed = np.lib.stride_tricks.as_strided(trace, (num_frames, n_bins_coincidence),
                                                             (trace.strides[0], trace.strides[0]))
 
@@ -150,8 +142,7 @@ class triggerSimulator:
             trigger_adc=True,
             clock_offset=0,
             adc_output='voltage',
-            step=1,
-            extend_trace=False):
+            step=1):
         """
         simulate ARIANNA trigger logic
 
@@ -196,10 +187,6 @@ class triggerSimulator:
             * 'counts' to store the ADC output in ADC counts
         step: int
             stride length for sampling rate and clock rate mismatch in trigger logic
-            if applied in get_high_low_triggers this should be 1
-        extend_trace: bool
-            wrap beginning of trace to the back to allow beginning and
-            end of the trace to contribute to a trigger (overlapping windows)
 
         """
         t = time.time()
@@ -248,7 +235,7 @@ class triggerSimulator:
                     trace,
                     _get_threshold_channel(threshold_high, channel_id),
                     _get_threshold_channel(threshold_low, channel_id),
-                    high_low_window, dt, step, extend_trace)
+                    high_low_window, dt, step)
 
                 if np.any(triggerd_bins):
                     channels_that_passed_trigger.append(channel.get_id())
@@ -258,7 +245,7 @@ class triggerSimulator:
 
             if len(triggerd_bins_channels):
                 has_triggered, triggered_bins, triggered_times = get_majority_logic(
-                    triggerd_bins_channels, number_concidences, coinc_window, dt, step, extend_trace)
+                    triggerd_bins_channels, number_concidences, coinc_window, dt, step)
             else:
                 has_triggered = False
             # set maximum signal aplitude
