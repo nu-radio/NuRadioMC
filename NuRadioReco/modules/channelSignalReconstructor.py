@@ -149,10 +149,13 @@ class channelSignalReconstructor:
 
             snr['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
 
-        #Calculate peak to peak voltage SNR using the RMS of the split waveform
+        # Calculate peak to peak voltage SNR using the RMS of the split waveform
         coincidence_window_size_bins = int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
+        if coincidence_window_size_bins < 2:
+            logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
+
         snr['peak_2_peak_amplitude_split_noise_rms'] = np.amax(trace_utilities.peak_to_peak_amplitudes(channel.get_trace(), coincidence_window_size_bins))
-        snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.get_split_trace_noise_RMS(channel.get_trace(), segments=4, lowest=2)
+        snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.split_trace_noise_rms(channel.get_trace(), segments=4, lowest=2)
         snr['peak_2_peak_amplitude_split_noise_rms'] /= 2
 
         if self.__debug:
@@ -167,15 +170,32 @@ class channelSignalReconstructor:
 
 
     def get_max_a_norm(self, station):
+        """
+        Calculate the maximum peak to peak amplitude of the signal normalized by the noise level over all channels in a station.
+
+        Parameters
+        ----------
+        station : Station
+            The station object containing the channels.
+
+        Returns
+        -------
+        maxaval : float
+            The maximum peak to peak amplitude of the signal normalized by the noise level over all channels in the station.
+        """
         maxaval = 0
         for channel in station.iter_channels():
             normalized_wf = channel.get_trace() / np.std(channel.get_trace())
             coincidence_window_size_bins = int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
+            if coincidence_window_size_bins < 2:
+                logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
+
             thismax = np.amax(
-                trace_utilities.peak_to_peak_amplitudes(normalized_wf, coincidence_window_size_bins)
-            )
+                trace_utilities.maximum_peak_to_peak_amplitude(normalized_wf, coincidence_window_size_bins))
+
             if thismax > maxaval:
                 maxaval = thismax
+
         return maxaval
 
 
@@ -215,6 +235,7 @@ class channelSignalReconstructor:
 
             # Calculate impulsivity of the signal
             channel[chp.impulsivity] = trace_utilities.get_impulsivity(trace)
+
 
             # Use noise precalculated from forced triggers
             signal_to_noise, noise_rms = self.get_SNR(
