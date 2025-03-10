@@ -628,6 +628,57 @@
   <section id="module-NuRadioMC.utilities.attenuation">
 <span id="nuradiomc-utilities-attenuation-module"></span><h1>NuRadioMC.utilities.attenuation module<a class="headerlink" href="#module-NuRadioMC.utilities.attenuation" title="Link to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.read_grip_temperature">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">read_grip_temperature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#read_grip_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.read_grip_temperature" title="Link to this definition"></a></dt>
+<dd><p>Read temperature file from grip.</p>
+<p>Data file from footnote 5 from <a class="reference external" href="https://arxiv.org/pdf/2201.07846">https://arxiv.org/pdf/2201.07846</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>depths: array of floats</dt><dd><p>Depths in meters (positive!).</p>
+</dd>
+<dt>temps: array of floats</dt><dd><p>Temperatures in Kelvin.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.grip_temperature_profile">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">grip_temperature_profile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#grip_temperature_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.grip_temperature_profile" title="Link to this definition"></a></dt>
+<dd><p>Returns interpolation function for temperature profile from Greenland Ice Core Project (GRIP) borehole measurements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>func</strong><span class="classifier">scipy.interpolate.interp1d</span></dt><dd><p>f(depth) -&gt; temperature in Kelvin. Depth is positivly defined: 0 is the surface, 3000 is the bottom.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.get_grip_temperature">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">get_grip_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#get_grip_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.get_grip_temperature" title="Link to this definition"></a></dt>
+<dd><p>Returns temperature at a given depth from Greenland Ice Core Project (GRIP) borehole measurements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>depth</strong><span class="classifier">float</span></dt><dd><p>Depth in meters. Positive values are below the surface.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Temperature in Kelvin.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.fit_GL1">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">fit_GL1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#fit_GL1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.fit_GL1" title="Link to this definition"></a></dt>
 <dd><p>Returns the attenuation length at 75 MHz as a function of depth for Greenland
@@ -645,7 +696,7 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.get_temperature">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">get_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#get_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.get_temperature" title="Link to this definition"></a></dt>
-<dd><p>returns the temperature in Celsius as a function of depth for South Pole</p>
+<dd><p>Returns the temperature in Celsius as a function of depth for South Pole</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -671,21 +722,12 @@
 <ul class="simple">
 <li><p>SP1: South Pole model, see various compilation</p></li>
 <li><p>GL1: Greenland model, see <a class="reference external" href="https://arxiv.org/abs/1409.5413">https://arxiv.org/abs/1409.5413</a></p></li>
-<li><dl class="simple">
-<dt>GL2: 2021 Greenland model, using the Bogorodsky model for depth dependence</dt><dd><p>see: <a class="reference external" href="https://arxiv.org/abs/2201.07846">https://arxiv.org/abs/2201.07846</a>, specifically Fig. 7</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>GL3: 2021 Greenland model, using the MacGregor model for depth dependence</dt><dd><p>see: <a class="reference external" href="https://arxiv.org/abs/2201.07846">https://arxiv.org/abs/2201.07846</a>, specifically Fig. 7</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>MB1: Moore’s Bay Model, from 10.3189/2015JoG14J214 and</dt><dd><p>Phd Thesis C. Persichilli (depth dependence)</p>
-</dd>
-</dl>
-</li>
+<li><p>GL2: 2021 Greenland model, using the Bogorodsky model for depth dependence
+see: <a class="reference external" href="https://arxiv.org/abs/2201.07846">https://arxiv.org/abs/2201.07846</a>, specifically Fig. 7</p></li>
+<li><p>GL3: 2021 Greenland model, using the MacGregor model for depth dependence
+see: <a class="reference external" href="https://arxiv.org/abs/2201.07846">https://arxiv.org/abs/2201.07846</a>, specifically Fig. 7</p></li>
+<li><p>MB1: Moore’s Bay Model, from 10.3189/2015JoG14J214 and
+Phd Thesis C. Persichilli (depth dependence)</p></li>
 </ul>
 </dd>
 </dl>
