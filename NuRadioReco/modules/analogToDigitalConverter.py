@@ -342,12 +342,19 @@ class analogToDigitalConverter:
             logger.debug("Adding a baseline voltage of {:.2f} V to the trace".format(adc_baseline_voltage))
             channel.set_trace(channel.get_trace() + adc_baseline_voltage, "same")
 
-        if adc_sampling_frequency != sampling_frequency:
-            # Upsampling to 5 GHz before downsampling using interpolation.
+        # Round to kHz then compare to see if any resampling needs to happen.
+        if np.round(adc_sampling_frequency,6) != np.round(sampling_frequency,6):
+            # Upsampling to >5 GHz before downsampling using interpolation.
             # We cannot downsample with a Fourier method because we want to keep
             # the higher Nyquist zones.
-            upsampling_frequency = 5.0 * units.GHz
-            if upsampling_frequency > sampling_frequency:
+            target_frequency = 5.0 * units.GHz
+
+            # Force upsampled frequency to be a natural multiple so resampling is quick. Then let linear downsampling take care of
+            # any fractional resampling. Ceil to round up above target frequency.
+            upsampling_frequency = sampling_frequency * np.ceil(target_frequency/sampling_frequency)
+
+            # If the sampling frequency is already big enough don't resample.
+            if sampling_frequency < target_frequency:
                 channel.resample(upsampling_frequency)
 
             # Downsampling to ADC frequency
