@@ -447,11 +447,8 @@ def get_signal_to_noise_ratio(trace, noise_rms, window_size=None):
     """
     Computes the Signal to Noise Ratio (SNR) of a given trace.
 
-    When the window_size is specified, peak_to_peak_amplitudes() will be called to
-    collect local peak to peak amplitudes, then the maximum peak to peak amplitude
-    will be divided by 2 by the RMS to get the SNR;
-    when the window_size is not given, an alternative way will be used to select
-    the maximum peak to peak amplitude, then it will be divided by 2 by the RMS to get the SNR.
+    The signal to noise ratio is calculated as the peak to peak amplitude
+    within a given window size divided by twice the noise root mean square (RMS).
 
     Parameters
     ----------
@@ -467,16 +464,11 @@ def get_signal_to_noise_ratio(trace, noise_rms, window_size=None):
     signal_to_noise_ratio: float
         Signal to Noise Ratio (SNR) value
     """
-    if window_size or window_size == 0:
-        p2p = np.amax(peak_to_peak_amplitudes(trace, window_size))
-    else:
-        upper_peak_idx = scipy.signal.argrelextrema(trace, np.greater_equal, order = 1)[0]
-        lower_peak_idx = scipy.signal.argrelextrema(trace, np.less_equal, order = 1)[0]
-        peak_idx = np.unique(np.concatenate((upper_peak_idx, lower_peak_idx)))
-        peak = trace[peak_idx]
-        p2p = np.abs(np.diff(peak))
-        p2p = np.nanmax(p2p)
+    if not window_size >= 2:
+        logger.error(f"Window size must be greater-equal 2 (but is {window_size})")
+        raise ValueError(f"Window size must be greater-equal 2 (but is {window_size})")
 
+    p2p = np.amax(peak_to_peak_amplitudes(trace, window_size))
     signal_to_noise_ratio = p2p / (2 * noise_rms)
 
     return signal_to_noise_ratio
