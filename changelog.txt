@@ -83,6 +83,8 @@ interpolation with a Detector (readCoREASDetector)
 - added voltageToEfieldConverterPerChannelGroup module
 - Updated IC limit
 - added 2024 detector decription file in NuRadioReco/detector/RNO_G/RNO_season_2024.json
+- refactoring of RIT reconstruction module, adding classes to reconstruct Xmax and shower axis using
+data or MC simulations
 
 bugfixes:
 -
