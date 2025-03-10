@@ -33,7 +33,7 @@ class electricFieldSignalReconstructor:
         logger.setLevel(log_level)
 
     @register_run()
-    def run(self, evt, station, det, fluence_method="noise_subtraction", signal_search_window=None, debug=False):
+    def run(self, evt, station, det, signal_search_window=None, fluence_method="noise_subtraction", debug=False):
         """
         reconstructs quantities for electric field
 
@@ -44,6 +44,12 @@ class electricFieldSignalReconstructor:
         station: station
 
         det: detector
+
+        signal_search_window: tuple
+            search window for signal in ns
+
+        fluence_method: str
+            method to calculate fluence ("noise_subtraction" or "rice_distribution")
 
         debug: bool
             set debug
@@ -99,9 +105,10 @@ class electricFieldSignalReconstructor:
                 dt = 1. / electric_field.get_sampling_rate()
                 ax.plot(tt / units.ns, trace[1] / units.mV * units.m)
                 ax.plot(tt / units.ns, trace[2] / units.mV * units.m)
-                ax.plot(tt / units.ns, envelope_mag / units.mV * units.m)
-                ax.vlines([low_pos * dt, up_pos * dt], 0, envelope_mag.max() / units.mV * units.m)
+                ax.plot(times_masked / units.ns, envelope_mag / units.mV * units.m)
+                ax.vlines([signal_search_window[0] + low_pos * dt, signal_search_window[0] + up_pos * dt], 0, envelope_mag.max() / units.mV * units.m, linestyles='dotted')
                 ax.vlines([signal_time - self.__signal_window_pre, signal_time + self.__signal_window_post], 0, envelope_mag.max() / units.mV * units.m, linestyles='dashed')
+                plt.savefig("trace_debug.png")
 
             times = electric_field.get_times()
             mask_signal_window = (times > (signal_time - self.__signal_window_pre)) & (times < (signal_time + self.__signal_window_post))
@@ -110,7 +117,7 @@ class electricFieldSignalReconstructor:
                 # set the noise window to the first "self.__noise_window" ns of the trace. If this cuts into the signal window, the noise window is reduced to not overlap with the signal window
                 mask_noise_window = times < min(times[0] + self.__noise_window, signal_time - self.__signal_window_pre)
 
-            signal_energy_fluence, signal_energy_fluence_error = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window, return_error=True, method=fluence_method)
+            signal_energy_fluence, signal_energy_fluence_error = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window, return_uncertainty=True, method=fluence_method)
             electric_field.set_parameter(efp.signal_energy_fluence, signal_energy_fluence)
             electric_field.set_parameter_error(efp.signal_energy_fluence, signal_energy_fluence_error)
 

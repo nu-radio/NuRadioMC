@@ -104,7 +104,25 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
         return np.real(voltage_trace)
 
 
-def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None, RMSNoise=None, return_error=False, method="noise_subtraction"):
+def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None, return_uncertainty=False, method="noise_subtraction"):
+    """
+    Returns the energy fluence of each component of a 3-dimensional electric field trace.
+
+    Parameters
+    ----------
+    electric_field_trace : numpy.ndarray
+        The electric field trace to calculate the energy fluence for
+    times : numpy.ndarray
+        The time grid for the electric field trace
+    signal_window_mask : numpy.ndarray
+        A boolean mask that selects the signal window
+    noise_window_mask : numpy.ndarray
+        A boolean mask that selects the noise window. Only used if method is "noise_subtraction"
+    return_uncertainty : bool
+        If True, the uncertainty of the energy fluence is returned
+    method : str
+        The method to use for the energy fluence calculation. Can be either "noise_subtraction" or "rice_distribution" (also "rice_disttribution_sara" but this will be removed in future commits)
+    """
 
     dt = times[1] - times[0]
 
@@ -113,22 +131,25 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
             f_signal = np.sum(electric_field_trace ** 2, axis=1)
         else:
             f_signal = np.sum(electric_field_trace[:, signal_window_mask] ** 2, axis=1)
+
         if noise_window_mask is not None and np.sum(noise_window_mask) > 0:
             f_noise = np.sum(electric_field_trace[:, noise_window_mask] ** 2, axis=1)
             f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
             f_signal[f_signal < 0] = 0
 
-            if RMSNoise is None:
-                RMSNoise = np.sqrt(np.mean(electric_field_trace[:, noise_window_mask] ** 2, axis=1))
+            # calculate RMS noise for error estimation
+            RMSNoise = np.sqrt(np.mean(electric_field_trace[:, noise_window_mask] ** 2, axis=1))
+        else:
+            RMSNoise = None
 
         signal_energy_fluence = f_signal * dt * conversion_factor_integrated_signal
 
         # calculate error if RMSNoise is known:
-        if RMSNoise is not None and return_error:
+        if RMSNoise is not None and return_uncertainty:
             signal_window_duration = sum(signal_window_mask) * dt if signal_window_mask is not None else len(times) * dt
             signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence / conversion_factor_integrated_signal) * RMSNoise ** 2 * dt + 2 * signal_window_duration * RMSNoise ** 4 * dt) ** 0.5  * conversion_factor_integrated_signal
         else:
-            signal_energy_fluence_error = np.zeros(3)
+            pass #signal_energy_fluence_error = np.zeros(3)
     
     elif method == "rice_disttribution":
         signal_energy_fluence = np.zeros(len(electric_field_trace))
@@ -198,7 +219,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
                 )
 
             #sample frequency (after the windowing) in MHz
-            delta_f = frequencies_window[1] - frequencies_window[0]
+            delta_f = (frequencies_window[1] - frequencies_window[0]) / units.MHz
 
             #to convert the amplitudes squared into energy fluence units
             conversion_factor = conversion_factor_integrated_signal #scipy.constants.epsilon_0 * scipy.constants.c / scipy.constants.e
@@ -215,10 +236,10 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
             #get the fluence uncertainty as the root square of the variance
             fluence_freq_error = np.sqrt(fluence_freq_variance)
 
-            signal_energy_fluence[i_pol] = fluence_freq * 1000
-            signal_energy_fluence_error[i_pol] = fluence_freq_error * 1000
+            signal_energy_fluence[i_pol] = fluence_freq
+            signal_energy_fluence_error[i_pol] = fluence_freq_error
 
-    if return_error:
+    if return_uncertainty:
         return signal_energy_fluence, signal_energy_fluence_error
     else:
         return signal_energy_fluence
