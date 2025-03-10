@@ -443,7 +443,7 @@ def get_split_trace_noise_RMS(trace, segments=4, lowest=2):
 
     return noise_root_mean_square
 
-def get_signal_to_noise_ratio(trace, noise_rms, window_size=None):
+def get_signal_to_noise_ratio(trace, noise_rms, window_size=3):
     """
     Computes the Signal to Noise Ratio (SNR) of a given trace.
 
@@ -457,7 +457,7 @@ def get_signal_to_noise_ratio(trace, noise_rms, window_size=None):
     noise_rms: float
         Noise root mean square (RMS)
     window_size: int
-        Coincidence window size
+        Coincidence window size (default: 3)
 
     Returns
     --------
