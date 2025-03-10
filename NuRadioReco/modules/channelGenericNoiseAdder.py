@@ -118,7 +118,7 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-            data_driven: Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution
+            data-driven: Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution
             # white: flat frequency spectrum with random jitter
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
@@ -360,7 +360,7 @@ class channelGenericNoiseAdder:
 
 
     def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type='perfect_white',
-                          time_domain=True):
+                          time_domain=True, station_id=None, channel_id=None):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
@@ -371,7 +371,7 @@ class channelGenericNoiseAdder:
         sampling_rate: float
             desired sampling rate of data
         spectrum: numpy.ndarray, function
-            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function
+            desired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function
             that takes the frequencies as an argument and returns the amplitudes. The overall normalization
             of the spectrum is ignored if the paramter "amplitude" is set.
         amplitude: float, optional
@@ -380,10 +380,15 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            data-driven : Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution
             # white: flat frequency spectrum with random jitter
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
             might be more performant as the noise is generated internally in the frequency domain.
+        station_id: int or None (default)
+            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise
+        channel_id: int or None (default)
+            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise
         """
         frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
         selection = frequencies > 0
@@ -408,11 +413,31 @@ class channelGenericNoiseAdder:
         elif type == 'rayleigh':
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
+        elif type == "data-driven":
+            if station_id is None or channel_id is None:
+                self.logger.error("When selecting data-driven noise, the station and channel ids should be passed to bandlimeted noise")
+                raise ValueError
+            
+            scale_parameter_path = f"thermal_noise_scale_parameters_s{station_id}_season23.json"
+            if scale_parameter_path in self.scale_parameter_paths:
+                scale_parameter_full_path = self.scale_parameter_dir + "/" + scale_parameter_path
+            else:
+                raise NotImplementedError("Other station parameters are being generated")
+            
+            scale_parameters = load_scale_parameters(scale_parameter_full_path)
+            fsigma = scale_parameters[channel_id](frequencies[selection])
+            ampl[selection] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
+
         else:
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
-        noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+        if type == "data-driven":
+            # data-driven parameters were sampled from spectra that follow the NuRadio conventions
+            # and were hence already divide by the sampling rate
+            noise = self.add_random_phases(ampl, n_samples)
+        else:
+            noise = self.add_random_phases(ampl, n_samples) / sampling_rate
         noise *= spectrum
         if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
@@ -584,9 +609,17 @@ if __name__ == "__main__":
 
     generic_noise_adder = channelGenericNoiseAdder()
     generic_noise_adder.begin(scale_parameter_dir=scale_parameter_dir)
-    generic_noise_adder.run(event, station, detector, type="data-driven")
     
     channel = station.get_channel(args.channel)
+    # noise = generic_noise_adder.bandlimited_noise(0, 1.6, nr_samples, sampling_rate, amplitude=None, type="data-driven", time_domain=False,
+    #                                               station_id=args.station, channel_id=args.channel)
+    spectrum = np.zeros_like(frequencies)
+    spectrum[100:700] = 1
+    noise = generic_noise_adder.bandlimited_noise_from_spectrum(nr_samples, sampling_rate, spectrum, amplitude=None, type="data-driven", time_domain=False,
+                                                                station_id=args.station, channel_id=args.channel)
+
+    channel.set_frequency_spectrum(noise, sampling_rate)
+
     frequency_spectrum = channel.get_frequency_spectrum()
     times = channel.get_times()
     trace = channel.get_trace()
