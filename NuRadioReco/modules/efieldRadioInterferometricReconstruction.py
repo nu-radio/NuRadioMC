@@ -538,8 +538,9 @@ class efieldInterferometricDepthReco:
         power = traces**2
         flu = np.sum(power, axis=-1)
         mask = (flu >= self._signal_threshold * np.max(flu))
-        logger.info(f"{np.sum(mask) / len(mask) *
-                    100: .3f}% of trace_vector used for RIT with relative fluence above {self._signal_threshold}")
+        logger.info(
+            f"{np.sum(mask) / len(mask) * 100: .3f}% of trace_vector used for RIT with relative fluence above {self._signal_threshold}"
+        )
 
         debug_sids = [None]
         if self._debug:
