@@ -1,7 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from scipy import signal
-from scipy.ndimage import uniform_filter1d
 import time
 
 from NuRadioReco.utilities import units
@@ -67,7 +66,7 @@ class channelSignalReconstructor:
         self.__coincidence_window_size = coincidence_window_size
         self.__debug = debug
 
-    def get_SNR_and_RPR(self, station_id, channel, det, stored_noise = False, rms_stage = None):
+    def get_SNR(self, station_id, channel, det, stored_noise = False, rms_stage = None):
         """
         Parameters
         ----------
@@ -84,8 +83,8 @@ class channelSignalReconstructor:
         -------
         SNR: dict
             dictionary of various SNR parameters
-        RPR: float
-            root power ratio of a channel
+        RMS: float
+            noise root mean square of a channel
         """
 
         trace = channel.get_trace()
@@ -155,30 +154,9 @@ class channelSignalReconstructor:
         if coincidence_window_size_bins < 2:
             logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
 
-        snr['peak_2_peak_amplitude_split_noise_rms'] = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(channel.get_trace(), coincidence_window_size_bins))
-        snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.split_trace_noise_rms(channel.get_trace(), segments=4, lowest=2)
+        snr['peak_2_peak_amplitude_split_noise_rms'] = np.amax(trace_utilities.peak_to_peak_amplitudes(channel.get_trace(), coincidence_window_size_bins))
+        snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.get_split_trace_noise_RMS(channel.get_trace(), segments=4, lowest=2)
         snr['peak_2_peak_amplitude_split_noise_rms'] /= 2
-
-        # Calculating RPR (Root Power Ratio)
-        if noise_rms == 0:
-            root_power_ratio = np.inf
-        else:
-            wf_len = len(trace)
-            channel_wf = trace ** 2
-
-            # Calculate the smoothing window size based on sampling rate
-            dt = times[1] - times[0]
-            sum_win = 25  # Smoothing window in ns
-            sum_win_idx = int(np.round(sum_win / dt))  # Convert window size to sample points
-
-            channel_wf = np.sqrt(uniform_filter1d(channel_wf, size=sum_win_idx, mode='constant'))
-
-            # Find the maximum value of the smoothed waveform
-            max_bin = np.argmax(channel_wf)
-            max_val = channel_wf[max_bin]
-
-            root_power_ratio = max_val / noise_rms
-
 
         if self.__debug:
             plt.figure()
@@ -188,46 +166,8 @@ class channelSignalReconstructor:
             plt.legend()
             plt.show()
 
-        return snr, noise_rms, root_power_ratio
+        return snr, noise_rms
 
-    def get_impulsivity(self, channel):
-        """
-        Calculate the impulsivity of a signal.
-
-        This function computes the impulsivity of a signal by performing a Hilbert transform
-        to obtain the analytic signal, calculating the envelope, and then determining the
-        cumulative distribution function (CDF) of the sorted envelope values based on their
-        closeness to the maximum value. The average of the CDF is then scaled and returned
-        as the impulsivity measure.
-
-        Parameters
-        ----------
-        channel : Channel
-            The channel object containing the signal trace.
-        Returns
-        -------
-        float
-            The impulsivity measure of the signal, scaled between 0 and 1.
-        """
-        analytical_signal = signal.hilbert(
-            channel.get_trace()
-        )  # compute analytic signal using hilbert transform from signal voltages
-        envelope = np.abs(analytical_signal)
-        maxv = np.argmax(envelope)
-        power_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
-        closeness = list(
-            np.abs(power_indexes - maxv)
-        )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
-
-        sorted_power = [x for _, x in sorted(zip(closeness, envelope))]
-        cdf = np.cumsum(sorted_power)
-        cdf = cdf / cdf[-1]
-
-        cdf_avg = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
-
-        if cdf_avg < 0:
-            cdf_avg = 0.0
-        return cdf_avg
 
     def get_max_a_norm(self, station):
         """
@@ -243,7 +183,6 @@ class channelSignalReconstructor:
         maxaval : float
             The maximum peak to peak amplitude of the signal normalized by the noise level over all channels in the station.
         """
-
         maxaval = 0
         for channel in station.iter_channels():
             normalized_wf = channel.get_trace() / np.std(channel.get_trace())
@@ -252,7 +191,7 @@ class channelSignalReconstructor:
                 logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
 
             thismax = np.amax(
-                trace_utilities.maximum_peak_to_peak_amplitude(normalized_wf, coincidence_window_size_bins))
+                trace_utilities.peak_to_peak_amplitudes(normalized_wf, coincidence_window_size_bins))
 
             if thismax > maxaval:
                 maxaval = thismax
@@ -278,7 +217,7 @@ class channelSignalReconstructor:
         for channel in station.iter_channels():
             times = channel.get_times()
             trace = channel.get_trace()
-            h = np.abs(signal.hilbert(trace))
+            h = trace_utilities.get_hilbert_envelope(trace)
             max_amplitude = np.max(np.abs(trace))
 
             logger.info(f"Event {evt.get_run_number()}.{evt.get_id()}, station.channel "
@@ -294,15 +233,19 @@ class channelSignalReconstructor:
             channel[chp.maximum_amplitude_envelope] = h.max()
             channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace)
 
-            #Calculate impulsivity of the signal
-            channel[chp.impulsivity] = self.get_impulsivity(channel)
+            # Calculate impulsivity of the signal
+            channel[chp.impulsivity] = trace_utilities.get_impulsivity(trace)
+
 
             # Use noise precalculated from forced triggers
-            signal_to_noise, noise_rms, root_power_ratio = self.get_SNR_and_RPR(
+            signal_to_noise, noise_rms = self.get_SNR(
                 station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
+
             channel[chp.SNR] = signal_to_noise
             channel[chp.noise_rms] = noise_rms
-            channel[chp.root_power_ratio] = root_power_ratio
+            channel[chp.root_power_ratio] = trace_utilities.get_root_power_ratio(trace, times, noise_rms)
+            channel[chp.entropy] = trace_utilities.get_entropy(trace)
+            channel[chp.kurtosis] = trace_utilities.get_kurtosis(trace)
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
         station[stnp.channels_max_amplitude_norm] = self.get_max_a_norm(station)
