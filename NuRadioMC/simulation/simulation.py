@@ -18,7 +18,7 @@ from NuRadioMC.SignalGen import askaryan, emitter as emitter_signalgen
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 import NuRadioReco.modules.io.eventWriter
@@ -1358,8 +1358,9 @@ class simulation:
                     # Bandwidth, i.e., \Delta f in equation
                     integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
                     max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+                    vrms_per_channel = signal_processing.calculate_vrms_from_temperature(noise_temp_channel, bandwidth=integrated_channel_response)
 
-                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
+                    self._Vrms_per_channel[station_id][channel_id] = vrms_per_channel
                     self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / max_amplification / units.m  # VEL = 1m
 
                     # for logging

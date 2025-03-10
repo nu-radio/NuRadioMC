@@ -84,7 +84,7 @@ def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
         channel.add_trace_start_time(add_or_subtract * cable_delay)
 
 
-def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, resistance=50):
+def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, resistance=50, freqs=None):
     """ Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
 
     For details see https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
@@ -95,12 +95,15 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
     ----------
     temperature: float
         The noise temperature of the channel in Kelvin
-    bandwidth: tuple (list of 2 floats) (default: None)
-        The lower and upper frequency of the bandwidth. Required unless response is specified.
+    bandwidth: float or tuple of 2 floats (list of 2 floats) (default: None)
+        If single float, this argument is interpreted as the effective bandwidth. If tuple, the argument is
+        interpreted as the lower and upper frequency of the bandwidth. Can be `None` if `response` is specified.
     response: `NuRadioReco.detector.response.Response` (default: None)
         If not None, the response of the channel is taken into account to calculate the noise vrms.
     resistance: float (default: 50)
         Electrical resistance of the channel in Ohm.
+    freqs: array_like (default: None -> np.arange(0, 2500, 0.1) * units.MHz)
+        Frequencies at which the response is evaluated. Only used if `response` is not None.
 
     Returns
     -------
@@ -111,10 +114,14 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
         raise ValueError("Please specify bandwidth or response")
 
     if response is None:
-        vrms_per_channel = (temperature * resistance * constants.k *
-                            (bandwidth[1] - bandwidth[0]) / units.Hz) ** 0.5
+        if isinstance(bandwidth, (float, int)):
+            vrms_per_channel = (temperature * resistance * constants.k * bandwidth / units.Hz) ** 0.5
+        else:
+            vrms_per_channel = (temperature * resistance * constants.k *
+                                (bandwidth[1] - bandwidth[0]) / units.Hz) ** 0.5
     else:
-        freqs = np.arange(0, 2500, 0.1) * units.MHz
+        if freqs is None:
+            freqs = np.arange(0, 2500, 0.1) * units.MHz
 
         # Bandwidth, i.e., \Delta f in equation
         integrated_channel_response = np.trapz(np.abs(response(freqs)) ** 2, freqs)
