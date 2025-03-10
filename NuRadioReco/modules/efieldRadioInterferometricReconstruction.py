@@ -149,7 +149,7 @@ class efieldInterferometricDepthReco:
         if smear_angle_radians:
             concentration_parameter = 1 / smear_angle_radians**2
             dist = vonmises_fisher()
-            axis = dist.rvs(axis, concentration_parameter).flatten()
+            axis = dist.rvs(axis, int(concentration_parameter)).flatten()
 
         self._core = core
         self._axis = axis
@@ -227,7 +227,7 @@ class efieldInterferometricDepthReco:
                 continue
 
             point_on_axis = self._axis * dist + self._core
-            sum_trace = interferometry.interfere_traces_interpolation(
+            sum_trace = interferometry.interfere_traces_rit(
                 point_on_axis, self._positions, self._traces, self._times, tab=self._tab)
 
             signal = interferometry.get_signal(
@@ -751,7 +751,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             for ydx, y in enumerate(ys_showerplane):
                 p = p_axis + cs.transform_from_vxB_vxvxB(np.array([x, y, 0]))
 
-                sum_trace = interferometry.interfere_traces_interpolation(
+                sum_trace = interferometry.interfere_traces_rit(
                     p, self._positions, self._traces, self._times, tab=self._tab)
 
                 signal = interferometry.get_signal(
@@ -1190,10 +1190,6 @@ class efieldInterferometricLateralReco(efieldInterferometricAxisReco):
             Overwrite the axis found in ``shower`` with this value. This is incompatible with ``axis_spread != 0``.
         window: float, default: 150 * units.ns
             Width of the trace section (centered on the trace maximum) which will be used.
-        signal_kind : str
-            Define which signal "metric" is used on the beamformed traces.
-            Default "power" : sum over the squared amplitudes in a 100 ns window around the peak.
-            Other options are "amplitude" or "hilbert_sum"
         use_sim_pulses: bool, default: False
             If True, the processed event will be handled as simulated, using SimStation instead of Station,
             and assuming the geometry of ``shower`` is the truth.
@@ -1257,7 +1253,7 @@ class efieldInterferometricLateralReco(efieldInterferometricAxisReco):
                 p = p_axis + \
                     self._cs.transform_from_vxB_vxvxB(np.array([0, x, 0]))
 
-            sum_trace = interferometry.interfere_traces_interpolation(
+            sum_trace = interferometry.interfere_traces_rit(
                 p, self._positions, self._traces, self._times, tab=self._tab)
 
             signal = interferometry.get_signal(
