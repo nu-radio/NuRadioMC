@@ -155,7 +155,7 @@ class channelSignalReconstructor:
             logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
 
         snr['peak_2_peak_amplitude_split_noise_rms'] = np.amax(trace_utilities.peak_to_peak_amplitudes(channel.get_trace(), coincidence_window_size_bins))
-        snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.split_trace_noise_rms(channel.get_trace(), segments=4, lowest=2)
+        snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.get_split_trace_noise_RMS(channel.get_trace(), segments=4, lowest=2)
         snr['peak_2_peak_amplitude_split_noise_rms'] /= 2
 
         if self.__debug:
@@ -191,7 +191,7 @@ class channelSignalReconstructor:
                 logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
 
             thismax = np.amax(
-                trace_utilities.maximum_peak_to_peak_amplitude(normalized_wf, coincidence_window_size_bins))
+                trace_utilities.peak_to_peak_amplitudes(normalized_wf, coincidence_window_size_bins))
 
             if thismax > maxaval:
                 maxaval = thismax
