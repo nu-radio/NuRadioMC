@@ -38,7 +38,7 @@ class stationDeepCRVariables:
 
 
     @register_run()
-    def run(self, event, station, detector, ref_ch_id = 0):
+    def run(self, event, station, detector, ref_ch_id = 0, use_envelope = True):
 
         """
         Calculate LDA variables and add to the station object.
@@ -48,10 +48,10 @@ class stationDeepCRVariables:
 
         event: Event object
             The event for which the LDA variables should be calculated
-            
+
         station: Station object
             The station for which the LDA variables should be calculated
-            
+
         detector: Detector object
             The detector description
 
@@ -59,20 +59,21 @@ class stationDeepCRVariables:
             reference channel for the coherent sum
 
         """
-        sum_chan=self.coherent_sum(event, station, station.get_channel(ref_ch_id))
-        station.set_parameter(stpRNOG.coherent_snr, self.coherent_snr(sum_chan))
+
+        ref_ch = station.get_channel(ref_ch_id)
+        ref_trace = ref_ch.get_trace()
+        trace_set = [ch.get_trace() for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
+
+        sum_trace = trace_utilities.get_coherent_sum(trace_set, ref_trace, use_envelope)
+        rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
+        snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=self.__coincidence_window_size)
+        station.set_parameter(stpRNOG.coherent_snr, snr)
         return
-        
+
     def end(self):
         pass
 
-    def coherent_snr(self, coherent_sum):
-        snr = np.amax(trace_utilities.maximum_peak_to_peak_amplitude(coherent_sum, self.__coincidence_window_size))
-        snr /= trace_utilities.split_trace_noise_rms(coherent_sum, segments=4, lowest=2)
-        snr /= 2
-        return snr
-
-    def coherent_sum_step_by_step(self, event, station):
+    def coherent_sum_step_by_step(self, station):
         # Plot the four original waveforms before any alignment and save
         matplotlib.rcParams.update({"font.size": 20})
         plt.figure(figsize = (10, 6))
@@ -84,55 +85,43 @@ class stationDeepCRVariables:
         plt.legend()
         plt.savefig('original_waveforms.png')
         plt.show()
-        
+
         # Iterate over each channel as a potential reference
         for ref_ch in station.iter_channels(use_channels = self.__channel_ids):
             fig, axs = plt.subplots(2, 2, figsize = (12, 10))  # Create 2x2 grid for each step with a single reference
             fig.suptitle(f'Coherent Sum Steps with Reference: wf[{ref_ch.get_id()}]', fontsize = 16)
-            
+
             sum_chan = np.pad(ref_ch.get_trace(), self.__pad_length, mode = 'constant')  # Pad reference waveform
             channels = [ch for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]  # Exclude the reference channel
-            
+
             # Initialize the coherent sum with the padded reference waveform
             current_sum = sum_chan.copy()
-            
+
             for step, ch in enumerate(channels):
                 ax = axs[step // 2, step % 2]  # Select subplot for each step
-                
+
                 # Perform full-range cross-correlation to find the necessary shift
                 cor = signal.correlate(current_sum[self.__pad_length:-self.__pad_length], ch.get_trace(), mode = 'full')
                 shift = np.argmax(cor) - (len(ch.get_trace()) - 1)  # Calculate shift based on maximum correlation
-                
+
                 # Pad and shift the waveform to align with the reference sum
                 padded_wf = np.pad(ch.get_trace(), self.__pad_length, mode = 'constant')
                 aligned_wf = np.roll(padded_wf, shift)
-                
+
                 # Plot the current coherent sum before adding the next waveform
                 ax.plot(current_sum[self.__pad_length:-self.__pad_length], label = 'Current Coherent Sum', linestyle = '--')
                 ax.plot(aligned_wf[self.__pad_length:-self.__pad_length], label = f'Next wf[{ch.get_id()}]', alpha = 0.7)
-                
+
                 # Add the aligned waveform to the current sum
                 current_sum += aligned_wf
-                
+
                 # Customize plot
                 ax.legend(loc = 'upper right')
                 ax.set_xlabel('Sample')
                 ax.set_ylabel('Amplitude')
                 ax.set_title(f'Step {step + 1}: Adding wf[{ch.get_id()}]')
-            
+
             # Save each coherent summing figure for the current reference
             plt.tight_layout(rect = [0, 0, 1, 0.96])
             plt.savefig(f'coherent_sum_steps_reference_{ref_ch.get_id()}.png')
             plt.show()
-
-    def coherent_sum(self, event, station, ref_ch):
-        sum_chan = ref_ch.get_trace()
-        channels = [ch for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
-        for idx, ch in enumerate(channels):
-            cor = signal.correlate(np.abs(hilbert(sum_chan)), np.abs(hilbert(ch.get_trace())), mode = "full")
-            lag = int(np.argmax((cor)) - (np.size(cor)/2.))
-            
-            aligned_wf = np.roll(ch.get_trace(), lag)
-            sum_chan += aligned_wf
-        return sum_chan
-            
