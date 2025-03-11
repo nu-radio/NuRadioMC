@@ -629,6 +629,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">radiotools.helper</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hp</span>
 
 <span class="c1"># from datetime import datetime</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
@@ -1393,6 +1394,8 @@
         <span class="n">radio_shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">radio_shower</span><span class="o">.</span><span class="n">RadioShower</span><span class="p">(</span>
             <span class="n">shower_id</span><span class="o">=</span><span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">station_ids</span><span class="o">=</span><span class="n">evt</span><span class="o">.</span><span class="n">get_station_ids</span><span class="p">()</span>
         <span class="p">)</span>
+        <span class="n">radio_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">observation_level</span><span class="p">,</span> <span class="mi">760</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span>
+        <span class="n">radio_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">get_magnetic_field_vector</span><span class="p">(</span><span class="s2">&quot;lofar&quot;</span><span class="p">))</span>
         <span class="n">evt</span><span class="o">.</span><span class="n">add_shower</span><span class="p">(</span><span class="n">radio_shower</span><span class="p">)</span>
         <span class="k">yield</span> <span class="n">evt</span></div>
 
