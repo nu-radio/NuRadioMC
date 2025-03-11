@@ -6,8 +6,10 @@ import logging
 import numpy as np
 import os
 import secrets
+import functools
 import datetime as dt
 from scipy import constants
+
 
 
 from NuRadioMC.EvtGen import generator
@@ -22,6 +24,21 @@ from NuRadioReco.modules.trigger import highLowThreshold
 
 root_seed = secrets.randbits(128)
 deep_trigger_channels = np.array([0, 1, 2, 3])
+
+@functools.lru_cache(maxsize=128)  # this is dangerous if the detector changes it will not notice it!
+def get_response_conversion(det, station_id, channel_id):
+    radiant_channel = det.get_signal_chain_response(station_id, channel_id, trigger=False)
+    flower_channel = det.get_signal_chain_response(station_id, channel_id, trigger=True)
+
+    radiant = radiant_channel.get("radiant_response")
+    radiant_coax = radiant_channel.get("coax_cable")
+
+    flower = flower_channel.get("radiant_response")  # yep we use the same collection name...
+    flower_coax = flower_channel.get("coax_cable")
+
+    conversion = flower * flower_coax / (radiant * radiant_coax)
+
+    return conversion
 
 
 def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_channels, temperature):
@@ -97,6 +114,12 @@ class mySimulation(simulation.simulation):
         # this module is needed in super().__init__ to calculate the vrms
         self.rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
         self.rnogHarwareResponse.begin(trigger_channels=deep_trigger_channels)
+
+        # Read config to get noise type
+        tmp_config = simulation.get_config(kwargs["config_file"])
+        if tmp_config["noise_type"] == "data_driven":
+            self._detector_simulation_part2 = self.detector_simulation_with_data_driven_noise
+
 
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
@@ -181,6 +204,30 @@ class mySimulation(simulation.simulation):
                 trigger_name=f"deep_high_low_{thresh_key}",
             )
 
+    def detector_simulation_with_data_driven_noise(self, evt, station, det):
+
+        # convolve efield with antenna pattern and add cable delay (this is also done in the efieldToVoltageConverter
+        # (unlike the efieldToVoltageConverterPEREFIELD))
+        self.efieldToVoltageConverter.run(evt, station, det)
+
+        self._detector_simulation_filter_amp(evt, station, det)
+
+        for channel in station.get_channels():
+            channel_id = channel.get_id()
+            noise_spec = self.channelGenericNoiseAdder.bandlimited_noise(
+                min_freq=10 * units.MHz, max_freq=1000 * units.MHz,
+                n_samples=channel.get_number_of_samples(), sampling_rate=channel.get_sampling_rate(),
+                amplitude=None, type='data-driven', time_domain=False,
+                station_id=station.get_id(), channel_id=channel_id)
+
+            channel.set_frequency_spectrum(
+                channel.get_frequency_spectrum() + noise_spec, "same")
+
+            if channel_id in self.deep_trigger_channels:
+                trigger_noise_spec = noise_spec * get_response_conversion(det, station.get_id(), channel_id)
+                trigger_channel = channel.get_trigger_channel()
+                trigger_channel.set_frequency_spectrum(
+                    trigger_channel.get_frequency_spectrum() + trigger_noise_spec, "same")
 
 if __name__ == "__main__":
 
