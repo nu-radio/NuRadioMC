@@ -93,7 +93,7 @@ class channelGenericNoiseAdder:
 
         return np.fft.ifft(f).real
 
-    def add_data_driven_noise(self, ampl, selection, station_id=None, channel_id=None):
+    def add_data_driven_noise(self, ampl, selection, frequencies, station_id=None, channel_id=None):
         """
         Function to add data driven noise to a selection range of a given array of amplitudes
 
@@ -104,6 +104,8 @@ class channelGenericNoiseAdder:
             array of amplitudes to which to add noise
         selection: list
             selection of amplitudes to which to add noise in the form of a list of the same length as ampl filled with booleans
+        frequencies: np.ndarray
+            list of frequencies to query data-driven parameters
         station_id: int
             station from which to query data to drive noise generation
         channel_id: int
@@ -221,7 +223,7 @@ class channelGenericNoiseAdder:
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
         elif type == "data-driven":
-            ampl = self.add_data_driven_noise(ampl, selection, station_id, channel_id)
+            ampl = self.add_data_driven_noise(ampl, selection, frequencies, station_id, channel_id)
         # FIXME: amplitude normalization is not correct for 'white'
         # elif type == 'white':
         #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -441,7 +443,7 @@ class channelGenericNoiseAdder:
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
         elif type == "data-driven":
-            ampl = self.add_data_driven_noise(ampl, selection, station_id, channel_id)
+            ampl = self.add_data_driven_noise(ampl, selection, frequencies, station_id, channel_id)
 
         else:
             self.logger.error("Other types of noise not yet implemented.")
