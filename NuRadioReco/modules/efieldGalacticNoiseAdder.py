@@ -78,7 +78,6 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
 
         # n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
-        c_vac = scipy.constants.c * units.m / units.s
 
         field_spectra = {}
         for field in station.get_electric_fields():
@@ -123,8 +122,8 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
                 channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
                     1j * delta_phases) * np.sin(polarizations)
 
-                # add noise spectrum from this to field freq spectrum
-                field_spectra[field.get_unique_identifier()] += np.sum(channel_noise_spec, axis=0)
+                # add noise spectrum from this to field freq spectrum (which is in on-sky CS -> no noise in R-direction)
+                field_spectra[field.get_unique_identifier()] += channel_noise_spec
 
         # Store updated fields spectra
         for field in station.get_electric_fields():
