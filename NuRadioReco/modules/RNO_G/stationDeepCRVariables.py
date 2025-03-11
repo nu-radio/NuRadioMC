@@ -7,7 +7,10 @@ from scipy.signal import hilbert
 from scipy.ndimage import maximum_filter1d, minimum_filter1d
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.modules.channelSignalReconstructor
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import trace_utilities, units
+
+import logging
+logger = logging.getLogger('NuRadioReco.RNO_G.stationDeepCRVariables')
 
 
 class stationDeepCRVariables:
@@ -17,7 +20,7 @@ class stationDeepCRVariables:
     def __init__(self):
         pass
 
-    def begin(self, coincidence_window_size = 6, pad_length = 500, channel_ids = [0,1,2,3]):
+    def begin(self, coincidence_window_size = 6*units.ns, pad_length = 500, channel_ids = [0,1,2,3]):
         """
         Parameters
         ----------
@@ -64,9 +67,13 @@ class stationDeepCRVariables:
         ref_trace = ref_ch.get_trace()
         trace_set = [ch.get_trace() for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
 
+        coincidence_window_size_bins_ref = int(round(self.__coincidence_window_size * ref_ch.get_sampling_rate()))
+        if coincidence_window_size_bins_ref < 2:
+            logger.warning(f"Coincidence window size of {coincidence_window_size_bins_ref} samples is too small for channel {ref_ch.get_id()}.")
+        
         sum_trace = trace_utilities.get_coherent_sum(trace_set, ref_trace, use_envelope)
         rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
-        snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=self.__coincidence_window_size)
+        snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=coincidence_window_size_bins_ref)
         station.set_parameter(stpRNOG.coherent_snr, snr)
         return
 
