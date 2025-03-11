@@ -17,8 +17,8 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
     would be too slow, the model is evaluated for a few frequencies and the log10
     of the brightness temperature is interpolated in between.
 
-    This module is largely equivalent to the channelGalacticNoiseAdder, but operates on electric fields
-    instead of Channel objects. Note that as of March 2025, ice properties are not taken into account in
+    This module is largely equivalent to the channelGalacticNoiseAdder, but operates on ``ElectricField``
+    instead of ``Channel`` objects. Note that as of March 2025, ice properties are not taken into account in
     this module.
     """
 
@@ -65,19 +65,6 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
 
         freqs = last_freqs
         d_f = freqs[2] - freqs[1]
-
-        # If we cache the antenna pattern, we need to make sure that the frequencies have not changed
-        # between stations. If they have, we need to clear the cache.
-        if self.__caching:
-            if self.__freqs is None:
-                self.__freqs = freqs
-            else:
-                if not np.allclose(self.__freqs, freqs, rtol=0, atol=0.01 * units.MHz):
-                    self.__freqs = freqs
-                    self._get_cached_antenna_response.cache_clear()
-                    logger.warning(
-                        "Frequencies have changed. Clearing antenna response cache. "
-                        "(If this happens often, something might be wrong...")
 
         if passband is None:
             passband = [10 * units.MHz, 1000 * units.MHz]
