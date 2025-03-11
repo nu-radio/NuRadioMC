@@ -112,7 +112,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     return f_signal * dt * conversion_factor_integrated_signal
 
 
-def get_electric_field_from_radiance(frequencies, noise_temperature, solid_angle):
+def get_electric_field_from_temperature(frequencies, noise_temperature, solid_angle):
     """
     Calculate the electric field amplitude from the radiance of a radio signal.
 

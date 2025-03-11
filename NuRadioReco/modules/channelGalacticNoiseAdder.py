@@ -289,9 +289,8 @@ class channelGalacticNoiseAdder:
                 self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
 
-            efield_amplitude = trace_utilities.get_electric_field_from_radiance(
-                freqs[passband_filter], noise_temperature, self.solid_angle
-            )
+            efield_amplitude = trace_utilities.get_electric_field_from_temperature(freqs[passband_filter],
+                                                                                   noise_temperature, self.solid_angle)
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
