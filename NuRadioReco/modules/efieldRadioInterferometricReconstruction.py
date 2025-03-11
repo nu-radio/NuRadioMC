@@ -983,12 +983,12 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             direction_rec, core_rec, opening_angle_sph, opening_angle_sph_std, core_std = self.fit_axis(
                 p, w, self._axis, self._core, full_output=True
             )
-            logger.info(f"core: {list(np.round(core_rec, 3))
-                                 } +- {list(np.round(core_std, 3))} m")
+            logger.info(f"core: {list(np.round(core_rec, 3))} +- {list(np.round(core_std, 3))} m")
 
             if self._use_sim_pulses:
-                logger.info(f"Opening angle with MC: {np.round(
-                    opening_angle_sph / units.deg, 3)} +- {np.round(opening_angle_sph_std / units.deg, 3)} deg")
+                logger.info(
+                    f"Opening angle with MC: {np.round(opening_angle_sph / units.deg, 3)} +- {np.round(opening_angle_sph_std / units.deg, 3)} deg"
+                )
 
             # add smaller planes sampled along inital rit axis to increase amount of points to fit final rit axis
             depths2 = np.array([])
@@ -1023,19 +1023,19 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         direction_rec, core_rec, opening_angle_sph, opening_angle_sph_std, core_std = self.fit_axis(
             found_points, weights, self._axis0, self._core0, full_output=True
         )
-        logger.info(f"core (refined): {
-                    list(np.round(core_rec, 3))} +- {list(np.round(core_std, 3))} m")
+        logger.info(f"core (refined): {list(np.round(core_rec, 3))} +- {list(np.round(core_std, 3))} m")
 
         if self._refine_axis:
-            logger.info(f"Opening angle with axis0 (refined): {
-                        opening_angle_sph / units.deg: .3f} +- {opening_angle_sph_std / units.deg: .3f} deg")
+            logger.info(
+                f"Opening angle with axis0 (refined): {opening_angle_sph / units.deg: .3f} +- {opening_angle_sph_std / units.deg: .3f} deg"
+            )
 
         if self._refine_axis and self._debug:
             plot_shower_axis_points(
-                np.array(found_points), np.array(weights), self._shower)
+                np.array(found_points), np.array(weights), self._shower
+            )
 
-        self._data["core"] = {"opt": core_rec *
-                              units.m, "std": core_std * units.m}
+        self._data["core"] = {"opt": core_rec * units.m, "std": core_std * units.m}
         z, a = hp.cartesian_to_spherical(*direction_rec)
         self._data["zenith"] = z * units.rad
         self._data["azimuth"] = a * units.rad
@@ -1393,8 +1393,7 @@ class efieldInterferometricLateralReco(efieldInterferometricAxisReco):
         self._shower.set_parameter(
             shp.interferometric_fw80m_vxvxB, fwhm["fw80m_vxvxB"] * units.m)
         self._data.update(fwhm)
-        logger.info(f"Interferometric vxB FWHM at {
-                    depth / units.g * units.cm2: .2f} g/cm2: {fwhm['fwhm_vxB']: .2f} m")
+        logger.info(f"Interferometric vxB FWHM at {depth / units.g * units.cm2: .2f} g/cm2: {fwhm['fwhm_vxB']: .2f} m")
 
     def end(self):
         """
@@ -1497,8 +1496,7 @@ def plot_shower_axis_points(points: np.ndarray, weights: np.ndarray, shower: Opt
         ax.grid(visible=True, lw=.2)
 
     if shower is not None:
-        fig.suptitle(f"zenith {shower[shp.zenith] / units.deg: .1f} deg, azimuth {
-                     shower[shp.azimuth] / units.deg: .1f} deg")
+        fig.suptitle(f"zenith {shower[shp.zenith] / units.deg: .1f} deg, azimuth {shower[shp.azimuth] / units.deg: .1f} deg")
     plt.show()
 
 
