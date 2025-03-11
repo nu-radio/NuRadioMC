@@ -114,18 +114,20 @@ class channelGenericNoiseAdder:
         ampl: np.ndarray
             array of amplitudes with data driven noise included
         """
-        nbinsactive = np.sum(selection)
+        if len(self.scale_parameter_paths) == 0:
+            raise KeyError("No scale parameter files found, did you pass a directory to begin(scale_parameter_dir=...)?")
 
         if station_id is None or channel_id is None:
             self.logger.error("When selecting data-driven noise, the station and channel ids should be passed to bandlimeted noise")
             raise ValueError
-        
+
         scale_parameter_path = f"thermal_noise_scale_parameters_s{station_id}_season23.json"
         if scale_parameter_path in self.scale_parameter_paths:
             scale_parameter_full_path = self.scale_parameter_dir + "/" + scale_parameter_path
         else:
             raise NotImplementedError("Other station parameters are being generated")
         
+        nbinsactive = np.sum(selection)
         scale_parameters = load_scale_parameters(scale_parameter_full_path)
         fsigma = scale_parameters[channel_id](frequencies[selection])
         ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
@@ -476,6 +478,7 @@ class channelGenericNoiseAdder:
         self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
+        self.scale_parameter_paths = []
         if scale_parameter_dir is not None:
             self.scale_parameter_dir = scale_parameter_dir
             self.scale_parameter_paths = [scale_param_json for scale_param_json in os.listdir(scale_parameter_dir)
