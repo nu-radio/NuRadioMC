@@ -603,6 +603,9 @@ def apply_det_response(
                 # normalize noise level to the bandwidth its generated for
                 Vrms[channel_id] = Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5
 
+            # Here we can only add "rayleigh" noise and not "data-driven" noise because we
+            # apply the hardware response afterwards with detector_simulation_filter_amp.
+            # If you want to use data-driven noise, you need to define detector_simulation_part2
             channelGenericNoiseAdder.run(
                 evt, station, det, amplitude=Vrms, min_freq=0 * units.MHz,
                 max_freq=max_freq, type='rayleigh',
@@ -1221,6 +1224,11 @@ class simulation:
             logger.error(err_msg)
             raise ValueError(err_msg)
 
+        # If you want to simulate data-driven noise you have to provide the detector_simulation_part2 function
+        if self._config["noise_type"] == "data-driven" and self.detector_simulation_part2 is None:
+            logger.error("Data-driven noise is enabled but no detector_simulation_part2 function is provided.")
+            raise ValueError("Data-driven noise is enabled but no detector_simulation_part2 function is provided.")
+
         # Initialize detector
         self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
         if det is None:
@@ -1678,7 +1686,8 @@ class simulation:
                     # because we need to add noise to traces where the amplifier response
                     # was already applied to.
                     if bool(self._config['noise']):
-                        self.add_filtered_noise_to_channels(evt, station, non_trigger_channels)
+                        self.add_filtered_noise_to_channels(
+                            evt, station, non_trigger_channels, noise_type=self._config['noise_type'])
 
                     channelSignalReconstructor.run(evt, station, self._det)
                     self._set_event_station_parameters(evt)
@@ -1727,7 +1736,7 @@ class simulation:
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
-    def add_filtered_noise_to_channels(self, evt, station, channel_ids):
+    def add_filtered_noise_to_channels(self, evt, station, channel_ids, noise_type='rayleigh'):
         """
         Add noise to the traces of the channels in the event.
         This function is used to add noise to the traces of the non-trigger channels.
@@ -1750,7 +1759,7 @@ class simulation:
             noise = channelGenericNoiseAdder.bandlimited_noise_from_spectrum(
                 channel.get_number_of_samples(), channel.get_sampling_rate(),
                 spectrum=filt, amplitude=self._Vrms_per_channel[station.get_id()][channel_id],
-                type='rayleigh', time_domain=False)
+                type=noise_type, time_domain=False, station_id=station.get_id(), channel_id=channel_id)
 
             channel.set_frequency_spectrum(channel.get_frequency_spectrum() + noise, channel.get_sampling_rate())
 

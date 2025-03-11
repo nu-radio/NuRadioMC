@@ -128,7 +128,7 @@ class channelGenericNoiseAdder:
             scale_parameter_full_path = self.scale_parameter_dir + "/" + scale_parameter_path
         else:
             raise NotImplementedError("Other station parameters are being generated")
-        
+
         nbinsactive = np.sum(selection)
         scale_parameters = load_scale_parameters(scale_parameter_full_path)
         fsigma = scale_parameters[channel_id](frequencies[selection])
@@ -521,7 +521,7 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-            data-driven: Amplitude of each frequency bin is drawn from a data-informed Rayleigh distribution 
+            data-driven: Amplitude of each frequency bin is drawn from a data-informed Rayleigh distribution
         excluded_channels: list of ints
             the channels ids of channels where no noise will be added, default is that no channel is excluded
         bandwidth: float or None (default)
@@ -605,7 +605,7 @@ if __name__ == "__main__":
         station.add_channel(channel)
         event.set_station(station)
         return event, station
-    
+
 
 
     log_level = logging.DEBUG
@@ -627,7 +627,7 @@ if __name__ == "__main__":
 
     generic_noise_adder = channelGenericNoiseAdder()
     generic_noise_adder.begin(scale_parameter_dir=scale_parameter_dir)
-    
+
     channel = station.get_channel(args.channel)
     # noise = generic_noise_adder.bandlimited_noise(0, 1.6, nr_samples, sampling_rate, amplitude=None, type="data-driven", time_domain=False,
     #                                               station_id=args.station, channel_id=args.channel)
