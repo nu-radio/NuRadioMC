@@ -104,7 +104,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
             noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
             noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
 
-            channel_noise_spec = np.zeros_like(noise_spectrum)
+            efield_noise_spec = np.zeros_like(noise_spectrum)
 
             for field in station.get_electric_fields():
                 field_pos = field.get_position()
@@ -116,13 +116,13 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
                 # add random polarizations and phase to electric field
                 polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
-                channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
+                efield_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
                     1j * delta_phases) * np.cos(polarizations)
-                channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
+                efield_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
                     1j * delta_phases) * np.sin(polarizations)
 
                 # add noise spectrum from this to field freq spectrum (which is in on-sky CS -> no noise in R-direction)
-                field_spectra[field.get_unique_identifier()] += channel_noise_spec
+                field_spectra[field.get_unique_identifier()] += efield_noise_spec
 
         # Store updated fields spectra
         for field in station.get_electric_fields():
