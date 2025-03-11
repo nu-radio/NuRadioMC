@@ -22,7 +22,10 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
     n: float (default: 1.000293)
         Index of reflection of propagation medium. By default, air is assumed
 
-
+    Returns
+    -------
+    times: np.array of floats
+        Time delays
     """
     shower_axis = np.array([np.sin(zenith) * np.cos(azimuth), np.sin(zenith) * np.sin(azimuth), np.cos(zenith)])
 
@@ -76,6 +79,20 @@ def get_efield_in_spherical_coords(efield, theta, phi):
     """
     Get 3D electric field from cartesian coordinates in spherical coordinates,
     using the arrival directions theta and phi
+
+    Parameters
+    -----------
+    efield: np.array
+        Electric field in cartesian coordinates
+    theta: float
+        Zenith angle of the arriving signal
+    phi: float
+        Azimuth angle of the arriving signal
+    
+    Returns
+    --------
+    np.array
+        Electric field in spherical coordinates
     """
     ct = np.cos(theta)
     st = np.sin(theta)
@@ -96,7 +113,22 @@ def get_efield_in_spherical_coords(efield, theta, phi):
 
 
 def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
-    """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2 """
+    """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2 
+
+    Parameters
+    -----------
+    zenith_incoming: float
+        Zenith angle of the incoming signal
+    n_2: float
+        Refractive index of the medium the signal is transmitted into
+    n_1: float
+        Refractive index of the medium the signal is coming from
+
+    Returns
+    --------
+    float
+        Fresnel angle
+    """
     t = n_1 / n_2 * np.sin(zenith_incoming)
     if t > 1:
         logger.debug('Fresnel refraction results in unphysical values, refraction from {n1} to {n2} with incoming angle {zenith:.1f}, returning None'.format(n1=n_1, n2=n_2, zenith=np.rad2deg(zenith_incoming)))
@@ -116,6 +148,20 @@ def get_fresnel_t_p(zenith_incoming, n_2=1.3, n_1=1.):
     to the 'plane of incident' which is definded as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
+
+    Parameters
+    -----------
+    zenith_incoming: float
+        Zenith angle of the incoming signal
+    n_2: float
+        Refractive index of the medium the signal is transmitted into
+    n_1: float
+        Refractive index of the medium the signal is coming from
+
+    Returns
+    --------
+    float
+        Fresnel coefficient t for theta (parallel) polarization
     """
     zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
     if(zenith_outgoing is None):    #check for total internal reflection
@@ -133,6 +179,20 @@ def get_fresnel_t_s(zenith_incoming, n_2=1.3, n_1=1.):
     to the 'plane of incident' which is definded as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
+
+    Parameters
+    -----------
+    zenith_incoming: float
+        Zenith angle of the incoming signal
+    n_2: float
+        Refractive index of the medium the signal is transmitted into
+    n_1: float
+        Refractive index of the medium the signal is coming from
+
+    Returns
+    --------
+    float
+        Fresnel coefficient t for phi (perpendicular) polarization
     """
     zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
     if(zenith_outgoing is None):    #check for total internal reflection
@@ -150,6 +210,20 @@ def get_fresnel_r_p(zenith_incoming, n_2=1.3, n_1=1.):
     to the 'plane of incident' which is definded as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
+
+    Parameters
+    -----------
+    zenith_incoming: float
+        Zenith angle of the incoming signal
+    n_2: float
+        Refractive index of the medium the signal is reflected from
+    n_1: float
+        Refractive index of the medium the signal is coming from
+
+    Returns
+    --------
+    float
+        Fresnel coefficient r for theta (parallel) polarization
     """
     n = n_2 / n_1
     return np.conjugate((n**2 * np.cos(zenith_incoming) - SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
@@ -165,6 +239,20 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
     to the 'plane of incident' which is definded as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
+
+    Parameters
+    -----------
+    zenith_incoming: float
+        Zenith angle of the incoming signal
+    n_2: float
+        Refractive index of the medium the signal is reflected from
+    n_1: float
+        Refractive index of the medium the signal is coming from
+
+    Returns
+    --------
+    float
+        Fresnel coefficient r for phi (perpendicular) polarization
     """
     n = n_2 / n_1
     return np.conjugate((np.cos(zenith_incoming) - SM.sqrt(n**2 - np.sin(zenith_incoming)**2)) / \
@@ -181,6 +269,26 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     to the 'plane of incident' which is definded as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation.
+
+    Parameters
+    -----------
+    detector: NuRadioReco.detector.Detector
+        Detector object
+    station: NuRadioReco.detector.Station
+        Station object
+    channel_id: int
+        Channel ID of the desired channel
+    zenith: float
+        Zenith angle of the incoming signal
+    
+    Returns
+    --------
+    zenith_antenna: float
+        Zenith angle at the antenna (potentially including refraction)
+    t_theta: float
+        Fresnel transmission coefficient for theta polarization
+    t_phi: float
+        Fresnel transmission coefficient for phi polarization
     """
     n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
 
