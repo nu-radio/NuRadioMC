@@ -8,7 +8,7 @@ from scipy.interpolate import interp1d
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.base.module import register_run
 
-@functools.lru_cache(maxsize=1024)
+@functools.lru_cache(maxsize=128)
 def load_scale_parameters(scale_parameter_path):
     """
     Returns interpolated scale parameters ifo frequency per channel
