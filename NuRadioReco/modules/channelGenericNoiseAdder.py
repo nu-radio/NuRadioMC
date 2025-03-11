@@ -482,8 +482,8 @@ class channelGenericNoiseAdder:
         if scale_parameter_dir is not None:
             self.scale_parameter_dir = scale_parameter_dir
             self.scale_parameter_paths = [scale_param_json for scale_param_json in os.listdir(scale_parameter_dir)
-                                          if np.logical_and(scale_param_json.endswith(".json"),
-                                                            scale_param_json.startswith("thermal_noise_scale_parameters"))]
+                                          if (scale_param_json.endswith(".json") and
+                                              scale_param_json.startswith("thermal_noise_scale_parameters"))]
             if len(self.scale_parameter_paths) == 0:
                 raise OSError(f"No scale parameter json files found in {self.scale_parameter_dir}")
 
