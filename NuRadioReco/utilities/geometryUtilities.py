@@ -113,7 +113,7 @@ def get_fresnel_t_p(zenith_incoming, n_2=1.3, n_1=1.):
     this polarization corresponds to the eTheta polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
-    to the 'plane of incident' which is defindes as: "the plane of incidence
+    to the 'plane of incident' which is definded as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
     """
@@ -130,7 +130,7 @@ def get_fresnel_t_s(zenith_incoming, n_2=1.3, n_1=1.):
     this polarization corresponds to the ePhi polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
-    to the 'plane of incident' which is defindes as: "the plane of incidence
+    to the 'plane of incident' which is definded as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
     """
@@ -147,7 +147,7 @@ def get_fresnel_r_p(zenith_incoming, n_2=1.3, n_1=1.):
     this polarization corresponds to the eTheta polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
-    to the 'plane of incident' which is defindes as: "the plane of incidence
+    to the 'plane of incident' which is definded as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
     """
@@ -162,7 +162,7 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
     this polarization corresponds to the ePhi polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
-    to the 'plane of incident' which is defindes as: "the plane of incidence
+    to the 'plane of incident' which is definded as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
     """
@@ -172,6 +172,16 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
 
 
 def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
+    """
+    Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel) 
+    and phi (perpendicular) polarization. Handles potential refraction into the firn if that 
+    applies to the antenna position.
+
+    parallel and perpendicular refers to the signal's polarization with respect
+    to the 'plane of incident' which is definded as: "the plane of incidence
+    is the plane which contains the surface normal and the propagation vector
+    of the incoming radiation.
+    """
     n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
 
     # no reflection/refraction at the ice-air boundary

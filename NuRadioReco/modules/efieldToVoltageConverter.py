@@ -93,6 +93,11 @@ class efieldToVoltageConverter():
 
         self.__antenna_provider = antennapattern.AntennaPatternProvider()
 
+    @property
+    def antenna_provider(self):
+        self.logger.warning("Deprecation warning: `antenna_provider` is deprecated.")
+        return self.__antenna_provider
+
     @functools.lru_cache(maxsize=1024)
     def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
         """
@@ -255,10 +260,10 @@ class efieldToVoltageConverter():
 
 
                 if self.__caching:
-                    zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(det, station, channel_id, zenith)
-                    antenna_model = det.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
+                    zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(det, sim_station, channel_id, zenith)
+                    antenna_model = det.get_antenna_model(sim_station.get_id(), channel_id, zenith_antenna)
                     antenna_pattern = self.__antenna_provider.load_antenna_pattern(antenna_model)
-                    ant_orient = det.get_antenna_orientation(station.get_id(), channel_id)
+                    ant_orient = det.get_antenna_orientation(sim_station.get_id(), channel_id)
 
                     vel_tmp = self._get_cached_antenna_response(antenna_pattern, zenith_antenna, azimuth, *ant_orient)
                     VEL = [np.array([vel_tmp['theta'] * t_theta, vel_tmp['phi'] * t_phi])]
@@ -316,7 +321,6 @@ class efieldToVoltageConverter():
         self.logger.info("total time used by this module is {}".format(dt))
         return dt
 
-# this function is useless when using interpolator
 def calculate_time_shift_for_cosmic_ray(det, station, efield, channel_id):
     """
     Calculate the time shift for a cosmic ray event
