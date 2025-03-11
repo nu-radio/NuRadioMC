@@ -108,22 +108,13 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
                 self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
 
-            # calculate spectral radiance of radio signal using rayleigh-jeans law
-            spectral_radiance = (2. * (scipy.constants.Boltzmann * units.joule / units.kelvin)
-                                 * freqs[passband_filter] ** 2 * noise_temperature * self.solid_angle / c_vac ** 2)
-            spectral_radiance[np.isnan(spectral_radiance)] = 0
-
-            # calculate radiance per energy bin
-            spectral_radiance_per_bin = spectral_radiance * d_f
-
-            # calculate electric field per energy bin from the radiance per bin
-            efield_amplitude = np.sqrt(
-                spectral_radiance_per_bin / (c_vac * scipy.constants.epsilon_0 * (
-                        units.coulomb / units.V / units.m))) / d_f
+            efield_amplitude = trace_utilities.get_electric_field_from_radiance(
+                freqs[passband_filter], noise_temperature, self.solid_angle
+            )
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex128)
-            phases = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
+            phases = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
             noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
             noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
@@ -138,7 +129,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
                 delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 # add random polarizations and phase to electric field
-                polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
+                polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
                 channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
                     1j * delta_phases) * np.cos(polarizations)
