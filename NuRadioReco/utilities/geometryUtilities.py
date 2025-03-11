@@ -200,7 +200,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
             logger.debug(("Channel {:d}: electric field is refracted into the firn. "
                             "theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) "
                             "{:.2f} s (ePhi) {:.2f}".format(
-                                iCh, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi)))
+                                channel_id, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi)))
     else:
         # now the signal is coming from below, do we have an antenna above the surface?
         position = detector.get_relative_position(station.get_id(), channel_id)
