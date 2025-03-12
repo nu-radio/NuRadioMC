@@ -22,9 +22,9 @@ class stationCoherentlySummedWaveforms:
     based on the time lag when both waveforms are most correlated,
     and then all waveforms including the reference will be summed up
     to become a coherently-summed waveform (CSW).
-    Thermal noise is random so it doesn't increase in the amplitude of the CSW,
-    but signals with the same frequency have their amplitudes added up.
-    One can then treat the CSW as a regular waveform to calculate different analysis variables.
+    Thermal noise is random so it scales with the square root of added waveforms while coherent signals
+    will added up linearly. Once summed the CSW is treated as a regular waveform and different analysis variables
+    are calculated.
     """
 
     def __init__(self):
