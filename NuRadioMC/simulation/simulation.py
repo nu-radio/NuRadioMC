@@ -1430,7 +1430,11 @@ class simulation:
                                                     particle_mode=particle_mode)
 
         efieldToVoltageConverter.begin(time_resolution=self._config['speedup']['time_res_efieldconverter'])
-        channelGenericNoiseAdder.begin(seed=self._config['seed'])
+
+        # Only needed for data-driven noise
+        scale_dir = os.path.join(os.path.dirname(__file__), "../examples/../examples/08_RNO_G_trigger_simulation/data_driven_noise_files")
+        channelGenericNoiseAdder.begin(seed=self._config['seed'], scale_parameter_dir=scale_dir)
+
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
 
