@@ -1,4 +1,4 @@
-from NuRadioReco.framework.parameters import channelParameters as chp, stationParametersRNOG as stpRNOG
+from NuRadioReco.framework.parameters import stationParametersRNOG as stpRNOG
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import trace_utilities, units
@@ -23,8 +23,8 @@ class stationDeepCRVariables:
         """
         Parameters
         ----------
-        coincidence_window_size: int (default: 6)
-            Window size used for calculating the maximum peak to peak amplitude
+        coincidence_window_size: float (default: 6 * units.ns)
+            Window size used for calculating the maximum peak to peak amplitude in nanoseconds
 
         pad_length: int (default: 500)
             Padding length used for calculating the coherent sum
@@ -39,7 +39,6 @@ class stationDeepCRVariables:
 
     @register_run()
     def run(self, event, station, detector, ref_ch_id=0, use_envelope=True):
-
         """
         Calculate LDA variables and add to the station object.
 
@@ -65,7 +64,7 @@ class stationDeepCRVariables:
         coincidence_window_size_bins_ref = int(round(self.__coincidence_window_size * ref_ch.get_sampling_rate()))
         if coincidence_window_size_bins_ref < 2:
             logger.warning(f"Coincidence window size of {coincidence_window_size_bins_ref} samples is too small for channel {ref_ch.get_id()}.")
-        
+
         sum_trace = trace_utilities.get_coherent_sum(trace_set, ref_trace, use_envelope)
         rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
         snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=coincidence_window_size_bins_ref)
@@ -76,7 +75,7 @@ class stationDeepCRVariables:
 
     def coherent_sum_step_by_step(self, station):
         """ Plot the four original waveforms before any alignment and save """
-        
+
         matplotlib.rcParams.update({"font.size": 20})
         plt.figure(figsize = (10, 6))
         for channel in station.iter_channels(use_channels = self.__channel_ids):
