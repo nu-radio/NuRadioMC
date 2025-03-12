@@ -145,7 +145,7 @@ def get_fresnel_t_p(zenith_incoming, n_2=1.3, n_1=1.):
     this polarization corresponds to the eTheta polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
-    to the 'plane of incident' which is definded as: "the plane of incidence
+    to the 'plane of incident' which is defined as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
 
@@ -176,7 +176,7 @@ def get_fresnel_t_s(zenith_incoming, n_2=1.3, n_1=1.):
     this polarization corresponds to the ePhi polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
-    to the 'plane of incident' which is definded as: "the plane of incidence
+    to the 'plane of incident' which is defined as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
 
@@ -207,7 +207,7 @@ def get_fresnel_r_p(zenith_incoming, n_2=1.3, n_1=1.):
     this polarization corresponds to the eTheta polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
-    to the 'plane of incident' which is definded as: "the plane of incidence
+    to the 'plane of incident' which is defined as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
 
@@ -236,7 +236,7 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
     this polarization corresponds to the ePhi polarization
 
     parallel and perpendicular refers to the signal's polarization with respect
-    to the 'plane of incident' which is definded as: "the plane of incidence
+    to the 'plane of incident' which is defined as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation."
 
@@ -266,7 +266,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     applies to the antenna position.
 
     parallel and perpendicular refers to the signal's polarization with respect
-    to the 'plane of incident' which is definded as: "the plane of incidence
+    to the 'plane of incident' which is defined as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
     of the incoming radiation.
 
