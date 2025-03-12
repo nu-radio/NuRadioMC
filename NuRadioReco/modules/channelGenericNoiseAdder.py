@@ -123,11 +123,13 @@ class channelGenericNoiseAdder:
             self.logger.error("When selecting data-driven noise, the station and channel ids should be passed to bandlimeted noise")
             raise ValueError
 
-        scale_parameter_path = f"thermal_noise_scale_parameters_s{station_id}_season23.json"
+        scale_parameter_path = f"thermal_noise_scale_parameters_st{station_id}_season23.json"
         if scale_parameter_path in self.scale_parameter_paths:
             scale_parameter_full_path = self.scale_parameter_dir + "/" + scale_parameter_path
         else:
-            raise NotImplementedError("Other station parameters are being generated")
+            raise FileNotFoundError(f"Could not find {scale_parameter_path} in {self.scale_parameter_dir}. "
+                                    "Available files in this folder are:\n"
+                                    f"{self.scale_parameter_paths}")
 
         nbinsactive = np.sum(selection)
         scale_parameters = load_scale_parameters(scale_parameter_full_path)
