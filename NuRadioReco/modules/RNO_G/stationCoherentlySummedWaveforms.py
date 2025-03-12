@@ -9,14 +9,26 @@ from scipy import signal
 import matplotlib.pyplot as plt
 
 import logging
-logger = logging.getLogger('NuRadioReco.RNO_G.stationDeepCRVariables')
+logger = logging.getLogger('NuRadioReco.RNO_G.stationCoherentlySummedWaveforms')
 
 
-class stationDeepCRVariables:
+class stationCoherentlySummedWaveforms:
     """
-    Module that calculates some variables for a Linear Discriminant Analysis of a specific event and stores them at the station level.
+    Generates a coherently-summed waveform (CSW) and calculates its signal-to-noise-ratio (SNR).
+
+    When multiple waveforms and a referance waveform are given,
+    one can find the cross correlation between each waveform and the referance waveform,
+    then each waveform will be rolled to line up the signal position with the referance
+    based on the time lag when both waveforms are most correlated,
+    and then all waveforms including the reference will be summed up
+    to become a coherently-summed waveform (CSW).
+    Thermal noise is random so it doesn't increase in the amplitude of the CSW,
+    but signals with the same frequency have their amplitudes added up.
+    One can then treat the CSW as a regular waveform to calculate different analysis variables.
     """
+
     def __init__(self):
+        """(Unused)"""
         pass
 
     def begin(self, coincidence_window_size=6 * units.ns, pad_length=500, channel_ids=[0, 1, 2, 3]):
@@ -38,23 +50,18 @@ class stationDeepCRVariables:
 
 
     @register_run()
-    def run(self, event, station, detector, ref_ch_id=0, use_envelope=True):
+    def run(self, evt, station, det, ref_ch_id=0, use_envelope=True):
         """
-        Calculate LDA variables and add to the station object.
+        Calculate the SNR of the coherently-summed waveform and add to the station object.
 
         Parameters
         ----------
-        event: Event object
-            The event for which the LDA variables should be calculated
-
-        station: Station object
-            The station for which the LDA variables should be calculated
-
-        detector: Detector object
-            The detector description
-
-        ref_ch_id: int
-            reference channel for the coherent sum
+        evt, station, det
+            Event, Station, Detector
+        ref_ch_id: int (default: 0)
+            Reference channel for the coherent sum
+        use_envelope: bool (default: True)
+            If use Hilbert envelopes to find the cross correlation or not
         """
 
         ref_ch = station.get_channel(ref_ch_id)
@@ -71,6 +78,7 @@ class stationDeepCRVariables:
         station.set_parameter(stpRNOG.coherent_snr, snr)
 
     def end(self):
+        """(Unused)"""
         pass
 
     def coherent_sum_step_by_step(self, station):
