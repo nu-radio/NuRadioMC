@@ -3,6 +3,7 @@ Hit Filter Module (RNO-G specific, can be upgraded to more general use in the fu
 The main purpose is to reject thermal events in data.
 """
 
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import trace_utilities, units
 
 import numpy as np
