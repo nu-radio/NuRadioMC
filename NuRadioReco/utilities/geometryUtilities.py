@@ -263,7 +263,8 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     """
     Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel) 
     and phi (perpendicular) polarization. Handles potential refraction into the firn if that 
-    applies to the antenna position.
+    applies to the antenna position. 
+    WARNING: for deeper channels this function might be inacccurate. Consider using raytracing.
 
     parallel and perpendicular refers to the signal's polarization with respect
     to the 'plane of incident' which is defined as: "the plane of incidence
@@ -297,23 +298,23 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     t_theta = 1.
     t_phi = 1.
 
+    position = detector.get_relative_position(station.get_id(), channel_id)
+    if position[2] < -3 * units.m:
+        logger.warning("This function might return inaccurate results. Consider using raytracing instead")
+
     # first check case if signal comes from above
-    if zenith <= 0.5 * np.pi and station.is_cosmic_ray():
+    if (zenith <= 0.5 * np.pi) and station.is_cosmic_ray() and (position[2] <= 0):
         # is antenna below surface?
-        position = detector.get_relative_position(station.get_id(), channel_id)
-        if position[2] <= 0:
-            zenith_antenna = get_fresnel_angle(zenith, n_ice, 1)
-            t_theta = get_fresnel_t_p(zenith, n_ice, 1)
-            t_phi = get_fresnel_t_s(zenith, n_ice, 1)
-            logger.debug(("Channel {:d}: electric field is refracted into the firn. "
-                            "theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) "
-                            "{:.2f} s (ePhi) {:.2f}".format(
-                                channel_id, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi)))
-    else:
+        zenith_antenna = get_fresnel_angle(zenith, n_ice, 1)
+        t_theta = get_fresnel_t_p(zenith, n_ice, 1)
+        t_phi = get_fresnel_t_s(zenith, n_ice, 1)
+        logger.debug(("Channel {:d}: electric field is refracted into the firn. "
+                        "theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) "
+                        "{:.2f} s (ePhi) {:.2f}".format(
+                            channel_id, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi)))
+    elif position[2] > 0:
         # now the signal is coming from below, do we have an antenna above the surface?
-        position = detector.get_relative_position(station.get_id(), channel_id)
-        if position[2] > 0:
-            zenith_antenna = get_fresnel_angle(zenith, 1., n_ice)
+        zenith_antenna = get_fresnel_angle(zenith, 1., n_ice)
 
     if zenith_antenna is None:
         logger.warning("Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
