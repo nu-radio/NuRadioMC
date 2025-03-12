@@ -216,7 +216,8 @@ epub_exclude_files = ['search.html']
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'scipy': ('https://docs.scipy.org/doc/scipy', None),
-    'numpy': ("https://numpy.org/doc/stable", None)
+    'numpy': ("https://numpy.org/doc/stable", None),
+    'astropy': ("https://docs.astropy.org/en/stable", None)
 }
 default_role = 'autolink' #TODO: probably switch to py:obj?
 

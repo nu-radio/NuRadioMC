@@ -1,7 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import logging
-logger = logging.getLogger('channelLengthAdjuster')
+logger = logging.getLogger('NuRadioReco.channelLengthAdjuster')
 
 
 class channelLengthAdjuster:
@@ -11,6 +11,8 @@ class channelLengthAdjuster:
     def __init__(self):
         self.number_of_samples = None
         self.offset = None
+        logger.warning("In most cases it is advisable to run a trigger module and use the channelReadoutWindowCutter module to cut the traces to the readout window "
+                       "instead of this simple module.")
         self.begin(())
 
     def begin(self, number_of_samples=256, offset=50):

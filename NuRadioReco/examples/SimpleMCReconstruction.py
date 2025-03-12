@@ -4,7 +4,7 @@ import datetime
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
-import NuRadioReco.modules.io.coreas.readCoREAS
+import NuRadioReco.modules.io.coreas.readCoREASDetector
 import NuRadioReco.modules.io.coreas.simulationSelector
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -17,11 +17,10 @@ import NuRadioReco.modules.electricFieldSignalReconstructor
 import NuRadioReco.modules.voltageToAnalyticEfieldConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.io.eventWriter
-from NuRadioReco.utilities.logging import setup_logger
 
 # Logging level
 import logging
-logger = setup_logger(level=logging.INFO)
+logger = logging.getLogger("NuRadioReco.SimpleMCReconstruction")   # Logging level is globally controlled
 
 plt.switch_backend('agg')
 
@@ -76,8 +75,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of t
 
 # initialize all modules that are needed for processing
 # provide input parameters that are to remain constant during processung
-readCoREAS = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
-readCoREAS.begin([input_file], station_id, n_cores=10, max_distance=None)
+readCoREASDetector = NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector()
+readCoREASDetector.begin(input_file)
 
 simulationSelector = NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector()
 simulationSelector.begin()
@@ -115,7 +114,11 @@ output_filename = "MC_example_station_{}.nur".format(station_id)
 eventWriter.begin(output_filename)
 
 # Loop over all events in file as initialized in readCoRREAS and perform analysis
-for iE, evt in enumerate(readCoREAS.run(detector=det)):
+# Generate random core positions in a 20x10 rectangle around the origin
+for iE, evt in enumerate(readCoREASDetector.run(
+        det, NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions(-20, 20, -10, 10, 10),
+        selected_station_channel_ids={station_id: None})
+    ):
 
     logger.info("processing event {:d} with id {:d}".format(iE, evt.get_id()))
     station = evt.get_station(station_id)
