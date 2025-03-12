@@ -1,40 +1,44 @@
 import numpy as np
-from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 import scipy.constants
 from scipy.spatial.transform import Rotation
+from math import ceil
 from radiotools import helper as hp
+from NuRadioReco.utilities import units
+import logging
+
+logger = logging.getLogger('NuRadioReco.analyticPlaneWaveFitter')
 
 SPEED_OF_LIGHT = scipy.constants.c * units.m / units.s # convert to NuRadio units
 
-import logging
-logging.basicConfig()
-logger = logging.getLogger('wind-reco')
-logger.setLevel(logging.INFO)
-
-def find_threshold_crossing(channels, threshold, offset=5, min_amp=.15, debug=False):
+def find_threshold_crossing(channels, threshold, offset=5 * units.ns, min_amp=0, debug=False):
     """Find the time where the hilbert envelope of a trace first crosses some threshold
     
     Parameters
     ----------
-    channels: list of NuRadioReco.framework.channel objects
+    channels : list of `NuRadioReco.framework.channel.Channel` objects
         the channels to use in the reconstruction
-    threshold: float
+    threshold : float
         the threshold value
-    offset: int or list of ints
-        number of samples at the start and end of each trace to exclude
-        if a list, the entries are the offsets for the start and end of the trace,
-        respectively
-    min_amp: float
-        minimum amplitude for all traces to be considered valid. Traces whose 
-        maximum amplitude is less than min_amp are rejected
-    debug: bool, default False
+    offset : float or list of floats, optional
+        Time at the start and end of each trace to exclude.
+        If a list, the entries are the offsets for the start and end of the trace,
+        respectively. By default, the first and last 5 ns of each trace are excluded,
+        to avoid spurious peaks in the hilbert envelope resulting from the assumed
+        periodicity of the trace.
+    min_amp : float, optional
+        Minimum amplitude for a trace to be considered valid.
+        If the maximum amplitude of a channel does not exceed ``min_amp``,
+        no threshold crossing will be returned for this channel.
+    debug : bool, default False
         create some debug plots
     
     Returns
     -------
-    threshold_times: np.ndarray of floats
-        An array with the threshold crossing times for each channel
+    threshold_times : np.ndarray of floats
+        An array with the threshold crossing times for each channel.
+        For channels that do not exceed ``threshold`` (or ``min_amp``),
+        this will be ``np.nan``.
     
     """
     offset = list(offset)
@@ -42,42 +46,45 @@ def find_threshold_crossing(channels, threshold, offset=5, min_amp=.15, debug=Fa
         offset += offset
     if debug:
         fig, axs = plt.subplots(3, 1, figsize=(4,6))
-    threshold_times = []
+
+    threshold_times = np.nan * np.zeros(len(channels))
+
     for i, channel in enumerate(channels):
         trace = channel.get_trace()
         sampling_rate = channel.get_sampling_rate()
         trace -= np.mean(trace)
-        channel.set_trace(trace, sampling_rate)
+        offset_samples = ceil(offset[0] * sampling_rate), ceil(offset[1] * sampling_rate)
+        if offset_samples[1] == 0:
+            offset_samples[1] = None # needed for correct numpy slicing
 
         hilbert_envelope = channel.get_hilbert_envelope_mag()
         if threshold == 'pulse_max':
-            threshold_xing = [np.argmax(hilbert_envelope) - offset[0]]
+            threshold_xing = [np.argmax(hilbert_envelope) - offset_samples[0]]
         else:
             threshold_xing = np.where(
-                hilbert_envelope[offset[0]:-offset[1]] > threshold
+                hilbert_envelope[offset_samples[0]:-offset_samples[1]] > threshold
             )[0]
         if np.max(hilbert_envelope) < min_amp:
-            logger.debug("Reject - max amp {:.2f} < {:.2f}".format(np.max(hilbert_envelope),min_amp))
-            break
+            logger.debug("Reject - max amp {:.2f} < {:.2f}".format(np.max(hilbert_envelope), min_amp))
+            continue
         if len(threshold_xing) == 0:
             logger.debug(
-                "Reject - no threshold xing (max amp {:.2f} < {:.2f})".format(
-                    np.max(hilbert_envelope[offset[0]:-offset[1]]), threshold))
-            break
-        threshold_t = threshold_xing[0] + offset[0]
-        if threshold_t < offset[0] + 5: # we extend the offset slightly to reject 'mid-pulse' fits
-            logger.debug("Reject - threshold_t {:.2f} smaller than offset {:d}".format(threshold_t, offset[0]))
-            break
-            
+                "Reject - no threshold crossing (max amp {:.2f} < {:.2f})".format(
+                    np.max(hilbert_envelope[offset_samples[0]:-offset_samples[1]]), threshold))
+            continue
 
-        threshold_times.append(channel.get_times()[threshold_t])
+        threshold_t_sample = threshold_xing[0] + offset_samples[0]
+
+        threshold_times[i] = channel.get_times()[threshold_t_sample]
+
         if debug:
             axs[i].plot(channel.get_times(), hilbert_envelope)
             axs[i].plot(channel.get_times(), trace)
             axs[i].axvline(threshold_times[i], ls=":", color='red')
             axs[i].set_xlim(threshold_times[i] - 50, threshold_times[i] + 150)
-            axs[i].set_ylim(-.02, 5*threshold)
+            axs[i].set_ylim(-.1*threshold, 5*threshold)
             axs[i].set_ylabel('amplitude')
+
     if debug:
         if len(threshold_times)==len(channels):
             axs[-1].set_xlabel('time (ns)')
@@ -97,16 +104,16 @@ def analytic_plane_wave_fitter(dt, pos, n_index=1.000293):
     
     Parameters
     ----------
-    dt: (3)-shaped np.array 
+    dt : (3)-shaped np.array
         the (relative) times of the signal arrival
-    pos: (3, 3)-shaped np.array
+    pos : (3, 3)-shaped np.array
         the 3D positions of the three observers
-    n_index: float, default 1.
+    n_index : float, default 1.
         the index of refraction
     
     Returns
     -------
-    (theta, phi): tuple of floats
+    (theta, phi) : tuple of floats
         zenith and azimuth of the analytic solution
     
     Notes
