@@ -81,7 +81,7 @@ def get_efield_in_spherical_coords(efield, theta, phi):
     using the arrival directions theta and phi
 
     Parameters
-    -----------
+    ----------
     efield: np.array
         Electric field in cartesian coordinates
     theta: float
@@ -90,7 +90,7 @@ def get_efield_in_spherical_coords(efield, theta, phi):
         Azimuth angle of the arriving signal
     
     Returns
-    --------
+    -------
     np.array
         Electric field in spherical coordinates
     """
@@ -116,7 +116,7 @@ def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
     """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2 
 
     Parameters
-    -----------
+    ----------
     zenith_incoming: float
         Zenith angle of the incoming signal
     n_2: float
@@ -125,7 +125,7 @@ def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
         Refractive index of the medium the signal is coming from
 
     Returns
-    --------
+    -------
     float
         Fresnel angle
     """
@@ -150,7 +150,7 @@ def get_fresnel_t_p(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
 
     Parameters
-    -----------
+    ----------
     zenith_incoming: float
         Zenith angle of the incoming signal
     n_2: float
@@ -159,7 +159,7 @@ def get_fresnel_t_p(zenith_incoming, n_2=1.3, n_1=1.):
         Refractive index of the medium the signal is coming from
 
     Returns
-    --------
+    -------
     float
         Fresnel coefficient t for theta (parallel) polarization
     """
@@ -181,7 +181,7 @@ def get_fresnel_t_s(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
 
     Parameters
-    -----------
+    ----------
     zenith_incoming: float
         Zenith angle of the incoming signal
     n_2: float
@@ -190,7 +190,7 @@ def get_fresnel_t_s(zenith_incoming, n_2=1.3, n_1=1.):
         Refractive index of the medium the signal is coming from
 
     Returns
-    --------
+    -------
     float
         Fresnel coefficient t for phi (perpendicular) polarization
     """
@@ -212,7 +212,7 @@ def get_fresnel_r_p(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
 
     Parameters
-    -----------
+    ----------
     zenith_incoming: float
         Zenith angle of the incoming signal
     n_2: float
@@ -221,7 +221,7 @@ def get_fresnel_r_p(zenith_incoming, n_2=1.3, n_1=1.):
         Refractive index of the medium the signal is coming from
 
     Returns
-    --------
+    -------
     float
         Fresnel coefficient r for theta (parallel) polarization
     """
@@ -241,7 +241,7 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
 
     Parameters
-    -----------
+    ----------
     zenith_incoming: float
         Zenith angle of the incoming signal
     n_2: float
@@ -250,7 +250,7 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
         Refractive index of the medium the signal is coming from
 
     Returns
-    --------
+    -------
     float
         Fresnel coefficient r for phi (perpendicular) polarization
     """
@@ -271,7 +271,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     of the incoming radiation.
 
     Parameters
-    -----------
+    ----------
     detector: NuRadioReco.detector.Detector
         Detector object
     station: NuRadioReco.detector.Station
@@ -282,7 +282,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
         Zenith angle of the incoming signal
     
     Returns
-    --------
+    -------
     zenith_antenna: float
         Zenith angle at the antenna (potentially including refraction)
     t_theta: float
