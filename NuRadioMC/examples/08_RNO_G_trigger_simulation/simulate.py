@@ -22,6 +22,17 @@ import logging
 logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
 logger.setLevel(logging.INFO)
 
+import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.channelGenericNoiseAdder
+
+
+efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+channelGenericNoiseAdder.begin(
+    scale_parameter_dir=os.path.join(os.path.dirname(__file__), "data_driven_noise_files")
+)
+
+
 @functools.lru_cache(maxsize=128)  # this is dangerous if the detector changes it will not notice it!
 def get_response_conversion(det, station_id, channel_id):
     radiant_channel = det.get_signal_chain_response(station_id, channel_id, trigger=False)
@@ -34,7 +45,7 @@ def get_response_conversion(det, station_id, channel_id):
     flower_coax = flower_channel.get("coax_cable")
 
     conversion = flower * flower_coax / (radiant * radiant_coax)
-
+    print(conversion)
     return conversion
 
 
@@ -105,22 +116,19 @@ class mySimulation(simulation.simulation):
 
         # Read config to get noise type
         tmp_config = simulation.get_config(kwargs["config_file"])
-        if tmp_config["noise_type"] == "data_driven":
+        if tmp_config["noise_type"] == "data-driven":
+            logger.info("Using data-driven noise")
             self._detector_simulation_part2 = self.detector_simulation_with_data_driven_noise
 
-
-        super().__init__(*args, **kwargs)
         self.logger = logger
         self.deep_trigger_channels = kwargs['trigger_channels']
+
+        super().__init__(*args, **kwargs)
 
         self.highLowThreshold = highLowThreshold.triggerSimulator()
         self.rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
         self.rnogADCResponse.begin(
             clock_offset=0.0, adc_output="counts")
-
-        # future TODO: Add noise
-        # self.channel_generic_noise_adder = channelGenericNoiseAdder.channelGenericNoiseAdder()
-        # self.channel_generic_noise_adder.begin(seed=self._cfg['seed'])
 
         self.output_mode = {'Channels': self._config['output']['channel_traces'],
                             'ElectricFields': self._config['output']['electric_field_traces'],
@@ -190,28 +198,30 @@ class mySimulation(simulation.simulation):
 
     def detector_simulation_with_data_driven_noise(self, evt, station, det):
 
-        # convolve efield with antenna pattern and add cable delay (this is also done in the efieldToVoltageConverter
+        # convolve efield with antenna pattern and add cable delay
+        # (this is also done in the efieldToVoltageConverter
         # (unlike the efieldToVoltageConverterPEREFIELD))
-        self.efieldToVoltageConverter.run(evt, station, det)
+        efieldToVoltageConverter.run(evt, station, det)
 
         self._detector_simulation_filter_amp(evt, station, det)
 
-        for channel in station.get_channels():
-            channel_id = channel.get_id()
-            noise_spec = self.channelGenericNoiseAdder.bandlimited_noise(
-                min_freq=10 * units.MHz, max_freq=1000 * units.MHz,
-                n_samples=channel.get_number_of_samples(), sampling_rate=channel.get_sampling_rate(),
-                amplitude=None, type='data-driven', time_domain=False,
-                station_id=station.get_id(), channel_id=channel_id)
+        if self._config["noise"]:
+            for channel in station.iter_channels():
+                channel_id = channel.get_id()
+                noise_spec = channelGenericNoiseAdder.bandlimited_noise(
+                    min_freq=10 * units.MHz, max_freq=1000 * units.MHz,
+                    n_samples=channel.get_number_of_samples(), sampling_rate=channel.get_sampling_rate(),
+                    amplitude=None, type='data-driven', time_domain=False,
+                    station_id=station.get_id(), channel_id=channel_id)
 
-            channel.set_frequency_spectrum(
-                channel.get_frequency_spectrum() + noise_spec, "same")
+                channel.set_frequency_spectrum(
+                    channel.get_frequency_spectrum() + noise_spec, "same")
 
-            if channel_id in self.deep_trigger_channels:
-                trigger_noise_spec = noise_spec * get_response_conversion(det, station.get_id(), channel_id)
-                trigger_channel = channel.get_trigger_channel()
-                trigger_channel.set_frequency_spectrum(
-                    trigger_channel.get_frequency_spectrum() + trigger_noise_spec, "same")
+                if channel_id in self.deep_trigger_channels:
+                    trigger_noise_spec = noise_spec * get_response_conversion(det, station.get_id(), channel_id)(channel.get_frequencies())
+                    trigger_channel = channel.get_trigger_channel()
+                    trigger_channel.set_frequency_spectrum(
+                        trigger_channel.get_frequency_spectrum() + trigger_noise_spec, "same")
 
 if __name__ == "__main__":
 
