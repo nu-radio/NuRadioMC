@@ -1,6 +1,5 @@
 import os
 import logging
-import datetime
 
 import numpy as np
 
@@ -11,6 +10,7 @@ from astropy import units as u
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
+from NuRadioReco.modules.io.LOFAR.readLOFARData import LOFAR_event_id_to_unix
 
 
 def fourier_series(x, p):
@@ -55,49 +55,39 @@ class stationGalacticCalibrator:
     Further details are described in this `overview <https://arxiv.org/pdf/1311.1399.pdf>`_, and also this
     `paper <https://arxiv.org/pdf/1903.05988.pdf>`_ .
     """
+
     def __init__(self, experiment='LOFAR_LBA'):
-        self.logger = logging.getLogger('NuRadioReco.stationGalacticCalibrator')
+        self.logger = logging.getLogger('NuRadioReco.LOFAR.stationGalacticCalibrator')
 
         self.__experiment = experiment
 
-        self.__experiment_parameters = None
         self.__abs_calibration_curve = None
         self.__rel_calibration_coefficients = None
 
-        self.begin()
-
-    def begin(self, logger_level=logging.WARNING):
+    def begin(self, logger_level=logging.NOTSET):
         """
         Loads the experimental parameters (such as longitude and latitude) as well as the Galactic calibration
         curves and Fourier coefficients from the directory `NuRadioReco/utilities/data/`.
 
         Parameters
         ----------
-        logger_level : int, default=logging.WARNING
-            The logging level to use for the module.
+        logger_level : int, default=logging.NOTSET
+            Use this parameter to override the logging level for this module.
         """
         self.logger.setLevel(logger_level)
 
         # The files are stored in the data folder of the utilities module, which sits 3 folders up
         data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'utilities', 'data')
 
-        # Get the experiment parameters such as latitude and longitude
-        with open(os.path.join(data_dir, "experiment_parameters.txt"), "r") as f:
-            all_experiment_parameters = f.readlines()
-
-        for line in all_experiment_parameters:
-            if line.startswith(self.__experiment):
-                self.__experiment_parameters = line.split(", ")
-
         # Get absolute calibration curve
         self.__abs_calibration_curve = np.genfromtxt(
             os.path.join(
                 data_dir, "galactic_calibration",
-                f"{self.__experiment}_galactic_{self.__experiment_parameters[6]}_{self.__experiment_parameters[7]}.txt"
+                f"{self.__experiment}_abs_calibration_curve.txt"
             ),
         )
 
-        # Get fitted Fourier coefficients for relative calibration and store them based on polarisation group ID
+        # Get fitted Fourier coefficients for relative calibration and store them based on polarisation
         rel_calibration_file = np.genfromtxt(
             os.path.join(
                 data_dir, "galactic_calibration",
@@ -109,7 +99,7 @@ class stationGalacticCalibrator:
 
         self.__rel_calibration_coefficients = {}
         for col in rel_calibration_file.T:
-            group_id = int(col[0].split(" ")[1])
+            group_id = str(col[0].split(" ")[1])
             coefficients = col[1:].astype('f8')
 
             self.__rel_calibration_coefficients[group_id] = coefficients
@@ -139,7 +129,7 @@ class stationGalacticCalibrator:
         # Apply the interpolation to the sampled frequencies and return
         return f(frequencies)
 
-    def _get_relative_calibration(self, local_sidereal_time, channel):
+    def _get_relative_calibration(self, local_sidereal_time, channel, channel_polarisation):
         """
         Calculate the relative calibration correction factor for a channel, given the Fourier coefficients for the curve
         of the galactic noise power they observe as a function of the local sidereal time. This makes sure
@@ -152,6 +142,8 @@ class stationGalacticCalibrator:
             The local sidereal time of the observation.
         channel : Channel object
             The channel for which to calculate the correction factor.
+        channel_polarisation : str
+            The key of the channel polarisation, as used in the `self.__rel_calibration_coefficients` dictionary.
 
         Returns
         -------
@@ -166,10 +158,15 @@ class stationGalacticCalibrator:
         calibrated to observe the same value of the Galactic noise.
         """
 
-        # Get channel parameters -> group_id = a(even_id), odd_id = even_id + 1
-        channel_polarisation = channel.get_id() - int(channel.get_group_id()[1:])  # TODO: need clear function?
-        channel_bandwidth = channel.get_sampling_rate() / channel.get_number_of_samples() / units.s  # 1 / period
+        # Get channel parameters
+        channel_bandwidth = channel.get_sampling_rate() / channel.get_number_of_samples()
         channel_power = np.sum(np.abs(channel.get_frequency_spectrum()) ** 2) * channel_bandwidth
+
+        # The NRR frequency spectrum has a factor of sampling rate in the denominator, which after squaring and
+        # multiplying with the channel_bandwidth leaves a 1 / sampling_rate in the channel_power calculation.
+        # To properly match the Fourier series evaluation, the sampling_rate should be in Hz, so we multiply
+        # (as the sampling rate is in the denominator) with the unit here.
+        channel_power *= units.Hz
 
         self.logger.debug(f"Channel power of channel {channel.get_id()} is {channel_power}")
 
@@ -184,7 +181,7 @@ class stationGalacticCalibrator:
             scale = 0.0  # A channel without a signal will have 0 channel power, and result in np.inf
         return np.sqrt(scale)  # Correction is applied in time domain
 
-    def _calibrate_channel(self, channel, timestamp):
+    def _calibrate_channel(self, channel, polarisation, timestamp, observing_location):
         """
         Convenience function to apply the absolute and relative calibration to a single channel.
 
@@ -192,14 +189,15 @@ class stationGalacticCalibrator:
         ----------
         channel : Channel object
             The channel to be calibrated.
+        polarisation : str
+            The polarisation of the channel, as used in the Fourier coefficients file.
         timestamp : int
             The UNIX timestamp corresponding to the observation.
+        observing_location : EarthLocation
+            The location of the observation, used to calculate the local sidereal time.
         """
         # Find the sidereal time for the experiment
-        dt_object = datetime.datetime.utcfromtimestamp(timestamp)
-        observing_location = EarthLocation(lat=float(self.__experiment_parameters[4]) * u.deg,
-                                           lon=float(self.__experiment_parameters[5]) * u.deg)
-        observing_time = Time(dt_object, scale="utc", location=observing_location)
+        observing_time = Time(timestamp, format="unix", location=observing_location)
         local_time = observing_time.sidereal_time("apparent").hour
 
         # Load the trace from the channel
@@ -209,13 +207,43 @@ class stationGalacticCalibrator:
 
         # Calibrate
         trace_fft *= self._get_absolute_calibration(trace_frequencies)
-        trace_fft *= self._get_relative_calibration(local_time, channel)
+        trace_fft *= self._get_relative_calibration(local_time, channel, polarisation)
 
         # Set the calibrated trace back in the channel
         channel.set_frequency_spectrum(trace_fft, trace_sampling_rate)
 
+    def __get_channel_polarisation(self, detector, station, channel):
+        """
+        Check the channel orientation in the Detector and return the polarisation key to retrieve the
+        corresponding Fourier coefficients.
+
+        Parameters
+        ----------
+        detector : Detector object
+        station : Station object
+        channel : Channel object
+
+        Returns
+        -------
+        str
+            The channel polarisation key
+        """
+        orientation_rad = detector.get_antenna_orientation(
+            station.get_id(), channel.get_id()
+        )[1]  # takes the phi orientation in rad of the specific channel
+        orientation = orientation_rad / units.deg  # get value in degrees
+        if orientation == 225.0:
+            channel_polarisation = 1  # for X dipoles, channel_polarisation is set to 1
+        elif orientation == 135.0:
+            channel_polarisation = 0  # for Y dipoles, channel_polarisation is set to 0
+        else:
+            self.logger.error(f"Antenna orientation of {orientation} does not correspond to either X or Y dipole.")
+            raise ValueError
+
+        return str(channel_polarisation)
+
     @register_run()
-    def run(self, event):
+    def run(self, event, det):
         """
         Run the calibration on all stations in `event`.
 
@@ -223,11 +251,16 @@ class stationGalacticCalibrator:
         ----------
         event : Event object
             The event on which to apply the Galactic calibration.
+        det : Detector object
+            The Detector related to the `event`
         """
-        timestamp = event.get_id() + 1262304000
+        timestamp = LOFAR_event_id_to_unix(event.get_id())
         for station in event.get_stations():
+            site_latitude, site_longitude = det.get_site_coordinates(station.get_id())
+            site_location = EarthLocation(lat=site_latitude * u.deg, lon=site_longitude * u.deg)
             for channel in station.iter_channels():
-                self._calibrate_channel(channel, timestamp)
+                channel_pol = self.__get_channel_polarisation(det, station, channel)
+                self._calibrate_channel(channel, channel_pol, timestamp, site_location)
 
     def end(self):
         pass

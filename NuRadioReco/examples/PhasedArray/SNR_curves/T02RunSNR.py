@@ -35,8 +35,9 @@ import NuRadioReco.modules.phasedarray.triggerSimulator
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
+
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.logging import setup_logger
+
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('--inputfilename', type=str,
@@ -56,8 +57,6 @@ parser.add_argument('--nchannels', type=int,
 args = parser.parse_args()
 
 n_channels = args.nchannels
-
-logger = setup_logger(name="", level=logging.WARNING)
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -129,7 +128,6 @@ count_events.events = 0
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-
         channelBandPassFilter.run(evt, station, det, passband=[0.0 * units.MHz, 220.0 * units.MHz],
                                   filter_type='cheby1', order=9, rp=.1)
         channelBandPassFilter.run(evt, station, det, passband=[96.0 * units.MHz, 100.0 * units.GHz],
@@ -145,6 +143,9 @@ class mySimulation(simulation.simulation):
             # If there is an empty trace, leave
             if(np.sum(channel.get_trace()) == 0):
                 return
+
+        # Downsample trace to the new sampling rate
+        channelResampler.run(evt, station, det, sampling_rate=new_sampling_rate)
 
         filtered_signal_traces = {}
         for channel in station.iter_channels(use_channels=channels):
