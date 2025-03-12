@@ -1,13 +1,12 @@
 from NuRadioReco.framework.parameters import channelParameters as chp, stationParametersRNOG as stpRNOG
+
+from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.utilities import trace_utilities, units
+
 import matplotlib
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import signal
-from scipy.signal import hilbert
-from scipy.ndimage import maximum_filter1d, minimum_filter1d
-from NuRadioReco.modules.base.module import register_run
-import NuRadioReco.modules.channelSignalReconstructor
-from NuRadioReco.utilities import trace_utilities, units
+import matplotlib.pyplot as plt
 
 import logging
 logger = logging.getLogger('NuRadioReco.RNO_G.stationDeepCRVariables')
@@ -20,20 +19,18 @@ class stationDeepCRVariables:
     def __init__(self):
         pass
 
-    def begin(self, coincidence_window_size = 6*units.ns, pad_length = 500, channel_ids = [0,1,2,3]):
+    def begin(self, coincidence_window_size=6 * units.ns, pad_length=500, channel_ids=[0, 1, 2, 3]):
         """
         Parameters
         ----------
-
-        coincidence_window_size : int (default: 6)
+        coincidence_window_size: int (default: 6)
             Window size used for calculating the maximum peak to peak amplitude
 
-        pad_length : int (default 500)
+        pad_length: int (default: 500)
             Padding length used for calculating the coherent sum
 
-        channel_ids : array of int (default: [0,1,2,3])
+        channel_ids: array of int (default: [0, 1, 2, 3])
             Channels for which to calculate the variables
-
         """
         self.__coincidence_window_size = coincidence_window_size
         self.__pad_length = pad_length
@@ -41,14 +38,13 @@ class stationDeepCRVariables:
 
 
     @register_run()
-    def run(self, event, station, detector, ref_ch_id = 0, use_envelope = True):
+    def run(self, event, station, detector, ref_ch_id=0, use_envelope=True):
 
         """
         Calculate LDA variables and add to the station object.
 
         Parameters
         ----------
-
         event: Event object
             The event for which the LDA variables should be calculated
 
@@ -60,7 +56,6 @@ class stationDeepCRVariables:
 
         ref_ch_id: int
             reference channel for the coherent sum
-
         """
 
         ref_ch = station.get_channel(ref_ch_id)
@@ -75,13 +70,13 @@ class stationDeepCRVariables:
         rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
         snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=coincidence_window_size_bins_ref)
         station.set_parameter(stpRNOG.coherent_snr, snr)
-        return
 
     def end(self):
         pass
 
     def coherent_sum_step_by_step(self, station):
-        # Plot the four original waveforms before any alignment and save
+        """ Plot the four original waveforms before any alignment and save """
+        
         matplotlib.rcParams.update({"font.size": 20})
         plt.figure(figsize = (10, 6))
         for channel in station.iter_channels(use_channels = self.__channel_ids):
