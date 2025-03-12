@@ -3,6 +3,7 @@ from NuRadioReco.detector import detector
 from NuRadioReco.framework.sim_station import SimStation
 
 from scipy.signal.windows import hann
+from scipy import constants
 import numpy as np
 
 
