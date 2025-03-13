@@ -591,10 +591,6 @@ def apply_det_response(
         # (unlike the efieldToVoltageConverterPEREFIELD))
         efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)
 
-        # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
-        channelResampler.run(evt, station, det, sampling_rate=1. / dt)
-
         if add_noise:
             max_freq = 0.5 / dt
             Vrms = {}
@@ -1420,7 +1416,7 @@ class simulation:
                                                     self._propagator.get_number_of_raytracing_solutions(),
                                                     particle_mode=particle_mode)
 
-        efieldToVoltageConverter.begin(time_resolution=self._config['speedup']['time_res_efieldconverter'])
+        efieldToVoltageConverter.begin()
         channelGenericNoiseAdder.begin(seed=self._config['seed'])
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
