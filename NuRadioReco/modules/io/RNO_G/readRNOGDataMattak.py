@@ -8,7 +8,8 @@ from functools import lru_cache
 from inspect import signature
 
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import channelBlockOffsets, fit_block_offsets
+from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import \
+    channelBlockOffsets, fit_block_offsets, calculate_block_offsets
 
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
@@ -18,61 +19,6 @@ import NuRadioReco.framework.parameters
 
 from NuRadioReco.utilities import units
 import mattak.Dataset
-
-
-def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
-    """
-    Simple baseline correction function.
-
-    Determines baseline in discrete chuncks of "n_bins" with
-    the function specified (i.e., mean or median).
-
-    Parameters
-    ----------
-
-    wfs: np.array(n_events, n_channels, n_samples)
-        Waveforms of several events/channels.
-
-    n_bins: int
-        Number of samples/bins in one "chunck". If None, calculate median/mean over entire trace. (Default: 128)
-
-    func: np.mean or np.median
-        Function to calculate pedestal
-
-    return_offsets: bool, default False
-        if True, additionally return the baseline offsets
-
-    Returns
-    -------
-
-    wfs_corrected: np.array(n_events, n_channels, n_samples)
-        Baseline/pedestal corrected waveforms
-
-    baseline_values: np.array of shape (n_samples // n_bins, n_events, n_channels)
-        (Only if return_offsets==True) The baseline offsets
-    """
-
-    # Example: Get baselines in chunks of 128 bins
-    # wfs in (n_events, n_channels, 2048)
-    # np.split -> (16, n_events, n_channels, 128) each waveform split in 16 chuncks
-    # func -> (16, n_events, n_channels) pedestal for each chunck
-    if n_bins is not None:
-        baseline_values = func(np.split(wfs, 2048 // n_bins, axis=-1), axis=-1)
-
-        # np.repeat -> (2048, n_events, n_channels) concatenate the 16 chuncks to one baseline
-        baseline_traces = np.repeat(baseline_values, n_bins % 2048, axis=0)
-    else:
-        baseline_values = func(wfs, axis=-1)
-        # np.repeat -> (2048, n_events, n_channels) concatenate the 16 chuncks to one baseline
-        baseline_traces = np.repeat(baseline_values, 2048, axis=0)
-
-    # np.moveaxis -> (n_events, n_channels, 2048)
-    baseline_traces = np.moveaxis(baseline_traces, 0, -1)
-
-    if return_offsets:
-        return wfs - baseline_traces, baseline_values
-
-    return wfs - baseline_traces
 
 
 def get_time_offset(trigger_type):
@@ -707,7 +653,7 @@ class readRNOGData:
                         wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
 
                 if apply_baseline_correction == 'median':
-                    wfs = _baseline_correction(wfs)
+                    wfs = calculate_block_offsets(wfs)
                 elif apply_baseline_correction in ['auto', 'fit', 'approximate']:
                     wfs = np.vstack([
                         fit_block_offsets(
@@ -791,10 +737,6 @@ class readRNOGData:
         trigger.set_triggered()
         trigger.set_trigger_time(0)  # The trigger time is relative to the event/station time
         station.set_trigger(trigger)
-        block_offsets = None
-
-        if self._apply_baseline_correction == 'median':
-            waveforms, block_offsets = _baseline_correction(waveforms, return_offsets=True)
 
         readout_delays = event_info.readoutDelay
         for channel_id, wf in enumerate(waveforms):
@@ -811,13 +753,10 @@ class readRNOGData:
 
             time_offset = get_time_offset(event_info.triggerType) + readout_delays[channel_id]
             channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
-            if block_offsets is not None:
-                channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, block_offsets.T[channel_id])
-
             station.add_channel(channel)
 
         evt.set_station(station)
-        if self._apply_baseline_correction in ['auto', 'fit', 'approximate']:
+        if self._apply_baseline_correction in ['auto', 'fit', 'approximate', 'median']:
             self._blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
 
         return evt
