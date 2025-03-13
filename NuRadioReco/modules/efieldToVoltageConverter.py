@@ -130,8 +130,10 @@ class efieldToVoltageConverter():
                 cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                 t0 = electric_field.get_trace_start_time() + cab_delay
 
-                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
-                if sim_station.is_cosmic_ray():
+                # If the efield is not at the antenna (as possible for a simulated cosmic ray event),
+                # the different signal travel time to the antennas has to be taken into account
+                dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
+                if dist_channel_efield / units.mm > 0.01:
                     travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
                     t0 += travel_time_shift
 
@@ -189,11 +191,14 @@ class efieldToVoltageConverter():
                 # calculate the start bin
                 if not np.isnan(electric_field.get_trace_start_time()):
                     cab_delay = det.get_cable_delay(sim_station_id, channel_id)
-                    if sim_station.is_cosmic_ray():
+
+                    dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
+                    if dist_channel_efield / units.mm > 0.01:
                         travel_time_shift = calculate_time_shift_for_cosmic_ray(
                             det, sim_station, electric_field, channel_id)
                     else:
                         travel_time_shift = 0
+
                     start_time = electric_field.get_trace_start_time() - times_min + cab_delay + travel_time_shift
                     start_bin = int(round(start_time / time_resolution))
 
@@ -321,36 +326,39 @@ class efieldToVoltageConverter():
         self.logger.info("total time used by this module is {}".format(dt))
         return dt
 
-def calculate_time_shift_for_cosmic_ray(det, station, efield, channel_id):
+def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
     """
-    Calculate the time shift for a cosmic ray event
+    Calculate the time shift for an electric field to reach a channel.
+
+    For cosmic ray events, we often only have one electric field for all channels, so we have to account
+    for the difference in signal travel between channels.
 
     Parameters
     ----------
-    det : Detector
-    station : Station
-    efield : ElectricField
+    det: Detector
+    sim_station: SimStation
+    efield: ElectricField
+    channel_id: int
+        Channel id of the channel
 
     Returns
     -------
-    float
+    travel_time_shift: float
         time shift in ns
     """
-    station_id = station.get_id()
+    station_id = sim_station.get_id()
     site = det.get_site(station_id)
-    antenna_position = det.get_relative_position(station_id, channel_id) - efield.get_position()
-    if station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
-        index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
+
+    if sim_station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
+        index_of_refraction = ice.get_refractive_index(det.get_relative_position(station_id, channel_id)[2], site)
     else:  # signal is coming from above, so we take IOR of air
         index_of_refraction = ice.get_refractive_index(1, site)
 
-    # For cosmic ray events, we only have one electric field for all channels, so we have to account
-    # for the difference in signal travel between channels. IMPORTANT: This is only accurate
-    # if all channels have the same z coordinate
+    antenna_position_rel = det.get_relative_position(station_id, channel_id) - efield.get_position()
     travel_time_shift = geo_utl.get_time_delay_from_direction(
-        station.get_parameter(stnp.zenith),
-        station.get_parameter(stnp.azimuth),
-        antenna_position,
+        efield.get_parameter(efp.zenith),
+        efield.get_parameter(efp.azimuth),
+        antenna_position_rel,
         index_of_refraction
     )
 

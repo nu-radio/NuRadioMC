@@ -8,11 +8,10 @@ logger = logging.getLogger('NuRadioReco.geometryUtilities')
 
 def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
     """
-    Calculate the time delay between given positions for an arrival direction
+    Calculate the time delay between given positions for an arrival direction (plane wave)
 
     Parameters
     ----------
-
     zenith: float [rad]
         Zenith angle in convention up = 0
     azimuth: float [rad]
@@ -88,7 +87,7 @@ def get_efield_in_spherical_coords(efield, theta, phi):
         Zenith angle of the arriving signal
     phi: float
         Azimuth angle of the arriving signal
-    
+
     Returns
     -------
     np.array
@@ -113,7 +112,7 @@ def get_efield_in_spherical_coords(efield, theta, phi):
 
 
 def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
-    """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2 
+    """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2
 
     Parameters
     ----------
@@ -261,9 +260,9 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
 
 def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     """
-    Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel) 
-    and phi (perpendicular) polarization. Handles potential refraction into the firn if that 
-    applies to the antenna position. 
+    Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel)
+    and phi (perpendicular) polarization. Handles potential refraction into the firn if that
+    applies to the antenna position.
     WARNING: for deeper channels this function might be inacccurate. Consider using raytracing.
 
     parallel and perpendicular refers to the signal's polarization with respect
@@ -281,7 +280,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
         Channel ID of the desired channel
     zenith: float
         Zenith angle of the incoming signal
-    
+
     Returns
     -------
     zenith_antenna: float
