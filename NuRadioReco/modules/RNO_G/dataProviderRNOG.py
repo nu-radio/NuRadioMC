@@ -47,35 +47,33 @@ class dataProviderRNOG:
     """
 
     def __init__(self):
+        """ Initialize the modules """
+        self.reader = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData()
 
         self.channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector()
         self.channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets()
-        self.reader = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData()
-
         self.channelCableDelayAdder = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
-
-    def begin(self, files, reader_kwargs={}, det=None):
+    def begin(self, files, det, reader_kwargs={}):
         """ Call the begin method of the modules.
 
         Parameters
         ----------
         files: list of str
             List of files to read (are passed to the readRNOGDataMattak module).
+        det: Detector
+            Detector object.
         reader_kwargs: dict (default: {})
             Keyword arguments passed to the reader module readRNOGDataMattak.
-        det: Detector (default: None)
-            Detector object (is required).
         """
         self.files = files
-
-        self.channelGlitchDetector.begin()
-        self.channelBlockOffsetFitter.begin()
-        self.reader.begin(self.files, **reader_kwargs)
-        self.channelCableDelayAdder.begin()
-
-        assert det is not None, "Detector object is None, please provide a detector object."
         self.detector = det
+
+        self.reader.begin(self.files, **reader_kwargs)
+
+        self.channelBlockOffsetFitter.begin()
+        self.channelGlitchDetector.begin()
+        self.channelCableDelayAdder.begin()
 
     def end(self):
         """ Call the end method of the modules """
@@ -99,9 +97,7 @@ class dataProviderRNOG:
             self.detector.update(station.get_station_time())
 
             self.channelGlitchDetector.run(event, station, self.detector)
-
             self.channelBlockOffsetFitter.run(event, station, self.detector)
-
             self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
 
             yield event
