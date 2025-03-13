@@ -460,7 +460,7 @@ def get_signal_to_noise_ratio(trace, noise_rms, window_size=3):
         Coincidence window size (default: 3)
 
     Returns
-    --------
+    -------
     signal_to_noise_ratio: float
         Signal to Noise Ratio (SNR) value
     """
@@ -492,7 +492,7 @@ def get_root_power_ratio(trace, times, noise_rms):
         noise root mean square (RMS)
 
     Returns
-    --------
+    -------
     root_power_ratio: float
         Root Power Ratio (RPR) value
     """
