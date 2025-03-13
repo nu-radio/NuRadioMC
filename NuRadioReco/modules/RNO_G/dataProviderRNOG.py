@@ -27,11 +27,12 @@ class dataProviderRNOG:
     The readRNOGDataMattak module has two different modes to apply the voltage calibration:
         - If `read_calibrated_data==True` (default: False), the "bias scan-based" voltage calibration is applied by mattak.
         - If `convert_to_voltage==True` (default: True), a "pseudo" fully-linear voltage calibration is applied.
+
     Hence, by default only the "pseudo" fully-linear voltage calibration is applied. If you want to apply the
     "bias scan-based" voltage calibration, set `read_calibrated_data=True`. You have to make sure that mattak finds
     the necessary calibration files. If you want to retrieve the raw data, set both to False.
 
-    Also see
+    See Also
     --------
     The documentation of the individual modules for more information. In particular the readRNOGDataMattak
     which performs the actual reading of the data and applies the voltage calibration. The reader module is
