@@ -874,11 +874,17 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Frequencies have changed. Clearing antenna response cache. &quot;</span>
+                        <span class="s2">&quot;Frequencies have changed (array length). Clearing antenna response cache. &quot;</span>
+                        <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;Frequencies have changed (values). Clearing antenna response cache. &quot;</span>
                         <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
 
 

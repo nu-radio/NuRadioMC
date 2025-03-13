@@ -625,6 +625,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.channel</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_trace</span>
@@ -657,7 +658,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__pre_pulse_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_upsampling_factor</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.efieldToVoltageConverter&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
@@ -668,7 +669,8 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">uncertainty</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">time_resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">pre_pulse_time</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
-              <span class="n">post_pulse_time</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span>
+              <span class="n">post_pulse_time</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
+              <span class="n">caching</span><span class="o">=</span><span class="kc">True</span>
               <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Begin method, sets general parameters of module</span>
@@ -692,12 +694,15 @@
 <span class="sd">            length of empty samples that is added before the first pulse</span>
 <span class="sd">        post_pulse_time: float</span>
 <span class="sd">            length of empty samples that is added after the simulated trace</span>
+<span class="sd">        caching: bool</span>
+<span class="sd">            enable/disable caching of antenna response to save loading times (default: True)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">time_resolution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`time_resolution` is deprecated and will be removed in the future. &quot;</span>
                                 <span class="s2">&quot;The argument is ignored.&quot;</span><span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__pre_pulse_time</span> <span class="o">=</span> <span class="n">pre_pulse_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span> <span class="o">=</span> <span class="n">post_pulse_time</span>
@@ -713,7 +718,23 @@
             <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">&#39;sys_amp&#39;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">&#39;sys_amp&#39;</span><span class="p">][</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">&#39;sys_amp&#39;</span><span class="p">][</span><span class="n">iCh</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span> <span class="o">=</span> <span class="n">antennapattern</span><span class="o">.</span><span class="n">AntennaPatternProvider</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span> <span class="o">=</span> <span class="n">antennapattern</span><span class="o">.</span><span class="n">AntennaPatternProvider</span><span class="p">()</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">antenna_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Deprecation warning: `antenna_provider` is deprecated.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_cached_antenna_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ant_pattern</span><span class="p">,</span> <span class="n">zen</span><span class="p">,</span> <span class="n">azi</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the cached antenna reponse for a given antenna pattern, antenna orientation</span>
+<span class="sd">        and signal arrival direction. This wrapper is necessary as arrays and list are not</span>
+<span class="sd">        hashable (i.e., can not be used as arguments in functions one wants to cache).</span>
+<span class="sd">        This module ensures that the cache is clearied if the vector `self.__freqs` changes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ant_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">zen</span><span class="p">,</span> <span class="n">azi</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="efieldToVoltageConverter.run">
@@ -739,7 +760,7 @@
                 <span class="n">cab_delay</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_cable_delay</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
                 <span class="n">t0</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">cab_delay</span>
 
-                <span class="c1"># if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account</span>
+                <span class="c1"># if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account </span>
                 <span class="k">if</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">is_cosmic_ray</span><span class="p">():</span>
                     <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="n">calculate_time_shift_for_cosmic_ray</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">electric_field</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
                     <span class="n">t0</span> <span class="o">+=</span> <span class="n">travel_time_shift</span>
@@ -803,7 +824,6 @@
                             <span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">electric_field</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="mi">0</span>
-
                     <span class="n">start_time</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">times_min</span> <span class="o">+</span> <span class="n">cab_delay</span> <span class="o">+</span> <span class="n">travel_time_shift</span>
                     <span class="n">start_bin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">start_time</span> <span class="o">/</span> <span class="n">time_resolution</span><span class="p">))</span>
 
@@ -833,7 +853,7 @@
                         <span class="n">start_bin</span> <span class="o">=</span> <span class="mi">0</span>
 
                     <span class="n">new_trace</span><span class="p">[:,</span> <span class="n">start_bin</span><span class="p">:</span><span class="n">stop_bin</span><span class="p">]</span> <span class="o">=</span> <span class="n">tr</span>
-
+                
                 <span class="n">trace_object</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">()</span>
                 <span class="n">trace_object</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">new_trace</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">time_resolution</span><span class="p">)</span>
 
@@ -849,9 +869,38 @@
                 <span class="n">zenith</span> <span class="o">=</span> <span class="n">electric_field</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span>
                 <span class="n">azimuth</span> <span class="o">=</span> <span class="n">electric_field</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">]</span>
 
-                <span class="c1"># get antenna pattern for current channel</span>
-                <span class="n">VEL</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_efield_antenna_factor</span><span class="p">(</span>
-                    <span class="n">sim_station</span><span class="p">,</span> <span class="n">ff</span><span class="p">,</span> <span class="p">[</span><span class="n">channel_id</span><span class="p">],</span> <span class="n">det</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span><span class="p">)</span>
+                <span class="c1"># If we cache the antenna pattern, we need to make sure that the frequencies have not changed</span>
+                <span class="c1"># between stations. If they have, we need to clear the cache.</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">ff</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ff</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">ff</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                                <span class="s2">&quot;Frequencies have changed (array length). Clearing antenna response cache. &quot;</span>
+                                <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">ff</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">ff</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                                <span class="s2">&quot;Frequencies have changed (values). Clearing antenna response cache. &quot;</span>
+                                <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
+
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
+                    <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">t_phi</span> <span class="o">=</span> <span class="n">geo_utl</span><span class="o">.</span><span class="n">fresnel_factors_and_signal_zenith</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="p">)</span>
+                    <span class="n">antenna_model</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_antenna_model</span><span class="p">(</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">)</span>
+                    <span class="n">antenna_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span><span class="o">.</span><span class="n">load_antenna_pattern</span><span class="p">(</span><span class="n">antenna_model</span><span class="p">)</span>
+                    <span class="n">ant_orient</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_antenna_orientation</span><span class="p">(</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
+
+                    <span class="n">vel_tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="p">(</span><span class="n">antenna_pattern</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">)</span>
+                    <span class="n">VEL</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vel_tmp</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">vel_tmp</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_phi</span><span class="p">])]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># get antenna pattern for current channel</span>
+                    <span class="n">VEL</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_efield_antenna_factor</span><span class="p">(</span>
+                        <span class="n">sim_station</span><span class="p">,</span> <span class="n">ff</span><span class="p">,</span> <span class="p">[</span><span class="n">channel_id</span><span class="p">],</span> <span class="n">det</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">VEL</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># this can happen if there is not signal path to the antenna</span>
                     <span class="n">voltage_fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">efield_fft</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># set voltage trace to zeros</span>
@@ -905,7 +954,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
-
 
 
 <div class="viewcode-block" id="calculate_time_shift_for_cosmic_ray">

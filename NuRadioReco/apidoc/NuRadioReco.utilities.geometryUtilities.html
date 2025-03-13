@@ -645,6 +645,12 @@
 </dd>
 </dl>
 </dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>times: np.array of floats</dt><dd><p>Time delays</p>
+</dd>
+</dl>
+</dd>
 </dl>
 </dd></dl>
 
@@ -671,12 +677,48 @@
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_efield_in_spherical_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">efield</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_efield_in_spherical_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_efield_in_spherical_coords" title="Link to this definition"></a></dt>
 <dd><p>Get 3D electric field from cartesian coordinates in spherical coordinates,
 using the arrival directions theta and phi</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>efield: np.array</strong></dt><dd><p>Electric field in cartesian coordinates</p>
+</dd>
+<dt><strong>theta: float</strong></dt><dd><p>Zenith angle of the arriving signal</p>
+</dd>
+<dt><strong>phi: float</strong></dt><dd><p>Azimuth angle of the arriving signal</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>np.array</dt><dd><p>Electric field in spherical coordinates</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_fresnel_angle">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_fresnel_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith_incoming</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_fresnel_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_fresnel_angle" title="Link to this definition"></a></dt>
 <dd><p>Apply Snell’s law for given zenith angle, when a signal travels from n1 to n2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zenith_incoming: float</strong></dt><dd><p>Zenith angle of the incoming signal</p>
+</dd>
+<dt><strong>n_2: float</strong></dt><dd><p>Refractive index of the medium the signal is transmitted into</p>
+</dd>
+<dt><strong>n_1: float</strong></dt><dd><p>Refractive index of the medium the signal is coming from</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Fresnel angle</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -686,9 +728,27 @@ using the arrival directions theta and phi</p>
 electric field amplitude to that of the incident wave for parallel polarization (p-wave)
 this polarization corresponds to the eTheta polarization</p>
 <p>parallel and perpendicular refers to the signal’s polarization with respect
-to the ‘plane of incident’ which is defindes as: “the plane of incidence
+to the ‘plane of incident’ which is defined as: “the plane of incidence
 is the plane which contains the surface normal and the propagation vector
 of the incoming radiation.”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zenith_incoming: float</strong></dt><dd><p>Zenith angle of the incoming signal</p>
+</dd>
+<dt><strong>n_2: float</strong></dt><dd><p>Refractive index of the medium the signal is transmitted into</p>
+</dd>
+<dt><strong>n_1: float</strong></dt><dd><p>Refractive index of the medium the signal is coming from</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Fresnel coefficient t for theta (parallel) polarization</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -698,9 +758,27 @@ of the incoming radiation.”</p>
 electric field amplitude to that of the incident wave for perpendicular polarization (s-wave)
 this polarization corresponds to the ePhi polarization</p>
 <p>parallel and perpendicular refers to the signal’s polarization with respect
-to the ‘plane of incident’ which is defindes as: “the plane of incidence
+to the ‘plane of incident’ which is defined as: “the plane of incidence
 is the plane which contains the surface normal and the propagation vector
 of the incoming radiation.”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zenith_incoming: float</strong></dt><dd><p>Zenith angle of the incoming signal</p>
+</dd>
+<dt><strong>n_2: float</strong></dt><dd><p>Refractive index of the medium the signal is transmitted into</p>
+</dd>
+<dt><strong>n_1: float</strong></dt><dd><p>Refractive index of the medium the signal is coming from</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Fresnel coefficient t for phi (perpendicular) polarization</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -710,9 +788,27 @@ of the incoming radiation.”</p>
 electric field amplitude to that of the incident wave for parallel polarization (p-wave)
 this polarization corresponds to the eTheta polarization</p>
 <p>parallel and perpendicular refers to the signal’s polarization with respect
-to the ‘plane of incident’ which is defindes as: “the plane of incidence
+to the ‘plane of incident’ which is defined as: “the plane of incidence
 is the plane which contains the surface normal and the propagation vector
 of the incoming radiation.”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zenith_incoming: float</strong></dt><dd><p>Zenith angle of the incoming signal</p>
+</dd>
+<dt><strong>n_2: float</strong></dt><dd><p>Refractive index of the medium the signal is reflected from</p>
+</dd>
+<dt><strong>n_1: float</strong></dt><dd><p>Refractive index of the medium the signal is coming from</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Fresnel coefficient r for theta (parallel) polarization</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -722,9 +818,64 @@ of the incoming radiation.”</p>
 electric field amplitude to that of the incident wave for perpendicular polarization (s-wave)
 this polarization corresponds to the ePhi polarization</p>
 <p>parallel and perpendicular refers to the signal’s polarization with respect
-to the ‘plane of incident’ which is defindes as: “the plane of incidence
+to the ‘plane of incident’ which is defined as: “the plane of incidence
 is the plane which contains the surface normal and the propagation vector
 of the incoming radiation.”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zenith_incoming: float</strong></dt><dd><p>Zenith angle of the incoming signal</p>
+</dd>
+<dt><strong>n_2: float</strong></dt><dd><p>Refractive index of the medium the signal is reflected from</p>
+</dd>
+<dt><strong>n_1: float</strong></dt><dd><p>Refractive index of the medium the signal is coming from</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Fresnel coefficient r for phi (perpendicular) polarization</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">fresnel_factors_and_signal_zenith</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#fresnel_factors_and_signal_zenith"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith" title="Link to this definition"></a></dt>
+<dd><p>Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel) 
+and phi (perpendicular) polarization. Handles potential refraction into the firn if that 
+applies to the antenna position. 
+WARNING: for deeper channels this function might be inacccurate. Consider using raytracing.</p>
+<p>parallel and perpendicular refers to the signal’s polarization with respect
+to the ‘plane of incident’ which is defined as: “the plane of incidence
+is the plane which contains the surface normal and the propagation vector
+of the incoming radiation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>detector: NuRadioReco.detector.Detector</strong></dt><dd><p>Detector object</p>
+</dd>
+<dt><strong>station: NuRadioReco.detector.Station</strong></dt><dd><p>Station object</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>Channel ID of the desired channel</p>
+</dd>
+<dt><strong>zenith: float</strong></dt><dd><p>Zenith angle of the incoming signal</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>zenith_antenna: float</dt><dd><p>Zenith angle at the antenna (potentially including refraction)</p>
+</dd>
+<dt>t_theta: float</dt><dd><p>Fresnel transmission coefficient for theta polarization</p>
+</dd>
+<dt>t_phi: float</dt><dd><p>Fresnel transmission coefficient for phi polarization</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
