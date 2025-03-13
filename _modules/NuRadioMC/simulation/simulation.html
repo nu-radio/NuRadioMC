@@ -1227,10 +1227,6 @@
         <span class="c1"># (unlike the efieldToVoltageConverterPEREFIELD))</span>
         <span class="n">efieldToVoltageConverter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="n">channel_ids</span><span class="p">)</span>
 
-        <span class="c1"># downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to</span>
-        <span class="c1"># 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)</span>
-        <span class="n">channelResampler</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="n">add_noise</span><span class="p">:</span>
             <span class="n">max_freq</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="n">dt</span>
             <span class="n">Vrms</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2086,7 +2082,7 @@
                                                     <span class="bp">self</span><span class="o">.</span><span class="n">_propagator</span><span class="o">.</span><span class="n">get_number_of_raytracing_solutions</span><span class="p">(),</span>
                                                     <span class="n">particle_mode</span><span class="o">=</span><span class="n">particle_mode</span><span class="p">)</span>
 
-        <span class="n">efieldToVoltageConverter</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">time_resolution</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;time_res_efieldconverter&#39;</span><span class="p">])</span>
+        <span class="n">efieldToVoltageConverter</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
         <span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;seed&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputfilenameNuRadioReco</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">eventWriter</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputfilenameNuRadioReco</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_level</span><span class="p">)</span>
