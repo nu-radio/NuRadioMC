@@ -32,13 +32,11 @@ def get_time_offset(trigger_type):
 
     Parameters
     ----------
-
     trigger_type: str
         Trigger type encoded as string from Mattak
 
     Returns
     -------
-
     time_offset: float
         trace_start_time = trigger_time - time_offset
 
@@ -71,13 +69,11 @@ def _all_files_in_directory(mattak_dir):
 
     Parameters
     ----------
-
     mattak_dir: str
         Path to a mattak directory
 
     Returns
     -------
-
     all_there: bool
         True, if all "req_files" are there and waveforms.root or combined.root. Otherwise returns False.
     """
@@ -112,7 +108,6 @@ class readRNOGData:
 
         Parameters
         ----------
-
         run_table_path: str | None
             Path to a run_table.csv file. If None, the run table is queried from the DB. (Default: None)
 
@@ -125,7 +120,6 @@ class readRNOGData:
 
         Examples
         --------
-
         .. code-block::
 
             reader = readRNOGDataMattak.readRNOGData() # initialize reader
@@ -138,7 +132,6 @@ class readRNOGData:
             for evt in reader.run(): # loop over all events in file
                 # perform some analysis
                 pass
-
         """
         self.logger = logging.getLogger('NuRadioReco.RNOG.readRNOGData')
         self.logger.setLevel(log_level)
@@ -198,7 +191,6 @@ class readRNOGData:
         """
         Parameters
         ----------
-
         dirs_files: str, list(str)
             Path to run directories (i.e. ".../stationXX/runXXX/") or path to root files (have to be "combined" mattak files).
 
@@ -217,7 +209,6 @@ class readRNOGData:
 
         Other Parameters
         ----------------
-
         apply_baseline_correction: str {'auto', 'fit', 'approximate', 'median', 'none'}, optional
             Removes the DC (baseline) block offsets (pedestals).
             Options are, in order of decreasing precision and increasing performance:
@@ -309,8 +300,8 @@ class readRNOGData:
 
         if select_runs and self.__run_table is not None:
             self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
-                                 f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
-                                 f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
+                            f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
+                            f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
         self._selectors = []
         self.add_selectors(self._check_for_valid_information_in_event_info)
@@ -392,13 +383,12 @@ class readRNOGData:
 
         Parameters
         ----------
-
         selectors: list of Callables
             List of Callable(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
 
-        select_triggers: str or list(str)
-            Names of triggers which should be selected. Convenience interface instead of passing a selector. (Default: None)
+        select_triggers: str or list(str) (Default: None)
+            Names of triggers which should be selected. Convenience interface instead of passing a selector.
         """
 
         # Initialize selectors for event filtering
@@ -425,7 +415,6 @@ class readRNOGData:
 
         Parameters
         ----------
-
         dataset: mattak.Dataset.Dataset
 
         select: bool
@@ -484,13 +473,11 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_index: int
             Same as in read_event().
 
         Returns
         -------
-
         dataset: mattak.Dataset.Dataset
         """
         # find correct dataset
@@ -508,16 +495,13 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_info: mattak.Dataset.EventInfo
             The event info object for one event.
 
-        event_index: int
-            Same as in read_event(). Only use for logger.info(). (Default: None)
-
+        event_index: int (Default: None)
+            Same as in read_event(). Only use for logger.info().
         Returns
         -------
-
         skip: bool
             Returns False to skip/reject event, return True to keep/read event
         """
@@ -545,17 +529,13 @@ class readRNOGData:
 
         Parameters
         ----------
-
-        keys : str or list(str) or None
+        keys : str or list(str) or None (Default: ["station", "run", "eventNumber"])
             List of the information to receive from each event. Have to match the attributes (member variables)
             of the mattak.Dataset.EventInfo class (examples are "station", "run", "triggerTime", "triggerType", "eventNumber", ...).
-
             If None, read in all keys present in the EventInfo class.
-            (Default: ["station", "run", "eventNumber"])
 
         Returns
         -------
-
         data: dict
             Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries
             them self containing the information specified with "keys" parameter.
@@ -604,22 +584,17 @@ class readRNOGData:
 
         Parameters
         ----------
-
         apply_baseline_correction: str | None
             If not None, apply a different baseline correction algorithm than specified in the
             `begin` method. Otherwise (default), use the same setting as specified there.
 
-        max_events : int | None
+        max_events : int | None (default: 1000)
             The maximum number of waveforms to return.
-
             If None, return all waveforms in all datasets. Note that this may cause a crash
             due to memory overflow if too many waveforms are selected.
 
-            Default: 1000
-
         Returns
         -------
-
         wfs: np.array
             Waveforms of all "selected" events. The wavefroms are either calibrated or not
             based on the class config.
@@ -677,12 +652,10 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_info: mattak.Dataset.EventInfo
 
         Returns
         -------
-
         is_valid: bool
             Returns True if all information valid, false otherwise
         """
@@ -709,7 +682,6 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_info: mattak.Dataset.EventInfo
             The event info object for one event.
 
@@ -718,7 +690,6 @@ class readRNOGData:
 
         Returns
         -------
-
         evt: NuRadioReco.framework.event
         """
 
@@ -769,7 +740,6 @@ class readRNOGData:
 
         Yields
         ------
-
         evt: `NuRadioReco.framework.event.Event`
         """
 
@@ -791,14 +761,12 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_index: int
             The index of a particluar event. The index is the chronological number from 0 to
             number of total events (across all datasets).
 
         Returns
         -------
-
         evt: `NuRadioReco.framework.event.Event`
         """
 
@@ -827,7 +795,6 @@ class readRNOGData:
 
         Parameters
         ----------
-
         run_nr: int
             Run number
 
@@ -836,7 +803,6 @@ class readRNOGData:
 
         Returns
         -------
-
         evt: `NuRadioReco.framework.event.Event`
         """
 
