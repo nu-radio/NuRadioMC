@@ -4,7 +4,24 @@ from NuRadioReco.framework.event import Event
 
 def has_glitch(event_or_station):
     """
-    Returns true if any channel in any station has a glitch
+    Returns true if any channel in any station has a "glitch".
+
+    Requires the RNO_G.channelGlitchDetector module to have ran on the event.
+
+    Parameters
+    ----------
+    event_or_station : Event or Station
+        The event or station to check for glitches. If an event is given, the first station is used
+        (if multiple stations exist in the event an error is raised).
+
+    Returns
+    -------
+    has_glitch : bool
+        True if any channel has a glitch, False otherwise.
+
+    Also see
+    --------
+    NuRadioReco.modules.RNO_G.channelGlitchDetector
     """
     if isinstance(event_or_station, Event):
         # This will throw an error if the event has more than one station
