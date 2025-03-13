@@ -32,6 +32,17 @@ class stationHitFilter:
             If users want the time checker to run through all channel groups
         complete_hit_check: bool (default: False)
             If users want the high hit checker to run through all channels
+
+            Case I (default):
+            complete_hit_check=False and complete_time_check=False
+                It's faster, the time checker and the hit checker don't have to go through all channels
+                unless nothing has been found. If an event passed the time checker already,
+                then the hit checker would be skipped.
+            Case II:
+            complete_hit_check=True and complete_time_check=True
+                All groups and all channels will be checked no matter what,
+                so it will take a little bit more time.
+
         time_window: float (default: 10.0*units.ns)
             Coincidence window for two adjacent channels
         is_multi_thresholds: bool (default: False)
@@ -65,24 +76,20 @@ class stationHitFilter:
         self._times = [[] for i in range(self._n_channels_in_ice)]
         self._trace = [[] for i in range(self._n_channels_in_ice)]
         self._envelope_trace = [[] for i in range(self._n_channels_in_ice)]
-        self._hit_thresholds = [[] for i in range(self._n_channels_in_ice)]
-        self._is_over_hit_threshold = [[] for i in range(self._n_channels_in_ice)]
+        self._hit_thresholds = [[None for _ in range(self._n_thresholds)] for i in range(self._n_channels_in_ice)]
+        self._is_over_hit_threshold = [[None for _ in range(self._n_thresholds)] for i in range(self._n_channels_in_ice)]
 
+        ### 2-D list ###
+        # This list contains sub-lists for all groups.
+        # Each sub-list contains bool(s) indicating the COINCIDENCE of channel pair(s) in each group
+        # self._in_time_sequence[0] is the PA, it has 6 pairs (6 bools)
+        # Initiating each element with None, it will later be replaced with bool when running the time checker
         self._in_time_sequence = []
         for i_group, group in enumerate(self._in_ice_channel_groups):
             if i_group == 0:
-                self._in_time_sequence.append([])
-                for i_channel_pair in range(self._n_channel_pairs_in_PA):
-                    self._in_time_sequence[i_group].append(None)
+                self._in_time_sequence.append([None for _ in range(self._n_channel_pairs_in_PA)])
             elif len(group) > 1:
-                self._in_time_sequence.append([])
-                for i_channel_pair in range(len(group)-1):
-                    self._in_time_sequence[i_group].append(None)
-
-        for i_channel in range(self._n_channels_in_ice):
-            for i in range(self._n_thresholds):
-                self._hit_thresholds[i_channel].append(None)
-                self._is_over_hit_threshold[i_channel].append(None)
+                self._in_time_sequence.append([None for _ in range(len(group)-1)])
 
         self._passed_time_checker = None
         self._passed_hit_checker = None
@@ -221,15 +228,11 @@ class stationHitFilter:
         hit_thresholds = self.get_hit_thresholds()
         n_counts_above_threshold = np.zeros(self._n_thresholds)
 
-        for i_channel in range(self._n_channels_in_ice):
-            for i in range(self._n_thresholds):
-                if np.amax(envelopes[i_channel]) > hit_thresholds[i_channel][i]:
-                    self._is_over_hit_threshold[i_channel][i] = True
-                    n_counts_above_threshold[i] += 1
-                else:
-                    self._is_over_hit_threshold[i_channel][i] = False
-
         for i in range(self._n_thresholds):
+            for i_channel in range(self._n_channels_in_ice):
+                self._is_over_hit_threshold[i_channel][i] = np.amax(envelopes[i_channel]) > hit_thresholds[i_channel][i]
+                n_counts_above_threshold[i] += int(self._is_over_hit_threshold[i_channel][i])
+
             if n_counts_above_threshold[i] > i:
                 self._passed_hit_checker = True
 
