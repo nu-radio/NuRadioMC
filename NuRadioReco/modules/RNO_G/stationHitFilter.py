@@ -13,7 +13,7 @@ logger = logging.getLogger('NuRadioReco.RNO_G.stationHitFitter')
 
 class stationHitFilter:
 
-    def __init__(self, complete_time_check = False, complete_hit_check = False, time_window = 10.0*units.ns, is_multi_thresholds = False, threshold_multipliers = [6.5, 6.0, 5.5, 5.0, 4.5]):
+    def __init__(self, complete_time_check=False, complete_hit_check=False, time_window=10.0*units.ns, is_multi_thresholds=False, threshold_multipliers=[6.5, 6.0, 5.5, 5.0, 4.5]):
         """
         See if an event is thermal noise based on the coincidence window.
 
@@ -23,7 +23,7 @@ class stationHitFilter:
         and get the time when the hit happens, then it checks to see if hits in each group
         are in the coincidence window. This time checker requires at least 1 coincident pair in G1
         and another coincident pair in any group. When the time check fails, the Hit Filter will
-        see if there's any in-ice channel that has a high hit (maximum > 6.5*RMS), which is the
+        see if there's any in-ice channel that has a high hit (maximum > 6.5*noise_RMS), which is the
         hit checker, and whenever there's a high hit it passed the Hit Filter.
 
         Parameters
@@ -37,7 +37,8 @@ class stationHitFilter:
         is_multi_thresholds: bool (default: False)
             If users want to check with multiple hit thresholds
         threshold_multipliers: 1-D list (default: [6.5, 6.0, 5.5, 5.0, 4.5])
-            Different hit threhold levels, if not multiple threholds only the first element is used
+            Different hit threhold multipliers where a hit threshold is a multiplier times the noise RMS,
+            if not using multiple threholds only the first element (largest multiplier) is used
         """
         self._complete_time_check = complete_time_check
         self._complete_hit_check = complete_hit_check
@@ -47,7 +48,7 @@ class stationHitFilter:
         if self._is_multi_thresholds:
             self._threshold_multipliers = threshold_multipliers
         else:
-            self._threshold_multipliers = [ threshold_multipliers[0] ]
+            self._threshold_multipliers = [threshold_multipliers[0]]
 
         self._n_thresholds = len(self._threshold_multipliers)
 
@@ -58,14 +59,14 @@ class stationHitFilter:
         self._n_channels_in_ice = len(self._in_ice_channels)
         self._n_channel_pairs_in_PA = len(self._channel_pairs_in_PA)
 
-        self._envelope_max_time_index = np.array( [None] * self._n_channels_in_ice )
-        self._envelope_max_time = np.array( [None] * self._n_channels_in_ice )
-        self._noise_RMS = np.array( [None] * self._n_channels_in_ice )
-        self._times = [ [] for i in range(self._n_channels_in_ice) ]
-        self._trace = [ [] for i in range(self._n_channels_in_ice) ]
-        self._envelope_trace = [ [] for i in range(self._n_channels_in_ice) ]
-        self._hit_thresholds = [ [] for i in range(self._n_channels_in_ice) ]
-        self._is_over_hit_threshold = [ [] for i in range(self._n_channels_in_ice) ]
+        self._envelope_max_time_index = np.array([None] * self._n_channels_in_ice)
+        self._envelope_max_time = np.array([None] * self._n_channels_in_ice)
+        self._noise_RMS = np.array([None] * self._n_channels_in_ice)
+        self._times = [[] for i in range(self._n_channels_in_ice)]
+        self._trace = [[] for i in range(self._n_channels_in_ice)]
+        self._envelope_trace = [[] for i in range(self._n_channels_in_ice)]
+        self._hit_thresholds = [[] for i in range(self._n_channels_in_ice)]
+        self._is_over_hit_threshold = [[] for i in range(self._n_channels_in_ice)]
 
         self._in_time_sequence = []
         for i_group, group in enumerate(self._in_ice_channel_groups):
@@ -114,7 +115,7 @@ class stationHitFilter:
         return channel_out
 
 
-    def _set_up(self, set_of_traces, set_of_times, RMS):
+    def _set_up(self, set_of_traces, set_of_times, noise_RMS):
         """
         Set things up before passing to the Hit Filter.
 
@@ -129,14 +130,14 @@ class stationHitFilter:
             A set of input trace arrays of all 24 channels
         set_of_times: 2-D array of floats
             A set of input times arrays of all 24 channels
-        RMS: 1-D array of floats
-            A set of input RMS values of all 24 channels
+        noise_RMS: 1-D array of floats
+            A set of input noise RMS values of all 24 channels
         """
         for group in self._in_ice_channel_groups:
             for channel in group:
                 mapped_channel = self._channel_mapping(channel)
-                if RMS.size != 0:
-                    self._noise_RMS[mapped_channel] = RMS[channel]
+                if noise_RMS.size != 0:
+                    self._noise_RMS[mapped_channel] = noise_RMS[channel]
                 else:
                     self._noise_RMS[mapped_channel] = trace_utilities.get_split_trace_noise_RMS(set_of_traces[channel])
 
@@ -202,7 +203,7 @@ class stationHitFilter:
 
     def _hit_checker(self):
         """
-        Find a high hit (maximum > 6.5*RMS) in all 15 in-ice channels.
+        Find a high hit (maximum > 6.5*noise_RMS) in all 15 in-ice channels.
 
         See if there's at least 1 high hit in all input channels,
         if yes then the event passes the hit checker.
@@ -240,7 +241,7 @@ class stationHitFilter:
         pass
 
 
-    def apply_hit_filter(self, set_of_traces, set_of_times, RMS=np.array([])):
+    def apply_hit_filter(self, set_of_traces, set_of_times, noise_RMS=np.array([])):
         """
         See if the input event will survive the Hit Filter or not.
 
@@ -254,12 +255,12 @@ class stationHitFilter:
             A set of input trace arrays of all 24 channels
         set_of_times: 2-D array of floats
             A set of input times arrays of all 24 channels
-        RMS: 1-D array of floats (default: np.array([]))
-            A set of input RMS values of all 24 channels
+        noise_RMS: 1-D array of floats (default: np.array([]))
+            A set of input noise RMS values of all 24 channels
         """
         self._passed_hit_filter = False
 
-        self._set_up(set_of_traces, set_of_times, RMS)
+        self._set_up(set_of_traces, set_of_times, noise_RMS)
         self._time_checker()
 
         if not self._complete_hit_check:
@@ -271,13 +272,13 @@ class stationHitFilter:
                 if self.is_passed_hit_checker():
                     self._passed_hit_filter = True
         else:
-            self._hit_Checker()
+            self._hit_checker()
             if self.is_passed_time_checker() or self.is_passed_hit_checker():
                 self._passed_hit_filter = True
 
 
     @register_run()
-    def run(self, evt, station, det=None, RMS=np.array([])):
+    def run(self, evt, station, det=None, noise_RMS=np.array([])):
         """
         Runs the Hit Filter.
 
@@ -289,7 +290,7 @@ class stationHitFilter:
         det: Detector object | None
             Detector object (not used in this method,
             included to have the same signature as other NuRadio classes)
-        RMS: 1-D numpy array (default: np.array([]))
+        noise_RMS: 1-D numpy array (default: np.array([]))
             Noise RMS values of all channels, if not given the Hit Filter will calculate them
 
         Returns
@@ -303,7 +304,7 @@ class stationHitFilter:
         """
         set_of_traces = np.array([np.array(channel.get_trace()) for channel in station.iter_channels()])
         set_of_times = np.array([np.array(channel.get_times()) for channel in station.iter_channels()])
-        self.apply_hit_filter(set_of_traces, set_of_times, RMS)
+        self.apply_hit_filter(set_of_traces, set_of_times, noise_RMS)
 
         return self.is_passed_hit_filter()
 
