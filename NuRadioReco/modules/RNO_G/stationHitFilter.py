@@ -25,6 +25,14 @@ class stationHitFilter:
         and another coincident pair in any group. When the time check fails, the Hit Filter will
         see if there's any in-ice channel that has a high hit (maximum > 6.5*noise_RMS), which is the
         hit checker, and whenever there's a high hit it passed the Hit Filter.
+        Options for the COMPLETENESS of checks:
+        CASE I (default): complete_hit_check=False and complete_time_check=False
+        It's faster, the time checker and the hit checker don't have to go through all channels
+        unless nothing has been found. If an event passed the time checker already,
+        then the hit checker would be skipped.
+        CASE II: complete_hit_check=True and complete_time_check=True
+        All groups and all channels will be checked no matter what,
+        so it will take a little bit more time.
 
         Parameters
         ----------
@@ -32,17 +40,6 @@ class stationHitFilter:
             If users want the time checker to run through all channel groups
         complete_hit_check: bool (default: False)
             If users want the high hit checker to run through all channels
-
-            Case I (default):
-            complete_hit_check=False and complete_time_check=False
-                It's faster, the time checker and the hit checker don't have to go through all channels
-                unless nothing has been found. If an event passed the time checker already,
-                then the hit checker would be skipped.
-            Case II:
-            complete_hit_check=True and complete_time_check=True
-                All groups and all channels will be checked no matter what,
-                so it will take a little bit more time.
-
         time_window: float (default: 10.0*units.ns)
             Coincidence window for two adjacent channels
         is_multi_thresholds: bool (default: False)
