@@ -661,7 +661,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__particles</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span> <span class="c1"># stores a dictionary of simulated MC particles in an event</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_information</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">hybrid_information</span><span class="o">.</span><span class="n">HybridInformation</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># saves which modules were executed with what parameters on event level</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># saves which modules were executed with what parameters on station level</span>
+        <span class="c1"># saves which modules were executed with what parameters on station level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Event.register_module_event">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.register_module_event">[docs]</a>
@@ -699,9 +700,6 @@
 <span class="sd">        kwargs:</span>
 <span class="sd">            the key word arguments of the run method</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
         <span class="n">iE</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">iE</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">])</span></div>
 
@@ -718,14 +716,40 @@
         <span class="n">iE</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">iS</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">iS</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">iS</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">iE</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">iS</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">iS</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">iE</span><span class="p">):</span>
                 <span class="n">iS</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">iS</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">)</span> <span class="o">==</span> <span class="n">iE</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">)</span> <span class="o">==</span> <span class="n">iE</span><span class="p">:</span>
                     <span class="k">break</span>
+
                 <span class="n">iE</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">[</span><span class="n">iE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Event.has_been_processed_by_module">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_been_processed_by_module">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_been_processed_by_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module_name</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if the event has been processed by a module with a specific name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        module_name: str</span>
+<span class="sd">            The name of the module to check for.</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            The station id for which the module is run.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_modules</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">module</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">module_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 
 <div class="viewcode-block" id="Event.get_generator_info">

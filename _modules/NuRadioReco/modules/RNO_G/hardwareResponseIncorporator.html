@@ -621,8 +621,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.RNO_G.hardwareResponseIncorporator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span><span class="p">,</span> <span class="n">signal_processing</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelAddCableDelay</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.station</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector.RNO_G</span><span class="w"> </span><span class="kn">import</span> <span class="n">analog_components</span>
@@ -649,6 +650,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__mingainlin</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger_channels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channelAddCableDelay</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelAddCableDelay</span><span class="o">.</span><span class="n">channelAddCableDelay</span><span class="p">()</span>
 
 <div class="viewcode-block" id="hardwareResponseIncorporator.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.begin">[docs]</a>
@@ -869,13 +871,20 @@
                 <span class="n">trace_fft</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_to_data</span><span class="p">:</span>
-            <span class="c1"># Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added</span>
-            <span class="c1"># in the efieldToVoltageConverter or with the channelCableDelayAdder</span>
-            <span class="c1"># (if efieldToVoltageConverterPerEfield was used).</span>
-            <span class="n">signal_processing</span><span class="o">.</span><span class="n">add_cable_delay</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">has_trigger_channels</span><span class="p">:</span>
-                <span class="n">signal_processing</span><span class="o">.</span><span class="n">add_cable_delay</span><span class="p">(</span>
-                        <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">evt</span><span class="o">.</span><span class="n">has_been_processed_by_module</span><span class="p">(</span><span class="s1">&#39;channelAddCableDelay&#39;</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;The hardwareResponseIncorporator module should _not_ be used to remove the cable delay &quot;</span>
+                    <span class="s2">&quot;from data anymore. Please use channelAddCableDelay module for this (before running &quot;</span>
+                    <span class="s2">&quot;the hardwareResponseIncorporator module). The channelAddCableDelay was not applied &quot;</span>
+                    <span class="s2">&quot;to this event, hence, you are receiving this warning. The cable delay is now &quot;</span>
+                    <span class="s2">&quot;removed. Please add the channelAddCableDelay module to your processing chain &quot;</span>
+                    <span class="s2">&quot;to avoid this warning in the future (in that case the cable delay will not be &quot;</span>
+                    <span class="s2">&quot;removed by this module).&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added</span>
+                <span class="c1"># in the efieldToVoltageConverter or with the channelCableDelayAdder</span>
+                <span class="c1"># (if efieldToVoltageConverterPerEfield was used).</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channelAddCableDelay</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;subtract&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span></div>
 

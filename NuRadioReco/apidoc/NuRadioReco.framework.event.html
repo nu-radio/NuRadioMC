@@ -721,46 +721,49 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.get_waveforms" title="NuRadioReco.framework.event.Event.get_waveforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_waveforms</span></code></a>([station_id, channel_id])</p></td>
 <td><p>Returns the waveforms stored within the event.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_parameter" title="NuRadioReco.framework.event.Event.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_been_processed_by_module" title="NuRadioReco.framework.event.Event.has_been_processed_by_module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_been_processed_by_module</span></code></a>(module_name, ...)</p></td>
+<td><p>Checks if the event has been processed by a module with a specific name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_parameter" title="NuRadioReco.framework.event.Event.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_parameter_error" title="NuRadioReco.framework.event.Event.has_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_error</span></code></a>(key)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_parameter_error" title="NuRadioReco.framework.event.Event.has_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_error</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_particle" title="NuRadioReco.framework.event.Event.has_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_particle</span></code></a>([particle_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_particle" title="NuRadioReco.framework.event.Event.has_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_particle</span></code></a>([particle_id])</p></td>
 <td><p>Returns true if at least one MC particle is stored in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_shower" title="NuRadioReco.framework.event.Event.has_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_shower</span></code></a>([shower_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_shower" title="NuRadioReco.framework.event.Event.has_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_shower</span></code></a>([shower_id])</p></td>
 <td><p>Returns true if at least one shower is stored in the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_emitter" title="NuRadioReco.framework.event.Event.has_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_emitter</span></code></a>([emitter_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_emitter" title="NuRadioReco.framework.event.Event.has_sim_emitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_emitter</span></code></a>([emitter_id])</p></td>
 <td><p>Returns true if at least one simulated emitter is stored in the event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="NuRadioReco.framework.event.Event.has_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_shower</span></code></a>([shower_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="NuRadioReco.framework.event.Event.has_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_shower</span></code></a>([shower_id])</p></td>
 <td><p>Returns true if at least one simulated shower is stored in the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_triggered" title="NuRadioReco.framework.event.Event.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_triggered" title="NuRadioReco.framework.event.Event.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
 <td><p>Returns true if any station has been triggered.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
 <td><p>returns an interator that loops over all modules.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.remove_parameter" title="NuRadioReco.framework.event.Event.remove_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_parameter</span></code></a>(key)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.remove_parameter" title="NuRadioReco.framework.event.Event.remove_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_parameter</span></code></a>(key)</p></td>
 <td><p>Remove a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_event_time" title="NuRadioReco.framework.event.Event.set_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_event_time</span></code></a>(time[, format])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_event_time" title="NuRadioReco.framework.event.Event.set_event_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_event_time</span></code></a>(time[, format])</p></td>
 <td><p>Set the (absolute) event time (will be stored as astropy.time.Time).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_parameter" title="NuRadioReco.framework.event.Event.set_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter</span></code></a>(key, value)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_parameter" title="NuRadioReco.framework.event.Event.set_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter</span></code></a>(key, value)</p></td>
 <td><p>Set a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_parameter_error" title="NuRadioReco.framework.event.Event.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_parameter_error" title="NuRadioReco.framework.event.Event.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
 <td><p>Set the error of a parameter</p></td>
 </tr>
 </tbody>
@@ -847,6 +850,27 @@
 over all modules that are applied on event or station level (on this particular station). If no
 station_id is provided, the loop is only over the event modules.
 The order follows the sequence these modules were applied</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.has_been_processed_by_module">
+<span class="sig-name descname"><span class="pre">has_been_processed_by_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.has_been_processed_by_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_been_processed_by_module" title="Link to this definition"></a></dt>
+<dd><p>Checks if the event has been processed by a module with a specific name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>module_name: str</strong></dt><dd><p>The name of the module to check for.</p>
+</dd>
+<dt><strong>station_id: int</strong></dt><dd><p>The station id for which the module is run.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>bool</dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
