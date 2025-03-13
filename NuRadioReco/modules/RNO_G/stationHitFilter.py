@@ -426,6 +426,25 @@ class stationHitFilter:
         """
         return self._in_time_sequence
 
+    def is_in_time_sequence_PA(self):
+        """
+        Returns
+        -------
+        dict: dictionary of bools
+            See if channel pairs passed the time checker in group 1 (PA)
+            In the dictionary, there are 6 pairs:
+            (0,1), (0,2), (0,3), (1,2), (1,3), (2,3)
+            To see if a pair is coincident one can do, for example:
+            is_in_time_sequence_PA[(0,1)], then it will be True or False
+        """
+        dict = {}
+        for pair in self._channel_pairs_in_PA:
+            i = pair[0]
+            j = pair[1]
+            for k in self._in_time_sequence[0]:
+                dict[(i,j)] = self._in_time_sequence[0][k]
+        return dict
+
     def is_over_hit_threshold(self):
         """
         Returns
