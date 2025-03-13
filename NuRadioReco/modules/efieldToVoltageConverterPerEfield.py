@@ -6,7 +6,7 @@ import NuRadioReco.framework.sim_channel
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import units, ice, geometryUtilities
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import signal_processing
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import channelParameters as chp
 
@@ -33,7 +33,7 @@ class efieldToVoltageConverterPerEfield():
         evt : Event
             The event object.
         station : SimStation (or Station)
-            The SimStation object. If a Station object is provided, it is detected and the 
+            The SimStation object. If a Station object is provided, it is detected and the
             SimStation is automatically retrived from the Station object
         det : Detector
             The detector object.
@@ -73,7 +73,7 @@ class efieldToVoltageConverterPerEfield():
                 azimuth = electric_field[efp.azimuth]
 
                 # get antenna pattern for current channel
-                VEL = trace_utilities.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
+                VEL = signal_processing.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
 
                 if VEL is None:  # this can happen if there is not signal path to the antenna
                     voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros

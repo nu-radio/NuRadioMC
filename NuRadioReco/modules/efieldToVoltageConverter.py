@@ -11,7 +11,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units, fft, ice, trace_utilities, geometryUtilities as geo_utl
+from NuRadioReco.utilities import units, fft, ice, signal_processing, geometryUtilities as geo_utl
 
 
 class efieldToVoltageConverter():
@@ -130,7 +130,7 @@ class efieldToVoltageConverter():
                 cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                 t0 = electric_field.get_trace_start_time() + cab_delay
 
-                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account 
+                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
                     travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
                     t0 += travel_time_shift
@@ -223,7 +223,7 @@ class efieldToVoltageConverter():
                         start_bin = 0
 
                     new_trace[:, start_bin:stop_bin] = tr
-                
+
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
 
@@ -269,7 +269,7 @@ class efieldToVoltageConverter():
                     VEL = [np.array([vel_tmp['theta'] * t_theta, vel_tmp['phi'] * t_phi])]
                 else:
                     # get antenna pattern for current channel
-                    VEL = trace_utilities.get_efield_antenna_factor(
+                    VEL = signal_processing.get_efield_antenna_factor(
                         sim_station, ff, [channel_id], det, zenith, azimuth, self.__antenna_provider)
 
                 if VEL is None:  # this can happen if there is not signal path to the antenna
