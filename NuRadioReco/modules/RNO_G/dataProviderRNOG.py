@@ -47,7 +47,6 @@ class dataProviderRNOG:
     """
 
     def __init__(self):
-        """ Initialize the modules """
         self.reader = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData()
 
         self.channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector()
