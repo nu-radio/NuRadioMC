@@ -19,7 +19,7 @@ def has_glitch(event_or_station):
     has_glitch : bool
         True if any channel has a glitch, False otherwise.
 
-    Also see
+    See Also
     --------
     NuRadioReco.modules.RNO_G.channelGlitchDetector
     """
