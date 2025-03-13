@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelSinewaveSubtraction module
+=====================================================
+
+.. automodule:: NuRadioReco.modules.channelSinewaveSubtraction
+   :members:
+   :undoc-members:
+   :show-inheritance:

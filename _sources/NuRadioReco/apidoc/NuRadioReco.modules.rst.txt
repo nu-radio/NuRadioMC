@@ -44,6 +44,7 @@ Submodules
    NuRadioReco.modules.channelReadoutWindowCutter
    NuRadioReco.modules.channelResampler
    NuRadioReco.modules.channelSignalReconstructor
+   NuRadioReco.modules.channelSinewaveSubtraction
    NuRadioReco.modules.channelStopFilter
    NuRadioReco.modules.channelTemplateCorrelation
    NuRadioReco.modules.channelTimeOffsetCalculator
