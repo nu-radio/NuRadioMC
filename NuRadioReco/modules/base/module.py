@@ -3,6 +3,7 @@ from timeit import default_timer as timer
 import NuRadioReco.framework.event
 import NuRadioReco.framework.base_station
 import NuRadioReco.detector.detector as detectors
+from NuRadioReco.modules.io.coreas.readFAERIEShower import FAERIEDetector
 import inspect
 import pickle
 
@@ -74,7 +75,7 @@ def register_run(level=None):
                 # station should be second argument
                 elif isinstance(value, NuRadioReco.framework.base_station.BaseStation) and idx == 1:
                     station = value
-                elif isinstance(value, (detectors.detector_base.DetectorBase, detectors.rnog_detector.Detector)):
+                elif isinstance(value, (detectors.detector_base.DetectorBase, detectors.rnog_detector.Detector, FAERIEDetector)):
                     pass # we don't try to store detectors
                 else: # we try to store other arguments IF they are pickleable
                     try:
