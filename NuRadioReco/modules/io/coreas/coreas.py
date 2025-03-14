@@ -497,7 +497,9 @@ def create_sim_station(station_id, evt, weight=None):
 
 # HELPER FUNCTIONS
 def add_electric_field_to_sim_station(
-        sim_station, channel_ids, efield, efield_start_time, zenith, azimuth, sampling_rate, efield_position=None
+        sim_station, channel_ids, efield, efield_start_time,
+        zenith, azimuth, sampling_rate, efield_position=None,
+        shower_id=None, ray_tracing_id=None
 ):
     """
     Adds an electric field trace to an existing SimStation, with the provided attributes.
@@ -522,11 +524,16 @@ def add_electric_field_to_sim_station(
         Sampling rate of the trace
     efield_position : np.ndarray or list of float
         Position to associate to the electric field
+    shower_id : int, default=None
+        ID of the corresponding shower object
+    ray_tracing_id : int, default=None
+        ID of the corresponding ray tracing solution
     """
-    if type(channel_ids) is not list:
+    if not isinstance(channel_ids, list):
         channel_ids = [channel_ids]
 
-    electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids, position=efield_position)
+    electric_field = NuRadioReco.framework.electric_field.ElectricField(
+        channel_ids, shower_id=shower_id, ray_tracing_id=ray_tracing_id, position=efield_position)
 
     electric_field.set_trace(efield, sampling_rate)
     electric_field.set_trace_start_time(efield_start_time)
