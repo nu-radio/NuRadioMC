@@ -366,6 +366,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.framework_utilities.html">NuRadioReco.utilities.framework_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
@@ -628,8 +629,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_emitter</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.hybrid_information</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.particle</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">parameters</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_storage</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">eventParameters</span> <span class="k">as</span> <span class="n">evp</span><span class="p">,</span> <span class="n">channelParameters</span> <span class="k">as</span> <span class="n">chp</span><span class="p">,</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span><span class="p">,</span>
+    <span class="n">particleParameters</span> <span class="k">as</span> <span class="n">pap</span><span class="p">,</span> <span class="n">generatorAttributes</span> <span class="k">as</span> <span class="n">gta</span><span class="p">)</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">io_utilities</span><span class="p">,</span> <span class="n">version</span>
 
@@ -649,7 +653,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">Event</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="p">):</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">event_id</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">parameters</span><span class="o">.</span><span class="n">eventParameters</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">generatorAttributes</span><span class="p">])</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">evp</span><span class="p">,</span> <span class="n">gta</span><span class="p">])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span> <span class="o">=</span> <span class="n">run_number</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">event_id</span>
@@ -1025,9 +1029,9 @@
 <span class="sd">        returns the parent of a particle or a shower</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">particle_or_shower</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_shower</span><span class="o">.</span><span class="n">BaseShower</span><span class="p">):</span>
-            <span class="n">par_id</span> <span class="o">=</span> <span class="n">particle_or_shower</span><span class="p">[</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">parent_id</span><span class="p">]</span>
+            <span class="n">par_id</span> <span class="o">=</span> <span class="n">particle_or_shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">parent_id</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">particle_or_shower</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Particle</span><span class="p">):</span>
-            <span class="n">par_id</span> <span class="o">=</span> <span class="n">particle_or_shower</span><span class="p">[</span><span class="n">parameters</span><span class="o">.</span><span class="n">particleParameters</span><span class="o">.</span><span class="n">parent_id</span><span class="p">]</span>
+            <span class="n">par_id</span> <span class="o">=</span> <span class="n">particle_or_shower</span><span class="p">[</span><span class="n">pap</span><span class="o">.</span><span class="n">parent_id</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;particle_or_shower needs to be an instance of NuRadioReco.framework.base_shower.BaseShower or NuRadioReco.framework.particle.Particle&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">par_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1068,12 +1072,12 @@
         <span class="c1"># iterate over sim_showers to look for parent id</span>
         <span class="k">if</span> <span class="n">showers</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">shower</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_showers</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">shower</span><span class="p">[</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">parent_id</span><span class="p">]</span> <span class="o">==</span> <span class="n">parent_id</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">parent_id</span><span class="p">]</span> <span class="o">==</span> <span class="n">parent_id</span><span class="p">:</span>
                     <span class="k">yield</span> <span class="n">shower</span>
         <span class="c1"># iterate over secondary particles to look for parent id</span>
         <span class="k">if</span> <span class="n">particles</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">particle</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_particles</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">particle</span><span class="p">[</span><span class="n">parameters</span><span class="o">.</span><span class="n">particleParameters</span><span class="o">.</span><span class="n">parent_id</span><span class="p">]</span> <span class="o">==</span> <span class="n">parent_id</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">particle</span><span class="p">[</span><span class="n">pap</span><span class="o">.</span><span class="n">parent_id</span><span class="p">]</span> <span class="o">==</span> <span class="n">parent_id</span><span class="p">:</span>
                     <span class="k">yield</span> <span class="n">particle</span></div>
 
 
@@ -1337,10 +1341,10 @@
         <span class="n">stations_pkl</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">commit_hash</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get_NuRadioMC_commit_hash</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">eventParameters</span><span class="o">.</span><span class="n">hash_NuRadioMC</span><span class="p">,</span> <span class="n">commit_hash</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">evp</span><span class="o">.</span><span class="n">hash_NuRadioMC</span><span class="p">,</span> <span class="n">commit_hash</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Event is serialized without commit hash!&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">eventParameters</span><span class="o">.</span><span class="n">hash_NuRadioMC</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">evp</span><span class="o">.</span><span class="n">hash_NuRadioMC</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_stations</span><span class="p">():</span>
             <span class="n">stations_pkl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>

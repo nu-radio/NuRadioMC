@@ -13,6 +13,9 @@ Submodules
    :maxdepth: 1
 
    NuRadioReco.modules.RNO_G.channelBlockOffsetFitter
+   NuRadioReco.modules.RNO_G.channelGlitchDetector
    NuRadioReco.modules.RNO_G.crRNOGTemplateCreator
+   NuRadioReco.modules.RNO_G.dataProviderRNOG
    NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
+   NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms
    NuRadioReco.modules.RNO_G.triggerBoardResponse

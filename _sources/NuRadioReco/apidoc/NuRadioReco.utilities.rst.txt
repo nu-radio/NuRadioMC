@@ -18,6 +18,7 @@ Submodules
    NuRadioReco.utilities.dataservers
    NuRadioReco.utilities.diodeSimulator
    NuRadioReco.utilities.fft
+   NuRadioReco.utilities.framework_utilities
    NuRadioReco.utilities.geometryUtilities
    NuRadioReco.utilities.ice
    NuRadioReco.utilities.interferometry

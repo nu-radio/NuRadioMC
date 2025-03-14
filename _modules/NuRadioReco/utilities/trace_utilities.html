@@ -366,6 +366,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.framework_utilities.html">NuRadioReco.utilities.framework_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
@@ -625,8 +626,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_trace</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.constants</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.stats</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.signal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.ndimage</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.constants</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.trace_utilities&#39;</span><span class="p">)</span>
 
@@ -1020,6 +1024,343 @@
                     <span class="s2">&quot;Consider cropping the trace to remove these samples.&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">delayed_trace</span></div>
+
+
+
+<div class="viewcode-block" id="peak_to_peak_amplitudes">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.peak_to_peak_amplitudes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">peak_to_peak_amplitudes</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">coincidence_window_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates all local peak to peak amplitudes of a given trace.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: array of floats</span>
+<span class="sd">        Array containing the trace</span>
+<span class="sd">    coincidence_window_size: int</span>
+<span class="sd">        Length along which to calculate minimum</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    amplitudes: array of floats (same length as the input trace)</span>
+<span class="sd">        Local peak to peak amplitudes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">amplitudes</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">maximum_filter1d</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">coincidence_window_size</span><span class="p">)</span> <span class="o">-</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">minimum_filter1d</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">coincidence_window_size</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">amplitudes</span></div>
+
+
+<div class="viewcode-block" id="get_split_trace_noise_RMS">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_split_trace_noise_RMS">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_split_trace_noise_RMS</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">segments</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">lowest</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the noise root mean square (RMS) of a given trace.</span>
+
+<span class="sd">    This method splits the trace into segments,</span>
+<span class="sd">    then calculates the RMS of each segment,</span>
+<span class="sd">    and then takes the mean of the lowest few segemts&#39; RMS values.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: array of floats</span>
+<span class="sd">        Array containing the trace</span>
+<span class="sd">    segments: int</span>
+<span class="sd">        Amount of segments to cut the trace int</span>
+<span class="sd">    lowest: int</span>
+<span class="sd">        Amount of lowest segment rms values to use when calculating the mean RMS end result</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    noise_root_mean_square: float</span>
+<span class="sd">        The mean of the lowest few segments&#39; RMS values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">split_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">segments</span><span class="p">)</span>
+    <span class="n">split_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">split_array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;object&quot;</span><span class="p">)</span> <span class="c1">#Objectify dtype to allow timetraces indivisible by amount of segments</span>
+    <span class="n">rms_of_splits</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">split</span><span class="p">)</span> <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">split_array</span><span class="p">]</span>
+    <span class="n">ordered_rmss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">rms_of_splits</span><span class="p">)</span>
+    <span class="n">lowest_rmss</span> <span class="o">=</span> <span class="n">ordered_rmss</span><span class="p">[:</span><span class="n">lowest</span><span class="p">]</span>
+    <span class="n">noise_root_mean_square</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">lowest_rmss</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">noise_root_mean_square</span></div>
+
+
+<div class="viewcode-block" id="get_signal_to_noise_ratio">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_signal_to_noise_ratio">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_signal_to_noise_ratio</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">noise_rms</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the Signal to Noise Ratio (SNR) of a given trace.</span>
+
+<span class="sd">    The signal to noise ratio is calculated as the peak to peak amplitude</span>
+<span class="sd">    within a given window size divided by twice the noise root mean square (RMS).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace : array of floats</span>
+<span class="sd">        Trace of a waveform</span>
+<span class="sd">    noise_rms: float</span>
+<span class="sd">        Noise root mean square (RMS)</span>
+<span class="sd">    window_size: int</span>
+<span class="sd">        Coincidence window size (default: 3)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    signal_to_noise_ratio: float</span>
+<span class="sd">        Signal to Noise Ratio (SNR) value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">window_size</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Window size must be greater-equal 2 (but is </span><span class="si">{</span><span class="n">window_size</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Window size must be greater-equal 2 (but is </span><span class="si">{</span><span class="n">window_size</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="n">p2p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">peak_to_peak_amplitudes</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">window_size</span><span class="p">))</span>
+    <span class="n">signal_to_noise_ratio</span> <span class="o">=</span> <span class="n">p2p</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">noise_rms</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">signal_to_noise_ratio</span></div>
+
+
+<div class="viewcode-block" id="get_root_power_ratio">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_root_power_ratio">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_root_power_ratio</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">noise_rms</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the Root Power Ratio (RPR) of a given trace.</span>
+
+<span class="sd">    It compares the peak signal strength to the baseline noise.</span>
+<span class="sd">    The waveform’s power is smoothed using a 25 ns sliding window,</span>
+<span class="sd">    and the square root of this smoothed power gives the rolling root power.</span>
+<span class="sd">    The RPR is the maximum root power divided by the noise RMS</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: array of floats</span>
+<span class="sd">        Trace of a waveform</span>
+<span class="sd">    times: array of floats</span>
+<span class="sd">        Times of a waveform</span>
+<span class="sd">    noise_rms: float</span>
+<span class="sd">        noise root mean square (RMS)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    root_power_ratio: float</span>
+<span class="sd">        Root Power Ratio (RPR) value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Calculating RPR (Root Power Ratio)</span>
+    <span class="k">if</span> <span class="n">noise_rms</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">root_power_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">wf_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="n">channel_wf</span> <span class="o">=</span> <span class="n">trace</span> <span class="o">**</span> <span class="mi">2</span>
+
+        <span class="c1"># Calculate the smoothing window size based on sampling rate</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sum_win</span> <span class="o">=</span> <span class="mi">25</span>  <span class="c1"># Smoothing window in ns</span>
+        <span class="n">sum_win_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">sum_win</span> <span class="o">/</span> <span class="n">dt</span><span class="p">))</span>  <span class="c1"># Convert window size to sample points</span>
+
+        <span class="n">channel_wf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">uniform_filter1d</span><span class="p">(</span><span class="n">channel_wf</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">sum_win_idx</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Find the maximum value of the smoothed waveform</span>
+        <span class="n">max_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">channel_wf</span><span class="p">)</span>
+        <span class="n">max_val</span> <span class="o">=</span> <span class="n">channel_wf</span><span class="p">[</span><span class="n">max_bin</span><span class="p">]</span>
+
+        <span class="n">root_power_ratio</span> <span class="o">=</span> <span class="n">max_val</span> <span class="o">/</span> <span class="n">noise_rms</span>
+
+    <span class="k">return</span> <span class="n">root_power_ratio</span></div>
+
+
+<div class="viewcode-block" id="get_hilbert_envelope">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_hilbert_envelope">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_hilbert_envelope</span><span class="p">(</span><span class="n">trace</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applies the Hilbert Tranform to a given waveform trace,</span>
+<span class="sd">    then it will give us an envelope trace.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: array of floats</span>
+<span class="sd">        Trace of a waveform</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    envelope: array of floats</span>
+<span class="sd">        Hilbert envelope of the waveform trace</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get the Hilbert envelope of the waveform trace</span>
+    <span class="n">envelope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">hilbert</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">envelope</span></div>
+
+
+<div class="viewcode-block" id="get_impulsivity">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_impulsivity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_impulsivity</span><span class="p">(</span><span class="n">trace</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the impulsivity of a signal (trace).</span>
+
+<span class="sd">    This function computes the impulsivity of a trace by first performing the Hilbert Transform</span>
+<span class="sd">    to obtain an analytic signal (Hilbert envelope) and then determining the</span>
+<span class="sd">    cumulative distribution function (CDF) of the square of the sorted envelope values i.e. power values based on their</span>
+<span class="sd">    closeness to the maximum value. The average of the CDF is then scaled and returned</span>
+<span class="sd">    as the impulsivity value.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: array of floats</span>
+<span class="sd">        Trace of a waveform</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    impulsivity: float</span>
+<span class="sd">        Impulsivity of the signal (scaled between 0 and 1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">envelope</span> <span class="o">=</span> <span class="n">get_hilbert_envelope</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+    <span class="n">maxv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">envelope</span><span class="p">)</span>
+    <span class="n">envelope_indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">envelope</span><span class="p">))</span> <span class="c1">## just a list of indices the same length as the array</span>
+    <span class="n">closeness</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">envelope_indexes</span> <span class="o">-</span> <span class="n">maxv</span><span class="p">)</span>
+    <span class="p">)</span>  <span class="c1">## create an array containing index distance to max voltage (lower the value, the closer it is)</span>
+
+    <span class="n">sorted_envelope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">closeness</span><span class="p">,</span> <span class="n">envelope</span><span class="p">))])</span>
+    <span class="n">cdf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">sorted_envelope</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">cdf</span> <span class="o">=</span> <span class="n">cdf</span> <span class="o">/</span> <span class="n">cdf</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">impulsivity</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">cdf</span><span class="p">]))</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span>
+    <span class="k">if</span> <span class="n">impulsivity</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">impulsivity</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">return</span> <span class="n">impulsivity</span></div>
+
+
+<div class="viewcode-block" id="get_coherent_sum">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_coherent_sum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_coherent_sum</span><span class="p">(</span><span class="n">trace_set</span><span class="p">,</span> <span class="n">ref_trace</span><span class="p">,</span> <span class="n">use_envelope</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates the coherently-summed waveform (CSW) of a sets of traces.</span>
+
+<span class="sd">    This function finds the correlation between each trace from a set and the reference trace,</span>
+<span class="sd">    then rolls all traces to align with the reference trace,</span>
+<span class="sd">    and then add them up to get the CSW.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace_set: 2-D array of floats</span>
+<span class="sd">        Traces of multiple channel waveforms without the reference trace</span>
+<span class="sd">    ref_trace: 1-D array of floats</span>
+<span class="sd">        Trace of the reference channel</span>
+<span class="sd">    use_envelope: bool</span>
+<span class="sd">        See if users would like to find the correlation between envelopes or just normal traces (default: False)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sum_trace: 1-D array of floats</span>
+<span class="sd">        CSW of the set of traces</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sum_trace</span> <span class="o">=</span> <span class="n">ref_trace</span>
+
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trace_set</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">use_envelope</span><span class="p">:</span>
+            <span class="n">sig_ref</span> <span class="o">=</span> <span class="n">get_hilbert_envelope</span><span class="p">(</span><span class="n">ref_trace</span><span class="p">)</span>
+            <span class="n">sig_i</span> <span class="o">=</span> <span class="n">get_hilbert_envelope</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sig_ref</span> <span class="o">=</span> <span class="n">ref_trace</span>
+            <span class="n">sig_i</span> <span class="o">=</span> <span class="n">trace</span>
+        <span class="n">cor</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlate</span><span class="p">(</span><span class="n">sig_ref</span><span class="p">,</span> <span class="n">sig_i</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;full&quot;</span><span class="p">)</span>
+        <span class="n">lag</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">((</span><span class="n">cor</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">cor</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span><span class="p">))</span>
+
+        <span class="n">aligned_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">lag</span><span class="p">)</span>
+        <span class="n">sum_trace</span> <span class="o">+=</span> <span class="n">aligned_trace</span>
+
+    <span class="k">return</span> <span class="n">sum_trace</span></div>
+
+
+<div class="viewcode-block" id="get_entropy">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_entropy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_entropy</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">n_hist_bins</span> <span class="o">=</span> <span class="mi">50</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the shannon entropy (randomness measurement) of a trace.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: array of floats</span>
+<span class="sd">        Trace of a waveform</span>
+<span class="sd">    n_hist_bins: int</span>
+<span class="sd">        Number of bins for the histogram (default: 50)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    entropy: float</span>
+<span class="sd">        Shannon entropy of the signal (trace)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Step 1: Discretize the signal into bins</span>
+    <span class="c1"># If density = True, the result is the value of the probability density function at the bin,</span>
+    <span class="c1"># normalized such that the integral over the range is 1.</span>
+    <span class="n">hist</span><span class="p">,</span> <span class="n">bin_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">bins</span> <span class="o">=</span> <span class="n">n_hist_bins</span><span class="p">,</span> <span class="n">density</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Step 2: Calculate the probability distribution (normalized)</span>
+    <span class="n">probabilities</span> <span class="o">=</span> <span class="n">hist</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">hist</span><span class="p">)</span>
+
+    <span class="c1"># Step 3: Calculate Shannon Entropy</span>
+    <span class="c1"># Using base = 2 for entropy in bits</span>
+    <span class="n">entropy</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">entropy</span><span class="p">(</span><span class="n">probabilities</span><span class="p">,</span> <span class="n">base</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">entropy</span></div>
+
+
+<div class="viewcode-block" id="get_kurtosis">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_kurtosis">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_kurtosis</span><span class="p">(</span><span class="n">trace</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the kurtosis (tailedness) of a trace.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: array of floats</span>
+<span class="sd">        Trace of a waveform</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    kurtosis: float</span>
+<span class="sd">        Kurtosis of the signal (trace)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kurtosis</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kurtosis</span></div>
+
+
+<div class="viewcode-block" id="is_NAN_or_INF">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.is_NAN_or_INF">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_NAN_or_INF</span><span class="p">(</span><span class="n">trace</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    To see if a trace has any NAN or INF.</span>
+
+<span class="sd">    If there&#39;s any NAN or any INF,</span>
+<span class="sd">    this function will tell us how many points of NAN and INF there are.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: array of floats</span>
+<span class="sd">        Trace of a waveform</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    is_bad_trace: bool</span>
+<span class="sd">        True if there&#39;s any or False if the trace doesn&#39;t have any unreadable point</span>
+<span class="sd">    npoints_NAN: int</span>
+<span class="sd">        Number of NAN points</span>
+<span class="sd">    npoints_INF: int</span>
+<span class="sd">        Number of INF points</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">is_bad_trace</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+    <span class="n">npoints_NAN</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">trace</span><span class="p">)))</span>
+    <span class="n">npoints_INF</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">trace</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">npoints_NAN</span> <span class="ow">or</span> <span class="n">npoints_INF</span><span class="p">:</span>
+       <span class="n">is_bad_trace</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">is_bad_trace</span><span class="p">,</span> <span class="n">npoints_NAN</span><span class="p">,</span> <span class="n">npoints_INF</span></div>
 
 </pre></div>
 

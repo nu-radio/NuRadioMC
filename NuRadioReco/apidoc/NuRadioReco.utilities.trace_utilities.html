@@ -369,6 +369,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.framework_utilities.html">NuRadioReco.utilities.framework_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
@@ -838,6 +839,250 @@ after delaying (rolling) the trace.</p>
 <dt>delayed_trace: array of floats</dt><dd><p>The delayed, cropped trace</p>
 </dd>
 <dt>dt_start: float (optional)</dt><dd><p>The delta t of the trace start time. Only returned if crop_trace is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.peak_to_peak_amplitudes">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">peak_to_peak_amplitudes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coincidence_window_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#peak_to_peak_amplitudes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.peak_to_peak_amplitudes" title="Link to this definition"></a></dt>
+<dd><p>Calculates all local peak to peak amplitudes of a given trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>Array containing the trace</p>
+</dd>
+<dt><strong>coincidence_window_size: int</strong></dt><dd><p>Length along which to calculate minimum</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>amplitudes: array of floats (same length as the input trace)</dt><dd><p>Local peak to peak amplitudes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_split_trace_noise_RMS">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_split_trace_noise_RMS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_split_trace_noise_RMS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_split_trace_noise_RMS" title="Link to this definition"></a></dt>
+<dd><p>Calculates the noise root mean square (RMS) of a given trace.</p>
+<p>This method splits the trace into segments,
+then calculates the RMS of each segment,
+and then takes the mean of the lowest few segemts’ RMS values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>Array containing the trace</p>
+</dd>
+<dt><strong>segments: int</strong></dt><dd><p>Amount of segments to cut the trace int</p>
+</dd>
+<dt><strong>lowest: int</strong></dt><dd><p>Amount of lowest segment rms values to use when calculating the mean RMS end result</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>noise_root_mean_square: float</dt><dd><p>The mean of the lowest few segments’ RMS values</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_signal_to_noise_ratio">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_signal_to_noise_ratio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_rms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_signal_to_noise_ratio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_signal_to_noise_ratio" title="Link to this definition"></a></dt>
+<dd><p>Computes the Signal to Noise Ratio (SNR) of a given trace.</p>
+<p>The signal to noise ratio is calculated as the peak to peak amplitude
+within a given window size divided by twice the noise root mean square (RMS).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace</strong><span class="classifier">array of floats</span></dt><dd><p>Trace of a waveform</p>
+</dd>
+<dt><strong>noise_rms: float</strong></dt><dd><p>Noise root mean square (RMS)</p>
+</dd>
+<dt><strong>window_size: int</strong></dt><dd><p>Coincidence window size (default: 3)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>signal_to_noise_ratio: float</dt><dd><p>Signal to Noise Ratio (SNR) value</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_root_power_ratio">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_root_power_ratio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_rms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_root_power_ratio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_root_power_ratio" title="Link to this definition"></a></dt>
+<dd><p>Computes the Root Power Ratio (RPR) of a given trace.</p>
+<p>It compares the peak signal strength to the baseline noise.
+The waveform’s power is smoothed using a 25 ns sliding window,
+and the square root of this smoothed power gives the rolling root power.
+The RPR is the maximum root power divided by the noise RMS</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>Trace of a waveform</p>
+</dd>
+<dt><strong>times: array of floats</strong></dt><dd><p>Times of a waveform</p>
+</dd>
+<dt><strong>noise_rms: float</strong></dt><dd><p>noise root mean square (RMS)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>root_power_ratio: float</dt><dd><p>Root Power Ratio (RPR) value</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_hilbert_envelope">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_hilbert_envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_hilbert_envelope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_hilbert_envelope" title="Link to this definition"></a></dt>
+<dd><p>Applies the Hilbert Tranform to a given waveform trace,
+then it will give us an envelope trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>Trace of a waveform</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>envelope: array of floats</dt><dd><p>Hilbert envelope of the waveform trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_impulsivity">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_impulsivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_impulsivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_impulsivity" title="Link to this definition"></a></dt>
+<dd><p>Calculates the impulsivity of a signal (trace).</p>
+<p>This function computes the impulsivity of a trace by first performing the Hilbert Transform
+to obtain an analytic signal (Hilbert envelope) and then determining the
+cumulative distribution function (CDF) of the square of the sorted envelope values i.e. power values based on their
+closeness to the maximum value. The average of the CDF is then scaled and returned
+as the impulsivity value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>Trace of a waveform</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>impulsivity: float</dt><dd><p>Impulsivity of the signal (scaled between 0 and 1)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_coherent_sum">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_coherent_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_envelope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_coherent_sum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_coherent_sum" title="Link to this definition"></a></dt>
+<dd><p>Generates the coherently-summed waveform (CSW) of a sets of traces.</p>
+<p>This function finds the correlation between each trace from a set and the reference trace,
+then rolls all traces to align with the reference trace,
+and then add them up to get the CSW.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace_set: 2-D array of floats</strong></dt><dd><p>Traces of multiple channel waveforms without the reference trace</p>
+</dd>
+<dt><strong>ref_trace: 1-D array of floats</strong></dt><dd><p>Trace of the reference channel</p>
+</dd>
+<dt><strong>use_envelope: bool</strong></dt><dd><p>See if users would like to find the correlation between envelopes or just normal traces (default: False)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>sum_trace: 1-D array of floats</dt><dd><p>CSW of the set of traces</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_entropy">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_hist_bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_entropy" title="Link to this definition"></a></dt>
+<dd><p>Calculates the shannon entropy (randomness measurement) of a trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>Trace of a waveform</p>
+</dd>
+<dt><strong>n_hist_bins: int</strong></dt><dd><p>Number of bins for the histogram (default: 50)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>entropy: float</dt><dd><p>Shannon entropy of the signal (trace)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_kurtosis">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_kurtosis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_kurtosis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_kurtosis" title="Link to this definition"></a></dt>
+<dd><p>Calculates the kurtosis (tailedness) of a trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>Trace of a waveform</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>kurtosis: float</dt><dd><p>Kurtosis of the signal (trace)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.is_NAN_or_INF">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">is_NAN_or_INF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#is_NAN_or_INF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.is_NAN_or_INF" title="Link to this definition"></a></dt>
+<dd><p>To see if a trace has any NAN or INF.</p>
+<p>If there’s any NAN or any INF,
+this function will tell us how many points of NAN and INF there are.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>Trace of a waveform</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>is_bad_trace: bool</dt><dd><p>True if there’s any or False if the trace doesn’t have any unreadable point</p>
+</dd>
+<dt>npoints_NAN: int</dt><dd><p>Number of NAN points</p>
+</dd>
+<dt>npoints_INF: int</dt><dd><p>Number of INF points</p>
 </dd>
 </dl>
 </dd>

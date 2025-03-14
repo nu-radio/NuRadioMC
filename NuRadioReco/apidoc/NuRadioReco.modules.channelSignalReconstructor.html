@@ -369,6 +369,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.framework_utilities.html">NuRadioReco.utilities.framework_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
@@ -642,7 +643,10 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_SNR" title="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_SNR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_SNR</span></code></a>(station_id, channel, det[, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run" title="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, stored_noise, rms_stage])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_max_a_norm" title="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_max_a_norm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_max_a_norm</span></code></a>(station)</p></td>
+<td><p>Calculate the maximum peak to peak amplitude of the signal normalized by the noise level over all channels in a station.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run" title="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, stored_noise, rms_stage])</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -656,7 +660,7 @@
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_window_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_window_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelSignalReconstructor.html#channelSignalReconstructor.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.begin" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_window_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_window_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coincidence_window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelSignalReconstructor.html#channelSignalReconstructor.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.begin" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -672,6 +676,8 @@ If noise_window_start or noise_window_length are None, the noise window is the p
 </dd>
 <dt><strong>noise_window_length: float or None</strong></dt><dd><p>Length of the noise window, with time units
 If noise_window_start or noise_window_length are None, the noise window is the part of the trace outside the signal window</p>
+</dd>
+<dt><strong>coincidence_window_size</strong><span class="classifier">float (default: 6ns)</span></dt><dd><p>Window size used for calculating the maximum peak to peak amplitude used for the max_a_norm variable</p>
 </dd>
 </dl>
 </dd>
@@ -697,6 +703,28 @@ If noise_window_start or noise_window_length are None, the noise window is the p
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>SNR: dict</dt><dd><p>dictionary of various SNR parameters</p>
+</dd>
+<dt>RMS: float</dt><dd><p>noise root mean square of a channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_max_a_norm">
+<span class="sig-name descname"><span class="pre">get_max_a_norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelSignalReconstructor.html#channelSignalReconstructor.get_max_a_norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_max_a_norm" title="Link to this definition"></a></dt>
+<dd><p>Calculate the maximum peak to peak amplitude of the signal normalized by the noise level over all channels in a station.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station</strong><span class="classifier">Station</span></dt><dd><p>The station object containing the channels.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>maxaval</strong><span class="classifier">float</span></dt><dd><p>The maximum peak to peak amplitude of the signal normalized by the noise level over all channels in the station.</p>
 </dd>
 </dl>
 </dd>

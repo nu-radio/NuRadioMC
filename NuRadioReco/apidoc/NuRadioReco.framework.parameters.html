@@ -369,6 +369,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.framework_utilities.html">NuRadioReco.utilities.framework_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
@@ -818,6 +819,12 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dd><p>a list of FFT channels flagged as RFI (calculated by stationRFIFilter)</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.stationParameters.channels_max_amplitude_norm">
+<span class="sig-name descname"><span class="pre">channels_max_amplitude_norm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">63</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.stationParameters.channels_max_amplitude_norm" title="Link to this definition"></a></dt>
+<dd><p>maximum std-normalised peak to peak amplitude of all chosen channels</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -846,7 +853,7 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParameters.SNR">
 <span class="sig-name descname"><span class="pre">SNR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParameters.SNR" title="Link to this definition"></a></dt>
-<dd><p>an dictionary of various signal-to-noise ratio definitions</p>
+<dd><p>a dictionary with the following signal-to-noise ratio definitions:</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -943,6 +950,62 @@ reconstructed quantities in the different custom classes used in NuRadioMC.</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParameters.Vrms_trigger_NuRadioMC_simulation">
 <span class="sig-name descname"><span class="pre">Vrms_trigger_NuRadioMC_simulation</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">21</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParameters.Vrms_trigger_NuRadioMC_simulation" title="Link to this definition"></a></dt>
 <dd><p>the noise rms of the trigger channels (optional) used in the MC simulation</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParameters.root_power_ratio">
+<span class="sig-name descname"><span class="pre">root_power_ratio</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">22</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParameters.root_power_ratio" title="Link to this definition"></a></dt>
+<dd><p>the root power ratio (float)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParameters.impulsivity">
+<span class="sig-name descname"><span class="pre">impulsivity</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">23</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParameters.impulsivity" title="Link to this definition"></a></dt>
+<dd><p>average of the CDF about the peak of the coherently summed waveform</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParameters.entropy">
+<span class="sig-name descname"><span class="pre">entropy</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">24</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParameters.entropy" title="Link to this definition"></a></dt>
+<dd><p>Shannon entropy of a waveform</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParameters.kurtosis">
+<span class="sig-name descname"><span class="pre">kurtosis</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">25</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParameters.kurtosis" title="Link to this definition"></a></dt>
+<dd><p>kurtosis of a waveform</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParametersRNOG">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.parameters.</span></span><span class="sig-name descname"><span class="pre">channelParametersRNOG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value=&lt;no_arg&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameters.html#channelParametersRNOG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParametersRNOG" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParametersRNOG.glitch">
+<span class="sig-name descname"><span class="pre">glitch</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParametersRNOG.glitch" title="Link to this definition"></a></dt>
+<dd><p>True if channel is likely to have a glitch. See ‘NuRadioReco.modules.RNO_G.channelGlitchDetector’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.channelParametersRNOG.glitch_test_statistic">
+<span class="sig-name descname"><span class="pre">glitch_test_statistic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">101</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.channelParametersRNOG.glitch_test_statistic" title="Link to this definition"></a></dt>
+<dd><p>Numerical value delivered by the glitch detector. Positive values indicate a likely glitch.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.stationParametersRNOG">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.parameters.</span></span><span class="sig-name descname"><span class="pre">stationParametersRNOG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value=&lt;no_arg&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/parameters.html#stationParametersRNOG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.parameters.stationParametersRNOG" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioReco.framework.parameters.stationParametersRNOG.coherent_snr">
+<span class="sig-name descname"><span class="pre">coherent_snr</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#NuRadioReco.framework.parameters.stationParametersRNOG.coherent_snr" title="Link to this definition"></a></dt>
+<dd><p>Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr</p>
 </dd></dl>
 
 </dd></dl>

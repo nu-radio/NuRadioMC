@@ -366,6 +366,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.framework_utilities.html">NuRadioReco.utilities.framework_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
@@ -660,11 +661,12 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">signal_window_start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">signal_window_length</span><span class="o">=</span><span class="mi">120</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
-        <span class="n">noise_window_start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">noise_window_length</span><span class="o">=</span><span class="kc">None</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">signal_window_start</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">signal_window_length</span> <span class="o">=</span> <span class="mi">120</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
+        <span class="n">noise_window_start</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">noise_window_length</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">coincidence_window_size</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
@@ -682,17 +684,20 @@
 <span class="sd">        noise_window_length: float or None</span>
 <span class="sd">            Length of the noise window, with time units</span>
 <span class="sd">            If noise_window_start or noise_window_length are None, the noise window is the part of the trace outside the signal window</span>
+<span class="sd">        coincidence_window_size : float (default: 6ns)</span>
+<span class="sd">            Window size used for calculating the maximum peak to peak amplitude used for the max_a_norm variable</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__signal_window_start</span> <span class="o">=</span> <span class="n">signal_window_start</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__signal_window_length</span> <span class="o">=</span> <span class="n">signal_window_length</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_window_start</span> <span class="o">=</span> <span class="n">noise_window_start</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_window_length</span> <span class="o">=</span> <span class="n">noise_window_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__coincidence_window_size</span> <span class="o">=</span> <span class="n">coincidence_window_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span></div>
 
 
 <div class="viewcode-block" id="channelSignalReconstructor.get_SNR">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_SNR">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_SNR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">stored_noise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rms_stage</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_SNR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">stored_noise</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">rms_stage</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -709,6 +714,8 @@
 <span class="sd">        -------</span>
 <span class="sd">        SNR: dict</span>
 <span class="sd">            dictionary of various SNR parameters</span>
+<span class="sd">        RMS: float</span>
+<span class="sd">            noise root mean square of a channel</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
@@ -744,37 +751,43 @@
             <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">]))</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">noise_window_mask</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">noise_window_mask</span><span class="p">]),</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;noise&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">noise_window_mask</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">noise_window_mask</span><span class="p">]),</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;noise&#39;</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Times [ns]&quot;</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Power&quot;</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 
-        <span class="c1"># Calculating SNR</span>
-        <span class="n">SNR</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">noise_rms</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">noise_int</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to infinity.&quot;</span><span class="p">)</span>
-            <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-            <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;peak_amplitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-            <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="c1"># Calculating SNR - signal to noise ratio</span>
+        <span class="n">snr</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">noise_rms</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">noise_int</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;RMS of noise is zero, calculating an snr is not useful. All snrs are set to infinity.&quot;</span><span class="p">)</span>
+            <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;peak_amplitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="k">else</span><span class="p">:</span>
 
-            <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">]))</span> <span class="o">-</span> <span class="n">noise_int</span>
-            <span class="k">if</span> <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Integrated signal </span><span class="si">{0}</span><span class="s2"> smaller than noise </span><span class="si">{1}</span><span class="s2">, power SNR 0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">],</span> <span class="n">noise_int</span><span class="p">))</span>
-                <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">]))</span> <span class="o">-</span> <span class="n">noise_int</span>
+            <span class="k">if</span> <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Integrated signal </span><span class="si">{0}</span><span class="s2"> smaller than noise </span><span class="si">{1}</span><span class="s2">, power snr 0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">snr</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">],</span> <span class="n">noise_int</span><span class="p">))</span>
+                <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="p">(</span><span class="n">noise_int</span><span class="p">)</span>
-                <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">])</span>
+                <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="p">(</span><span class="n">noise_int</span><span class="p">)</span>
+                <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">snr</span><span class="p">[</span><span class="s1">&#39;integrated_power&#39;</span><span class="p">])</span>
 
             <span class="c1"># calculate amplitude values</span>
-            <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">])</span>
-            <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">noise_rms</span>
-            <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="mi">2</span>
+            <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">])</span>
+            <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">noise_rms</span>
+            <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="mi">2</span>
 
-            <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;peak_amplitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">]))</span> <span class="o">/</span> <span class="n">noise_rms</span>
+            <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;peak_amplitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">]))</span> <span class="o">/</span> <span class="n">noise_rms</span>
 
-        <span class="c1"># SCNR</span>
-        <span class="n">SNR</span><span class="p">[</span><span class="s1">&#39;Seckel_2_noise&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="c1"># Calculate peak to peak voltage SNR using the RMS of the split waveform</span>
+        <span class="n">coincidence_window_size_bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__coincidence_window_size</span> <span class="o">*</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="n">coincidence_window_size_bins</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coincidence window size of </span><span class="si">{</span><span class="n">coincidence_window_size_bins</span><span class="si">}</span><span class="s2"> samples is too small for channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude_split_noise_rms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">trace_utilities</span><span class="o">.</span><span class="n">peak_to_peak_amplitudes</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">coincidence_window_size_bins</span><span class="p">))</span>
+        <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude_split_noise_rms&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_split_trace_noise_RMS</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">segments</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">lowest</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">snr</span><span class="p">[</span><span class="s1">&#39;peak_2_peak_amplitude_split_noise_rms&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="mi">2</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
@@ -784,13 +797,47 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">SNR</span><span class="p">,</span> <span class="n">noise_rms</span></div>
+        <span class="k">return</span> <span class="n">snr</span><span class="p">,</span> <span class="n">noise_rms</span></div>
+
+
+
+<div class="viewcode-block" id="channelSignalReconstructor.get_max_a_norm">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_max_a_norm">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_max_a_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the maximum peak to peak amplitude of the signal normalized by the noise level over all channels in a station.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station : Station</span>
+<span class="sd">            The station object containing the channels.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        maxaval : float</span>
+<span class="sd">            The maximum peak to peak amplitude of the signal normalized by the noise level over all channels in the station.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">maxaval</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+            <span class="n">normalized_wf</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span>
+            <span class="n">coincidence_window_size_bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__coincidence_window_size</span> <span class="o">*</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()))</span>
+            <span class="k">if</span> <span class="n">coincidence_window_size_bins</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coincidence window size of </span><span class="si">{</span><span class="n">coincidence_window_size_bins</span><span class="si">}</span><span class="s2"> samples is too small for channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+            <span class="n">thismax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span>
+                <span class="n">trace_utilities</span><span class="o">.</span><span class="n">peak_to_peak_amplitudes</span><span class="p">(</span><span class="n">normalized_wf</span><span class="p">,</span> <span class="n">coincidence_window_size_bins</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">thismax</span> <span class="o">&gt;</span> <span class="n">maxaval</span><span class="p">:</span>
+                <span class="n">maxaval</span> <span class="o">=</span> <span class="n">thismax</span>
+
+        <span class="k">return</span> <span class="n">maxaval</span></div>
+
 
 
 <div class="viewcode-block" id="channelSignalReconstructor.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">stored_noise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rms_stage</span><span class="o">=</span><span class="s1">&#39;amp&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">stored_noise</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">rms_stage</span> <span class="o">=</span> <span class="s1">&#39;amp&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -807,27 +854,38 @@
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">times</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
-            <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">hilbert</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_hilbert_envelope</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
             <span class="n">max_amplitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;event </span><span class="si">{</span><span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">()</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> max amp = </span><span class="si">{</span><span class="n">max_amplitude</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2"> max amp env </span><span class="si">{</span><span class="n">h</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">&gt;=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
-                <span class="n">tmp</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-                <span class="k">for</span> <span class="n">amp</span> <span class="ow">in</span> <span class="n">trace</span><span class="p">:</span>
-                    <span class="n">tmp</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">amp</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">, &quot;</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">()</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">, station.channel &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">: max amp = &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">max_amplitude</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2"> max amp env </span><span class="si">{</span><span class="n">h</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">&gt;=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">trace</span><span class="p">]))</span>
+
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">signal_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">h</span><span class="p">)]</span>
             <span class="n">max_amplitude_station</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_amplitude_station</span><span class="p">,</span> <span class="n">max_amplitude</span><span class="p">)</span>
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">maximum_amplitude</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_amplitude</span>
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">maximum_amplitude_envelope</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">P2P_amplitude</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
 
+            <span class="c1"># Calculate impulsivity of the signal</span>
+            <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">impulsivity</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_impulsivity</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+
             <span class="c1"># Use noise precalculated from forced triggers</span>
-            <span class="n">signal_to_noise</span><span class="p">,</span> <span class="n">noise_rms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_SNR</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">stored_noise</span><span class="o">=</span><span class="n">stored_noise</span><span class="p">,</span> <span class="n">rms_stage</span><span class="o">=</span><span class="n">rms_stage</span><span class="p">)</span>
+            <span class="n">signal_to_noise</span><span class="p">,</span> <span class="n">noise_rms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_SNR</span><span class="p">(</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">stored_noise</span><span class="o">=</span><span class="n">stored_noise</span><span class="p">,</span> <span class="n">rms_stage</span><span class="o">=</span><span class="n">rms_stage</span><span class="p">)</span>
+
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">SNR</span><span class="p">]</span> <span class="o">=</span> <span class="n">signal_to_noise</span>
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">noise_rms</span><span class="p">]</span> <span class="o">=</span> <span class="n">noise_rms</span>
+            <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">root_power_ratio</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_root_power_ratio</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">noise_rms</span><span class="p">)</span>
+            <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">entropy</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_entropy</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+            <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_kurtosis</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
 
         <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">channels_max_amplitude</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_amplitude_station</span>
-
+        <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">channels_max_amplitude_norm</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_max_a_norm</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span></div>
 
 
@@ -835,7 +893,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.end">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
-        <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>

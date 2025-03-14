@@ -1,0 +1,7 @@
+NuRadioReco.modules.RNO\_G.dataProviderRNOG module
+==================================================
+
+.. automodule:: NuRadioReco.modules.RNO_G.dataProviderRNOG
+   :members:
+   :undoc-members:
+   :show-inheritance:

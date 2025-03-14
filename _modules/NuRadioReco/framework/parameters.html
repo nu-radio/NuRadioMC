@@ -366,6 +366,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.framework_utilities.html">NuRadioReco.utilities.framework_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
@@ -665,7 +666,8 @@
     <span class="n">viewing_angles</span> <span class="o">=</span> <span class="mi">32</span> <span class="c1">#: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float</span>
     <span class="n">flagged_channels</span> <span class="o">=</span> <span class="mi">60</span>  <span class="c1">#: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)</span>
     <span class="n">cr_dominant_polarisation</span> <span class="o">=</span> <span class="mi">61</span>  <span class="c1">#: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)</span>
-    <span class="n">dirty_fft_channels</span> <span class="o">=</span> <span class="mi">62</span>  <span class="c1">#: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)</span></div>
+    <span class="n">dirty_fft_channels</span> <span class="o">=</span> <span class="mi">62</span>  <span class="c1">#: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)</span>
+    <span class="n">channels_max_amplitude_norm</span> <span class="o">=</span> <span class="mi">63</span>  <span class="c1">#: maximum std-normalised peak to peak amplitude of all chosen channels</span></div>
 
 
 <div class="viewcode-block" id="channelParameters">
@@ -674,7 +676,19 @@
     <span class="n">zenith</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: zenith angle of the incoming signal direction</span>
     <span class="n">azimuth</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: azimuth angle of the incoming signal direction</span>
     <span class="n">maximum_amplitude</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1">#: the maximum ampliude of the magnitude of the trace</span>
-    <span class="n">SNR</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1">#: an dictionary of various signal-to-noise ratio definitions</span>
+    <span class="n">SNR</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1">#: a dictionary with the following signal-to-noise ratio definitions:</span>
+    <span class="c1"># &#39;integrated_power&#39;:</span>
+        <span class="c1"># Difference of the sum of the squared amplitudes in the signal window and in the noise window</span>
+        <span class="c1"># SNR = sum_sig(V_i^2) - sum_noise(V_i^2)</span>
+    <span class="c1"># &#39;peak_amplitude&#39;:</span>
+        <span class="c1"># Maximum amplitude of the absolute signal trace divided by the rms of the noise window</span>
+        <span class="c1"># SNR = max(abs(V_sig))/V_rms_noise</span>
+    <span class="c1"># &#39;peak_2_peak_amplitude&#39;:</span>
+        <span class="c1"># Difference between max and min of the signal trace divided by twice the rms value in the noise window</span>
+        <span class="c1"># SNR = (max(V_sig)-min(V_sig))/2*V_rms_noise</span>
+    <span class="c1"># &#39;peak_2_peak_amplitude_split_noise_rms&#39;:</span>
+        <span class="c1"># Peak to peak amplitude in the trace divided by twice the noise rms value, where the latter is calculated by splitting the trace into segments and taking the mean of the lowest few segment rms values</span>
+        <span class="c1"># SNR = V_p2p/2*V_rms_noise</span>
     <span class="n">maximum_amplitude_envelope</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1">#: the maximum ampliude of the hilbert envelope of the trace</span>
     <span class="n">P2P_amplitude</span> <span class="o">=</span> <span class="mi">7</span>  <span class="c1">#: the peak to peak amplitude</span>
     <span class="n">cr_xcorrelations</span> <span class="o">=</span> <span class="mi">8</span>  <span class="c1">#: dict of result of crosscorrelations with cr templates</span>
@@ -690,7 +704,27 @@
     <span class="n">block_offsets</span> <span class="o">=</span> <span class="mi">18</span> <span class="c1">#: &#39;block&#39; or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span>
     <span class="n">Vrms_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">19</span>  <span class="c1">#: the noise rms used in the MC simulation</span>
     <span class="n">bandwidth_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1">#: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation</span>
-    <span class="n">Vrms_trigger_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">21</span>  <span class="c1">#: the noise rms of the trigger channels (optional) used in the MC simulation</span></div>
+    <span class="n">Vrms_trigger_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">21</span>  <span class="c1">#: the noise rms of the trigger channels (optional) used in the MC simulation</span>
+    <span class="n">root_power_ratio</span> <span class="o">=</span> <span class="mi">22</span> <span class="c1">#: the root power ratio (float)</span>
+    <span class="n">impulsivity</span> <span class="o">=</span> <span class="mi">23</span>  <span class="c1">#: average of the CDF about the peak of the coherently summed waveform</span>
+    <span class="n">entropy</span> <span class="o">=</span> <span class="mi">24</span>  <span class="c1">#: Shannon entropy of a waveform</span>
+    <span class="n">kurtosis</span> <span class="o">=</span> <span class="mi">25</span>  <span class="c1">#: kurtosis of a waveform</span></div>
+
+
+<div class="viewcode-block" id="channelParametersRNOG">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParametersRNOG">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">channelParametersRNOG</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="c1"># RNO-G specific channel parameters</span>
+    <span class="c1"># FS: I did not start with a negative parameter on the 1, hence I chose 100</span>
+    <span class="n">glitch</span> <span class="o">=</span> <span class="mi">100</span> <span class="c1">#: True if channel is likely to have a glitch. See &#39;NuRadioReco.modules.RNO_G.channelGlitchDetector&#39;</span>
+    <span class="n">glitch_test_statistic</span> <span class="o">=</span> <span class="mi">101</span> <span class="c1">#: Numerical value delivered by the glitch detector. Positive values indicate a likely glitch.</span></div>
+
+
+<div class="viewcode-block" id="stationParametersRNOG">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.stationParametersRNOG">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">stationParametersRNOG</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="c1"># RNO-G specific station parameters</span>
+    <span class="n">coherent_snr</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr</span></div>
 
 
 <div class="viewcode-block" id="electricFieldParameters">
