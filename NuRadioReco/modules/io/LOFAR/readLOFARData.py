@@ -7,6 +7,7 @@ import logging
 from collections import defaultdict
 
 import numpy as np
+import radiotools.helper as hp
 
 # from datetime import datetime
 from astropy.time import Time
@@ -725,6 +726,8 @@ class readLOFARData:
         radio_shower = NuRadioReco.framework.radio_shower.RadioShower(
             shower_id=evt.get_id(), station_ids=evt.get_station_ids()
         )
+        radio_shower.set_parameter(showerParameters.observation_level, 760*units.cm)
+        radio_shower.set_parameter(showerParameters.magnetic_field_vector, hp.get_magnetic_field_vector("lofar"))
         evt.add_shower(radio_shower)
         yield evt
 

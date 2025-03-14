@@ -41,12 +41,25 @@ class stationParameters(Enum):
     flagged_channels = 60  #: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)
     cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
     dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
+    channels_max_amplitude_norm = 63  #: maximum std-normalised peak to peak amplitude of all chosen channels
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
     azimuth = 2  #: azimuth angle of the incoming signal direction
     maximum_amplitude = 4  #: the maximum ampliude of the magnitude of the trace
-    SNR = 5  #: an dictionary of various signal-to-noise ratio definitions
+    SNR = 5  #: a dictionary with the following signal-to-noise ratio definitions:
+    # 'integrated_power':
+        # Difference of the sum of the squared amplitudes in the signal window and in the noise window
+        # SNR = sum_sig(V_i^2) - sum_noise(V_i^2)
+    # 'peak_amplitude':
+        # Maximum amplitude of the absolute signal trace divided by the rms of the noise window
+        # SNR = max(abs(V_sig))/V_rms_noise
+    # 'peak_2_peak_amplitude':
+        # Difference between max and min of the signal trace divided by twice the rms value in the noise window
+        # SNR = (max(V_sig)-min(V_sig))/2*V_rms_noise
+    # 'peak_2_peak_amplitude_split_noise_rms':
+        # Peak to peak amplitude in the trace divided by twice the noise rms value, where the latter is calculated by splitting the trace into segments and taking the mean of the lowest few segment rms values
+        # SNR = V_p2p/2*V_rms_noise
     maximum_amplitude_envelope = 6  #: the maximum ampliude of the hilbert envelope of the trace
     P2P_amplitude = 7  #: the peak to peak amplitude
     cr_xcorrelations = 8  #: dict of result of crosscorrelations with cr templates
@@ -63,6 +76,20 @@ class channelParameters(Enum):
     Vrms_NuRadioMC_simulation = 19  #: the noise rms used in the MC simulation
     bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
     Vrms_trigger_NuRadioMC_simulation = 21  #: the noise rms of the trigger channels (optional) used in the MC simulation
+    root_power_ratio = 22 #: the root power ratio (float)
+    impulsivity = 23  #: average of the CDF about the peak of the coherently summed waveform
+    entropy = 24  #: Shannon entropy of a waveform
+    kurtosis = 25  #: kurtosis of a waveform
+
+class channelParametersRNOG(Enum):
+    # RNO-G specific channel parameters
+    # FS: I did not start with a negative parameter on the 1, hence I chose 100
+    glitch = 100 #: True if channel is likely to have a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
+    glitch_test_statistic = 101 #: Numerical value delivered by the glitch detector. Positive values indicate a likely glitch.
+
+class stationParametersRNOG(Enum):
+    # RNO-G specific station parameters
+    coherent_snr = 1  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')

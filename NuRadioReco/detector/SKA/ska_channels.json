@@ -2,7 +2,7 @@
     "channels": {
         "0": {
             "ant_comment": "dipolarized antenna channel east",
-            "ant_type": "SKALA_v4_Xpol_small",
+            "ant_type": "SKALA_v4_Xpol",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 0.0,
             "ant_rotation_phi": 90,
@@ -12,7 +12,7 @@
         },
         "1": {
             "ant_comment": "dipolarized antenna channel north",
-            "ant_type": "SKALA_v4_Ypol_small",
+            "ant_type": "SKALA_v4_Ypol",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 0.0,
             "ant_rotation_phi": 0,
