@@ -194,7 +194,7 @@ class stationHitFilter:
                 hit_time_difference = abs(envelope_max_time[self._channel_mapping(group[0])] - envelope_max_time[self._channel_mapping(group[1])])
                 self._in_time_sequence[i_group][0] = hit_time_difference <= self._dT
 
-                if self._in_time_sequence[i_group][0]:
+                if self._in_time_sequence[i_group][0] and sum(is_coincident_in_PA) >= 1:
                     self._passed_time_checker = True
                     if not self._complete_time_check:
                         break
