@@ -190,7 +190,8 @@ class channelGalacticNoiseAdder:
             event,
             station,
             detector,
-            passband=None
+            passband=None,
+            manual_time=None
     ):
 
         """
@@ -247,7 +248,10 @@ class channelGalacticNoiseAdder:
         passband_filter = (freqs > passband[0]) & (freqs < passband[1])
 
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
-        station_time = station.get_station_time()
+        if manual_time is not None:
+            station_time = manual_time
+        else:
+            station_time = station.get_station_time()
 
         local_coordinates = get_local_coordinates((site_latitude, site_longitude), station_time, self.__n_side)
 
