@@ -61,7 +61,7 @@ class stationHitFilter:
         self._n_thresholds = len(self._threshold_multipliers)
 
         self._in_ice_channels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 21, 22, 23]
-        self._in_ice_channel_groups = ([0, 1, 2, 3], [9, 10], [23, 22], [8, 4], [5], [6], [7], [11], [21])
+        self._in_ice_channel_groups = ([0, 1, 2, 3], [9, 10], [23, 22], [8, 4])
         self._channel_pairs_in_PA = ([0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3])
 
         self._n_channels_in_ice = len(self._in_ice_channels)
@@ -85,7 +85,7 @@ class stationHitFilter:
         for i_group, group in enumerate(self._in_ice_channel_groups):
             if i_group == 0:
                 self._in_time_sequence.append([None for _ in range(self._n_channel_pairs_in_PA)])
-            elif len(group) > 1:
+            else:
                 self._in_time_sequence.append([None for _ in range(len(group)-1)])
 
         self._passed_time_checker = None
@@ -137,22 +137,21 @@ class stationHitFilter:
         noise_RMS: 1-D array of floats
             A set of input noise RMS values of all 24 channels
         """
-        for group in self._in_ice_channel_groups:
-            for channel in group:
-                mapped_channel = self._channel_mapping(channel)
-                if noise_RMS.size != 0:
-                    self._noise_RMS[mapped_channel] = noise_RMS[channel]
-                else:
-                    self._noise_RMS[mapped_channel] = trace_utilities.get_split_trace_noise_RMS(set_of_traces[channel])
+        for channel in self._in_ice_channels:
+            mapped_channel = self._channel_mapping(channel)
+            if noise_RMS.size != 0:
+                self._noise_RMS[mapped_channel] = noise_RMS[channel]
+            else:
+                self._noise_RMS[mapped_channel] = trace_utilities.get_split_trace_noise_RMS(set_of_traces[channel])
 
-                for i in range(self._n_thresholds):
-                    self._hit_thresholds[mapped_channel][i] = self._noise_RMS[mapped_channel] * self.get_threshold_multipliers()[i]
+            for i in range(self._n_thresholds):
+                self._hit_thresholds[mapped_channel][i] = self._noise_RMS[mapped_channel] * self.get_threshold_multipliers()[i]
 
-                self._trace[mapped_channel] = set_of_traces[channel]
-                self._envelope_trace[mapped_channel] = trace_utilities.get_hilbert_envelope(set_of_traces[channel])
-                self._times[mapped_channel] = set_of_times[channel]
-                self._envelope_max_time_index[mapped_channel] = np.array(self._envelope_trace[mapped_channel]).argmax()
-                self._envelope_max_time[mapped_channel] = self._times[mapped_channel][self._envelope_max_time_index[mapped_channel]]
+            self._trace[mapped_channel] = set_of_traces[channel]
+            self._envelope_trace[mapped_channel] = trace_utilities.get_hilbert_envelope(set_of_traces[channel])
+            self._times[mapped_channel] = set_of_times[channel]
+            self._envelope_max_time_index[mapped_channel] = np.array(self._envelope_trace[mapped_channel]).argmax()
+            self._envelope_max_time[mapped_channel] = self._times[mapped_channel][self._envelope_max_time_index[mapped_channel]]
 
 
     def _time_checker(self):
@@ -175,10 +174,10 @@ class stationHitFilter:
         for i_group, group in enumerate(self._in_ice_channel_groups):
             if i_group == 0:
                 for i_channel_pair, channel_pair in enumerate(self._channel_pairs_in_PA):
-                    if abs(envelope_max_time[channel_pair[1]] - envelope_max_time[channel_pair[0]]) <= self._dT * abs(channel_pair[1] - channel_pair[0]):
-                        self._in_time_sequence[i_group][i_channel_pair] = True
-                    else:
-                        self._in_time_sequence[i_group][i_channel_pair] = False
+                    hit_time_difference = abs(envelope_max_time[channel_pair[1]] - envelope_max_time[channel_pair[0]])
+                    dT_multiplier = abs(channel_pair[1] - channel_pair[0])
+                    self._in_time_sequence[i_group][i_channel_pair] = hit_time_difference <= dT_multiplier * self._dT
+
                     if channel_pair[0] == 0 and self._in_time_sequence[i_group][i_channel_pair]:
                         is_coincident_in_PA[0] = True
                     elif channel_pair[0] == 1 and self._in_time_sequence[i_group][i_channel_pair]:
@@ -189,18 +188,16 @@ class stationHitFilter:
                     self._passed_time_checker = True
                     if not self._complete_time_check:
                         break
-            elif len(group) > 1:
-                if abs(envelope_max_time[self._channel_mapping(group[0])] - envelope_max_time[self._channel_mapping(group[1])]) <= self._dT:
-                    self._in_time_sequence[i_group][0] = True
-                else:
-                    self._in_time_sequence[i_group][0] = False
+                elif not sum(is_coincident_in_PA) and not self._complete_time_check:
+                    break
+            else:
+                hit_time_difference = abs(envelope_max_time[self._channel_mapping(group[0])] - envelope_max_time[self._channel_mapping(group[1])])
+                self._in_time_sequence[i_group][0] = hit_time_difference <= self._dT
 
-                if self._in_time_sequence[i_group][0] and sum(is_coincident_in_PA) >= 1:
+                if self._in_time_sequence[i_group][0]:
                     self._passed_time_checker = True
                     if not self._complete_time_check:
                         break
-            else:
-                break
 
         return self._passed_time_checker
 
