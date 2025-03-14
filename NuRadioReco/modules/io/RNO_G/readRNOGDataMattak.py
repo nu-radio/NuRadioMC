@@ -248,7 +248,8 @@ class readRNOGData:
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
             overwrite_sampling_rate=None,
-            max_in_mem=256):
+            max_in_mem=256,
+            use_fallback_time=True):
         """
         Parameters
         ----------
@@ -323,6 +324,10 @@ class readRNOGData:
             Set the maximum number of events that can be stored in memory. The datareader will divide
             the data in batches based on this number.
             NOTE: This is only relevant for the mattak uproot backend
+        use_fallback_time: bool
+            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time. 
+            Otherwise, the event will be skipped in the case of infinite trigger times.  
+            (Default=True)
         """
         t0 = time.time()
 
@@ -349,6 +354,8 @@ class readRNOGData:
 
         # set max wavform array size that can be loaded in memory
         self._max_in_mem = max_in_mem
+
+        self._use_fallback_time = use_fallback_time
 
         # Set parameter for run selection
         self.__max_trigger_rate = max_trigger_rate
@@ -741,9 +748,10 @@ class readRNOGData:
             Returns True if all information valid, false otherwise
         """
 
-        if math.isinf(event_info.triggerTime):
+        if math.isinf(event_info.triggerTime) and not self._use_fallback_time:
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                                     "has inf trigger time. Skip event...")
+                              "has inf trigger time. Event is skipped ..."
+                              f"You can avoid this by setting 'use_fallback_time' in the begin() method.")
             self.__invalid += 1
             return False
 
@@ -775,7 +783,14 @@ class readRNOGData:
 
         evt: NuRadioReco.framework.event
         """
-        trigger_time = event_info.triggerTime
+        # use the readout time if the trigger time is infinity
+        if self._use_fallback_time and math.isinf(event_info.triggerTime):
+            self.logger.warning(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                                 "has inf trigger time, readout time will be used instead.")
+            trigger_time = event_info.readoutTime
+        else:
+            trigger_time = event_info.triggerTime
+
         # only overwrite sampling rate if the stored value is invalid
         if self._overwrite_sampling_rate is not None and event_info.sampleRate in [0, None]:
             sampling_rate = self._overwrite_sampling_rate
