@@ -390,7 +390,7 @@ def create_sim_shower_from_hdf5(corsika, declination=0):
         shp.distance_shower_maximum_geometric, corsika['CoREAS'].attrs["DistanceOfShowerMaximum"] * units.cm
     )
     sim_shower.set_parameter(
-        shp.refractive_index_at_ground, corsika['CoREAS'].attrs["GroundLevelRefractiveIndex"]
+        shp.refractive_index_at_ground, corsika['CoREAS'].attrs.get("GroundLevelRefractiveIndex", 1.000292)  # 1.000292 is the default used in CoREAS
     )
     sim_shower.set_parameter(
         shp.magnetic_field_rotation, corsika['CoREAS'].attrs["RotationAngleForMagfieldDeclination"] * units.degree
@@ -497,7 +497,9 @@ def create_sim_station(station_id, evt, weight=None):
 
 # HELPER FUNCTIONS
 def add_electric_field_to_sim_station(
-        sim_station, channel_ids, efield, efield_start_time, zenith, azimuth, sampling_rate, efield_position=None
+        sim_station, channel_ids, efield, efield_start_time,
+        zenith, azimuth, sampling_rate, efield_position=None,
+        shower_id=None, ray_tracing_id=None
 ):
     """
     Adds an electric field trace to an existing SimStation, with the provided attributes.
@@ -523,10 +525,14 @@ def add_electric_field_to_sim_station(
     efield_position : np.ndarray or list of float
         Position to associate to the electric field
     """
-    if type(channel_ids) is not list:
+    if not isinstance(channel_ids, list):
         channel_ids = [channel_ids]
 
-    electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids, position=efield_position)
+    electric_field = NuRadioReco.framework.electric_field.ElectricField(
+        channel_ids, position=efield_position, shower_id=shower_id, ray_tracing_id=ray_tracing_id)
+
+    if efield.shape[-1] % 2 != 0:
+        efield = efield[:, :-1]
 
     electric_field.set_trace(efield, sampling_rate)
     electric_field.set_trace_start_time(efield_start_time)
