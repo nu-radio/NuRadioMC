@@ -69,8 +69,6 @@ print(f"Thermal noise amplitude: {vrms_thermal / units.mV} mV")
 efield_converter = efieldToVoltageConverter.efieldToVoltageConverter()
 efield_converter.begin()
 
-efield_converter_per_efield = efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
-
 channelResampler = channelResampler.channelResampler()
 
 channelGenericNoiseAdder = channelGenericNoiseAdder.channelGenericNoiseAdder()
@@ -134,8 +132,6 @@ for edx, event in enumerate(readFAERIEShower.run(depth=args.depth)):
                 max_freq=1000 * units.MHz,
                 type='rayleigh',
                 bandwidth=950 * units.MHz)
-
-        apply_response(station, resp_st23_ch0)
 
         # # cuts and padds the channel and sim channel traces to the exact same window
         # cut_channel_trace_to_sim_trace(station)

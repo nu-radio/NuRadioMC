@@ -350,3 +350,9 @@ class FAERIEDetector():
     def get_site_coordinates(self, station_id=None):
         """ Returns latitude and longitude of SKA in degrees """
         return 72.57, -38.46
+
+    def get_number_of_samples(self, station_id=None, channel_id=None):
+        return 2048
+
+    def get_sampling_frequency(self, station_id=None, channel_id=None):
+        return 3.2 * units.GHz
