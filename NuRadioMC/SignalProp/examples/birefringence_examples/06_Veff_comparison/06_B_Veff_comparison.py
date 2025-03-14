@@ -5,17 +5,17 @@ from NuRadioMC.utilities import Veff
 # import detector simulation modules
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
+
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 
 import matplotlib.pyplot as plt
 import numpy as np
 import logging
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("NuRadioMC.SignalProp.runstrawman")
 
 ###-----------------------------------------
-#   EXAMPLE: Script to calculate the effects of birefringence on the effective volume. 
+#   EXAMPLE: Script to calculate the effects of birefringence on the effective volume.
 #            A full study of this calculation was published here: DOI: https://doi.org/10.22323/1.444.1101
 ###-----------------------------------------
 
@@ -39,7 +39,7 @@ class mySimulation(simulation.simulation):
                              triggered_channels=None,  # run trigger on all channels
                              number_concidences=1,
                              trigger_name='simple_threshold1')  # the name of the trigger
-        
+
 energies = np.array([19])
 
 Veff_birefringence = []
@@ -82,4 +82,3 @@ plt.ylabel(r'$V_{eff.-bir.} / V_{eff.-iso.}$ [%]')
 plt.xlabel(r'$\log (E)$')
 plt.tight_layout()
 plt.savefig('06_Veff_comp_plot.png', dpi=400)
-
