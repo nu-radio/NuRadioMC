@@ -1,9 +1,13 @@
-from NuRadioReco.modules import (efieldToVoltageConverter, electricFieldBandPassFilter,
-                                 channelResampler, channelGenericNoiseAdder,
-                                 efieldToVoltageConverterPerEfield, channelBandPassFilter)
+from NuRadioReco.modules import (
+    efieldToVoltageConverter, channelResampler, channelGenericNoiseAdder)
+
 import NuRadioReco.modules.io.coreas.readFAERIEShower
-import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.io.eventWriter
+
+import NuRadioReco.modules.trigger.highLowThreshold
+
+import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
+import NuRadioReco.modules.RNO_G.triggerBoardResponse
 
 from NuRadioReco.framework.base_trace import BaseTrace
 
@@ -19,8 +23,6 @@ import numpy as np
 from collections import defaultdict
 import datetime as dt
 import logging
-import scipy.constants as constants
-import copy
 
 
 def plot_traces(event):
@@ -38,56 +40,6 @@ def plot_traces(event):
 
     fig.tight_layout()
     plt.show()
-
-
-def apply_response(station, resp):
-
-    for channel in station.iter_channels():
-        channel = channel * resp
-        station.add_channel(channel, overwrite=True)
-
-
-def cut_channel_trace_to_sim_trace(station):
-
-    sim_station = station.get_sim_station()
-
-    channel = next(station.iter_channels())  # only one channel
-
-    sim_channels = list(sim_station.iter_channels())
-
-    readout = BaseTrace()
-    if len(sim_channels) == 1:
-
-        readout.set_trace(np.zeros_like(sim_channels[0].get_trace()), sim_channels[0].get_sampling_rate())
-        readout.set_trace_start_time(sim_channels[0].get_trace_start_time())
-
-        readout.add_to_trace(channel, raise_error=False)
-
-        channel.set_trace(readout.get_trace(), "same")
-        channel.set_trace_start_time(readout.get_trace_start_time())
-    else:
-        # 2 sim channels
-        t_start = [sim_channel.get_trace_start_time() for sim_channel in sim_channels]
-        sort = np.argsort(t_start)
-        sim_channels = np.array(sim_channels)[sort].tolist()
-
-        t0 = sim_channels[0].get_trace_start_time()
-        n_samples = int((sim_channels[1].get_times()[-1] - t0) * sim_channels[0].get_sampling_rate())
-        if n_samples % 2:
-            n_samples += 1
-
-        readout.set_trace(np.zeros(n_samples), sim_channels[0].get_sampling_rate())
-        readout.set_trace_start_time(t0)
-
-        for sim_channel in sim_station.iter_channels():
-            readout_tmp = copy.deepcopy(readout)
-            readout_tmp.add_to_trace(sim_channel, raise_error=False)
-            sim_channel.set_trace(readout_tmp.get_trace(), "same")
-            sim_channel.set_trace_start_time(readout_tmp.get_trace_start_time())
-
-        readout.add_to_trace(channel, raise_error=False)
-        channel.set_trace(readout.get_trace(), "same")
-        channel.set_trace_start_time(readout.get_trace_start_time())
 
 
 # Parse eventfile as argument
@@ -121,12 +73,6 @@ efield_converter_per_efield = efieldToVoltageConverterPerEfield.efieldToVoltageC
 
 channelResampler = channelResampler.channelResampler()
 
-bandpass_filter = electricFieldBandPassFilter.electricFieldBandPassFilter()
-bandpass_filter.begin()
-
-channel_bandpass_filter = channelBandPassFilter.channelBandPassFilter()
-channel_bandpass_filter.begin()
-
 channelGenericNoiseAdder = channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()
 
@@ -150,7 +96,7 @@ data = defaultdict(list)
 mode = {
     'Channels': True,
     'ElectricFields': False,
-    'SimChannels': True,
+    'SimChannels': False,
     'SimElectricFields': False
 }
 
@@ -167,8 +113,17 @@ for edx, event in enumerate(readFAERIEShower.run(depth=args.depth)):
                   f"Zenith: {shower.get_parameter(shp.zenith) / units.deg}, "
                   f"Azimuth: {shower.get_parameter(shp.azimuth) / units.deg}")
 
-        efield_converter_per_efield.run(event, station, det)
         efield_converter.run(event, station, det)
+
+
+        # Sanity checks for the moment
+        assert det.get_channel_ids(station.get_id()).tolist() == [0, 1, 2, 3], "Expected channels [0, 1, 2, 3]"
+        channel_depths = np.array([det.get_relative_position(station.get_id(), channel_id)[2] for channel_id in det.get_channel_ids(station.get_id())])
+        assert np.argsort(channel_depths).tolist() == [0, 1, 2, 3], "Expected channels to be sorted by depth"
+
+
+
+        print(f"Number of channels: {len(station.get_channel_ids())}")
 
         if args.add_noise:
             # The noise amplitude corresponds rougthly to 300K within a bandwidth of 950 MHz
@@ -181,7 +136,6 @@ for edx, event in enumerate(readFAERIEShower.run(depth=args.depth)):
                 bandwidth=950 * units.MHz)
 
         apply_response(station, resp_st23_ch0)
-        apply_response(sim_station, resp_st23_ch0)
 
         # # cuts and padds the channel and sim channel traces to the exact same window
         # cut_channel_trace_to_sim_trace(station)
