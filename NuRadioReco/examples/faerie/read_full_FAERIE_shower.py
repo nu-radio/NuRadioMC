@@ -2,7 +2,6 @@ import NuRadioReco.modules.io.coreas.readFAERIEShower
 
 from NuRadioReco.modules import efieldToVoltageConverter
 
-from NuRadioReco.detector import generic_detector as detector
 
 from NuRadioReco.utilities import units
 
@@ -19,25 +18,22 @@ parser.add_argument('inputfilename', type=str, nargs='*',
                     default=['example_data/example_event.h5'],
                     help='path to NuRadioMC simulation result')
 
-default_path = os.path.join(os.path.dirname(__file__), "RNO_single_channel.json")
-parser.add_argument('--detectordescription', type=str, nargs='?',
-                    default=default_path,
-                    help='path to detectordescription')
-
 args = parser.parse_args()
-
-det = detector.GenericDetector(
-    json_filename=args.detectordescription)
 
 efield_converter = efieldToVoltageConverter.efieldToVoltageConverter()
 efield_converter.begin()
 
 readFAERIEShower = NuRadioReco.modules.io.coreas.readFAERIEShower.readFAERIEShower()
-readFAERIEShower.begin(args.inputfilename, det=det)
+readFAERIEShower.begin(args.inputfilename)
 
-for event, det in readFAERIEShower.run(depth=100):
+det = NuRadioReco.modules.io.coreas.readFAERIEShower.FAERIEDetector()
+
+for event in readFAERIEShower.run(depth=100):
+    det.set_event(event)
+
     print('Event {} {}'.format(event.get_run_number(), event.get_id()))
     print('Number of stations: {}'.format(len(list(event.get_stations()))))
+
     for station in event.get_stations():
 
         sim_station = station.get_sim_station()
@@ -46,8 +42,6 @@ for event, det in readFAERIEShower.run(depth=100):
             continue
 
         print(f"Number of electric fields: {len(sim_station.get_electric_fields())}")
-        for efield in sim_station.get_electric_fields():
-            print(efield.get_position())
 
         efield_converter.run(event, station, det)
         print(f"Number of channels: {len(station.get_channel_ids())}")
