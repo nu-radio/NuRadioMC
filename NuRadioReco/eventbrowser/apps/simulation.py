@@ -5,9 +5,7 @@ import NuRadioReco.eventbrowser.apps.simulation_plots.sim_electric_field_spectru
 import NuRadioReco.eventbrowser.apps.simulation_plots.sim_event_overview
 import logging
 
-logger = logging.getLogger('traces')
-parent_logger = logging.getLogger('NuRadioReco')
-logger.setLevel(parent_logger.level)
+logger = logging.getLogger('NuRadioReco.traces')
 
 layout = html.Div([
     html.Div([

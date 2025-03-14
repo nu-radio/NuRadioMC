@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units, signal_processing
+from NuRadioReco.utilities import units
 import NuRadioReco.framework.base_trace
 
 from scipy import interpolate
@@ -121,6 +121,15 @@ class Response:
             y_phase = y_phase
         else:
             raise KeyError
+
+        if time_delay:
+            if abs(2 * time_delay) > 1 / np.diff(self.__frequency)[0]:
+                self.logger.error(
+                    f"The frequency binning (resolution) of {np.diff(self.__frequency)[0] * 1e3:.2f} MHz "
+                    f"of the response function is too large/coarse to correctly remove the time delay of {time_delay} ns. "
+                    f"This is a sign of potential aliasing. You need to upsample the response function "
+                    "(zero padding in the time domain).")
+                raise ValueError("Time delay too large for frequency resolution. Upsample the response function.")
 
         # Remove the average group delay from response
         if remove_time_delay and time_delay:
@@ -508,13 +517,6 @@ class Response:
 
         return time_delay1
 
-    def calculate_thermal_noise_amplitude(self, temperature=300):
-        freqs = np.arange(50, 2000, 0.5) * units.MHz
-        filter = self(freqs)
-
-        vrms = signal_processing.calculate_filtered_thermal_noise_amplitude(temperature=300, frequencies=freqs, filter=filter)
-        return vrms
-
 
 def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=None):
     """
@@ -554,6 +556,11 @@ def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=
 
     if time_delay is None:
         raise ValueError("You have to specify a time delay")
+
+    if np.any(np.abs(2 * time_delay * np.diff(frequencies)) > 1):
+        raise ValueError("The frequency binning (resolution) of the response function "
+                         f"is to large/corse to correctly remove the time delay of {time_delay} ns. "
+                         "You need to upsample the response function.")
 
     resp = gain * np.exp(1j * (phase + 2 * np.pi * time_delay * frequencies))
 

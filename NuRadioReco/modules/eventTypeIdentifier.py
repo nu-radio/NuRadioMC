@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 import logging
-logger = logging.getLogger('eventTypeIdentifier')
+logger = logging.getLogger('NuRadioReco.eventTypeIdentifier')
 
 
 class eventTypeIdentifier:
