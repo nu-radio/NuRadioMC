@@ -144,8 +144,7 @@ class stationHitFilter:
             else:
                 self._noise_RMS[mapped_channel] = trace_utilities.get_split_trace_noise_RMS(set_of_traces[channel])
 
-            for i in range(self._n_thresholds):
-                self._hit_thresholds[mapped_channel][i] = self._noise_RMS[mapped_channel] * self.get_threshold_multipliers()[i]
+            self._hit_thresholds[mapped_channel] = self._noise_RMS[mapped_channel] * np.array(self.get_threshold_multipliers())
 
             self._trace[mapped_channel] = set_of_traces[channel]
             self._envelope_trace[mapped_channel] = trace_utilities.get_hilbert_envelope(set_of_traces[channel])
