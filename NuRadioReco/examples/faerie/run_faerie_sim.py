@@ -8,7 +8,7 @@ import NuRadioReco.modules.io.eventWriter
 from NuRadioReco.framework.base_trace import BaseTrace
 
 from NuRadioReco.detector import detector
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 
 from NuRadioReco.framework.parameters import showerParameters as shp
 
@@ -19,43 +19,25 @@ import numpy as np
 from collections import defaultdict
 import datetime as dt
 import logging
-import os
 import scipy.constants as constants
 import copy
 
-from read_faerie_nur import plot_traces
 
+def plot_traces(event):
+    station = event.get_station()
+    sim_station = station.get_sim_station()
+    channel = next(station.iter_channels())
 
-def calculate_vrms_from_temperature(noise_temp_channel, bandwidth):
-    """ Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
+    fig, ax = plt.subplots()
+    ax.plot(channel.get_times(), channel.get_trace(), lw=2, color='k')
 
-    This function does not take into account the individual channel response.
-    It assumes a flat rectangular filter with the given bandwidth. We have to
-    simulate the noise for each channel in the exact same bandwith and apply
-    the hardware response afterwards to get correct results.
+    for sim_channel in sim_station.iter_channels():
+        print(sim_channel.get_id(), channel.get_id())
+        if sim_channel.get_id() == channel.get_id():
+            ax.plot(sim_channel.get_times(), sim_channel.get_trace(), lw=1)
 
-    Parameters
-    ----------
-    noise_temp_channel: float
-        The noise temperature of the channel in Kelvin
-    bandwidth: tuple (list of 2 floats)
-        The lower and upper frequency of the bandwidth.
-
-    Returns
-    -------
-    vrms_per_channel: float
-        The vrms of the channel
-    """
-
-    freqs = np.arange(0, 2.5, 0.001) * units.GHz
-    window = np.zeros_like(freqs, dtype=bool)
-    window[np.all([freqs > bandwidth[0], freqs < bandwidth[1]], axis=0)] = True
-
-    # Bandwidth, i.e., \Delta f in equation
-    integrated_channel_response = np.trapz(np.abs(window) ** 2, freqs)
-    vrms_per_channel = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
-
-    return vrms_per_channel
+    fig.tight_layout()
+    plt.show()
 
 
 def apply_response(station, resp):
@@ -109,17 +91,11 @@ def cut_channel_trace_to_sim_trace(station):
 
 
 # Parse eventfile as argument
-parser = argparse.ArgumentParser(description='NuRadioSim file')
+parser = argparse.ArgumentParser(description='')
 parser.add_argument('inputfilename', type=str, nargs='*',
-                    default=['example_data/example_event.h5'],
                     help='path to NuRadioMC simulation result')
 
-default_path = os.path.join(os.path.dirname(__file__), "RNO_single_channel.json")
-parser.add_argument('--detectordescription', type=str, nargs='?',
-                    default=default_path,
-                    help='path to detectordescription')
 
-parser.add_argument('--event_per_antenna', action='store_true', help='Create an event per simulated antenna')
 parser.add_argument('--add_noise', action='store_true', help='Add noise to the traces')
 parser.add_argument('--plot_traces', action='store_true', help='Plot the traces')
 parser.add_argument('--depth', nargs="?", type=float, default=None, help='If specified, used to select simulated pulses at a given depth.')
@@ -130,20 +106,16 @@ parser.add_argument('--output_file', type=str, nargs='?',
 
 args = parser.parse_args()
 
-det = detector.generic_detector.GenericDetector(
-    json_filename=args.detectordescription)
-
 # Load the real detector response
 det_rnog = detector.rnog_detector.Detector(select_stations=[23], database_connection="RNOG_public", always_query_entire_description=False)
 det_rnog.update(dt.datetime(2023, 8, 1))
 
 resp_st23_ch0 = det_rnog.get_signal_chain_response(23, 0, trigger=True)
-vrms_thermal = resp_st23_ch0.calculate_thermal_noise_amplitude()
+vrms_thermal = signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, response=resp_st23_ch0)
 print(f"Thermal noise amplitude: {vrms_thermal / units.mV} mV")
 
-
 efield_converter = efieldToVoltageConverter.efieldToVoltageConverter()
-efield_converter.begin(pre_pulse_time=0, post_pulse_time=0)
+efield_converter.begin()
 
 efield_converter_per_efield = efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
 
@@ -163,13 +135,15 @@ if args.output_file is not None:
     outputfilename = args.output_file
 else:
     outputfilename = args.inputfilename[0].replace(".hdf5", ".nur")
+
 eventWriter.begin(filename=outputfilename, max_file_size=1024 * 3)
 
 readFAERIEShower = NuRadioReco.modules.io.coreas.readFAERIEShower.readFAERIEShower()
 readFAERIEShower.begin(
-    args.inputfilename, det=det, skip_raytracing=False,
-    create_event_per_station=args.event_per_antenna, logger_level=logging.INFO
+    args.inputfilename, logger_level=logging.INFO
 )
+
+det = NuRadioReco.modules.io.coreas.readFAERIEShower.FAERIEDetector()
 
 data = defaultdict(list)
 
@@ -180,7 +154,8 @@ mode = {
     'SimElectricFields': False
 }
 
-for edx, (event, det) in enumerate(readFAERIEShower.run(depth=args.depth)):
+for edx, event in enumerate(readFAERIEShower.run(depth=args.depth)):
+    det.set_event(event)
 
     shower = event.get_first_sim_shower()
     for sdx, station in enumerate(event.get_stations()):
@@ -208,14 +183,14 @@ for edx, (event, det) in enumerate(readFAERIEShower.run(depth=args.depth)):
         apply_response(station, resp_st23_ch0)
         apply_response(sim_station, resp_st23_ch0)
 
-        # cuts and padds the channel and sim channel traces to the exact same window
-        cut_channel_trace_to_sim_trace(station)
+        # # cuts and padds the channel and sim channel traces to the exact same window
+        # cut_channel_trace_to_sim_trace(station)
 
-        channelResampler.run(event, station, None, sampling_rate=0.472 * units.GHz)
-        channelResampler.run(event, sim_station, None, sampling_rate=0.472 * units.GHz)
+        # channelResampler.run(event, station, None, sampling_rate=0.472 * units.GHz)
+        # channelResampler.run(event, sim_station, None, sampling_rate=0.472 * units.GHz)
 
         if args.plot_traces:
-            plot_traces(event, station, sim_station)
+            plot_traces(event)
             sys.exit()
 
-    eventWriter.run(event, det, mode=mode)
+    eventWriter.run(event, mode=mode)

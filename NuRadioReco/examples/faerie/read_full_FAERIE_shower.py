@@ -28,7 +28,7 @@ readFAERIEShower.begin(args.inputfilename)
 
 det = NuRadioReco.modules.io.coreas.readFAERIEShower.FAERIEDetector()
 
-for event in readFAERIEShower.run(depth=100):
+for event in readFAERIEShower.run():
     det.set_event(event)
 
     print('Event {} {}'.format(event.get_run_number(), event.get_id()))
@@ -38,10 +38,9 @@ for event in readFAERIEShower.run(depth=100):
 
         sim_station = station.get_sim_station()
 
-        if len(sim_station.get_electric_fields()) < 2:
-            continue
-
         print(f"Number of electric fields: {len(sim_station.get_electric_fields())}")
+
+
 
         efield_converter.run(event, station, det)
         print(f"Number of channels: {len(station.get_channel_ids())}")
