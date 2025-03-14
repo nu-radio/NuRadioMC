@@ -1,7 +1,9 @@
-import numpy as np
-from scipy.signal.windows import hann
-from scipy import constants
 from NuRadioReco.utilities import units
+from NuRadioReco.detector import detector
+from NuRadioReco.framework.sim_station import SimStation
+
+from scipy.signal.windows import hann
+import numpy as np
 
 
 def half_hann_window(length, half_percent=None, hann_window_length=None):
@@ -31,26 +33,52 @@ def half_hann_window(length, half_percent=None, hann_window_length=None):
     return half_hann_widow
 
 
-def calculate_filtered_thermal_noise_amplitude(temperature, frequencies, filter, resistance=50):
+def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
     """
-    Calculate the amplitude of the filtered (amplified!) thermal noise for a given temperature, bandwidth and resistance.
-
-    Calculation of Vrms. For details see from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
-    (last two Eqs. in "noise voltage and power" section) or our wiki
-    https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html.
+    Add or subtract cable delay by modifying the ``trace_start_time``.
 
     Parameters
     ----------
-    temperature : float
-        The temperature in Kelvin
-    bandwidth : float
-        The bandwidth in Hz
-    resistance : float (Default: 50)
-        The resistance in Ohm
+    station: Station
+        The station to add the cable delay to.
+
+    det: Detector
+        The detector description
+
+    trigger: bool
+        If True, take the time delay from the trigger channel response.
+        Only possible if ``det`` is of type `rnog_detector.Detector`. (Default: False)
+
+    logger: logging.Logger, default=None
+        If set, use ``logger.debug(..)`` to log the cable delay.
+
+    See Also
+    --------
+    NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay : module that automatically applies / corrects for cable delays.
     """
+    assert sim_to_data is not None, "``sim_to_data`` is None, please specify."
 
-    # Bandwidth, i.e., \Delta f in equation
-    integrated_channel_response = np.trapz(np.abs(filter) ** 2, frequencies)
+    add_or_subtract = 1 if sim_to_data else -1
+    msg = "Add" if sim_to_data else "Subtract"
 
-    vrms = (temperature * resistance * constants.k * integrated_channel_response / units.Hz) ** 0.5
-    return vrms
+    if trigger and not isinstance(det, detector.rnog_detector.Detector):
+        raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
+
+    for channel in station.iter_channels():
+
+        if trigger:
+            if not channel.has_extra_trigger_channel():
+                continue
+
+            channel = channel.get_trigger_channel()
+            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
+
+        else:
+            # Only the RNOG detector has the argument `trigger`. Default is false
+            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
+
+        if logger is not None:
+            logger.debug(f"{msg} {cable_delay / units.ns:.2f}ns "
+                        f"of cable delay to channel {channel.get_id()}")
+
+        channel.add_trace_start_time(add_or_subtract * cable_delay)
