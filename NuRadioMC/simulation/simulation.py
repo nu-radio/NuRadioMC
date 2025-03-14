@@ -18,7 +18,7 @@ from NuRadioMC.SignalGen import askaryan, emitter as emitter_signalgen
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 import NuRadioReco.modules.io.eventWriter
@@ -599,6 +599,9 @@ def apply_det_response(
                 # normalize noise level to the bandwidth its generated for
                 Vrms[channel_id] = Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5
 
+            # Here we can only add "rayleigh" noise and not "data-driven" noise because we
+            # apply the hardware response afterwards with detector_simulation_filter_amp.
+            # If you want to use data-driven noise, you need to define detector_simulation_part2
             channelGenericNoiseAdder.run(
                 evt, station, det, amplitude=Vrms, min_freq=0 * units.MHz,
                 max_freq=max_freq, type='rayleigh',
@@ -1168,7 +1171,7 @@ class simulation:
                         "This can be inefficient. Processing time can be saved by specifying the trigger channels.")
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
-        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
+        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger, update_interval=60)  # sec
 
         self._config = get_config(config_file)
         if self._config['seed'] is None:
@@ -1216,6 +1219,11 @@ class simulation:
             ((self.detector_simulation_part1 is not None) and (self.detector_simulation_filter_amp is not None))):
             logger.error(err_msg)
             raise ValueError(err_msg)
+
+        # If you want to simulate data-driven noise you have to provide the detector_simulation_part2 function
+        if self._config["noise_type"] == "data-driven" and self.detector_simulation_part2 is None:
+            logger.error("Data-driven noise is enabled but no detector_simulation_part2 function is provided.")
+            raise ValueError("Data-driven noise is enabled but no detector_simulation_part2 function is provided.")
 
         # Initialize detector
         self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
@@ -1354,8 +1362,9 @@ class simulation:
                     # Bandwidth, i.e., \Delta f in equation
                     integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
                     max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+                    vrms_per_channel = signal_processing.calculate_vrms_from_temperature(noise_temp_channel, bandwidth=integrated_channel_response)
 
-                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
+                    self._Vrms_per_channel[station_id][channel_id] = vrms_per_channel
                     self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / max_amplification / units.m  # VEL = 1m
 
                     # for logging
@@ -1417,7 +1426,11 @@ class simulation:
                                                     particle_mode=particle_mode)
 
         efieldToVoltageConverter.begin()
-        channelGenericNoiseAdder.begin(seed=self._config['seed'])
+
+        # Only needed for data-driven noise
+        scale_dir = os.path.join(os.path.dirname(__file__), "../examples/../examples/08_RNO_G_trigger_simulation/data_driven_noise_files")
+        channelGenericNoiseAdder.begin(seed=self._config['seed'], scale_parameter_dir=scale_dir)
+
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
 
@@ -1604,7 +1617,7 @@ class simulation:
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
                 if len(non_trigger_channels):
-                    logger.status(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
+                    logger.debug(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
                             sim_station = calculate_sim_efield(
@@ -1674,7 +1687,8 @@ class simulation:
                     # because we need to add noise to traces where the amplifier response
                     # was already applied to.
                     if bool(self._config['noise']):
-                        self.add_filtered_noise_to_channels(evt, station, non_trigger_channels)
+                        self.add_filtered_noise_to_channels(
+                            evt, station, non_trigger_channels, noise_type=self._config['noise_type'])
 
                     channelSignalReconstructor.run(evt, station, self._det)
                     self._set_event_station_parameters(evt)
@@ -1723,7 +1737,7 @@ class simulation:
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
-    def add_filtered_noise_to_channels(self, evt, station, channel_ids):
+    def add_filtered_noise_to_channels(self, evt, station, channel_ids, noise_type='rayleigh'):
         """
         Add noise to the traces of the channels in the event.
         This function is used to add noise to the traces of the non-trigger channels.
@@ -1746,7 +1760,7 @@ class simulation:
             noise = channelGenericNoiseAdder.bandlimited_noise_from_spectrum(
                 channel.get_number_of_samples(), channel.get_sampling_rate(),
                 spectrum=filt, amplitude=self._Vrms_per_channel[station.get_id()][channel_id],
-                type='rayleigh', time_domain=False)
+                type=noise_type, time_domain=False, station_id=station.get_id(), channel_id=channel_id)
 
             channel.set_frequency_spectrum(channel.get_frequency_spectrum() + noise, channel.get_sampling_rate())
 
