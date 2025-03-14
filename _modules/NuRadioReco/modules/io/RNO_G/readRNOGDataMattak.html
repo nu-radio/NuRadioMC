@@ -878,7 +878,8 @@
             <span class="n">max_trigger_rate</span><span class="o">=</span><span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span>
             <span class="n">mattak_kwargs</span><span class="o">=</span><span class="p">{},</span>
             <span class="n">overwrite_sampling_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">max_in_mem</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+            <span class="n">max_in_mem</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="n">use_fallback_time</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -953,6 +954,10 @@
 <span class="sd">            Set the maximum number of events that can be stored in memory. The datareader will divide</span>
 <span class="sd">            the data in batches based on this number.</span>
 <span class="sd">            NOTE: This is only relevant for the mattak uproot backend</span>
+<span class="sd">        use_fallback_time: bool</span>
+<span class="sd">            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time. </span>
+<span class="sd">            Otherwise, the event will be skipped in the case of infinite trigger times.  </span>
+<span class="sd">            (Default=True)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
@@ -979,6 +984,8 @@
 
         <span class="c1"># set max wavform array size that can be loaded in memory</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_in_mem</span> <span class="o">=</span> <span class="n">max_in_mem</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_fallback_time</span> <span class="o">=</span> <span class="n">use_fallback_time</span>
 
         <span class="c1"># Set parameter for run selection</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_trigger_rate</span> <span class="o">=</span> <span class="n">max_trigger_rate</span>
@@ -1381,9 +1388,10 @@
 <span class="sd">            Returns True if all information valid, false otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerTime</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerTime</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_fallback_time</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) &quot;</span>
-                                     <span class="s2">&quot;has inf trigger time. Skip event...&quot;</span><span class="p">)</span>
+                              <span class="s2">&quot;has inf trigger time. Event is skipped ...&quot;</span>
+                              <span class="sa">f</span><span class="s2">&quot;You can avoid this by setting &#39;use_fallback_time&#39; in the begin() method.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">return</span> <span class="kc">False</span>
 
@@ -1416,7 +1424,13 @@
 <span class="sd">        evt: NuRadioReco.framework.event</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">trigger_time</span> <span class="o">=</span> <span class="n">event_info</span><span class="o">.</span><span class="n">triggerTime</span>
+        <span class="c1"># use the readout time if the trigger time is infinity</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_fallback_time</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerTime</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) &quot;</span>
+                                 <span class="s2">&quot;has inf trigger time, readout time will be used instead.&quot;</span><span class="p">)</span>
+            <span class="n">trigger_time</span> <span class="o">=</span> <span class="n">event_info</span><span class="o">.</span><span class="n">readoutTime</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trigger_time</span> <span class="o">=</span> <span class="n">event_info</span><span class="o">.</span><span class="n">triggerTime</span>
         <span class="c1"># only overwrite sampling rate if the stored value is invalid</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overwrite_sampling_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">event_info</span><span class="o">.</span><span class="n">sampleRate</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
             <span class="n">sampling_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overwrite_sampling_rate</span>
