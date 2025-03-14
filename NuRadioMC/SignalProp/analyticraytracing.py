@@ -26,9 +26,8 @@ from NuRadioReco.framework import base_trace
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 
-from NuRadioReco.utilities.logging import LOGGING_STATUS, setup_logger
 import logging
-logger = setup_logger("NuRadioMC.analytic_ray_tracing")
+logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
 # check if CPP implementation is available
 cpp_available = False
@@ -125,16 +124,16 @@ class ray_tracing_2D(ray_tracing_base):
             (default: False)
         overwrite_speedup: bool
             The signal attenuation is calculated using a numerical integration
-            along the ray path. This calculation can be computational inefficient depending on the details of 
+            along the ray path. This calculation can be computational inefficient depending on the details of
             the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss
-            of some accuracy, See PR #507. This optimization is used for all ice models listed in 
+            of some accuracy, See PR #507. This optimization is used for all ice models listed in
             speedup_attenuation_models (i.e., "GL3"). With this argument you can explicitly activate or deactivate
             (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
             listed in speedup_attenuation_models)
         use_cpp: bool
             if True, use CPP implementation of minimization routines
             default: True if CPP version is available
-            
+
         """
         self.medium = medium
         if(not hasattr(self.medium, "reflection")):
@@ -145,7 +144,8 @@ class ray_tracing_2D(ray_tracing_base):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
         self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
-        self.__logger = setup_logger('NuRadioMC.ray_tracing_2D', log_level)
+        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
+        self.__logger.setLevel(log_level)
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
 
@@ -385,7 +385,7 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-                
+
             # first treat special case of ice to air propagation
             z_int = None
             points = None
@@ -424,7 +424,7 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-                
+
             # first treat special case of ice to air propagation
             z_int = None
             points = None
@@ -716,8 +716,8 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-                
-            # treat special ice to air case. Attenuation in air can be neglected, so only 
+
+            # treat special ice to air case. Attenuation in air can be neglected, so only
             # calculate attenuation until the ray reaches the surface
             if x2[1] > 0:
                 z_turn = 0
@@ -1177,14 +1177,14 @@ class ray_tracing_2D(ray_tracing_base):
             # between the turning point and the target point + 10 x the distance between the z position of the turning points
             # and the target position. This results in a objective function that has the solutions as the only minima and
             # is smooth in C_0
-            
+
             diff = ((z_turn - x2[1]) ** 2 + (y_turn - x2[0]) ** 2) ** 0.5 + 10 * np.abs(z_turn - x2[1])
             self.__logger.debug(
                 "turning points (zturn = {:.4g} is deeper than x2 positon z2 = {:.0f}, setting distance to target position to {:.1f}".format(z_turn, x2[1], -diff))
             return -diff
 #             return -np.inf
         self.__logger.debug('turning points is z = {:.1f}, y =  {:.1f}'.format(z_turn, y_turn))
-        
+
         if(x2[1] > 0):  # first treat the ice to air case
             # Do nothing if ray is refracted. If ray is reflected, don't mirror but do straight line upwards
             if(z_turn == 0):
@@ -1820,13 +1820,13 @@ class ray_tracing(ray_tracing_base):
         ----------
         medium: medium class
             class describing the index-of-refraction profile
-        
+
         attenuation_model: string
             signal attenuation model
-        
+
         log_name:  string
             name under which things should be logged
-        
+
         log_level: logging object
             specify the log level of the ray tracing class
 
@@ -1836,15 +1836,15 @@ class ray_tracing(ray_tracing_base):
             * logging.DEBUG
 
             default is WARNING
-        
+
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-        
+
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
-        
+
         config: dict
             a dictionary with the optional config settings. If None, the config is intialized with default values,
             which is needed to avoid any "key not available" errors. The default settings are
@@ -1856,16 +1856,17 @@ class ray_tracing(ray_tracing_base):
                 * self._config['propagation']['birefringence'] = False
 
         detector: detector object
-        
+
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
-            
+
         use_cpp: bool
             if True, use CPP implementation of minimization routines
             default: True if CPP version is available
-            
+
         """
-        self.__logger = setup_logger('NuRadioMC.ray_tracing_analytic', log_level)
+        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_analytic')
+        self.__logger.setLevel(log_level)
 
         from NuRadioMC.utilities.medium_base import IceModelSimple
         if not isinstance(medium, IceModelSimple):
@@ -1880,7 +1881,7 @@ class ray_tracing(ray_tracing_base):
                          config=config,
                          detector=detector)
         self.set_config(config=config)
-        
+
         self.use_cpp = use_cpp
         if use_cpp:
             self.__logger.debug(f"using CPP version of ray tracer")
@@ -2021,7 +2022,7 @@ class ray_tracing(ray_tracing_base):
     def get_effective_index_birefringence(self, direction, nx, ny, nz):
 
         """
-        Function to find the analytical solutions for the effective refractive indices. 
+        Function to find the analytical solutions for the effective refractive indices.
         The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
 
         Parameters
@@ -2045,21 +2046,21 @@ class ray_tracing(ray_tracing_base):
         sy = direction[1]
         sz = direction[2]
 
-        n1 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) / 
-                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2)) 
-                      - np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2) 
-                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2) 
-                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2)) 
-                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) 
-                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2) 
+        n1 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) /
+                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2))
+                      - np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2)
+                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2)
+                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2))
+                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2)
+                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2)
                                                                     + ny ** 2 * ( - 1 + sz ** 2))) ** 2)))
-        n2 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) / 
-                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2)) 
-                      + np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2) 
-                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2) 
-                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2)) 
-                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) 
-                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2) 
+        n2 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) /
+                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2))
+                      + np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2)
+                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2)
+                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2))
+                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2)
+                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2)
                                                                     + ny ** 2 * ( - 1 + sz ** 2))) ** 2)))
 
         return np.array([n1, n2])
@@ -2123,7 +2124,7 @@ class ray_tracing(ray_tracing_base):
         efield : np.ndarray of shape (2, 3)
             normalized e-field vector in spherical coordinates for both birefringence solutions
         """
-        
+
         narrow_check = 1e-9
         wide_check = 1e-10
 
@@ -2133,7 +2134,7 @@ class ray_tracing(ray_tracing_base):
                 self.__logger.warning("warning: Polarization vectors not computable")
                 sky_polarization_1 = np.array([0, 0, 0])
                 sky_polarization_2 = np.array([0, 0, 0])
-            
+
             elif np.isclose(N1, nx, rtol=0, atol=wide_check):
 
                 if direction[0] < 0:
@@ -2145,7 +2146,7 @@ class ray_tracing(ray_tracing_base):
                     sky_polarization_2 = np.array([0, 1, 0])
 
             elif np.isclose(N1, ny, rtol=0, atol=narrow_check):
-                
+
                 if direction[1] < 0:
                     sky_polarization_1 = np.array([0, 0, 1])
                     sky_polarization_2 = np.array([0, 1, 0])
@@ -2191,12 +2192,12 @@ class ray_tracing(ray_tracing_base):
             sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
 
         return np.vstack((sky_polarization_1, sky_polarization_2))
-    
+
     def on_sky_birefringence(self, theta, phi, polarization):
 
         """
         Function for the normalized e-field vector from cartesian to spherical coordinates.
-        The function does the same as the following radiotool functions, only faster:             
+        The function does the same as the following radiotool functions, only faster:
         from radiotools import coordinatesystems
         cs = coordinatesystems.cstrafo(theta, phi)
         sky = cs.transform_from_ground_to_onsky(p)
@@ -2216,16 +2217,16 @@ class ray_tracing(ray_tracing_base):
             normalized e-field vector in spherical coordinates
         """
 
-        transform = np.array([  [np.sin(theta) * np.cos(phi) , np.sin(theta) * np.sin(phi)   , np.cos(theta)    ], 
-                                [np.cos(theta) * np.cos(phi) , np.cos(theta) * np.sin(phi)   , - np.sin(theta)  ], 
+        transform = np.array([  [np.sin(theta) * np.cos(phi) , np.sin(theta) * np.sin(phi)   , np.cos(theta)    ],
+                                [np.cos(theta) * np.cos(phi) , np.cos(theta) * np.sin(phi)   , - np.sin(theta)  ],
                                 [- np.sin(phi)               , np.cos(phi)                   , 0                ]       ])
 
         return transform.dot(polarization)
 
     def get_pulse_propagation_birefringence(self, pulse, samp_rate, i_solution, bire_model = 'southpole_A'):
-        
+
         """
-        Function for the time trace propagation according to the polarization change due to birefringence. 
+        Function for the time trace propagation according to the polarization change due to birefringence.
         The trace propagation is explained in this paper: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
 
         Parameters
@@ -2269,7 +2270,7 @@ class ray_tracing(ray_tracing_base):
             refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
 
             nx, ny, nz = refractive_index + refractive_index_birefringence - 1.78
-            dD = path[i + 1] - path[i]     
+            dD = path[i + 1] - path[i]
 
             direction = np.array(dD)
             len_diff = np.linalg.norm(direction)
@@ -2289,17 +2290,17 @@ class ray_tracing(ray_tracing_base):
 
             R = np.matrix([[a, b], [c, d]])
 
-            birefringent_base = R * pulse[1:] 
+            birefringent_base = R * pulse[1:]
 
             t_fast.set_frequency_spectrum(birefringent_base[1], sampling_rate=samp_rate)
             t_fast.apply_time_shift(t_1 - t_0)
             birefringent_base[1] = t_fast.get_frequency_spectrum()
-            
+
             Rtransp = np.matrix.transpose(R)
             pulse[1:]  = Rtransp * birefringent_base
 
         return pulse
-    
+
     def get_path_properties_birefringence(self, i_solution, bire_model = 'southpole_A'):
 
         """
@@ -2320,7 +2321,7 @@ class ray_tracing(ray_tracing_base):
 
         path_properties: dict
             a dictionary containing the following keys:
-            
+
             * 'path': np.ndarray - propagation path in x, y, z with the same granularity as the nirefringent propagation
             * 'nominal_refractive_index': np.ndarray - nominal refractive index if only density effects were taken into account
             * 'refractive_index_x': np.ndarray - refractive index for the x-direction
@@ -2341,7 +2342,7 @@ class ray_tracing(ray_tracing_base):
 
         acc = int(self.get_path_length(i_solution) / units.m)
         path = self.get_path(i_solution, n_points=acc)
-        
+
         if 'angle_to_iceflow' in self._config['propagation']:
             rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
             rot = np.matrix([[np.cos(rotation_angle), -np.sin(rotation_angle)], [np.sin(rotation_angle), np.cos(rotation_angle)]])
@@ -2368,7 +2369,7 @@ class ray_tracing(ray_tracing_base):
             refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
 
             nx, ny, nz = refractive_index + refractive_index_birefringence - 1.78
-            dD = path[i + 1] - path[i]   
+            dD = path[i + 1] - path[i]
 
             direction = np.array(dD)
             len_diff = np.linalg.norm(direction)
@@ -2717,7 +2718,7 @@ class ray_tracing(ray_tracing_base):
                 n2 = self._medium.get_index_of_refraction(self._X2)  # receiver
             f =  focusing * (n1 / n2) ** 0.5
 
-        # for ice-to-air transmission, the fresnel amplitude coefficients include an impedance factor 
+        # for ice-to-air transmission, the fresnel amplitude coefficients include an impedance factor
         # as well as a correction for the focusing for a plane wave. We have already included these
         # in the focusing factor f, so we should correct for this:
         if recPos[-1] > 0: # receiver in air
@@ -2779,7 +2780,7 @@ class ray_tracing(ray_tracing_base):
         s_rate = efield.get_sampling_rate()
         spec = efield.get_frequency_spectrum()
 
-        
+
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
             if self._max_detector_frequency is None:
@@ -2818,7 +2819,7 @@ class ray_tracing(ray_tracing_base):
                     zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                 efield[efp.reflection_coefficient_theta] = r_theta
                 efield[efp.reflection_coefficient_phi] = r_phi
-    
+
                 spec[1] *= r_theta
                 spec[2] *= r_phi
                 self.__logger.info(
@@ -2840,7 +2841,7 @@ class ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
             spec[1:] *= focusing
-        
+
         # apply the birefringence effect
         if self._config['propagation']['birefringence']:
             bire_model = self._config['propagation']['birefringence_model']
@@ -2854,7 +2855,7 @@ class ray_tracing(ray_tracing_base):
                 radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
                 radiopropa_rays.set_start_and_end_point(self._X1, self._X2)
                 spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate) #, bire_model = bire_model --> has to be implemented
-                
+
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
 
@@ -2874,7 +2875,7 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
             self._config['propagation']['birefringence'] = False
-            
+
 
         else:
             self._config = config
