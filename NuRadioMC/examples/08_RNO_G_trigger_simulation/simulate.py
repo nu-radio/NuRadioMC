@@ -15,6 +15,9 @@ from NuRadioReco.utilities import units, signal_processing
 
 from NuRadioReco.detector.RNO_G import rnog_detector
 
+import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.channelGenericNoiseAdder
+
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
 
@@ -22,8 +25,8 @@ import logging
 logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
 logger.setLevel(logging.INFO)
 
-import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.channelGenericNoiseAdder
+
+deep_trigger_channels = np.array([0, 1, 2, 3])
 
 
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -31,6 +34,130 @@ channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelG
 channelGenericNoiseAdder.begin(
     scale_parameter_dir=os.path.join(os.path.dirname(__file__), "data_driven_noise_files")
 )
+
+rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
+rnogHarwareResponse.begin(trigger_channels=deep_trigger_channels)
+
+
+highLowThreshold = highLowThreshold.triggerSimulator()
+rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
+rnogADCResponse.begin(clock_offset=0.0, adc_output="counts")
+
+
+def detector_simulation_with_data_driven_noise(evt, station, det, trigger_channels=None):
+    """ Run the detector simulation with data-driven noise.
+
+    This function is a wrapper around the detector simulation that adds data-driven noise to the channels.
+    It performs the following steps:
+    - efieldToVoltageConverter: Convert the electric fields to voltages
+    - rnogHarwareResponse: Apply the hardware response (for RADIANT and FLOWER channels)
+    - channelGenericNoiseAdder: Add data-driven noise to the channels
+
+    Parameters
+    ----------
+    evt : NuRadioMC.framework.event.Event
+        The event to simulate the detector response for.
+    station : NuRadioMC.framework.station.Station
+        The station to simulate the detector response for.
+    det : NuRadioReco.detector.RNO_G.rnog_detector.Detector
+        The detector description.
+    trigger_channels : list, optional
+        The extra trigger channels (FLOWER) to simulate. If not given only the RADIANT channels are simulated.
+    """
+
+    efieldToVoltageConverter.run(evt, station, det)
+    rnogHarwareResponse.begin(trigger_channels=trigger_channels)  # this function does nothing else than setting the trigger channels
+    rnogHarwareResponse.run(evt, station, det, sim_to_data=True)
+
+    for channel in station.iter_channels():
+        channel_id = channel.get_id()
+        noise_spec = channelGenericNoiseAdder.bandlimited_noise(
+            min_freq=10 * units.MHz, max_freq=1000 * units.MHz,
+            n_samples=channel.get_number_of_samples(), sampling_rate=channel.get_sampling_rate(),
+            amplitude=None, type='data-driven', time_domain=False,
+            station_id=station.get_id(), channel_id=channel_id)
+
+        channel.set_frequency_spectrum(
+            channel.get_frequency_spectrum() + noise_spec, "same")
+        if trigger_channels is not None and channel_id in trigger_channels:
+            trigger_noise_spec = noise_spec * get_response_conversion(det, station.get_id(), channel_id)(channel.get_frequencies())
+            trigger_channel = channel.get_trigger_channel()
+            trigger_channel.set_frequency_spectrum(
+                trigger_channel.get_frequency_spectrum() + trigger_noise_spec, "same")
+
+
+def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_channels, trigger_channel_noise_vrms, high_low_trigger_thresholds):
+    """ Run the RNO-G FLOWER board high-low trigger simulations.
+
+    This function runs the RNO-G FLOWER board high-low trigger simulations. It performs the following steps:
+    - rnogADCResponse: Digitize the traces and run the FLOWER board response
+    - highLowThreshold: Apply the high-low trigger thresholds
+
+    Parameters
+    ----------
+    evt : NuRadioMC.framework.event.Event
+        The event to simulate the detector response for.
+    station : NuRadioMC.framework.station.Station
+        The station to simulate the detector response for.
+    det : NuRadioReco.detector.RNO_G.rnog_detector.Detector
+        The detector description.
+    trigger_channels : list
+        The trigger channels (FLOWER) to simulate.
+    trigger_channel_noise_vrms : list
+        The noise vrms for the trigger channels.
+    high_low_trigger_thresholds : dict
+        The high-low trigger thresholds for the different trigger rates.
+
+    Returns
+    -------
+    list
+        The noise vrms after the gain for the trigger channels.
+    """
+    # Runs the FLOWER board response
+    vrms_after_gain = rnogADCResponse.run(
+        evt, station, det, trigger_channels=trigger_channels,
+        vrms=trigger_channel_noise_vrms, digitize_trace=True,
+    )
+
+    for idx, trigger_channel in enumerate(trigger_channels):
+        logger.debug(
+            'Vrms = {:.2f} mV / {:.2f} mV (after gain).'.format(
+                trigger_channel_noise_vrms[idx] / units.mV, vrms_after_gain[idx] / units.mV
+            ))
+
+    # this is only returning the correct value if digitize_trace=True for self.rnogADCResponse.run(..)
+    flower_sampling_rate = station.get_trigger_channel(trigger_channels[0]).get_sampling_rate()
+    logger.debug('Flower sampling rate is {:.1f} MHz'.format(
+        flower_sampling_rate / units.MHz
+    ))
+
+    for thresh_key, threshold in high_low_trigger_thresholds.items():
+
+        if rnogADCResponse.adc_output == "voltage":
+            threshold_high = {channel_id: threshold * vrms for channel_id, vrms
+                in zip(trigger_channels, vrms_after_gain)}
+            threshold_low = {channel_id: -1 * threshold * vrms for channel_id, vrms
+                in zip(trigger_channels, vrms_after_gain)}
+        else:
+            # We round here. This is not how an ADC works but I think this is not needed here.
+            threshold_high = {channel_id: int(round(threshold * vrms)) for channel_id, vrms
+                in zip(trigger_channels, vrms_after_gain)}
+            threshold_low = {channel_id: int(round(-1 * threshold * vrms)) for channel_id, vrms
+                in zip(trigger_channels, vrms_after_gain)}
+
+        highLowThreshold.run(
+            evt, station, det,
+            threshold_high=threshold_high,
+            threshold_low=threshold_low,
+            use_digitization=False, #the trace has already been digitized with the rnogADCResponse
+            high_low_window=6 / flower_sampling_rate,
+            coinc_window=20 / flower_sampling_rate,
+            number_concidences=2,
+            triggered_channels=trigger_channels,
+            trigger_name=f"deep_high_low_{thresh_key}",
+        )
+
+    return vrms_after_gain
 
 
 @functools.lru_cache(maxsize=128)  # this is dangerous if the detector changes it will not notice it!
@@ -107,123 +234,43 @@ def RNO_G_HighLow_Thresh(lgRate_per_hz):
     return (-859 + np.sqrt(39392706 - 3602500 * lgRate_per_hz)) / 1441.0
 
 
-class mySimulation(simulation.simulation):
-
-    def __init__(self, *args, trigger_channel_noise_vrms=None, **kwargs):
-        # this module is needed in super().__init__ to calculate the vrms
-        self.rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
-        self.rnogHarwareResponse.begin(trigger_channels=kwargs['trigger_channels'])
-
-        # Read config to get noise type
-        tmp_config = simulation.get_config(kwargs["config_file"])
-        if tmp_config["noise_type"] == "data-driven":
-            logger.info("Using data-driven noise")
-            self._detector_simulation_part2 = self.detector_simulation_with_data_driven_noise
-
-        self.logger = logger
-        self.deep_trigger_channels = kwargs['trigger_channels']
-
-        super().__init__(*args, **kwargs)
-
-        self.highLowThreshold = highLowThreshold.triggerSimulator()
-        self.rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
-        self.rnogADCResponse.begin(
-            clock_offset=0.0, adc_output="counts")
-
-        self.output_mode = {'Channels': self._config['output']['channel_traces'],
-                            'ElectricFields': self._config['output']['electric_field_traces'],
-                            'SimChannels': self._config['output']['sim_channel_traces'],
-                            'SimElectricFields': self._config['output']['sim_electric_field_traces']}
-
-        self.high_low_trigger_thresholds = {
-            "10mHz": RNO_G_HighLow_Thresh(-2),
-            "100mHz": RNO_G_HighLow_Thresh(-1),
-            "1Hz": RNO_G_HighLow_Thresh(0),
-            "3Hz": RNO_G_HighLow_Thresh(np.log10(3)),
-        }
-
-        assert trigger_channel_noise_vrms is not None, "Please provide the trigger channel noise vrms"
-        self.trigger_channel_noise_vrms = trigger_channel_noise_vrms
-
-    def _detector_simulation_filter_amp(self, evt, station, det):
-        # apply the amplifiers and filters to get to RADIANT-level
-        self.rnogHarwareResponse.run(evt, station, det, sim_to_data=True)
-
-    def _detector_simulation_trigger(self, evt, station, det):
-
-        # Runs the FLOWER board response
-        vrms_after_gain = self.rnogADCResponse.run(
-            evt, station, det, trigger_channels=self.deep_trigger_channels,
-            vrms=self.trigger_channel_noise_vrms, digitize_trace=True,
-        )
-
-        for idx, trigger_channel in enumerate(self.deep_trigger_channels):
-            self.logger.debug(
-                'Vrms = {:.2f} mV / {:.2f} mV (after gain).'.format(
-                    self.trigger_channel_noise_vrms[idx] / units.mV, vrms_after_gain[idx] / units.mV
-                ))
-            self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
-
-        # this is only returning the correct value if digitize_trace=True for self.rnogADCResponse.run(..)
-        flower_sampling_rate = station.get_trigger_channel(self.deep_trigger_channels[0]).get_sampling_rate()
-        self.logger.debug('Flower sampling rate is {:.1f} MHz'.format(
-            flower_sampling_rate / units.MHz
-        ))
-
-        for thresh_key, threshold in self.high_low_trigger_thresholds.items():
-
-            if self.rnogADCResponse.adc_output == "voltage":
-                threshold_high = {channel_id: threshold * vrms for channel_id, vrms
-                    in zip(self.deep_trigger_channels, vrms_after_gain)}
-                threshold_low = {channel_id: -1 * threshold * vrms for channel_id, vrms
-                    in zip(self.deep_trigger_channels, vrms_after_gain)}
-            else:
-                # We round here. This is not how an ADC works but I think this is not needed here.
-                threshold_high = {channel_id: int(round(threshold * vrms)) for channel_id, vrms
-                    in zip(self.deep_trigger_channels, vrms_after_gain)}
-                threshold_low = {channel_id: int(round(-1 * threshold * vrms)) for channel_id, vrms
-                    in zip(self.deep_trigger_channels, vrms_after_gain)}
-
-            self.highLowThreshold.run(
-                evt, station, det,
-                threshold_high=threshold_high,
-                threshold_low=threshold_low,
-                use_digitization=False, #the trace has already been digitized with the rnogADCResponse
-                high_low_window=6 / flower_sampling_rate,
-                coinc_window=20 / flower_sampling_rate,
-                number_concidences=2,
-                triggered_channels=self.deep_trigger_channels,
-                trigger_name=f"deep_high_low_{thresh_key}",
-            )
-
-    def detector_simulation_with_data_driven_noise(self, evt, station, det):
-
-        # convolve efield with antenna pattern and add cable delay
-        # (this is also done in the efieldToVoltageConverter
-        # (unlike the efieldToVoltageConverterPEREFIELD))
-        efieldToVoltageConverter.run(evt, station, det)
-
-        self._detector_simulation_filter_amp(evt, station, det)
-
-        if self._config["noise"]:
-            for channel in station.iter_channels():
-                channel_id = channel.get_id()
-                noise_spec = channelGenericNoiseAdder.bandlimited_noise(
-                    min_freq=10 * units.MHz, max_freq=1000 * units.MHz,
-                    n_samples=channel.get_number_of_samples(), sampling_rate=channel.get_sampling_rate(),
-                    amplitude=None, type='data-driven', time_domain=False,
-                    station_id=station.get_id(), channel_id=channel_id)
-
-                channel.set_frequency_spectrum(
-                    channel.get_frequency_spectrum() + noise_spec, "same")
-
-                if channel_id in self.deep_trigger_channels:
-                    trigger_noise_spec = noise_spec * get_response_conversion(det, station.get_id(), channel_id)(channel.get_frequencies())
-                    trigger_channel = channel.get_trigger_channel()
-                    trigger_channel.set_frequency_spectrum(
-                        trigger_channel.get_frequency_spectrum() + trigger_noise_spec, "same")
-
 if __name__ == "__main__":
+
+    class mySimulation(simulation.simulation):
+
+        def __init__(self, *args, trigger_channel_noise_vrms=None, **kwargs):
+
+            # Read config to get noise type
+            tmp_config = simulation.get_config(kwargs["config_file"])
+            if tmp_config["noise_type"] == "data-driven" and tmp_config["noise"]:
+                logger.info("Using data-driven noise")
+                self._detector_simulation_part2 = detector_simulation_with_data_driven_noise
+
+            super().__init__(*args, **kwargs)
+
+            self.deep_trigger_channels = kwargs['trigger_channels']
+
+            self.high_low_trigger_thresholds = {
+                "10mHz": RNO_G_HighLow_Thresh(-2),
+                "100mHz": RNO_G_HighLow_Thresh(-1),
+                "1Hz": RNO_G_HighLow_Thresh(0),
+                "3Hz": RNO_G_HighLow_Thresh(np.log10(3)),
+            }
+
+            assert trigger_channel_noise_vrms is not None, "Please provide the trigger channel noise vrms"
+            self.trigger_channel_noise_vrms = trigger_channel_noise_vrms
+
+        def _detector_simulation_filter_amp(self, evt, station, det):
+            # apply the amplifiers and filters to get to RADIANT-level
+            rnogHarwareResponse.run(evt, station, det, sim_to_data=True)
+
+        def _detector_simulation_trigger(self, evt, station, det):
+            vrms_after_gain = rnog_flower_board_high_low_trigger_simulations(
+                evt, station, det, self.deep_trigger_channels, self.trigger_channel_noise_vrms, self.high_low_trigger_thresholds
+            )
+            for idx, trigger_channel in enumerate(self.deep_trigger_channels):
+                self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
+
 
     ABS_PATH_HERE = str(os.path.dirname(os.path.realpath(__file__)))
     def_data_dir = os.path.join(ABS_PATH_HERE, "data")
@@ -252,7 +299,6 @@ if __name__ == "__main__":
     assert args.station_id is not None, "Please specify a station id with `--station_id`"
 
     root_seed = secrets.randbits(128)
-    deep_trigger_channels = np.array([0, 1, 2, 3])
 
     det = rnog_detector.Detector(
         detector_file=args.detectordescription, log_level=logging.INFO,
