@@ -108,7 +108,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
 
             for field in station.get_electric_fields():
                 field_pos = field.get_position()
-                if field_pos[2] < 0:
+                if field_pos[2] < -0.01:
                     logger.warning(
                         f"ElectricField {field.get_unique_identifier()} has field position {field_pos} below the surface."
                         f"This is not yet supported, as ice properties are not implemented in this module.")
