@@ -3,7 +3,7 @@ from timeit import default_timer as timer
 import NuRadioReco.framework.event
 import NuRadioReco.framework.base_station
 import NuRadioReco.detector.detector as detectors
-from NuRadioReco.modules.io.coreas.readFAERIEShower import FAERIEDetector
+from NuRadioReco.examples.faerie.detector import FAERIEDetector
 import inspect
 import pickle
 

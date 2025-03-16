@@ -4,25 +4,22 @@ from NuRadioReco.modules import (
 import NuRadioReco.modules.io.coreas.readFAERIEShower
 import NuRadioReco.modules.io.eventWriter
 
-import NuRadioReco.modules.trigger.highLowThreshold
-
-import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
-import NuRadioReco.modules.RNO_G.triggerBoardResponse
-
-from NuRadioReco.framework.base_trace import BaseTrace
-
 from NuRadioReco.detector import detector
 from NuRadioReco.utilities import units, signal_processing
 
 from NuRadioReco.framework.parameters import showerParameters as shp
 
-import argparse
+from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import \
+    detector_simulation_with_data_driven_noise, rnog_flower_board_high_low_trigger_simulations
+
+from .detector import FAERIEDetector
+
 from matplotlib import pyplot as plt
-import sys
-import numpy as np
 from collections import defaultdict
 import datetime as dt
+import numpy as np
 import logging
+import argparse
 
 
 def plot_traces(event):
@@ -87,7 +84,7 @@ readFAERIEShower.begin(
     args.inputfilename, logger_level=logging.INFO
 )
 
-det = NuRadioReco.modules.io.coreas.readFAERIEShower.FAERIEDetector()
+det = FAERIEDetector()
 
 data = defaultdict(list)
 
@@ -111,17 +108,13 @@ for edx, event in enumerate(readFAERIEShower.run(depth=args.depth)):
                   f"Zenith: {shower.get_parameter(shp.zenith) / units.deg}, "
                   f"Azimuth: {shower.get_parameter(shp.azimuth) / units.deg}")
 
-        efield_converter.run(event, station, det)
-
-
-        # Sanity checks for the moment
+        # Temporary sanity checks - to apply the correct noise and filter the event
+        # can only have 4 channels with IDs [0, 1, 2, 3] (and they should be at the
+        # correct depths)
         assert det.get_channel_ids(station.get_id()).tolist() == [0, 1, 2, 3], "Expected channels [0, 1, 2, 3]"
-        channel_depths = np.array([det.get_relative_position(station.get_id(), channel_id)[2] for channel_id in det.get_channel_ids(station.get_id())])
+        channel_depths = np.array([det.get_relative_position(
+            station.get_id(), channel_id)[2] for channel_id in det.get_channel_ids(station.get_id())])
         assert np.argsort(channel_depths).tolist() == [0, 1, 2, 3], "Expected channels to be sorted by depth"
-
-
-
-        print(f"Number of channels: {len(station.get_channel_ids())}")
 
         if args.add_noise:
             # The noise amplitude corresponds rougthly to 300K within a bandwidth of 950 MHz
@@ -133,14 +126,8 @@ for edx, event in enumerate(readFAERIEShower.run(depth=args.depth)):
                 type='rayleigh',
                 bandwidth=950 * units.MHz)
 
-        # # cuts and padds the channel and sim channel traces to the exact same window
-        # cut_channel_trace_to_sim_trace(station)
-
-        # channelResampler.run(event, station, None, sampling_rate=0.472 * units.GHz)
-        # channelResampler.run(event, sim_station, None, sampling_rate=0.472 * units.GHz)
 
         if args.plot_traces:
             plot_traces(event)
-            sys.exit()
 
     eventWriter.run(event, mode=mode)
