@@ -120,10 +120,13 @@ def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_ch
     )
 
     for idx, trigger_channel in enumerate(trigger_channels):
-        logger.debug(
-            'Vrms = {:.2f} mV / {:.2f} mV (after gain).'.format(
-                trigger_channel_noise_vrms[idx] / units.mV, vrms_after_gain[idx] / units.mV
-            ))
+        if trigger_channel_noise_vrms is not None:
+            logger.debug(
+                'Vrms = {:.2f} mV / {:.2f} mV (after gain).'.format(
+                    trigger_channel_noise_vrms[idx] / units.mV, vrms_after_gain[idx] / units.mV
+                ))
+        else:
+            logger.debug('Vrms = {:.2f} mV (after gain).'.format(vrms_after_gain[idx] / units.mV))
 
     # this is only returning the correct value if digitize_trace=True for self.rnogADCResponse.run(..)
     flower_sampling_rate = station.get_trigger_channel(trigger_channels[0]).get_sampling_rate()
@@ -172,7 +175,7 @@ def get_response_conversion(det, station_id, channel_id):
     flower_coax = flower_channel.get("coax_cable")
 
     conversion = flower * flower_coax / (radiant * radiant_coax)
-    print(conversion)
+
     return conversion
 
 
