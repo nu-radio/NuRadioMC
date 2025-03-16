@@ -243,6 +243,21 @@ class ModDetector(Detector):
             station_id, channel_id, with_position=True)
         channel_info["channel_position"]['position'] = list(value)
 
+    def set_device_position(self, station_id, device_id, value):
+        """
+        Set the relative position of a device.
+
+        Parameters
+        ----------
+        station_id: int
+            The station id
+        device_id: int
+            The device id
+        value: array/list of float
+            The relative position of the channel
+        """
+        self.modify_station_description(station_id, ["devices", device_id, "device_position", "position"],
+                                        list(value))
 
 if __name__ == "__main__":
 
