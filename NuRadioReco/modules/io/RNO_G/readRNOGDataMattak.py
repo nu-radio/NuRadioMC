@@ -14,7 +14,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.trigger
-import NuRadioReco.framework.parameters
+from NuRadioReco.framework.parameters import channelParameters
 
 from NuRadioReco.utilities import units
 import mattak.Dataset
@@ -214,8 +214,8 @@ class readRNOGData:
                                         "Runs can not be filtered.")
                 except ImportError:
                     self.logger.warn(
-                        "import run_table failed. You can still use readRNOGData, but runs can not be filtered. "
-                        "To install the run table, run\n\n"
+                        "\nImport `from rnog_data.runtable import RunTable` failed. You can still use readRNOGData, "
+                        "but runs can not be filtered. To install the run table, run:\n\n"
                         "\tpip install git+ssh://git@github.com/RNO-G/rnog-runtable.git\n"
                     )
             else:
@@ -248,7 +248,8 @@ class readRNOGData:
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
             overwrite_sampling_rate=None,
-            max_in_mem=256):
+            max_in_mem=256,
+            use_fallback_time=True):
         """
         Parameters
         ----------
@@ -323,6 +324,10 @@ class readRNOGData:
             Set the maximum number of events that can be stored in memory. The datareader will divide
             the data in batches based on this number.
             NOTE: This is only relevant for the mattak uproot backend
+        use_fallback_time: bool
+            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time. 
+            Otherwise, the event will be skipped in the case of infinite trigger times.  
+            (Default=True)
         """
         t0 = time.time()
 
@@ -349,6 +354,8 @@ class readRNOGData:
 
         # set max wavform array size that can be loaded in memory
         self._max_in_mem = max_in_mem
+
+        self._use_fallback_time = use_fallback_time
 
         # Set parameter for run selection
         self.__max_trigger_rate = max_trigger_rate
@@ -391,7 +398,7 @@ class readRNOGData:
         self.__n_runs = 0
 
         # Set verbose for mattak
-        verbose = mattak_kwargs.pop("verbose", self.logger.level >= logging.DEBUG)
+        verbose = mattak_kwargs.pop("verbose", self.logger.level <= logging.DEBUG)
 
         for dir_file in dirs_files:
 
@@ -741,9 +748,10 @@ class readRNOGData:
             Returns True if all information valid, false otherwise
         """
 
-        if math.isinf(event_info.triggerTime):
+        if math.isinf(event_info.triggerTime) and not self._use_fallback_time:
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                                     "has inf trigger time. Skip event...")
+                              "has inf trigger time. Event is skipped ..."
+                              f"You can avoid this by setting 'use_fallback_time' in the begin() method.")
             self.__invalid += 1
             return False
 
@@ -775,8 +783,14 @@ class readRNOGData:
 
         evt: NuRadioReco.framework.event
         """
+        # use the readout time if the trigger time is infinity
+        if self._use_fallback_time and math.isinf(event_info.triggerTime):
+            self.logger.warning(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                                 "has inf trigger time, readout time will be used instead.")
+            trigger_time = event_info.readoutTime
+        else:
+            trigger_time = event_info.triggerTime
 
-        trigger_time = event_info.triggerTime
         # only overwrite sampling rate if the stored value is invalid
         if self._overwrite_sampling_rate is not None and event_info.sampleRate in [0, None]:
             sampling_rate = self._overwrite_sampling_rate
@@ -799,6 +813,7 @@ class readRNOGData:
         readout_delays = event_info.readoutDelay
         for channel_id, wf in enumerate(waveforms):
             channel = NuRadioReco.framework.channel.Channel(channel_id)
+
             if self._read_calibrated_data:
                 channel.set_trace(wf * units.V, sampling_rate * units.GHz)
             else:
@@ -812,7 +827,7 @@ class readRNOGData:
             time_offset = get_time_offset(event_info.triggerType) + readout_delays[channel_id]
             channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
             if block_offsets is not None:
-                channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, block_offsets.T[channel_id])
+                channel.set_parameter(channelParameters.block_offsets, block_offsets.T[channel_id])
 
             station.add_channel(channel)
 
@@ -838,12 +853,13 @@ class readRNOGData:
             dataset.setEntries((0, dataset.N()))
 
             # read all event infos of the entire dataset (= run)
-            for evtinfo, wf in dataset.iterate(calibrated=self._read_calibrated_data,
-                                               selectors=self._select_events,
-                                               max_entries_in_mem=self._max_in_mem):
+            for evtinfo, wf in dataset.iterate(
+                    calibrated=self._read_calibrated_data, selectors=self._select_events,
+                    max_entries_in_mem=self._max_in_mem):
 
+                t0 = time.time()
                 evt = self._get_event(evtinfo, wf)
-
+                self._time_run += time.time() - t0
                 yield evt
 
 
@@ -936,14 +952,13 @@ class readRNOGData:
 
         return evt
 
-
     def end(self):
         if self.__counter:
             self.logger.info(
                 f"\n\tRead {self.__counter} events ({self.__skipped} events are skipped (filtered), {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-                f"\n\tTime to read all events       : {self._time_run:.2f}s"
-                f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
+                f"\n\tTime to read all events       : {self._time_run:.4f}s"
+                f"\n\tTime to per event             : {self._time_run / self.__counter:.4f}s"
                 f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
         else:
             self.logger.warning(
@@ -951,6 +966,8 @@ class readRNOGData:
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
 
+    def get_n_events(self):
+        return self._n_events_total
 
 ### we create a wrapper for readRNOGData to mirror the interface of the .nur reader
 class _readRNOGData_eventbrowser(readRNOGData):
@@ -981,9 +998,6 @@ class _readRNOGData_eventbrowser(readRNOGData):
     @lru_cache(maxsize=1)
     def get_event(self, event_id):
         return super().get_event(*event_id)
-
-    def get_n_events(self):
-        return self._n_events_total
 
     def get_detector(self):
         """Not implemented in mattak reader"""
