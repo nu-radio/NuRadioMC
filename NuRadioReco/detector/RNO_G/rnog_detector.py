@@ -312,12 +312,13 @@ class Detector():
             self.additional_data = import_dict.get("additional_data", None)
             self.comment = import_dict.get("comment", None)
 
-            # need to convert station/channel id keys back to integers
+            # need to convert station/channel/device id keys back to integers
             for station_id, station_data in import_dict["data"].items():
                 if self.selected_stations is not None and int(station_id) not in self.selected_stations:
                     continue
 
                 station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
+                station_data["devices"] = {int(device_id): device_data for device_id, device_data in station_data["devices"].items()}
                 self.__buffered_stations[int(station_id)] = station_data
 
             # need to convert modification_timestamps back to datetime objects
