@@ -1,23 +1,21 @@
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.sim_station
-from NuRadioReco.framework.parameters import showerParameters as shp, electricFieldParameters as efp
+
+from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.utilities import medium
 
-from matplotlib import pyplot as plt
-
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
-from radiotools import coordinatesystems, helper as hp
+from radiotools import helper as hp
 
-import h5py
+from matplotlib import pyplot as plt
 import numpy as np
 import time
-import re
+import h5py
 import os
-import copy
-import json
 
 import logging
 logger = logging.getLogger('readFAERIEShower')
@@ -66,7 +64,7 @@ class readFAERIEShower:
                         n_frequencies_integration=25,
                         n_reflections=0, use_cpp=False)  # use_ccp has to be False to have air-ice tracing
 
-
+    @register_run()
     def run(self, depth=None):
         """
         Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.
