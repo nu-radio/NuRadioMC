@@ -151,7 +151,7 @@ class channelBlockOffsets:
                 trace = channel.get_trace()
 
                 if mode == "median":
-                    block_offsets = calculate_block_offsets(
+                    block_offsets = _calculate_block_offsets(
                         trace, block_size=self.block_size, func=np.median
                     )
                 else:
@@ -358,7 +358,7 @@ def fit_block_offsets(
     return block_offsets
 
 
-def calculate_block_offsets(traces, block_size=128, func=np.median, return_trace=False):
+def _calculate_block_offsets(traces, block_size=128, func=np.median, return_trace=False):
     """
     Simple baseline correction function.
 

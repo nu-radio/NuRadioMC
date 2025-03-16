@@ -9,7 +9,7 @@ from inspect import signature
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import \
-    channelBlockOffsets, fit_block_offsets, calculate_block_offsets
+    channelBlockOffsets, fit_block_offsets, _calculate_block_offsets
 
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
@@ -628,7 +628,7 @@ class readRNOGData:
                         wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
 
                 if apply_baseline_correction == 'median':
-                    wfs = calculate_block_offsets(wfs)
+                    wfs = _calculate_block_offsets(wfs)
                 elif apply_baseline_correction in ['auto', 'fit', 'approximate']:
                     wfs = np.vstack([
                         fit_block_offsets(
