@@ -29,11 +29,14 @@ which are defined using the latter convention.
 """
 
 import numpy as np
+import functools
 
+
+@functools.lru_cache(maxsize=1024)
 def freqs(num_samples, sampling_rate):
     """
     Returns frequency bins for FFT.
-  
+
     Parameters
     ----------
     num_samples: int
@@ -47,6 +50,7 @@ def freqs(num_samples, sampling_rate):
         Frequency binning
     """
     return np.fft.rfftfreq(num_samples, d = 1 / sampling_rate)
+
 
 def time2freq(trace, sampling_rate):
     """

@@ -39,8 +39,32 @@ def save(file, array):
     file.write(array.data)
 
 def pack(array):
-    size=len(array.shape)
-    return bytes(array.dtype.byteorder.replace('=','<' if sys.byteorder == 'little' else '>')+array.dtype.kind,'utf-8')+array.dtype.itemsize.to_bytes(1,byteorder='little')+struct.pack(f'<B{size}I',size,*array.shape)+array.data
+    """
+    Convert a numpy array to a storable bytes object
+
+    Parameters
+    ----------
+    array : np.ndarray
+        The numpy array to store.
+
+    Returns
+    -------
+    output_bytes : bytes
+        The bytes
+
+    """
+    # Only contiguous arrays can be stored directly as bytes
+    contiguous_array = np.ascontiguousarray(array)
+
+    size = len(contiguous_array.shape)
+    output_bytes = (
+        bytes(
+            contiguous_array.dtype.byteorder.replace('=', '<' if sys.byteorder == 'little' else '>')
+            + contiguous_array.dtype.kind,'utf-8')
+        + contiguous_array.dtype.itemsize.to_bytes(1, byteorder='little')
+        + struct.pack(f'<B{size}I', size, *contiguous_array.shape)
+        + contiguous_array.data)
+    return output_bytes
 
 def load(file):
     if type(file) == str:
