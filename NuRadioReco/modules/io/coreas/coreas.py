@@ -217,7 +217,7 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
 
     obs_positions = np.array([hp.rotate_vector_in_2d(obs_pos, -declination) for obs_pos in obs_positions])
 
-    return obs_positions
+    return np.squeeze(obs_positions)
 
 # READER FUNCTIONS
 def read_CORSIKA7(input_file, declination=None, site=None):
