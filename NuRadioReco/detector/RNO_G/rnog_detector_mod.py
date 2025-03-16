@@ -241,7 +241,7 @@ class ModDetector(Detector):
         """
         channel_info = self._Detector__get_channel(
             station_id, channel_id, with_position=True)
-        channel_info["channel_position"]['position'] = np.asarray(value)
+        channel_info["channel_position"]['position'] = list(value)
 
 
 if __name__ == "__main__":
