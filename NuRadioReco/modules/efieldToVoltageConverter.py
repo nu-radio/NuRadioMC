@@ -2,6 +2,7 @@ import numpy as np
 import time
 import logging
 import copy
+import functools
 
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.base_trace
@@ -31,15 +32,17 @@ class efieldToVoltageConverter():
         self.__debug = None
         self.__pre_pulse_time = None
         self.__post_pulse_time = None
-
-        self.antenna_provider = None
+        self.__antenna_provider = None
+        
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
         self.logger.setLevel(log_level)
         self.begin()
 
 
     def begin(self, debug=False, uncertainty=None, time_resolution=None,
-              pre_pulse_time=200 * units.ns, post_pulse_time=400 * units.ns):
+              pre_pulse_time=200 * units.ns, post_pulse_time=400 * units.ns,
+              caching=True
+              ):
         """
         Begin method, sets general parameters of module
 
@@ -57,17 +60,21 @@ class efieldToVoltageConverter():
                 specify value as relative difference of linear gain
              * 'amp': statistical uncertainty of the amplifier aplification,
                 specify value as relative difference of linear gain
-
+        time_resolution: float
+            Deprecated.
         pre_pulse_time: float
             length of empty samples that is added before the first pulse
         post_pulse_time: float
             length of empty samples that is added after the simulated trace
+        caching: bool
+            enable/disable caching of antenna response to save loading times (default: True)
         """
 
         if time_resolution is not None:
             self.logger.warning("`time_resolution` is deprecated and will be removed in the future. "
                                 "The argument is ignored.")
-
+        self.__caching = caching
+        self.__freqs = None
         self.__debug = debug
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
@@ -82,7 +89,23 @@ class efieldToVoltageConverter():
             for iCh in self.__uncertainty['sys_amp']:
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
 
-        self.antenna_provider = antennapattern.AntennaPatternProvider()
+        self.__antenna_provider = antennapattern.AntennaPatternProvider()
+
+    @property
+    def antenna_provider(self):
+        self.logger.warning("Deprecation warning: `antenna_provider` is deprecated.")
+        return self.__antenna_provider
+
+    @functools.lru_cache(maxsize=1024)
+    def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
+        """
+        Returns the cached antenna reponse for a given antenna pattern, antenna orientation
+        and signal arrival direction. This wrapper is necessary as arrays and list are not
+        hashable (i.e., can not be used as arguments in functions one wants to cache).
+        This module ensures that the cache is clearied if the vector `self.__freqs` changes.
+        """
+        return ant_pattern.get_antenna_response_vectorized(self.__freqs, zen, azi, *ant_orient)
+
 
     @register_run()
     def run(self, evt, station, det, channel_ids=None):
@@ -106,7 +129,7 @@ class efieldToVoltageConverter():
                 cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                 t0 = electric_field.get_trace_start_time() + cab_delay
 
-                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
+                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account 
                 if sim_station.is_cosmic_ray():
                     travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
                     t0 += travel_time_shift
@@ -133,7 +156,6 @@ class efieldToVoltageConverter():
 
         # Add post_pulse_time as long as we reach the minimum required trace length
         while times_max - times_min < max_channel_trace_lenght:
-            print("adding post_pulse_time")
             times_max += self.__post_pulse_time
 
         # assumes that all electric fields have the same sampling rate
@@ -180,7 +202,6 @@ class efieldToVoltageConverter():
                             det, sim_station, electric_field, channel_id)
                     else:
                         travel_time_shift = 0
-
                     start_time = electric_field.get_trace_start_time() - times_min + cab_delay + travel_time_shift
                     start_bin = int(round(start_time / time_resolution))
 
@@ -210,7 +231,7 @@ class efieldToVoltageConverter():
                         start_bin = 0
 
                     new_trace[:, start_bin:stop_bin] = tr
-
+                
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
 
@@ -226,9 +247,38 @@ class efieldToVoltageConverter():
                 zenith = electric_field[efp.zenith]
                 azimuth = electric_field[efp.azimuth]
 
-                # get antenna pattern for current channel
-                VEL = trace_utilities.get_efield_antenna_factor(
-                    sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
+                # If we cache the antenna pattern, we need to make sure that the frequencies have not changed
+                # between stations. If they have, we need to clear the cache.
+                if self.__caching:
+                    if self.__freqs is None:
+                        self.__freqs = ff
+                    else:
+                        if len(self.__freqs) != len(ff):
+                            self.__freqs = ff
+                            self._get_cached_antenna_response.cache_clear()
+                            self.logger.warning(
+                                "Frequencies have changed (array length). Clearing antenna response cache. "
+                                "(If this happens often, something might be wrong...")
+                        elif not np.allclose(self.__freqs, ff, rtol=0, atol=0.01 * units.MHz):
+                            self.__freqs = ff
+                            self._get_cached_antenna_response.cache_clear()
+                            self.logger.warning(
+                                "Frequencies have changed (values). Clearing antenna response cache. "
+                                "(If this happens often, something might be wrong...")
+
+
+                if self.__caching:
+                    zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(det, sim_station, channel_id, zenith)
+                    antenna_model = det.get_antenna_model(sim_station.get_id(), channel_id, zenith_antenna)
+                    antenna_pattern = self.__antenna_provider.load_antenna_pattern(antenna_model)
+                    ant_orient = det.get_antenna_orientation(sim_station.get_id(), channel_id)
+
+                    vel_tmp = self._get_cached_antenna_response(antenna_pattern, zenith_antenna, azimuth, *ant_orient)
+                    VEL = [np.array([vel_tmp['theta'] * t_theta, vel_tmp['phi'] * t_phi])]
+                else:
+                    # get antenna pattern for current channel
+                    VEL = trace_utilities.get_efield_antenna_factor(
+                        sim_station, ff, [channel_id], det, zenith, azimuth, self.__antenna_provider)
 
                 if VEL is None:  # this can happen if there is not signal path to the antenna
                     voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros
@@ -278,7 +328,6 @@ class efieldToVoltageConverter():
         dt = timedelta(seconds=self.__t)
         self.logger.info("total time used by this module is {}".format(dt))
         return dt
-
 
 def calculate_time_shift_for_cosmic_ray(det, station, efield, channel_id):
     """
