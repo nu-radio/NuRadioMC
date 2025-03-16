@@ -201,10 +201,13 @@ class ModDetector(Detector):
             The name of the component to be added
         """
 
+        if time_delay < 0.0:
+            raise ValueError("Expect positive additional delay; use 'weight = -1' to implement a negative delay.")
+        
         sampling_rate = self.get_sampling_frequency(station_id, channel_id)
 
         # number of samples a trace would have with a length at least that of the time delay
-        n_samples = int(time_delay * 1.5 * sampling_rate)
+        n_samples = int(time_delay * 2.0 * sampling_rate) + 1
         freqs = fft.freqs(n_samples, sampling_rate)
 
         # pseudo data
@@ -214,8 +217,8 @@ class ModDetector(Detector):
         component = {
             'weight': weight,
             'y_unit': ['mag', 'rad'],
-            'y': [mag, phase],
-            'frequency': freqs,
+            'y': [list(mag), list(phase)],
+            'frequency': list(freqs),
             'name': name,
             'time_delay': time_delay
         }
