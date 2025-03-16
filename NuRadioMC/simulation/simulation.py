@@ -1607,7 +1607,7 @@ class simulation:
                 # we loop through all non-trigger channels and simulate the electric fields for all showers.
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
-                if len(non_trigger_channels):
+                if len(non_trigger_channels)>0 and self._outputfilenameNuRadioReco is not None:
                     logger.status(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
@@ -1759,7 +1759,7 @@ class simulation:
 
     def _add_empty_channel(self, station, channel_id):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
-        trigger = station.get_primary_trigger()
+        trigger = station.get_first_trigger()
         channel = NuRadioReco.modules.channelReadoutWindowCutter.get_empty_channel(
             station.get_id(), channel_id, self._det, trigger, self._config['sampling_rate'])
 

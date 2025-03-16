@@ -58,12 +58,12 @@ class triggerSimulator(phasedArray):
             imag_an = np.convolve(coh_sum, hil, mode='full')[len(hil)//2 : len(coh_sum) + len(hil)//2]
 
             if adc_output=='counts':
-                imag_an = np.round(imag_an)
+                imag_an = np.rint(imag_an)
 
             envelope = np.max(np.array((coh_sum,imag_an)), axis=0) + (3 / 8) * np.min(np.array((coh_sum,imag_an)), axis=0)
 
         if adc_output=='counts':
-            envelope = np.round(envelope)
+            envelope = np.rint(envelope)
 
         return envelope
 
@@ -249,7 +249,7 @@ class triggerSimulator(phasedArray):
                     trigger_delays[iTrace][channel_id] = beam_rolls[iTrace][channel_id] * time_step
                 triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(hilbert_env > threshold)))
                 is_triggered = True
-                trigger_times[iTrace] = trigger_delays[iTrace][trigger_channels[0]] + triggered_bins * time_step + channel_trace_start_time
+                trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * time_step + channel_trace_start_time
 
             triggered_beams.append(is_triggered)
 

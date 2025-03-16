@@ -221,12 +221,15 @@ class hardwareResponseIncorporator:
                 # zero first bins to avoid DC offset
                 trig_trace_fft[0] = 0
 
-                # Add trigger channel
-                trig_channel = copy.deepcopy(channel)
-                trig_channel.set_frequency_spectrum(
-                    trig_trace_fft, channel.get_sampling_rate())
+                # Check if already has trigger channel, otherwise make a new one.
+                if channel.has_extra_trigger_channel():
+                    channel.get_trigger_channel().set_frequency_spectrum(trig_trace_fft, channel.get_sampling_rate())
+                else:
+                    trig_channel = copy.deepcopy(channel)
+                    trig_channel.set_frequency_spectrum(
+                        trig_trace_fft, channel.get_sampling_rate())
+                    channel.set_trigger_channel(trig_channel)
 
-                channel.set_trigger_channel(trig_channel)
                 has_trigger_channels = True
 
             trace_fft *= filter

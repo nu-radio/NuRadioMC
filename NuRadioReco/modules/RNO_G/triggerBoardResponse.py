@@ -23,6 +23,7 @@ powerTriggerKwargs={
                 "upsampling_factor": 4,
                 "upsampling_method": "fir",
                 "window": 24,
+                "averaging_divisor": 32,
                 "step": 8,
                 "saturation_bits": 8,
                 "filter_taps":45,

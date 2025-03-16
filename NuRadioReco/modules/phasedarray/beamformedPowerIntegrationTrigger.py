@@ -9,7 +9,7 @@ import scipy
 import numpy as np
 from scipy import constants
 from scipy.signal import hilbert
-
+import matplotlib.pyplot as plt
 logger = logging.getLogger('phasedTriggerSimulator')
 
 cspeed = constants.c * units.m / units.s
@@ -29,7 +29,7 @@ class triggerSimulator(phasedArray):
     See https://arxiv.org/pdf/1809.04573.pdf
     """
 
-    def power_sum(self, coh_sum, window, step, adc_output='voltage'):
+    def power_sum(self, coh_sum, window, step, averaging_divisor=None, adc_output='voltage'):
         """
         Calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'
 
@@ -56,6 +56,10 @@ class triggerSimulator(phasedArray):
             Number of integration windows calculated
 
         """
+        
+        # If not specified, the divisor is the same as the summation window.
+        if averaging_divisor is None:
+            averaging_divisor=window
 
         if(adc_output != 'voltage' and adc_output != 'counts'):
             error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
@@ -69,7 +73,7 @@ class triggerSimulator(phasedArray):
                                                            (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
 
         power = np.sum(coh_sum_windowed, axis=1)
-        return_power=power.astype(float) / window
+        return_power=power.astype(float) / averaging_divisor
 
         if adc_output=='counts': return_power = np.round(return_power)
 
@@ -87,6 +91,7 @@ class triggerSimulator(phasedArray):
                        trigger_filter=None,
                        upsampling_factor=1,
                        window=32,
+                       averaging_divisor=None,
                        step=16,
                        apply_digitization=False,
                        upsampling_method='fft',
@@ -138,7 +143,10 @@ class triggerSimulator(phasedArray):
             sampling frequency int_factor times higher than the original one
             after conversion to digital
         window: int (default 32)
-            Power integral window
+            Power integration window for averaging
+            Units of ADC time ticks
+        averaging_divisor: int (default 32)
+            Power integral divisor for averaging (division by 2^n much easier in firmware)
             Units of ADC time ticks
         step: int (default 16)
             Time step in power integral. If equal to window, there is no time overlap
@@ -254,7 +262,7 @@ class triggerSimulator(phasedArray):
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered=False
 
-            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
+            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, averaging_divisor=averaging_divisor, adc_output=adc_output)
             maximum_amps[iTrace] = np.max(squared_mean)
 
             if True in (squared_mean > threshold):
@@ -269,7 +277,7 @@ class triggerSimulator(phasedArray):
                 logger.debug(trigger_delays)
                 logger.debug(f"trigger_delays {trigger_delays[iTrace][trigger_channels[0]]}")
                 is_triggered = True
-                trigger_times[iTrace] = trigger_delays[iTrace][trigger_channels[0]] + triggered_bins * step * time_step + channel_trace_start_time
+                trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * step * time_step + channel_trace_start_time
                 logger.debug(f"trigger times  = {trigger_times[iTrace]}")
 
             triggered_beams.append(is_triggered)
@@ -299,6 +307,7 @@ class triggerSimulator(phasedArray):
             trigger_filter=None,
             upsampling_factor=1,
             window=32,
+            averaging_divisor=None,
             step=16,
             apply_digitization=True,
             upsampling_method='fft',
@@ -360,7 +369,10 @@ class triggerSimulator(phasedArray):
             sampling frequency int_factor times higher than the original one
             after conversion to digital
         window: int (default 32)
-            Power integral window
+            Power integration window for averaging
+            Units of ADC time ticks
+        averaging_divisor: int (default 32)
+            Power integral divisor for averaging (division by 2^n much easier in firmware)
             Units of ADC time ticks
         step: int (default 16)
             Time step in power integral. If equal to window, there is no time overlap
@@ -420,6 +432,7 @@ class triggerSimulator(phasedArray):
                                                                                     trigger_filter=trigger_filter,
                                                                                     upsampling_factor=upsampling_factor,
                                                                                     window=window,
+                                                                                    averaging_divisor=averaging_divisor,
                                                                                     step=step,
                                                                                     apply_digitization=apply_digitization,
                                                                                     upsampling_method=upsampling_method,
