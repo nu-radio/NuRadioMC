@@ -10,6 +10,7 @@ from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import \
     detector_simulation_with_data_driven_noise, rnog_flower_board_high_low_trigger_simulations
 
 import NuRadioReco.modules.channelReadoutWindowCutter
+import NuRadioReco.modules.channelResampler
 
 from NuRadioReco.examples.faerie.detector import FAERIEDetector
 
@@ -78,6 +79,9 @@ thresholds = {
 channelReadoutWindowCutter = NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter()
 channelReadoutWindowCutter.begin()
 
+channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+channelResampler.begin()
+
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 if args.output_file is not None:
     outputfilename = args.output_file
@@ -132,6 +136,7 @@ for edx, event in enumerate(readFAERIEShower.run(depth=args.depth, station_id=ar
             high_low_trigger_thresholds=thresholds)
 
         channelReadoutWindowCutter.run(event, station, det)
+        channelResampler.run(event, station, det)
 
         if args.plot_traces:
             plot_traces(event)
