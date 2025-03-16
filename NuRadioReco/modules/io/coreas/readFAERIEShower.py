@@ -65,7 +65,7 @@ class readFAERIEShower:
                         n_reflections=0, use_cpp=False)  # use_ccp has to be False to have air-ice tracing
 
     @register_run()
-    def run(self, depth=None):
+    def run(self, depth=None, station_id=0):
         """
         Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.
         """
@@ -136,10 +136,10 @@ class readFAERIEShower:
                 logger.warning("No in-ice emission found in hdf5 file")
 
             # Intentionally an empty sim station is created (and not created via coreas.create_sim_station)
-            sim_station = NuRadioReco.framework.sim_station.SimStation(0)  # set sim station id to 0
+            sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)  # set sim station id to 0
             sim_station.set_is_neutrino() # HACK: Since the sim. efields are always at the exact positions as the antenna(channels).
 
-            station = NuRadioReco.framework.station.Station(0)
+            station = NuRadioReco.framework.station.Station(station_id)
             station.set_sim_station(sim_station)
             evt.set_station(station)
 
